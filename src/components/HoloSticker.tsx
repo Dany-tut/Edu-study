@@ -282,7 +282,7 @@ export default function HoloSticker({
       <div
         style={{
           position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
-          pointerEvents: 'none', opacity: live || !fallbackReady ? 0 : 1, transition: 'opacity 200ms ease',
+          pointerEvents: 'none', opacity: live || !fallbackReady ? 0 : 1, transition: 'opacity 0.22s ease',
         }}
       >
         <StickerBadge score={score} label={label} sublabel={sublabel} stickerId={stickerId} emblem={emblem} size={Math.round(size * FALLBACK_SCALE)} />

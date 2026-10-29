@@ -86,7 +86,7 @@ export default function ScheduleCarousel() {
       className="relative"
       initial={false}
       animate={{ height: stripHeight }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
     >
       {/* Cards */}
       <div

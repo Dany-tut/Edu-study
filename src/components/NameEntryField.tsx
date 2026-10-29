@@ -24,7 +24,7 @@ export default function NameEntryField({ value, onChange, onSubmit, accent }: {
       <User size={16} style={{
         position: 'absolute', left: 14, top: '50%',
         transform: `translate(${value ? -10 : 0}px, -50%)`, opacity: value ? 0 : 1,
-        transition: 'transform 0.22s ease, opacity 0.18s ease',
+        transition: 'transform 0.22s ease, opacity 0.15s ease',
         color: 'var(--color-text-3)', pointerEvents: 'none', zIndex: 1,
       }} />
       <input
@@ -71,7 +71,7 @@ export default function NameEntryField({ value, onChange, onSubmit, accent }: {
               : 'transform 0.2s ease, border-radius 0.2s ease, opacity 0.16s ease, background 0.12s ease',
           }}
         >
-          <ArrowRight size={18} style={{ transform: ready ? 'translateX(0)' : 'translateX(-4px)', transition: 'transform 0.3s ease' }} />
+          <ArrowRight size={18} style={{ transform: ready ? 'translateX(0)' : 'translateX(-4px)', transition: 'transform 0.38s ease' }} />
         </button>
       </div>
     </div>

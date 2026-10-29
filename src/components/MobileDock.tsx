@@ -74,8 +74,8 @@ function collapseTransition(collapsed: boolean) {
 // же корпус, иначе в ряду стоят две разные «стекляшки».
 export const glassBase: CSSProperties = {
   background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-  backdropFilter: 'blur(28px) saturate(200%)',
-  WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+  backdropFilter: 'var(--blur-solid)',
+  WebkitBackdropFilter: 'var(--blur-solid)',
   border: '1px solid var(--color-border-glass)',
   // Без своего белого inset: --shadow-pill уже несёт подсветку края под тему
   // (в тёмной — 0.10 вместо 0.5), иначе чипсы фильтров стоят в резком контуре.
@@ -231,8 +231,8 @@ export function DockSegment<T extends string | number>({
         onScroll={sync}
         className="no-scrollbar"
         style={{
-          display: 'flex', alignItems: 'center', gap: 3,
-          padding: 3,
+          display: 'flex', alignItems: 'center', gap: 4,
+          padding: 4,
           overflowX: 'auto',
           maskImage: mask, WebkitMaskImage: mask,
         }}
@@ -249,7 +249,7 @@ export function DockSegment<T extends string | number>({
               style={{
                 // 40 + паддинг оболочки 3+3 = 46 — вровень с кругами DockCircle:
                 // таблетка на 40px стояла в ряду заметно ниже соседей.
-                flexShrink: 0, height: 40, padding: '0 15px', borderRadius: 999,
+                flexShrink: 0, height: 40, padding: '0 16px', borderRadius: 999,
                 border: 'none', cursor: active ? 'default' : 'pointer',
                 // Длинное название режется многоточием, а не растягивает чипсу
                 // на всю таблетку: «Немецкий с нуля — A1 → B1, живой» съедал ряд

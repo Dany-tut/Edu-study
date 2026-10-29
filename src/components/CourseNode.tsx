@@ -180,9 +180,9 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
                 : '0 2px 8px rgba(0,0,0,0.06)',
         }}
         transition={{
-          boxShadow: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+          boxShadow: { duration: 0.38, ease: [0.22, 1, 0.36, 1] },
           scale: { type: 'spring', stiffness: 320, damping: 22 },
-          opacity: { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: index * 0.04 },
+          opacity: { duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.04 },
         }}
         className={cn('season-node absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done', displayStatus === 'locked' && 'season-node-locked')}
         style={{

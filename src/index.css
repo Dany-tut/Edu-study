@@ -6,13 +6,7 @@
   /* Маячок «стили доехали»: main.tsx читает его после первого кадра. Если
      переменной нет — таблица стилей не применилась (см. lib/cssGuard.ts). */
   --css-ok: 1;
-  --statusline-height: 56px;
-  --radius-card: 24px;
-  --radius-large: 32px;
   --radius-pill: 999px;
-  --space-card: 24px;
-  --space-large: 32px;
-  --space-capsule-x: 40px;
 
   /* ── Core palette ─────────────────────────────────────── */
   --color-bg: #F5F5F6;
@@ -46,6 +40,13 @@
   --glass-fill: 0.78;        /* навигация, док, круги фильтров, стеклянные кнопки */
   --glass-fill-top: 0.82;    /* верхняя хромировка: колокольчик и верхние таблетки */
   --glass-fill-strong: 0.92; /* центральная таблетка — под ней текст обязан читаться */
+  /* Размытие стекла — три уровня вместо двадцати чисел (круг 3). Тонкое — мелкие
+     плашки поверх картинки; стекло — карточки, панели, таблетки; плотное —
+     док, шторки, меню. Затемнение под окном (blur 4px) — отдельно, MODAL_BACKDROP.
+     В тёмной теме всё стекло, кроме затемнения, сводится к 20px (ниже). */
+  --blur-thin: blur(10px) saturate(140%);
+  --blur-glass: blur(16px) saturate(180%);
+  --blur-solid: blur(24px) saturate(180%);
   --skeleton-sweep: rgba(255,255,255,0.6);
 
   /* Spoiler dot color (RGB triplet for rgba()) */
@@ -54,13 +55,13 @@
   /* ── Text scale ───────────────────────────────────────── */
   --color-text: #0B0B0D;
   --color-text-2: #3A3A40;
-  --color-muted: #6F6F76;
+  --color-muted: var(--color-text-3); /* двойник text-3 (в светлой разница 1 %) */
   --color-text-3: #717178;
   --color-text-4: #C2C2C8;
   --color-text-5: #B5B5BC;
 
   /* ── Borders ──────────────────────────────────────────── */
-  --color-border: rgba(0,0,0,0.07);
+  --color-border: var(--color-border-medium); /* было .07 — шаг в 1 % от medium */
   --color-border-soft: rgba(0,0,0,0.06);
   --color-border-medium: rgba(0,0,0,0.08);
   --color-border-strong: rgba(0,0,0,0.10);
@@ -70,13 +71,11 @@
   --color-green: #6EE7A0;
   --color-green-soft: #DFF8D6;
   --color-green-border: rgba(26,122,63,0.50);
-  --color-yellow: #F8EF8C;
   --color-yellow-soft: #FFF9CC;
   --color-yellow-border: rgba(180,130,0,0.40);
   --color-red: #F48B91;
   --color-red-soft: #FFE1E4;
   --color-red-border: rgba(185,28,28,0.35);
-  --color-peach: #F8C991;
   --color-peach-soft: #FFE4BD;
   /* ── Янтарь статуса «почти дотянул» ────────────────────────
      Отдельно от --color-yellow-*: тот подобран как ЦВЕТ ТЕКСТА (#7A6500 /
@@ -89,10 +88,6 @@
      ней даёт 3.0:1 — на грани даже для крупного текста, поэтому здесь тон
      темнее; в тёмной теме роли меняются местами (см. переопределение ниже). */
   --color-amber-text: #A0530A;
-  --reminder-card-medium: rgba(255,160,20,0.14);
-  --reminder-card-high: rgba(230,80,90,0.12);
-  --reminder-card-medium-border: rgba(255,170,30,0.35);
-  --reminder-card-high-border: rgba(210,70,80,0.28);
   /* ── Заливки под белым текстом/галочкой ──────────────────────
      Палитра *-text и *-pill-text подобрана как ЦВЕТ ТЕКСТА на тёмном фоне,
      поэтому она яркая: --color-green-text #4ADE80 под белой галочкой даёт
@@ -106,7 +101,7 @@
   --color-teal-fill: #10786E;
   --color-blue-fill: #1F5FBF;
 
-  --color-purple: #9C8CF0;
+  --color-purple: var(--color-accent); /* двойник акцента */
   /* Заливка чекбокса/радио. Отдельно от --color-purple: тот светлый, потому что
      работает как ЦВЕТ ТЕКСТА и подложек, а под белой галочкой давал контраст
      2.2:1. Здесь наоборот — фон под белым, поэтому темнее (5.9:1). */
@@ -196,13 +191,19 @@
   --shadow-sm-page:  0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95);
   --shadow-md:       0 6px 18px rgba(21,18,31,0.10), inset 0 1px 1px rgba(255,255,255,0.65);
   --shadow-lg:       inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14);
+  /* Тени — пять ступеней (дизайн-система, круг 3). У каждой тёмная пара:
+     сырые rgba(0,0,0,.05) в тёмной теме не видны вовсе. */
+  --shadow-1: 0 1px 4px rgba(21,18,31,0.08);
+  --shadow-2: 0 3px 14px rgba(21,18,31,0.07);
+  --shadow-3: 0 6px 22px rgba(21,18,31,0.10);
+  --shadow-4: 0 12px 40px rgba(21,18,31,0.14);
+  --shadow-5: 0 24px 68px rgba(21,18,31,0.20);
   --shadow-inset:    inset 0 1px 0 rgba(255,255,255,0.75);
   --shadow-modal-sm: 0 14px 36px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.8);
   --shadow-modal:    0 24px 72px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,1);
   --shadow-modal-lg: 0 24px 64px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,1);
   --shadow-sidebar:  inset 0 1px 1px rgba(255,255,255,0.9), 0 12px 40px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
   --shadow-bar:      inset 0 1px 1px rgba(255,255,255,0.8), 0 6px 24px rgba(21,18,31,0.08), 0 2px 6px rgba(21,18,31,0.04);
-  --shadow-bar-hi:   inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 24px rgba(21,18,31,0.10), 0 2px 6px rgba(21,18,31,0.05);
   --shadow-dropdown: inset 0 1px 0 rgba(255,255,255,0.85), 0 12px 40px rgba(0,0,0,0.10);
   --shadow-tab-pill: inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 8px rgba(0,0,0,0.06);
   /* Active segmented-tab pill — subtle accent tint so it never blends into the track */
@@ -250,7 +251,7 @@
 
   --color-text: #F0F0F2;
   --color-text-2: #C2C2C8;
-  --color-muted: #9C9CA6;
+  --color-muted: var(--color-text-3);
   --color-text-3: #8C8C95;
   --color-text-4: #3A3A40;
   --color-text-5: #5A5A62;
@@ -284,10 +285,6 @@
   --color-accent-soft: rgba(124,108,224,0.22);
   --color-rose-soft: rgba(204,75,123,0.22);
   /* Reminder card backgrounds — higher opacity for readability */
-  --reminder-card-medium: rgba(255,160,20,0.14);
-  --reminder-card-high: rgba(220,60,70,0.14);
-  --reminder-card-medium-border: rgba(255,170,30,0.38);
-  --reminder-card-high-border: rgba(240,80,90,0.30);
   --color-rose-text: #FF80B0;
 
   /* ── Semantic text-on-soft-bg colors (dark overrides) ────── */
@@ -308,7 +305,7 @@
   --color-pill-active-bg: var(--color-bg-5);
   --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.30);
 
-  --color-purple: #B3A6F7;
+  --color-purple: var(--color-accent);
   /* Тёмная тема: чуть светлее светлотемного варианта, иначе квадрат тонет в
      фоне карточки, но всё ещё 5.2:1 под белой галочкой. */
   --color-control-accent: #6B5FC0;
@@ -329,13 +326,17 @@
   --shadow-sm-page:  inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 28px rgba(0,0,0,0.45);
   --shadow-md:       inset 0 1px 0 rgba(255,255,255,0.09), 0 10px 36px rgba(0,0,0,0.50), 0 3px 10px rgba(0,0,0,0.25);
   --shadow-lg:       inset 0 1px 0 rgba(255,255,255,0.10), 0 16px 48px rgba(0,0,0,0.60), 0 4px 14px rgba(0,0,0,0.30);
+  --shadow-1: 0 1px 4px rgba(0,0,0,0.40);
+  --shadow-2: 0 4px 16px rgba(0,0,0,0.40);
+  --shadow-3: 0 8px 26px rgba(0,0,0,0.50);
+  --shadow-4: 0 14px 44px rgba(0,0,0,0.55);
+  --shadow-5: 0 26px 72px rgba(0,0,0,0.65);
   --shadow-inset:    inset 0 1px 0 rgba(255,255,255,0.08);
   --shadow-modal-sm: inset 0 1px 0 rgba(255,255,255,0.10), 0 14px 40px rgba(0,0,0,0.55);
   --shadow-modal:    inset 0 1px 0 rgba(255,255,255,0.12), 0 28px 80px rgba(0,0,0,0.65), 0 8px 24px rgba(0,0,0,0.35);
   --shadow-modal-lg: inset 0 1px 0 rgba(255,255,255,0.12), 0 28px 72px rgba(0,0,0,0.65), 0 8px 24px rgba(0,0,0,0.35);
   --shadow-sidebar:  inset 0 1px 0 rgba(255,255,255,0.08), 0 16px 50px rgba(0,0,0,0.50), 0 3px 8px rgba(0,0,0,0.20);
   --shadow-bar:      inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 28px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.20);
-  --shadow-bar-hi:   inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 32px rgba(0,0,0,0.50), 0 2px 8px rgba(0,0,0,0.22);
   --shadow-dropdown: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 48px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.25);
   --shadow-tab-pill: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 10px rgba(0,0,0,0.35);
   /* Stronger tint in dark so the active pill lifts off the near-black track */
@@ -356,8 +357,10 @@
 
 /* Upgrade all backdrop-filter surfaces in dark mode to use saturate —
    this is what turns a blurry dark box into actual tinted glass */
-[data-theme="dark"] [style*="backdrop-filter"],
-[data-theme="dark"] [style*="backdropFilter"] {
+/* Затемнение под окнами (blur 4px, MODAL_BACKDROP) не раздуваем до 20 px:
+   иначе в тёмной теме фон под окном превращается в кашу. */
+[data-theme="dark"] [style*="backdrop-filter"]:not([style*="blur(4px)"]),
+[data-theme="dark"] [style*="backdropFilter"]:not([style*="blur(4px)"]) {
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
 }
@@ -1093,3 +1096,31 @@ input::-webkit-textfield-decoration-container {
    ручных onMouseEnter с разными фонами (bg, bg-2, bg-3, bg-5). */
 .hover-row { transition: background 0.15s ease; }
 .hover-row:hover { background: var(--color-bg-3); }
+
+/* ─── Ползунок — один стиль (дизайн-система, круг 3) ──────────────────────────
+   Системный ползунок синий и в каждой ОС свой (доска, пометки на ответе рисовали
+   именно его). Дорожка 4 px капсулой --color-bg-5, бегунок 18 белый с тенью;
+   в Firefox ещё и заливка пройденного градиентом. Громкость видео — своя,
+   белая поверх видео (.video-volume), её не трогаем. */
+input[type="range"]:not(.video-volume) {
+  -webkit-appearance: none; appearance: none;
+  height: 18px; background: transparent; cursor: pointer; accent-color: var(--color-control-accent);
+}
+input[type="range"]:not(.video-volume)::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 999px; background: var(--color-bg-5);
+}
+input[type="range"]:not(.video-volume)::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; margin-top: -7px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border-medium);
+}
+input[type="range"]:not(.video-volume)::-moz-range-track {
+  height: 4px; border-radius: 999px; background: var(--color-bg-5);
+}
+input[type="range"]:not(.video-volume)::-moz-range-progress {
+  height: 4px; border-radius: 999px; background: var(--grad-purple);
+}
+input[type="range"]:not(.video-volume)::-moz-range-thumb {
+  width: 18px; height: 18px; border: none; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border-medium);
+}

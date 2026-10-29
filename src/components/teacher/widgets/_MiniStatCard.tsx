@@ -20,8 +20,8 @@ export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, 
     <div aria-busy={loading || undefined} style={{
       width: '100%', height: '100%',
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
@@ -42,7 +42,7 @@ export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, 
       {loading ? (
         <Skeleton w={72} h={32} radius={10} />
       ) : (
-        <div style={{ fontSize: 32, fontWeight: 800, color: dimmed ? 'var(--color-text-3)' : 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.5px' }}>
+        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: dimmed ? 'var(--color-text-3)' : 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.01em' }}>
           {value}
         </div>
       )}
@@ -52,7 +52,7 @@ export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, 
         <div style={{
           fontSize: 11, fontWeight: 600, color: dimmed ? 'var(--color-text-3)' : accentColor,
           background: dimmed ? 'var(--color-bg-4)' : accentBg,
-          borderRadius: 8, padding: '3px 8px', alignSelf: 'flex-start',
+          borderRadius: 8, padding: '4px 8px', alignSelf: 'flex-start',
         }}>
           {sub}
         </div>

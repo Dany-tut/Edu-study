@@ -54,12 +54,12 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', gap: 8,
-      padding: '13px 15px', borderRadius: 18,
+      padding: '12px 16px', borderRadius: 18,
       background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
     }}>
       <div className="flex items-start" style={{ gap: 10 }}>
         <span style={{
-          flexShrink: 0, minWidth: 24, height: 24, padding: '0 7px', borderRadius: 8,
+          flexShrink: 0, minWidth: 24, height: 24, padding: '0 8px', borderRadius: 8,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
           fontSize: 12, fontWeight: 800,
@@ -70,7 +70,7 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
           {bindShortWords(row.prompt)}
         </p>
         <span className="flex items-center" style={{
-          flexShrink: 0, gap: 6, padding: '5px 10px', borderRadius: 999,
+          flexShrink: 0, gap: 6, padding: '6px 10px', borderRadius: 999,
           background: bg, color: fg, fontSize: 12, fontWeight: 700,
         }}>
           <Icon size={13} />
@@ -160,7 +160,7 @@ export default function BasicAnswersList({ payload }: { payload: BasicAnswersPay
           onClick={() => setShowPassed(v => !v)}
           className="flex items-center cursor-pointer"
           style={{
-            alignSelf: 'flex-start', gap: 7, padding: '7px 12px', borderRadius: 12,
+            alignSelf: 'flex-start', gap: 8, padding: '8px 12px', borderRadius: 12,
             border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
             color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
           }}

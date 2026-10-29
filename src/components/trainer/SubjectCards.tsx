@@ -273,8 +273,8 @@ const pill = (accent: string, active: boolean): React.CSSProperties => ({
 })
 
 const backBtn: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
-  padding: '7px 12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+  display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+  padding: '8px 12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
   border: '1px solid var(--color-border-soft)', background: 'transparent',
   color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600,
 }

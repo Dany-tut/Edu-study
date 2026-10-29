@@ -34,7 +34,7 @@ export default function ThemeToggleBtn() {
         paddingRight: 8,
         background: dark ? 'rgba(var(--accent-rgb), 0.16)' : 'transparent',
         color: dark ? 'var(--color-accent)' : 'var(--color-muted)',
-        transition: 'background 0.25s, color 0.25s',
+        transition: 'background 0.22s, color 0.22s',
         flexShrink: 0,
         overflow: 'hidden',
       }}
@@ -59,7 +59,7 @@ export default function ThemeToggleBtn() {
           <motion.span
             key="label"
             initial={{ opacity: 0, maxWidth: 0, marginLeft: 0 }}
-            animate={{ opacity: 1, maxWidth: 68, marginLeft: 5 }}
+            animate={{ opacity: 1, maxWidth: 68, marginLeft: 6 }}
             exit={{ opacity: 0, maxWidth: 0, marginLeft: 0 }}
             transition={{ type: 'spring', stiffness: 340, damping: 30 }}
             style={{

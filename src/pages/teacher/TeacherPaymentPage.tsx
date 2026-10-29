@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import BackCircle from '../../components/BackCircle'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Check, Zap, CreditCard, Send } from 'lucide-react'
+import { Check, Zap, CreditCard, Send } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useT, useLang } from '../../lib/i18n'
 import { PLAN_TIERS, fetchMyPlan, planPrice, type MyPlan, type PlanTier } from '../../lib/plan'
 import { submitFeedback } from '../../lib/feedbackRequests'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 function PlanCard({ tier, current, onRequest, requesting, requested }: {
   tier: PlanTier
@@ -25,12 +27,12 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
       boxShadow: accent ? '0 8px 32px rgba(106,90,230,0.4)' : 'none',
     }}>
       {current && (
-        <div style={{ position: 'absolute', top: 14, right: 14, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>
+        <div style={{ position: 'absolute', top: 14, right: 14, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 8 }}>
           {t('Текущий')}
         </div>
       )}
       <div style={{ fontSize: 13, fontWeight: 700, color: accent ? 'rgba(255,255,255,0.78)' : 'var(--color-text-3)', marginBottom: 8 }}>{t(tier.name)}</div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 3 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
         <span style={{ fontSize: 28, fontWeight: 800, color: accent ? '#fff' : 'var(--color-text)', letterSpacing: '-1px' }}>{tier.priceRub === 0 ? t('Бесплатно') : planPrice(tier, lang)}</span>
         {tier.priceRub > 0 && <span style={{ fontSize: 12, color: accent ? 'rgba(255,255,255,0.6)' : 'var(--color-text-3)' }}>/{t('мес')}</span>}
       </div>
@@ -55,11 +57,11 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
         disabled={current || requesting || requested}
         onClick={onRequest}
         style={{
-          width: '100%', padding: '11px', borderRadius: 12, border: accent ? 'none' : '1px solid var(--color-border-medium)',
+          width: '100%', padding: '12px', borderRadius: 12, border: accent ? 'none' : '1px solid var(--color-border-medium)',
           background: current ? (accent ? 'rgba(255,255,255,0.18)' : 'var(--color-bg-3)') : accent ? 'rgba(255,255,255,0.22)' : 'var(--grad-purple)',
           color: current ? (accent ? 'rgba(255,255,255,0.7)' : 'var(--color-text-3)') : '#fff',
           fontSize: 13, fontWeight: 700, cursor: current || requesting || requested ? 'default' : 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         } as React.CSSProperties}
       >
         {current ? t('Активен')
@@ -93,15 +95,12 @@ export default function TeacherPaymentPage() {
   }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px 60px' }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
+      <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
-          <motion.button whileTap={{ scale: 0.94 }} onClick={() => setActivePage('home')}
-            style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-text-3)', flexShrink: 0 }}>
-            <ArrowLeft size={16} strokeWidth={2} />
-          </motion.button>
+          <BackCircle onClick={() => setActivePage('home')} label="На главную" />
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Тарифы')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Подписка и счета')}</div>

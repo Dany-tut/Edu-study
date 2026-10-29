@@ -110,7 +110,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
           display: 'inline-block', minWidth: 64, margin: '0 4px', padding: '1px 10px',
           borderRadius: 8, textAlign: 'center', fontWeight: 700,
           border: showVerdict
-            ? `1.5px solid ${correct ? '#6EE7A0' : '#F48B91'}`
+            ? `1.5px solid ${correct ? 'var(--color-green-border)' : 'var(--color-red-border)'}`
             : value?.trim() ? '1.5px solid rgba(var(--accent-rgb), 0.38)' : '1.5px dashed var(--color-border-strong)',
           background: showVerdict
             ? (correct ? 'var(--color-green-soft)' : 'var(--color-red-soft)')
@@ -148,12 +148,12 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
           return (
             <div key={i} className="flex" style={{ justifyContent: side ? 'flex-end' : 'flex-start' }}>
               <div style={{
-                maxWidth: '86%', padding: '9px 13px',
+                maxWidth: '86%', padding: '10px 12px',
                 borderRadius: side ? '15px 15px 4px 15px' : '15px 15px 15px 4px',
                 background: side ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                 border: `1px solid ${active ? 'rgba(var(--accent-rgb), 0.45)' : 'var(--color-border-soft)'}`,
               }}>
-                <div className="flex items-center" style={{ gap: 7, marginBottom: 2 }}>
+                <div className="flex items-center" style={{ gap: 8, marginBottom: 2 }}>
                   <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-accent)' }}>
                     {line.speaker}
                   </span>
@@ -161,12 +161,15 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                     onClick={() => { stopSpeech(); speakLine(i) }}
                     aria-label={t('Озвучить реплику')}
                     className="cursor-pointer"
+                    // Как SpeakBtn: круг 32 (было голой иконкой ~17 px — пальцем не попасть).
                     style={{
-                      border: 'none', background: 'transparent', padding: 2, display: 'flex',
+                      border: 'none', width: 32, height: 32, borderRadius: '50%', flexShrink: 0, padding: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: active ? 'var(--color-accent-soft)' : 'var(--color-bg-3)',
                       color: active ? 'var(--color-accent)' : 'var(--color-muted)',
                     }}
                   >
-                    <Volume2 size={14} />
+                    <Volume2 size={16} />
                   </button>
                 </div>
                 <div style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)' }}>
@@ -195,7 +198,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                   }}
                   className="cursor-pointer"
                   style={{
-                    padding: '9px 14px', borderRadius: 12, fontFamily: 'inherit',
+                    padding: '10px 14px', borderRadius: 12, fontFamily: 'inherit',
                     fontSize: 14, fontWeight: 600, lineHeight: 1.3,
                     border: `1.5px solid ${active ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
                     background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
@@ -218,10 +221,10 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
               placeholder={t('Впиши пропущенную реплику…')}
               inputMode={scriptKeyboardCovers(answer) ? 'none' : undefined}
               style={{
-                width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 14,
+                width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
                 fontFamily: 'inherit', fontSize: 14, color: 'var(--color-text)',
                 background: 'var(--color-bg-input)', outline: 'none',
-                border: `1px solid ${showVerdict ? (correct ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                border: `1px solid ${showVerdict ? (correct ? 'var(--color-green-border)' : 'var(--color-red-border)') : 'var(--color-border)'}`,
               }}
             />
             {/* Реплику ждут письмом, которого нет на клавиатуре ученика. */}

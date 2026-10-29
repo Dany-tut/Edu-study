@@ -77,7 +77,7 @@ export function NumberGrid({ sets, results, accent, soft, onOpen }: {
         const res = results(set.id)
         return (
           <Tile key={set.id} accent={accent} onClick={() => onOpen(set.id)}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <TileChip tone="accent" accent={accent} soft={soft}>{t(systemLabel(set.system))}</TileChip>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                 {set.rows.length} {t('форм')}
@@ -139,7 +139,7 @@ function CoreTable({ lang, accent, reading }: { lang: string; accent: string; re
       {CORE_NUMBERS.map(n => (
         <div key={n.digit} style={{
           display: 'grid', gridTemplateColumns: '38px 1fr 1fr', gap: 10, alignItems: 'center',
-          padding: '9px 14px', borderRadius: 16,
+          padding: '10px 14px', borderRadius: 16,
           border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
         }}>
           <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text-3)' }}>{n.digit}</span>
@@ -207,7 +207,7 @@ function NumberRowView({ row, lang, accent, tone, reading }: {
           )}
           <span style={{ fontSize: 14, color: 'var(--color-text-2)', marginLeft: 4 }}>{row.ru}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           {reading && <span style={{ fontSize: 12, color: accent, opacity: 0.9 }}>{row.reading}</span>}
           {row.note && (
             <span style={{ fontSize: 12, color: 'var(--color-muted)', ...proseWrap }}>{row.note}</span>
@@ -417,7 +417,7 @@ export function NumberPage({ set, lang, accent, soft, owner, subjectId, reading,
                 onClick={() => pick(o)}
                 disabled={!!picked}
                 style={{
-                  padding: '13px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
+                  padding: '12px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
                   fontFamily: 'inherit', fontSize: q.kind === 'build' ? 20 : 15, fontWeight: 700, lineHeight: 1.3,
                   border: `1.5px solid ${
                     show && isAnswer ? 'var(--color-green-accent)'

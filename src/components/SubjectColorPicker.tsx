@@ -58,7 +58,7 @@ export default function SubjectColorPicker({
               whileTap={{ scale: 0.99 }}
               onClick={() => { tactile(); const next = open ? null : s.id; setOpenId(next); onOpenChange?.(next) }}
               className="flex items-center justify-between cursor-pointer"
-              style={{ width: '100%', height: 56, padding: '0 15px', background: 'transparent', border: 'none' }}
+              style={{ width: '100%', height: 56, padding: '0 16px', background: 'transparent', border: 'none' }}
               aria-expanded={open}
             >
               <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
@@ -89,7 +89,7 @@ export default function SubjectColorPicker({
                       кнопки на 4px, а раскрывающийся блок обязан держать
                       overflow:hidden ради анимации высоты — при отступе в 2px
                       кольцо у верхнего ряда срезалось. */}
-                  <div style={{ padding: '8px 15px 14px' }}>
+                  <div style={{ padding: '8px 16px 14px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
                       {TINT_SWATCHES.map(hex => {
                         const active = current.toLowerCase() === hex.toLowerCase()
@@ -116,7 +116,7 @@ export default function SubjectColorPicker({
                         onClick={() => { tactile(); onChange(s.id, null) }}
                         className="flex items-center cursor-pointer"
                         style={{
-                          marginTop: 10, gap: 7, height: 34, padding: '0 13px', borderRadius: 999,
+                          marginTop: 10, gap: 8, height: 34, padding: '0 12px', borderRadius: 999,
                           background: 'var(--color-bg-5)', color: 'var(--color-muted)',
                           border: 'none', fontSize: 13, fontWeight: 600,
                         }}

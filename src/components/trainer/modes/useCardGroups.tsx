@@ -253,7 +253,7 @@ export function useCardGroups({
           const pct = st.total ? Math.round((st.learned / st.total) * 100) : 0
           return (
             <Tile key={sub.id} accent={accent} onClick={() => setOpenSubsetId(sub.id)}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <TileChip tone="mute">{sub.cards.length} {t('слов')}</TileChip>
               </span>
               <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>

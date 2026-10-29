@@ -63,7 +63,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
 
   /** Слой внутри пустой таблетки: и призраки вариантов, и само «Выбрать». */
   const pillContent: React.CSSProperties = {
-    gridArea: '1 / 1', display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
+    gridArea: '1 / 1', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
   }
 
   return (
@@ -81,7 +81,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
             {/* Пропусков ровно на один меньше, чем кусков: последний кусок —
                 хвост предложения, и списка за ним нет. */}
             {gap && (
-              <span style={{ position: 'relative', display: 'inline-block', margin: '0 3px' }}>
+              <span style={{ position: 'relative', display: 'inline-block', margin: '0 4px' }}>
                 <button
                   onClick={() => !disabled && setOpen(open === i ? null : i)}
                   disabled={disabled}
@@ -92,14 +92,14 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                     // содержимое прижималось влево, и весь запас уходил в одну
                     // дыру справа от шеврона — короткий вариант («goes») висел
                     // в таблетке боком.
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    padding: '3px 9px', borderRadius: 10,
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '4px 10px', borderRadius: 10,
                     fontFamily: 'inherit', fontSize: 15, fontWeight: 600, lineHeight: 1.5,
                     cursor: disabled ? 'default' : 'pointer', verticalAlign: 'middle',
                     border: `1.5px solid ${
                       ok === null
                         ? (open === i ? 'var(--color-accent)' : chosenText ? 'rgba(var(--accent-rgb), 0.4)' : 'var(--color-border-strong)')
-                        : ok ? '#6EE7A0' : '#F48B91'
+                        : ok ? 'var(--color-green-border)' : 'var(--color-red-border)'
                     }`,
                     background: ok === null
                       ? (chosenText ? 'rgba(var(--glass-rgb), 0.96)' : 'transparent')
@@ -168,7 +168,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                         key={oi}
                         onClick={() => choose(i, oi)}
                         style={{
-                          padding: '7px 10px', borderRadius: 9, border: 'none', textAlign: 'left',
+                          padding: '8px 10px', borderRadius: 9, border: 'none', textAlign: 'left',
                           fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer',
                           background: oi === pickedIdx ? 'var(--color-purple-soft)' : 'transparent',
                           color: 'var(--color-text)',

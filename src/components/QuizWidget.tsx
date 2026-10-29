@@ -35,8 +35,8 @@ const RESULT_DELAY = 1600
 
 const cardStyle: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.92)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
+  backdropFilter: 'var(--blur-solid)',
+  WebkitBackdropFilter: 'var(--blur-solid)',
   border: '1px solid var(--color-border-glass)',
   boxShadow: '0 4px 32px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
 }
@@ -209,7 +209,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
       <div className="flex items-start justify-between gap-4" style={{ marginBottom: compact ? 8 : 0, flexShrink: 0 }}>
         <div className="flex min-w-0 flex-1 flex-col items-start" style={{ gap: compact ? 6 : 8 }}>
           {!compact && (
-            <span style={{ fontSize: 12 * scale, fontWeight: 600, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
+            <span style={{ fontSize: 12 * scale, fontWeight: 600, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '6px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
               {t('Викторина дня')}
             </span>
           )}
@@ -235,8 +235,8 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
 
         {quizState === 'active' && (
           <div className="flex-shrink-0 flex items-center gap-2">
-            <Clock size={16} style={{ color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }} />
-            <span style={{ fontSize: 14, fontWeight: 600, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)', minWidth: 46 }}>
+            <Clock size={16} style={{ color: timerPct < 30 ? 'var(--color-red-text)' : 'var(--color-muted)' }} />
+            <span style={{ fontSize: 14, fontWeight: 600, color: timerPct < 30 ? 'var(--color-red-text)' : 'var(--color-muted)', minWidth: 46 }}>
               {timeLeft} {t('сек')}
             </span>
             <motion.button
@@ -301,7 +301,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                 className="rounded-2xl text-left cursor-pointer"
                 style={{
                   padding: '4px 12px', fontSize: 13, fontWeight: 500,
-                  background: 'var(--color-bg)', color: 'var(--color-text)', border: '1.5px solid var(--color-border)',
+                  background: 'var(--color-bg)', color: 'var(--color-text)', border: '1px solid var(--color-border)',
                   minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', overflow: 'hidden',
                 }}
               >
@@ -332,7 +332,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                   onClick={() => goToQuestion(i)}
                   aria-label={`${t('Вопрос')} ${i + 1}`}
                   className="cursor-pointer"
-                  style={{ width: i === current ? 18 : 7, height: 7, borderRadius: 999, background: dotColor(i), transition: 'width 0.3s ease, background 0.3s ease' }}
+                  style={{ width: i === current ? 18 : 7, height: 7, borderRadius: 999, background: dotColor(i), transition: 'width 0.38s ease, background 0.38s ease' }}
                 />
               ))}
             </div>

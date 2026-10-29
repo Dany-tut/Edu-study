@@ -903,7 +903,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         // начать выделение текста и показать «Copy · Look Up · Translate».
         userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none',
         background: 'linear-gradient(135deg, #2A2A2C, #111113)',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
       }}
     >
       {/* ── Движок ── */}
@@ -982,7 +982,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   width: 72, height: 72, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(var(--glass-rgb), 0.95)', color: 'var(--color-purple)',
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+                  boxShadow: 'var(--shadow-4)',
                 }}
               >
                 {ended
@@ -998,12 +998,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               key={skipFlash.n}
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 1, 0] }}
-              transition={{ duration: 0.52, times: [0, 0.25, 1] }}
+              transition={{ duration: 0.38, times: [0, 0.25, 1] }}
               style={{
                 position: 'absolute', top: 0, bottom: 0, width: '34%',
                 ...(skipFlash.side === 'right' ? { right: 0 } : { left: 0 }),
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: 7, color: '#fff', pointerEvents: 'none',
+                gap: 8, color: '#fff', pointerEvents: 'none',
                 background: `radial-gradient(circle at ${skipFlash.side === 'right' ? '100%' : '0%'} 50%, rgba(255,255,255,0.20), transparent 72%)`,
               }}
             >
@@ -1023,10 +1023,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             <motion.div
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.16 }}
+              transition={{ duration: 0.15 }}
               style={{
                 display: 'flex', alignItems: 'baseline', gap: 10, padding: '10px 18px',
-                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
+                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'var(--blur-thin)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
               }}
             >
@@ -1056,10 +1056,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             <motion.div
               initial={{ opacity: 0, scale: 0.94, y: -6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.16 }}
+              transition={{ duration: 0.15 }}
               style={{
-                display: 'flex', alignItems: 'center', gap: touch ? 6 : 9, padding: touch ? '4px 10px' : '7px 14px',
-                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', gap: touch ? 6 : 10, padding: touch ? '4px 10px' : '8px 14px',
+                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'var(--blur-thin)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
                 maxWidth: 'calc(100% - 24px)',
               }}
@@ -1073,7 +1073,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     key={i}
                     animate={{ opacity: [0.22, 1, 0.22] }}
                     transition={{ duration: 0.9, delay: i * 0.12, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{ display: 'flex', marginLeft: i ? (touch ? -5 : -6) : 0 }}
+                    style={{ display: 'flex', marginLeft: i ? (touch ? -6 : -6) : 0 }}
                   >
                     {gesture === 'ff' ? <ChevronRight size={chevSize} /> : <ChevronLeft size={chevSize} />}
                   </motion.span>
@@ -1085,7 +1085,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               {/* Замок: капсула наливается снизу вверх по ходу жеста. */}
               <motion.span
                 animate={boostLocked ? { scale: [1, 1.16, 1] } : { scale: 1 }}
-                transition={{ duration: 0.34 }}
+                transition={{ duration: 0.38 }}
                 style={{
                   position: 'relative', width: touch ? 28 : 34, height: touch ? 17 : 21, borderRadius: 999, overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1098,12 +1098,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     position: 'absolute', left: 0, right: 0, bottom: 0,
                     height: `${(boostLocked ? 1 : lockFill) * 100}%`,
                     background: 'var(--grad-purple)',
-                    transition: 'height 0.08s linear',
+                    transition: 'height 0.15s linear',
                   }}
                 />
                 <motion.span
                   animate={{ rotate: boostLocked ? [0, -9, 0] : 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.38 }}
                   style={{ display: 'flex', position: 'relative' }}
                 >
                   {boostLocked
@@ -1122,7 +1122,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           <motion.div
             initial={false}
             animate={{ opacity: barVisible || paused || !!gesture ? 1 : 0, y: barVisible || paused || !!gesture ? 0 : 12 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
               position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 14px 12px',
               background: 'linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0.35) 55%, transparent)',
@@ -1139,7 +1139,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             >
               {/* Комета: бегунка нет вовсе, положение держит светлая голова на
                   конце заливки, а хвост за ней гаснет. */}
-              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 6 : 3, borderRadius: 999, background: 'rgba(255,255,255,0.22)', transition: 'height 0.14s ease' }}>
+              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 6 : 3, borderRadius: 999, background: 'rgba(255,255,255,0.22)', transition: 'height 0.15s ease' }}>
                 <div style={{ position: 'absolute', inset: 0, width: `${buffered * 100}%`, borderRadius: 999, background: 'rgba(255,255,255,0.28)' }} />
                 {/* Уже отсмотренные куски — видно, что осталось пересмотреть. */}
                 {duration > 0 && watch.ranges.map(([a, b], i) => (
@@ -1176,7 +1176,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     width: 16, height: scrubbing ? 7 : 5, borderRadius: 999,
                     transform: 'translateY(-50%)', background: '#fff',
                     boxShadow: '0 0 10px rgba(var(--accent-rgb), 0.85)',
-                    transition: 'height 0.14s ease',
+                    transition: 'height 0.15s ease',
                   }}
                 />
               </div>
@@ -1186,7 +1186,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   style={{
                     position: 'absolute', bottom: 22, transform: 'translateX(-50%)',
                     left: `${(hoverAt / duration) * 100}%`, whiteSpace: 'nowrap',
-                    padding: '3px 8px', borderRadius: 8, background: 'rgba(0,0,0,0.78)',
+                    padding: '4px 8px', borderRadius: 8, background: 'rgba(0,0,0,0.78)',
                     color: '#fff', fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
                     pointerEvents: 'none',
                   }}
@@ -1256,7 +1256,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   <button
                     ref={rateBtnRef}
                     onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o) }}
-                    style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 5 } : { width: 'auto', padding: '0 8px', gap: 5 })}
+                    style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 6 } : { width: 'auto', padding: '0 8px', gap: 6 })}
                     aria-label={t('Скорость')}
                   >
                     <Gauge size={18} />
@@ -1269,7 +1269,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         position: 'fixed', left: ratePos.left, top: ratePos.top, zIndex: 4000,
                         width: RATE_MENU_W, padding: 6, borderRadius: 14,
                         background: 'rgba(20,20,22,0.94)', border: '1px solid rgba(255,255,255,0.14)',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+                        boxShadow: 'var(--shadow-4)',
                       }}
                     >
                       {rates.map(r => (
@@ -1282,7 +1282,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                           onPointerUp={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
                           className="flex items-center w-full cursor-pointer"
                           style={{
-                            gap: 8, padding: '7px 9px', borderRadius: 9, border: 'none',
+                            gap: 8, padding: '8px 10px', borderRadius: 9, border: 'none',
                             background: r === rate ? 'rgba(255,255,255,0.14)' : 'transparent',
                             color: '#fff', fontSize: 13, fontWeight: r === rate ? 700 : 500,
                           }}
@@ -1330,7 +1330,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 position: 'absolute', top: 16, left: 16, zIndex: 2,
                 fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
                 color: 'rgba(255,255,255,0.9)', background: 'rgba(255,255,255,0.14)',
-                padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(8px)',
+                padding: '6px 12px', borderRadius: 999, backdropFilter: 'blur(8px)',
               }}
             >
               {badge}
@@ -1353,7 +1353,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   width: 76, height: 76, borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(var(--glass-rgb), 0.95)', color: 'var(--color-purple)',
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+                  boxShadow: 'var(--shadow-4)',
                 }}
               >
                 <Play size={28} fill="var(--color-purple)" style={{ marginLeft: 4 }} />

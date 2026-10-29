@@ -532,7 +532,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
 
   // Отступы длинной записью: колонки перекрывают их по одной стороне, а смесь
   // padding и paddingLeft в одном стиле React ругает и применяет непредсказуемо.
-  const cell = { paddingTop: 9, paddingRight: 14, paddingBottom: 9, paddingLeft: 0 } as const
+  const cell = { paddingTop: 10, paddingRight: 14, paddingBottom: 10, paddingLeft: 0 } as const
   const ruStyle = {
     fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap,
   } as const
@@ -568,7 +568,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           // подложка превращала бы строки в кашу ровно там, где нужны кнопки.
           background: 'var(--color-bg-2)',
           boxShadow: stuck ? '0 14px 22px -18px rgba(0,0,0,0.55)' : 'none',
-          transition: 'box-shadow 180ms ease',
+          transition: 'box-shadow 0.15s ease',
         }}
       >
         {/* Плеер — шапкой над текстом: он ведёт по строкам, а не просто читает.
@@ -579,9 +579,9 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           display: 'flex', alignItems: 'center', gap: 12,
           // Прилипшая шапка ужимается: две полные строки управления съедают
           // четверть экрана телефона именно тогда, когда экрана меньше всего.
-          padding: stuck ? '7px 16px' : '11px 16px',
+          padding: stuck ? '8px 16px' : '12px 16px',
           borderBottom: '1px solid var(--color-border-soft)',
-          transition: 'padding 160ms ease',
+          transition: 'padding 0.15s ease',
         }}>
           {/* В режиме «строка за строкой» шапка читает ТЕКУЩИЙ фрагмент, а не
               текст целиком: экран показывает один фрагмент, и голос, ушедший на
@@ -613,7 +613,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               width: stepping
                 ? `${Math.round(((at + 1) / units.length) * 100)}%`
                 : `${mark === null || !total ? 0 : Math.round(((mark + 1) / total) * 100)}%`,
-              height: 4, borderRadius: 2, background: accent, transition: 'width 220ms ease',
+              height: 4, borderRadius: 2, background: accent, transition: 'width 0.22s ease',
             }} />
           </div>
 
@@ -634,7 +634,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               minWidth: 48, border: 'none',
               background: slow ? soft : 'var(--color-bg-input)',
               color: slow ? accent : 'var(--color-text-2)',
-              transition: 'background 160ms ease, color 160ms ease',
+              transition: 'background 0.15s ease, color 0.15s ease',
             }}
           >
             {slow ? '0.75×' : '1.0×'}
@@ -658,7 +658,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
             padding: stuck ? '6px 16px' : '10px 16px',
             borderBottom: '1px solid var(--color-border-soft)',
-            transition: 'padding 160ms ease',
+            transition: 'padding 0.15s ease',
           }}>
             {/* НА ТЕЛЕФОНЕ РЕЙКА — ВО ВСЮ ШИРИНУ, А НЕ ПО СОДЕРЖИМОМУ.
                 Четыре сегмента с подписями не помещались в 358 px: рейка
@@ -670,7 +670,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             <div style={{
               display: narrow ? 'flex' : 'inline-flex', alignItems: 'center', gap: 2,
               flex: narrow ? 1 : undefined, minWidth: 0,
-              padding: 3, borderRadius: 999, background: 'var(--color-bg-input)',
+              padding: 4, borderRadius: 999, background: 'var(--color-bg-input)',
             }}>
               {/* Поток или по одному фрагменту. Это не украшение для телефона:
                   поток отвечает на вопрос «о чём тут вообще», а «строка за
@@ -894,7 +894,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
       <MobileSheet open={menu} onClose={() => setMenu(false)} title={title ?? t('Чтение вслух')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Скорость')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 8 }}>{t('Скорость')}</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {[false, true].map(v => (
                 <button
@@ -921,7 +921,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               реплики текста, то есть ровно то, что считает шкала рядом. */}
           {cues.length > 1 && (
             <div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Отрывок')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 8 }}>{t('Отрывок')}</div>
               <CueList
                 items={cues}
                 active={seekNow}
@@ -942,7 +942,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           {/* Голос — здесь же: мысль «не тот диктор» приходит в момент
               прослушивания, а из строки плеера кнопку убрали ради бегунка. */}
           <div>
-            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Голос')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 8 }}>{t('Голос')}</div>
             <VoicePicker lang={lang} accent={accent} soft={soft} />
           </div>
         </div>
@@ -1102,8 +1102,8 @@ function NavButton({ onClick, disabled, accent, soft, primary, children }: {
       onClick={onClick}
       disabled={disabled}
       style={{
-        flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-        padding: '11px 14px', borderRadius: 14,
+        flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        padding: '12px 14px', borderRadius: 14,
         // Свайп по карточке проходит и по кнопкам: без этого жест «дальше»
         // оставлял за собой выделенное синим слово на кнопке.
         userSelect: 'none', WebkitUserSelect: 'none',
@@ -1158,7 +1158,7 @@ function Seg({ icon: Icon, label, on, solid, iconOnly, grow, accent, soft, onCli
         overflow: 'hidden', textOverflow: 'ellipsis',
         background: on ? (solid ? accent : soft) : 'transparent',
         color: on ? (solid ? '#fff' : accent) : 'var(--color-text-3)',
-        transition: 'background 160ms ease, color 160ms ease',
+        transition: 'background 0.15s ease, color 0.15s ease',
       }}
       onMouseEnter={e => { if (!on) e.currentTarget.style.color = 'var(--color-text-2)' }}
       onMouseLeave={e => { if (!on) e.currentTarget.style.color = 'var(--color-text-3)' }}
@@ -1174,7 +1174,7 @@ function SegSep() {
     <span
       aria-hidden
       style={{
-        width: 1, height: 16, margin: '0 5px', flexShrink: 0,
+        width: 1, height: 16, margin: '0 6px', flexShrink: 0,
         background: 'var(--color-border-medium)', opacity: 0.7,
       }}
     />
@@ -1249,7 +1249,7 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
                 background: alone ? accent : 'transparent',
                 color: alone ? '#fff' : accent,
                 opacity: alone ? 1 : 0.32,
-                transition: 'opacity 160ms ease, background 160ms ease',
+                transition: 'opacity 0.15s ease, background 0.15s ease',
               }}
               onMouseEnter={e => { e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => { e.currentTarget.style.opacity = alone ? '1' : '0.32' }}
@@ -1269,14 +1269,14 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
                   // отступа: отступом заливка наезжала на кнопку реплики в
                   // жёлобе слева. Падинг стоит всегда, а не только у звучащего
                   // куска, поэтому строка от подсветки не дёргается.
-                  paddingLeft: 7, paddingRight: 7,
+                  paddingLeft: 8, paddingRight: 8,
                   // Перенос строки не должен резать заливку: по умолчанию
                   // (slice) у второй половины нет ни скругления, ни отступа —
                   // ровно тот срез, что видно на длинных репликах.
                   WebkitBoxDecorationBreak: 'clone', boxDecorationBreak: 'clone',
                   background: live ? soft : 'transparent',
                   boxShadow: live ? `0 0 0 4px ${soft}` : 'none',
-                  transition: 'background 200ms ease',
+                  transition: 'background 0.22s ease',
                 }}
               >
                 {ci > 0 && ' '}
@@ -1339,7 +1339,7 @@ function FragmentRow({ unit, index, twoCol, showRu, cell, ruStyle, lang, glossar
             paddingLeft: 10, paddingRight: 10, marginLeft: -10, marginRight: -10,
             background: liveUnit ? soft : 'transparent',
             boxShadow: liveUnit ? `0 0 0 4px ${soft}` : 'none',
-            transition: 'background 200ms ease',
+            transition: 'background 0.22s ease',
           }}
         />
       </div>
@@ -1397,7 +1397,7 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, spoken, o
               cursor: 'pointer', borderRadius: 4,
               // Заливка слова тоже не должна лежать вплотную к буквам, а
               // перенос — резать её на половине без скругления.
-              paddingLeft: 3, paddingRight: 3, marginLeft: -3, marginRight: -3,
+              paddingLeft: 4, paddingRight: 4, marginLeft: -4, marginRight: -4,
               WebkitBoxDecorationBreak: 'clone', boxDecorationBreak: 'clone',
               // Те же три состояния и те же прозрачности, что у слова в
               // оригинале (GlossedText): пара — одна вещь, лежащая по двум
@@ -1405,7 +1405,7 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, spoken, o
               borderBottom: `1px dotted ${accent}80`,
               background: on ? `${accent}3d` : now ? `${accent}26` : 'transparent',
               boxShadow: on ? `0 0 0 2px ${accent}3d` : now ? `0 0 0 2px ${accent}26` : 'none',
-              transition: 'background 140ms ease',
+              transition: 'background 0.15s ease',
             }}
           >
             {tk.text}

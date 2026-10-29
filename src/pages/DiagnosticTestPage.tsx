@@ -235,7 +235,7 @@ function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
   return createPortal(
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.22 }}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
       style={{
         position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.88)',
@@ -279,7 +279,7 @@ function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
       <div style={{
         position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)',
         textAlign: 'center', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.6)', pointerEvents: 'none',
-        opacity: zoomed ? 0 : 1, transition: 'opacity 0.2s',
+        opacity: zoomed ? 0 : 1, transition: 'opacity 0.22s',
       }}>
         {t('Раздвинь пальцами или нажми, чтобы увеличить')}
       </div>
@@ -366,7 +366,7 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
             background: dark ? `${accent}14` : `${accentColor}10`, border: `1px solid ${accent}33`,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ padding: '3px 12px', borderRadius: 999, background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 800 }}>{verdict.level}</span>
+              <span style={{ padding: '4px 12px', borderRadius: 999, background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 800 }}>{verdict.level}</span>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: 'var(--color-text-3)' }}>{t('ТВОЙ УРОВЕНЬ')}</span>
             </div>
             <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 10 }}>{verdict.note}</div>
@@ -864,7 +864,7 @@ export default function DiagnosticTestPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
+          transition={{ duration: 0.38 }}
           style={{ width: '100%', maxWidth: 440 }}
         >
           <div style={{
@@ -875,7 +875,7 @@ export default function DiagnosticTestPage() {
                 Длинное название переносится, а не режется многоточием: хвост пропадал на телефоне */}
             <div style={{
               alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'flex-start', gap: 6,
-              padding: '5px 11px 5px 9px', borderRadius: 12, lineHeight: 1.3, background: `${theme.accent}1f`,
+              padding: '6px 12px 6px 10px', borderRadius: 12, lineHeight: 1.3, background: `${theme.accent}1f`,
               color: theme.accent, fontSize: 12, fontWeight: 600,
             }}>
               <Target size={14} style={{ flexShrink: 0, marginTop: 1.5 }} />
@@ -990,7 +990,7 @@ export default function DiagnosticTestPage() {
         <div style={{ height: isDesktop ? 5 : 4, borderRadius: 999, background: 'var(--color-bg-5)', marginBottom: isDesktop ? 28 : 14, overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${progress * 100}%` }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
             style={{ height: '100%', borderRadius: 999, background: theme.accent }}
           />
         </div>
@@ -1008,14 +1008,14 @@ export default function DiagnosticTestPage() {
             animate={leaving ? { opacity: 0, x: -28 } : { opacity: 1, x: 0 }}
             transition={leaving
               ? { duration: LEAVE_MS / 1000, ease: [0.4, 0, 1, 1] }
-              : { duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              : { duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Section badge. На телефоне его нет вовсе: без него поле стоит
                 выше клавиатуры уже в момент тапа, и iOS не начинает сдвигать
                 страницу (а прятать его при клавиатуре — это ещё один скачок). */}
             {isDesktop && <div style={{
               display: 'inline-flex', alignItems: 'center',
-              padding: '3px 10px', borderRadius: 999,
+              padding: '4px 10px', borderRadius: 999,
               background: `${theme.accent}18`,
               fontSize: 11, fontWeight: 600, color: theme.accent,
               marginBottom: isDesktop ? 12 : 8,
@@ -1045,10 +1045,10 @@ export default function DiagnosticTestPage() {
               <div style={{
                 position: 'relative', width: boxW, margin: isDesktop ? '-6px auto 20px' : '-2px auto 12px',
                 // Под ход клавиатуры iOS: быстро стартует, мягко доезжает.
-                transition: 'width 0.32s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                transition: 'width 0.38s cubic-bezier(0.25, 0.8, 0.25, 1)',
               }}>
               <motion.img ref={imgRef} src={q.image} alt=""
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25, delay: 0.05 }}
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22, delay: 0.05 }}
                 onLoad={e => {
                   const im = e.currentTarget
                   if (im.naturalWidth && im.naturalHeight) setImgRatio(r => ({ ...r, [q.image!]: im.naturalWidth / im.naturalHeight }))
@@ -1088,7 +1088,7 @@ export default function DiagnosticTestPage() {
                       style={{ flex: 1, padding: '10px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                         border: `1.5px solid ${confident === val ? col : 'var(--color-border-medium)'}`,
                         background: confident === val ? `${col}1a` : 'var(--color-bg-2)',
-                        color: confident === val ? col : 'var(--color-text-2)', transition: 'all 0.14s' }}>
+                        color: confident === val ? col : 'var(--color-text-2)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                       {label}
                     </button>
                   ))}
@@ -1141,18 +1141,18 @@ export default function DiagnosticTestPage() {
                       // В строке — постоянный размер: «Ответить» и «✓ Принято» одной
                       // ширины, высота = поле. Иначе кнопка прыгала при смене надписи.
                       width: inline ? 112 : '100%', height: inline ? 46 : undefined, alignSelf: inline ? 'flex-start' : undefined,
-                      flexShrink: 0, padding: inline ? 0 : '13px', borderRadius: 13, border: 'none',
+                      flexShrink: 0, padding: inline ? 0 : '12px', borderRadius: 13, border: 'none',
                       cursor: locked ? 'default' : termDraft.trim() ? 'pointer' : 'not-allowed',
                       background: locked ? `${theme.accent}26` : termDraft.trim() ? theme.accent : 'var(--color-bg-5)',
                       color: locked ? theme.accent : termDraft.trim() ? getContrastColor(theme.accent) : 'var(--color-text-3)',
                       fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
-                      transition: 'background 0.25s, color 0.25s',
+                      transition: 'background 0.22s, color 0.22s',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     }}
                   >
                     {locked ? (
                       <motion.span key="ok" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <Check size={16} strokeWidth={2.5} /> {inline ? t('Принято') : t('Ответ принят')}
                       </motion.span>
@@ -1198,7 +1198,7 @@ export default function DiagnosticTestPage() {
                       background: 'var(--color-bg-2)',
                       cursor: picked !== undefined ? 'default' : 'pointer',
                       textAlign: 'left', width: '100%',
-                      transition: 'border-color 0.2s',
+                      transition: 'border-color 0.22s',
                     }}
                   >
                     <div style={{
@@ -1216,7 +1216,7 @@ export default function DiagnosticTestPage() {
                         ? (isCorrect || isChosen ? '#fff' : 'var(--color-muted)')
                         : isChosen ? '#fff' : 'var(--color-muted)',
                       boxShadow: !showResult && isChosen ? getCircleShadow(PICK_COLOR) : 'none',
-                      transition: 'all 0.2s',
+                      transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.22s',
                     }}>
                       {'АБВГ'[place]}
                     </div>
@@ -1277,7 +1277,7 @@ export default function DiagnosticTestPage() {
                   exit={{ opacity: 0 }}
                   onClick={() => advance(() => { setConfident(null); setTermDraft(''); setCurrent(c => c + 1) })}
                   style={{
-                    marginTop: 12, width: '100%', padding: '13px',
+                    marginTop: 12, width: '100%', padding: '12px',
                     borderRadius: 14, border: 'none', cursor: 'pointer',
                     background: theme.accent, color: getContrastColor(theme.accent),
                     fontSize: 14, fontWeight: 700,

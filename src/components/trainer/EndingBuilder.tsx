@@ -72,7 +72,7 @@ export function StemGrid({ verbs, results, accent, soft, onOpen }: {
         const shown = KO_ENDINGS.filter(e => verb.forms[e.id])
         return (
           <Tile key={verb.dict} accent={accent} onClick={() => onOpen(verb.dict)}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <TileChip tone="accent" accent={accent} soft={soft}>{verb.ru}</TileChip>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                 {shown.length} {t('форм')}
@@ -165,7 +165,7 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
             {verb.stem} + {ending.block} {'→'} {form.form} {t('— основа слилась с хвостом')}
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{ending.label}</span>
           {reading && <span style={{ fontSize: 12, color: accent, opacity: 0.9 }}>{form.reading}</span>}
         </div>
@@ -354,7 +354,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
                 onClick={() => pick(o)}
                 disabled={!!picked}
                 style={{
-                  padding: '13px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
+                  padding: '12px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
                   fontFamily: 'inherit', fontSize: q.kind === 'build' ? 20 : 15, fontWeight: 700, lineHeight: 1.3,
                   border: `1.5px solid ${
                     show && isAnswer ? 'var(--color-green-accent)'

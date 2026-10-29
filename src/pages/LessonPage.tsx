@@ -275,8 +275,8 @@ function tileDropdownStyle(up: boolean): React.CSSProperties {
     padding: 8,
     borderRadius: 16,
     background: 'rgba(var(--glass-rgb), 0.92)',
-    backdropFilter: 'blur(24px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+    backdropFilter: 'var(--blur-solid)',
+    WebkitBackdropFilter: 'var(--blur-solid)',
     border: '1px solid var(--color-border-glass)',
     boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
   }
@@ -446,7 +446,7 @@ function MaterialsTile({ materials }: { materials: LessonFile[] }) {
         {active && (
           <ChevronDown
             size={16}
-            style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
+            style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
           />
         )}
       </motion.button>
@@ -457,7 +457,7 @@ function MaterialsTile({ materials }: { materials: LessonFile[] }) {
             initial={{ opacity: 0, y: up ? 8 : -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: up ? 8 : -8, scale: 0.98 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
             style={tileDropdownStyle(up)}
           >
             <ScrollFade maxHeight={300} bg="rgba(var(--glass-rgb), 0.92)" overlayScrollbar>
@@ -550,7 +550,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
         position: 'relative',
         height: singleRow ? 56 : undefined,
         minHeight: singleRow ? 56 : 92,
-        padding: singleRow ? 5 : 8,
+        padding: singleRow ? 6 : 8,
         gap: 6,
         borderRadius: singleRow ? 16 : 20,
         background: 'var(--grad-purple)',
@@ -575,7 +575,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
               height: singleRow ? '100%' : isActive ? 46 : hasExtra ? 40 : 24,
               flexShrink: 0,
               gap: 12,
-              padding: singleRow ? '0 13px' : '0 16px',
+              padding: singleRow ? '0 12px' : '0 16px',
               borderRadius: 12,
               border: 'none',
               textAlign: 'left',
@@ -601,7 +601,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
                   color: solidWhite ? 'var(--color-accent)' : 'rgba(255,255,255,0.92)',
                   background: solidWhite ? 'rgba(var(--accent-rgb), 0.10)' : 'rgba(255,255,255,0.18)',
                   borderRadius: 8,
-                  padding: '2px 7px',
+                  padding: '2px 8px',
                 }}
               >
                 {assessment.score}
@@ -630,7 +630,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
                   color: solidWhite ? hardStatusLabel.color : 'rgba(255,255,255,0.92)',
                   background: solidWhite ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.18)',
                   borderRadius: 8,
-                  padding: '2px 7px',
+                  padding: '2px 8px',
                 }}
               >
                 <hardStatusLabel.icon size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} />
@@ -648,7 +648,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
             initial={{ opacity: 0, y: -6, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
             className="pointer-events-none"
             style={{
               position: 'absolute',
@@ -661,7 +661,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
               background: 'rgba(22,14,44,0.94)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
-              boxShadow: '0 14px 34px rgba(0,0,0,0.30)',
+              boxShadow: 'var(--shadow-4)',
               color: '#fff',
             }}
           >
@@ -888,7 +888,7 @@ export default function LessonPage() {
 
   // Easing for the date chip's icon/month collapse — matches the top bar's own
   // expand/collapse curve so the two move in sync.
-  const dateMorph = { duration: 0.32, ease: [0.32, 0.72, 0, 1] as const }
+  const dateMorph = { duration: 0.38, ease: [0.32, 0.72, 0, 1] as const }
 
   // Shared glass recipe for the docked top-line pills — matched exactly to the
   // compact top bar (same opacity, border, shadow) so every floating surface on
@@ -896,8 +896,8 @@ export default function LessonPage() {
   const dockGlass = {
     border: '1px solid var(--color-border-glass)',
     background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    backdropFilter: 'var(--blur-glass)',
+    WebkitBackdropFilter: 'var(--blur-glass)',
     boxShadow: 'var(--shadow-lg)',
   } as const
 
@@ -915,7 +915,7 @@ export default function LessonPage() {
         data-swipe-pin="top"
         style={{ gap: 16 }}
         animate={{ opacity: docked ? 0 : 1 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
       >
         <motion.button
           whileHover={{ scale: 1.03 }}
@@ -930,7 +930,7 @@ export default function LessonPage() {
             // перетекает в таблетку соседнего экрана, и разница видна.
             // «Назад» — шеврон в круге везде, как BackCircle; подпись — в aria-label.
             height: MOBILE_PILL_H, width: MOBILE_PILL_H, boxSizing: 'border-box',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
@@ -955,7 +955,7 @@ export default function LessonPage() {
           style={{
             gap: 6, padding: '0 16px', height: MOBILE_PILL_H, boxSizing: 'border-box',
             borderRadius: 999, border: '1px solid var(--color-border-soft)',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
             color: 'var(--color-muted)', fontSize: 14, fontWeight: 600,
           }}
         >
@@ -1025,7 +1025,7 @@ export default function LessonPage() {
               data-swipe-morph="date"
               style={{
                 overflow: 'hidden',
-                padding: '9px 14px', borderRadius: 999,
+                padding: '10px 14px', borderRadius: 999,
                 ...dockGlass,
                 color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
@@ -1093,13 +1093,13 @@ export default function LessonPage() {
                     style={{
                       height: '100%', width: `${Math.max(2, watchedPct)}%`, borderRadius: 999,
                       background: watch.completed ? 'var(--grad-green-bar)' : 'var(--grad-purple)',
-                      transition: 'width 0.6s ease',
+                      transition: 'width 0.38s ease',
                     }}
                   />
                 </div>
                 <span
                   className="flex items-center flex-shrink-0"
-                  style={{ gap: 5, fontSize: 13, fontWeight: 600, color: watch.completed ? 'var(--color-green-text)' : 'var(--color-text-3)' }}
+                  style={{ gap: 6, fontSize: 13, fontWeight: 600, color: watch.completed ? 'var(--color-green-text)' : 'var(--color-text-3)' }}
                 >
                   {watch.completed
                     ? <><CheckCircle2 size={14} /> {t('Запись просмотрена')}</>
@@ -1123,7 +1123,7 @@ export default function LessonPage() {
               borderRadius: 24,
               background: 'rgba(var(--glass-rgb), 0.96)',
               border: '1px solid var(--color-border-soft)',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+              boxShadow: 'var(--shadow-2)',
               padding: 16,
               gap: 6,
               minHeight: 0,
@@ -1164,7 +1164,7 @@ export default function LessonPage() {
                     onClick={() => { setActiveChapter(i); playerRef.current?.playFrom(tc.seconds) }}
                     className="relative flex items-center cursor-pointer text-left"
                     style={{
-                      gap: 10, padding: '9px 10px', borderRadius: 12, border: 'none',
+                      gap: 10, padding: '10px 10px', borderRadius: 12, border: 'none',
                       background: active ? 'var(--color-purple-soft)' : 'transparent',
                       transition: 'background 0.15s ease', overflow: 'hidden',
                     }}
@@ -1190,7 +1190,7 @@ export default function LessonPage() {
                         style={{
                           position: 'absolute', left: 0, bottom: 0, height: 2,
                           width: `${played * 100}%`, background: 'var(--grad-purple)',
-                          borderRadius: 999, transition: 'width 0.45s linear',
+                          borderRadius: 999, transition: 'width 0.38s linear',
                         }}
                       />
                     )}
@@ -1215,7 +1215,7 @@ export default function LessonPage() {
             borderRadius: 24,
             background: 'rgba(var(--glass-rgb), 0.96)',
             border: '1px solid var(--color-border-soft)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            boxShadow: 'var(--shadow-2)',
           }}
         >
           <div className="flex items-center" style={{ gap: 8 }}>
@@ -1229,7 +1229,7 @@ export default function LessonPage() {
               aria-pressed={big}
               className="flex items-center cursor-pointer"
               style={{
-                marginLeft: 'auto', gap: 6, padding: '5px 11px', borderRadius: 999,
+                marginLeft: 'auto', gap: 6, padding: '6px 12px', borderRadius: 999,
                 fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
                 /* Нейтральный графит, а не акцентный фиолет: акцент в тёмной
                    теме светлый (#B3A6F7), и белая надпись на нём давала 1.6:1.

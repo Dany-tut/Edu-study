@@ -109,11 +109,11 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
               key={i}
               onClick={() => !disabled && setActive(i)}
               style={{
-                display: 'flex', flexDirection: 'column', gap: 3,
-                padding: '10px 13px', borderRadius: 14,
+                display: 'flex', flexDirection: 'column', gap: 4,
+                padding: '10px 12px', borderRadius: 14,
                 cursor: disabled ? 'default' : 'pointer',
                 border: `1px solid ${
-                  showVerdict ? (ok ? '#6EE7A0' : '#F48B91')
+                  showVerdict ? (ok ? 'var(--color-green-border)' : 'var(--color-red-border)')
                     : chosen ? 'rgba(var(--accent-rgb), 0.45)' : 'var(--color-border-soft)'
                 }`,
                 background: showVerdict
@@ -122,7 +122,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
               }}
             >
               <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-text-4)', marginRight: 7 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-text-4)', marginRight: 8 }}>
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {before}
@@ -134,7 +134,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
                   onClick={e => { e.stopPropagation(); word ? clear(i) : setActive(i) }}
                   disabled={disabled}
                   style={{
-                    display: 'inline-block', minWidth: 78, margin: '0 5px', padding: '2px 11px',
+                    display: 'inline-block', minWidth: 78, margin: '0 6px', padding: '2px 12px',
                     borderRadius: 9, fontFamily: 'inherit', fontSize: 15, fontWeight: 700,
                     textAlign: 'center', verticalAlign: 'middle',
                     color: word ? 'var(--color-text)' : 'var(--color-text-4)',

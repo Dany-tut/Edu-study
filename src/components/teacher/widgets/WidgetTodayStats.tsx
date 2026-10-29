@@ -7,15 +7,15 @@ import { useT } from '../../../lib/i18n'
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 18 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.42, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.38, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
@@ -42,12 +42,12 @@ function EarningsCard({ delay }: { delay: number }) {
             <TrendingUp size={16} strokeWidth={2} style={{ color: 'var(--color-yellow-text)' }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
           {t('Нет данных')}
         </div>
         <div style={{
           fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
-          background: 'var(--color-bg-4)', borderRadius: 8, padding: '3px 8px',
+          background: 'var(--color-bg-4)', borderRadius: 8, padding: '4px 8px',
           alignSelf: 'flex-start',
         }}>
           {t('будет позже')}
@@ -75,10 +75,10 @@ function StatCard({
             <Icon size={15} strokeWidth={2} style={{ color: accentColor }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
+        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
         <div style={{
           fontSize: 11, fontWeight: 600, color: accentColor,
-          background: accentBg, borderRadius: 8, padding: '3px 8px',
+          background: accentBg, borderRadius: 8, padding: '4px 8px',
           alignSelf: 'flex-start',
         }}>
           {sub}

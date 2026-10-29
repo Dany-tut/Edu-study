@@ -24,7 +24,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
 
   if (!reaction) return (
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
-      style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
+      style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', border: '1px solid var(--color-border-glass)' }}>
       <span style={{ fontSize: 24 }}>⚗️</span>
       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Реакции курса')}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
@@ -50,10 +50,10 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
       className="flex h-full w-full overflow-hidden rounded-[24px]"
       style={{
         background: 'rgba(var(--glass-rgb), 0.9)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border-glass)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+        boxShadow: 'var(--shadow-3)',
       }}
     >
       {/* Emoji tile — also a click target, opens the lesson with the reaction's
@@ -79,7 +79,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
             key={reaction.id}
             initial={{ opacity: 0, scale: 1.04 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
             className="absolute flex items-center justify-center"
             style={{ inset: 8, background: reaction.gradient, borderRadius: 18, overflow: 'hidden' }}
           >
@@ -102,7 +102,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
         <div className="mb-2 flex items-center gap-3">
           <span
             style={{
-              fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
+              fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '6px 12px', borderRadius: 999,
               color: 'var(--color-blue-pill-text)', background: 'var(--color-blue-pill-bg)',
             }}
           >
@@ -122,7 +122,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
               key={reaction.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
             >
               <p
                 style={{
@@ -154,7 +154,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
                 height: 10,
                 borderRadius: 999,
                 background: i === index ? 'var(--color-accent)' : 'var(--color-border-medium)',
-                transition: 'width 0.3s ease, background 0.3s ease',
+                transition: 'width 0.38s ease, background 0.38s ease',
               }}
             />
           ))}

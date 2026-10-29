@@ -400,7 +400,7 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, help, 
             padding: 16, borderRadius: 24,
             background: 'rgba(var(--glass-rgb), 0.97)',
             border: '1px solid var(--color-border-glass)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+            boxShadow: 'var(--shadow-4)',
             // Карточка обнимает содержимое, пока оно короче экрана, и только
             // упёршись в нижний край окна отдаёт остаток собственному скроллу.
             ...(narrow ? null : {
@@ -603,7 +603,7 @@ function ShareRow({ url, accent }: { url: string; accent?: string }) {
       aria-label={label}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        flex: 1, minWidth: 0, padding: '13px 16px', borderRadius: 16,
+        flex: 1, minWidth: 0, padding: '12px 16px', borderRadius: 16,
         cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600,
         border: `1px solid ${done ? tint : 'var(--color-border-medium)'}`,
         background: 'transparent',
@@ -636,7 +636,7 @@ function HelpButton({ onClick, wide }: { onClick: () => void; wide?: boolean }) 
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         // Вровень с «Поделиться»: высоту берём от соседа (stretch), а не числом.
-        ...(wide ? { flex: 1, padding: '13px 16px' } : { alignSelf: 'stretch', width: 46, flexShrink: 0 }),
+        ...(wide ? { flex: 1, padding: '12px 16px' } : { alignSelf: 'stretch', width: 46, flexShrink: 0 }),
         borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600,
         border: '1px solid var(--color-border-medium)', background: 'transparent',
         color: 'var(--color-text-2)',
@@ -731,7 +731,7 @@ function NavSheetBody({ nav, onDone }: { nav: TrainerNav; onDone: () => void }) 
       {/* Половины текущего режима — тут же, под плитками: тот же док их и так
           показывает, но из шторки видно, куда попадёшь, ещё до перехода. */}
       {nav.views && nav.views.length > 1 && nav.onView && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {nav.views.map(v => {
             const on = v.id === nav.view
             return (
@@ -837,9 +837,9 @@ export function RailCard({ icon, title, accent, children, action }: {
       display: 'flex', flexDirection: 'column', gap: 12, padding: 16, borderRadius: 18,
       background: 'rgba(var(--glass-rgb), 0.94)',
       border: '1px solid var(--color-border-soft)',
-      boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+      boxShadow: 'var(--shadow-3)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {icon && <span style={{ display: 'flex', color: accent }}>{icon}</span>}
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(title)}</span>
         {action && (
@@ -875,7 +875,7 @@ export function RailModes<T extends string>({ items, value, onChange, accent, so
 }) {
   const t = useT()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {items.map(m => {
         const on = m.id === value
         return (
@@ -883,8 +883,8 @@ export function RailModes<T extends string>({ items, value, onChange, accent, so
             key={m.id}
             onClick={() => onChange(m.id)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 9, width: '100%',
-              padding: '9px 11px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+              display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+              padding: '10px 12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
               border: 'none', textAlign: 'left',
               background: on ? soft : 'transparent',
               color: on ? accent : 'var(--color-text-2)',
@@ -955,13 +955,13 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
               // соседей оставался запас. Базис auto делит между кнопками только
               // свободное место, длинная подпись сохраняет свои поля.
               flex: (mute || (o.icon && !idleIcon)) ? '0 0 auto' : '1 1 auto', minWidth: 0,
-              padding: (mute || (o.icon && !idleIcon)) ? '9px 11px' : '9px 6px', borderRadius: 13, cursor: 'pointer',
+              padding: (mute || (o.icon && !idleIcon)) ? '10px 12px' : '10px 6px', borderRadius: 13, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               border: 'none',
               background: on ? soft : 'var(--color-bg-input)',
               color: on ? accent : 'var(--color-muted)',
-              transition: 'all 0.15s ease',
+              transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
             }}
           >
             {(mute || (o.icon && !idleIcon))
@@ -1055,9 +1055,9 @@ export function RailList({ items, value, onChange, accent, soft }: {
             onClick={() => onChange(i.id)}
             title={t(i.label)}
             style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 3,
+              display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 4,
               width: '100%', textAlign: 'left',
-              padding: '7px 9px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '8px 10px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
               border: 'none', background: on ? soft : 'transparent',
               color: on ? accent : 'var(--color-text-2)',
               fontSize: 13, fontWeight: on ? 700 : 500,
@@ -1106,7 +1106,8 @@ export function RailToggle({ label, on, onChange, accent }: {
       onClick={() => onChange(!on)}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-        width: '100%', padding: '5px 0', border: 'none', background: 'none', cursor: 'pointer',
+        // Строка 36 — палец попадает; тумблер — размер S общего Switch (32×20).
+        width: '100%', minHeight: 36, padding: 0, border: 'none', background: 'none', cursor: 'pointer',
         fontFamily: 'inherit', fontSize: 13, fontWeight: 500, color: 'var(--color-text-2)', textAlign: 'left',
       }}
       role="switch"
@@ -1114,12 +1115,13 @@ export function RailToggle({ label, on, onChange, accent }: {
     >
       <span>{t(label)}</span>
       <span style={{
-        position: 'relative', flexShrink: 0, width: 32, height: 18, borderRadius: 999,
-        background: on ? accent : 'var(--color-border-medium)', transition: 'background .16s',
+        position: 'relative', flexShrink: 0, width: 32, height: 20, borderRadius: 999, boxSizing: 'border-box',
+        background: on ? accent : 'var(--color-bg-5)', border: `1px solid ${on ? 'transparent' : 'var(--color-border-medium)'}`,
+        transition: 'background 0.15s',
       }}>
         <span style={{
-          position: 'absolute', top: 2, left: on ? 16 : 2, width: 14, height: 14, borderRadius: '50%',
-          background: '#fff', transition: 'left .16s',
+          position: 'absolute', top: 1, left: on ? 13 : 1, width: 16, height: 16, borderRadius: '50%',
+          background: '#fff', boxShadow: 'var(--shadow-1)', transition: 'left 0.15s',
         }} />
       </span>
     </button>
@@ -1328,7 +1330,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
 /** Кнопки подвала шторки — геометрия таблеток тренажёра (см. blockKit). */
 const SHEET_BTN: React.CSSProperties = {
   height: 42, boxSizing: 'border-box', borderRadius: 999,
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   fontFamily: 'inherit', fontSize: 14, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap',
 }
 
@@ -1402,7 +1404,7 @@ function SheetFilters({ groups, drill, onDrill }: {
       key={drill ?? 'root'}
       initial={{ opacity: 0, x: drill != null ? 20 : -20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
       style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '0 2px 4px' }}
     >
       {open ? (
@@ -1422,7 +1424,7 @@ function GroupTitle({ g }: { g: SheetGroup }) {
   const n = g.kind === 'multi' ? g.values.filter(Boolean).length : 0
   return (
     <div style={{
-      display: 'flex', alignItems: 'baseline', gap: 7,
+      display: 'flex', alignItems: 'baseline', gap: 8,
       fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
       color: 'var(--color-text-3)',
     }}>
@@ -1436,9 +1438,9 @@ function GroupTitle({ g }: { g: SheetGroup }) {
 function ChipGroup({ g }: { g: SheetGroup }) {
   const t = useT()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <GroupTitle g={g} />
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {g.options.map(o => {
           const on = g.values.includes(o.value)
           const tint = g.accent ?? 'var(--color-accent, #7c3aed)'
@@ -1448,7 +1450,7 @@ function ChipGroup({ g }: { g: SheetGroup }) {
               onClick={() => g.toggle(o.value)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '9px 13px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+                padding: '10px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
                 fontSize: 13, fontWeight: on ? 700 : 500, whiteSpace: 'nowrap',
                 border: `1px solid ${on ? tint : 'var(--color-border-medium)'}`,
                 background: on ? (g.soft ?? 'var(--color-purple-soft)') : 'transparent',
@@ -1482,7 +1484,7 @@ function DrillRow({ g, onClick }: { g: SheetGroup; onClick: () => void }) {
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-        padding: '13px 14px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+        padding: '12px 14px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
         border: `1px solid ${chosen.length ? tint : 'var(--color-border-medium)'}`,
         background: 'transparent',
       }}
@@ -1512,7 +1514,7 @@ function OptionRows({ g }: { g: SheetGroup }) {
             onClick={() => g.toggle(o.value)}
             style={{
               display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
-              padding: '11px 12px', borderRadius: 11, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              padding: '12px 12px', borderRadius: 11, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
               background: on ? (g.soft ?? 'var(--color-purple-soft)') : 'transparent',
               color: on ? tint : 'var(--color-text-2)',
               fontSize: 14, fontWeight: on ? 700 : 500,
@@ -1565,7 +1567,7 @@ export function SearchPill({ value, onChange, placeholder }: {
             ? { flex: '1 1 0', minWidth: 0, padding: '0 12px', height: MOBILE_PILL_H }
             : { width: MOBILE_PILL_H, height: MOBILE_PILL_H, padding: 0, justifyContent: 'center', flexShrink: 0 }
           : { width: wide ? 260 : 112, padding: '0 14px', flexShrink: 0 }),
-        transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
+        transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s',
         overflow: 'hidden', cursor: wide ? 'text' : 'pointer',
       }}
     >
@@ -1643,12 +1645,12 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
       style={{
         position: 'relative', display: fill ? 'flex' : 'inline-flex', alignItems: 'center',
         width: fill, maxWidth: '100%',
-        padding: 3, borderRadius: 999,
+        padding: 4, borderRadius: 999,
         background: PILL_BG,
         border: '1px solid var(--color-border)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        backdropFilter: 'blur(18px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+        boxShadow: 'var(--shadow-1)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
       }}
     >
       {pill.pillRect && (
@@ -1662,8 +1664,8 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
             background: accent
               ? `linear-gradient(${accent}26, ${accent}26), rgba(var(--glass-rgb), 0.82)`
               : 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.82)',
-            backdropFilter: 'blur(16px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            backdropFilter: 'var(--blur-glass)',
+            WebkitBackdropFilter: 'var(--blur-glass)',
             boxShadow: 'var(--shadow-tab-pill)',
             border: `1px solid ${accent ? `${accent}59` : 'var(--color-border-glass)'}`,
             pointerEvents: 'none', zIndex: 0,
@@ -1685,11 +1687,11 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
               // читался бы как список, а не как шкала.
               flex: fill ? '1 1 0' : undefined,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '7px 14px', borderRadius: 999, border: 'none',
+              padding: '8px 14px', borderRadius: 999, border: 'none',
               background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
               color: on ? (accent ?? 'var(--color-text)') : 'var(--color-text-3)',
               fontSize: 12, fontWeight: on ? 700 : 500,
-              whiteSpace: 'nowrap', transition: 'color 0.16s ease',
+              whiteSpace: 'nowrap', transition: 'color 0.15s ease',
             }}
           >
             {o.Icon && <o.Icon size={14} />}
@@ -1764,8 +1766,8 @@ export function ToolButton({ children, on, onClick, accent, btnRef, icon, label 
  * рябь, и таблетка остаётся стеклом, а не глухой плашкой.
  */
 export const PILL_GLASS = {
-  backdropFilter: 'blur(18px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
 } as const
 
 /**
@@ -1852,7 +1854,7 @@ export function SortMenu({ options, value, onChange, accent, soft }: {
         }}
       >
         {t(current?.label ?? '')}
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex' }}>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }} style={{ display: 'flex' }}>
           <ChevronDown size={14} />
         </motion.span>
       </button>
@@ -1988,7 +1990,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
       >
         {t(label)}
         {on && <CountBadge count={value.length} style={{ background: tint }} />}
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex' }}>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }} style={{ display: 'flex' }}>
           <ChevronDown size={14} />
         </motion.span>
       </button>
@@ -2044,7 +2046,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
                     border: 'none', borderTop: '1px solid var(--color-border-soft)',
                     fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
                     background: 'transparent', color: 'var(--color-text-3)',
-                    transition: 'background 0.12s',
+                    transition: 'background 0.15s',
                   }}
                 >
                   {t('Сбросить')}
@@ -2131,7 +2133,7 @@ export function Tile({ children, onClick, accent, stack, tint }: {
               : 'var(--color-bg-2)',
             border: `1px solid ${tint ? tint.border : 'var(--color-border-glass)'}`,
             opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
-            transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform .16s',
+            transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none', transition: 'transform 0.15s',
           }}
         />
       ))}
@@ -2141,8 +2143,8 @@ export function Tile({ children, onClick, accent, stack, tint }: {
         onMouseLeave={() => setHover(false)}
         style={{
           position: 'relative', width: '100%', height: '100%', textAlign: 'left',
-          display: 'flex', flexDirection: 'column', gap: 7,
-          padding: '13px 15px', borderRadius: 16, cursor: onClick ? 'pointer' : 'default',
+          display: 'flex', flexDirection: 'column', gap: 8,
+          padding: '12px 16px', borderRadius: 16, cursor: onClick ? 'pointer' : 'default',
           fontFamily: 'inherit',
           // Заливка «своей» плитки — слоем поверх подложки, а не вместо неё:
           // `soft` палитры полупрозрачен, и без второго слоя сквозь плитку
@@ -2157,7 +2159,7 @@ export function Tile({ children, onClick, accent, stack, tint }: {
           // тени пачка читается как одно пятно. Одиночную плитку тень зря
           // отрывает от страницы.
           boxShadow: stack ? 'var(--tile-shadow)' : undefined,
-          transition: 'border-color .16s',
+          transition: 'border-color 0.15s',
         }}
       >
         {children}

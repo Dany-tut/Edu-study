@@ -296,7 +296,7 @@ export default function CardImportPanel({
                 <div
                   key={i}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '5px 8px',
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px',
                     borderRadius: 10, background: r.keep ? 'var(--color-bg-2)' : 'transparent',
                     opacity: r.keep ? 1 : 0.45,
                   }}

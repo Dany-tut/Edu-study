@@ -219,7 +219,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
             width: box.width + PAD * 2, height: box.height + PAD * 2,
             borderRadius: box.radius, border: `2px solid ${accent}`,
             boxShadow: `0 0 0 9999px rgba(8,8,12,0.62), 0 0 0 6px ${accent}33`,
-            transition: 'left .2s ease, top .2s ease, width .2s ease, height .2s ease',
+            transition: 'left 0.22s ease, top 0.22s ease, width 0.22s ease, height 0.22s ease',
           }}
         />
       )}
@@ -244,7 +244,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
             // Видимый кружок 26, а зона нажатия 36: прозрачное поле 5 px вокруг
             // (фон — только по содержимому), чтобы палец попадал на телефоне.
             position: 'absolute', top: PADDING - 5, right: PADDING - 5, width: 36, height: 36,
-            padding: 5, backgroundClip: 'content-box', borderRadius: '50%',
+            padding: 6, backgroundClip: 'content-box', borderRadius: '50%',
             border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
             cursor: 'pointer', display: 'grid', placeItems: 'center',
           }}
@@ -252,7 +252,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
           <X size={14} />
         </button>
 
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, color: accent, marginBottom: 5 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, color: accent, marginBottom: 6 }}>
           {i + 1} / {steps.length}
         </div>
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6, paddingRight: 28 }}>
@@ -268,12 +268,12 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
               «Дальше» за поле: справа оставалось 16 пикселей вместо 17, и на
               последнем шаге (где «Пропустить» нет) кнопка вставала иначе, чем
               на всех предыдущих. */}
-          <div style={{ display: 'flex', gap: 5, flex: '1 1 0', minWidth: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', gap: 6, flex: '1 1 0', minWidth: 0, overflow: 'hidden' }}>
             {steps.map((_, k) => (
               <span key={k} style={{
                 width: k === i ? 16 : 6, height: 6, borderRadius: 999, flexShrink: 0,
                 background: k === i ? accent : 'var(--color-border-strong)',
-                transition: 'width .2s ease',
+                transition: 'width 0.22s ease',
               }} />
             ))}
           </div>
@@ -294,7 +294,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
             onClick={next}
             style={{
               flexShrink: 0,
-              padding: '9px 16px', borderRadius: 999, border: 'none', background: accent,
+              padding: '10px 16px', borderRadius: 999, border: 'none', background: accent,
               color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
             }}
           >

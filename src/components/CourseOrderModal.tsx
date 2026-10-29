@@ -153,7 +153,7 @@ export default function CourseOrderModal({ open, onClose }: Props) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.15 }}
           onPointerDown={e => { if (e.target === e.currentTarget) onClose() }}
           style={{
             position: 'fixed', inset: 0, zIndex: 2000,
@@ -165,12 +165,12 @@ export default function CourseOrderModal({ open, onClose }: Props) {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.2, ease: EASE }}
+            transition={{ duration: 0.22, ease: EASE }}
             style={{
               // Рамка не прокручивается: шапка стоит, листается только тело (см. Modal.tsx).
               width: 'min(420px, 100%)', maxHeight: '90dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
               background: 'var(--color-bg)', borderRadius: MODAL_RADIUS, paddingTop: 24,
-              boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+              boxShadow: 'var(--shadow-5)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '0 24px', flexShrink: 0 }}>
@@ -220,7 +220,7 @@ function CourseRow({ row, index }: { row: Row; index: number }) {
       value={row}
       dragListener={false}
       dragControls={controls}
-      whileDrag={{ scale: 1.03, boxShadow: '0 14px 30px rgba(0,0,0,0.16)' }}
+      whileDrag={{ scale: 1.03, boxShadow: 'var(--shadow-4)' }}
       transition={{ type: 'spring', stiffness: 600, damping: 42 }}
       style={{
         position: 'relative',

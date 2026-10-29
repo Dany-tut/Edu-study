@@ -168,12 +168,12 @@ function GesturePreview({ gesture, action, engagement }: {
             padding: 12, borderRadius: 14,
             background: 'var(--color-surface)',
             border: '1px solid var(--color-border-soft)',
-            display: 'flex', flexDirection: 'column', gap: 9,
+            display: 'flex', flexDirection: 'column', gap: 10,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ width: 30, height: 30, borderRadius: 999, background: 'var(--color-bg-5)', flexShrink: 0 }} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Bar w={82} />
               <Bar w={52} h={7} />
             </div>
@@ -201,12 +201,12 @@ function GesturePreview({ gesture, action, engagement }: {
           transition={{ ...markT, times: undefined, duration: cardT.duration }}
           style={{
             position: 'absolute', zIndex: 2, opacity: 0,
-            top: '50%', marginTop: -17,
+            top: '50%', marginTop: -16,
             // У свайпа палец привязан к тому краю, от которого жест
             // начинается; у тапов — к середине поста.
             ...(swipe
               ? (dir < 0 ? { right: 6 } : { left: 6 })
-              : { left: '50%', marginLeft: -17 }),
+              : { left: '50%', marginLeft: -16 }),
             width: 34, height: 34, borderRadius: 999,
             background: 'rgba(var(--glass-rgb), 0.5)',
             boxShadow: '0 0 0 1.5px var(--color-border-medium), 0 4px 14px rgba(0,0,0,0.18)',
@@ -216,8 +216,8 @@ function GesturePreview({ gesture, action, engagement }: {
 
       {/* Подпись под макетом: что именно сейчас показывают. */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-        padding: '9px 0 2px', fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        padding: '10px 0 2px', fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)',
       }}>
         <span>{t(GESTURES.find(g => g.id === gesture)!.label)}</span>
         <span style={{ color: 'var(--color-text-4)' }}>→</span>
@@ -241,12 +241,12 @@ function ActionChip({ action, on, onPick }: { action: FeedAction; on: boolean; o
       aria-pressed={on}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
-        padding: '7px 12px 7px 10px', borderRadius: 999, cursor: 'pointer',
+        padding: '8px 12px 8px 10px', borderRadius: 999, cursor: 'pointer',
         fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
         border: `1px solid ${on ? 'transparent' : 'var(--color-border)'}`,
         background: on ? tone.soft : 'transparent',
         color: on ? tone.ink : 'var(--color-muted)',
-        transition: 'background .16s ease, color .16s ease, border-color .16s ease',
+        transition: 'background 0.15s ease, color 0.15s ease, border-color 0.15s ease',
       }}
     >
       {action !== 'none' && (
@@ -267,7 +267,7 @@ function FlagRow({ label, hint, value, onChange, first }: {
   const t = useT()
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 15px',
+      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
       borderTop: first ? 'none' : '1px solid var(--color-border-soft)',
     }}>
       <div style={{ minWidth: 0, flex: 1 }}>
@@ -363,27 +363,27 @@ export function FeedGesturesSettings() {
           border: '1px solid var(--color-border-soft)', overflow: 'hidden',
           opacity: gestures ? 1 : 0.45,
           pointerEvents: gestures ? 'auto' : 'none',
-          transition: 'opacity .2s ease',
+          transition: 'opacity 0.22s ease',
         }}>
           {GESTURES.map((g, i) => (
             <div
               key={g.id}
               onPointerDown={() => setFocus(g.id)}
               style={{
-                padding: '13px 15px 14px',
+                padding: '12px 16px 14px',
                 borderTop: i ? '1px solid var(--color-border-soft)' : 'none',
                 background: focus === g.id ? 'var(--color-bg-4, transparent)' : 'transparent',
-                transition: 'background .2s ease',
+                transition: 'background 0.22s ease',
               }}
             >
               {/* Название и пояснение — строками, а не в ряд: в ряду «Свайп
                   вправо» ломался пополам на 375 px, и заголовок ряда читался
                   хуже собственного пояснения. */}
-              <div style={{ marginBottom: 9 }}>
+              <div style={{ marginBottom: 10 }}>
                 <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t(g.label)}</div>
                 <div style={{ fontSize: 12, color: 'var(--color-text-4)', lineHeight: 1.3, marginTop: 2 }}>{t(g.hint)}</div>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {ACTIONS.map(a => (
                   <ActionChip
                     key={a}

@@ -83,10 +83,10 @@ export default function OfflineBanner() {
             display: 'flex', alignItems: 'center', gap: 12,
             padding: '8px 18px 8px 8px', borderRadius: 'var(--radius-pill)',
             background: 'rgba(var(--glass-rgb), var(--glass-fill-strong))',
-            backdropFilter: 'blur(20px) saturate(1.6)',
-            WebkitBackdropFilter: 'blur(20px) saturate(1.6)',
+            backdropFilter: 'var(--blur-solid)',
+            WebkitBackdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-strong)',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.16)',
+            boxShadow: 'var(--shadow-4)',
             pointerEvents: 'none',
           }}
         >

@@ -34,8 +34,8 @@ export default function WidgetFinanceActivity() {
       width: '100%', height: '100%',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       borderRadius: 24,
       border: '1px solid var(--color-border-medium)',
       // shadow on wrapper
@@ -80,7 +80,7 @@ export default function WidgetFinanceActivity() {
                 key={p.id}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '9px 16px',
+                  padding: '10px 16px',
                   borderBottom: i < recent.length - 1 ? '1px solid var(--color-border)' : 'none',
                   transition: 'background 0.15s',
                 }}

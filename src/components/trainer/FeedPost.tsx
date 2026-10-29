@@ -212,7 +212,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       position: 'relative',
       padding: '14px 0',
       borderTop: '1px solid var(--color-border-soft)',
-      display: 'flex', flexDirection: 'column', gap: 11,
+      display: 'flex', flexDirection: 'column', gap: 12,
     }}>
       {/* ── МЕТКА НА ПОЛЕ: «я это отметил» ───────────────────────────────────
           Сердце и реплики ушли в жесты, а вместе с ними ушёл и ответ на
@@ -365,7 +365,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
                   key={l.level}
                   onClick={() => { setTier(i); setExpanded(false); touched() }}
                   style={{
-                    padding: '3px 10px', borderRadius: 999, cursor: 'pointer',
+                    padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
                     fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
                     border: `1px solid ${i === tier ? accent : 'var(--color-border)'}`,
                     background: i === tier ? `${accent}1A` : 'transparent',
@@ -378,7 +378,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
             </div>
           )}
           {ru ? (
-            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', ...proseWrap }}>
+            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch', ...proseWrap }}>
               {shown.split('\n\n').map((para, i) => (
                 <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(para)}</p>
               ))}
@@ -650,7 +650,7 @@ function IconBtn({ children, on, accent, title, count, onClick }: {
         color: on ? accent : 'var(--color-muted)',
         fontSize: 13, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
         lineHeight: '19px',
-        transition: 'color .15s ease',
+        transition: 'color 0.15s ease',
       }}
     >
       <span style={{
@@ -665,7 +665,7 @@ function IconBtn({ children, on, accent, title, count, onClick }: {
             background: 'currentColor',
             opacity: hot ? 0.12 : 0,
             transform: hot ? 'scale(1)' : 'scale(0.75)',
-            transition: 'opacity .15s ease, transform .15s ease',
+            transition: 'opacity 0.15s ease, transform 0.15s ease',
           }}
         />
         <span style={{ position: 'relative', display: 'flex' }}>{children}</span>

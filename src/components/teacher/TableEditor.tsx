@@ -45,9 +45,9 @@ function InsertHandle({ accent, title, onClick, style }: {
       <div style={{
         width: 18, height: 18, borderRadius: '50%', background: accent, color: getContrastColor(accent),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.28)', pointerEvents: 'none',
+        boxShadow: 'var(--shadow-2)', pointerEvents: 'none',
         opacity: h ? 1 : 0, transform: h ? 'scale(1)' : 'scale(0.6)',
-        transition: 'opacity 0.12s ease, transform 0.12s ease',
+        transition: 'opacity 0.15s ease, transform 0.15s ease',
       }}>
         <Plus size={12} strokeWidth={2.5} />
       </div>
@@ -223,7 +223,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
               const colSel = sel?.type === 'col' && sel.index === c
               return (
                 <th key={c} onDoubleClick={() => setSel({ type: 'col', index: c })}
-                  style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? accentBg : 'var(--color-table-header-bg)', padding: 0, cursor: 'text', transition: 'background 0.12s', minWidth: 90 }}>
+                  style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? accentBg : 'var(--color-table-header-bg)', padding: 0, cursor: 'text', transition: 'background 0.15s', minWidth: 90 }}>
                   <input value={h} onChange={e => setHeader(c, e.target.value)} placeholder={`${t('Заголовок')} ${c + 1}`}
                     onPaste={c === 0 ? handlePaste : undefined}
                     style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
@@ -243,10 +243,10 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                   <td key={c}
                     onClick={e => { if (showChoice) { e.stopPropagation(); setActiveCell(key) } }}
                     onDoubleClick={() => setSel({ type: 'row', index: r })}
-                    style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'default' : 'text', background: hl ? accentBg : 'var(--color-table-cell-bg)', transition: 'background 0.12s', position: 'relative' }}>
+                    style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'default' : 'text', background: hl ? accentBg : 'var(--color-table-cell-bg)', transition: 'background 0.15s', position: 'relative' }}>
                     {cellImg ? (
-                      <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           {CELL_IMG_SIZES.map(s => {
                             const active = (cellImageSizes[key] ?? DEFAULT_IMAGE_SIZE) === s.value
                             return (
@@ -300,22 +300,22 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           // (кнопка исчезает → body), onBlur пустого поля тут же возвращает выбор — клик «не срабатывал».
                           onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setActiveCell(key) }}
                           onClick={e => e.stopPropagation()}
-                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                          style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >{t('Текст')}</button>
                         <button
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, true) }}
                           onClick={e => e.stopPropagation()}
-                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                          style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >{t('Вписать')}</button>
                         <button
                           onMouseDown={e => { e.stopPropagation(); setBlank(key, true) }}
                           onClick={e => e.stopPropagation()}
-                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                          style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >{t('Пусто')}</button>
                         {allowCellImages && (
                           <button
                             onClick={e => { e.stopPropagation(); pickCellImage(key) }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                           ><Camera size={12} /> {t('Фото')}</button>
                         )}
                       </div>

@@ -39,7 +39,7 @@ const navItems = [
 // One ease + duration shared by every animated element so the whole bar
 // expands/collapses as a single synchronized motion (no competing timings).
 const EASE = [0.32, 0.72, 0, 1] as const
-const transition = { duration: 0.32, ease: EASE }
+const transition = { duration: 0.38, ease: EASE }
 
 // Avatar: a flower glyph on a deterministic gradient generated from the name.
 // The gradient stays as a per-user backdrop; an icon picker can swap the glyph later.
@@ -75,17 +75,19 @@ function buildAvatars(name: string): AvatarOption[] {
 const panelBox = {
   // Геометрия как в учительском меню: узкая рамка панели (8), а воздух дают
   // сами строки своим padding'ом — так содержимое отступает от края на 16.
+  // Радиус и отступ — как у общей поверхности меню (lib/dropdownStyle): 14 / 6,
+  // строки — 8 (концентрично). Стекло плотнее (0.96), тень — меню.
   width: 252,
-  padding: 8,
-  borderRadius: 18,
+  padding: 6,
+  borderRadius: 14,
   // Frosted-glass recipe like the module buttons / track-click card, but a
   // touch more opaque (0.72) so the label, divider and "Настройки" text keep
   // enough contrast even when the popover floats over a dark video backdrop.
-  background: 'rgba(var(--glass-rgb), 0.88)',
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  background: 'rgba(var(--glass-rgb), 0.96)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   border: '1px solid var(--color-border-glass)',
-  boxShadow: 'var(--shadow-sidebar)',
+  boxShadow: 'var(--shadow-dropdown)',
   boxSizing: 'border-box',
 } as const
 
@@ -120,21 +122,21 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        padding: '9px 8px',
-        borderRadius: 10,
+        padding: '10px 8px',
+        borderRadius: 8,
         border: 'none',
         cursor: 'pointer',
         background: active ? 'rgba(var(--accent-rgb), 0.1)' : 'transparent',
-        color: danger ? '#C53030' : 'var(--color-text)',
+        color: danger ? 'var(--color-red-text)' : 'var(--color-text)',
         fontSize: 14,
         fontWeight: 500,
         textAlign: 'left',
         transition: 'background 0.15s',
       }}
     >
-      <Icon size={17} strokeWidth={1.9} style={{ color: danger ? '#C53030' : 'var(--color-muted)', flexShrink: 0 }} />
+      <Icon size={17} strokeWidth={1.9} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-muted)', flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
-      <ChevronRight size={16} style={{ color: danger ? '#E57373' : 'var(--color-text-4)', flexShrink: 0 }} />
+      <ChevronRight size={16} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
     </motion.button>
   )
 }
@@ -421,13 +423,15 @@ export default function Sidebar() {
         position: 'relative',
         zIndex: 60,
         borderRadius: 32,
-        padding: '12px',
+        // Как у учителя: 60 − 44 = 16 → отступ 8; пункт — радиус 22 (30 − 8,
+        // концентрично капсуле бара). Было 12 и 20 — бары двух кабинетов расходились.
+        padding: '8px',
         height: 60,
         width: 'fit-content',
         boxSizing: 'border-box',
         background: 'rgba(var(--glass-rgb), 0.88)',
-        backdropFilter: 'blur(14px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-glass)',
         boxShadow: 'var(--shadow-pill)',
         display: 'flex',
@@ -490,7 +494,7 @@ export default function Sidebar() {
                   // Close as an eased tween (no spring overshoot) that only
                   // shrinks part-way while fading to transparent: it's gone via
                   // opacity before it ever gets tiny enough to jitter.
-                  exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }}
+                  exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }}
                   transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
                   style={{
                     position: 'fixed',
@@ -612,7 +616,7 @@ export default function Sidebar() {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         // Same eased fade-out so it doesn't jitter when tiny.
-                        exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }}
+                        exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }}
                         transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
                         style={{ ...panelBox, transformOrigin: 'left top', marginTop: 158 }}
                       >
@@ -658,7 +662,7 @@ export default function Sidebar() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', padding: '9px 8px',
+                            width: '100%', padding: '10px 8px',
                             display: 'flex', alignItems: 'center',
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
@@ -682,7 +686,7 @@ export default function Sidebar() {
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                             style={{
-                              width: '100%', padding: '9px 8px',
+                              width: '100%', padding: '10px 8px',
                               display: 'flex', alignItems: 'center',
                               gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                               background: 'transparent',
@@ -706,7 +710,7 @@ export default function Sidebar() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', padding: '9px 8px',
+                            width: '100%', padding: '10px 8px',
                             display: 'flex', alignItems: 'center',
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
@@ -727,7 +731,7 @@ export default function Sidebar() {
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                             style={{
-                              width: '100%', padding: '9px 8px',
+                              width: '100%', padding: '10px 8px',
                               display: 'flex', alignItems: 'center',
                               gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                               background: 'transparent',
@@ -748,7 +752,7 @@ export default function Sidebar() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', padding: '9px 8px',
+                            width: '100%', padding: '10px 8px',
                             display: 'flex', alignItems: 'center',
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
@@ -771,7 +775,7 @@ export default function Sidebar() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', padding: '9px 8px',
+                            width: '100%', padding: '10px 8px',
                             display: 'flex', alignItems: 'center',
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
@@ -849,7 +853,7 @@ export default function Sidebar() {
                 justifyContent: 'center',
                 padding: '0 16px',
                 height: 44,
-                borderRadius: 20,
+                borderRadius: 22,
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: 14,

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import BackCircle from '../../components/BackCircle'
+import { confirmDialog } from '../../components/ConfirmHost'
 import Segmented from '../../components/Segmented'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles } from 'lucide-react'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
@@ -24,6 +26,7 @@ import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
 import { Alert } from '../../components/Alert'
 import SeasonAdmin from '../../components/teacher/SeasonAdmin'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // Маркер «без тарифа» для дропдауна (в БД это NULL).
 const NO_PLAN = '__no_plan__'
@@ -79,7 +82,7 @@ function pct(used: number, limit: number) {
 }
 
 function StorageTile({ icon: Icon, label, value, pct: value_pct }: { icon: React.ElementType; label: string; value: string; pct: number }) {
-  const color = value_pct >= 85 ? '#E04848' : value_pct >= 60 ? '#D07020' : '#3FA867'
+  const color = value_pct >= 85 ? 'var(--color-red-text)' : value_pct >= 60 ? 'var(--color-peach-text)' : 'var(--color-green-text)'
   return (
     <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '12px 14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-3)', fontSize: 12, fontWeight: 500 }}>
@@ -87,11 +90,11 @@ function StorageTile({ icon: Icon, label, value, pct: value_pct }: { icon: React
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '6px 0 8px' }}>
-        <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+        <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
         <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>· {value_pct}%</span>
       </div>
       <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
-        <div style={{ width: `${value_pct}%`, height: '100%', borderRadius: 2, background: color, transition: 'width 0.4s ease' }} />
+        <div style={{ width: `${value_pct}%`, height: '100%', borderRadius: 2, background: color, transition: 'width 0.38s ease' }} />
       </div>
     </div>
   )
@@ -111,7 +114,7 @@ function StatCard({ icon: Icon, label, value, sub, loading }: { icon: React.Elem
         </>
       ) : (
         <>
-          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+          <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', letterSpacing: '-0.01em', lineHeight: 1 }}>{value}</div>
           {sub && <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>{sub}</div>}
         </>
       )}
@@ -174,11 +177,11 @@ function InviteModal({ onClose }: { onClose: () => void }) {
           pointerEvents: 'auto',
           width: 560, maxWidth: '100%', maxHeight: '86vh', overflowY: 'auto',
           background: 'var(--color-bg-2)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          backdropFilter: 'var(--blur-solid)',
+          WebkitBackdropFilter: 'var(--blur-solid)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 24, padding: 24,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.22)',
+          boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -208,7 +211,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                 {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} />}
                 {copied ? t('Скопировано!') : t('Скопировать ссылку')}
               </button>
-              <button onClick={onClose} style={{ padding: '11px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('Готово')}</button>
+              <button onClick={onClose} style={{ padding: '12px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('Готово')}</button>
             </div>
           </div>
         ) : (
@@ -326,7 +329,7 @@ function AiSwitches() {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <Sparkles size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} />
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {t('Расход на ИИ')}
@@ -352,12 +355,12 @@ function AiSwitches() {
                 <div style={{ fontSize: 14, fontWeight: isMaster ? 700 : 600, color: 'var(--color-text)' }}>
                   {isMaster ? t('Обращения к модели разрешены') : (head(r.about) || r.key)}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 3, lineHeight: 1.45 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4, lineHeight: 1.45 }}>
                   {isMaster
                     ? t('Пока выключено, ни одна задача ниже не работает — даже поднятая.')
                     : tail(r.about)}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', opacity: 0.7, marginTop: 3 }}>{r.key}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', opacity: 0.7, marginTop: 4 }}>{r.key}</div>
               </div>
               <Switch
                 checked={r.enabled}
@@ -544,7 +547,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Уже у учителя')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {current.map(r => (
-              <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 9px' }}>
+              <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 10px' }}>
                 {r.kind === 'course' ? <BookOpen size={12} strokeWidth={2} /> : <Users size={12} strokeWidth={2} />}
                 {tc(r.title)}
                 <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}>
@@ -596,8 +599,8 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
             />
           </div>
           {planSaving && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Сохраняем…')}</span>}
-          {planSaved && <Check size={14} strokeWidth={2.5} style={{ color: '#3FA867' }} />}
-          {planError && <span style={{ fontSize: 11, color: '#E04848' }}>{planError}</span>}
+          {planSaved && <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />}
+          {planError && <span style={{ fontSize: 11, color: 'var(--color-red-text)' }}>{planError}</span>}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
           {t('Лимит учеников применяется при добавлении новых. «Без тарифа» — внутренний/бета-аккаунт без ограничений.')}
@@ -627,7 +630,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
               title={t('Скопировать')}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                padding: '7px 12px', borderRadius: 10,
+                padding: '8px 12px', borderRadius: 10,
                 background: 'var(--color-purple-soft)', border: '1px solid rgba(155,109,255,0.3)',
               }}
             >
@@ -635,7 +638,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
               {pwCopied ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} /> : <Copy size={14} style={{ color: 'var(--color-purple)' }} />}
             </div>
           )}
-          {pwError && <span style={{ fontSize: 11, color: '#E04848' }}>{pwError}</span>}
+          {pwError && <span style={{ fontSize: 11, color: 'var(--color-red-text)' }}>{pwError}</span>}
         </div>
         {pwValue && (
           <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
@@ -668,7 +671,16 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
   const [rows, setRows] = useState<ContentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [confirmDel, setConfirmDel] = useState<ContentRow | null>(null)
+  // Подтверждение удаления — общим окном приложения (ConfirmHost), а не своим.
+  function askDelete(row: ContentRow) {
+    void confirmDialog({
+      title: t('Удалить безвозвратно?'),
+      message: row.kind === 'course'
+        ? `${t('Курс')} «${tc(row.title)}» ${t('и все его уроки/модули будут удалены навсегда.')}`
+        : `${t('Группа')} «${tc(row.title)}» ${t('со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.')}`,
+      confirmLabel: t('Удалить'), tone: 'danger',
+    }).then(ok => { if (ok) void doDelete(row) })
+  }
   const [filter, setFilter] = useState<'all' | 'course' | 'group'>('all')
 
   async function load() {
@@ -690,7 +702,6 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
   async function doDelete(row: ContentRow) {
     setBusyId(row.id)
     await supabase.rpc('admin_delete_content', { p_kind: row.kind, p_id: row.id })
-    setConfirmDel(null)
     await load()
     setBusyId(null)
   }
@@ -757,20 +768,20 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                   onChange={v => reassign(row, v)}
                   options={teachers.map(o => ({ value: o.id, label: `${tn(o.name)}${o.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
                   triggerStyle={{
-                    padding: '7px 10px', borderRadius: 9, fontWeight: 600,
+                    padding: '8px 10px', borderRadius: 9, fontWeight: 600,
                     background: 'var(--color-bg-3)',
-                    border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
+                    border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : 'var(--color-peach-text)'}`,
                   }}
                 />
               </div>
               <button
-                onClick={() => setConfirmDel(row)}
+                onClick={() => askDelete(row)}
                 disabled={busyId === row.id}
                 title={t('Удалить')}
                 style={{
                   width: 30, height: 30, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
+                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: 'var(--color-red-text)',
                 }}
               >
                 <X size={16} strokeWidth={2} />
@@ -782,34 +793,6 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
 
       {/* Delete confirm */}
       <AnimatePresence>
-        {confirmDel && createPortal(
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setConfirmDel(null)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
-          >
-            <motion.div
-              initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: 380, maxWidth: '90vw', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 22, padding: 22 }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />
-                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Удалить безвозвратно?')}</div>
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
-                {confirmDel.kind === 'course'
-                  ? <>{t('Курс')} <b>«{tc(confirmDel.title)}»</b> {t('и все его уроки/модули будут удалены навсегда.')}</>
-                  : <>{t('Группа')} <b>«{tc(confirmDel.title)}»</b> {t('со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.')}</>}
-              </div>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button onClick={() => setConfirmDel(null)} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
-                <button onClick={() => doDelete(confirmDel)} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: 'var(--btn-red-bg)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('Удалить')}</button>
-              </div>
-            </motion.div>
-          </motion.div>,
-          document.body
-        )}
       </AnimatePresence>
     </div>
   )
@@ -916,9 +899,9 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                         onChange={v => reassign(row, v)}
                         options={teachers.map(o => ({ value: o.id, label: `${tn(o.name)}${o.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
                         triggerStyle={{
-                          padding: '7px 10px', borderRadius: 9, fontWeight: 600,
+                          padding: '8px 10px', borderRadius: 9, fontWeight: 600,
                           background: 'var(--color-bg-3)',
-                          border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
+                          border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : 'var(--color-peach-text)'}`,
                         }}
                       />
                     </div>
@@ -929,7 +912,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                       style={{
                         width: 30, height: 30, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
+                        background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: 'var(--color-red-text)',
                       }}
                     >
                       <X size={16} strokeWidth={2} />
@@ -1041,22 +1024,11 @@ export default function TeacherAdminPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
-          <motion.button
-            whileTap={{ scale: 0.94 }}
-            onClick={() => setActivePage('home')}
-            style={{
-              width: 36, height: 36, borderRadius: 12,
-              background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: 'var(--color-text-3)', flexShrink: 0,
-            }}
-          >
-            <ArrowLeft size={16} strokeWidth={2} />
-          </motion.button>
+          <BackCircle onClick={() => setActivePage('home')} label="На главную" />
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Администрирование')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Управление платформой')}</div>
@@ -1156,12 +1128,12 @@ export default function TeacherAdminPage() {
                           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>admin</span>
                         )}
                         {isTeacher && restrictCount > 0 && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <Lock size={12} strokeWidth={2.5} />{restrictCount}
                           </span>
                         )}
                         {isTeacher && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-green-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }} title={t('Учитель зарегистрирован')}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-green-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('Учитель зарегистрирован')}>
                             <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#1F9B6B' }} />{t('активен')}
                           </span>
                         )}
@@ -1179,11 +1151,11 @@ export default function TeacherAdminPage() {
                         title={t('Настроить доступы')}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-                          padding: '7px 12px', borderRadius: 10, cursor: 'pointer',
+                          padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
                           border: '1px solid var(--color-border-medium)',
                           background: expanded ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                           color: expanded ? 'var(--color-purple)' : 'var(--color-text-3)',
-                          fontSize: 12, fontWeight: 600, transition: 'all 0.12s',
+                          fontSize: 12, fontWeight: 600, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                         }}
                       >
                         <SlidersHorizontal size={14} strokeWidth={2} />
@@ -1233,7 +1205,7 @@ export default function TeacherAdminPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
                         {inv.email || t('Без email')}
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C77700' }} />{t('не активировано')}
                         </span>
                       </div>
@@ -1245,14 +1217,14 @@ export default function TeacherAdminPage() {
                     <button
                       onClick={() => { void copyToClipboard(link) }}
                       title={t('Скопировать ссылку')}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '7px 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '8px 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
                     >
                       <Copy size={14} strokeWidth={2} />{t('Ссылка')}
                     </button>
                     <button
                       onClick={() => revokeInvite(inv.token)}
                       title={t('Отозвать приглашение')}
-                      style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '7px 9px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: '#E04848' }}
+                      style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)' }}
                     >
                       <Trash2 size={14} strokeWidth={2} />
                     </button>

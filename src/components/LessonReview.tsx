@@ -117,11 +117,11 @@ export default function LessonReview({
                 className="cursor-pointer text-left"
                 style={{
                   padding: '14px 16px', borderRadius: 18,
-                  border: `1px solid ${reveal ? '#6EE7A0' : wrong ? '#F8636B' : 'var(--color-border)'}`,
+                  border: `1px solid ${reveal ? 'var(--color-green-border)' : wrong ? 'var(--color-red-border)' : 'var(--color-border)'}`,
                   background: reveal ? 'var(--color-green-soft)' : wrong ? 'var(--color-red-soft)' : 'var(--color-bg-input)',
                   color: 'var(--color-text)',
                   fontSize: 14, lineHeight: 1.45, fontWeight: 600,
-                  transition: 'all 0.18s ease',
+                  transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
                   opacity: done && !reveal && !wrong ? 0.84 : 1,
                   position: 'relative', fontFamily: 'inherit',
                   ...proseWrap,

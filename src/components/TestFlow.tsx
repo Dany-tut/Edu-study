@@ -39,6 +39,7 @@ import ScriptKeyboard, { needsScriptKeyboard, scriptKeyboardCovers } from './Scr
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
+import { PAGE_WIDTH } from '../lib/pageWidth'
 
 /**
  * Поля ответа в тесте живут по тем же правилам, что и в домашке: обнимают
@@ -137,11 +138,11 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
   }).length
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '12px 20px 80px' }}>
+    <div style={{ maxWidth: PAGE_WIDTH.reading, margin: '0 auto', padding: '12px 20px 80px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
         <BackCircle onClick={onBack} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 13px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700 }}>
           <ClipboardCheck size={14} /> {t('Финальный тест')}
         </div>
       </div>
@@ -162,7 +163,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
               <div key={task.id} style={{ background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 16, padding: '18px 20px' }}>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
                   <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 3, ...proseWrap }}>{bindShortWords(task.question || task.label)}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 4, ...proseWrap }}>{bindShortWords(task.question || task.label)}</div>
                 </div>
 
                 {/* Картинка условия. В тесте она рисуется по тем же правилам,
@@ -188,12 +189,12 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       return (
                         <button key={ci} onClick={() => setAnswer(task.id, ci)} style={{
                           display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
-                          padding: '11px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+                          padding: '12px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
                           border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
                           background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
                           fontSize: 14, color: 'var(--color-text)', fontWeight: selected ? 600 : 400,
                         }}>
-                          <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: selected ? '5px solid var(--color-accent)' : '2px solid var(--color-border-medium)', transition: 'all 0.12s' }} />
+                          <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: selected ? '5px solid var(--color-accent)' : '2px solid var(--color-border-medium)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }} />
                           <span style={proseWrap}>{bindShortWords(ch)}</span>
                         </button>
                       )
@@ -209,7 +210,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       return (
                         <button key={ci} onClick={() => toggleMulti(task.id, ci)} style={{
                           display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
-                          padding: '11px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+                          padding: '12px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
                           border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
                           background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
                           fontSize: 14, color: 'var(--color-text)', fontWeight: selected ? 600 : 400,
@@ -246,7 +247,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       placeholder={tp === 'fill' ? t('Твой ответ…') : t('Развёрнутый ответ…')}
                       minHeight={TEST_ANSWER_MIN_H}
                       inputMode={scriptKeyboardCovers(task.answer) ? 'none' : undefined}
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
                     {/* Ответ письмом, которого нет на клавиатуре ученика (ScriptKeyboard). */}
                     {needsScriptKeyboard(task.answer) && (
@@ -277,10 +278,10 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     {seqOrder.map((itemIdx, pos) => (
                       <div key={itemIdx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{pos + 1}</span>
-                        <div style={{ flex: 1, padding: '9px 12px', borderRadius: 10, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 14, color: 'var(--color-text)' }}>
+                        <div style={{ flex: 1, padding: '10px 12px', borderRadius: 10, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 14, color: 'var(--color-text)' }}>
                           {seqItems[itemIdx]}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           <button onClick={() => moveSeq(task.id, seqItems, pos, -1)} disabled={pos === 0}
                             style={{ width: 24, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: pos === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pos === 0 ? 0.4 : 1 }}>
                             <ArrowUp size={12} style={{ color: 'var(--color-text-3)' }} />
@@ -438,7 +439,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       onChange={v => setAnswer(task.id, v)}
                       placeholder={t('Опиши решение (рисунок на доске приложишь учителю)…')}
                       minHeight={TEST_ANSWER_MIN_H}
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
                   </div>
                 )}
@@ -468,7 +469,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       placeholder={t('Напечатай, что услышал…')}
                       minHeight={TEST_ANSWER_MIN_H}
                       inputMode={scriptKeyboardCovers(task.answer) ? 'none' : undefined}
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
                     {needsScriptKeyboard(task.answer) && (
                       <ScriptKeyboard

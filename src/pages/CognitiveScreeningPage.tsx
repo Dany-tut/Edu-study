@@ -90,7 +90,7 @@ function SectionProgress({ step, labels }: { step: number; labels: string[] }) {
     <div style={{ display: 'flex', gap: 6, marginBottom: 20, justifyContent: 'center', flexWrap: 'wrap' }}>
       {labels.map((label, i) => (
         <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 26, height: 4, borderRadius: 999, background: i < step ? ACC : i === step ? `${ACC}66` : 'var(--color-bg-5)', transition: 'background 0.3s' }} />
+          <div style={{ width: 26, height: 4, borderRadius: 999, background: i < step ? ACC : i === step ? `${ACC}66` : 'var(--color-bg-5)', transition: 'background 0.38s' }} />
           <div style={{ fontSize: 10, color: i <= step ? ACC : 'var(--color-text-3)', fontWeight: 600 }}>{label}</div>
         </div>
       ))}
@@ -140,7 +140,7 @@ function InfoDot({ info }: { info: DomainInfo }) {
                   [t('Методология'), t(info.science)],
                 ] as [string, string][]).map(([h, body]) => (
                   <div key={h} style={{ marginTop: 14 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>{h}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{h}</div>
                     <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{body}</div>
                   </div>
                 ))}
@@ -171,7 +171,7 @@ function SectionIntro({ icon, title, desc, tip, step, labels, onStart, info }: I
             </div>
             <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6 }}>{desc}</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, background: `${ACC}1f`, border: `1px solid ${ACC}55`, borderRadius: 12, padding: '11px 14px', fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: `${ACC}1f`, border: `1px solid ${ACC}55`, borderRadius: 12, padding: '12px 14px', fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 20 }}>
             <Lightbulb size={16} style={{ color: ACC, flexShrink: 0, marginTop: 1 }} />
             <span>{tip}</span>
           </div>
@@ -302,7 +302,7 @@ function MatricesSection({ cfg, step, labels, onComplete }: SectionProps<Matrice
               onClick={() => pick(i)}
               whileHover={{ scale: chosen === null ? 1.03 : 1 }}
               whileTap={{ scale: chosen === null ? 0.97 : 1 }}
-              style={{ cursor: chosen === null ? 'pointer' : 'default', padding: 10, borderRadius: 14, border: `2px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+              style={{ cursor: chosen === null ? 'pointer' : 'default', padding: 10, borderRadius: 14, border: `2px solid ${border}`, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.22s' }}
             >
               <GenCellView cell={opt} size={CELL - 6} />
             </motion.div>
@@ -746,7 +746,7 @@ function StroopSection({ cfg, step, labels, onComplete }: SectionProps<StroopCon
             key={idx}
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.15 }}
             style={{ textAlign: 'center', padding: '28px 0' }}
           >
             <span style={{ fontSize: 42, fontWeight: 800, color: ink, letterSpacing: 2, fontFamily: 'inherit' }}>
@@ -854,7 +854,7 @@ function MatchingSection({ cfg, step, labels, onComplete }: SectionProps<Matchin
               const border = conn ? (conn.correct ? OK_LINE : NO_LINE) : isSel ? ACC : 'var(--color-border-soft)'
               const bg = conn ? (conn.correct ? OK_BG : NO_BG) : isSel ? `${ACC}22` : 'var(--color-bg-3)'
               return (
-                <div key={i} onClick={() => clickLeft(i)} style={{ padding: '10px 12px', borderRadius: 12, border: `2px solid ${border}`, background: bg, cursor: usedLeft.has(i) ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4, transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div key={i} onClick={() => clickLeft(i)} style={{ padding: '10px 12px', borderRadius: 12, border: `2px solid ${border}`, background: bg, cursor: usedLeft.has(i) ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', display: 'flex', alignItems: 'center', gap: 6 }}>
                   {conn && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: conn.correct ? OK_TXT : NO_TXT }}>{conn.correct ? '✓' : '✗'}</span>}
                   {left}
                 </div>
@@ -873,7 +873,7 @@ function MatchingSection({ cfg, step, labels, onComplete }: SectionProps<Matchin
                 <motion.div
                   key={j}
                   animate={isWrong ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }}
-                  transition={{ duration: 0.35 }}
+                  transition={{ duration: 0.38 }}
                   onClick={() => clickRight(j)}
                   style={{ padding: '10px 12px', borderRadius: 12, border: `2px solid ${border}`, background: bg, cursor: usedRight.has(j) ? 'default' : selected !== null ? 'pointer' : 'default', fontSize: 12, fontWeight: 500, color: 'var(--color-text)', lineHeight: 1.4, transition: 'border-color 0.15s, background 0.15s' }}
                 >
@@ -915,7 +915,7 @@ function ResultsScreen({ name, cfg, scores }: { name: string; cfg: ScreeningConf
             const col = s.pct >= 70 ? OK_TXT : s.pct >= 40 ? ACC : NO_TXT
             const isTop = s.key === top.key
             return (
-              <div key={s.key} style={{ marginBottom: 12, padding: isTop ? '10px 12px' : '6px 0', borderRadius: isTop ? 12 : 0, background: isTop ? `${ACC}1a` : 'transparent', border: isTop ? `1px solid ${ACC}40` : 'none', transition: 'background 0.2s' }}>
+              <div key={s.key} style={{ marginBottom: 12, padding: isTop ? '10px 12px' : '6px 0', borderRadius: isTop ? 12 : 0, background: isTop ? `${ACC}1a` : 'transparent', border: isTop ? `1px solid ${ACC}40` : 'none', transition: 'background 0.22s' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <span style={{ fontSize: 16 }}>{s.icon}</span>
                   <div style={{ flex: 1 }}>
@@ -925,7 +925,7 @@ function ResultsScreen({ name, cfg, scores }: { name: string; cfg: ScreeningConf
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{s.desc}</div>
                   </div>
-                  {isTop && <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'var(--color-yellow-fill)', borderRadius: 6, padding: '2px 7px' }}>TOP</span>}
+                  {isTop && <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'var(--color-yellow-fill)', borderRadius: 6, padding: '2px 8px' }}>TOP</span>}
                 </div>
                 <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)' }}>
                   <motion.div initial={{ width: 0 }} animate={{ width: `${s.pct}%` }} transition={{ duration: 0.7, delay: 0.2 }} style={{ height: '100%', borderRadius: 999, background: col }} />
@@ -985,7 +985,7 @@ export default function CognitiveScreeningPage() {
         <Card style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '22px 22px 24px' }}>
           {/* Что за тест — меткой сверху, заголовок карточки отдан вопросу (как во входе в диагностику).
               Длинная строка переносится, а не режется: «~16 минут» уходил в многоточие на телефоне */}
-          <div style={{ alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'flex-start', gap: 6, padding: '5px 11px 5px 9px', borderRadius: 12, lineHeight: 1.3, background: `${ACC}1f`, color: ACC, fontSize: 12, fontWeight: 600 }}>
+          <div style={{ alignSelf: 'flex-start', maxWidth: '100%', display: 'inline-flex', alignItems: 'flex-start', gap: 6, padding: '6px 12px 6px 10px', borderRadius: 12, lineHeight: 1.3, background: `${ACC}1f`, color: ACC, fontSize: 12, fontWeight: 600 }}>
             <Brain size={14} style={{ flexShrink: 0, marginTop: 1.5 }} />
             <span style={{ minWidth: 0 }}>
               {cfg.title} · {seq.length}{'\u00A0'}{t('разделов')} · ~{Math.max(6, seq.length * 2)}{'\u00A0'}{t('мин')}

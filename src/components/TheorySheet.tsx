@@ -187,7 +187,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
           <motion.div
             key="theory-backdrop"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.15 }}
             onClick={onClose}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.38)', zIndex: 200 }}
           />
@@ -203,22 +203,23 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
             style={{
               ...(isDesktop ? null : { y }),
               position: 'fixed', zIndex: 201,
               display: 'flex', flexDirection: 'column',
               background: 'rgba(var(--glass-rgb), 0.98)',
-              backdropFilter: 'blur(18px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+              backdropFilter: 'var(--blur-glass)',
+              WebkitBackdropFilter: 'var(--blur-glass)',
               ...(isDesktop
                 ? {
                   top: 0, right: 0, bottom: 0, width: 'min(520px, 92vw)',
                   borderLeft: '1px solid var(--color-border-glass)',
                 }
                 : {
-                  left: 0, right: 0, bottom: 0, maxHeight: '82vh',
-                  borderTopLeftRadius: 26, borderTopRightRadius: 26,
+                  // Спека шторки — как MobileSheet: радиус 28, высота в dvh.
+                  left: 0, right: 0, bottom: 0, maxHeight: '85dvh',
+                  borderTopLeftRadius: 28, borderTopRightRadius: 28,
                   borderTop: '1px solid var(--color-border-glass)',
                   paddingBottom: 'env(safe-area-inset-bottom, 0px)',
                 }),
@@ -305,12 +306,12 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                     lang={lang}
                     accent={accent}
                     subject={glossSubject}
-                    style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 500, ...line.style }}
+                    style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 400, ...line.style }}
                   />
                 ))}</Fragment>
               ) : (
                 <Fragment key={p.id}>{proseLines(p.text).map(line => (
-                  <p key={`${p.id}-${line.key}`} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 500, ...proseWrap, ...line.style }}>
+                  <p key={`${p.id}-${line.key}`} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 400, ...proseWrap, ...line.style }}>
                     <Prose text={line.text} />
                   </p>
                 ))}</Fragment>

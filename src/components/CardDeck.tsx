@@ -500,7 +500,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
       title: t('Смотри, что делает карточка'),
       text: (
         <>
-          <div style={{ marginBottom: 9 }}>
+          <div style={{ marginBottom: 10 }}>
             {t('Она сейчас показывает каждый жест сама. Плашка на карточке — это ответ, который уйдёт в расписание.')}
           </div>
           <SwipeLegend rows={swipeRows(binary, t)} active={demoDir} accent={accent} />
@@ -536,15 +536,15 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
       <div ref={headRef}>
         {/* Полоса вместо счётчика «3 / 20»: точное число оставшегося ученик
             начинает считать и обрывает сессию на «ещё пять». */}
-        <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden', marginBottom: 7 }}>
+        <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden', marginBottom: 8 }}>
           <motion.div
             animate={{ width: `${Math.max(progress, 3)}%` }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.22 }}
             style={{ height: '100%', borderRadius: 999, background: accent }}
           />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <RotateCcw size={12} /> {seat.again ? t('возврат после ошибки') : source?.label ? t(source.label) : sourceLabel(seat, t)}
           </span>
           <span>{t('осталось')} {queue.length - idx}</span>
@@ -649,7 +649,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 13 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
         <div ref={undoRef} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <UndoButton onClick={undo} label={t('вернуть')} disabled={undoStack.current.length === 0} />
           {/* Онбординг проходят один раз, а забывают, какой свайп что значит, на
@@ -708,8 +708,8 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
   // `demo`.
   useEffect(() => {
     if (!demo) {
-      animate(x, 0, { duration: 0.3 })
-      animate(y, 0, { duration: 0.3 })
+      animate(x, 0, { duration: 0.38 })
+      animate(y, 0, { duration: 0.38 })
       return
     }
     // Вниз — короче остальных: карточка подсказки стоит под стопкой, и на
@@ -721,11 +721,11 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
       : { mx: 0, my: 88 }
     // Через центр: из «вправо» сразу в «вниз» карточка ехала бы по диагонали,
     // то есть показывала бы жест, которого нет.
-    animate(x, 0, { duration: 0.18 })
-    animate(y, 0, { duration: 0.18 })
+    animate(x, 0, { duration: 0.15 })
+    animate(y, 0, { duration: 0.15 })
     const go = window.setTimeout(() => {
-      animate(x, to.mx, { duration: 0.42 })
-      animate(y, to.my, { duration: 0.42 })
+      animate(x, to.mx, { duration: 0.38 })
+      animate(y, to.my, { duration: 0.38 })
     }, 190)
     return () => window.clearTimeout(go)
   }, [demo, x, y])
@@ -797,7 +797,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
     // застрявший флаг съедал следующий тап — переворот срабатывал со второго раза.
     setTimeout(() => { dragged.current = false }, 60)
 
-    if (!dir) { animate(x, 0, { duration: 0.18 }); animate(y, 0, { duration: 0.18 }); return }
+    if (!dir) { animate(x, 0, { duration: 0.15 }); animate(y, 0, { duration: 0.15 }); return }
 
     // Жест, который карточку не забирает (вправо или вверх по неперевёрнутой —
     // это «покажи ответ»), обязан вернуть её на место. Улетевшую никто не
@@ -805,8 +805,8 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
     // краем экрана, а в стопке остаётся пустая карточка из-под низа. Снаружи
     // это выглядело как «свайп подвис, приходится помогать».
     if (!consumes(dir)) {
-      animate(x, 0, { duration: 0.18 })
-      animate(y, 0, { duration: 0.18 })
+      animate(x, 0, { duration: 0.15 })
+      animate(y, 0, { duration: 0.15 })
       onSwipe(dir)
       return
     }
@@ -815,8 +815,8 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
     // карточка появляется под пальцем раньше, чем предыдущая ушла с экрана.
     const fly = dir === 'left' ? { mx: -620, my: 0 } : dir === 'right' ? { mx: 620, my: 0 }
       : dir === 'up' ? { mx: 0, my: -520 } : { mx: 0, my: 520 }
-    animate(x, fly.mx, { duration: 0.24 })
-    animate(y, fly.my, { duration: 0.24 })
+    animate(x, fly.mx, { duration: 0.22 })
+    animate(y, fly.my, { duration: 0.22 })
     setTimeout(() => onSwipe(dir), 170)
   }
 
@@ -890,7 +890,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
       onClick={() => { if (dragged.current) { dragged.current = false; return } if (!judge) onFlip() }}
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.16 }}
+      transition={{ duration: 0.15 }}
     >
       <Overlay side="left" opacity={noOpacity} label={judge ? t('неверно') : binary ? t('не знаю') : t('не помню')} tone="bad" />
       {/* Подписи сторон парные: слева «не знаю»/«не помню» — значит справа
@@ -1052,7 +1052,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
                           Пустой строкой её не заменяем — под предложением
                           висел бы пустой отступ. */}
                       {seat.card.ex.ru && (
-                        <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
+                        <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 4, lineHeight: 1.45 }}>
                           {seat.card.ex.ru}
                         </div>
                       )}
@@ -1093,7 +1093,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
       {seat.again && (
         <div style={{
           position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
-          fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999,
+          fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999,
           background: 'var(--color-bg-3)', color: 'var(--color-muted)',
         }}>
           {t('ещё раз')}
@@ -1164,17 +1164,17 @@ function SwipeLegend({ rows, active, accent }: {
           <div
             key={r.dir}
             style={{
-              display: 'flex', alignItems: 'baseline', gap: 7,
-              padding: '5px 8px', borderRadius: 10,
+              display: 'flex', alignItems: 'baseline', gap: 8,
+              padding: '6px 8px', borderRadius: 10,
               // Подсветка строки, а не смена её цвета: цвет здесь уже занят
               // смыслом ответа (красный — забыл, зелёный — вспомнил).
               background: on ? `${accent}22` : 'transparent',
-              transition: 'background 0.25s ease',
+              transition: 'background 0.22s ease',
             }}
           >
             <span style={{
               width: 13, flexShrink: 0, textAlign: 'center', fontSize: 13, fontWeight: 800,
-              color: on ? accent : 'var(--color-text-3)', transition: 'color 0.25s ease',
+              color: on ? accent : 'var(--color-text-3)', transition: 'color 0.22s ease',
             }}>
               {r.arrow}
             </span>
@@ -1227,7 +1227,7 @@ function UndoButton({ onClick, label, disabled, big }: {
       onClick={onClick}
       disabled={disabled}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: big ? DECK_CTA.gap : 5, borderRadius: 999,
+        display: 'inline-flex', alignItems: 'center', gap: big ? DECK_CTA.gap : 6, borderRadius: 999,
         ...(big
           ? { height: DECK_CTA.height, padding: DECK_CTA.padding, fontSize: DECK_CTA.fontSize, fontWeight: DECK_CTA.fontWeight }
           : { padding: '6px 12px', fontSize: 12, fontWeight: 600 }),
@@ -1273,11 +1273,11 @@ function ActionButton({ tone, label, hint, onClick }: {
         background: `color-mix(in srgb, ${color} ${hover ? 14 : 8}%, var(--color-bg-2))`,
         color, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         display: 'flex', flexDirection: hint ? 'column' : 'row',
-        gap: hint ? 2 : 7, alignItems: 'center', justifyContent: 'center',
+        gap: hint ? 2 : 8, alignItems: 'center', justifyContent: 'center',
         // Высота задана, а не набрана содержимым: слот под рядом кнопок считается
         // по этим числам, и «на глаз» они разъезжаются на первом же переводе.
         minHeight: hint ? ACT_H_HINT : ACT_H,
-        transition: 'background 140ms ease, border-color 140ms ease',
+        transition: 'background 0.15s ease, border-color 0.15s ease',
       }}
     >
       {Icon && !hint && <Icon size={15} strokeWidth={2.75} style={{ opacity: 0.9 }} />}

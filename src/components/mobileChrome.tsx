@@ -11,8 +11,8 @@ import { TAP_SCALE, JELLY_EASE, MOBILE_PILL_H } from '../lib/mobileTokens'
 
 const glassBase: CSSProperties = {
   background: 'rgba(var(--glass-rgb), var(--glass-fill-top))',
-  backdropFilter: 'blur(20px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+  backdropFilter: 'var(--blur-solid)',
+  WebkitBackdropFilter: 'var(--blur-solid)',
   border: '1px solid var(--color-border-glass)',
   boxShadow: 'var(--shadow-bar)',
 }
@@ -39,13 +39,13 @@ export function GlassPill({
   const inner: CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 7,
+    gap: 8,
     // Высота — общая для всех шапок (MOBILE_PILL_H), а не производная от
     // кегля: иначе таблетки соседних экранов стоят на разной высоте, и на
     // свайпе видно, как кнопка прыгает по вертикали.
     height: MOBILE_PILL_H,
     boxSizing: 'border-box',
-    padding: '0 15px',
+    padding: '0 16px',
     borderRadius: 999,
     fontSize: 13,
     fontWeight: 700,
@@ -61,7 +61,7 @@ export function GlassPill({
       type="button"
       data-swipe-morph={morph}
       whileTap={{ scale: TAP_SCALE }}
-      transition={{ duration: 0.16, ease: JELLY_EASE }}
+      transition={{ duration: 0.15, ease: JELLY_EASE }}
       onClick={() => { tactile(); onClick() }}
       style={{ ...inner, cursor: 'pointer' }}
     >
@@ -75,12 +75,15 @@ export function GlassIconButton({
   icon,
   onClick,
   dot = false,
+  dotTone = 'accent',
   ariaLabel,
   size = MOBILE_PILL_H,
 }: {
   icon: ReactNode
   onClick?: () => void
   dot?: boolean
+  /** alert — красная точка «непрочитано» (как у колокольчика на ПК). */
+  dotTone?: 'accent' | 'alert'
   ariaLabel?: string
   size?: number
 }) {
@@ -94,7 +97,7 @@ export function GlassIconButton({
       type="button"
       aria-label={ariaLabel}
       whileTap={{ scale: 0.9 }}
-      transition={{ duration: 0.16, ease: JELLY_EASE }}
+      transition={{ duration: 0.15, ease: JELLY_EASE }}
       onClick={() => { if (onClick) { tactile(); onClick() } }}
       style={{
         position: 'relative',
@@ -120,7 +123,7 @@ export function GlassIconButton({
           <span style={{
             position: 'absolute', top: size * 0.22, right: size * 0.24,
             width: 7, height: 7, borderRadius: 999,
-            background: 'var(--color-accent)', border: '1.5px solid var(--color-bg)',
+            background: dotTone === 'alert' ? 'var(--btn-red-bg)' : 'var(--color-accent)', border: '1.5px solid var(--color-bg)',
           }} />
         )}
       </span>

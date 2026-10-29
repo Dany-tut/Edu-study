@@ -160,11 +160,11 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
         padding: '12px 14px 14px',
         minWidth: 232,
         userSelect: 'none',
@@ -180,7 +180,7 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
         {RU_DAYS_SHORT.map(d => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#B0A8CC', paddingBottom: 4 }}>{t(d)}</div>
+          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', paddingBottom: 4 }}>{t(d)}</div>
         ))}
       </div>
 
@@ -196,13 +196,15 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
               style={{
                 width: 30, height: 30, borderRadius: 8, border: 'none',
                 cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500,
-                background: sel ? 'var(--grad-purple)' : tod ? 'var(--color-purple-soft)' : 'transparent',
-                color: sel ? '#fff' : tod ? 'var(--color-accent)' : 'var(--color-text)',
+                background: sel ? 'var(--grad-purple)' : 'transparent',
+                // Сегодня — кольцо, а не заливка: выбранный и сегодня не путаются.
+                boxShadow: !sel && tod ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none',
+                color: sel ? '#fff' : 'var(--color-text)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.1s',
+                transition: 'background 0.15s',
               }}
               onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? 'var(--color-purple-soft)' : 'transparent' }}
+              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               {d.getDate()}
             </button>
@@ -245,11 +247,11 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 14,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow-4)',
         overflow: 'hidden',
       }}
     >
@@ -265,11 +267,11 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
                     width: '100%', border: 'none',
                     background: active ? '#786AD7' : 'transparent',
                     color: active ? '#fff' : 'var(--color-text)',
-                    padding: '7px 10px', textAlign: 'left',
+                    padding: '8px 10px', textAlign: 'left',
                     fontSize: 13, fontWeight: active ? 700 : 500,
                     cursor: 'pointer', display: 'block',
                     borderRadius: 9,
-                    transition: 'background 0.18s, color 0.18s',
+                    transition: 'background 0.15s, color 0.15s',
                   }}
                   onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
                   onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -293,7 +295,7 @@ function TypePill({ type, onRemove }: { type: TaskType; onRemove: () => void }) 
       initial={{ maxWidth: 0, opacity: 0 }}
       animate={{ maxWidth: 150, opacity: 1 }}
       exit={{ maxWidth: 0, opacity: 0 }}
-      transition={{ duration: 0.18, ease: 'easeInOut' }}
+      transition={{ duration: 0.15, ease: 'easeInOut' }}
       style={{ overflow: 'hidden', flexShrink: 0 }}
     >
       <span
@@ -301,7 +303,7 @@ function TypePill({ type, onRemove }: { type: TaskType; onRemove: () => void }) 
         style={{
           display: 'inline-flex', alignItems: 'center',
           whiteSpace: 'nowrap',
-          padding: '4px 11px',
+          padding: '4px 12px',
           borderRadius: 6,
           background: type.bg, color: type.textColor,
           fontSize: 13, fontWeight: 600, lineHeight: 1,
@@ -490,7 +492,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
           style={{
             width: 520, borderRadius: 22,
             background: 'rgba(var(--glass-rgb), 0.96)',
-            backdropFilter: 'blur(24px) saturate(200%)',
+            backdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-glass)',
             boxShadow: 'var(--shadow-modal)',
             overflow: 'visible',
@@ -587,8 +589,8 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
                       marginTop: 6,
                       background: 'rgba(var(--glass-rgb), 0.72)',
-                      backdropFilter: 'blur(20px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(20px) saturate(200%)',
+                      backdropFilter: 'var(--blur-solid)',
+                      WebkitBackdropFilter: 'var(--blur-solid)',
                       border: '1px solid var(--color-border-glass)',
                       borderRadius: 14,
                       boxShadow: 'var(--shadow-dropdown)',
@@ -602,8 +604,8 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                         style={{
                           width: '100%', border: 'none', background: 'transparent',
                           display: 'flex', alignItems: 'center', gap: 10,
-                          padding: '8px 11px', cursor: 'pointer', textAlign: 'left',
-                          borderRadius: 9, transition: 'background 0.12s',
+                          padding: '8px 12px', cursor: 'pointer', textAlign: 'left',
+                          borderRadius: 9, transition: 'background 0.15s',
                           boxSizing: 'border-box',
                         }}
                         onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-5)')}
@@ -638,12 +640,12 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     key={tt.id}
                     onClick={() => { setTaskType(active ? null : tt); inputRef.current?.focus() }}
                     style={{
-                      padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
+                      padding: '6px 12px', borderRadius: 20, cursor: 'pointer',
                       fontSize: 12, fontWeight: 600,
                       background: active ? tt.bg : 'var(--color-bg-3)',
                       color: active ? tt.textColor : 'var(--color-muted)',
                       border: active ? `1.5px solid ${tt.color}44` : '1.5px solid transparent',
-                      transition: 'all 0.15s',
+                      transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                     }}
                   >
                     {t(tt.label)}
@@ -658,7 +660,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             {/* Date + Time */}
             <div style={{ display: 'flex', gap: 10 }}>
               {/* Date */}
-              <div ref={calendarRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5, position: 'relative' }}>
+              <div ref={calendarRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Calendar size={12} strokeWidth={2} />
                   {t('ДАТА')}
@@ -666,7 +668,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 <button
                   onClick={() => { setShowCalendar(v => !v); setShowTimePicker(false) }}
                   style={{
-                    padding: '9px 12px', borderRadius: 12,
+                    padding: '10px 12px', borderRadius: 12,
                     border: 'none',
                     background: 'var(--color-bg-input)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
@@ -686,7 +688,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               </div>
 
               {/* Time */}
-              <div ref={timePickerRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5, position: 'relative' }}>
+              <div ref={timePickerRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Clock size={12} strokeWidth={2} />
                   {t('ВРЕМЯ')}
@@ -694,7 +696,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 <button
                   onClick={() => { setShowTimePicker(v => !v); setShowCalendar(false) }}
                   style={{
-                    padding: '9px 12px', borderRadius: 12,
+                    padding: '10px 12px', borderRadius: 12,
                     border: 'none',
                     background: 'var(--color-bg-input)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
@@ -715,7 +717,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             </div>
 
             {/* Comment */}
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
                 <MessageSquare size={12} strokeWidth={2} />
                 {t('КОММЕНТАРИЙ')}
@@ -726,7 +728,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 placeholder={t('Заметки, ссылки, напоминание…')}
                 rows={2}
                 style={{
-                  padding: '9px 12px', borderRadius: 12, border: '1.5px solid var(--color-border-medium)',
+                  padding: '10px 12px', borderRadius: 12, border: '1.5px solid var(--color-border-medium)',
                   background: 'var(--color-bg-3)', fontSize: 14, color: 'var(--color-text)',
                   outline: 'none', width: '100%', boxSizing: 'border-box',
                   resize: 'none', fontFamily: 'inherit', lineHeight: 1.5,
@@ -741,8 +743,8 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               <button
                 onClick={handleClose}
                 style={{
-                  flex: 1, padding: '11px 0', borderRadius: 14,
-                  border: '1.5px solid var(--color-border-soft)', background: 'transparent',
+                  flex: 1, padding: '12px 0', borderRadius: 14,
+                  border: '1px solid var(--color-border-soft)', background: 'transparent',
                   fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', cursor: 'pointer',
                 }}
               >

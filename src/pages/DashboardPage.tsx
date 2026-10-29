@@ -1,4 +1,5 @@
 import Sidebar from '../components/Sidebar'
+import { useIsDesktop } from '../lib/useIsDesktop'
 import ScheduleCarousel from '../components/ScheduleCarousel'
 import WidgetCarousel from '../components/WidgetCarousel'
 import CompactWidgetPill from '../components/CompactWidgetPill'
@@ -70,16 +71,6 @@ function TrainerChunk() {
   )
 }
 
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)')
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isDesktop
-}
 
 const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer' | 'profile' | 'homeworkList'> = {
   '#/': 'home',
@@ -694,12 +685,12 @@ function AssignedTestsBlock() {
 
   return (
     <div style={{ padding: '12px 0 4px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <ClipboardList size={14} style={{ color: 'var(--color-accent)' }} />
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           {t('Назначенные тесты')}
         </span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 6, padding: '1px 7px' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 6, padding: '1px 8px' }}>
           {pending.length}
         </span>
       </div>
@@ -718,7 +709,7 @@ function AssignedTestsBlock() {
                 {a.dueDate && <span style={{ marginLeft: 8, color: 'var(--color-peach-text)' }}>{t('до')} {a.dueDate}</span>}
               </div>
             </div>
-            <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? 'var(--color-yellow-text)' : 'var(--color-purple-text)' }}>
+            <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? 'var(--color-yellow-text)' : 'var(--color-purple-text)' }}>
               {a.assignType === 'trial' ? t('Пробник') : t('Тест')}
             </span>
             <ChevronRight size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />

@@ -46,7 +46,7 @@ const ALL = 'all' as const
 // Shared spring for the search pill morph — matches the trainer dock exactly.
 const FIELD_MORPH = { type: 'spring', stiffness: 520, damping: 38, mass: 0.7 } as const
 // Collapse tween for the dock shrink/drop on scroll (shared with the bottom nav).
-const DOCK_COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
+const DOCK_COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 
 export default function CoursesPage() {
   const t = useT()
@@ -223,12 +223,12 @@ export default function CoursesPage() {
             gap: deskSearchOpen ? 8 : 0,
             height: 40,
             flex: '0 0 auto',
-            padding: '0 11px',
+            padding: '0 12px',
             overflow: 'hidden',
             borderRadius: 999,
             background: 'rgba(var(--glass-rgb), 0.95)',
             border: '1px solid var(--color-border-soft)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            boxShadow: 'var(--shadow-2)',
             color: search ? 'var(--color-accent)' : 'var(--color-text-3)',
             cursor: deskSearchOpen ? 'text' : 'pointer',
           }}
@@ -306,8 +306,8 @@ export default function CoursesPage() {
               ...PILL_ANCHOR,
               borderRadius: 999,
               background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              backdropFilter: 'var(--blur-glass)',
+              WebkitBackdropFilter: 'var(--blur-glass)',
               boxShadow: 'var(--shadow-xs)',
               border: '1px solid var(--color-border-glass)',
               pointerEvents: 'none',
@@ -364,7 +364,7 @@ export default function CoursesPage() {
                   backgroundClip: 'padding-box',
                   overflow: 'hidden',
                   cursor: 'pointer',
-                  transition: 'color 0.16s ease',
+                  transition: 'color 0.15s ease',
                   WebkitTapHighlightColor: 'transparent',
                 }}
               >
@@ -407,8 +407,8 @@ export default function CoursesPage() {
               ...PILL_ANCHOR,
               borderRadius: 999,
               background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              backdropFilter: 'var(--blur-glass)',
+              WebkitBackdropFilter: 'var(--blur-glass)',
               boxShadow: 'var(--shadow-xs)',
               border: '1px solid var(--color-border-glass)',
               pointerEvents: 'none',
@@ -440,7 +440,7 @@ export default function CoursesPage() {
                 zIndex: isActive ? 3 : 1,
                 flexShrink: 0,
                 whiteSpace: 'nowrap',
-                padding: '7px 16px',
+                padding: '8px 16px',
                 borderRadius: 999,
                 fontSize: 13,
                 fontWeight: 600,
@@ -454,7 +454,7 @@ export default function CoursesPage() {
                 backgroundClip: 'padding-box',
                 overflow: 'hidden',
                 cursor: 'pointer',
-                transition: 'color 0.16s ease',
+                transition: 'color 0.15s ease',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
@@ -472,7 +472,7 @@ export default function CoursesPage() {
                     pointerEvents: 'none',
                     zIndex: 0,
                   }}
-                  transition={{ duration: 0.16, ease: 'easeOut' }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
                 />
               )}
               <span style={{ position: 'relative', zIndex: 1 }}>{tab.label}</span>
@@ -516,7 +516,7 @@ export default function CoursesPage() {
                 ref={el => { cardRefs.current[lesson.id] = el }}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.02, 0.3) }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.02, 0.3) }}
                 whileHover={isLocked ? undefined : { scale: 1.02 }}
                 whileTap={isLocked ? undefined : { scale: 0.98 }}
                 onClick={() => { if (!isLocked) openLesson(lesson.id) }}
@@ -533,7 +533,7 @@ export default function CoursesPage() {
                   boxShadow: isFocused
                     ? `0 0 0 2px var(--color-bg), 0 0 0 4px ${st.ring}, 0 6px 20px ${st.ring}66`
                     : 'none',
-                  transition: 'box-shadow 0.2s ease',
+                  transition: 'box-shadow 0.22s ease',
                 }}
               >
                 {lesson.points !== undefined && (
@@ -543,7 +543,7 @@ export default function CoursesPage() {
                       top: 10,
                       right: 10,
                       minWidth: 34,
-                      padding: '3px 8px',
+                      padding: '4px 8px',
                       borderRadius: 999,
                       background: 'var(--lesson-badge-bg)',
                       color: st.subText,
@@ -578,7 +578,7 @@ export default function CoursesPage() {
         >
           <Search size={24} style={{ marginBottom: 8 }} />
           <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t('Ничего не найдено')}</p>
-          <p style={{ fontSize: 13, marginTop: 3 }}>{t('Попробуйте изменить запрос или модуль')}</p>
+          <p style={{ fontSize: 13, marginTop: 4 }}>{t('Попробуйте изменить запрос или модуль')}</p>
         </div>
       )}
 
@@ -641,7 +641,7 @@ export default function CoursesPage() {
                   style={{
                     ...glassCircle, position: 'relative', width: 46, height: 46,
                     background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-                    backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+                    backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
                     // Без своего белого inset — glassCircle уже несёт --shadow-pill,
                     // а inset в тёмной теме рисовал резкий контур (не как у соседей).
                     color: c.opts.active ? 'var(--color-accent)' : 'var(--color-text-2)',
@@ -670,10 +670,10 @@ export default function CoursesPage() {
                 position: 'absolute', left: 0, top: 0, bottom: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
                 gap: searchExpanded ? 8 : 0,
-                paddingRight: 15,
+                paddingRight: 16,
                 borderRadius: 999, overflow: 'hidden',
                 background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-                backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+                backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
                 border: '1px solid var(--color-border-glass)',
                 boxShadow: 'var(--shadow-pill)',
                 cursor: searchExpanded ? 'text' : 'pointer', pointerEvents: 'auto',
@@ -706,7 +706,7 @@ export default function CoursesPage() {
                 onClick={() => { tactile(); setStatusFilter(o.id); setFilterSheet(false) }}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '13px 15px', borderRadius: 14, cursor: 'pointer',
+                  padding: '12px 16px', borderRadius: 14, cursor: 'pointer',
                   background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
                   border: 'none', textAlign: 'left',
                   color: active ? 'var(--color-accent)' : 'var(--color-text)',

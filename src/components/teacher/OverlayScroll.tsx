@@ -131,7 +131,7 @@ export function ScrollOverlays({ thumb }: {
         <div style={{
           position: 'absolute', top: thumb.top, right: 2, width: 5, height: thumb.h,
           borderRadius: 999, background: 'var(--scroll-thumb)', pointerEvents: 'none', zIndex: 4,
-          opacity: thumb.show ? 1 : 0, transition: 'opacity 0.3s ease',
+          opacity: thumb.show ? 1 : 0, transition: 'opacity 0.38s ease',
         }} />
       )}
     </>

@@ -25,19 +25,19 @@ export default function TestlyTaskEditor({ value, onChange }: {
           <TestlyTile size={40} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{value.title}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 3 }}>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>
               {testlyMeta(value)} · {value.manual ? t('часть проверяете вы в Тестли') : t('проверка автоматически')}
             </div>
           </div>
           <a href={testlyEditUrl(value.id)} target="_blank" rel="noopener noreferrer" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 10, flexShrink: 0,
+            display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, flexShrink: 0,
             background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
             color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, textDecoration: 'none',
           }}>
             <ExternalLink size={13} /> {t('Открыть в Тестли')}
           </a>
           <button onClick={() => setPicking(p => !p)} style={{
-            padding: '8px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent',
+            padding: '8px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent',
             color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
           }}>
             {picking ? t('Скрыть') : t('Другой тест')}

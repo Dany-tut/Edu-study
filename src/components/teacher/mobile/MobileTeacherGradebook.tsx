@@ -194,12 +194,12 @@ export default function MobileTeacherGradebook() {
                 onClick={() => setOpenLesson(l)}
                 className="cursor-pointer"
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px',
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
                   borderRadius: 18, textAlign: 'left', position: 'relative', overflow: 'hidden',
                   ...(first ? {
                     background: 'linear-gradient(135deg, rgba(255,190,50,0.22) 0%, rgba(255,120,30,0.14) 100%)',
-                    backdropFilter: 'blur(18px)',
-                    WebkitBackdropFilter: 'blur(18px)',
+                    backdropFilter: 'var(--blur-glass)',
+                    WebkitBackdropFilter: 'var(--blur-glass)',
                     border: '1px solid rgba(255,175,40,0.35)',
                     boxShadow: '0 6px 28px rgba(255,150,20,0.22), inset 0 1px 0 rgba(255,220,100,0.18)',
                   } : {
@@ -233,7 +233,7 @@ export default function MobileTeacherGradebook() {
                   <div style={{ fontSize: 12, fontWeight: 500, color: first ? (dark ? 'rgba(255,200,80,0.8)' : 'rgba(163,78,0,0.72)') : 'var(--color-muted)' }}>{fmtDate(l.date)}{l.timeStart ? ` · ${l.timeStart}` : ''}</div>
                 </div>
                 {first && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: dark ? 'rgba(255,200,60,0.9)' : '#b45309', background: dark ? 'rgba(255,160,20,0.18)' : 'rgba(255,150,20,0.16)', borderRadius: 8, padding: '3px 8px', flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: dark ? 'rgba(255,200,60,0.9)' : '#b45309', background: dark ? 'rgba(255,160,20,0.18)' : 'rgba(255,150,20,0.16)', borderRadius: 8, padding: '4px 8px', flexShrink: 0 }}>
                     {t('Ближайший')}
                   </span>
                 )}

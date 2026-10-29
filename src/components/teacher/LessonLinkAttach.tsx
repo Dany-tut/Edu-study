@@ -50,7 +50,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
           }}
           placeholder="https://drive.google.com/…"
           style={{
-            flex: 1, minWidth: 0, padding: '5px 8px', borderRadius: 8, fontFamily: 'inherit', fontSize: fs,
+            flex: 1, minWidth: 0, padding: '6px 8px', borderRadius: 8, fontFamily: 'inherit', fontSize: fs,
             border: `1px solid ${err ? 'var(--color-red-text)' : 'var(--color-border-medium)'}`,
             background: 'var(--color-bg)', color: 'var(--color-text)', outline: 'none',
           }}
@@ -58,7 +58,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
         <button
           onClick={submit}
           style={{
-            flexShrink: 0, padding: '5px 9px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            flexShrink: 0, padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
             fontFamily: 'inherit', fontSize: fs, fontWeight: 600,
             background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
           }}
@@ -66,7 +66,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
           {t('Добавить')}
         </button>
       </div>
-      <p style={{ marginTop: 3, fontSize: compact ? 10 : 11, lineHeight: 1.3, color: err ? 'var(--color-red-text)' : 'var(--color-muted)' }}>
+      <p style={{ marginTop: 4, fontSize: compact ? 10 : 11, lineHeight: 1.3, color: err ? 'var(--color-red-text)' : 'var(--color-muted)' }}>
         {err ? t('Это не похоже на ссылку') : t('Доступ на Диске: «Все, у кого есть ссылка»')}
       </p>
     </div>

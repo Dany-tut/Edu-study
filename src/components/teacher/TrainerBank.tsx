@@ -57,14 +57,14 @@ function CopyableIdBadge({ id }: { id: number }) {
             initial={{ opacity: 0, scale: 0.78, y: 4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.78, y: 4 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
               position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
               pointerEvents: 'none', zIndex: 999,
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '5px 10px 5px 7px', borderRadius: 999,
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 10px 6px 8px', borderRadius: 999,
               background: 'rgba(var(--glass-rgb), 0.22)',
-              backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+              backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-glass)',
               boxShadow: '0 4px 18px rgba(42,125,79,0.18), 0 1px 4px rgba(0,0,0,0.08)',
               whiteSpace: 'nowrap',
@@ -109,14 +109,14 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
             initial={{ opacity: 0, scale: 0.78, y: 4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.78, y: 4 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
               position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
               pointerEvents: 'none', zIndex: 999,
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '5px 10px 5px 7px', borderRadius: 999,
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 10px 6px 8px', borderRadius: 999,
               background: 'rgba(var(--glass-rgb), 0.22)',
-              backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+              backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-glass)',
               boxShadow: '0 4px 18px rgba(42,125,79,0.18), 0 1px 4px rgba(0,0,0,0.08)',
               whiteSpace: 'nowrap',
@@ -175,7 +175,7 @@ const inputStyle: React.CSSProperties = { ...FIELD }
 
 function Label({ children }: { children: React.ReactNode }) {
   // Отступ = начало текста в поле под подписью (12 + рамка 1.5), а не край рамки.
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 13 }}>{children}</div>
+  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6, paddingLeft: 13 }}>{children}</div>
 }
 
 // Default scoring derivation for a task that has none set yet.
@@ -307,12 +307,12 @@ export function BankQuestionCard({
         padding: compact ? '10px 14px' : 18, borderRadius: compact ? 16 : 22,
         background: isEdited ? `${accent}14` : 'rgba(var(--glass-rgb), 0.97)',
         border: isEdited || selected ? `1.5px solid ${accent}` : dirty ? `1.5px solid ${accent}4d` : '1px solid var(--color-border-glass)',
-        boxShadow: compact ? '0 1px 6px rgba(0,0,0,0.05)' : '0 6px 20px rgba(0,0,0,0.04)', transition: 'border-color 0.2s',
+        boxShadow: compact ? '0 1px 6px rgba(0,0,0,0.05)' : '0 6px 20px rgba(0,0,0,0.04)', transition: 'border-color 0.22s',
       }}>
       {compact ? (
         /* ── Compact row ── */
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
             <CopyableIdBadge id={task.id} />
             <span style={cardChipTone('neutral')}>{task.line} лин.</span>
             {dirty && <span style={cardChip(accent)}>{t('изм.')}</span>}
@@ -321,7 +321,7 @@ export function BankQuestionCard({
             {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
           </p>
           <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--color-text-5)', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.topic}</span>
-          <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             <button onClick={() => openEdit(task.id)} style={{
               display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
               background: 'var(--color-bg-3)', color: 'var(--color-muted)', border: 'none', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
@@ -338,7 +338,7 @@ export function BankQuestionCard({
         /* ── Full header ── */
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>{t('Вопрос')} {index + 1}</span>
               <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
               <CopyableIdBadge id={task.id} />
@@ -356,7 +356,7 @@ export function BankQuestionCard({
               style={{
                 flexShrink: 0, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
                 background: selected ? accentBg : 'var(--grad-purple)',
-                color: selected ? accent : '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5,
+                color: selected ? accent : '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
                 boxShadow: selected ? 'none' : '0 3px 12px rgba(99,84,207,0.3)', whiteSpace: 'nowrap',
               }}>
               {selected ? <><Check size={12} /> {t('В тренажёре')}</> : <><Plus size={12} /> {t('В тренажёр')}</>}
@@ -410,8 +410,8 @@ export function BankQuestionCard({
           {hovered && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.12 }}
-              style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 5, zIndex: 2 }}
+              transition={{ duration: 0.15 }}
+              style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 6, zIndex: 2 }}
             >
               <button onClick={() => openEdit(task.id)} title={t('Изменить')}
                 style={{ width: 28, height: 28, borderRadius: 9, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>
@@ -448,12 +448,12 @@ function KeyRubric({
       {rows.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {rows.map((r, idx) => (
-            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', boxShadow: 'var(--shadow-1)' }}>
               {numbered
                 ? <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: accentBg, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{idx + 1}</span>
                 : <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: accent, opacity: 0.7 }} />}
               <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{r.text}</div>
-              <div style={{ padding: '3px 10px', borderRadius: 8, background: accentBg, color: accent, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{r.points} {plBall(r.points)}</div>
+              <div style={{ padding: '4px 10px', borderRadius: 8, background: accentBg, color: accent, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{r.points} {plBall(r.points)}</div>
               <button onClick={() => onRemove(r.id)} style={iconBtn('var(--color-red-soft)', 'var(--color-red-text)')}><X size={12} /></button>
             </div>
           ))}
@@ -479,9 +479,9 @@ function KeyRubric({
 
 function segStyle(active: boolean, color: string, bg: string): React.CSSProperties {
   return {
-    padding: '9px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+    padding: '10px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
     background: active ? bg : 'var(--color-bg-3)', color: active ? color : 'var(--color-muted)',
-    fontSize: 13, fontWeight: 600, boxShadow: active ? `0 0 0 1.5px ${color}44` : 'none', transition: 'all 0.15s', fontFamily: 'inherit',
+    fontSize: 13, fontWeight: 600, boxShadow: active ? `0 0 0 1.5px ${color}44` : 'none', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontFamily: 'inherit',
   }
 }
 function iconBtn(bg: string, color: string): React.CSSProperties {
@@ -520,13 +520,13 @@ function BankGridCard({
         background: isEdited ? `${accent}1f` : isNew ? `${accent}14` : 'rgba(var(--glass-rgb), 0.97)',
         border: selected ? `1.5px solid ${accent}` : '1px solid var(--color-border-glass)',
         boxShadow: selected ? `0 0 0 3px ${accent}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box',
-        transition: 'background 0.4s ease', cursor: 'pointer',
+        transition: 'background 0.38s ease', cursor: 'pointer',
       }}
     >
       {isEdited && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-          style={{ position: 'absolute', top: 10, right: 10, zIndex: 6, padding: '3px 9px', borderRadius: 999,
+          style={{ position: 'absolute', top: 10, right: 10, zIndex: 6, padding: '4px 10px', borderRadius: 999,
             background: accent, color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: 0.2,
             boxShadow: `0 2px 10px ${accent}73`, whiteSpace: 'nowrap' }}>
           {t('Изменено')}
@@ -538,8 +538,8 @@ function BankGridCard({
           border: selected ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
           background: selected ? '#c0303a' : 'var(--color-bg-5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'all 0.14s',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+          cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
+          boxShadow: 'var(--shadow-1)',
         }}>
           {selected && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
         </div>
@@ -598,7 +598,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
         onClick={() => setOpen(o => !o)}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
+          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999,
           background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
           border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit',
@@ -613,12 +613,12 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
       {open && (
         <motion.div
           ref={menuRef}
-          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.12 }}
+          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}
           style={{
             position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 160,
-            background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-glass)', borderRadius: 14,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5,
+            boxShadow: 'var(--shadow-4)', padding: 6,
             // Свой скролл — единственный живой, пока меню открыто. `contain`
             // обязателен: докрутив до края, список потянул бы за собой фон.
             maxHeight: 'min(60vh, 320px)', overflowY: 'auto', overscrollBehavior: 'contain',
@@ -629,7 +629,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
               onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
+                width: '100%', padding: '10px 10px', borderRadius: 9, border: 'none',
                 background: value === val ? 'rgba(99,84,207,0.07)' : 'transparent',
                 fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
                 cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
@@ -846,7 +846,7 @@ export function BankFilterFields({ filters, onChange, accent = 'var(--color-peac
           const active = filters.parts.includes(p)
           return (
             <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
-              style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+              style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                 background: active ? (accentBg ?? 'var(--color-peach-soft)') : 'var(--color-bg-3)',
                 color: active ? accent : 'var(--color-muted)' }}>
               {p === '1' ? t('I часть') : t('II часть')}

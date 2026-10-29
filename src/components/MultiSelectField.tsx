@@ -162,7 +162,7 @@ export default function MultiSelectField({
   const chipFont = field ? 12 : small ? 10 : 11
 
   const chip = (v: string) => (
-    <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: field ? '3px 8px' : '2px 7px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
+    <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: field ? '4px 8px' : '2px 8px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(v)}</span>
       <span onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', cursor: 'pointer', opacity: 0.7 }}><X size={small ? 12 : 12} strokeWidth={2.5} /></span>
     </span>
@@ -176,7 +176,7 @@ export default function MultiSelectField({
         transition={{ layout: { type: 'spring', stiffness: 600, damping: 42, mass: 0.7 } }}
         onClick={() => { if (!open) openDropdown(); else if (!query && isEmpty) close(); else inputRef.current?.focus() }}
         style={{
-          width: '100%', boxSizing: 'border-box', padding: field?.padding ?? (small ? '6px 9px' : '7px 11px'),
+          width: '100%', boxSizing: 'border-box', padding: field?.padding ?? (small ? '6px 10px' : '8px 12px'),
           borderRadius: field?.borderRadius ?? 11,
           ...(field
             ? { border: `${field.borderWidth ?? 1}px solid ${open ? accent : field.restBorder}`, transition: 'border-color 0.15s' }
@@ -232,7 +232,7 @@ export default function MultiSelectField({
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, alignItems: 'center', overflow: 'hidden' }}>
             {chip(values[0])}
             {values.length > 1 && (
-              <span style={{ padding: '2px 7px', borderRadius: 7, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: chipFont, fontWeight: 700, flexShrink: 0 }}>+{values.length - 1}</span>
+              <span style={{ padding: '2px 8px', borderRadius: 7, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: chipFont, fontWeight: 700, flexShrink: 0 }}>+{values.length - 1}</span>
             )}
           </div>
         )}
@@ -242,7 +242,7 @@ export default function MultiSelectField({
             <X size={14} strokeWidth={2} />
           </button>
         ) : (
-          <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
+          <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }} style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
             <ChevronDown size={small ? 12 : 14} strokeWidth={2} />
           </motion.span>
         )}
@@ -267,7 +267,7 @@ export default function MultiSelectField({
               <ScrollFade maxHeight={224} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {shown.length === 0 && !canCreate ? (
-                    <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
+                    <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
                   ) : shown.map(o => {
                     const selected = values.includes(o)
                     return (

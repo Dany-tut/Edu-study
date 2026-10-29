@@ -23,7 +23,7 @@ const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 18 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.42, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.38, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
 // ─── Glass card shell ──────────────────────────────────────────────────────
@@ -34,8 +34,8 @@ function Card({
     <div
       style={{
         background: 'rgba(var(--glass-rgb), 0.88)',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: '1px solid var(--color-border-medium)',
         borderRadius: 24,
         boxShadow: '0 4px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.15)',
@@ -97,14 +97,14 @@ function EarningsCard({ delay }: { delay: number }) {
             <TrendingUp size={16} strokeWidth={2} style={{ color: 'var(--color-yellow-text)' }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 700, color: amount != null ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: amount != null ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
           {amount != null ? fmt(amount) : '—'}
         </div>
         <div style={{
           fontSize: 11, fontWeight: 600,
           color: amount != null ? 'var(--color-yellow-text)' : 'var(--color-text-3)',
           background: amount != null ? 'var(--color-yellow-soft)' : 'var(--color-bg-4)',
-          borderRadius: 8, padding: '3px 8px', alignSelf: 'flex-start',
+          borderRadius: 8, padding: '4px 8px', alignSelf: 'flex-start',
         }}>
           {amount != null ? `${payments} ${t('оплат')}` : t('загрузка...')}
         </div>
@@ -131,10 +131,10 @@ function StatCard({
             <Icon size={15} strokeWidth={2} style={{ color: accentColor }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
+        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
         <div style={{
           fontSize: 11, fontWeight: 600, color: accentColor,
-          background: accentBg, borderRadius: 8, padding: '3px 8px',
+          background: accentBg, borderRadius: 8, padding: '4px 8px',
           alignSelf: 'flex-start',
         }}>
           {sub}
@@ -219,12 +219,12 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
       </span>
 
       {/* Main: group chip + subject/topic line */}
-      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, alignSelf: 'center' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, alignSelf: 'center' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
             background: `color-mix(in srgb, ${item.color} 16%, transparent)`,
-            borderRadius: 8, padding: '3px 9px', flexShrink: 0, maxWidth: '100%',
+            borderRadius: 8, padding: '4px 10px', flexShrink: 0, maxWidth: '100%',
           }}>
             <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: item.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.groupName}</span>
@@ -292,10 +292,10 @@ function PaymentBlock({ students, groups }: { students: Student[]; groups: Group
     if (!items.length) return null
     return (
       <div style={{ marginBottom: 10 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
           {label}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {items.map(s => {
             const group = groups.find(g => g.id === s.groupId)
             return (
@@ -387,12 +387,12 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '12px 14px', borderRadius: 18,
         background: done ? 'var(--color-green-soft)' : 'rgba(var(--glass-rgb), 0.62)',
-        backdropFilter: 'blur(10px) saturate(135%)',
-        WebkitBackdropFilter: 'blur(10px) saturate(135%)',
+        backdropFilter: 'var(--blur-thin)',
+        WebkitBackdropFilter: 'var(--blur-thin)',
         border: `1px solid ${done ? 'transparent' : 'var(--color-border-medium)'}`,
         boxShadow: done ? 'none' : '0 10px 26px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.16)',
         cursor: clickable ? 'pointer' : 'default',
-        transition: 'background 0.25s',
+        transition: 'background 0.22s',
         ...styleOverride,
       }}
     >
@@ -425,7 +425,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
       {!done && item.urgency === 'high' && (
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
-          padding: '3px 9px 3px 7px', borderRadius: 999,
+          padding: '4px 10px 4px 8px', borderRadius: 999,
           background: `color-mix(in srgb, ${accent} 16%, transparent)`,
           color: accent, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
         }}>
@@ -460,7 +460,7 @@ const stackTypeLabel: Record<Reminder['type'], string> = {
 // motion. Bump the duration here to make the whole fold slower/faster.
 const COLLAPSE = {
   height: { type: 'spring' as const, stiffness: 300, damping: 44 },
-  opacity: { duration: 0.2, ease: 'easeOut' as const },
+  opacity: { duration: 0.22, ease: 'easeOut' as const },
 }
 
 function ReminderGroupStack({ items, getAction, isDone }: {
@@ -510,7 +510,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
           <div>
             {/* Front card */}
             <div style={{ position: 'relative', zIndex: 3 }}>
-              <ReminderRow item={front} done={isDone(front)} onAction={undefined} style={{ paddingRight: 48, background: 'rgba(var(--glass-rgb), 0.80)', backdropFilter: 'blur(10px) saturate(140%)', WebkitBackdropFilter: 'blur(10px) saturate(140%)' }} />
+              <ReminderRow item={front} done={isDone(front)} onAction={undefined} style={{ paddingRight: 48, background: 'rgba(var(--glass-rgb), 0.80)', backdropFilter: 'var(--blur-thin)', WebkitBackdropFilter: 'var(--blur-thin)' }} />
               <div style={{
                 position: 'absolute', inset: 0, borderRadius: 16, overflow: 'hidden',
                 pointerEvents: 'none', zIndex: 1,
@@ -529,11 +529,11 @@ function ReminderGroupStack({ items, getAction, isDone }: {
             </div>
             {/* Ghost 1 — pulls up 3px so it kisses the front card bottom */}
             <div style={{
-              height: 18, marginTop: -3, marginLeft: 11, marginRight: 11,
+              height: 18, marginTop: -4, marginLeft: 12, marginRight: 12,
               position: 'relative', zIndex: 2,
               background: `color-mix(in srgb, ${accent} 14%, rgba(var(--glass-rgb), 0.55))`,
-              backdropFilter: 'blur(9px) saturate(135%)',
-              WebkitBackdropFilter: 'blur(9px) saturate(135%)',
+              backdropFilter: 'var(--blur-thin)',
+              WebkitBackdropFilter: 'var(--blur-thin)',
               borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 24%, transparent)`,
               borderRadius: '0 0 16px 16px',
             }} />
@@ -544,8 +544,8 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                 height: 18, marginTop: -6, marginLeft: 22, marginRight: 22,
                 position: 'relative', zIndex: 1,
                 background: `color-mix(in srgb, ${accent} 10%, rgba(var(--glass-rgb), 0.5))`,
-                backdropFilter: 'blur(9px) saturate(135%)',
-                WebkitBackdropFilter: 'blur(9px) saturate(135%)',
+                backdropFilter: 'var(--blur-thin)',
+                WebkitBackdropFilter: 'var(--blur-thin)',
                 borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 16%, transparent)`,
                 borderRadius: '0 0 16px 16px',
               }} />
@@ -578,7 +578,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
               <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>
                 {t(stackTypeLabel[front.type])} · {items.length}
               </span>
-              <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 4 }}>
                 {t('Свернуть')} <ChevronRight size={12} style={{ transform: 'rotate(-90deg)' }} />
               </span>
             </div>
@@ -666,7 +666,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         background: task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
         border: 'none',
         opacity: task.done ? 0.6 : 1,
-        transition: 'opacity 0.2s, background 0.15s',
+        transition: 'opacity 0.22s, background 0.15s',
         cursor: 'pointer',
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-4)' : 'var(--color-bg-3)' }}
@@ -858,7 +858,7 @@ function useOverlayThumb() {
     <div style={{
       position: 'absolute', top: thumbTop, right: 2, width: 5, height: thumbH,
       borderRadius: 999, background: 'var(--scroll-thumb)', pointerEvents: 'none', zIndex: 3,
-      transition: 'opacity 0.2s ease', opacity: hover || scrolling ? 1 : 0,
+      transition: 'opacity 0.22s ease', opacity: hover || scrolling ? 1 : 0,
     }} />
   ) : null
 

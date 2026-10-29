@@ -28,7 +28,7 @@ export default function BackCircle({ onClick, label = 'Назад', style }: {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 40, height: 40, flexShrink: 0, padding: 0, borderRadius: 999,
         border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.62)',
-        backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
         cursor: 'pointer', color: 'var(--color-text-2)', fontFamily: 'inherit',
         // Кнопка часто стоит в плавающей панели, где родитель пропускает клики
         // насквозь (pointerEvents: none) — сама она должна их ловить.

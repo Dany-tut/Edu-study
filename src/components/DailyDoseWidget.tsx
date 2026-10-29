@@ -126,7 +126,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       <a
         href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
         style={{
-          display: 'block', padding: '11px 13px', borderRadius: 14,
+          display: 'block', padding: '12px 12px', borderRadius: 14,
           background: `${palette.accent}1F`, textDecoration: 'none',
           flex: '1 1 auto', minHeight: 0, overflow: 'hidden',
         }}

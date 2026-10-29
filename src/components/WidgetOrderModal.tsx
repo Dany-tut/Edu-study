@@ -27,7 +27,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
       value={id}
       dragListener={false}
       dragControls={controls}
-      whileDrag={{ scale: 1.03, boxShadow: '0 14px 30px rgba(0,0,0,0.16)' }}
+      whileDrag={{ scale: 1.03, boxShadow: 'var(--shadow-4)' }}
       transition={{ type: 'spring', stiffness: 600, damping: 42 }}
       style={{
         position: 'relative',
@@ -135,7 +135,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.15 }}
           onPointerDown={e => { if (e.target === e.currentTarget) onClose() }}
           style={{
             position: 'fixed', inset: 0, zIndex: 2000,
@@ -147,12 +147,12 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.2, ease: EASE }}
+            transition={{ duration: 0.22, ease: EASE }}
             style={{
               // Рамка не прокручивается: шапка стоит, листается только тело (см. Modal.tsx).
               width: 'min(420px, 100%)', maxHeight: '90dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
               background: 'var(--color-bg)', borderRadius: MODAL_RADIUS, paddingTop: 24,
-              boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+              boxShadow: 'var(--shadow-5)',
             }}
           >
             {/* Header */}
@@ -207,7 +207,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                         style={{
                           display: 'flex', alignItems: 'center', gap: 12,
                           padding: '10px 12px', borderRadius: 14, opacity: 0.72,
-                          background: 'rgba(var(--glass-rgb), 0.5)', border: '1.5px solid var(--color-border-medium)',
+                          background: 'rgba(var(--glass-rgb), 0.5)', border: '1px solid var(--color-border-medium)',
                         }}
                       >
                         <span
@@ -260,7 +260,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   whileTap={{ scale: 0.97 }}
                   onClick={onClose}
                   style={{
-                    padding: '0 18px', height: 42, borderRadius: 12, border: '1.5px solid var(--color-border-strong)', cursor: 'pointer',
+                    padding: '0 18px', height: 42, borderRadius: 12, border: '1px solid var(--color-border-strong)', cursor: 'pointer',
                     background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
                   }}
                 >

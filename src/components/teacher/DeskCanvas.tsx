@@ -92,7 +92,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
 
   if (!def) return (
     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(var(--glass-rgb), 0.5)', borderRadius: 16, border: '1.5px solid var(--color-border-medium)' }}>
+      background: 'rgba(var(--glass-rgb), 0.5)', borderRadius: 16, border: '1px solid var(--color-border-medium)' }}>
       <span style={{ color: 'var(--color-muted)', fontSize: 13 }}>{t('Неизвестный виджет')}</span>
     </div>
   )
@@ -109,7 +109,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
           // десяток, и десять вращающихся точек читаются как «всё сломалось»,
           // тогда как проступающая раскладка — как «сейчас будет».
           <div aria-busy="true" style={{ width: '100%', height: '100%', background: 'rgba(var(--glass-rgb),0.5)',
-            borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
+            borderRadius: 16, border: '1px solid var(--color-border-medium)',
             display: 'flex', flexDirection: 'column', gap: 12, padding: 18, overflow: 'hidden' }}>
             <Skeleton w="46%" h={13} />
             <Skeleton w="72%" h={24} radius={9} />
@@ -123,10 +123,10 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
       {/* Scroll fades */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,
         background: 'linear-gradient(to bottom, rgba(var(--glass-rgb),0.92), transparent)',
-        opacity: edges.top ? 1 : 0, transition: 'opacity .18s', borderRadius: '24px 24px 0 0' }} />
+        opacity: edges.top ? 1 : 0, transition: 'opacity 0.15s', borderRadius: '24px 24px 0 0' }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,
         background: 'linear-gradient(to top, rgba(var(--glass-rgb),0.92), transparent)',
-        opacity: edges.bottom ? 1 : 0, transition: 'opacity .18s', borderRadius: '0 0 24px 24px' }} />
+        opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.15s', borderRadius: '0 0 24px 24px' }} />
 
       {/* Edit overlay — blocks widget-internal clicks, acts as drag surface */}
       {editMode && (
@@ -143,7 +143,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
           style={{ position: 'absolute', top: -11, right: -11, width: 26, height: 26, borderRadius: '50%',
             background: '#dc3c3c', border: '2.5px solid rgba(0,0,0,0.35)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}
+            boxShadow: 'var(--shadow-2)' }}
         >
           <X size={12} color="#fff" strokeWidth={2.5} />
         </button>
@@ -455,7 +455,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
                       borderRight: `2.5px solid rgba(255,255,255,${isResizing ? 1 : 0.7})`,
                       borderBottom: `2.5px solid rgba(255,255,255,${isResizing ? 1 : 0.7})`,
                       borderRadius: '0 0 16px 0',
-                      transition: 'border-color .15s',
+                      transition: 'border-color 0.15s',
                     }} />
                   </div>
                 )}

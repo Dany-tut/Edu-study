@@ -12,7 +12,7 @@ const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
   // shorter than the email field — iOS Safari computes a smaller intrinsic
   // height for the password-dot glyphs, which otherwise squishes the box.
-  width: '100%', padding: '13px 14px', minHeight: 50, borderRadius: 12,
+  width: '100%', padding: '12px 14px', minHeight: 50, borderRadius: 12,
   border: '1.5px solid var(--color-border-medium)', fontSize: 16,
   lineHeight: '22px', outline: 'none', boxSizing: 'border-box',
   // Explicit color + background: iOS WKWebView otherwise inherits a system
@@ -97,10 +97,10 @@ export default function StudentLoginPage() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.38 }}
         style={{
           background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
-          width: '100%', maxWidth: 340, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
+          width: '100%', maxWidth: 340, boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ marginBottom: 28 }}>

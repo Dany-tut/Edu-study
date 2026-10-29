@@ -58,7 +58,7 @@ export default function TeacherSubjectsPrompt() {
           style={{
             pointerEvents: 'auto', width: 440, maxWidth: '100%',
             background: 'var(--color-bg-2)', borderRadius: 22, padding: 24,
-            border: '1px solid var(--color-border)', boxShadow: '0 20px 60px rgba(0,0,0,0.28)',
+            border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-5)',
           }}
         >
           <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>{t('Какие предметы вы ведёте?')}</div>
@@ -75,7 +75,7 @@ export default function TeacherSubjectsPrompt() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginTop: 20, flexDirection: isPhone ? 'column-reverse' : 'row' }}>
             <button
               onClick={postpone}
-              style={{ padding: '9px 16px', borderRadius: 999, border: 'none', background: 'transparent', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', width: isPhone ? '100%' : undefined }}
+              style={{ padding: '10px 16px', borderRadius: 999, border: 'none', background: 'transparent', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', width: isPhone ? '100%' : undefined }}
             >
               {t('Позже')}
             </button>

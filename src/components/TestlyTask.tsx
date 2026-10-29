@@ -51,7 +51,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
     <div className="flex flex-col" style={{ gap: 10 }}>
       <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-input)' }}>
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 7, padding: '8px 12px',
+          display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
           borderBottom: '1px solid var(--color-border-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
         }}>
           <TestlyTile size={16} /> {t('Тестли')}
@@ -63,7 +63,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
           </div>
           {doneAt !== null ? (
             <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 12,
+              display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12,
               fontSize: 14, fontWeight: 700, background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
             }}>
               <Check size={14} /> {t('Тест сдан')}{when ? ` · ${when}` : ''}
@@ -75,7 +75,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
               </span>
               <div className="flex" style={{ gap: 10, flexWrap: 'wrap' }}>
                 <button onClick={start} disabled={disabled} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 15px', borderRadius: 12, border: 'none',
+                  display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
                   fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: disabled ? 'default' : 'pointer',
                   background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)',
                 }}>
@@ -83,7 +83,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
                 </button>
                 {opened && (
                   <button onClick={mark} disabled={disabled} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 12, border: 'none',
+                    display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
                     fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: disabled ? 'default' : 'pointer',
                     background: 'var(--btn-green-bg)', color: '#fff',
                   }}>

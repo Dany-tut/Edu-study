@@ -188,7 +188,9 @@ let returning = false
 function mobileish(): boolean {
   if (typeof window === 'undefined') return false
   if (navigator.maxTouchPoints > 0 || 'ontouchstart' in window) return true
-  return window.innerWidth <= 1024
+  // Строго меньше: ровно на 1024 приложение уже «ПК» (useIsDesktop: ≥ 1024),
+  // и свайп назад там не нужен.
+  return window.innerWidth < 1024
 }
 
 /**

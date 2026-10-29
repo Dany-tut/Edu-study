@@ -100,7 +100,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
           style={{
             background: 'var(--color-bg-input)', borderRadius: 22, padding: '24px 24px 20px',
             width: 480, maxWidth: '92vw', maxHeight: '84vh', display: 'flex', flexDirection: 'column',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--shadow-5)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
@@ -164,7 +164,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
                 <button
                   onClick={() => setForm(null)}
-                  style={{ padding: '9px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                  style={{ padding: '10px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                 >
                   {t('Назад')}
                 </button>
@@ -198,7 +198,7 @@ function QuestionRow({ q, index, excluded, onToggle }: { q: ImportedQuestion; in
     <div
       onClick={onToggle}
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 11px', borderRadius: 12, cursor: 'pointer',
+        display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
         background: excluded ? 'var(--color-bg-3)' : 'var(--color-bg)',
         opacity: excluded ? 0.5 : 1, border: '1px solid var(--color-border-soft)',
       }}
@@ -212,24 +212,24 @@ function QuestionRow({ q, index, excluded, onToggle }: { q: ImportedQuestion; in
         {!excluded && <Check size={12} style={{ color: '#fff' }} />}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 3 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: visual.color, background: visual.bg, padding: '2px 7px', borderRadius: 999 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: visual.color, background: visual.bg, padding: '2px 8px', borderRadius: 999 }}>
             {t(TYPE_LABELS[q.type] ?? q.type)}
           </span>
           {needsAnswer && (
-            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', padding: '2px 7px', borderRadius: 999 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', padding: '2px 8px', borderRadius: 999 }}>
               {t('нет ответа — отметьте вручную')}
             </span>
           )}
         </div>
         <div style={{ fontSize: 13, color: 'var(--color-text)', lineHeight: 1.4 }}>{index + 1}. {q.title}</div>
         {q.choices && (
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 3 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>
             {q.choices.join(' · ')}
           </div>
         )}
         {q.note && (
-          <div style={{ fontSize: 11, color: 'var(--color-peach-text)', marginTop: 3 }}>{q.note}</div>
+          <div style={{ fontSize: 11, color: 'var(--color-peach-text)', marginTop: 4 }}>{q.note}</div>
         )}
       </div>
     </div>

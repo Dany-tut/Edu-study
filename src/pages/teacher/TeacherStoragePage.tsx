@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
+import BackCircle from '../../components/BackCircle'
 import Skeleton from '../../components/Skeleton'
 import { motion } from 'framer-motion'
-import { Database, HardDrive, RefreshCw, ArrowLeft } from 'lucide-react'
+import { Database, HardDrive, RefreshCw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
 import { t, useT } from '../../lib/i18n'
 import { Alert } from '../../components/Alert'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 type Stats = {
   db_bytes: number
@@ -56,7 +58,7 @@ function BigUsageBar({ icon: Icon, label, used, limit, hint }: {
           {pct.toFixed(pct < 10 ? 1 : 0)}%
         </div>
       </div>
-      <div style={{ height: 12, borderRadius: 8, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+      <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -95,21 +97,10 @@ export default function TeacherStoragePage() {
   const maxTableBytes = stats ? Math.max(...stats.tables.map(t => t.bytes), 1) : 1
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}><div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}><div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <motion.button
-          whileTap={{ scale: 0.94 }}
-          onClick={() => setActivePage('home')}
-          style={{
-            width: 36, height: 36, borderRadius: 12,
-            background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'var(--color-text-3)', flexShrink: 0,
-          }}
-        >
-          <ArrowLeft size={16} strokeWidth={2} />
-        </motion.button>
+        <BackCircle onClick={() => setActivePage('home')} label="На главную" />
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Хранилище')}</div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('База данных и файлы')}</div>
@@ -170,11 +161,11 @@ export default function TeacherStoragePage() {
               {[...stats.tables].sort((a, b) => b.bytes - a.bytes).map(tbl => (
                 <div key={tbl.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ fontSize: 13, color: 'var(--color-text-2)', width: 160, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tbl.name}</span>
-                  <div style={{ flex: 1, height: 8, borderRadius: 5, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+                  <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(tbl.bytes / maxTableBytes) * 100}%` }}
-                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                       style={{ height: '100%', borderRadius: 5, background: 'var(--color-accent)', opacity: 0.75 }}
                     />
                   </div>

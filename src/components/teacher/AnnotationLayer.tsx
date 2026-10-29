@@ -356,7 +356,7 @@ export default function AnnotationLayer({
       {active && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-          padding: '7px 10px', marginBottom: 10,
+          padding: '8px 10px', marginBottom: 10,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 12,
           position: 'sticky', top: 8, zIndex: 6,
         }}>
@@ -412,7 +412,7 @@ export default function AnnotationLayer({
 
 function iconBtn(on: boolean, bg = 'transparent', fg = 'var(--color-muted)'): React.CSSProperties {
   return {
-    width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
+    width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     background: on ? bg : 'transparent', color: on ? fg : 'var(--color-muted)',
   }

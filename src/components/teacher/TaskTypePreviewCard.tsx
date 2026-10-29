@@ -39,7 +39,7 @@ function chipStyle(state?: PreviewChip['state']): React.CSSProperties {
 function Chip({ chip }: { chip: PreviewChip }) {
   return (
     <span style={{
-      padding: '3px 7px', borderRadius: 7, fontSize: 11, fontWeight: 600,
+      padding: '4px 8px', borderRadius: 7, fontSize: 11, fontWeight: 600,
       border: '1px solid', whiteSpace: 'nowrap', ...chipStyle(chip.state),
     }}>
       {chip.text}
@@ -52,7 +52,7 @@ function Field({ text, lines = 1 }: { text?: string; lines?: number }) {
   return (
     <div style={{
       border: '1px solid var(--color-border)', borderRadius: 8,
-      background: 'var(--color-bg)', padding: '5px 7px',
+      background: 'var(--color-bg)', padding: '6px 8px',
       fontSize: 11, color: text ? 'var(--color-text-2)' : 'var(--color-text-4)',
       minHeight: lines > 1 ? lines * 15 : undefined, lineHeight: 1.4,
     }}>
@@ -109,7 +109,7 @@ function Media({ shape, glyph }: { shape: 'image' | 'images' | 'video' | 'canvas
     return (
       <div style={{ border: '1px solid var(--color-border-soft)', borderRadius: 8, overflow: 'hidden' }}>
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 5, padding: '4px 7px',
+          display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px',
           borderBottom: '1px solid var(--color-border-soft)', background: 'var(--color-bg)',
           fontSize: 10, color: 'var(--color-text-4)',
         }}>
@@ -136,7 +136,7 @@ function Media({ shape, glyph }: { shape: 'image' | 'images' | 'video' | 'canvas
 function Player({ label, mic }: { label?: string; mic?: boolean }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px', borderRadius: 9,
+      display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 9,
       background: mic ? 'var(--color-purple-soft)' : 'var(--color-blue-pill-bg)',
     }}>
       <span style={{
@@ -181,7 +181,7 @@ function Block({ block }: { block: PreviewBlock }) {
             const s = chipStyle(o.state)
             return (
               <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '4px 7px',
+                display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px',
                 borderRadius: 7, border: '1px solid', fontSize: 11, fontWeight: 600, ...s,
               }}>
                 <span style={{
@@ -202,16 +202,16 @@ function Block({ block }: { block: PreviewBlock }) {
       // рядом с двумя другими, а смысл третьей кнопки читается и по «Н/У».
       const CAP: Record<'T' | 'F' | 'NG', string> = { T: 'Верно', F: 'Неверно', NG: 'Н/У' }
       return (
-        <div style={{ display: 'grid', gap: 5 }}>
+        <div style={{ display: 'grid', gap: 6 }}>
           {block.rows.map((r, i) => (
-            <div key={i} style={{ display: 'grid', gap: 3 }}>
+            <div key={i} style={{ display: 'grid', gap: 4 }}>
               <span style={{ fontSize: 10, color: 'var(--color-text-2)' }}>{r.text}</span>
-              <span style={{ display: 'flex', gap: 3 }}>
+              <span style={{ display: 'flex', gap: 4 }}>
                 {(['T', 'F', 'NG'] as const).map(k => {
                   const on = r.pick === k
                   return (
                     <span key={k} style={{
-                      padding: '2px 7px', borderRadius: 6, fontSize: 10, fontWeight: 700,
+                      padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700,
                       border: '1px solid',
                       ...(on
                         ? { background: 'var(--color-green-soft)', color: 'var(--color-green-text)', borderColor: 'transparent' }
@@ -229,7 +229,7 @@ function Block({ block }: { block: PreviewBlock }) {
     case 'tiles':
       return (
         <div>
-          {block.label && <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-4)', marginBottom: 3, letterSpacing: 0.3 }}>{t(block.label)}</div>}
+          {block.label && <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-4)', marginBottom: 4, letterSpacing: 0.3 }}>{t(block.label)}</div>}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {block.items.map((c, i) => <Chip key={i} chip={c} />)}
           </div>
@@ -289,8 +289,8 @@ function Block({ block }: { block: PreviewBlock }) {
         <div style={{ display: 'flex', gap: 6 }}>
           {block.cols.map((c, i) => (
             <div key={i} style={{
-              flex: 1, borderRadius: 8, padding: 5, background: 'var(--color-bg)',
-              border: '1px dashed var(--color-border-medium)', display: 'grid', gap: 3, alignContent: 'start',
+              flex: 1, borderRadius: 8, padding: 6, background: 'var(--color-bg)',
+              border: '1px dashed var(--color-border-medium)', display: 'grid', gap: 4, alignContent: 'start',
             }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)' }}>{c.title}</div>
               {c.items.map((it, j) => <Chip key={j} chip={it} />)}
@@ -349,12 +349,12 @@ function Block({ block }: { block: PreviewBlock }) {
 
     case 'keys':
       return (
-        <div style={{ display: 'grid', gap: 3 }}>
+        <div style={{ display: 'grid', gap: 4 }}>
           {block.rows.map((row, i) => (
-            <div key={i} style={{ display: 'flex', gap: 3 }}>
+            <div key={i} style={{ display: 'flex', gap: 4 }}>
               {row.map(k => (
                 <span key={k} style={{
-                  flex: 1, textAlign: 'center', padding: '3px 0', borderRadius: 5, fontSize: 10, fontWeight: 600,
+                  flex: 1, textAlign: 'center', padding: '4px 0', borderRadius: 5, fontSize: 10, fontWeight: 600,
                   background: k === block.pressed ? 'var(--color-accent-soft)' : 'var(--color-bg)',
                   color: k === block.pressed ? 'var(--color-accent)' : 'var(--color-text-3)',
                   border: `1px solid ${k === block.pressed ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
@@ -367,10 +367,10 @@ function Block({ block }: { block: PreviewBlock }) {
 
     case 'grid':
       return (
-        <div style={{ display: 'grid', gap: 5 }}>
-          <div style={{ display: 'grid', gap: 3 }}>
+        <div style={{ display: 'grid', gap: 6 }}>
+          <div style={{ display: 'grid', gap: 4 }}>
             {block.cells.map((row, i) => (
-              <div key={i} style={{ display: 'flex', gap: 3 }}>
+              <div key={i} style={{ display: 'flex', gap: 4 }}>
                 {row.map((cell, j) => (
                   <span key={j} style={{
                     width: 20, height: 20, borderRadius: 4, display: 'grid', placeItems: 'center',
@@ -393,7 +393,7 @@ function Block({ block }: { block: PreviewBlock }) {
           {block.lines.map((l, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: l.side === 'l' ? 'flex-start' : 'flex-end' }}>
               <span style={{
-                maxWidth: '85%', padding: '4px 7px', fontSize: 10, lineHeight: 1.4,
+                maxWidth: '85%', padding: '4px 8px', fontSize: 10, lineHeight: 1.4,
                 borderRadius: 9, borderBottomLeftRadius: l.side === 'l' ? 2 : 9, borderBottomRightRadius: l.side === 'l' ? 9 : 2,
                 background: l.side === 'l' ? 'var(--color-bg-3)' : 'var(--color-blue-pill-bg)',
                 color: l.side === 'l' ? 'var(--color-text-2)' : 'var(--color-blue-pill-text)',
@@ -408,7 +408,7 @@ function Block({ block }: { block: PreviewBlock }) {
     case 'verdict':
       return (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 5, padding: '4px 7px', borderRadius: 7,
+          display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px', borderRadius: 7,
           fontSize: 10, fontWeight: 700, alignSelf: 'flex-start',
           background: block.ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
           color: block.ok ? 'var(--color-green-text)' : 'var(--color-red-text)',
@@ -436,7 +436,7 @@ export default function TaskTypePreviewCard({ type }: { type: TaskTypeId }) {
   ]
 
   return (
-    <div style={{ display: 'grid', gap: 9 }}>
+    <div style={{ display: 'grid', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ width: 26, height: 26, borderRadius: 8, background: bg, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
           <def.Icon size={13} style={{ color }} />
@@ -447,7 +447,7 @@ export default function TaskTypePreviewCard({ type }: { type: TaskTypeId }) {
       {/* Сам макет — на подложке, чтобы читался как «экран ученика», а не как
           продолжение подсказки. */}
       <div style={{
-        display: 'grid', gap: 6, padding: '9px 10px', borderRadius: 12,
+        display: 'grid', gap: 6, padding: '10px 10px', borderRadius: 12,
         background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
       }}>
         {preview.blocks.map((b, i) => <Block key={i} block={b} />)}

@@ -20,7 +20,7 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
       onClick={onAdd}
       style={{
         display: 'flex', alignItems: 'center', gap: 14,
-        padding: '14px 16px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)',
+        padding: '14px 16px', borderRadius: 14, border: '1px solid var(--color-border-medium)',
         background: 'rgba(var(--glass-rgb), 0.6)', cursor: 'pointer', textAlign: 'left',
         transition: 'background 0.15s, border-color 0.15s',
       }}
@@ -46,7 +46,7 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
       </div>
       <div style={{
         flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
-        background: 'var(--color-bg-3)', borderRadius: 8, padding: '3px 8px',
+        background: 'var(--color-bg-3)', borderRadius: 8, padding: '4px 8px',
       }}>
         {def.defaultW}×{def.defaultH}
       </div>
@@ -111,9 +111,9 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
           onClick={e => e.stopPropagation()}
           style={{
             background: 'var(--color-bg-input)',
-            backdropFilter: 'blur(24px)',
+            backdropFilter: 'var(--blur-solid)',
             borderRadius: 22,
-            boxShadow: '0 32px 100px rgba(0,0,0,0.22)',
+            boxShadow: 'var(--shadow-5)',
             width: 460, maxWidth: '94vw', maxHeight: '80vh',
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
@@ -128,7 +128,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
           }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить виджет')}</div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 3 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>
                 {t('Кликните — виджет появится на столе')}
               </div>
             </div>

@@ -27,7 +27,7 @@ export function teacherSaveStyle(opts: { accent?: SaveAccent; disabled?: boolean
   const { accent = SAVE_ACCENTS.purple, disabled, saved, fullWidth } = opts
   const a = saved ? SAVE_ACCENTS.success : accent
   return {
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
     flexShrink: 0, width: fullWidth ? '100%' : undefined,
     // Размер M дизайн-системы (круг 2): 40 / радиус 12 / 13 · 700 — как btn('M').
     height: 40, padding: '0 16px', borderRadius: 12, border: 'none',
@@ -38,7 +38,7 @@ export function teacherSaveStyle(opts: { accent?: SaveAccent; disabled?: boolean
       ? `0 4px 14px ${a.shadow}, 0 0 22px 2px ${a.glow}`
       : `0 4px 14px ${a.shadow}`,
     opacity: disabled ? 0.55 : 1,
-    transition: 'opacity 0.2s, background 0.3s',
+    transition: 'opacity 0.22s, background 0.38s',
   }
 }
 
@@ -106,7 +106,7 @@ export default function TeacherSaveButton({
           <><Check size={16} strokeWidth={2.5} /> {savedText}</>,
         ].map((content, i) => (
           <span key={i} aria-hidden
-            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', visibility: 'hidden', pointerEvents: 'none' }}>
+            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', visibility: 'hidden', pointerEvents: 'none' }}>
             {content}
           </span>
         ))}
@@ -114,7 +114,7 @@ export default function TeacherSaveButton({
         {saving ? (
           <motion.span key="saving"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', position: 'relative' }}>
+            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', position: 'relative' }}>
             <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }} style={{ display: 'flex' }}>
               <Loader2 size={14} strokeWidth={2.5} />
             </motion.span>
@@ -123,13 +123,13 @@ export default function TeacherSaveButton({
         ) : saved ? (
           <motion.span key="saved"
             initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', position: 'relative' }}>
+            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', position: 'relative' }}>
             <Check size={16} strokeWidth={2.5} /> {savedText}
           </motion.span>
         ) : (
           <motion.span key="save"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', position: 'relative' }}>
+            style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', position: 'relative' }}>
             {icon ?? <Check size={14} strokeWidth={2.5} />} {label}
           </motion.span>
         )}

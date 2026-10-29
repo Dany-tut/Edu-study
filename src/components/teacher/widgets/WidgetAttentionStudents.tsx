@@ -55,8 +55,8 @@ export default function WidgetAttentionStudents() {
       width: '100%', height: '100%',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       borderRadius: 24,
       border: '1px solid var(--color-border-medium)',
       // shadow on wrapper
@@ -80,7 +80,7 @@ export default function WidgetAttentionStudents() {
         {atRisk.length > 0 && (
           <span style={{
             fontSize: 11, fontWeight: 700, color: '#C07020',
-            background: 'var(--color-peach-soft)', borderRadius: 20, padding: '1px 7px',
+            background: 'var(--color-peach-soft)', borderRadius: 20, padding: '1px 8px',
           }}>
             {atRisk.length}
           </span>
@@ -110,7 +110,7 @@ export default function WidgetAttentionStudents() {
                 onClick={() => openStudentDashboard(s.id, s.groupId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '9px 16px',
+                  padding: '10px 16px',
                   borderBottom: i < atRisk.length - 1 ? '1px solid var(--color-border)' : 'none',
                   cursor: 'pointer', transition: 'background 0.15s',
                 }}
@@ -141,7 +141,7 @@ export default function WidgetAttentionStudents() {
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
                   fontSize: 11, fontWeight: 600, color: reason.color,
-                  background: reason.bg, borderRadius: 8, padding: '3px 8px',
+                  background: reason.bg, borderRadius: 8, padding: '4px 8px',
                 }}>
                   <ReasonIcon size={10} strokeWidth={2.5} />
                   {reason.label}

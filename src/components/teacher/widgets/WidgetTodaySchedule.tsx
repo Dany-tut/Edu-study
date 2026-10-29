@@ -73,12 +73,12 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
         )}
       </span>
 
-      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, alignSelf: 'center' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, alignSelf: 'center' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
             background: `color-mix(in srgb, ${item.color} 16%, transparent)`,
-            borderRadius: 8, padding: '3px 9px', flexShrink: 0, maxWidth: '100%',
+            borderRadius: 8, padding: '4px 10px', flexShrink: 0, maxWidth: '100%',
           }}>
             <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: item.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.groupName}</span>
@@ -129,8 +129,8 @@ export default function WidgetTodaySchedule() {
       height: '100%', width: '100%', overflow: 'hidden',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',

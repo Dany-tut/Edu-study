@@ -88,7 +88,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
   // Плитка собранной строки и слой строки — одни и те же метрики у призрака и у
   // настоящих плиток: только так посчитанная высота совпадает с реальной.
   const pickedTile: React.CSSProperties = {
-    minWidth: big ? 46 : 38, padding: big ? '8px 10px' : '7px 9px', borderRadius: 12,
+    minWidth: big ? 46 : 38, padding: big ? '8px 10px' : '8px 10px', borderRadius: 12,
     border: '1px solid rgba(var(--accent-rgb), 0.38)', background: 'var(--color-purple-soft)',
     color: 'var(--color-text)', fontFamily: 'inherit',
     fontSize: big ? 24 : 20, lineHeight: 1.2, fontWeight: 700,
@@ -171,7 +171,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
             onClick={() => pick(tile.ch)}
             disabled={disabled || tile.spent || full}
             style={{
-              minWidth: big ? 56 : 44, padding: big ? '12px 13px' : '10px 11px', borderRadius: 16,
+              minWidth: big ? 56 : 44, padding: big ? '12px 12px' : '10px 12px', borderRadius: 16,
               border: '1px solid var(--color-border-strong)',
               background: tile.spent ? 'var(--color-bg-3)' : 'rgba(var(--glass-rgb), 0.96)',
               color: tile.spent ? 'var(--color-muted)' : 'var(--color-text)',

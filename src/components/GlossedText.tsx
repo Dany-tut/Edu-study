@@ -52,8 +52,8 @@ export function TierChip({ term, lang, accent, style }: {
     <div
       title={t(tierNote(tier))}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 7,
-        padding: '2px 9px', borderRadius: 999, fontSize: 11, fontWeight: 800,
+        display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8,
+        padding: '2px 10px', borderRadius: 999, fontSize: 11, fontWeight: 800,
         background: core ? `${accent}22` : 'var(--color-bg-3)',
         color: core ? accent : 'var(--color-muted)',
         ...style,
@@ -518,7 +518,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               // Воздух по бокам заливки: вплотную к буквам она читается как
               // тесная коробка. Отрицательный отступ той же величины держит
               // текст на месте — иначе строка дёргалась бы на каждой подсветке.
-              paddingLeft: 3, paddingRight: 3, marginLeft: -3, marginRight: -3,
+              paddingLeft: 4, paddingRight: 4, marginLeft: -4, marginRight: -4,
               // Слово, разорванное переносом, тоже держит скругление и отступ.
               WebkitBoxDecorationBreak: 'clone', boxDecorationBreak: 'clone',
               // Известное слово помечено пунктиром — видно, что в тексте есть
@@ -543,7 +543,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               // словарю: жирность — свойство куска текста, а не отдельного слоя
               // разметки поверх него.
               fontWeight: isBoldAt(bold, at) ? BOLD_WEIGHT : undefined,
-              transition: 'background 140ms ease',
+              transition: 'background 0.15s ease',
             }}
           >
             {seg.text}
@@ -620,13 +620,13 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
             transform: pos.above ? 'translateY(-100%) translateY(-8px)' : 'translateY(8px)',
             // Тот же радиус, что у карточек текста и вопросов: подсказка —
             // такой же блок интерфейса, а не всплывашка из другой системы.
-            padding: '11px 13px 10px', borderRadius: 18,
+            padding: '12px 12px 10px', borderRadius: 18,
             // Матовое стекло, как у остальных всплывающих слоёв: сквозь него
             // видно, над каким местом текста карточка стоит, но читаемость
             // держит размытие, а не глухая заливка.
             background: 'rgba(var(--glass-rgb), 0.82)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            backdropFilter: 'var(--blur-solid)',
+            WebkitBackdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-strong)',
             boxShadow: 'var(--shadow-lg)', whiteSpace: 'normal',
             pointerEvents: pinned ? 'auto' : 'none',
@@ -650,7 +650,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               title={t('Произнести')}
               aria-label={t('Произнести')}
               style={{
-                width: 28, height: 28, flexShrink: 0, borderRadius: '50%', border: 'none',
+                width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none',
                 cursor: 'pointer', display: 'grid', placeItems: 'center',
                 background: `${accent}22`, color: accent, pointerEvents: 'auto',
               }}
@@ -695,7 +695,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               data/coreWords.ts). */}
           <TierChip term={active.seg.text} lang={lang} accent={accent} />
           {active.seg.gloss?.note && (
-            <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
+            <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)', marginTop: 6, ...proseWrap }}>
               {bindShortWords(active.seg.gloss.note)}
             </div>
           )}
@@ -709,7 +709,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               title={inDeck ? undefined : `${t('Лицом карточки станет')} «${activeCard.prompt}»`}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                width: '100%', marginTop: 9, padding: '7px 10px', borderRadius: 12,
+                width: '100%', marginTop: 10, padding: '8px 10px', borderRadius: 12,
                 fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
                 cursor: savedState === 'saving' || inDeck ? 'default' : 'pointer',
                 border: `1px solid ${inDeck ? 'var(--color-border-soft)' : `${accent}66`}`,

@@ -13,7 +13,7 @@ const norm = (o: TeacherSelectOption) => (typeof o === 'string' ? { value: o, la
 // Рамка прозрачная, а не отсутствует (и на 1px меньше отступ) — на открытии она
 // красится в акцент, и коробка не должна дрогнуть. См. lib/dropdownStyle.ts.
 const baseTrigger: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '8px 11px',
+  width: '100%', boxSizing: 'border-box', padding: '8px 12px',
   borderRadius: 11, ...dropdownRing(false, ''),
   fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
@@ -231,7 +231,7 @@ export default function TeacherSelect({
         ) : (
           <motion.span
             animate={{ rotate: open ? 180 : 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.15 }}
             style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}
           >
             <ChevronDown size={small ? 12 : 14} strokeWidth={2} />
@@ -261,7 +261,7 @@ export default function TeacherSelect({
                 adding ? (
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4,
-                    padding: small ? '5px 8px' : '6px 10px', borderRadius: 9,
+                    padding: small ? '6px 8px' : '6px 10px', borderRadius: 9,
                     border: `1.5px solid ${accent}`, background: 'var(--color-bg-input)',
                   }}>
                     <input
@@ -295,11 +295,11 @@ export default function TeacherSelect({
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4,
-                      padding: small ? '6px 9px' : '8px 11px', borderRadius: 9,
+                      display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4,
+                      padding: small ? '6px 10px' : '8px 12px', borderRadius: 9,
                       border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%',
                       fontSize: small ? 11 : 13, fontWeight: 600, fontFamily: 'inherit',
-                      background: 'transparent', color: accent, transition: 'background 0.12s',
+                      background: 'transparent', color: accent, transition: 'background 0.15s',
                     }}
                   >
                     <Plus size={small ? 12 : 14} strokeWidth={2.5} /> {t('Добавить')}
@@ -309,7 +309,7 @@ export default function TeacherSelect({
               <ScrollFade maxHeight={220} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {filtered.length === 0 ? (
-                    <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
+                    <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
                   ) : filtered.map(o => {
                     const selected = o.value === value
                     const showDel = editable && hoverDel === o.value
@@ -344,7 +344,7 @@ export default function TeacherSelect({
                                   initial={{ opacity: 0, scale: 0.8 }}
                                   animate={{ opacity: 1, scale: 1 }}
                                   exit={{ opacity: 0, scale: 0.8 }}
-                                  transition={{ duration: 0.12 }}
+                                  transition={{ duration: 0.15 }}
                                   onMouseEnter={() => setHoverDel(o.value)}
                                   onClick={e => { e.stopPropagation(); onDeleteOption(o.value); setHoverDel(null); if (selected) onChange('') }}
                                   style={{

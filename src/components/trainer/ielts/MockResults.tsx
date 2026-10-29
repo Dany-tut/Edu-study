@@ -292,7 +292,7 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
             })}
           </div>
 
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: 3, borderRadius: 12, background: 'var(--color-bg-3)', alignSelf: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: 4, borderRadius: 12, background: 'var(--color-bg-3)', alignSelf: 'flex-start' }}>
             {tabs.map(x => (
               <button key={x.id} type="button" onClick={() => setTab(x.id)} style={{
                 height: 30, padding: '0 12px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',

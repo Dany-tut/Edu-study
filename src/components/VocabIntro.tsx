@@ -134,7 +134,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
           </span>
           <motion.span
             animate={{ rotate: open ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22 }}
             style={{ marginLeft: 'auto', display: 'flex', color: 'var(--color-muted)' }}
           >
             <ChevronDown size={18} />
@@ -326,7 +326,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                     <ChevronLeft size={18} />
                   </button>
 
-                  <div className="flex items-center flex-wrap" style={{ gap: 5 }}>
+                  <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
                     {words.map((w, i) => (
                       <button
                         key={w.id}
@@ -336,7 +336,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                           width: i === step ? 18 : 7, height: 7, borderRadius: 999, padding: 0,
                           border: 'none', background: i <= (step ?? 0) ? accent : 'var(--color-border)',
                           opacity: i === step ? 1 : i < (step ?? 0) ? 0.45 : 1,
-                          transition: 'width .18s ease, opacity .18s ease',
+                          transition: 'width 0.15s ease, opacity 0.15s ease',
                         }}
                         aria-label={`${t('Слово')} ${i + 1}`}
                       />
@@ -350,7 +350,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                     className="flex items-center cursor-pointer"
                     style={{
                       marginLeft: 'auto', flexShrink: 0, gap: 6,
-                      padding: '9px 16px', borderRadius: 12, border: 'none',
+                      padding: '10px 16px', borderRadius: 12, border: 'none',
                       background: accent, color: '#fff',
                       fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                     }}

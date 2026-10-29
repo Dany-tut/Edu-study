@@ -89,13 +89,13 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
           setPicked(active ? null : i)
         }}
         style={{
-          padding: '7px 12px', borderRadius: 11, fontFamily: 'inherit',
+          padding: '8px 12px', borderRadius: 11, fontFamily: 'inherit',
           fontSize: 15, fontWeight: 600, lineHeight: 1.3,
           cursor: disabled ? 'default' : 'pointer',
           border: `1.5px solid ${
             ok === null
               ? (active ? 'var(--color-accent)' : 'var(--color-border-strong)')
-              : ok ? '#6EE7A0' : '#F48B91'
+              : ok ? 'var(--color-green-border)' : 'var(--color-red-border)'
           }`,
           background: ok === null
             ? (active ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.96)')
@@ -146,7 +146,7 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
                 cursor: armed ? 'pointer' : 'default',
                 border: `1.5px ${armed ? 'solid' : 'dashed'} ${armed ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
                 background: armed ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
-                transition: 'background .12s, border-color .12s',
+                transition: 'background 0.15s, border-color 0.15s',
               }}
             >
               <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-text-3)', letterSpacing: 0.3 }}>

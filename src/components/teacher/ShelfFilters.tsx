@@ -40,8 +40,8 @@ import ScrollFade from '../ScrollFade'
  * фон дают каждой таблетке собственное стекло, как у плавающего топбара.
  */
 export const PILL_GLASS: CSSProperties = {
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
 }
 
 /**
@@ -73,7 +73,7 @@ export function ViewSwitch<V extends string>({ value, options, accent = 'var(--c
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: active ? 'var(--color-surface)' : 'transparent',
               color: active ? accent : 'var(--color-text-3)',
-              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
+              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
             <Icon size={13} />
           </button>
         )
@@ -83,7 +83,7 @@ export function ViewSwitch<V extends string>({ value, options, accent = 'var(--c
 }
 
 const pillStyle = (open: boolean, extra?: CSSProperties): CSSProperties => ({
-  display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
+  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999,
   background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.92)', ...PILL_GLASS,
   border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
   fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit',
@@ -92,15 +92,15 @@ const pillStyle = (open: boolean, extra?: CSSProperties): CSSProperties => ({
 
 const menuStyle: CSSProperties = {
   position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 170,
-  background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+  background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'var(--blur-solid)',
+  WebkitBackdropFilter: 'var(--blur-solid)',
   border: '1px solid var(--color-border-glass)', borderRadius: 14,
-  boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5,
+  boxShadow: 'var(--shadow-4)', padding: 6,
 }
 
 const rowStyle = (on: boolean, soft: string): CSSProperties => ({
   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-  width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
+  width: '100%', padding: '10px 10px', borderRadius: 9, border: 'none',
   background: on ? soft : 'transparent',
   fontSize: 13, fontWeight: on ? 700 : 400, color: 'var(--color-text)',
   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
@@ -158,7 +158,7 @@ export function SortDropdown<V extends string>({ value, options, accent, minWidt
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }}
             style={{ ...menuStyle, minWidth: 'max(160px, 100%)', boxSizing: 'border-box' }}>
             {options.map(([val, lbl]) => (
               <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
@@ -240,7 +240,7 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }}
             style={menuStyle}>
             {searchable && (
               <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
@@ -252,7 +252,7 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
             )}
             <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
               {rows.map((val, i) => val === FACET_SEP ? (
-                <div key={`sep${i}`} style={{ height: 1, margin: '5px 8px', background: 'var(--color-border)' }} />
+                <div key={`sep${i}`} style={{ height: 1, margin: '6px 8px', background: 'var(--color-border)' }} />
               ) : (
                 <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false); setQuery('') }}
                   style={rowStyle(value === val, soft)}
@@ -290,11 +290,11 @@ export function SegmentFilter<V extends string>({ value, options, onChange, comp
         const active = value === val
         return (
           <button key={val || 'all'} onClick={() => onChange(val)}
-            style={{ padding: compact ? '5px 8px' : '5px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            style={{ padding: compact ? '6px 8px' : '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 12, whiteSpace: 'nowrap', fontWeight: active ? 700 : 500,
               background: active ? 'var(--color-surface)' : 'transparent',
               color: active ? (color ?? 'var(--color-text)') : 'var(--color-text-3)',
-              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.18s ease' }}>
+              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease' }}>
             <span style={{ display: 'grid', justifyItems: 'center' }}>
               <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{lbl}</span>
               <span style={{ gridArea: '1 / 1' }}>{lbl}</span>
@@ -329,8 +329,8 @@ export function ShelfSearch({ value, onChange, placeholder, style, collapsed }: 
   const round = collapsed && !wide
   return (
     <label title={round ? t('Поиск') : undefined} style={pillStyle(focus, {
-      cursor: round ? 'pointer' : 'text', gap: round ? 0 : 6, padding: round ? '7px 8.5px' : '7px 12px',
-      transition: 'padding 0.18s ease, gap 0.18s ease', ...style,
+      cursor: round ? 'pointer' : 'text', gap: round ? 0 : 6, padding: round ? '8px 8.5px' : '8px 12px',
+      transition: 'padding 0.15s ease, gap 0.15s ease', ...style,
     })}>
       <Search size={12} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
       <input ref={ref} value={value} placeholder={placeholder ?? t('Поиск')}
@@ -338,7 +338,7 @@ export function ShelfSearch({ value, onChange, placeholder, style, collapsed }: 
         onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
         onKeyDown={e => { if (e.key === 'Escape') { onChange(''); ref.current?.blur() } }}
         style={{
-          width: wide ? 180 : round ? 0 : 64, transition: 'width 0.18s ease',
+          width: wide ? 180 : round ? 0 : 64, transition: 'width 0.15s ease',
           border: 'none', outline: 'none', background: 'transparent', padding: 0,
           font: 'inherit', fontWeight: 500, color: 'var(--color-text)', lineHeight: '15px',
         }} />
@@ -347,7 +347,7 @@ export function ShelfSearch({ value, onChange, placeholder, style, collapsed }: 
             style={{ display: 'flex', padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-3)' }}>
             <X size={12} />
           </button>
-        : <span style={{ width: round ? 0 : 12, flexShrink: 0, transition: 'width 0.18s ease' }} />}
+        : <span style={{ width: round ? 0 : 12, flexShrink: 0, transition: 'width 0.15s ease' }} />}
     </label>
   )
 }
@@ -457,7 +457,7 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }}
             style={menuStyle}>
             {searchable && (
               <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
@@ -469,7 +469,7 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
             )}
             <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
               {rows.map((val, i) => val === FACET_SEP ? (
-                <div key={`sep${i}`} style={{ height: 1, margin: '5px 8px', background: 'var(--color-border)' }} />
+                <div key={`sep${i}`} style={{ height: 1, margin: '6px 8px', background: 'var(--color-border)' }} />
               ) : (
                 <button key={val} onMouseDown={e => { e.preventDefault(); toggle(val) }}
                   style={rowStyle(on.includes(val), soft)}

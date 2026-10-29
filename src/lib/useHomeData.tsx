@@ -51,7 +51,7 @@ export function useOverlayThumb() {
     <div style={{
       position: 'absolute', top: thumbTop, right: 2, width: 5, height: thumbH,
       borderRadius: 999, background: 'var(--scroll-thumb)', pointerEvents: 'none', zIndex: 3,
-      transition: 'opacity 0.2s ease', opacity: hover || scrolling ? 1 : 0,
+      transition: 'opacity 0.22s ease', opacity: hover || scrolling ? 1 : 0,
     }} />
   ) : null
 

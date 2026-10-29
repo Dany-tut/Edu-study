@@ -50,7 +50,7 @@ function PillContent({
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 12,
-      padding: '9px 24px 14px 9px', width: '100%', boxSizing: 'border-box',
+      padding: '10px 24px 14px 10px', width: '100%', boxSizing: 'border-box',
     }}>
       <div style={{
         width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
@@ -157,7 +157,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
 // Small two-line stat badge used inside the pending-homework widget detail.
 function StatBadge({ label, value, color, bg }: { label: string; value: string; color: string; bg: string }) {
   return (
-    <div style={{ flex: 1, background: bg, borderRadius: 12, padding: '7px 10px' }}>
+    <div style={{ flex: 1, background: bg, borderRadius: 12, padding: '8px 10px' }}>
       <div style={{ fontSize: 10, fontWeight: 700, color, letterSpacing: '0.05em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
       </div>
@@ -269,7 +269,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
                   onClick={e => { e.stopPropagation(); tactile(); openGradebook(p.scheduleId) }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
-                    padding: '7px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                    padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
                     background: 'rgba(196,120,0,0.12)',
                   }}
                 >
@@ -385,7 +385,7 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
       kicker={t('Уведомление')}
       title={latest.title}
       detail={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <span style={{
             color: 'var(--color-text-2)', lineHeight: 1.4,
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
@@ -394,8 +394,8 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
           </span>
           {latest.action && (
             <button onClick={onAction} style={{
-              alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 5,
-              padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+              alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
               background: `${typeof accent === 'string' && accent.startsWith('#') ? accent : 'var(--color-accent)'}22`,
               color: accent, fontSize: 12, fontWeight: 700,
             }}>
@@ -700,8 +700,8 @@ export default function TeacherCompactPill() {
           position: 'relative',
           cursor: 'pointer',
           background: 'rgba(var(--glass-rgb), 0.75)',
-          backdropFilter: 'blur(14px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+          backdropFilter: 'var(--blur-glass)',
+          WebkitBackdropFilter: 'var(--blur-glass)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: 'var(--shadow-pill)',
           overflow: 'hidden',
@@ -714,8 +714,8 @@ export default function TeacherCompactPill() {
           transition={{ duration: blurOn ? 0.10 : 0.28, ease: 'easeOut' }}
           style={{
             position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none',
-            backdropFilter: 'blur(18px) saturate(200%)',
-            WebkitBackdropFilter: 'blur(18px) saturate(200%)',
+            backdropFilter: 'var(--blur-glass)',
+            WebkitBackdropFilter: 'var(--blur-glass)',
             background: 'rgba(var(--glass-rgb), 0.55)',
           }}
         />
@@ -794,7 +794,7 @@ export default function TeacherCompactPill() {
                     top: '50%', transform: 'translateY(-50%)',
                     width: 22, height: 22, borderRadius: '50%', border: 'none',
                     background: 'rgba(var(--glass-rgb), 0.85)',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+                    boxShadow: 'var(--shadow-1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'var(--color-text-2)', cursor: 'pointer',
                     opacity: hovering ? 1 : 0, transition: 'opacity 0.18s ease',

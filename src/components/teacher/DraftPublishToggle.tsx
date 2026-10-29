@@ -23,11 +23,11 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
     // flex: 1 — при заданной ширине (редактор курса ровняет по колонке уроков)
     // половины делят её поровну; без ширины переключатель по-прежнему по тексту.
     flex: 1, justifyContent: 'center',
-    display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 999, border: 'none',
+    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 999, border: 'none',
     background: active ? activeBg : 'transparent',
     color: active ? activeColor : 'var(--color-text-3)',
     fontSize: 14, fontWeight: active ? 700 : 500, fontFamily: 'inherit', whiteSpace: 'nowrap',
-    cursor: clickable ? 'pointer' : 'default', transition: 'background 0.16s, color 0.16s',
+    cursor: clickable ? 'pointer' : 'default', transition: 'background 0.15s, color 0.15s',
   })
 
   const label = (text: string) => (
@@ -42,9 +42,9 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
 
   return (
     <div role="radiogroup" style={{
-      display: 'flex', gap: 2, padding: 3, borderRadius: 999, flexShrink: 0,
+      display: 'flex', gap: 2, padding: 4, borderRadius: 999, flexShrink: 0,
       border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...style,
+      boxShadow: 'var(--shadow-2)', ...style,
     }}>
       <button role="radio" aria-checked={!published}
         onClick={draftClickable ? onDraft : undefined}

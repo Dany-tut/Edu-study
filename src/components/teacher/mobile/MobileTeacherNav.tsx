@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { MOBILE_DOCK_EDGE } from '../../../lib/mobileTokens'
 import CountBadge from '../../CountBadge'
 import { Home, Users, ClipboardCheck, CheckSquare, User } from 'lucide-react'
 import { tactile } from '../../../lib/feedback'
@@ -6,7 +7,7 @@ import { useNavCollapse } from '../../../lib/useNavCollapse'
 import { useT } from '../../../lib/i18n'
 
 // Shared ease/duration for the scroll collapse (matches the student dock).
-const COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
+const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileTeacherNav — bottom nav for the MOBILE teacher app (MOBILE ONLY).
@@ -45,26 +46,29 @@ export default function MobileTeacherNav({
       // «назад» она не едет со страницей, а стоит: страница проходит ПОД ней
       // (lib/useSwipeBack.ts). У ученической навигации ровно та же метка.
       data-swipe-pin="bottom"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
+      // Отступ снизу — MOBILE_DOCK_EDGE, а не сырой env(): Safari и WKWebView
+      // какое-то время кладут в safe-area свою панель, и док садился на глазах.
+      // Размеры — как у ученического дока (MobileBottomNav): один док на оба кабинета.
+      style={{ paddingBottom: MOBILE_DOCK_EDGE }}
     >
       <motion.div
-        className="mb-4 flex items-center justify-around px-2"
+        className="mb-2 flex items-center justify-around px-2"
         initial={false}
         // Collapse morphs height, symmetric vertical padding, and horizontal
         // margin together so the dock also shrinks in length on scroll-down.
         animate={{
-          height: collapsed ? 56 : 72,
-          paddingTop: collapsed ? 10 : 12,
-          paddingBottom: collapsed ? 10 : 12,
-          marginLeft: collapsed ? 52 : 16,
-          marginRight: collapsed ? 52 : 16,
+          height: collapsed ? 50 : 62,
+          paddingTop: collapsed ? 8 : 10,
+          paddingBottom: collapsed ? 8 : 10,
+          marginLeft: collapsed ? 52 : MOBILE_DOCK_EDGE + 8,
+          marginRight: collapsed ? 52 : MOBILE_DOCK_EDGE + 8,
         }}
         transition={COLLAPSE}
         style={{
           borderRadius: '28px',
           background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-          backdropFilter: 'blur(28px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          backdropFilter: 'var(--blur-solid)',
+          WebkitBackdropFilter: 'var(--blur-solid)',
           border: '1px solid var(--color-border-glass)',
           // Тень бара из темы: свой белый inset 0.5 в тёмной теме рисовал
           // жёсткую линию по верхнему краю. [[feedback-glass-no-white-inset]]

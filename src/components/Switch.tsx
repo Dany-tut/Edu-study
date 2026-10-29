@@ -10,14 +10,16 @@
  * списка», переключатель — «работает или нет». Разная форма ровно за этим:
  * по ней видно, что нажатие меняет поведение, а не отмечает пункт.
  */
-export default function Switch({ checked, onChange, disabled, label }: {
+export default function Switch({ checked, onChange, disabled, label, size = 'M' }: {
   checked: boolean
   onChange: (v: boolean) => void
   disabled?: boolean
   /** Подпись для screen reader — сам ряд рисует её сам. */
   label?: string
+  /** M — 46×28 (настройки), S — 32×20 (плотные рейлы тренажёра). */
+  size?: 'M' | 'S'
 }) {
-  const W = 46, H = 28, PAD = 3
+  const [W, H, PAD] = size === 'S' ? [32, 20, 2] : [46, 28, 3]
   const knob = H - PAD * 2
   return (
     <label
@@ -47,7 +49,7 @@ export default function Switch({ checked, onChange, disabled, label }: {
           // заливок), выключенное — нейтральная подложка с обводкой.
           background: checked ? 'var(--grad-purple)' : 'var(--color-bg-5)',
           border: `1px solid ${checked ? 'transparent' : 'var(--color-border-medium)'}`,
-          transition: 'background .18s ease, border-color .18s ease',
+          transition: 'background 0.15s ease, border-color 0.15s ease',
         }}
       />
       <span
@@ -55,9 +57,9 @@ export default function Switch({ checked, onChange, disabled, label }: {
         style={{
           position: 'absolute', top: PAD, left: PAD,
           width: knob, height: knob, borderRadius: 999, background: '#fff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.28)',
+          boxShadow: 'var(--shadow-1)',
           transform: `translateX(${checked ? W - knob - PAD * 2 : 0}px)`,
-          transition: 'transform .2s cubic-bezier(0.32, 0.72, 0, 1)',
+          transition: 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)',
         }}
       />
     </label>

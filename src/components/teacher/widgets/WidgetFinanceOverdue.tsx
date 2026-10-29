@@ -61,7 +61,7 @@ export default function WidgetFinanceOverdue() {
         width: '100%', height: '100%',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         background: 'rgba(var(--glass-rgb), 0.88)',
-        backdropFilter: 'blur(16px)',
+        backdropFilter: 'var(--blur-glass)',
         borderRadius: 24,
         border: '1px solid var(--color-border-medium)',
         gap: 10,
@@ -84,8 +84,8 @@ export default function WidgetFinanceOverdue() {
       width: '100%', height: '100%',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       borderRadius: 24,
       border: '1px solid var(--color-border-medium)',
       // shadow on wrapper
@@ -109,7 +109,7 @@ export default function WidgetFinanceOverdue() {
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Должники')}</span>
           <span style={{
             fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)',
-            background: 'var(--color-red-soft)', borderRadius: 20, padding: '1px 7px',
+            background: 'var(--color-red-soft)', borderRadius: 20, padding: '1px 8px',
           }}>
             {sorted.length}
           </span>
@@ -139,7 +139,7 @@ export default function WidgetFinanceOverdue() {
               key={s.id}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
-                padding: '9px 16px',
+                padding: '10px 16px',
                 transition: 'background 0.15s',
                 opacity: isPaid ? 0.5 : 1,
               }}
@@ -170,7 +170,7 @@ export default function WidgetFinanceOverdue() {
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
                 fontSize: 11, fontWeight: 600, color: meta.color,
-                background: meta.bg, borderRadius: 8, padding: '3px 8px',
+                background: meta.bg, borderRadius: 8, padding: '4px 8px',
               }}>
                 <StatusIcon size={10} strokeWidth={2.5} />
                 {meta.label}
@@ -188,12 +188,12 @@ export default function WidgetFinanceOverdue() {
                 onClick={() => handlePay(s.id, s.paymentAmount)}
                 disabled={isPaid || paying === s.id}
                 style={{
-                  padding: '5px 10px', borderRadius: 8, flexShrink: 0,
+                  padding: '6px 10px', borderRadius: 8, flexShrink: 0,
                   background: isPaid ? 'var(--color-green-soft)' : 'var(--grad-purple)',
                   border: 'none', cursor: isPaid ? 'default' : 'pointer',
                   color: isPaid ? 'var(--color-green-text)' : '#fff',
                   fontSize: 11, fontWeight: 700,
-                  transition: 'all 0.2s',
+                  transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.22s',
                   display: 'flex', alignItems: 'center', gap: 4,
                 } as React.CSSProperties}
               >

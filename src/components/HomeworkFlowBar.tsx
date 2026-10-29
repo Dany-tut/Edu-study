@@ -30,6 +30,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { useKeyboardState } from '../lib/useKeyboardInset'
+import { PAGE_WIDTH } from '../lib/pageWidth'
 
 export default function HomeworkFlowBar({
   step,
@@ -72,7 +73,7 @@ export default function HomeworkFlowBar({
     <motion.div
       initial={false}
       animate={{ bottom: lift }}
-      transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+      transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
       style={{
         position: 'fixed',
         left: 0,
@@ -88,7 +89,7 @@ export default function HomeworkFlowBar({
     >
       <div
         className="flex flex-col"
-        style={{ gap: 12, padding: '14px 20px 16px', maxWidth: 720, margin: '0 auto' }}
+        style={{ gap: 12, padding: '14px 20px 16px', maxWidth: PAGE_WIDTH.reading, margin: '0 auto' }}
       >
         {/* Прогресс — тонкая полоска над кнопкой, а не край панели: она и так на
             экране всегда, отдельная шкала наверху отняла бы у задания вертикаль. */}
@@ -96,7 +97,7 @@ export default function HomeworkFlowBar({
           <motion.div
             initial={false}
             animate={{ width: `${total > 0 ? Math.min(100, (step / total) * 100) : 0}%` }}
-            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.38, ease: [0.32, 0.72, 0, 1] }}
             style={{ height: '100%', background: 'var(--grad-purple-bar)', borderRadius: 999 }}
           />
         </div>
@@ -120,8 +121,8 @@ export default function HomeworkFlowBar({
                 // Прозрачной кнопке нужен был фон панели; без панели она читалась
                 // бы поверх текста задания, поэтому у неё своё стекло.
                 background: 'rgba(var(--glass-rgb), 0.86)',
-                backdropFilter: 'blur(14px)',
-                boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
+                backdropFilter: 'var(--blur-glass)',
+                boxShadow: 'var(--shadow-3)',
                 color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                 flexShrink: 0, pointerEvents: 'auto',
               }}
@@ -135,7 +136,7 @@ export default function HomeworkFlowBar({
             disabled={disabled}
             className="flex items-center justify-center"
             style={{
-              flex: 1, gap: 8, padding: '15px 22px', borderRadius: 18,
+              flex: 1, gap: 8, padding: '16px 22px', borderRadius: 18,
               border: disabled ? '1px solid var(--color-border-soft)' : 'none',
               background: disabled ? 'rgba(var(--glass-rgb), 0.86)' : 'var(--grad-purple)',
               backdropFilter: disabled ? 'blur(14px)' : undefined,
@@ -144,7 +145,7 @@ export default function HomeworkFlowBar({
               cursor: disabled ? 'default' : 'pointer',
               boxShadow: disabled ? '0 6px 18px rgba(0,0,0,0.08)' : '0 10px 24px rgba(var(--accent-rgb), 0.35)',
               pointerEvents: 'auto',
-              transition: 'background 0.18s ease, color 0.18s ease',
+              transition: 'background 0.15s ease, color 0.15s ease',
             }}
           >
             {label}

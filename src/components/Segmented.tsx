@@ -47,7 +47,7 @@ export default function Segmented<T extends string>({ variant, items, value, onC
     <div
       role="tablist"
       style={{
-        display: 'inline-flex', gap: 2, padding: 3, maxWidth: '100%',
+        display: 'inline-flex', gap: 2, padding: 4, maxWidth: '100%',
         background: 'var(--color-bg-3)', borderRadius: mode ? 12 : 999,
         ...style,
       }}
@@ -62,7 +62,7 @@ export default function Segmented<T extends string>({ variant, items, value, onC
             onClick={() => onChange(it.id)}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '7px 14px', borderRadius: mode ? 9 : 999, border: 'none', cursor: 'pointer',
+              padding: '8px 14px', borderRadius: mode ? 9 : 999, border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: on ? 700 : 600, lineHeight: 1.2, whiteSpace: 'nowrap',
               background: on ? (mode ? 'var(--color-purple-soft)' : 'var(--color-surface)') : 'transparent',
               color: on ? (mode ? 'var(--color-purple-text)' : 'var(--color-text)') : 'var(--color-text-3)',

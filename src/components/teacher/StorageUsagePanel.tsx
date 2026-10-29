@@ -39,7 +39,7 @@ function UsageBar({
   const pct = Math.min(100, (used / limit) * 100)
   const c = barColor(pct)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ width: 26, height: 26, borderRadius: 8, background: c.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Icon size={14} strokeWidth={2} style={{ color: c.text }} />
@@ -49,11 +49,11 @@ function UsageBar({
           {pct.toFixed(pct < 10 ? 1 : 0)}%
         </span>
       </div>
-      <div style={{ height: 9, borderRadius: 6, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+      <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
           style={{ height: '100%', borderRadius: 6, background: c.fill }}
         />
       </div>
@@ -95,8 +95,8 @@ export default function StorageUsagePanel() {
 
   const cardStyle: React.CSSProperties = {
     background: 'rgba(var(--glass-rgb), 0.88)',
-    backdropFilter: 'blur(16px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+    backdropFilter: 'var(--blur-glass)',
+    WebkitBackdropFilter: 'var(--blur-glass)',
     border: '1px solid var(--color-border-medium)',
     borderRadius: 24,
     boxShadow: '0 4px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.15)',
@@ -116,7 +116,7 @@ export default function StorageUsagePanel() {
         {t('Хранилище базы данных')}
         <motion.span
           animate={{ rotate: open ? 0 : -90 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.22 }}
           style={{ display: 'flex', color: 'var(--color-text-4)' }}
         >
           <ChevronDown size={16} strokeWidth={2} />
@@ -156,7 +156,7 @@ export default function StorageUsagePanel() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 style={{ overflow: 'hidden' }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 18 }}>
@@ -177,7 +177,7 @@ export default function StorageUsagePanel() {
                       {[...stats.tables].sort((a, b) => b.bytes - a.bytes).slice(0, 6).map(t => (
                         <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span style={{ fontSize: 12, color: 'var(--color-text-2)', width: 120, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-                          <div style={{ flex: 1, height: 6, borderRadius: 4, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+                          <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${(t.bytes / maxTableBytes) * 100}%`, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.7 }} />
                           </div>
                           <span style={{ fontSize: 11, color: 'var(--color-text-3)', width: 58, textAlign: 'right', flexShrink: 0 }}>{fmtBytes(t.bytes)}</span>

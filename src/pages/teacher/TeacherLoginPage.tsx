@@ -87,12 +87,12 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     }}>
       <div style={{
         background: 'rgba(var(--glass-rgb), 0.92)',
-        backdropFilter: 'blur(20px)',
+        backdropFilter: 'var(--blur-solid)',
         borderRadius: 24,
         padding: '40px 36px',
         width: '100%',
         maxWidth: 400,
-        boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+        boxShadow: 'var(--shadow-4)',
         border: '1px solid var(--color-border-glass)',
       }}>
         <div style={{ fontSize: 36, marginBottom: 8 }}>👩‍🏫</div>
@@ -117,7 +117,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               style={{
                 minHeight: 50,
                 lineHeight: '22px',
-                padding: '13px 16px',
+                padding: '12px 16px',
                 borderRadius: 14,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,
@@ -145,7 +145,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
                 boxSizing: 'border-box',
                 minHeight: 50,
                 lineHeight: '22px',
-                padding: '13px 44px 13px 16px',
+                padding: '12px 44px 12px 16px',
                 borderRadius: 14,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,

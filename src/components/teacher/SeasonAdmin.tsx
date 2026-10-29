@@ -68,7 +68,7 @@ export default function SeasonAdmin() {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <Ghost size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} />
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {t('Праздничная тема')}
@@ -79,7 +79,7 @@ export default function SeasonAdmin() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', background: 'var(--color-bg-3)' }}>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Хэллоуин')}</div>
-            <div style={{ fontSize: 12, marginTop: 3, fontWeight: 600, color: statusLive ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>{statusText}</div>
+            <div style={{ fontSize: 12, marginTop: 4, fontWeight: 600, color: statusLive ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>{statusText}</div>
           </div>
           <Switch checked={draft.enabled} onChange={v => patch({ enabled: v })} label={t('Хэллоуин')} />
         </div>

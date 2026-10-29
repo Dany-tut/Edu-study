@@ -22,12 +22,12 @@ const overlay = {
 const card = {
   background: 'var(--color-bg-input)', borderRadius: 24, padding: 24,
   width: 420, maxHeight: '80vh', display: 'flex', flexDirection: 'column' as const,
-  boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+  boxShadow: 'var(--shadow-5)',
 }
 const searchBox = {
   display: 'flex', alignItems: 'center', gap: 8,
   background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
-  borderRadius: 12, padding: '9px 12px', marginBottom: 12,
+  borderRadius: 12, padding: '10px 12px', marginBottom: 12,
 }
 
 function initials(name: string) {
@@ -58,7 +58,7 @@ export function PickStudentModal({
     <div style={overlay} onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.2 }}
+        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()} style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -88,7 +88,7 @@ export function PickStudentModal({
               key={key} disabled={busy} onClick={() => onPick(person)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
                 borderRadius: 14, cursor: busy ? 'wait' : 'pointer', textAlign: 'left', width: '100%',
                 opacity: busy ? 0.6 : 1,
               }}
@@ -141,7 +141,7 @@ export function PickGroupModal({
     <div style={overlay} onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.2 }}
+        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()} style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -173,7 +173,7 @@ export function PickGroupModal({
                 key={g.id} disabled={busy} onClick={() => onPick(g.id)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                  background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                  background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
                   borderRadius: 14, cursor: busy ? 'wait' : 'pointer', textAlign: 'left', width: '100%',
                   opacity: busy ? 0.6 : 1,
                 }}
@@ -256,7 +256,7 @@ export function AddExistingIndividualModal({
     <div style={overlay} onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.2 }}
+        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()} style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -289,7 +289,7 @@ export function AddExistingIndividualModal({
                 <button key={key} onClick={() => { setPicked({ person, registered }); setStep('subject') }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                    background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                    background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
                     borderRadius: 14, cursor: 'pointer', textAlign: 'left', width: '100%',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-accent)' }}
@@ -355,7 +355,7 @@ export function AddExistingIndividualModal({
                   <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
                 </div>
-                <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s' }}>
+                <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.22s' }}>
                   {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
                 </button>
               </>

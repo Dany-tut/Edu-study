@@ -22,7 +22,7 @@ import { useT, t as tGlobal, useTc } from '../../lib/i18n'
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.34, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.38, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
 // Russian plural: pluralRu(1,'работа','работы','работ')
@@ -80,8 +80,8 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 22,
       boxShadow: 'var(--shadow-sm-page)',
@@ -118,14 +118,14 @@ function AssignForm({ onClose }: { onClose: () => void }) {
       style={{
         width: 332, flexShrink: 0, flex: 1, minHeight: 0,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border)',
         borderRadius: 20,
         margin: '36px 12px 12px 0',
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+        boxShadow: 'var(--shadow-4)',
       }}
     >
       {/* Header */}
@@ -173,7 +173,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
                     fontSize: 12, fontWeight: 600,
                     background: assignTo === mode ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                     color: assignTo === mode ? 'var(--color-accent)' : 'var(--color-muted)',
-                    transition: 'all 0.15s',
+                    transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   }}
                 >
                   {mode === 'group' ? t('Группе') : t('Студенту')}
@@ -286,7 +286,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
         borderLeft: isSelected ? '3px solid var(--color-accent)' : '3px solid transparent',
         transition: 'background 0.15s',
       }}
-      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-2)' }}
+      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
       onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
     >
       {/* Group / student + subject chip */}
@@ -297,10 +297,10 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
         </div>
         {subject && (
           <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 5, marginLeft: 16,
+            display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, marginLeft: 16,
             fontSize: 11, fontWeight: 600, color: subject.color,
             background: subject.color + '1E', border: `1px solid ${subject.color}3A`,
-            borderRadius: 6, padding: '2px 7px',
+            borderRadius: 6, padding: '2px 8px',
           }}>
             <span>{subject.icon}</span>{tc(subject.label)}
           </span>
@@ -309,7 +309,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
 
       {/* Title + two inline segments: основное / сложное */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', maxWidth: 280 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 5 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 6 }}>
           {tc(hw.title) || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t('Без названия')}</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -343,10 +343,10 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
       </td>
 
       {/* Submitted bar */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ flex: 1, height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
-            <div style={{ height: '100%', width: `${submittedPct}%`, background: 'var(--color-purple)', borderRadius: 99, transition: 'width 0.5s' }} />
+            <div style={{ height: '100%', width: `${submittedPct}%`, background: 'var(--color-purple)', borderRadius: 99, transition: 'width 0.38s' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', flexShrink: 0 }}>
             {hw.submittedCount}/{hw.totalCount}
@@ -355,10 +355,10 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
       </td>
 
       {/* Reviewed */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ flex: 1, height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
-            <div style={{ height: '100%', width: `${reviewedPct}%`, background: 'var(--color-green-accent)', borderRadius: 99, transition: 'width 0.5s' }} />
+            <div style={{ height: '100%', width: `${reviewedPct}%`, background: 'var(--color-green-accent)', borderRadius: 99, transition: 'width 0.38s' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', flexShrink: 0 }}>
             {hw.reviewedCount}/{hw.submittedCount || 0}
@@ -372,7 +372,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
           fontSize: 11, fontWeight: 700,
           color: STATUS_COLOR[status],
           background: STATUS_BG[status],
-          borderRadius: 8, padding: '3px 9px', whiteSpace: 'nowrap',
+          borderRadius: 8, padding: '4px 10px', whiteSpace: 'nowrap',
         }}>
           {t(STATUS_LABEL[status])}
         </span>
@@ -407,20 +407,20 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
       style={{
         width: 332, flexShrink: 0, flex: 1, minHeight: 0,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border)',
         borderRadius: 20,
         margin: '36px 12px 12px 0',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+        boxShadow: 'var(--shadow-4)',
       }}
     >
       <div style={{ padding: '18px 18px 14px', background: group.color + '1A', borderBottom: `1px solid ${group.color}33`, flexShrink: 0, borderTopLeftRadius: 19, borderTopRightRadius: 19 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6 }}>{tc(hw.title)}</div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: group.color + '28', borderRadius: 7, padding: '2px 8px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: group.color + '28', borderRadius: 7, padding: '2px 8px' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: group.color }}>{hw.groupName}</span>
             </div>
@@ -453,7 +453,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         {/* Two inline segments: основное / сложное (not separate sections) */}
         <div style={{ display: 'flex', gap: 8 }}>
           <div style={{ flex: 1, background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <ClipboardCheck size={12} strokeWidth={2.5} style={{ color: 'var(--color-accent)' }} />
               <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)' }}>{t('Основное')}</span>
             </div>
@@ -464,7 +464,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
             background: hasHard ? 'var(--color-yellow-soft)' : 'var(--color-bg)',
             opacity: hasHard ? 1 : 0.6,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <Star size={12} strokeWidth={0} fill="currentColor" style={{ color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }} />
               <span style={{ fontSize: 10, fontWeight: 700, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>{t('Сложное')}</span>
             </div>
@@ -493,7 +493,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           style={{
             width: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '11px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
+            padding: '12px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
             cursor: lessonBusy ? 'default' : 'pointer', background: 'var(--color-bg-2)', color: 'var(--color-text)',
             fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: lessonBusy ? 0.6 : 1,
           }}
@@ -539,7 +539,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
               return (
                 <div key={s.id} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '7px 10px', borderRadius: 10,
+                  padding: '8px 10px', borderRadius: 10,
                   background: returned ? 'var(--color-peach-soft)' : reviewed ? 'var(--color-green-soft)' : submitted ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                 }}>
                   <div style={{
@@ -751,11 +751,11 @@ export default function TeacherHomeworkPage() {
         {queue.length > 0 && (
           <motion.div
             {...fadeUp(0.10)}
-            style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.34s cubic-bezier(0.22,1,0.36,1)' }}
+            style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.38s cubic-bezier(0.22,1,0.36,1)' }}
           >
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '2px 4px 11px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '2px 4px 12px' }}>
               <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Нужно проверить')}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 9px', borderRadius: 999, background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)' }}>{queue.length}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)' }}>{queue.length}</span>
               <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>{t('по дедлайну')}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -767,7 +767,7 @@ export default function TeacherHomeworkPage() {
                     background: 'rgba(var(--glass-rgb), 0.96)',
                     border: '1px solid var(--color-border-soft)',
                     borderLeft: `3px solid ${item.overdue ? 'var(--color-red-text)' : 'transparent'}`,
-                    borderRadius: 14, padding: '11px 14px',
+                    borderRadius: 14, padding: '12px 14px',
                   }}
                 >
                   <div style={{
@@ -779,10 +779,10 @@ export default function TeacherHomeworkPage() {
                     {item.kind === 'hard' ? <Star size={16} strokeWidth={0} fill="currentColor" /> : <ClipboardCheck size={16} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                       <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.who}</span>
                       <span style={{
-                        flex: 'none', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 6,
+                        flex: 'none', fontSize: 10, fontWeight: 700, padding: '1px 8px', borderRadius: 6,
                         background: item.kind === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
                         color: item.kind === 'hard' ? 'var(--color-yellow-text)' : 'var(--color-accent)',
                       }}>{item.kind === 'hard' ? `★ ${t('Сложное')}` : t('Основное')}</span>
@@ -797,7 +797,7 @@ export default function TeacherHomeworkPage() {
                               {i > 0 && <span style={{ color: 'var(--color-text-3)', opacity: 0.7 }}>→</span>}
                               <span
                                 title={s.kind === 'returned' ? t('Возвращено на доработку') : i === 0 ? t('Отправлено на проверку') : t('Отправлено повторно')}
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: s.kind === 'returned' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: s.kind === 'returned' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}
                               >
                                 {s.kind === 'returned' ? <RotateCcw size={12} /> : <Send size={12} />}
                                 {shortAgo(s.at)}
@@ -833,7 +833,7 @@ export default function TeacherHomeworkPage() {
         {hardSubs.length > 0 && (
           <motion.div
             {...fadeUp(0.12)}
-            style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.34s cubic-bezier(0.22,1,0.36,1)' }}
+            style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.38s cubic-bezier(0.22,1,0.36,1)' }}
           >
             <Card style={{ padding: 0, overflow: 'hidden' }}>
               {/* Clickable header — collapses whole panel */}
@@ -843,7 +843,7 @@ export default function TeacherHomeworkPage() {
                   padding: '14px 18px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   borderBottom: hardPanelCollapsed ? 'none' : '1px solid var(--color-border-soft)',
                   cursor: 'pointer', userSelect: 'none',
-                  transition: 'border-color 0.2s',
+                  transition: 'border-color 0.22s',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -851,7 +851,7 @@ export default function TeacherHomeworkPage() {
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Хард-уровень · Сданные работы')}</span>
                   {pendingHardCount > 0 && (
                     <span style={{
-                      fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
+                      fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999,
                       background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
                     }}>
                       {pendingHardCount} {t('на проверке')}
@@ -860,7 +860,7 @@ export default function TeacherHomeworkPage() {
                 </div>
                 <motion.div
                   animate={{ rotate: hardPanelCollapsed ? -90 : 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.22 }}
                   style={{ display: 'flex', color: 'var(--color-muted)' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -906,7 +906,7 @@ export default function TeacherHomeworkPage() {
                         >
                           <motion.div
                             animate={{ rotate: acceptedCollapsed ? -90 : 0 }}
-                            transition={{ duration: 0.18 }}
+                            transition={{ duration: 0.15 }}
                             style={{ display: 'flex', color: 'var(--color-muted)' }}
                           >
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -922,7 +922,7 @@ export default function TeacherHomeworkPage() {
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: 'auto', opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                              transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
                               style={{ overflow: 'hidden' }}
                             >
                               <div style={{ padding: '0 10px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -951,7 +951,7 @@ export default function TeacherHomeworkPage() {
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0, marginRight: panelOpen ? 344 : 0 }}
-          transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
         >
           <Card style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>

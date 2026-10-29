@@ -31,10 +31,10 @@ export default function ViewAsBanner() {
         position: 'fixed', left: 14, bottom: 14, zIndex: 1500,
         display: 'flex', alignItems: 'center', gap: 10,
         maxWidth: 'calc(100vw - 28px)', boxSizing: 'border-box',
-        padding: '9px 9px 9px 12px', borderRadius: 18,
+        padding: '10px 10px 10px 12px', borderRadius: 18,
         background: 'var(--color-bg-2)',
         border: '1px solid #D07020',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
+        boxShadow: 'var(--shadow-3)',
       }}
     >
       <Eye size={16} strokeWidth={2} style={{ color: '#D07020', flexShrink: 0 }} />
@@ -53,7 +53,7 @@ export default function ViewAsBanner() {
         onClick={() => setViewAs(null)}
         title={t('Вернуться к себе')}
         style={{
-          display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
           padding: '6px 10px', borderRadius: 9, cursor: 'pointer',
           background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
           color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',

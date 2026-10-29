@@ -87,7 +87,7 @@ export default function NotificationBell({ size = 16, hoverBg = 'rgba(var(--acce
             initial={{ opacity: 0, scale: 0.4 }}
             animate={{ opacity: 0.22, scale: 1.6 }}
             exit={{ opacity: 0, scale: 2 }}
-            transition={{ duration: 0.35 }}
+            transition={{ duration: 0.38 }}
             style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
               background: 'radial-gradient(circle, #FF5A5A 0%, transparent 72%)',

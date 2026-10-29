@@ -96,7 +96,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
     <button
       onClick={onTap}
       className="flex items-center justify-between cursor-pointer"
-      style={{ width: '100%', height: 56, padding: '0 15px', background: 'transparent', border: 'none', ...style }}
+      style={{ width: '100%', height: 56, padding: '0 16px', background: 'transparent', border: 'none', ...style }}
       aria-label={`${t('Проверить обновление')} — ${APP_COMMIT}`}
       title={APP_COMMIT}
     >

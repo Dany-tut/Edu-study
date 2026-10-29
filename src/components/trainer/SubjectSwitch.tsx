@@ -86,7 +86,7 @@ export function SubjectList({ state, onPicked, accent }: {
               onClick={() => { pick(o.def.id); onPicked?.() }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                padding: '9px 10px', borderRadius: 10, cursor: 'pointer', border: 'none',
+                padding: '10px 10px', borderRadius: 10, cursor: 'pointer', border: 'none',
                 background: active ? `${pal.accent}1f` : 'transparent',
                 fontFamily: 'inherit', textAlign: 'left',
               }}
@@ -220,7 +220,7 @@ export function SubjectHero({ state, subtitle, palette }: {
         <div ref={menuRef} className="no-scrollbar" style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 50,
           background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
-          border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+          border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)',
           // Длинный список (у ученика бывает восемь предметов) крутится сам, а
           // не тянет за собой фон — тот на время выбора заморожен.
           maxHeight: 'min(60vh, 420px)', overflowY: 'auto', overscrollBehavior: 'contain',
@@ -295,7 +295,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
         aria-label={compact ? (current ? t(current.def.name) : t('Тренажёр')) : undefined}
         style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          gap: compact ? 0 : 7,
+          gap: compact ? 0 : 8,
           // Высота шапки общая на все экраны (MOBILE_PILL_H): таблетка предмета
           // стоит в той же строке, что и чипсы соседних экранов, и перетекает
           // в них на свайпе «назад».
@@ -304,7 +304,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
           borderRadius: 999, cursor: many ? 'pointer' : 'default', fontFamily: 'inherit',
           fontSize: 13, fontWeight: 700, color: 'var(--color-text)',
           background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-          backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
           // Тот же скин, что у соседних кругов дока (MobileDock.glassBase):
           // свой белый inset в тёмной теме рисовал резкий контур, а обводка
           // border-medium была заметно ярче остальных таблеток ряда.
@@ -326,7 +326,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
           position: 'absolute', left: 0, zIndex: 60, minWidth: 280,
           ...(up ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }),
           background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
-          border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
+          border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)',
           maxHeight: 'min(60vh, 420px)', overflowY: 'auto', overscrollBehavior: 'contain',
         }}>
           <SubjectList state={state} accent={palette.accent} onPicked={() => setOpen(false)} />

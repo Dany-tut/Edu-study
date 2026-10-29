@@ -57,8 +57,8 @@ export function buttonStyle(variant: ButtonVariant, opts?: { pair?: PairName; ac
     case 'glass':
       return {
         background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         color: 'var(--color-text)',
         boxShadow: 'var(--shadow-xs)',
         border: '1px solid var(--color-border-glass)',
@@ -133,8 +133,8 @@ export const glassCircle: CSSProperties = {
   justifyContent: 'center',
   borderRadius: 999,
   background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-  backdropFilter: 'blur(16px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   border: '1px solid var(--color-border-glass)',
   boxShadow: 'var(--shadow-pill)',
   color: 'var(--color-text-2)',

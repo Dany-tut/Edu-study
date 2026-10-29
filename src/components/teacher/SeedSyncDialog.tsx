@@ -85,7 +85,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
         </button>
       </div>
       {openKey === c.key && !!c.details?.length && (
-        <ul style={{ margin: '0 0 10px 34px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <ul style={{ margin: '0 0 10px 34px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
           {c.details.map((d, i) => (
             <li key={i} style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.45 }}>· {d}</li>
           ))}
@@ -156,7 +156,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
     <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
       <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.16 }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15 }}
         style={{
           position: 'relative', width: 'min(640px, 100%)', maxHeight: '82vh',
           display: 'flex', flexDirection: 'column',
@@ -196,7 +196,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
                     onClick={() => toggleAll(g.list, !all)}
                     className="cursor-pointer flex items-center"
                     style={{
-                      gap: 7, padding: '5px 11px 5px 9px', borderRadius: 999,
+                      gap: 8, padding: '6px 12px 6px 10px', borderRadius: 999,
                       border: '1px solid var(--color-border-soft)',
                       background: n ? 'var(--color-bg-input)' : 'transparent',
                       fontFamily: 'inherit', textAlign: 'left',
@@ -231,12 +231,12 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: 26, pointerEvents: 'none',
             background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.99), transparent)',
-            opacity: edges.top ? 1 : 0, transition: 'opacity 0.18s ease',
+            opacity: edges.top ? 1 : 0, transition: 'opacity 0.15s ease',
           }} />
           <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0, height: 26, pointerEvents: 'none',
             background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.99), transparent)',
-            opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.18s ease',
+            opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.15s ease',
           }} />
         </div>
 
@@ -245,7 +245,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
             {t('Выбрано:')} {picked.size} {t('из')} {diff.changes.length}
           </span>
           <button onClick={onClose} className="cursor-pointer"
-            style={{ marginLeft: 'auto', padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
+            style={{ marginLeft: 'auto', padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
             {t('Отмена')}
           </button>
           <button
@@ -253,7 +253,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
             disabled={picked.size === 0}
             className="cursor-pointer flex items-center"
             style={{
-              gap: 7, padding: '9px 18px', borderRadius: 999, border: 'none',
+              gap: 8, padding: '10px 18px', borderRadius: 999, border: 'none',
               background: picked.size ? 'var(--grad-purple)' : 'var(--color-border)',
               color: picked.size ? '#fff' : 'var(--color-muted)',
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit',

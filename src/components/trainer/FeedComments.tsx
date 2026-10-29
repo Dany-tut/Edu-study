@@ -64,7 +64,7 @@ export function FeedComments({ itemId, lang, accent, open, onCount, onMine }: {
             <div key={root.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <Bubble c={root} accent={accent} onRemove={remove} />
               {replies.map(r => (
-                <div key={r.id} style={{ paddingLeft: 22, display: 'flex', gap: 7 }}>
+                <div key={r.id} style={{ paddingLeft: 22, display: 'flex', gap: 8 }}>
                   <CornerDownRight size={14} style={{ color: 'var(--color-text-4)', flexShrink: 0, marginTop: 8 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Bubble c={r} accent={accent} onRemove={remove} />
@@ -94,10 +94,10 @@ function Bubble({ c, accent, onRemove }: {
     <div style={{
       background: c.mine ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
       border: '1px solid var(--color-border)',
-      borderRadius: 14, padding: '9px 12px',
+      borderRadius: 14, padding: '10px 12px',
       display: 'flex', flexDirection: 'column', gap: 4,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: c.mine ? accent : 'var(--color-text-2)' }}>
           {c.authorName}
         </span>
@@ -163,7 +163,7 @@ function Composer({ accent, placeholder, onSend, compact }: {
         }}
         style={{
           flex: 1, minWidth: 0, resize: 'none', overflow: 'hidden',
-          padding: '9px 12px', borderRadius: 14,
+          padding: '10px 12px', borderRadius: 14,
           border: '1px solid var(--color-border-strong)',
           background: 'var(--color-bg-input)', color: 'var(--color-text)',
           // 16px — не про размер, а про iOS: поле с меньшим шрифтом Safari

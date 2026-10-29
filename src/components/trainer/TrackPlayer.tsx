@@ -331,7 +331,7 @@ export default function TrackPlayer({
         // Встроенный метки не просит: его уже несёт сам док.
         {...(inline ? null : { 'data-swipe-pin': 'dock' })}
         animate={inline ? undefined : { marginBottom: collapsed ? 74 : 146 }}
-        transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+        transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
         style={inline ? { minWidth: 0, pointerEvents: 'auto' } : {
           position: 'fixed', left: 0, right: 0, bottom: MOBILE_DOCK_EDGE,
           zIndex: 41, padding: '0 16px', pointerEvents: 'none',
@@ -373,7 +373,7 @@ export default function TrackPlayer({
       <MobileSheet open={menu} onClose={() => setMenu(false)} title={title ?? t('Запись')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Скорость')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 8 }}>{t('Скорость')}</div>
             {/* У синтеза ступени названы словами, а не числами: 0.6 у
                 браузерного голоса — уже не речь, и обещать «половину скорости»
                 там нечем. Цифры остаются файлу, где они правда. */}
@@ -411,7 +411,7 @@ export default function TrackPlayer({
 
           {usesTts && lines.length > 1 && (
             <div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Отрывок')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 8 }}>{t('Отрывок')}</div>
               <CueList
                 items={lines}
                 active={line}
@@ -427,7 +427,7 @@ export default function TrackPlayer({
               прослушивания, а из строки плеера кнопку убрали ради бегунка. */}
           {usesTts && lang && (
             <div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 7 }}>{t('Голос')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 8 }}>{t('Голос')}</div>
               <VoicePicker lang={lang} accent={accent} soft={soft} />
             </div>
           )}

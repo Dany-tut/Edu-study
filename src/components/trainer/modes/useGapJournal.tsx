@@ -38,7 +38,7 @@ export interface GapJournalHalf {
   tile: React.ReactNode
 }
 
-const smallBtn: React.CSSProperties = { height: 32, fontSize: 13, padding: '0 14px', gap: 5 }
+const smallBtn: React.CSSProperties = { height: 32, fontSize: 13, padding: '0 14px', gap: 6 }
 
 export function useGapJournal({
   lang, subjectId, owner, accent, soft, open, onOpen, onClose, onCarded,
@@ -322,7 +322,7 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
             const on = en.trim() === v.term
             return (
               <button key={v.term} onClick={() => pick(v)} style={{
-                textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', padding: '9px 12px',
+                textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', padding: '10px 12px',
                 borderRadius: 12, border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
                 background: on ? `${accent}14` : 'var(--color-bg)', display: 'flex', gap: 8, alignItems: 'flex-start',
               }}>

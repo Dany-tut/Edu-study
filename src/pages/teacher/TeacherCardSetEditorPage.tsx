@@ -22,7 +22,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import { useT } from '../../lib/i18n'
-import { useTeacher, setLeaveGuard, mayLeave } from '../../store/teacherStore'
+import { useTeacher, setLeaveGuard, whenMayLeave } from '../../store/teacherStore'
 import { useAllStudents } from '../../lib/useGroups'
 import { getOwnerId } from '../../lib/owner'
 import { fetchOwnCardGroups, saveCardGroup, applyCardSaveIds, isShelf, type CardGroup } from '../../lib/cardGroups'
@@ -135,9 +135,10 @@ export default function TeacherCardSetEditorPage() {
   /** Выход: черновик из сессии убираем — иначе следующий F5 вернул бы сюда. */
   function back() {
     // Спросить ДО того, как гасить черновик сессии: отказ оставляет всё как было.
-    if (!mayLeave()) return
-    setCardsEdited(null)
-    setActivePage('constructor')
+    whenMayLeave(() => {
+      setCardsEdited(null)
+      setActivePage('constructor')
+    })
   }
 
   return (
@@ -207,8 +208,8 @@ export default function TeacherCardSetEditorPage() {
 
 const headBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-  padding: '9px 16px 9px 12px', borderRadius: 999,
+  padding: '10px 16px 10px 12px', borderRadius: 999,
   border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
-  boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)',
+  boxShadow: 'var(--shadow-2)', color: 'var(--color-text)',
   fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
 }

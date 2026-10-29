@@ -372,21 +372,21 @@ export default function WhiteboardCanvas({
   const HANDLES: Corner[] = ['tl', 'tr', 'bl', 'br']
 
   return (
-    <div style={{ border: '1.5px solid var(--color-border-medium)', borderRadius: 12, overflow: 'visible', position: 'relative' }}>
+    <div style={{ border: '1px solid var(--color-border-medium)', borderRadius: 12, overflow: 'visible', position: 'relative' }}>
       {!readOnly && (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
+          display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
           padding: '6px 10px', background: 'var(--color-bg-2)',
           borderBottom: '1px solid var(--color-border-medium)',
           borderRadius: '10px 10px 0 0',
         }}>
-          <Tooltip label={t('Карандаш')}><button onClick={() => chooseTool('pen')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'pen' ? 'var(--color-blue-pill-bg)' : 'transparent', color: tool === 'pen' ? 'var(--color-blue-pill-text)' : 'var(--color-muted)' }}>
+          <Tooltip label={t('Карандаш')}><button onClick={() => chooseTool('pen')} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'pen' ? 'var(--color-blue-pill-bg)' : 'transparent', color: tool === 'pen' ? 'var(--color-blue-pill-text)' : 'var(--color-muted)' }}>
             <Pencil size={12} />
           </button></Tooltip>
-          <Tooltip label={t('Ластик')}><button onClick={() => chooseTool('eraser')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'eraser' ? 'var(--color-peach-soft)' : 'transparent', color: tool === 'eraser' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}>
+          <Tooltip label={t('Ластик')}><button onClick={() => chooseTool('eraser')} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'eraser' ? 'var(--color-peach-soft)' : 'transparent', color: tool === 'eraser' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}>
             <Eraser size={12} />
           </button></Tooltip>
-          <Tooltip label={t('Выбор — выделить, перенести и уменьшить')}><button onClick={() => chooseTool('select')} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'select' ? 'var(--color-blue-pill-bg)' : 'transparent', color: tool === 'select' ? 'var(--color-blue-pill-text)' : 'var(--color-muted)' }}>
+          <Tooltip label={t('Выбор — выделить, перенести и уменьшить')}><button onClick={() => chooseTool('select')} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tool === 'select' ? 'var(--color-blue-pill-bg)' : 'transparent', color: tool === 'select' ? 'var(--color-blue-pill-text)' : 'var(--color-muted)' }}>
             <MousePointer2 size={12} />
           </button></Tooltip>
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
@@ -433,11 +433,11 @@ export default function WhiteboardCanvas({
           {tool === 'select' && (
             <>
               {divider}
-              <button title={t('Выделить всё')} onClick={selectAll} style={{ height: 26, padding: '0 8px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--color-muted)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+              <button title={t('Выделить всё')} onClick={selectAll} style={{ height: 32, padding: '0 8px', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', color: 'var(--color-muted)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
                 <BoxSelect size={12} /> {t('Всё')}
               </button>
               {sel && (
-                <button title={t('Готово')} onClick={commitSelection} style={{ height: 26, padding: '0 10px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                <button title={t('Готово')} onClick={commitSelection} style={{ height: 32, padding: '0 10px', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
                   {t('Готово')}
                 </button>
               )}
@@ -445,10 +445,10 @@ export default function WhiteboardCanvas({
           )}
 
           <div style={{ flex: 1 }} />
-          <Tooltip label={t('Отменить')}><button onClick={undo} disabled={!canUndo} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: canUndo ? 'pointer' : 'not-allowed', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: canUndo ? 1 : 0.35 }}>
+          <Tooltip label={t('Отменить')}><button onClick={undo} disabled={!canUndo} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', cursor: canUndo ? 'pointer' : 'not-allowed', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: canUndo ? 1 : 0.35 }}>
             <Undo2 size={12} />
           </button></Tooltip>
-          <Tooltip label={t('Очистить')}><button onClick={clear} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>
+          <Tooltip label={t('Очистить')}><button onClick={clear} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>
             <Trash2 size={12} />
           </button></Tooltip>
         </div>
@@ -549,10 +549,10 @@ export default function WhiteboardCanvas({
           zIndex: 9999,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
           background: 'var(--color-bg)',
-          border: '1.5px solid var(--color-border-medium)',
+          border: '1px solid var(--color-border-medium)',
           borderRadius: 10,
-          padding: '7px 9px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          padding: '8px 10px',
+          boxShadow: 'var(--shadow-2)',
           minWidth: 36,
         }}>
           <div style={{
@@ -563,7 +563,7 @@ export default function WhiteboardCanvas({
             border: tool === 'eraser'
               ? '2px dashed var(--color-text-3)'
               : `2px solid ${color === '#0B0B0D' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)'}`,
-            boxShadow: '0 1px 6px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--shadow-1)',
             flexShrink: 0,
           }} />
           <div style={{

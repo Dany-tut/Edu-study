@@ -17,7 +17,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
-const COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
+const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 
 const items = [
   { id: 'home',     label: 'Главная',  icon: Home },
@@ -120,8 +120,8 @@ export default function MobileBottomNav() {
         // вокруг дока была одинаковой со всех трёх сторон.
         animate={{
           height: collapsed ? 50 : 62,
-          paddingTop: collapsed ? 7 : 9,
-          paddingBottom: collapsed ? 7 : 9,
+          paddingTop: collapsed ? 8 : 10,
+          paddingBottom: collapsed ? 8 : 10,
           marginLeft: collapsed ? 52 : MOBILE_DOCK_EDGE + 8,
           marginRight: collapsed ? 52 : MOBILE_DOCK_EDGE + 8,
         }}
@@ -129,8 +129,8 @@ export default function MobileBottomNav() {
         style={{
           borderRadius: '28px',
           background: 'rgba(var(--glass-rgb), var(--glass-fill))',
-          backdropFilter: 'blur(28px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          backdropFilter: 'var(--blur-solid)',
+          WebkitBackdropFilter: 'var(--blur-solid)',
           border: '1px solid var(--color-border-glass)',
           // Обводка та же, что у верхней таблетки (DynamicIsland): свою тень с
           // жёстким белым inset здесь держать нельзя — в тёмной теме
@@ -161,7 +161,7 @@ export default function MobileBottomNav() {
               {item.id === 'trainer' && feedBadge > 0 && (
                 <span style={{
                   position: 'absolute', top: 0, left: '50%', transform: 'translateX(2px)',
-                  minWidth: 16, height: 16, padding: '0 5px',
+                  minWidth: 16, height: 16, padding: '0 6px',
                   borderRadius: 999, background: 'var(--grad-purple)',
                   color: '#fff', fontSize: 10, fontWeight: 700, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -175,7 +175,7 @@ export default function MobileBottomNav() {
                 // а не наползало на соседний пункт.
                 <span style={{
                   position: 'absolute', top: 0, left: '50%', transform: 'translateX(2px)',
-                  minWidth: 16, height: 16, padding: '0 5px',
+                  minWidth: 16, height: 16, padding: '0 6px',
                   borderRadius: 999, background: 'var(--grad-purple)',
                   color: '#fff', fontSize: 10, fontWeight: 700, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

@@ -30,6 +30,7 @@ import { bookMark, bookShort, type Textbook, type TextbookAccess, type TextbookK
 import { useT } from '../../lib/i18n'
 import { proseWrap, bindShortWords } from '../../lib/typography'
 import { TileChip } from './TrainerShell'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 /** Иконка типа — фоновый знак там, где иероглифического знака у языка нет. */
 const KIND_ICON: Record<TextbookKind, typeof BookOpen> = {
@@ -86,7 +87,7 @@ function Cover({ book, lang }: { book: Textbook; lang: string }) {
       )}
       <div style={{
         position: 'relative', height: '100%', boxSizing: 'border-box',
-        padding: '13px 12px 13px 18px', display: 'flex', flexDirection: 'column',
+        padding: '12px 12px 12px 18px', display: 'flex', flexDirection: 'column',
       }}>
         <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', opacity: 0.72 }}>
           {t(book.kind)}
@@ -94,7 +95,7 @@ function Cover({ book, lang }: { book: Textbook; lang: string }) {
         <span style={{ marginTop: 'auto', fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>
           {bookShort(book)}
         </span>
-        <span style={{ fontSize: 10, opacity: 0.75, marginTop: 3, lineHeight: 1.3 }}>
+        <span style={{ fontSize: 10, opacity: 0.75, marginTop: 4, lineHeight: 1.3 }}>
           {book.publisher} · {book.level}
         </span>
       </div>
@@ -111,7 +112,7 @@ export function BookShelf({ books, lang, accent, soft }: {
 }) {
   const t = useT()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 820 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: PAGE_WIDTH.form }}>
       {books.map(book => (
         <article
           key={book.id}
@@ -122,8 +123,8 @@ export function BookShelf({ books, lang, accent, soft }: {
           }}
         >
           <Cover book={book} lang={lang} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9, minWidth: 0, flex: 1 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0, flex: 1 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <TileChip tone="accent" accent={accent} soft={soft}>{t(book.kind)}</TileChip>
               <TileChip>{book.level}</TileChip>
               {book.free && (
@@ -153,7 +154,7 @@ export function BookShelf({ books, lang, accent, soft }: {
                   // Радиус — половина высоты ОДНОЙ строки (11.5×1.4 + 3+3 ≈ 22),
                   // а не 999: на узком экране подпись переносится, и полное
                   // скругление превращает её в кривой овал.
-                  padding: '3px 9px', borderRadius: 11, background: 'var(--color-bg-3)',
+                  padding: '4px 10px', borderRadius: 11, background: 'var(--color-bg-3)',
                 }}>
                   {t(p)}
                 </li>
@@ -162,8 +163,8 @@ export function BookShelf({ books, lang, accent, soft }: {
 
             {/* Строка «когда» — то, ради чего полка вообще существует. */}
             <div style={{
-              display: 'flex', flexDirection: 'column', gap: 3,
-              padding: '10px 13px', borderRadius: 12, background: soft,
+              display: 'flex', flexDirection: 'column', gap: 4,
+              padding: '10px 12px', borderRadius: 12, background: soft,
             }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: accent }}>
                 {t('Когда браться')}
@@ -179,7 +180,7 @@ export function BookShelf({ books, lang, accent, soft }: {
               // учебник, либо магазин, и знать это надо ДО нажатия.
               const { label, Icon } = ACTION[book.access ?? 'page']
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignSelf: 'flex-start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignSelf: 'flex-start' }}>
                   <a
                     href={book.url}
                     target="_blank"

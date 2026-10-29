@@ -75,7 +75,7 @@ export function RootGrid({ roots, results, accent, soft, onOpen }: {
         const res = results(root.ko)
         return (
           <Tile key={root.ko} accent={accent} onClick={() => onOpen(root.ko)}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <TileChip tone="accent" accent={accent} soft={soft}>{t(root.group)}</TileChip>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                 {root.words.length} {t('слов')}
@@ -154,7 +154,7 @@ function WordRow({ word, root, lang, accent, tone, reading }: {
           <span style={{ fontSize: 14, color: 'var(--color-text-2)', marginLeft: 4 }}>{word.ru}</span>
           <TierChip term={word.term} lang={lang} accent={accent} style={{ marginTop: 0 }} />
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           {reading && <span style={{ fontSize: 12, color: accent, opacity: 0.9 }}>{word.reading}</span>}
           <span style={{ fontSize: 12, color: 'var(--color-text-3)', ...proseWrap }}>{word.parts}</span>
         </div>
@@ -354,7 +354,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
                 onClick={() => pick(o)}
                 disabled={!!picked}
                 style={{
-                  padding: '13px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
+                  padding: '12px 12px', borderRadius: 16, cursor: picked ? 'default' : 'pointer',
                   fontFamily: 'inherit', fontSize: 14, fontWeight: 700, lineHeight: 1.3,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   border: `1.5px solid ${

@@ -17,7 +17,7 @@ function getToken() {
 type Step = 'loading' | 'form' | 'error'
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', borderRadius: 12,
+  width: '100%', padding: '12px 14px', borderRadius: 12,
   border: '1.5px solid var(--color-border)', fontSize: 14, outline: 'none',
   boxSizing: 'border-box', marginTop: 6,
   // Explicit color + background: без них input берёт tailwind-preflight
@@ -31,7 +31,7 @@ const card: React.CSSProperties = {
   background: 'var(--color-bg-input)', borderRadius: 24, padding: 32,
   // maxWidth, а не width: ссылку-приглашение открывают с телефона, и жёсткие
   // 400px прижимали карточку вплотную к краям экрана, срезая её углы.
-  width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
+  width: '100%', maxWidth: 400, boxShadow: 'var(--shadow-5)',
 }
 
 export default function JoinPage() {
@@ -127,7 +127,7 @@ export default function JoinPage() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.38 }}
         style={card}
       >
         {step === 'loading' && (
@@ -177,7 +177,7 @@ export default function JoinPage() {
                   autoFocus
                 />
                 {emailTouched && !emailValid && (
-                  <span style={{ fontSize: 12, color: 'var(--color-red-text)', marginTop: 5 }}>{t('Укажите почту со знаком @')}</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-red-text)', marginTop: 6 }}>{t('Укажите почту со знаком @')}</span>
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -205,7 +205,7 @@ export default function JoinPage() {
                   </button>
                 </div>
                 {passwordTouched && !passwordValid && (
-                  <span style={{ fontSize: 12, color: 'var(--color-red-text)', marginTop: 5 }}>{t('Пароль должен быть не менее 6 символов')}</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-red-text)', marginTop: 6 }}>{t('Пароль должен быть не менее 6 символов')}</span>
                 )}
               </div>
             </div>

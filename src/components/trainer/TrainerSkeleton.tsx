@@ -37,7 +37,7 @@ export default function TrainerSkeleton() {
             {/* Шапка рейла — на её месте появится предмет с переключателем языков. */}
             <Bar h={104} r={16} />
             <div style={{
-              display: 'flex', flexDirection: 'column', gap: 11, padding: 14, borderRadius: 16,
+              display: 'flex', flexDirection: 'column', gap: 12, padding: 14, borderRadius: 16,
               background: 'rgba(var(--glass-rgb), 0.94)',
               border: '1px solid var(--color-border-soft)',
             }}>
@@ -49,7 +49,7 @@ export default function TrainerSkeleton() {
           </>
         }
         toolbar={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <Bar w={112} h={36} r={999} />
             <Bar w={196} h={36} r={999} />
             <Bar w={148} h={36} r={999} />
@@ -72,7 +72,7 @@ export default function TrainerSkeleton() {
             <div
               key={i}
               style={{
-                display: 'flex', flexDirection: 'column', gap: 9,
+                display: 'flex', flexDirection: 'column', gap: 10,
                 padding: '16px 18px', borderRadius: 18,
                 background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
                 // Лёгкое затухание вглубь списка: край выборки не притворяется

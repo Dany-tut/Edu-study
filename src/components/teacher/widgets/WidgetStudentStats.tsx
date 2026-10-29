@@ -16,8 +16,8 @@ function StatCard({ icon: Icon, label, value, sub, accentBg, accentColor }: Stat
     <div style={{
       flex: 1, minWidth: 0,
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
@@ -38,13 +38,13 @@ function StatCard({ icon: Icon, label, value, sub, accentBg, accentColor }: Stat
         </div>
       </div>
 
-      <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1, letterSpacing: '-1px' }}>
+      <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.01em' }}>
         {value}
       </div>
 
       <div style={{
         fontSize: 11, fontWeight: 600, color: accentColor,
-        background: accentBg, borderRadius: 8, padding: '3px 8px',
+        background: accentBg, borderRadius: 8, padding: '4px 8px',
         alignSelf: 'flex-start',
       }}>
         {sub}

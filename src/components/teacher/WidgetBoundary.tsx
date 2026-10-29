@@ -41,7 +41,7 @@ export default class WidgetBoundary extends Component<Props, State> {
       <div style={{
         width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12, textAlign: 'center',
-        background: 'rgba(var(--glass-rgb),0.5)', borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
+        background: 'rgba(var(--glass-rgb),0.5)', borderRadius: 16, border: '1px solid var(--color-border-medium)',
       }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>
           {chunk ? t('Вышла новая версия') : t('Виджет не загрузился')}

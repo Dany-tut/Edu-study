@@ -99,7 +99,7 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen, levelOr
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
               {t(g.title)}
             </h2>
-            <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: '3px 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: '4px 0 0', lineHeight: 1.5 }}>
               {t(g.hint)}
             </p>
           </header>
@@ -111,7 +111,7 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen, levelOr
               const lv = workLevel(scenes.map(x => x.level), levelOrder)
               return (
                 <Tile key={w.id} accent={accent} onClick={() => onOpen(w.id)}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     {/* Уровень первым и акцентом — ряд плашек один на весь
                         тренажёр: уровень, потом метки серым. */}
                     {lv && <TileChip tone="accent" accent={accent} soft={soft}>{lv}</TileChip>}
@@ -174,8 +174,8 @@ function OriginalRow({ Icon, label, accent, children }: {
 }) {
   const t = useT()
   return (
-    <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-      <Icon size={13} style={{ color: accent, flexShrink: 0, marginTop: 3 }} />
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+      <Icon size={13} style={{ color: accent, flexShrink: 0, marginTop: 4 }} />
       <span style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
         <b style={{ color: 'var(--color-text-3)', fontWeight: 700 }}>{t(label)}. </b>
         {bindShortWords(t(children))}
@@ -211,7 +211,7 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>
             {work.title}
           </div>
-          <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 4 }}>
             {work.origTitle !== work.title && <span>{work.origTitle} · </span>}
             {workLine(work)}
           </div>
@@ -225,11 +225,11 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
             что мы вправе показать из самого произведения. */}
         {work.quote && (
           <blockquote style={{
-            margin: 0, padding: '11px 14px', borderRadius: 12,
+            margin: 0, padding: '12px 14px', borderRadius: 12,
             borderLeft: `3px solid ${accent}`, background: soft,
-            display: 'flex', gap: 9,
+            display: 'flex', gap: 10,
           }}>
-            <Quote size={14} style={{ color: accent, flexShrink: 0, marginTop: 3 }} />
+            <Quote size={14} style={{ color: accent, flexShrink: 0, marginTop: 4 }} />
             <span>
               <span style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-text)', lineHeight: 1.5 }}>
                 {work.quote.text}
@@ -245,7 +245,7 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
             архаика. Показывается ДО чтения — после него оно бесполезно. */}
         {work.source?.caveat && (
           <div style={{
-            display: 'flex', gap: 9, padding: '10px 13px', borderRadius: 12,
+            display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 12,
             background: 'var(--color-amber-soft)',
             border: '1px solid var(--color-amber-border)',
           }}>
@@ -391,12 +391,12 @@ function SceneRow({ scene, passed, hidden, accent, soft, onOpen }: {
       onClick={onOpen}
       style={{
         display: 'flex', flexDirection: 'column', gap: 8, width: '100%',
-        padding: '15px 17px', borderRadius: 16, textAlign: 'left', cursor: 'pointer',
+        padding: '16px 16px', borderRadius: 16, textAlign: 'left', cursor: 'pointer',
         fontFamily: 'inherit', background: 'var(--color-bg-2)',
         border: `1px solid ${passed ? 'var(--color-green-border)' : 'var(--color-border-soft)'}`,
       }}
     >
-      <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <TileChip tone="accent" accent={accent} soft={soft}>{scene.level}</TileChip>
         {passed && (
           <span style={{

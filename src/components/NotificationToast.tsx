@@ -81,8 +81,8 @@ function NotifRow({ n, onAction, onRead }: {
         </div>
         {n.action && (
           <button onClick={() => { onRead(n.id); onAction(n) }} style={{
-            marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '6px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
             background: 'rgba(255,90,90,0.18)', color: '#FF5A5A',
             fontSize: 12, fontWeight: 700,
           }}>
@@ -158,9 +158,10 @@ export default function NotificationToastContainer() {
           transition={{ type: 'spring', stiffness: 420, damping: 28 }}
           style={{
             position: 'fixed',
-            top: 76,
-            right: 24,
-            width: 300,
+            // С учётом выреза и полей телефона (16), а не прибито к 76/24.
+            top: 'calc(env(safe-area-inset-top, 0px) + 76px)',
+            right: 16,
+            width: 'min(300px, calc(100vw - 32px))',
             zIndex: 8500,
             pointerEvents: 'auto',
           }}
@@ -176,8 +177,8 @@ export default function NotificationToastContainer() {
               overflow: 'hidden',
               cursor: 'pointer',
               background: `radial-gradient(ellipse at top left, rgba(${rgb},0.18) 0%, rgba(var(--glass-rgb),0.96) 55%)`,
-              backdropFilter: 'blur(20px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              backdropFilter: 'var(--blur-solid)',
+              WebkitBackdropFilter: 'var(--blur-solid)',
               border: `1px solid rgba(${rgb},0.22)`,
               boxShadow: `0 8px 32px rgba(${rgb},0.12), 0 2px 10px rgba(0,0,0,0.08)`,
             }}
@@ -221,8 +222,9 @@ export default function NotificationToastContainer() {
                 </span>
                 <button
                   onClick={e => { e.stopPropagation(); dismissAll() }}
+                  aria-label={t('Закрыть')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--color-text-3)', display: 'flex', padding: 2 }}
+                    color: 'var(--color-text-3)', display: 'flex', padding: 12, margin: -10 }}
                 >
                   <X size={14} />
                 </button>
@@ -243,14 +245,14 @@ export default function NotificationToastContainer() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {live.map((n, i) => (
                         <div key={n.id}>
-                          {i > 0 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />}
+                          {i > 0 && <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 0' }} />}
                           <NotifRow n={n} onRead={markRead} onAction={handleAction} />
                         </div>
                       ))}
                     </div>
                     {live.length > 1 && (
                       <button onClick={dismissAll} style={{
-                        marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10,
+                        marginTop: 10, width: '100%', padding: '8px 0', borderRadius: 10,
                         border: `1px solid rgba(${rgb},0.2)`, background: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600, color: 'var(--color-muted)',
                       }}>

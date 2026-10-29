@@ -367,7 +367,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
             onClick={() => go(i)}
             style={{
               display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
-              padding: '9px 12px', borderRadius: 10, fontFamily: 'inherit', cursor: 'pointer',
+              padding: '10px 12px', borderRadius: 10, fontFamily: 'inherit', cursor: 'pointer',
               border: `1px solid ${i === at ? `${accent}55` : 'transparent'}`,
               background: i === at ? soft : 'transparent',
             }}

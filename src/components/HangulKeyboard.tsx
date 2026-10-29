@@ -123,7 +123,7 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
       disabled={disabled}
       className="flex items-center justify-center"
       style={{
-        width: wide ? 122 : 38, height: 42, flexShrink: 0,
+        width: wide ? 124 : 38, height: 42, flexShrink: 0,
         borderRadius: 12, padding: 0,
         border: '1px solid var(--color-border-strong)',
         background: 'rgba(var(--glass-rgb), 0.96)',
@@ -168,16 +168,16 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
           растягивал согласные в одну строку из пятнадцати, и одна и та же
           буква оказывалась то в первом ряду, то во втором. */}
       {[INITIALS, VOWELS].map((group, gi) => (
-        <div key={gi} className="flex flex-col" style={{ gap: 5 }}>
+        <div key={gi} className="flex flex-col" style={{ gap: 6 }}>
           {rows(group).map((row, i) => (
-            <div key={i} className="flex justify-center" style={{ gap: 5 }}>
+            <div key={i} className="flex justify-center" style={{ gap: 6 }}>
               {row.map(k => key(k, () => press(k)))}
             </div>
           ))}
         </div>
       ))}
 
-      <div className="flex justify-center" style={{ gap: 5 }}>
+      <div className="flex justify-center" style={{ gap: 6 }}>
         {key(t('пробел'), space, true)}
         <motion.button
           type="button"

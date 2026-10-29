@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useFileDrop, dropOverStyle } from '../lib/useFileDrop'
 import { FIELD } from '../lib/fieldStyle'
 import Modal from './Modal'
 import { AlertIcon } from './Alert'
@@ -39,6 +40,8 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  // Фото можно бросить мышью на «Добавить», не только выбрать кликом.
+  const drop = useFileDrop(files => { void addFiles(files) }, f => f.type.startsWith('image/'))
   const taRef = useRef<HTMLTextAreaElement>(null)
 
   // Автовысота текстового поля: старт 4 строки, тянется по тексту до 10, дальше
@@ -182,14 +185,15 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
               {photos.length < MAX_ATTACHMENTS && (
                 <button
                   onClick={() => fileRef.current?.click()}
-                  style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                  {...drop.bind}
+                  style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, ...dropOverStyle(drop.over) }}
                 >
                   <ImagePlus size={18} />
                   <span style={{ fontSize: 10, fontWeight: 600 }}>{t('Добавить')}</span>
                 </button>
               )}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 7 }}>{t('Можно вставить из буфера через Ctrl + V')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 8 }}>{t('Можно вставить из буфера через Ctrl + V')}</div>
             <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={e => { void addFiles(e.target.files); e.target.value = '' }} />
           </div>
 

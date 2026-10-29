@@ -57,7 +57,7 @@ export function PronGrid({ rules, results, accent, soft, onOpen }: {
         const res = results(rule.id)
         return (
           <Tile key={rule.id} accent={accent} onClick={() => onOpen(rule.id)}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <TileChip tone="accent" accent={accent} soft={soft}>{rule.ko}</TileChip>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                 {rule.examples.length} {t('слов')}
@@ -121,7 +121,7 @@ function ExampleRow({ rule, ex, lang, accent, tone }: {
         inset={12}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
             {ex.written}
           </span>
@@ -132,7 +132,7 @@ function ExampleRow({ rule, ex, lang, accent, tone }: {
           <span style={{ fontSize: 14, color: 'var(--color-text-2)' }}>{ex.ru}</span>
         </div>
         {ex.note && (
-          <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
+          <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)', marginTop: 6, ...proseWrap }}>
             {ex.note}
           </div>
         )}
@@ -435,7 +435,7 @@ const BTN_H = 42
 
 const btnBase: React.CSSProperties = {
   height: BTN_H, boxSizing: 'border-box', borderRadius: 999, cursor: 'pointer',
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   fontFamily: 'inherit', fontSize: 14, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap',
 }
 

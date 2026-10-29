@@ -21,11 +21,11 @@ function ToolbarBtn({ children, onClick, title, active }: {
     <button
       onMouseDown={e => { e.preventDefault(); onClick() }}
       style={{
-        width: 28, height: 28, borderRadius: 7, border: 'none', cursor: 'pointer',
+        width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer',
         background: active ? 'var(--color-bg-3)' : 'transparent',
         color: active ? 'var(--color-text)' : 'var(--color-text-2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'background 0.1s',
+        transition: 'background 0.15s',
         flexShrink: 0,
       }}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg-3)' }}
@@ -55,7 +55,7 @@ function hexToRgba(hex: string, alpha: number) {
 const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28']
 
 const DEFAULT_INPUT_ST: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '9px 12px',
+  width: '100%', boxSizing: 'border-box', padding: '10px 12px',
   borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
   fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit',
@@ -307,7 +307,7 @@ export default function RichConditionEditor({
 
   const st = inputSt ?? DEFAULT_INPUT_ST
   const isEmpty = !value || value === '<br>' || value === ''
-  const divider = <div style={{ width: 1, height: 20, background: 'var(--color-border-medium)', margin: '0 3px', flexShrink: 0 }} />
+  const divider = <div style={{ width: 1, height: 20, background: 'var(--color-border-medium)', margin: '0 4px', flexShrink: 0 }} />
 
   return (
     <div>
@@ -346,7 +346,7 @@ export default function RichConditionEditor({
             overflowY: autoGrow ? 'visible' : 'auto',
             height: autoGrow ? 'auto' : undefined,
             wordBreak: 'break-word',
-            transition: 'padding-bottom 0.18s ease',
+            transition: 'padding-bottom 0.15s ease',
             cursor: 'text',
             resize: autoGrow ? 'none' : 'vertical',
           }}
@@ -358,7 +358,7 @@ export default function RichConditionEditor({
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
-              transition={{ duration: 0.14 }}
+              transition={{ duration: 0.15 }}
               onMouseDown={e => e.preventDefault()}
               style={{
                 position: 'absolute', bottom: 6, left: 6, right: 6,
@@ -368,7 +368,7 @@ export default function RichConditionEditor({
                 border: '1px solid var(--color-border-medium)',
                 padding: '0 6px',
                 zIndex: 20,
-                boxShadow: '0 2px 14px rgba(0,0,0,0.18)',
+                boxShadow: 'var(--shadow-2)',
                 flexWrap: 'nowrap', overflowX: 'auto',
               }}
             >
@@ -402,14 +402,14 @@ export default function RichConditionEditor({
                     position: 'fixed', top: sizeDropPos.top, left: sizeDropPos.left,
                     background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
                     borderRadius: 10, padding: '4px', zIndex: 9999,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                    boxShadow: 'var(--shadow-2)',
                     display: 'flex', flexDirection: 'column', gap: 1, minWidth: 70,
                   }}>
                     {FONT_SIZES.map(s => (
                       <button key={s}
                         onMouseDown={e => { e.preventDefault(); applyFontSize(s); setSizeOpen(false) }}
                         style={{
-                          padding: '5px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                          padding: '6px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
                           background: fontSize === s ? 'var(--color-bg-3)' : 'transparent',
                           color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit',
                           textAlign: 'left', fontWeight: fontSize === s ? 700 : 400,
@@ -457,7 +457,7 @@ export default function RichConditionEditor({
                   onMouseDown={e => { e.preventDefault(); exec('hiliteColor', hexToRgba(hex, hlAlpha)) }}
                   style={{
                     width: 16, height: 16, borderRadius: 4,
-                    border: '1.5px solid rgba(0,0,0,0.12)',
+                    border: '1px solid rgba(0,0,0,0.12)',
                     background: hexToRgba(hex, hlAlpha), cursor: 'pointer', flexShrink: 0,
                   }}
                 />
@@ -467,7 +467,7 @@ export default function RichConditionEditor({
                 onMouseDown={e => { e.preventDefault(); exec('hiliteColor', 'transparent') }}
                 style={{
                   width: 16, height: 16, borderRadius: 4,
-                  border: '1.5px solid var(--color-border-medium)',
+                  border: '1px solid var(--color-border-medium)',
                   background: 'transparent', cursor: 'pointer', flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'var(--color-text-3)',
@@ -517,14 +517,14 @@ export default function RichConditionEditor({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22 }}
             style={{ overflow: 'hidden', marginTop: 8 }}
           >
             <WhiteboardCanvas compact onSave={data => { drawDataRef.current = data }} />
             <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => { drawDataRef.current = ''; setDrawMode(false) }}
-                style={{ padding: '6px 14px', borderRadius: 9, border: '1.5px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}
+                style={{ padding: '6px 14px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}
               >
                 {t('Отменить')}
               </button>

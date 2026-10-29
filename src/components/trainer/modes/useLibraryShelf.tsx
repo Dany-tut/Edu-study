@@ -202,7 +202,7 @@ export function useLibraryShelf({
                 метки серым — тематика и размер. Тема была здесь серой строкой, а
                 у сцен и грамматики то же самое стояло плашкой, и две соседние
                 витрины выглядели как из разных приложений. */}
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <TileChip tone="accent" accent={accent} soft={soft}>{x.level}</TileChip>
               <TileChip tone="mute">{t(x.topic)}</TileChip>
               <TileChip tone="mute">{x.minutes} {t('мин')}</TileChip>

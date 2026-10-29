@@ -37,7 +37,7 @@ export default function ProgressFill({
   const on = pct != null
   const copy: CSSProperties = {
     position: 'absolute', left: 0, top: 0, right: 0, bottom: 0,
-    pointerEvents: 'none', transition: 'clip-path 0.18s linear',
+    pointerEvents: 'none', transition: 'clip-path 0.15s linear',
     ...labelStyle, ...boxStyle,
   }
   // Ширина заливки едет обычным CSS-переходом, а не анимацией framer: полоса
@@ -54,7 +54,7 @@ export default function ProgressFill({
           style={{
             position: 'absolute', left: 0, top: 0, bottom: 0,
             width: `${pct}%`, background: 'var(--grad-purple)',
-            transition: 'width 0.18s linear',
+            transition: 'width 0.15s linear',
             ...fillStyle,
           }}
         />

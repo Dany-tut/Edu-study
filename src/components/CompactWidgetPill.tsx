@@ -90,7 +90,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
     const accentColor = lastCorrect ? correctColor : wrongColor
 
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px 14px 10px', width: '100%', boxSizing: 'border-box' }}>
         {/* Avatar — question number badge with correct/wrong ring + pulse */}
         <motion.div
           animate={pulse && !answerFlight ? { scale: [1, 1.22, 1] } : { scale: 1 }}
@@ -117,7 +117,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             color: accentColor,
             fontSize: 10, fontWeight: 800,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+            boxShadow: 'var(--shadow-1)',
             lineHeight: 1,
           }}>
             {lastQuestionIndex + 1}
@@ -154,7 +154,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
               <span style={{
                 marginLeft: 'auto', flexShrink: 0,
                 fontSize: 11, fontWeight: 700,
-                padding: '2px 7px', borderRadius: 999,
+                padding: '2px 8px', borderRadius: 999,
                 background: pct >= 60 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                 color: pct >= 60 ? 'var(--color-green-text)' : 'var(--color-red-text)',
               }}>
@@ -164,7 +164,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
           </div>
 
           {/* Progress bar */}
-          <div style={{ paddingRight: 12, marginTop: 3 }}>
+          <div style={{ paddingRight: 12, marginTop: 4 }}>
             <motion.div
               style={{
                 height: 3,
@@ -191,7 +191,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             animate={{ opacity: expanded ? 1 : 0 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              marginTop: 5,
+              marginTop: 6,
               fontSize: 12, fontWeight: 500, color: 'var(--color-text-2)',
               lineHeight: 1.45, overflow: 'hidden', willChange: 'opacity',
             }}
@@ -324,7 +324,7 @@ function PomoControls() {
   return (
     <div onClick={stop} style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 2 }}>
       {/* Timer ↔ Stopwatch segmented control */}
-      <div style={{ display: 'flex', alignSelf: 'flex-start', background: 'rgba(0,0,0,0.18)', borderRadius: 999, padding: 3, gap: 2 }}>
+      <div style={{ display: 'flex', alignSelf: 'flex-start', background: 'rgba(0,0,0,0.18)', borderRadius: 999, padding: 4, gap: 2 }}>
         {([['timer', t('Таймер')], ['stopwatch', t('Секундомер')]] as const).map(([mode, label]) => {
           const active = pomoTimerMode === mode
           return (
@@ -332,7 +332,7 @@ function PomoControls() {
               key={mode}
               onClick={e => { stop(e); pomoSetTimerMode(mode) }}
               style={{
-                fontSize: 12, fontWeight: 600, lineHeight: 1, padding: '5px 14px', borderRadius: 999,
+                fontSize: 12, fontWeight: 600, lineHeight: 1, padding: '6px 14px', borderRadius: 999,
                 border: 'none', cursor: 'pointer', outline: 'none',
                 color: active ? 'var(--color-text)' : 'rgba(255,255,255,0.38)',
                 background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
@@ -356,7 +356,7 @@ function PomoControls() {
                 key={p}
                 onClick={e => { stop(e); pomoSetPreset(p) }}
                 style={{
-                  minWidth: 38, padding: '5px 0', borderRadius: 10, cursor: 'pointer',
+                  minWidth: 38, padding: '6px 0', borderRadius: 10, cursor: 'pointer',
                   fontSize: 13, fontWeight: 600, lineHeight: 1,
                   border: active ? `1px solid ${POMO_ACCENT}` : '1px solid transparent',
                   color: active ? POMO_ACCENT : 'var(--color-text-2)',
@@ -657,9 +657,9 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
 function TrainerProgressSkeleton() {
   return (
     <div role="status" aria-busy="true"
-      style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
+      style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px 14px 10px', width: '100%', boxSizing: 'border-box' }}>
       <span aria-hidden className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'block' }} />
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 7, paddingTop: 4 }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}>
         <span aria-hidden className="skeleton" style={{ display: 'block', width: '52%', height: 9, borderRadius: 999 }} />
         <span aria-hidden className="skeleton" style={{ display: 'block', width: '78%', height: 12, borderRadius: 999 }} />
       </div>
@@ -740,11 +740,11 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
     <motion.div
       key={key}
       initial={false}
-      animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
+      animate={{ padding: expanded ? '8px 6px' : '4px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
       transition={PILL_T}
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: bg, color: fg, fontWeight: 700, lineHeight: 1 }}
     >
-      <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5 }}>{lead}{value}</motion.span>
+      <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>{lead}{value}</motion.span>
       <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap' }}>
         {label}
       </motion.span>
@@ -752,7 +752,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
   )
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px 14px 10px', width: '100%', boxSizing: 'border-box' }}>
       {/* Кружок — сегодняшнее время против дневной цели */}
       <div style={{
         width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
@@ -789,7 +789,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
         </span>
       </div>
 
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, paddingTop: 2 }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 2 }}>
         {/* Кикер — предмет, а не общее слово «прогресс»: тренажёр у ученика не один */}
         <span style={{
           fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
@@ -848,7 +848,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
         >
           {/* Словами, а не только точкой: пауза должна объяснять себя, иначе
               остановившийся счётчик читается как поломка. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'var(--color-text-3)', marginTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: 'var(--color-text-3)', marginTop: 8 }}>
             <ClockDot on={counting} color={accent} />
             <span>
               {counting ? t('Время идёт')
@@ -867,14 +867,14 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {totalCount > 0 && (
               <div style={{ flex: 1, height: 4, borderRadius: 999, background: `${accent}22`, overflow: 'hidden', display: 'flex' }}>
                 <div style={{ height: '100%', width: `${pct}%`, background: accent, flexShrink: 0, transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)' }} />
-                <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: 'rgba(240,96,112,0.45)', flexShrink: 0 }} />
+                <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: 'color-mix(in srgb, var(--color-red-text) 55%, transparent)', flexShrink: 0 }} />
               </div>
             )}
             {/* Разбор есть только у банка: у языка модалки нет, и мёртвая
                 кнопка хуже отсутствующей. */}
             {kind === 'bank' && (
               <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
-                style={{ flexShrink: 0, padding: '3px 8px', borderRadius: 999, border: 'none', background: `${accent}26`, color: palette.text, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                style={{ flexShrink: 0, padding: '4px 8px', borderRadius: 999, border: 'none', background: `${accent}26`, color: palette.text, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
                 {t('Подробнее →')}
               </button>
             )}
@@ -953,7 +953,7 @@ function PillContent({
         // centres at 9px top/bottom. 9px left matches, so the mini pill reads
         // with equal gaps on top, bottom and left. The 14px right/bottom give
         // the expanded detail text its breathing room.
-        padding: '9px 14px 14px 9px',
+        padding: '10px 14px 14px 10px',
         width: '100%',
         boxSizing: 'border-box',
       }}
@@ -1091,7 +1091,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
   const accent = sNotifColor(latest.type)
   const hexAccent = accent.startsWith('#') ? accent : '#786AD7'
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '9px 12px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 12px 14px 10px', width: '100%', boxSizing: 'border-box' }}>
       <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
         <div style={{
           width: '100%', height: '100%', background: accent,
@@ -1117,8 +1117,8 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
           </span>
           {latest.action && (
             <button onClick={onAction} style={{
-              marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 5,
-              padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+              marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
               background: `${hexAccent}22`, color: accent, fontSize: 12, fontWeight: 700,
             }}>
               {latest.action.label} <ArrowRight size={12} />
@@ -1443,8 +1443,8 @@ export default function CompactWidgetPill() {
         // more opaque recipe (same opacity / border / shadow); elsewhere it
         // keeps the lighter glass that mirrors the bar's non-compact state.
         background: overDarkDock ? 'rgba(var(--glass-rgb), 0.92)' : 'rgba(var(--glass-rgb), 0.72)',
-        backdropFilter: 'blur(14px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+        backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
         border: overDarkDock ? '1px solid var(--color-border-glass)' : '1px solid var(--color-border-glass)',
         boxShadow: overDarkDock
           ? 'var(--shadow-lg)'
@@ -1513,7 +1513,7 @@ export default function CompactWidgetPill() {
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(var(--glass-rgb), 0.85)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+              boxShadow: 'var(--shadow-1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1542,7 +1542,7 @@ export default function CompactWidgetPill() {
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(var(--glass-rgb), 0.85)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+              boxShadow: 'var(--shadow-1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

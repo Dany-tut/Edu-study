@@ -63,7 +63,7 @@ export default function ScriptHint({
     <span
       className="flex items-center"
       style={{
-        gap: 6, marginTop: 3,
+        gap: 6, marginTop: 4,
         justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
       }}
     >

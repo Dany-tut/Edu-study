@@ -228,7 +228,7 @@ export default function AudioPlayer({
               background: 'currentColor',
               opacity: hot && hasSource ? 0.12 : 0,
               transform: hot && hasSource ? 'scale(1)' : 'scale(0.75)',
-              transition: 'opacity .15s ease, transform .15s ease',
+              transition: 'opacity 0.15s ease, transform 0.15s ease',
             }}
           />
         )}

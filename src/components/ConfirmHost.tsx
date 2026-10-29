@@ -108,9 +108,10 @@ export default function ConfirmHost() {
         <motion.div
           key={top.id}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.14 }}
+          transition={{ duration: 0.15 }}
           style={{
-            position: 'fixed', inset: 0, zIndex: 4200,
+            // Над выпадающими меню и всплывающими уведомлениями (lib/layers: confirm).
+            position: 'fixed', inset: 0, zIndex: 9600,
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
           }}
         >

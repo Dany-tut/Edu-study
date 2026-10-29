@@ -359,7 +359,7 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
         const done = sentPrompts.has(x.prompt)
         return (
           <Tile key={x.id} accent={accent} onClick={() => { onOpen(x); setSendState('idle') }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <TileChip tone="accent" accent={accent} soft={palette.soft}>{t(KIND_LABEL[x.kind])}</TileChip>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
                 {x.lines ? `${x.lines.length} ${t('реплик')}` : `${x.seconds} ${t('с')}`}

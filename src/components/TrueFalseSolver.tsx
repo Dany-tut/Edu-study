@@ -58,9 +58,9 @@ export default function TrueFalseSolver({ rows, value, disabled, showVerdict, on
             key={i}
             style={{
               display: 'flex', flexDirection: 'column', gap: 8,
-              padding: '11px 13px', borderRadius: 14,
+              padding: '12px 12px', borderRadius: 14,
               border: `1px solid ${
-                ok === null ? 'var(--color-border-soft)' : ok ? '#6EE7A0' : '#F48B91'
+                ok === null ? 'var(--color-border-soft)' : ok ? 'var(--color-green-border)' : 'var(--color-red-border)'
               }`,
               background: ok === null
                 ? 'var(--color-bg-input)'
@@ -68,7 +68,7 @@ export default function TrueFalseSolver({ rows, value, disabled, showVerdict, on
             }}
           >
             <div style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)' }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-text-4)', marginRight: 7 }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-text-4)', marginRight: 8 }}>
                 {String(i + 1).padStart(2, '0')}
               </span>
               {row.text}
@@ -86,11 +86,11 @@ export default function TrueFalseSolver({ rows, value, disabled, showVerdict, on
                     onClick={() => pick(i, v)}
                     disabled={disabled}
                     style={{
-                      padding: '7px 13px', borderRadius: 10, fontFamily: 'inherit',
+                      padding: '8px 12px', borderRadius: 10, fontFamily: 'inherit',
                       fontSize: 14, fontWeight: 600, cursor: disabled ? 'default' : 'pointer',
                       border: `1.5px solid ${
-                        truth ? '#3FAE6E'
-                          : on ? (showVerdict ? '#E2646B' : 'var(--color-accent)')
+                        truth ? 'var(--color-green-text)'
+                          : on ? (showVerdict ? 'var(--color-red-text)' : 'var(--color-accent)')
                           : 'var(--color-border-soft)'
                       }`,
                       background: truth

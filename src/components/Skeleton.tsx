@@ -84,7 +84,7 @@ function SkeletonCards({ rows = 3, gap = 12, style }: { rows?: number; gap?: num
         <span
           key={i}
           style={{
-            display: 'flex', flexDirection: 'column', gap: 9,
+            display: 'flex', flexDirection: 'column', gap: 10,
             padding: '16px 18px', borderRadius: 18,
             background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
             opacity: i >= rows - 2 ? 1 - (i - (rows - 3)) * 0.26 : 1,

@@ -21,14 +21,14 @@ export default function TrainerProgressPill() {
         all: 'unset',
         display: 'flex',
         flexDirection: 'column',
-        gap: 7,
+        gap: 8,
         padding: '10px 14px',
         borderRadius: 18,
         background: 'rgba(var(--glass-rgb), 0.94)',
         border: '1px solid var(--color-border-soft)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.07)',
-        backdropFilter: 'blur(20px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+        boxShadow: 'var(--shadow-3)',
+        backdropFilter: 'var(--blur-solid)',
+        WebkitBackdropFilter: 'var(--blur-solid)',
         cursor: 'pointer',
         width: 260,
         boxSizing: 'border-box',
@@ -72,12 +72,12 @@ export default function TrainerProgressPill() {
       <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
         <motion.div
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.38, ease: 'easeOut' }}
           style={{ height: '100%', background: 'var(--color-green-accent)', flexShrink: 0 }}
         />
         <motion.div
           animate={{ width: `${wrongPct}%` }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.38, ease: 'easeOut' }}
           style={{ height: '100%', background: '#F48B91', flexShrink: 0 }}
         />
       </div>
@@ -93,10 +93,10 @@ export default function TrainerProgressPill() {
           >
             <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Сегодня')}</span>
             {todayCorrect > 0 && (
-              <span style={{ padding: '1px 7px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 10, fontWeight: 700 }}>✓ {todayCorrect}</span>
+              <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 10, fontWeight: 700 }}>✓ {todayCorrect}</span>
             )}
             {todayWrong > 0 && (
-              <span style={{ padding: '1px 7px', borderRadius: 999, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700 }}>✗ {todayWrong}</span>
+              <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700 }}>✗ {todayWrong}</span>
             )}
           </motion.div>
         )}

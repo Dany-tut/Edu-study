@@ -62,11 +62,11 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
             onClick={accept}
             disabled={!checked}
             style={{
-              width: '100%', marginTop: 16, padding: '11px 0', borderRadius: 11, border: 'none',
+              width: '100%', marginTop: 16, padding: '12px 0', borderRadius: 11, border: 'none',
               background: checked ? 'var(--grad-purple, #786AD7)' : 'var(--color-border-medium)',
               color: '#fff', fontSize: 14, fontWeight: 700,
               cursor: checked ? 'pointer' : 'not-allowed', opacity: checked ? 1 : 0.7,
-              transition: 'opacity .15s, background .15s',
+              transition: 'opacity 0.15s, background 0.15s',
             }}
           >
             {t('Принимаю и продолжаю')}

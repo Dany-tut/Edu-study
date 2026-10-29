@@ -45,7 +45,7 @@ function KindRow({ kind, count, on, onToggle, first }: {
   const t = useT()
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 15px',
+      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
       borderTop: first ? 'none' : '1px solid var(--color-border-soft)',
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -78,14 +78,14 @@ function ThemeRow({ theme, count, index, ranked, on, onToggle }: {
       dragControls={controls}
       // Пока ряд едет, он поднимается над соседями — иначе на границе двух
       // рядов не видно, какой из них в руке.
-      whileDrag={{ scale: 1.02, zIndex: 3, boxShadow: '0 10px 30px rgba(0,0,0,0.22)' }}
+      whileDrag={{ scale: 1.02, zIndex: 3, boxShadow: 'var(--shadow-4)' }}
       style={{
         position: 'relative', listStyle: 'none',
         background: 'var(--color-bg-3)',
         borderTop: '1px solid var(--color-border-soft)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 15px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
         {/* Ручка. Тянуть можно ТОЛЬКО за неё: лента настроек сама
             прокручивается, и ряд, который едет от любого касания, отнимает у
             неё прокрутку. `touchAction: none` обязателен — без него браузер
@@ -113,7 +113,7 @@ function ThemeRow({ theme, count, index, ranked, on, onToggle }: {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            display: 'flex', alignItems: 'baseline', gap: 7,
+            display: 'flex', alignItems: 'baseline', gap: 8,
             fontSize: 15, fontWeight: 500,
             color: on ? 'var(--color-text)' : 'var(--color-text-4)',
           }}>
@@ -199,7 +199,7 @@ export function FeedContentSettings({ items }: { items: FeedItem[] }) {
         <div style={{ borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
           {/* Выключатель очереди стоит НАД списком: он объясняет, зачем список
               вообще перетаскивают. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Сначала по темам')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>

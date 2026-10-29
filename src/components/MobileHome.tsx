@@ -291,7 +291,7 @@ export default function MobileHome() {
         <motion.div
           initial={{ opacity: barOnFeed ? 0 : 1, y: barOnFeed ? -6 : 0, scale: barOnFeed ? 0.94 : 1 }}
           animate={{ opacity: barOnFeed ? 0 : 1, y: barOnFeed ? -6 : 0, scale: barOnFeed ? 0.94 : 1 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
           style={{
             position: 'absolute', inset: 0, display: 'flex',
             alignItems: 'center', justifyContent: 'center',
@@ -322,7 +322,7 @@ export default function MobileHome() {
         <motion.div
           initial={{ opacity: barOnFeed ? 1 : 0, y: barOnFeed ? 0 : 6, scale: barOnFeed ? 1 : 0.94 }}
           animate={{ opacity: barOnFeed ? 1 : 0, y: barOnFeed ? 0 : 6, scale: barOnFeed ? 1 : 0.94 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
           style={{
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
             pointerEvents: barOnFeed ? 'auto' : 'none',
@@ -346,15 +346,15 @@ export default function MobileHome() {
         <motion.div
           initial={{ opacity: barOnFeed ? 0 : 1, scale: barOnFeed ? 0.88 : 1 }}
           animate={{ opacity: barOnFeed ? 0 : 1, scale: barOnFeed ? 0.88 : 1 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'none' : 'auto' }}
         >
-          <GlassIconButton icon={<Bell size={18} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
+          <GlassIconButton icon={<Bell size={18} />} dot={notifUnread > 0} dotTone="alert" ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
         </motion.div>
         <motion.div
           initial={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
           animate={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'auto' : 'none' }}
         >
           <GlassIconButton
@@ -420,7 +420,7 @@ export default function MobileHome() {
                     key={l.id}
                     onClick={() => { tactile(); openCourses() }}
                     className="flex items-center text-left"
-                    style={{ gap: 10, padding: '7px 0', background: 'none', border: 'none', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)', cursor: 'pointer', width: '100%' }}
+                    style={{ gap: 10, padding: '8px 0', background: 'none', border: 'none', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)', cursor: 'pointer', width: '100%' }}
                   >
                     <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-accent)', minWidth: 44 }}>{l.time}</span>
                     <span className="flex-1 min-w-0 truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</span>
@@ -578,7 +578,7 @@ function HomeSkeleton() {
       {/* Плитки переходов: те же 48px и радиус 15, что у QuickTile */}
       <div className="flex items-start" style={{ gap: 6 }}>
         {[0, 1, 2, 3, 4].map(i => (
-          <div key={i} className="flex flex-col items-center" style={{ gap: 5, flex: 1 }}>
+          <div key={i} className="flex flex-col items-center" style={{ gap: 6, flex: 1 }}>
             <Skeleton w={48} h={48} radius={15} />
             <Skeleton w={32} h={11} radius={6} />
           </div>
@@ -591,7 +591,7 @@ function HomeSkeleton() {
         {/* Заголовок скелета — тоже в две строки: в карточке под него
             зарезервирована постоянная высота, и одна полоска здесь означала бы
             прыжок ровно в момент, когда данные доехали. */}
-        <Skeleton w="82%" h={19} style={{ margin: '5px 0 4px' }} />
+        <Skeleton w="82%" h={19} style={{ margin: '6px 0 4px' }} />
         <Skeleton w="56%" h={19} style={{ marginBottom: 12 }} />
         <Skeleton w="100%" h={5} radius={99} style={{ marginBottom: 10 }} />
         <div className="flex items-center justify-between">
@@ -603,9 +603,9 @@ function HomeSkeleton() {
       {/* Полоса статистики: четыре плитки той же высоты, что MiniStat */}
       <div className="flex" style={{ gap: 6 }}>
         {[0, 1, 2, 3].map(i => (
-          <div key={i} style={{ flex: 1, minWidth: 0, borderRadius: 12, padding: '7px 8px', background: 'var(--color-bg-3)' }}>
+          <div key={i} style={{ flex: 1, minWidth: 0, borderRadius: 12, padding: '8px 8px', background: 'var(--color-bg-3)' }}>
             <Skeleton w="70%" h={15} radius={6} />
-            <Skeleton w="52%" h={10} radius={6} style={{ marginTop: 3 }} />
+            <Skeleton w="52%" h={10} radius={6} style={{ marginTop: 4 }} />
           </div>
         ))}
       </div>
@@ -617,7 +617,7 @@ function HomeSkeleton() {
           <Skeleton w={54} h={11} radius={6} />
         </div>
         {[0, 1].map(i => (
-          <div key={i} className="flex items-center" style={{ gap: 10, padding: '7px 0', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)' }}>
+          <div key={i} className="flex items-center" style={{ gap: 10, padding: '8px 0', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)' }}>
             <Skeleton w={44} h={13} radius={6} />
             <Skeleton w="62%" h={13} radius={6} />
           </div>
@@ -627,8 +627,8 @@ function HomeSkeleton() {
       {/* Лента: журнальные строки через разделители, как у настоящих постов */}
       <div style={{ marginTop: 14 }}>
         {[0, 1, 2].map(i => (
-          <div key={i} className="flex flex-col" style={{ gap: 7, padding: '13px 0', borderTop: '1px solid var(--color-border-soft)' }}>
-            <div className="flex items-center" style={{ gap: 7 }}>
+          <div key={i} className="flex flex-col" style={{ gap: 8, padding: '12px 0', borderTop: '1px solid var(--color-border-soft)' }}>
+            <div className="flex items-center" style={{ gap: 8 }}>
               <Skeleton circle w={22} />
               <Skeleton w={110} h={11} radius={6} />
             </div>
@@ -644,7 +644,7 @@ function HomeSkeleton() {
 function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value: string | number; label: string; pair: { bg: string; text: string } }) {
   return (
     <div style={{
-      flex: 1, minWidth: 0, borderRadius: 12, padding: '7px 8px', boxSizing: 'border-box',
+      flex: 1, minWidth: 0, borderRadius: 12, padding: '8px 8px', boxSizing: 'border-box',
       // Материал, а не заливка: стекло + освещённая верхняя грань + тень под
       // собой (--tile-glass-* в index.css). Смысл несёт цвет цифры и подписи,
       // поэтому цветная плашка больше не нужна — полоса перестала быть
@@ -682,7 +682,7 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
       // на экран заметнее, чем отсутствующий сдвиг на 10 пикселей.
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       // Заливка и ореол — токенами, а не хексом: главная карточка красится в
       // цвет открытого курса (lib/courseTint.ts), и захардкоженный фиолетовый
       // оставлял бы её единственным фиолетовым пятном на перекрашенном экране.
@@ -722,7 +722,7 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
           // (он для текста на мягкой ЗАЛИВКЕ), и на белом «Продолжить» блёкло
           // выцветало. control-accent затемнён до читаемого с белым в обеих
           // темах и так же уходит в цвет открытого курса.
-          style={{ gap: 6, background: '#fff', color: 'var(--color-control-accent)', fontWeight: 800, fontSize: 13, lineHeight: '18px', padding: '7px 15px', borderRadius: 999, border: 'none' }}
+          style={{ gap: 6, background: '#fff', color: 'var(--color-control-accent)', fontWeight: 800, fontSize: 13, lineHeight: '18px', padding: '8px 16px', borderRadius: 999, border: 'none' }}
         >
           <Play size={14} fill="var(--color-control-accent)" />
           {label}
@@ -768,7 +768,7 @@ function QuickTile({ icon, label, pair, badge, onClick }: {
       whileTap={{ scale: 0.92 }}
       onClick={() => { tactile(); onClick() }}
       className="flex flex-col items-center cursor-pointer"
-      style={{ gap: 5, background: 'none', border: 'none', padding: 0, minWidth: 0, flex: 1 }}
+      style={{ gap: 6, background: 'none', border: 'none', padding: 0, minWidth: 0, flex: 1 }}
     >
       <span style={{
         position: 'relative', width: 48, height: 48, borderRadius: 15, boxSizing: 'border-box',
@@ -920,7 +920,7 @@ function WidgetCard({ tag, icon, accent, bg, text }: { tag: string; icon: React.
       width: 150, flexShrink: 0, padding: 14, borderRadius: 18,
       background: bg, border: '1px solid transparent',
     }}>
-      <div className="flex items-center" style={{ gap: 5, marginBottom: 7, color: accent }}>
+      <div className="flex items-center" style={{ gap: 6, marginBottom: 8, color: accent }}>
         {icon}
         <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tag}</span>
       </div>

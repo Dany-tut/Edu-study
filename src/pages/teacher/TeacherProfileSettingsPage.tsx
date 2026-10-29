@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react'
+import BackCircle from '../../components/BackCircle'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { motion } from 'framer-motion'
-import {
-  ArrowLeft, Save, User, Camera, X,
-  Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon,
-} from 'lucide-react'
+import { Save, User, Camera, X, Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import SubjectColorPicker, { type ColorSubject } from '../../components/SubjectColorPicker'
@@ -21,6 +19,7 @@ import { useTeacherAccess } from '../../lib/teacherAccess'
 import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
 import { Alert } from '../../components/Alert'
 import TeacherModules from '../../components/teacher/TeacherModules'
+import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -159,32 +158,26 @@ export default function TeacherProfileSettingsPage() {
 
   const photoBtnStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 6,
-    padding: '7px 12px', borderRadius: 10,
+    padding: '8px 12px', borderRadius: 10,
     border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
     color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
   }
 
   const inputStyle: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box',
-    padding: '11px 14px', borderRadius: 12,
+    padding: '12px 14px', borderRadius: 12,
     border: '1px solid var(--color-border-medium)',
     background: 'var(--color-bg-3)', color: 'var(--color-text)',
     fontSize: 14, outline: 'none', fontFamily: 'inherit',
   }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
+      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
-          <motion.button
-            whileTap={{ scale: 0.94 }}
-            onClick={() => setActivePage('home')}
-            style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-text-3)', flexShrink: 0 }}
-          >
-            <ArrowLeft size={16} strokeWidth={2} />
-          </motion.button>
+          <BackCircle onClick={() => setActivePage('home')} label="На главную" />
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Настройки профиля')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Имя, аватар и данные аккаунта')}</div>
@@ -280,7 +273,7 @@ export default function TeacherProfileSettingsPage() {
           {role !== 'admin' && (
             <div>
               <TeacherSubjectsField value={mySubjects} onChange={changeSubjects} look="profile" />
-              <div style={{ fontSize: 11, marginTop: 5, color: subjectsNote === 'error' ? 'var(--color-red-text)' : subjectsNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
+              <div style={{ fontSize: 11, marginTop: 6, color: subjectsNote === 'error' ? 'var(--color-red-text)' : subjectsNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
                 {subjectsNote === 'error'
                   ? t('Не удалось сохранить предметы. Попробуйте ещё раз.')
                   : subjectsNote === 'saved'
@@ -297,10 +290,10 @@ export default function TeacherProfileSettingsPage() {
                 {t('только чтение')}
               </div>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 5 }}>{t('Для смены email обратитесь в поддержку')}</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Для смены email обратитесь в поддержку')}</div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)' }}>
             <User size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
             <span style={{ fontSize: 14, color: 'var(--color-text-3)' }}>{role === 'admin' ? t('Администратор') : t('Учитель')}</span>
           </div>

@@ -153,7 +153,7 @@ function GoogleFormBankCategoryModal({
         initial={{ scale: 0.94, opacity: 0, y: 16 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.94, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 420, damping: 32 }}
         onClick={e => e.stopPropagation()}
-        style={{ background: 'var(--color-bg-input)', borderRadius: 22, padding: '24px', width: 380, maxWidth: '92vw', boxShadow: '0 24px 60px rgba(0,0,0,0.18)' }}
+        style={{ background: 'var(--color-bg-input)', borderRadius: 22, padding: '24px', width: 380, maxWidth: '92vw', boxShadow: 'var(--shadow-5)' }}
       >
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{t('Категория для')} {questions.length} {t('заданий')}</div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 16, lineHeight: 1.5 }}>
@@ -176,7 +176,7 @@ function GoogleFormBankCategoryModal({
             options={SOURCES.map(s => ({ value: s, label: s }))} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
-          <button onClick={onClose} style={{ padding: '9px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
+          <button onClick={onClose} style={{ padding: '10px 16px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
           <button onClick={handleConfirm} disabled={saving}
             style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
             {t('Импортировать')} {questions.length}
@@ -519,8 +519,8 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'blur(16px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      backdropFilter: 'var(--blur-glass)',
+      WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 18,
       boxShadow: 'var(--shadow-sm-page)',
@@ -532,8 +532,8 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
 const dockGlass = {
   border: '1px solid var(--color-border-glass)',
   background: 'rgba(var(--glass-rgb), 0.86)',
-  backdropFilter: 'blur(14px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+  backdropFilter: 'var(--blur-glass)',
+  WebkitBackdropFilter: 'var(--blur-glass)',
   boxShadow: 'var(--shadow-lg)',
 } as const
 
@@ -545,11 +545,11 @@ function SectionHead({ children }: { children: React.ReactNode }) {
 function SegBtn({ label, active, color, bg, onClick }: { label: string; active: boolean; color: string; bg: string; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
-      flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
+      flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
       fontSize: 12, fontWeight: 600,
       background: active ? bg : 'var(--color-bg-3)',
       color: active ? color : 'var(--color-text-2)',
-      transition: 'all 0.15s',
+      transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
     }}>{label}</button>
   )
 }
@@ -568,7 +568,7 @@ function PanelHeader({ title, accent, accentBg, Icon, onClose, onExpand }: {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         {onExpand && (
-          <button onClick={onExpand} title={t("Раскрыть на всю")} style={{ height: 26, padding: '0 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: accentBg, display: 'flex', alignItems: 'center', gap: 5, color: accent, fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
+          <button onClick={onExpand} title={t("Раскрыть на всю")} style={{ height: 26, padding: '0 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: accentBg, display: 'flex', alignItems: 'center', gap: 6, color: accent, fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
             <Maximize2 size={12} strokeWidth={2.5} /> {t('Раскрыть')}
           </button>
         )}
@@ -650,7 +650,7 @@ function CourseEditor({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 380, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title={t("Редактор курса")} accent="var(--color-accent)" accentBg="var(--color-purple-soft)" Icon={BookOpen} onClose={onClose} onExpand={onExpand} />
 
@@ -714,14 +714,14 @@ function CourseEditor({
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 2 }}>{t('ТРЕНАЖЁР')}</div>
                     <TeacherSelect small value={lesson.trainerId ?? ''} onChange={v => setLessonLink(lesson.id, 'trainerId', v || null)}
-                      triggerStyle={{ padding: '4px 7px', fontSize: 11 }}
+                      triggerStyle={{ padding: '4px 8px', fontSize: 11 }}
                       placeholder={t("Тренажёр")}
                       options={trainers.map(t => ({ value: t.id, label: t.title.slice(0, 22) }))} />
                   </div>
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 2 }}>{t('ВИДЖЕТ')}</div>
                     <TeacherSelect small value={lesson.widgetId ?? ''} onChange={v => setLessonLink(lesson.id, 'widgetId', v || null)}
-                      triggerStyle={{ padding: '4px 7px', fontSize: 11 }}
+                      triggerStyle={{ padding: '4px 8px', fontSize: 11 }}
                       placeholder={t("Виджет")}
                       options={widgets.map(w => ({ value: w.id, label: w.title.slice(0, 22) }))} />
                   </div>
@@ -795,7 +795,7 @@ function TrainerEditor({
     <motion.div
       initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title={t("Редактор тренажёра")} accent="#8B4900" accentBg="var(--color-peach-soft)" Icon={Zap} onClose={onClose} />
 
@@ -835,7 +835,7 @@ function TrainerEditor({
               {t('Доступно:')} {TASK_BANK.filter(q => q.topic === bankTopic).length} {t('вопросов')}
             </div>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={loadFromBank}
-              style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <Database size={14} strokeWidth={2} /> {t('Загрузить из банка')}
             </motion.button>
           </div>
@@ -847,7 +847,7 @@ function TrainerEditor({
             <input value={manQ} onChange={e => setManQ(e.target.value)} placeholder={t("Текст вопроса…")} style={inputSt} />
             <input value={manA} onChange={e => setManA(e.target.value)} placeholder={t("Правильный ответ…")} style={inputSt} />
             <motion.button whileTap={{ scale: 0.97 }} onClick={addManual}
-              style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <Plus size={14} /> {t('Добавить')}
             </motion.button>
           </div>
@@ -856,7 +856,7 @@ function TrainerEditor({
         {/* Questions list */}
         <div>
           <SectionHead>{t('Вопросы (')}{questions.length})</SectionHead>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {questions.length === 0 && (
               <div style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center', padding: '12px 0' }}>
                 {t('Нет вопросов — загрузите из банка или добавьте вручную')}
@@ -959,7 +959,7 @@ function WidgetEditor({
     <motion.div
       initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title={t("Редактор виджета")} accent="#1a7a3f" accentBg="var(--color-green-soft)" Icon={Layers} onClose={onClose} />
 
@@ -978,8 +978,8 @@ function WidgetEditor({
                   padding: '8px 10px', borderRadius: 11,
                   border: 'none',
                   background: isActive ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600,
-                  color: isActive ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
+                  display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600,
+                  color: isActive ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                 }}>
                   <WIcon size={13} strokeWidth={2} />
                   {t(WTYPE_LABEL[wt])}
@@ -999,7 +999,7 @@ function WidgetEditor({
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               onClick={autoPopulate} disabled={!linkedId}
               style={{
-                padding: '9px 0', borderRadius: 12, border: 'none', cursor: linkedId ? 'pointer' : 'not-allowed',
+                padding: '10px 0', borderRadius: 12, border: 'none', cursor: linkedId ? 'pointer' : 'not-allowed',
                 background: linkedId ? 'var(--color-green-soft)' : 'var(--color-bg)', color: linkedId ? 'var(--color-green-text)' : 'var(--color-text-3)',
                 fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}>
@@ -1046,7 +1046,7 @@ function WidgetEditor({
               ))}
               <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{t('● — правильный ответ')}</div>
               <motion.button whileTap={{ scale: 0.97 }} onClick={addQuiz}
-                style={{ padding: '7px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG[type], color: WTYPE_COLOR[type], fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG[type], color: WTYPE_COLOR[type], fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Plus size={14} /> {t('Добавить вопрос')}
               </motion.button>
             </>
@@ -1058,7 +1058,7 @@ function WidgetEditor({
               <textarea value={fcDef} onChange={e => setFcDef(e.target.value)} placeholder={t("Текст факта…")} rows={3}
                 style={{ ...inputSt, resize: 'vertical' }} />
               <motion.button whileTap={{ scale: 0.97 }} onClick={addFlashcard}
-                style={{ padding: '7px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.facts, color: WTYPE_COLOR.facts, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.facts, color: WTYPE_COLOR.facts, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Plus size={14} /> {t('Добавить факт')}
               </motion.button>
             </>
@@ -1074,7 +1074,7 @@ function WidgetEditor({
                 setItems(prev => [...prev, { id: uid(), emoji: fcTerm.trim(), quote: fcDef.trim(), lesson: dLabel.trim() }])
                 setFcTerm(''); setFcDef(''); setDLabel('')
               }}
-                style={{ padding: '7px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.reactions, color: WTYPE_COLOR.reactions, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.reactions, color: WTYPE_COLOR.reactions, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Plus size={14} /> {t('Добавить реакцию')}
               </motion.button>
             </>
@@ -1110,7 +1110,7 @@ function WidgetEditor({
                 setItems(prev => [...prev, { id: uid(), memeEmoji: fcTerm.trim() || '😄', memeTitle: fcDef.trim(), memeCaption: dLabel.trim() }])
                 setFcTerm(''); setFcDef(''); setDLabel('')
               }}
-                style={{ padding: '7px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.memes, color: WTYPE_COLOR.memes, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.memes, color: WTYPE_COLOR.memes, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Plus size={14} /> {t('Добавить мем')}
               </motion.button>
             </>
@@ -1224,13 +1224,13 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
         {open && count > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 4, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4, scale: 0.97 }}
-            transition={{ duration: 0.14 }}
+            transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
               zIndex: 20, minWidth: 170, maxWidth: 240,
-              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
               border: '1px solid var(--color-border-glass)', borderRadius: 12, padding: '8px 10px',
-              boxShadow: '0 8px 28px rgba(0,0,0,0.16)', cursor: 'default',
+              boxShadow: 'var(--shadow-3)', cursor: 'default',
             }}
           >
             {/* Зазоры 8px — ровно на вылет фейда ScrollFade (top/bottom: -8), иначе градиент лёг бы на подписи. */}
@@ -1240,7 +1240,7 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
             <ScrollFade maxHeight={186} bg="rgba(var(--glass-rgb), 0.97)" fadeHeight={18} overlayScrollbar
               scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {access.map(s => (
-                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {enrolledIds.has(s.id)
                     ? <CheckCircle size={12} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                     : <Circle size={12} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
@@ -1353,9 +1353,9 @@ function SeedDot({ state }: { state: Exclude<SeedState, null> }) {
           <motion.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.14, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
             style={{
-              maxWidth: 260, padding: '9px 12px', borderRadius: 12,
+              maxWidth: 260, padding: '10px 12px', borderRadius: 12,
               background: 'var(--color-bg-input)', border: '1px solid var(--color-border)',
               boxShadow: 'var(--shadow-lg)',
               fontSize: 12, lineHeight: 1.45, fontWeight: 500, color: 'var(--color-text)',
@@ -1380,7 +1380,7 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
       isSelected={isSelected} onClick={onClick}
       icon={<BookOpen size={18} strokeWidth={2} style={{ color: 'var(--color-purple-text)' }} />}
       badge={
-        <div style={{ display: 'flex', gap: 5 }}>
+        <div style={{ display: 'flex', gap: 6 }}>
           <span style={cardChip(STATUS_COLOR[course.status])}>{t(STATUS_LABEL[course.status])}</span>
           {course.shared && <span style={cardChip('var(--color-purple-text)')}>{t('Общий')}</span>}
           {(() => { const st = seedMovedAhead(course); return st && <SeedDot state={st} /> })()}
@@ -1478,7 +1478,7 @@ function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSel
       title={trainer.title}
       subtitle={(trainer.topic) + ' · ' + (trainer.timePerQuestion) + t(' мин/вопрос')}
       extra={trainer.questionIds && trainer.questionIds.length > 0 ? (
-        <div style={{ marginTop: 5, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {trainer.questionIds.map(id => (
             <span key={id} onClick={e => e.stopPropagation()} style={cardChipTone('red', { userSelect: 'text', cursor: 'text' })}>№{id}</span>
           ))}
@@ -1585,7 +1585,7 @@ function WidgetFilterPanel({
   const hasFilters = !!(filters.search || filters.type || filters.linked)
   const inputSt: React.CSSProperties = { ...FIELD }
   const pill = (active: boolean) => ({
-    padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
+    padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
     background: active ? accentBg : 'var(--color-bg-3)', color: active ? accent : 'var(--color-muted)',
   } as React.CSSProperties)
   // Против подъёма прилипшей колонки в конце прокрутки — см. lib/useStickyLift.
@@ -1600,8 +1600,8 @@ function WidgetFilterPanel({
       style={{
         ...lift,
         width: 240, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
-        background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', padding: 16,
+        background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
+        border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: 'var(--shadow-3)', padding: 16,
         display: 'flex', flexDirection: 'column', gap: 12,
       }}
     >
@@ -1621,9 +1621,9 @@ function WidgetFilterPanel({
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Тип')}</span>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           <button onClick={() => onChange({ type: '' })} style={pill(filters.type === '')}>{t('Все')}</button>
           {(Object.entries(WTYPE_LABEL) as [WidgetType, string][]).map(([wt, label]) => (
             <button key={wt} onClick={() => onChange({ type: filters.type === wt ? '' : wt })} style={pill(filters.type === wt)}>{label}</button>
@@ -1631,9 +1631,9 @@ function WidgetFilterPanel({
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Привязка')}</span>
-        <div style={{ display: 'flex', gap: 5 }}>
+        <div style={{ display: 'flex', gap: 6 }}>
           {([['', t('Все')], ['linked', t('Тренажёр')], ['unlinked', t('Вручную')]] as [WidgetFilters['linked'], string][]).map(([v, l]) => (
             <button key={v} onClick={() => onChange({ linked: v })}
               style={{ ...pill(filters.linked === v), flex: 1, padding: '6px 0' }}>{l}</button>
@@ -1642,9 +1642,9 @@ function WidgetFilterPanel({
       </div>
 
       {filters.viewMode === 'groups' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Группа')}</span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             <button onClick={() => onChange({ activeGroup: '' })} style={pill(filters.activeGroup === '')}>{t('Все')}</button>
             {(Object.entries(WTYPE_LABEL) as [WidgetType, string][]).map(([wt, label]) => (
               <button key={wt} onClick={() => onChange({ activeGroup: filters.activeGroup === wt ? '' : wt })} style={pill(filters.activeGroup === wt)}>{label}</button>
@@ -1719,13 +1719,13 @@ function WidgetGroupsView({
                         border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                         background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                        cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', zIndex: 5, boxShadow: 'var(--shadow-1)',
                       }}>
                         {checkedIds.has(w.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                       </div>
                       <button onClick={e => { e.stopPropagation(); onDuplicateWidget(w) }} title={t("Дублировать")}
                         style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
-                          background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                          background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
                         <Copy size={14} strokeWidth={2} />
                       </button>
@@ -1776,14 +1776,14 @@ function HalfSwitch<T extends string>({ options, value, onChange, color, bg }: {
             className="tab-pill"
             onClick={() => onChange(o.value)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              height: 34, boxSizing: 'border-box', padding: '0 15px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              height: 34, boxSizing: 'border-box', padding: '0 16px',
               borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
               border: 'none',
               background: on ? bg : 'transparent',
               color: on ? color : 'var(--color-muted)',
               fontSize: 13, fontWeight: 700,
-              transition: 'all 0.15s',
+              transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}
           >
             {Icon && <Icon size={14} strokeWidth={2.2} />}
@@ -1842,7 +1842,7 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus,
         // цветного фона добавляло второй контур того же цвета и в тёмной теме
         // читалось как рамка, наведённая вручную. Осталась только тень.
         boxShadow: isActive ? '0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.04)',
-        transition: 'all 0.15s',
+        transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
       }}>
       <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />{label}
       <AnimatePresence>
@@ -1915,18 +1915,18 @@ function LessonNameInput({ value, onChange, onAdd }: {
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.16 }}
+            transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 60,
               padding: 8, borderRadius: 14,
               background: 'rgba(var(--glass-rgb), 0.96)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              backdropFilter: 'var(--blur-solid)',
+              WebkitBackdropFilter: 'var(--blur-solid)',
               border: '1px solid var(--color-border)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
+              boxShadow: 'var(--shadow-4)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px 6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px 6px' }}>
               <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
               <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.3 }}>{t('ИЗ БИБЛИОТЕКИ УРОКОВ')}</span>
             </div>
@@ -1935,7 +1935,7 @@ function LessonNameInput({ value, onChange, onAdd }: {
                 key={l.id}
                 onClick={() => commit(l.lessonTitle)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 9, width: '100%',
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
                   padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
                   background: 'transparent', textAlign: 'left', fontFamily: 'inherit',
                 }}
@@ -2052,7 +2052,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
 
   const sectionTitle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }
   const miniBtn = (bg: string, color: string): React.CSSProperties => ({ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 })
-  const dashBtn: React.CSSProperties = { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9, border: '1px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer', marginTop: 2 }
+  const dashBtn: React.CSSProperties = { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: '1px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer', marginTop: 2 }
 
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
@@ -2065,7 +2065,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
         </div>
         {msg && <span style={{ fontSize: 12, fontWeight: 600, color: msg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{msg}</span>}
         <button onClick={save} disabled={saving || loading}
-          style={{ padding: '9px 18px', borderRadius: 999, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          style={{ padding: '10px 18px', borderRadius: 999, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? t('Сохраняю…') : t('Сохранить в базу')}
         </button>
       </div>
@@ -2077,7 +2077,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
           <div style={{ display: 'flex', gap: 6, padding: '14px 24px 0' }}>
             {([['lesson', t('Урок')], ['record', t('Запись')]] as const).map(([k, label]) => (
               <button key={k} onClick={() => setTab(k)}
-                style={{ padding: '9px 18px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                style={{ padding: '10px 18px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                   background: tab === k ? 'var(--color-purple-soft)' : 'transparent', color: tab === k ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
                 {label}
               </button>
@@ -2126,17 +2126,17 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                       return (
                         <div key={o.id} style={{
                           display: 'flex', alignItems: 'center', gap: 8,
-                          padding: '0 9px 0 0', borderRadius: 11,
+                          padding: '0 10px 0 0', borderRadius: 11,
                           // Обводка тенью, а не border: поля вокруг здесь без рамки,
                           // и 1.5px по краю сделали бы строку варианта на 3px выше.
                           boxShadow: isCorrect ? 'inset 0 0 0 1.5px var(--color-control-accent)' : 'none',
-                          background: 'var(--color-bg-input)', transition: 'box-shadow 0.14s',
+                          background: 'var(--color-bg-input)', transition: 'box-shadow 0.15s',
                         }}>
                           <input
                             value={o.text}
                             onChange={e => setOpt(qi, o.id, e.target.value)}
                             placeholder={t("Вариант ответа")}
-                            style={{ ...inputSt, flex: 1, minWidth: 0, padding: '9px 0 9px 12px', borderRadius: 0, background: 'transparent' }}
+                            style={{ ...inputSt, flex: 1, minWidth: 0, padding: '10px 0 10px 12px', borderRadius: 0, background: 'transparent' }}
                           />
                           <span title={t("Верный ответ")} style={{ display: 'flex', flexShrink: 0 }}>
                             <Checkbox
@@ -2188,7 +2188,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
           <div style={{ ...sectionTitle, padding: '0 4px' }}>{t('Уроки курса (')}{lessons.length})</div>
           {lessons.map((l, i) => (
             <button key={i} onClick={() => i !== lessonIndex && onSwitch(i)}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', padding: '10px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 background: i === lessonIndex ? 'var(--color-purple-soft)' : 'transparent' }}>
               <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-bg-3)', color: i === lessonIndex ? '#fff' : 'var(--color-muted)', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
               <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(l.title)}</span>
@@ -2779,7 +2779,7 @@ function CreatorView({
 
             <div style={{
               flexShrink: 1, minWidth: 0, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              padding: '9px 16px', borderRadius: 999, ...dockGlass,
+              padding: '10px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
               {currentName || createLabel}
@@ -2808,7 +2808,7 @@ function CreatorView({
         <motion.div
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
           animate={{ opacity: docked ? 0 : 1 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
         >
           <BackCircle onClick={handleCancel} label="Назад" />
 
@@ -2978,7 +2978,7 @@ function CreatorView({
                       options={enrollStudents.filter(s => s.subject === cSubject).map(s => ({ value: s.id, label: s.name }))} />
                   )}
                   <button onClick={enrollCourse} disabled={enrolling}
-                    style={{ padding: '9px 14px', borderRadius: 11, border: 'none', cursor: enrolling ? 'default' : 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: enrolling ? 0.6 : 1 }}>
+                    style={{ padding: '10px 14px', borderRadius: 11, border: 'none', cursor: enrolling ? 'default' : 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: enrolling ? 0.6 : 1 }}>
                     {enrolling ? t('Зачисляю…') : t('Зачислить')}
                   </button>
                   {enrollMsg && <div style={{ fontSize: 12, fontWeight: 600, color: enrollMsg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{enrollMsg}</div>}
@@ -2987,7 +2987,7 @@ function CreatorView({
                       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {t('Зачислены (')}{enrolledList.length})
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {enrolledList.map(s => (
                           <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', borderRadius: 7, padding: '4px 8px' }}>
                             {tn(s.name)}
@@ -3011,16 +3011,16 @@ function CreatorView({
               <input value={wTitle} onChange={e => setWTitle(e.target.value)} style={inputSt} />
             </div>
             <div><Label>{t('Тип виджета')}</Label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {(['quiz', 'facts', 'reactions', 'pomodoro', 'memes', 'qod'] as WidgetType[]).map(wt => {
                   const WIcon = WTYPE_ICON[wt]
                   return (
                     <button key={wt} onClick={() => setWType(wt)} style={{
-                      padding: '8px 10px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 7,
+                      padding: '8px 10px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8,
                       border: 'none',
                       background: wType === wt ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
                       fontSize: 12, fontWeight: 600,
-                      color: wType === wt ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
+                      color: wType === wt ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                     }}>
                       <WIcon size={13} strokeWidth={2} />{t(WTYPE_LABEL[wt])}
                     </button>
@@ -3044,7 +3044,7 @@ function CreatorView({
           {/* ─── TASK center: block-based authoring ─── */}
           {mode === 'trainer' && <>
             {/* Card header — type badge + question preview */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg, borderRadius: 7, padding: '2px 8px', flexShrink: 0 }}>
                 {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label ?? t('Задание')}
               </div>
@@ -3122,7 +3122,7 @@ function CreatorView({
                       style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}</button>
                     {!isImage && (
-                      <button onClick={() => setTkHasTable(false)} style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><X size={12} />{t('Убрать')}</button>
+                      <button onClick={() => setTkHasTable(false)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><X size={12} />{t('Убрать')}</button>
                     )}
                   </div>
                   {!collapsed && isImage && (
@@ -3135,7 +3135,7 @@ function CreatorView({
                           const active = tkImageSize === sz
                           return (
                             <button key={sz} title={titles[sz]} onClick={() => setTkImageSize(sz)}
-                              style={{ padding: '3px 10px', borderRadius: 8, border: `1px solid ${active ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s' }}>
+                              style={{ padding: '4px 10px', borderRadius: 8, border: `1px solid ${active ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                               {labels[sz]}
                             </button>
                           )
@@ -3203,11 +3203,11 @@ function CreatorView({
                           border: `2px solid ${isCorrect ? cfg.fill : 'var(--color-border-medium)'}`,
                           background: isCorrect ? cfg.fill : 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          position: 'relative', transition: 'all 0.14s',
+                          position: 'relative', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                         }}>
                           {isCorrect && <Check size={14} strokeWidth={2.5} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff' }} />}
                         </button>
-                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                           <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0 }}>{LETTERS[i]}</div>
                           <GrowTextarea value={ans} onChange={v => setChoice(i, v)} placeholder={t('Вариант ') + (LETTERS[i]) + '…'}
                             style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', borderRadius: 0, background: 'transparent', color: 'var(--color-text)', fontSize: 14, lineHeight: 1.4, fontFamily: 'inherit', outline: 'none' }} />
@@ -3216,7 +3216,7 @@ function CreatorView({
                           <input type="number" min={0} max={20} value={tkChoicePts[i] ?? 0}
                             onChange={e => setTkChoicePts(prev => prev.map((p, j) => j === i ? Number(e.target.value) : p))}
                             onFocus={e => e.target.select()}
-                            style={{ ...inputSt, width: 52, textAlign: 'center', padding: '9px 6px', flexShrink: 0, border: '1.5px solid var(--color-border-medium)', borderRadius: 10 }} />
+                            style={{ ...inputSt, width: 52, textAlign: 'center', padding: '10px 6px', flexShrink: 0, border: '1.5px solid var(--color-border-medium)', borderRadius: 10 }} />
                         )}
                         {tkChoices.length > 2 && (
                           <button onClick={() => removeChoice(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
@@ -3225,7 +3225,7 @@ function CreatorView({
                     )
                   })}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
-                    <button onClick={addChoice} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}><Plus size={14} /> {t('Вариант')}</button>
+                    <button onClick={addChoice} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Вариант')}</button>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{tkAnswerType === 'single' ? t('Отметьте один верный вариант') : t('Отметьте все верные варианты')}</span>
                   </div>
                 </div>
@@ -3270,7 +3270,7 @@ function CreatorView({
                       )}
                     </div>
                   ))}
-                  <button onClick={addMatchRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}><Plus size={14} /> {t('Пара')}</button>
+                  <button onClick={addMatchRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Пара')}</button>
                 </div>
               )}
 
@@ -3289,7 +3289,7 @@ function CreatorView({
                       )}
                     </div>
                   ))}
-                  <button onClick={addSeqRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}><Plus size={14} /> {t('Шаг')}</button>
+                  <button onClick={addSeqRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Шаг')}</button>
                 </div>
               )}
 
@@ -3303,8 +3303,8 @@ function CreatorView({
                       placeholder={t("Развёрнутый правильный ответ…")} style={inputSt} />
                   </div>
                   <button onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
-                    <span style={{ width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', background: tkAllowPhoto ? cfg.color : 'var(--color-text-4)', transition: 'background 0.15s' }}>
-                      <span style={{ position: 'absolute', top: 2, left: tkAllowPhoto ? 16 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
+                    <span style={{ width: 32, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', boxSizing: 'border-box', background: tkAllowPhoto ? cfg.color : 'var(--color-bg-5)', border: `1px solid ${tkAllowPhoto ? 'transparent' : 'var(--color-border-medium)'}`, transition: 'background 0.15s' }}>
+                      <span style={{ position: 'absolute', top: 1, left: tkAllowPhoto ? 13 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: 'var(--shadow-1)', transition: 'left 0.15s' }} />
                     </span>
                     <ImageIcon size={16} strokeWidth={2} style={{ color: tkAllowPhoto ? cfg.color : 'var(--color-text-3)' }} />
                     <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Разрешить прикрепить фото решения')}</div>
@@ -3319,9 +3319,9 @@ function CreatorView({
               <div style={{ display: 'flex', gap: 6, marginTop: 2, marginBottom: 12 }}>
                 {([['perOption', t('За ответы')], ['criteria', t('По критериям')], ['whole', t('За всё задание')]] as [ScoreMode, string][]).map(([m, label]) => (
                   <button key={m} onClick={() => setScoreMode(m)} style={{
-                    padding: '9px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                    padding: '10px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                     background: scoreMode === m ? cfg.bg : 'var(--color-bg-3)', color: scoreMode === m ? cfg.color : 'var(--color-muted)',
-                    fontSize: 13, fontWeight: 600, boxShadow: scoreMode === m ? `0 0 0 1.5px ${cfg.color}44` : 'none', transition: 'all 0.15s',
+                    fontSize: 13, fontWeight: 600, boxShadow: scoreMode === m ? `0 0 0 1.5px ${cfg.color}44` : 'none', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   }}>{label}</button>
                 ))}
               </div>
@@ -3344,10 +3344,10 @@ function CreatorView({
                   {answerKeys.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {answerKeys.map(k => (
-                        <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)' }}>
+                        <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)' }}>
                           <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: cfg.color, opacity: 0.7 }} />
                           <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{k.keyword}</div>
-                          <div style={{ padding: '3px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{k.points}</div>
+                          <div style={{ padding: '4px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{k.points}</div>
                           <button onClick={() => removeKey(k.id)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
                         </div>
                       ))}
@@ -3378,10 +3378,10 @@ function CreatorView({
                   {criteria.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {criteria.map((c, idx) => (
-                        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)' }}>
+                        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)' }}>
                           <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{idx + 1}</span>
                           <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{c.text}</div>
-                          <div style={{ padding: '3px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{c.points}</div>
+                          <div style={{ padding: '4px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{c.points}</div>
                           <button onClick={() => removeCriterion(c.id)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
                         </div>
                       ))}
@@ -3397,8 +3397,8 @@ function CreatorView({
                     <motion.button whileTap={{ scale: 0.95 }} onClick={addCriterion} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={16} strokeWidth={2.5} /></motion.button>
                   </div>
                   <button onClick={() => setCriteriaVisible(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${criteriaVisible ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: criteriaVisible ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
-                    <span style={{ width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', background: criteriaVisible ? cfg.color : 'var(--color-text-4)' }}>
-                      <span style={{ position: 'absolute', top: 2, left: criteriaVisible ? 16 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
+                    <span style={{ width: 32, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', boxSizing: 'border-box', background: criteriaVisible ? cfg.color : 'var(--color-bg-5)', border: `1px solid ${criteriaVisible ? 'transparent' : 'var(--color-border-medium)'}` }}>
+                      <span style={{ position: 'absolute', top: 1, left: criteriaVisible ? 13 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: 'var(--shadow-1)', transition: 'left 0.15s' }} />
                     </span>
                     {criteriaVisible ? <Eye size={16} strokeWidth={2} style={{ color: cfg.color }} /> : <EyeOff size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />}
                     <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Показывать критерии студенту при проверке')}</div>
@@ -3410,7 +3410,7 @@ function CreatorView({
             {/* 4 ─ Объяснение */}
             <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 16 }}>
               <Label>{t('Объяснение / решение (показывается после ответа)')}</Label>
-              <div style={{ border: '1.5px solid var(--color-border-medium)', borderRadius: 12, background: 'var(--color-green-soft)', overflow: 'hidden' }}>
+              <div style={{ border: '1px solid var(--color-border-medium)', borderRadius: 12, background: 'var(--color-green-soft)', overflow: 'hidden' }}>
                 <textarea
                   ref={explTextareaRef}
                   value={tkSolution}
@@ -3582,20 +3582,20 @@ function CreatorView({
 
               {wType !== 'pomodoro' && (
                 <motion.button whileTap={{ scale: 0.97 }} onClick={addWidgetItem}
-                  style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG[wType], color: WTYPE_COLOR[wType], fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG[wType], color: WTYPE_COLOR[wType], fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Plus size={14} /> {t('Добавить элемент')}
                 </motion.button>
               )}
 
               {wType === 'pomodoro' && wItems.length === 0 && (
                 <motion.button whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
-                  style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Check size={14} /> {t('Применить настройки')}
                 </motion.button>
               )}
               {wType === 'pomodoro' && wItems.length > 0 && (
                 <motion.button whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
-                  style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Check size={14} /> {t('Обновить:')} {wPomoFocus} / {wPomoBreak} {t('мин')}
                 </motion.button>
               )}
@@ -3643,10 +3643,10 @@ function CreatorView({
                         if (type === 'multi' && tkCorrect.length === 0) setTkCorrect([0])
                         if (type === 'single' && tkCorrect.length > 1) setTkCorrect([tkCorrect[0]])
                       }} style={{
-                        display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 13,
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '10px 10px', borderRadius: 13,
                         border: active ? `1.5px solid ${v.color}` : '1.5px solid transparent',
                         background: active ? v.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
-                        transition: 'background 0.12s, border-color 0.12s',
+                        transition: 'background 0.15s, border-color 0.15s',
                       }}>
                         <div style={{ width: 32, height: 32, borderRadius: 9, background: v.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <Icon size={15} strokeWidth={2} style={{ color: v.color }} />
@@ -3670,7 +3670,7 @@ function CreatorView({
                         setCondImgPickerOpen(v => !v)
                         setTimeout(() => condImgPasteZoneRef.current?.focus(), 50)
                       }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, background: 'var(--color-bg-2)', cursor: 'pointer', border: '1.5px solid var(--color-border)', width: '100%', textAlign: 'left' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 10px', borderRadius: 11, background: 'var(--color-bg-2)', cursor: 'pointer', border: '1.5px solid var(--color-border)', width: '100%', textAlign: 'left' }}
                     >
                       <ImageIcon size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
                       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tkImage ? t('Заменить фото') : t('Добавить фото')}</div>
@@ -3691,7 +3691,7 @@ function CreatorView({
                           }}
                           style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
                         >
-                          {t('Нажмите')} <kbd style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 4, padding: '1px 5px', fontFamily: 'inherit', fontSize: 11 }}>Ctrl+V</kbd> {t('чтобы вставить фото')}
+                          {t('Нажмите')} <kbd style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 4, padding: '1px 6px', fontFamily: 'inherit', fontSize: 11 }}>Ctrl+V</kbd> {t('чтобы вставить фото')}
                         </div>
                         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)' }}>
                           <ImageIcon size={14} />
@@ -3702,7 +3702,7 @@ function CreatorView({
                     )}
                   </div>
                   <button onClick={() => setTkHasTable(v => !v)} style={{
-                    display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 10px', borderRadius: 11,
                     border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
                     background: tkHasTable ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
                   }}>
@@ -3957,7 +3957,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: sel ? `${accent}28` : 'transparent',
           color: sel ? accent : 'var(--color-text-3)',
-          transition: 'background 0.1s, color 0.1s',
+          transition: 'background 0.15s, color 0.15s',
         }}>
         <Ic size={14} strokeWidth={2} />
       </button>
@@ -3978,7 +3978,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: sel ? `${accent}28` : 'transparent',
                 color: sel ? accent : 'var(--color-text-3)',
-                transition: 'background 0.12s, color 0.12s',
+                transition: 'background 0.15s, color 0.15s',
               }}>
               <Ic size={14} strokeWidth={2} />
             </button>
@@ -3989,7 +3989,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
             width: 28, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'transparent', color: open ? accent : 'var(--color-text-3)',
-            transition: 'color 0.12s',
+            transition: 'color 0.15s',
           }}>
           {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
@@ -4000,20 +4000,20 @@ function IconPickerField({ iconKey, onChange, accent }: {
         {open && (
           <motion.div
             initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 50,
               borderRadius: 14, padding: '8px 8px 6px',
               background: 'rgba(var(--glass-rgb), 0.88)',
-              backdropFilter: 'blur(10px) saturate(140%)', WebkitBackdropFilter: 'blur(10px) saturate(140%)',
+              backdropFilter: 'var(--blur-thin)', WebkitBackdropFilter: 'var(--blur-thin)',
               border: '1px solid var(--color-border-glass)',
-              boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
+              boxShadow: 'var(--shadow-3)',
             }}>
             {/* Search */}
             <div style={{ position: 'relative', marginBottom: 8 }}>
               <Search size={12} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }} />
               <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Поиск иконки…")}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '7px 28px 7px 28px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 28px 8px 28px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
               {search && (
                 <button aria-label={t('Очистить')} onClick={() => setSearch('')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}><X size={14} strokeWidth={2.5} /></button>
               )}
@@ -4025,39 +4025,39 @@ function IconPickerField({ iconKey, onChange, accent }: {
               <div ref={topFadeRef} style={{
                 position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 2,
                 background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.9) 0%, transparent 100%)',
-                pointerEvents: 'none', opacity: 0, transition: 'opacity 0.18s',
+                pointerEvents: 'none', opacity: 0, transition: 'opacity 0.15s',
               }} />
               {/* Bottom fade */}
               <div ref={botFadeRef} style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 2,
                 background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.9) 0%, transparent 100%)',
-                pointerEvents: 'none', opacity: 1, transition: 'opacity 0.18s',
+                pointerEvents: 'none', opacity: 1, transition: 'opacity 0.15s',
               }} />
 
               <div ref={gridRef} onScroll={updateBarrel}
                 style={{ maxHeight: 160, overflowY: 'auto', scrollbarWidth: 'none' as const }}>
                 {searchResults ? (
                   /* Search results — flat grid */
-                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 3 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 4 }}>
                     {searchResults.map(([name, Ic]) => iconBtn(name, Ic))}
                   </div>
                 ) : (
                   /* Sections: Popular + All */
                   <>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 2px 5px', opacity: 0.6 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 2px 6px', opacity: 0.6 }}>
                       {t('Популярные')}
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 3, marginBottom: 6 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 4, marginBottom: 6 }}>
                       {DEFAULT_ICON_KEYS.map(k => {
                         const Ic = (LucideIcons as Record<string, unknown>)[k] as React.ElementType
                         return iconBtn(k, Ic)
                       })}
                     </div>
                     <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '4px 0 6px', opacity: 0.5 }} />
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '0 2px 5px', opacity: 0.6 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '0 2px 6px', opacity: 0.6 }}>
                       {t('Все')}
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 3 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 4 }}>
                       {allIcons.map(([name, Ic]) => iconBtn(name, Ic))}
                     </div>
                   </>
@@ -4194,7 +4194,7 @@ function ColorPickerPopup({ value, onChange, onClose, anchor }: {
 
   return createPortal(
     <div ref={popupRef} style={{
-      position: 'fixed', top, left, zIndex: 99999,
+      position: 'fixed', top, left, zIndex: 4000, // lib/layers: popover
       width: 264, borderRadius: 16, boxSizing: 'border-box',
       background: 'var(--color-bg-2)', border: '1px solid var(--color-border-glass)',
       boxShadow: '0 16px 48px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.18)',
@@ -4363,12 +4363,12 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
         <button
           onClick={copyLink}
           style={{
-            display: 'flex', alignItems: 'center', gap: 7,
+            display: 'flex', alignItems: 'center', gap: 8,
             padding: '8px 14px', borderRadius: 12, cursor: 'pointer',
             border: `1.5px solid ${copied ? 'var(--color-green-text)' : accent}`,
             background: copied ? 'var(--color-green-soft)' : `${accent}15`,
             color: copied ? 'var(--color-green-text)' : accent,
-            fontSize: 12, fontWeight: 700, transition: 'all 0.18s', flexShrink: 0,
+            fontSize: 12, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', flexShrink: 0,
           }}
         >
           {copied ? <Check size={14} /> : <ClipboardCopy size={14} />}
@@ -4442,7 +4442,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                   )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                     <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
-                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />{t('Сохранить')}</button>
+                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
                   </div>
                 </div>
               ) : (
@@ -4453,7 +4453,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1,
                   }}>{idx + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{q.text}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{q.text}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>
                       ✓ {q.options[q.correct]}
                     </div>
@@ -4500,9 +4500,9 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
         initial={{ opacity: 0, scale: 0.94, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94, y: 12 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 400, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.22)' }}
+        style={{ width: '100%', maxWidth: 400, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 22, overflow: 'hidden', boxShadow: 'var(--shadow-4)' }}
       >
         <div style={{ padding: '16px 16px 14px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Выбрать ученика')}</div>
@@ -4514,7 +4514,7 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t("Поиск по имени…")}
-            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
           />
         </div>
         <div style={{ maxHeight: 300, overflowY: 'auto', padding: '0 16px 16px' }}>
@@ -4525,7 +4525,7 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
             <button
               key={s.id}
               onClick={() => onPick(s.id, s.name)}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'transparent', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', transition: 'background 0.12s' }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'transparent', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', transition: 'background 0.15s' }}
               onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-2)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
@@ -4573,7 +4573,7 @@ function DiagnosticStudentCard({
   return (
     <div style={{
       background: 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${expanded ? accent + '44' : 'var(--color-border-glass)'}`,
-      borderRadius: 18, overflow: 'hidden', transition: 'border-color 0.2s',
+      borderRadius: 18, overflow: 'hidden', transition: 'border-color 0.22s',
     }}>
       {/* Collapsed row — click to expand */}
       <div
@@ -4592,21 +4592,21 @@ function DiagnosticStudentCard({
             {tn(result.name)}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-            <span style={{ padding: '1px 7px', borderRadius: 6, background: accent, color: getContrastColor(accent), fontSize: 10, fontWeight: 700 }}>{t(subjectLabel)}</span>
+            <span style={{ padding: '1px 8px', borderRadius: 6, background: accent, color: getContrastColor(accent), fontSize: 10, fontWeight: 700 }}>{t(subjectLabel)}</span>
             <span>{date} · {time}</span>
             {!result.completed && (
               // Брошенный на середине прогон — отдельная вещь, а не низкий балл.
               // Процент у него считается по ОТВЕЧЕННЫМ, поэтому без этой метки
               // «40%» на трёх вопросах читалось бы как результат теста.
               <span style={{
-                padding: '1px 7px', borderRadius: 6, fontSize: 10, fontWeight: 700,
+                padding: '1px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700,
                 background: 'var(--color-amber-soft, rgba(245,158,11,0.14))', color: 'var(--color-yellow-text)',
               }}>
                 {t('не закончил')}{result.answered != null && result.total != null ? ` · ${result.answered}/${result.total}` : ''}
               </span>
             )}
             {linkedStudent && (
-              <span style={{ color: 'var(--color-green-text)', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={{ color: 'var(--color-green-text)', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Check size={12} strokeWidth={2.5} /> {linkedStudent.name.split(' ')[0]}
               </span>
             )}
@@ -4624,7 +4624,7 @@ function DiagnosticStudentCard({
 
         <ChevronDown size={16} style={{
           color: 'var(--color-text-3)', flexShrink: 0,
-          transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s',
+          transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.22s',
         }} />
       </div>
 
@@ -4649,14 +4649,14 @@ function DiagnosticStudentCard({
                     const col = p >= 70 ? 'var(--color-green-text)' : p >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                     return (
                       <div key={sec}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                           <span style={{ fontSize: 12, color: 'var(--color-text-2)', fontWeight: 600 }}>{sec}</span>
                           <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{c}/{t} · {p}%</span>
                         </div>
                         <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)' }}>
                           <motion.div
                             initial={{ width: 0 }} animate={{ width: `${p}%` }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
+                            transition={{ duration: 0.38, delay: 0.1 }}
                             style={{ height: '100%', borderRadius: 999, background: col }}
                           />
                         </div>
@@ -4669,8 +4669,8 @@ function DiagnosticStudentCard({
               {/* Weak spots */}
               {weakSections.length > 0 && (
                 <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}><AlertTriangle size={12} strokeWidth={2.5} />{t('Слабые темы для проработки')}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={12} strokeWidth={2.5} />{t('Слабые темы для проработки')}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {weakSections.map(([sec, { correct: c, total: t }]) => (
                       <div key={sec} style={{ fontSize: 12, color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
                         <span>{sec}</span>
@@ -4723,7 +4723,7 @@ function DiagnosticStudentCard({
                         borderRadius: 11,
                         border: `1px solid ${hasAnswer ? (isCorrect ? '#22c55e33' : '#ef444433') : 'var(--color-border-soft)'}`,
                         background: hasAnswer ? (isCorrect ? 'rgba(34,197,94,0.05)' : 'rgba(239,68,68,0.05)') : 'var(--color-bg-2)',
-                        padding: '9px 12px',
+                        padding: '10px 12px',
                       }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                           <div style={{
@@ -4736,7 +4736,7 @@ function DiagnosticStudentCard({
                             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4, marginBottom: 4 }}>{q.text}</div>
                             {hasAnswer ? (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
                                   {isCorrect
                                     ? <CheckCircle size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                                     : <Circle size={12} style={{ color: 'var(--color-red-text)', flexShrink: 0 }} />}
@@ -4745,7 +4745,7 @@ function DiagnosticStudentCard({
                                   </span>
                                 </div>
                                 {!isCorrect && (
-                                  <div style={{ fontSize: 11, color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                                  <div style={{ fontSize: 11, color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <CheckCircle size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                                     <span style={{ color: 'var(--color-muted)' }}>{t('Верно:')}</span>
                                     <span style={{ fontWeight: 600, color: 'var(--color-text-2)' }}>{diagCorrectLabel(q) || t('ответ не задан')}</span>
@@ -4767,10 +4767,10 @@ function DiagnosticStudentCard({
               <div style={{ display: 'flex', gap: 8, paddingTop: 2 }}>
                 {result.linkedStudentId ? (
                   <>
-                    <div style={{ flex: 1, padding: '9px 12px', borderRadius: 10, background: 'var(--color-green-soft)', border: '1px solid #86efac44', fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{ flex: 1, padding: '10px 12px', borderRadius: 10, background: 'var(--color-green-soft)', border: '1px solid #86efac44', fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Check size={14} strokeWidth={2.5} /> {linkedStudent?.name ?? t('Привязан')}
                     </div>
-                    <button onClick={onUnlink} style={{ padding: '9px 14px', borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отвязать')}</button>
+                    <button onClick={onUnlink} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отвязать')}</button>
                   </>
                 ) : (
                   <button
@@ -4900,7 +4900,7 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
               onClick={refreshResults}
               title={t("Обновить")}
               style={{
-                marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5,
+                marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6,
                 padding: '4px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
                 background: 'var(--color-bg-3)', color: 'var(--color-muted)',
                 fontSize: 11, fontWeight: 600,
@@ -4966,8 +4966,8 @@ function ResumeLinkButton({ result, accent, wide }: { result: AnonDiagResult; ac
   }
   return (
     <button onClick={copy} title={t('Ссылка, по которой ученик продолжит с того же места')} style={wide
-      ? { width: '100%', height: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 14, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }
-      : { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 10, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+      ? { width: '100%', height: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }
+      : { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 10, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
       {copied ? <Check size={wide ? 14 : 12} /> : <Link2 size={wide ? 14 : 12} />}
       {copied ? t('Скопировано!') : wide ? t('Ссылка «Продолжить»') : t('Продолжить')}
     </button>
@@ -5009,11 +5009,11 @@ function DiagResultsTable({
           </div>
         </div>
         <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }}>↻</button>
-        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : fillUnderWhite(accent), color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
+        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : fillUnderWhite(accent), color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
           {copied ? <Check size={14} /> : <Link2 size={14} />}
           {copied ? t('Скопировано!') : t('Ссылка')}
         </button>
-        <button onClick={onOpenEditor} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700 }}>
+        <button onClick={onOpenEditor} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700 }}>
           <Pencil size={14} /> {t('Редактор')}
         </button>
       </div>
@@ -5025,9 +5025,9 @@ function DiagResultsTable({
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: 'var(--color-bg-3)' }}>
+            <tr style={{ background: 'var(--color-bg-2)' }}>
               {[t('Ученик'), t('Дата'), t('Результат'), t('Разделы (слабые)'), t('Статус')].map((h, i) => (
-                <th key={h} style={{ padding: '9px 16px', textAlign: i >= 2 ? 'center' : 'left', fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border-soft)' }}>{h}</th>
+                <th key={h} style={{ padding: '10px 16px', textAlign: i >= 2 ? 'center' : 'left', fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border-soft)' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -5050,43 +5050,43 @@ function DiagResultsTable({
                   style={{ cursor: 'pointer', borderBottom: '1px solid var(--color-border-soft)', borderLeft: isSelected ? `3px solid ${accent}` : '3px solid transparent' }}
                   whileHover={{ background: `${accent}08` }}
                 >
-                  <td style={{ padding: '11px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: `${accent}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: accent }}>
                         {initials || '?'}
                       </div>
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tn(r.name)}</div>
-                        {r.linkedStudentId && <div style={{ fontSize: 10, color: 'var(--color-green-text)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={12} /> {t('привязан')}</div>}
+                        {r.linkedStudentId && <div style={{ fontSize: 10, color: 'var(--color-green-text)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={12} /> {t('привязан')}</div>}
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>{date}</td>
-                  <td style={{ padding: '11px 16px', textAlign: 'center' }}>
+                  <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>{date}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                     <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
                       <div style={{ fontSize: 16, fontWeight: 800, color: pctColor, lineHeight: 1 }}>{pct}%</div>
                       <div style={{ fontSize: 10, color: 'var(--color-muted)' }}>{totalC}/{totalQ}</div>
                     </div>
                   </td>
-                  <td style={{ padding: '11px 16px' }}>
+                  <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
                       {weak.length === 0
                         ? <span style={{ fontSize: 10, color: 'var(--color-green-text)', fontWeight: 600 }}>{t('Всё ок')}</span>
                         : weak.slice(0, 3).map(s => (
-                            <span key={s} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 6, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontWeight: 600 }}>{s}</span>
+                            <span key={s} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontWeight: 600 }}>{s}</span>
                           ))
                       }
                     </div>
                   </td>
-                  <td style={{ padding: '11px 16px', textAlign: 'center' }}>
+                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                     {!r.completed ? (
                       <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                        <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'rgba(245,158,11,0.14)', color: 'var(--color-yellow-text)', fontWeight: 700, whiteSpace: 'nowrap' }}>{t('Не закончил')}</span>
+                        <span style={{ fontSize: 10, padding: '4px 10px', borderRadius: 7, background: 'rgba(245,158,11,0.14)', color: 'var(--color-yellow-text)', fontWeight: 700, whiteSpace: 'nowrap' }}>{t('Не закончил')}</span>
                         <ResumeLinkButton result={r} accent={accent} />
                       </div>
                     ) : r.linkedStudentId
-                      ? <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontWeight: 700 }}>{t('Привязан')}</span>
-                      : <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontWeight: 600 }}>{t('Аноним')}</span>
+                      ? <span style={{ fontSize: 10, padding: '4px 10px', borderRadius: 7, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontWeight: 700 }}>{t('Привязан')}</span>
+                      : <span style={{ fontSize: 10, padding: '4px 10px', borderRadius: 7, background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontWeight: 600 }}>{t('Аноним')}</span>
                     }
                   </td>
                 </motion.tr>
@@ -5150,7 +5150,7 @@ function DiagResultStudentPanel({
       <motion.div
         initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(24px) saturate(1.4)', WebkitBackdropFilter: 'blur(24px) saturate(1.4)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         <PanelHeader title={tn(result.name)} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
         {/* Полоса прокрутки поверх, а не своей колонкой: «Все вопросы» удлиняет
@@ -5211,9 +5211,9 @@ function DiagResultStudentPanel({
                 return (
                   <div key={sec} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, background: 'var(--color-bg-2)', border: `1px solid color-mix(in srgb, ${c} 13%, transparent)` }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{sec}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{sec}</div>
                       <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${p}%`, background: c, borderRadius: 999, transition: 'width 0.4s' }} />
+                        <div style={{ height: '100%', width: `${p}%`, background: c, borderRadius: 999, transition: 'width 0.38s' }} />
                       </div>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 800, color: c, flexShrink: 0 }}>{p}%</div>
@@ -5256,7 +5256,7 @@ function DiagResultStudentPanel({
                       const col = ok ? 'var(--color-green-text)' : hasAnswer ? 'var(--color-red-text)' : 'var(--color-text-3)'
                       return (
                         <div key={q.id} style={{
-                          borderRadius: 11, padding: '9px 12px',
+                          borderRadius: 11, padding: '10px 12px',
                           border: `1px solid ${ok ? '#22c55e33' : hasAnswer ? '#ef444433' : 'var(--color-border-soft)'}`,
                           background: ok ? 'rgba(34,197,94,0.05)' : hasAnswer ? 'rgba(239,68,68,0.05)' : 'var(--color-bg-2)',
                           display: 'flex', alignItems: 'flex-start', gap: 8,
@@ -5320,12 +5320,12 @@ function DiagResultStudentPanel({
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tn(linkedStudent.name)}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-green-text)' }}>{t('Привязан к профилю')}</div>
                 </div>
-                <button onClick={handleUnlink} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}>{t('Отвязать')}</button>
+                <button onClick={handleUnlink} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}>{t('Отвязать')}</button>
               </div>
             ) : (
               <button
                 onClick={() => setPickerOpen(true)}
-                style={{ width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: fillUnderWhite(accent), color: '#fff', fontSize: 13, fontWeight: 700 }}
+                style={{ width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: fillUnderWhite(accent), color: '#fff', fontSize: 13, fontWeight: 700 }}
               >
                 <GraduationCap size={16} /> {t('Назначить ученика')}
               </button>
@@ -5399,7 +5399,7 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
 
   return createPortal(
     <motion.div ref={ref} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
+      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: 'var(--shadow-4)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={calNavBtn}><ChevronLeft size={14} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS_FULL[viewMonth])} {viewYear}</span>
@@ -5415,7 +5415,7 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
           const tod = d.toDateString() === today.toDateString()
           return (
             <button key={i} onClick={() => { onChange(formatDateISO(d)); onClose() }}
-              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? accent : tod ? soft : 'transparent', color: sel ? '#fff' : tod ? accent : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}>
+              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? accent : 'transparent', boxShadow: !sel && tod ? `inset 0 0 0 1.5px ${accent}` : 'none', color: sel ? '#fff' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}>
               {d.getDate()}
             </button>
           )
@@ -5469,12 +5469,12 @@ function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--c
   }
   return createPortal(
     <motion.div ref={containerRef} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
-      style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+      style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: 'var(--shadow-4)', overflow: 'hidden' }}>
       <div style={{ padding: 6, borderBottom: '1px solid var(--color-border)' }}>
         <input autoFocus value={manual} onChange={e => { const d = e.target.value.replace(/\D/g, '').slice(0, 4); setManual(d.length <= 2 ? d : `${d.slice(0, 2)}:${d.slice(2)}`) }}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commitManual() } else if (e.key === 'Escape') onClose() }}
           onBlur={commitManual} placeholder={t("чч:мм")}
-          style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)', padding: '7px 10px', borderRadius: 9, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', textAlign: 'center', letterSpacing: 0.5 }} />
+          style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)', padding: '8px 10px', borderRadius: 9, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', textAlign: 'center', letterSpacing: 0.5 }} />
       </div>
       <div style={{ position: 'relative', overflow: 'hidden' }}>
         {fadeTop && <div style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 30, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />}
@@ -5484,7 +5484,7 @@ function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--c
             const active = t === value
             return (
               <button key={t} onClick={() => { onChange(t); onClose() }}
-                style={{ width: '100%', border: 'none', background: active ? accent : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}>
+                style={{ width: '100%', border: 'none', background: active ? accent : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '8px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.15s, color 0.15s' }}>
                 {t}
               </button>
             )
@@ -5536,7 +5536,7 @@ const DiagPreviewQuestion = memo(function DiagPreviewQuestion({ q, idx, accent, 
     <div style={{ ...PREVIEW_CARD, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ width: 28, height: 28, borderRadius: 8, background: `${accent}22`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>{idx + 1}</div>
-        <div style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5, paddingTop: 3 }}>{q.text || t('Без текста')}</div>
+        <div style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5, paddingTop: 4 }}>{q.text || t('Без текста')}</div>
       </div>
       {q.kind === 'term' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 40 }}>
@@ -5551,7 +5551,7 @@ const DiagPreviewQuestion = memo(function DiagPreviewQuestion({ q, idx, accent, 
         {q.options.map((opt, oi) => {
           const isCorrect = q.correct === oi
           return (
-            <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: 'none', background: isCorrect ? soft : 'var(--color-bg-input)', padding: '9px 12px' }}>
+            <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: 'none', background: isCorrect ? soft : 'var(--color-bg-input)', padding: '10px 12px' }}>
               <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isCorrect ? accentFill : 'var(--color-border-medium)'}`, background: isCorrect ? accentFill : 'transparent', position: 'relative', boxShadow: isCorrect ? accentCircleShadow(accentFill) : 'none' }}>
                 {isCorrect && <Check size={12} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
               </div>
@@ -5828,7 +5828,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
               <BackCircle onClick={onClose} label="Назад" />
-              <div ref={dockTitleRef} style={{ padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: dockTitleMax ?? 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div ref={dockTitleRef} style={{ padding: '10px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: dockTitleMax ?? 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {label}
               </div>
             </motion.div>
@@ -5838,12 +5838,12 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
 
       {/* ── In-flow header ── */}
       <motion.div
-        animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
+        animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.22 }}
         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px 20px' }}
       >
         <BackCircle onClick={onClose} label="Назад" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.22s' }}>
             <Icon size={16} style={{ color: accent }} />
           </div>
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{label}</span>
@@ -5883,7 +5883,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                   onChange={e => handleLabelChange(e.target.value)}
                   onBlur={handleLabelBlur}
                   onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10, border: `1.5px solid ${accent}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 10, border: `1.5px solid ${accent}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
                 />
               </div>
             )}
@@ -5896,7 +5896,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: a.hex, cursor: 'pointer', outline: 'none', transition: 'box-shadow 0.15s', flexShrink: 0, boxShadow: accent === a.hex ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${a.hex}` : 'none' }} />
                 ))}
                 <button ref={pickerBtnRef} title={t("Свой цвет")} onClick={() => setShowPicker(p => !p)}
-                  style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: !CREATOR_ACCENTS.some(a => a.hex === accent) ? accent : 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', boxShadow: !CREATOR_ACCENTS.some(a => a.hex === accent) ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${accent}` : 'none' }}>
+                  style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: !CREATOR_ACCENTS.some(a => a.hex === accent) ? accent : 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', boxShadow: !CREATOR_ACCENTS.some(a => a.hex === accent) ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${accent}` : 'none' }}>
                   <Plus size={14} style={{ color: !CREATOR_ACCENTS.some(a => a.hex === accent) ? getContrastColor(accent) : 'var(--color-muted)', pointerEvents: 'none' }} />
                 </button>
                 {showPicker && (
@@ -5945,19 +5945,19 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                   onBlur={handleDoneLabelBlur}
                   onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
                   placeholder={t('Пусто — без подписи')}
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
                 />
               </div>
             )}
 
             {/* Mode tabs */}
-            <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-3)' }}>
+            <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--color-bg-3)' }}>
               {([
                 { id: 'assign', icon: Target, label: t('Назначить') },
                 { id: 'link',   icon: Link2,  label: t('По ссылке') },
               ] as const).map(({ id, icon: Icon2, label }) => (
                 <button key={id} onClick={() => setDistMode(id)}
-                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 4px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, transition: 'all 0.14s',
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 4px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                     background: distMode === id ? 'var(--color-surface, var(--color-bg-input))' : 'transparent',
                     color: distMode === id ? accent : 'var(--color-text-3)',
                     boxShadow: distMode === id ? '0 1px 6px rgba(0,0,0,0.10)' : 'none',
@@ -5974,7 +5974,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <div style={{ display: 'flex', gap: 6 }}>
                   {(['test', 'trial'] as const).map(ty => (
                     <button key={ty} onClick={() => setAssignType(ty)}
-                      style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                      style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                       {ty === 'test' ? t('Контрольная') : t('Пробник')}
                     </button>
                   ))}
@@ -5984,14 +5984,14 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <div style={{ height: 1, background: 'var(--color-bg-3)', borderRadius: 1, margin: '2px 0' }} />
 
                 {/* Recipient toggle + search */}
-                <div style={{ display: 'flex', gap: 5 }}>
+                <div style={{ display: 'flex', gap: 6 }}>
                   {(['group', 'student'] as const).map(m => (
                     <button key={m} onClick={() => { setAssignRecipientMode(m); setAssignGroupId(''); setAssignStudentId('') }}
-                      style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', cursor: 'pointer', fontSize: 12,
+                      style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', cursor: 'pointer', fontSize: 12,
                         fontWeight: assignRecipientMode === m ? 700 : 600,
                         background: assignRecipientMode === m ? `${accent}20` : 'var(--color-bg-3)',
                         color: assignRecipientMode === m ? accent : 'var(--color-muted)',
-                        fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                        fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                       {m === 'group' ? t('Группе') : t('Студенту')}
                     </button>
                   ))}
@@ -6009,7 +6009,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     {/* Calendar trigger */}
                     <div ref={calAnchorRef} style={{ position: 'relative', flex: 1 }}>
                       <button onClick={() => { setCalOpen(o => !o); setTimeOpen(false) }}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                         <Calendar size={14} style={{ flexShrink: 0, color: accent }} />
                         <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : t('Дата')}</span>
                         {dueDate && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}><X size={14} strokeWidth={2.5} /></button>}
@@ -6021,7 +6021,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     {/* Time trigger */}
                     <div ref={timeAnchorRef} style={{ position: 'relative', width: 80 }}>
                       <button onClick={() => { setTimeOpen(o => !o); setCalOpen(false) }}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
                         <Clock size={14} style={{ flexShrink: 0, color: accent }} />
                         <span>{dueTime || t('Время')}</span>
                       </button>
@@ -6032,7 +6032,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                   </div>
 
                 <button onClick={handleAssign} disabled={saving || !canAssign}
-                  style={{ padding: '10px', borderRadius: 11, border: 'none', background: canAssign ? accent : 'var(--color-bg-5)', color: canAssign ? '#fff' : 'var(--color-text-3)', fontSize: 13, fontWeight: 700, cursor: canAssign ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                  style={{ padding: '10px', borderRadius: 11, border: 'none', background: canAssign ? accent : 'var(--color-bg-5)', color: canAssign ? '#fff' : 'var(--color-text-3)', fontSize: 13, fontWeight: 700, cursor: canAssign ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                   {saving ? t('Назначаем…') : t('Назначить тест')}
                 </button>
               </>
@@ -6045,7 +6045,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                   {t('Человек проходит тест по ссылке, вводит имя и появляется в таблице результатов. Подходит для первичной диагностики.')}
                 </div>
                 <button onClick={copyLink}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '11px 14px', borderRadius: 11, cursor: 'pointer', border: 'none', outline: 'none', fontFamily: 'inherit', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, transition: 'all 0.18s' }}>
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 14px', borderRadius: 11, cursor: 'pointer', border: 'none', outline: 'none', fontFamily: 'inherit', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                   {copied ? <Check size={14} /> : <Link2 size={14} />}
                   {copied ? t('Ссылка скопирована!') : t('Копировать ссылку')}
                 </button>
@@ -6071,7 +6071,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                   <div key={a.id}>
                     <div
                       onClick={() => setExpandedAssignId(prev => prev === a.id ? null : a.id)}
-                      style={{ padding: '9px 12px', borderRadius: 10, background: isExp ? soft : 'var(--color-bg-2)', border: `1px solid ${isExp ? accent : 'var(--color-border)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.13s' }}
+                      style={{ padding: '10px 12px', borderRadius: 10, background: isExp ? soft : 'var(--color-bg-2)', border: `1px solid ${isExp ? accent : 'var(--color-border)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
@@ -6087,7 +6087,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                       </button>
                     </div>
                     {isExp && (
-                      <div style={{ margin: '4px 0 2px 8px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <div style={{ margin: '4px 0 2px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {assignResults.length === 0 ? (
                           <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px' }}>{t('Никто ещё не сдал')}</div>
                         ) : assignResults.map(r => {
@@ -6123,7 +6123,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               // Проявление — только при смене вопроса/возврате к превью, не при
               // открытии редактора: иначе колонка мигала второй раз поверх экрана.
               initial={editIdx !== null ? { opacity: 0, y: 8 } : previewFx.current ? { opacity: 0, y: 0 } : false} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.18 }}
+              transition={{ duration: 0.15 }}
               style={editIdx !== null ? undefined : { display: 'flex', flexDirection: 'column', gap: 14 }}
             >
               {editIdx !== null ? (
@@ -6179,10 +6179,10 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         {editOpts.map((opt, oi) => (
                           <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <button onClick={() => { setEditCorrect(oi); setDirty(true) }}
-                              style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accentFill : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accentFill : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accentFill) : 'none' }}>
+                              style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accentFill : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accentFill : 'transparent', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accentFill) : 'none' }}>
                               {editCorrect === oi && <Check size={14} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
                             </button>
-                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '66' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? soft : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '66' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? soft : 'var(--color-bg-input)', overflow: 'hidden', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                               <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
                               <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o); setDirty(true) }}
                                 style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
@@ -6197,7 +6197,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         ))}
                         {editOpts.length < 6 && (
                           <button onClick={() => { setEditOpts([...editOpts, '']); setDirty(true) }}
-                            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
+                            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
                             <Plus size={14} /> {t('Добавить вариант')}
                           </button>
                         )}
@@ -6207,7 +6207,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
                       <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отмена')}</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
-                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'inherit' }}>
                         <Check size={16} strokeWidth={2.5} /> {t('Сохранить вопрос')}
                       </motion.button>
                     </div>
@@ -6252,14 +6252,14 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               {/* Scrollable list with fades */}
               <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden' }}>
                 {/* top fade */}
-                <div style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 30, background: 'linear-gradient(to bottom, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.top ? 1 : 0, transition: 'opacity 0.18s' }} />
+                <div style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 30, background: 'linear-gradient(to bottom, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.top ? 1 : 0, transition: 'opacity 0.15s' }} />
                 {/* bottom fade */}
-                <div style={{ position: 'absolute', bottom: -2, left: 0, right: 0, height: 30, background: 'linear-gradient(to top, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.bottom ? 1 : 0, transition: 'opacity 0.18s' }} />
+                <div style={{ position: 'absolute', bottom: -2, left: 0, right: 0, height: 30, background: 'linear-gradient(to top, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.bottom ? 1 : 0, transition: 'opacity 0.15s' }} />
 
                 <div ref={qListRef} onScroll={updateQListFade} style={{ height: '100%', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 2 }}>
                   {questions.map((q, idx) => (
                     <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                       <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
                       <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{diagListLabel(q) || t('Без текста')}</div>
                     </button>
@@ -6301,11 +6301,11 @@ function ScrToggle({ on, label, onChange }: { on: boolean; label: string; onChan
     <button
       onClick={() => onChange(!on)}
       style={{
-        display: 'flex', alignItems: 'center', gap: 8, padding: '9px 15px',
+        display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
         borderRadius: 10, border: 'none',
         background: on ? SCR_SOFT : 'var(--color-bg-3)',
         color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 13, fontWeight: 700,
-        cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+        cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
       }}
     >
       <div style={{ width: 14, height: 14, borderRadius: '50%', background: on ? SCR_ACC : 'var(--color-border-medium)', flexShrink: 0, transition: 'background 0.15s' }} />
@@ -6323,7 +6323,7 @@ function ScrNumInput({ label, value, min, max, step = 1, onChange }: {
       <input
         type="number" value={value} min={min} max={max} step={step}
         onChange={e => onChange(Number(e.target.value))}
-        style={{ width: 90, padding: '9px 12px', borderRadius: 10, border: 'none', background: SCR_SOFT, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', outline: 'none' }}
+        style={{ width: 90, padding: '10px 12px', borderRadius: 10, border: 'none', background: SCR_SOFT, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', outline: 'none' }}
       />
     </div>
   )
@@ -6341,7 +6341,7 @@ function ScrPills<T extends string>({ label, all, active, labelMap, onChange }: 
           const on = active.includes(key)
           return (
             <button key={key} onClick={() => onChange(on ? active.filter(k => k !== key) : [...active, key])}
-              style={{ padding: '6px 13px', borderRadius: 8, border: 'none', background: on ? SCR_SOFT : 'var(--color-bg-3)', color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+              style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: on ? SCR_SOFT : 'var(--color-bg-3)', color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
               {t(labelMap[key])}
             </button>
           )
@@ -6501,7 +6501,7 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
     startEdit({ id, a: '', b: '', c: '', answer: '', distractors: [], level: 1 })
   }
 
-  const inputStyle: React.CSSProperties = { flex: 1, padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', minWidth: 60 }
+  const inputStyle: React.CSSProperties = { flex: 1, padding: '8px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', minWidth: 60 }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -6530,7 +6530,7 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
                     small
                     accent={SCR_ACC}
                     accentBg={SCR_SOFT}
-                    triggerStyle={{ padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', fontSize: 13 }}
+                    triggerStyle={{ padding: '8px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', fontSize: 13 }}
                   />
                 </div>
               </div>
@@ -6546,12 +6546,12 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
               <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {it.a} → {it.b} | {it.c} → <b>{it.answer || '?'}</b>
               </div>
-              <span style={{ fontSize: 10, fontWeight: 700, color: SCR_ACC, background: SCR_SOFT, borderRadius: 6, padding: '2px 7px', flexShrink: 0 }}>{t('Ур.')} {it.level}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: SCR_ACC, background: SCR_SOFT, borderRadius: 6, padding: '2px 8px', flexShrink: 0 }}>{t('Ур.')} {it.level}</span>
             </button>
           )}
         </div>
       ))}
-      <button onClick={addItem} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+      <button onClick={addItem} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
         <Plus size={14} /> {t('Добавить аналогию')}
       </button>
     </div>
@@ -6561,7 +6561,7 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
 // Stroop color editor
 function ScreeningColorEditor({ colors, onChange }: { colors: { name: string; hex: string }[]; onChange: (v: { name: string; hex: string }[]) => void }) {
   const t = useT()
-  const inputStyle: React.CSSProperties = { padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }
+  const inputStyle: React.CSSProperties = { padding: '8px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }
   return (
     <div>
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Цвета Струпа')}</div>
@@ -6582,7 +6582,7 @@ function ScreeningColorEditor({ colors, onChange }: { colors: { name: string; he
           </div>
         ))}
         <button onClick={() => onChange([...colors, { name: '', hex: '#000000' }])}
-          style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
           <Plus size={14} /> {t('Добавить цвет')}
         </button>
       </div>
@@ -6619,7 +6619,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
     updateTask(taskId, { pairs: task.pairs.filter((_, i) => i !== idx) })
   }
 
-  const inputStyle: React.CSSProperties = { flex: 1, padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', minWidth: 80 }
+  const inputStyle: React.CSSProperties = { flex: 1, padding: '8px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', minWidth: 80 }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -6642,7 +6642,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
                   <span style={{ color: 'var(--color-muted)', fontSize: 14, flexShrink: 0 }}>→</span>
                   <input value={pair.right} onChange={e => updatePair(task.id, pi, 'right', e.target.value)} placeholder={t("Правая часть")} style={inputStyle} />
                   {task.pairs.length > 1 && (
-                    <button onClick={() => removePair(task.id, pi)} style={{ padding: '5px', borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                    <button onClick={() => removePair(task.id, pi)} style={{ padding: '6px', borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                       <X size={14} />
                     </button>
                   )}
@@ -6652,7 +6652,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
                 <button onClick={() => addPair(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   <Plus size={14} /> {t('Пара')}
                 </button>
-                <button onClick={() => removeTask(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button onClick={() => removeTask(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   <Trash2 size={14} /> {t('Удалить задание')}
                 </button>
               </div>
@@ -6660,7 +6660,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
           )}
         </div>
       ))}
-      <button onClick={addTask} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+      <button onClick={addTask} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
         <Plus size={14} /> {t('Добавить задание')}
       </button>
     </div>
@@ -6723,7 +6723,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
               <BackCircle onClick={onClose} label="Назад" />
-              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '9px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
+              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '10px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
                 {cfg.title || t('Скрининг мышления')}
               </div>
               <div style={{ flexGrow: 1 }} />
@@ -6738,7 +6738,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 0 48px' }}>
         {/* In-flow header */}
-        <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
+        <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.22 }}
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
         >
           <BackCircle onClick={onClose} label="Назад" />
@@ -6746,7 +6746,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
             {cfg.title || t('Скрининг мышления')}
           </div>
           <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-            <button onClick={resetToDefault} style={{ padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb),0.96)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={resetToDefault} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb),0.96)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               {t('Сбросить к стандарту')}
             </button>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSave} style={savePillStyle}>
@@ -6765,7 +6765,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                 {activeDomains(cfg).length} {t('из')} {cfg.order.length} {t('активных')}
               </div>
               <button onClick={() => setSelectedDomain('meta')}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', background: selectedDomain === 'meta' ? SCR_SOFT : 'transparent', color: selectedDomain === 'meta' ? SCR_ACC : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s', marginBottom: 4 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', background: selectedDomain === 'meta' ? SCR_SOFT : 'transparent', color: selectedDomain === 'meta' ? SCR_ACC : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', marginBottom: 4 }}>
                 <Settings size={18} strokeWidth={2} style={{ flexShrink: 0, color: selectedDomain === 'meta' ? SCR_ACC : 'var(--color-text-2)' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: selectedDomain === 'meta' ? 700 : 500 }}>{t('Общие настройки')}</div>
@@ -6779,7 +6779,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                 const isSel = selectedDomain === key
                 return (
                   <button key={key} onClick={() => setSelectedDomain(key)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', background: isSel ? SCR_SOFT : 'transparent', color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text)' : 'var(--color-text-3)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', background: isSel ? SCR_SOFT : 'transparent', color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text)' : 'var(--color-text-3)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}
                   >
                     {(() => { const DomIcon = DOMAIN_ICONS[key]; return <DomIcon size={17} strokeWidth={2} style={{ flexShrink: 0, color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text-2)' : 'var(--color-text-3)' }} /> })()}
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -6798,7 +6798,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
             <AnimatePresence mode="wait">
               <motion.div key={selectedDomain}
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.18 }}
+                transition={{ duration: 0.15 }}
               >
                 {selectedDomain === 'meta' ? (
                   <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -6814,7 +6814,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                         value={cfg.title}
                         onChange={e => patchMeta({ title: e.target.value })}
                         placeholder={t("Название скрининга…")}
-                        style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: `1.5px solid ${SCR_ACC}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 15, fontWeight: 600, fontFamily: 'inherit', outline: 'none' }}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${SCR_ACC}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 15, fontWeight: 600, fontFamily: 'inherit', outline: 'none' }}
                       />
                     </div>
                     <div>
@@ -6824,7 +6824,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                         onChange={e => patchMeta({ description: e.target.value })}
                         rows={4}
                         placeholder={t("Краткое описание, для кого и зачем этот тест…")}
-                        style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6 }}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6 }}
                       />
                     </div>
                     <div style={{ padding: 14, borderRadius: 12, background: SCR_SOFT, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -6879,7 +6879,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                       [t('Научная основа'), t(info!.science)],
                     ] as [string, string][]).map(([h, body]) => (
                       <div key={h}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: SCR_ACC, marginBottom: 3 }}>{h}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: SCR_ACC, marginBottom: 4 }}>{h}</div>
                         <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{body}</div>
                       </div>
                     ))}
@@ -7059,7 +7059,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
               <BackCircle onClick={onCancel} label="Назад" />
-              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, padding: '9px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, padding: '10px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {title || t('Новый тест')}
               </div>
               <div style={{ flexGrow: 1 }} />
@@ -7073,7 +7073,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 0 48px' }}>
-        <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
+        <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.22 }}
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
         >
           <BackCircle onClick={onCancel} label="Назад" />
@@ -7093,7 +7093,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
             <GlassCard style={{ width: 260, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 14, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
               <div>
                 <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t("Физика, Математика…")} autoFocus
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${canSave ? accent + '66' : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', transition: 'border 0.15s' }} />
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${canSave ? accent + '66' : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', transition: 'border 0.15s' }} />
               </div>
               <div>
                 <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -7102,7 +7102,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: a.hex, cursor: 'pointer', outline: 'none', transition: 'box-shadow 0.15s', flexShrink: 0, boxShadow: accent === a.hex ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${a.hex}` : 'none' }} />
                   ))}
                   <button ref={pickerBtn2Ref} title={t("Свой цвет")} onClick={() => setShowPicker2(p => !p)}
-                    style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: !CREATOR_ACCENTS.some(a => a.hex === accent) ? accent : 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', boxShadow: !CREATOR_ACCENTS.some(a => a.hex === accent) ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${accent}` : 'none' }}>
+                    style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: !CREATOR_ACCENTS.some(a => a.hex === accent) ? accent : 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', boxShadow: !CREATOR_ACCENTS.some(a => a.hex === accent) ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${accent}` : 'none' }}>
                     <Plus size={14} style={{ color: !CREATOR_ACCENTS.some(a => a.hex === accent) ? getContrastColor(accent) : 'var(--color-muted)', pointerEvents: 'none' }} />
                   </button>
                   {showPicker2 && (
@@ -7124,13 +7124,13 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               </div>
               <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
               {/* Mode tabs */}
-              <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-3)' }}>
+              <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--color-bg-3)' }}>
                 {([
                   { id: 'assign', icon: Target, label: t('Назначить') },
                   { id: 'link',   icon: Link2,  label: t('По ссылке') },
                 ] as const).map(({ id, icon: Icon2, label }) => (
                   <button key={id} onClick={() => setDistMode(id)}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 4px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, transition: 'all 0.14s',
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 4px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                       background: distMode === id ? 'var(--color-surface, var(--color-bg-input))' : 'transparent',
                       color: distMode === id ? accent : 'var(--color-text-3)',
                       boxShadow: distMode === id ? '0 1px 6px rgba(0,0,0,0.10)' : 'none',
@@ -7144,20 +7144,20 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                   <div style={{ display: 'flex', gap: 6 }}>
                     {(['test', 'trial'] as const).map(ty => (
                       <button key={ty} onClick={() => setAssignType(ty)}
-                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                        style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                         {ty === 'test' ? t('Контрольная') : t('Пробник')}
                       </button>
                     ))}
                   </div>
                   <div style={{ height: 1, background: 'var(--color-bg-3)', borderRadius: 1, margin: '2px 0' }} />
-                  <div style={{ display: 'flex', gap: 5 }}>
+                  <div style={{ display: 'flex', gap: 6 }}>
                     {(['group', 'student'] as const).map(m => (
                       <button key={m} onClick={() => { setAssignRecipientMode(m); setAssignGroupId(''); setAssignStudentId('') }}
-                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', cursor: 'pointer', fontSize: 12,
+                        style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', cursor: 'pointer', fontSize: 12,
                           fontWeight: assignRecipientMode === m ? 700 : 600,
                           background: assignRecipientMode === m ? `${accent}20` : 'var(--color-bg-3)',
                           color: assignRecipientMode === m ? accent : 'var(--color-muted)',
-                          fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                          fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                         {m === 'group' ? t('Группе') : t('Студенту')}
                       </button>
                     ))}
@@ -7174,7 +7174,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     <div style={{ display: 'flex', gap: 6 }}>
                       <div ref={calAnchor2Ref} style={{ position: 'relative', flex: 1 }}>
                         <button onClick={() => { setCalOpen2(o => !o); setTimeOpen2(false) }}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                           <Calendar size={14} style={{ flexShrink: 0, color: accent }} />
                           <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : t('Дата')}</span>
                           {dueDate && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}><X size={14} strokeWidth={2.5} /></button>}
@@ -7185,7 +7185,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       </div>
                       <div ref={timeAnchor2Ref} style={{ position: 'relative', width: 80 }}>
                         <button onClick={() => { setTimeOpen2(o => !o); setCalOpen2(false) }}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
                           <Clock size={14} style={{ flexShrink: 0, color: accent }} />
                           <span>{dueTime || t('Время')}</span>
                         </button>
@@ -7222,7 +7222,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
             <motion.div
               key={editIdx !== null ? `edit-${editIdx}` : 'welcome'}
               initial={{ opacity: 0, y: editIdx !== null ? 8 : 0 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.18 }}
+              transition={{ duration: 0.15 }}
             >
               {editIdx !== null ? (
                   <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -7248,7 +7248,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Раздел / тема')}</div>
                           <input value={editSection} onChange={e => setEditSection(e.target.value)} placeholder={t("Например: Механика")}
-                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${accent}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${accent}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
                         </div>
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Текст вопроса')}</div>
@@ -7274,10 +7274,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                             {editOpts.map((opt, oi) => (
                               <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <button onClick={() => setEditCorrect(oi)}
-                                  style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accentFill : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accentFill : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accentFill) : 'none' }}>
+                                  style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accentFill : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accentFill : 'transparent', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accentFill) : 'none' }}>
                                   {editCorrect === oi && <Check size={14} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
                                 </button>
-                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                                   <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? accent : 'var(--color-text-2)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
                                   <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
                                     style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
@@ -7292,7 +7292,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                             ))}
                             {editOpts.length < 6 && (
                               <button onClick={() => setEditOpts([...editOpts, ''])}
-                                style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
+                                style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
                                 <Plus size={14} /> {t('Добавить вариант')}
                               </button>
                             )}
@@ -7303,7 +7303,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
                       <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отмена')}</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
-                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'inherit' }}>
                         <Check size={16} strokeWidth={2.5} /> {t('Сохранить вопрос')}
                       </motion.button>
                     </div>
@@ -7323,13 +7323,13 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('С чего начнём?')}</div>
                     <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 420 }}>
                       <button onClick={() => addQuestion('mc')}
-                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 14px', borderRadius: 16, border: `2px solid ${accent}55`, background: soft, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'all 0.14s' }}>
+                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 14px', borderRadius: 16, border: `2px solid ${accent}55`, background: soft, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                         <FileText size={24} style={{ color: accent }} />
                         <span style={{ fontSize: 14, fontWeight: 700 }}>{t('Обычный вопрос')}</span>
                         <span style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.4 }}>{t('Текст + 4 варианта,')}<br />{t('один правильный')}</span>
                       </button>
                       <button onClick={() => addQuestion('screening')}
-                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 14px', borderRadius: 16, border: `2px solid ${accent}55`, background: soft, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'all 0.14s' }}>
+                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 14px', borderRadius: 16, border: `2px solid ${accent}55`, background: soft, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                         <Brain size={24} style={{ color: accent }} />
                         <span style={{ fontSize: 14, fontWeight: 700 }}>{t('Скрининг-блок')}</span>
                         <span style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.4 }}>{t('Авто-генерируемые')}<br />{t('когнитивные задания')}</span>
@@ -7347,24 +7347,24 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('Вопросы')} {questions.length > 0 && `(${questions.length})`}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {questions.map((q, idx) => (
                   <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                     <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
                     <div style={{ flex: 1, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: editIdx === idx ? 600 : 400 }}>{q.text || t('Без текста')}</div>
                   </button>
                 ))}
               </div>
               <button onClick={() => addQuestion()}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '7px 8px', borderRadius: 8, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 8px', borderRadius: 8, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <Plus size={14} /> {t('Добавить вопрос')}
               </button>
               <div style={{ borderTop: '1px solid var(--color-border-soft)', marginTop: 2 }} />
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{t('Тип вопроса')}</div>
               {(['mc', 'screening'] as const).map(ty => (
                 <button key={ty} onClick={() => editIdx !== null && setEditType(ty)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 12px', borderRadius: 12, border: `2px solid ${editType === ty && editIdx !== null ? accent : 'var(--color-border-medium)'}`, background: editType === ty && editIdx !== null ? accent : 'var(--color-bg-2)', color: editType === ty && editIdx !== null ? '#fff' : editIdx !== null ? 'var(--color-text-2)' : 'var(--color-muted)', fontWeight: 600, fontSize: 13, cursor: editIdx !== null ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all 0.14s', textAlign: 'left' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 12px', borderRadius: 12, border: `2px solid ${editType === ty && editIdx !== null ? accent : 'var(--color-border-medium)'}`, background: editType === ty && editIdx !== null ? accent : 'var(--color-bg-2)', color: editType === ty && editIdx !== null ? '#fff' : editIdx !== null ? 'var(--color-text-2)' : 'var(--color-muted)', fontWeight: 600, fontSize: 13, cursor: editIdx !== null ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', textAlign: 'left' }}>
                   {ty === 'mc' ? <><FileText size={14} style={{ flexShrink: 0 }} /> {t('Текст / выбор')}</> : <><Brain size={14} style={{ flexShrink: 0 }} /> {t('Скрининг-блок')}</>}
                 </button>
               ))}
@@ -7378,7 +7378,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                         const isSel = editScrDomain === k
                         return (
                           <button key={k} onClick={() => setEditScrDomain(k)}
-                            style={{ padding: '8px 6px', borderRadius: 10, border: `2px solid ${isSel ? accent : 'var(--color-border-medium)'}`, background: isSel ? accent : 'var(--color-bg-2)', color: isSel ? '#fff' : 'var(--color-text-2)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                            style={{ padding: '8px 6px', borderRadius: 10, border: `2px solid ${isSel ? accent : 'var(--color-border-medium)'}`, background: isSel ? accent : 'var(--color-bg-2)', color: isSel ? '#fff' : 'var(--color-text-2)', cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                             <DI size={18} strokeWidth={2} />
                             <span style={{ fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{t(SCR_DOMAIN_META[k].short)}</span>
                           </button>
@@ -7395,7 +7395,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     </div>
                   </div>
                   <div style={{ padding: 10, borderRadius: 10, background: accent + '18', border: `1px solid ${accent}40`, fontSize: 11, color: 'var(--color-text)', lineHeight: 1.5 }}>
-                    {(() => { const DI = DOMAIN_ICONS[editScrDomain]; return <strong style={{ color: accent, display: 'inline-flex', alignItems: 'center', gap: 5 }}><DI size={12} strokeWidth={2.5} /> {t(SCR_DOMAIN_META[editScrDomain].short)}</strong> })()}{' '}— {editScrCount} {t('заданий будут вставлены в этом месте.')}
+                    {(() => { const DI = DOMAIN_ICONS[editScrDomain]; return <strong style={{ color: accent, display: 'inline-flex', alignItems: 'center', gap: 6 }}><DI size={12} strokeWidth={2.5} /> {t(SCR_DOMAIN_META[editScrDomain].short)}</strong> })()}{' '}— {editScrCount} {t('заданий будут вставлены в этом месте.')}
                   </div>
                 </>
               )}
@@ -7443,12 +7443,12 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
             key={chip}
             onClick={() => onChange(chip)}
             style={{
-              fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: 'none',
+              fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 7, cursor: 'pointer', border: 'none',
               background: active ? bg : 'var(--color-bg-3)',
               color: active ? color : 'var(--color-text-3)',
               outline: active ? `2px solid ${color}` : 'none',
               outlineOffset: -1,
-              transition: 'all 0.13s',
+              transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}
           >{t(chip)}</button>
         )
@@ -7465,7 +7465,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
           onBlur={() => { const t = custom.trim(); if (t) onChange(t); setAdding(false); setCustom('') }}
           placeholder={t("Свой чип…")}
           style={{
-            fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 7, border: '1.5px solid var(--color-accent)',
+            fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 7, border: '1.5px solid var(--color-accent)',
             background: 'var(--color-bg-2)', color: 'var(--color-text)', width: 90, outline: 'none', fontFamily: 'inherit',
           }}
         />
@@ -7473,7 +7473,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
         <button
           onClick={() => setAdding(true)}
           style={{
-            fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 7, cursor: 'pointer',
+            fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 7, cursor: 'pointer',
             border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-muted)',
           }}
         >{t('+ свой')}</button>
@@ -7540,7 +7540,7 @@ const TEST_CELL_MOTION = {
   transition: {
     layout: { duration: 0.38, ease: TEST_CELL_EASE },
     opacity: { duration: 0.22, ease: TEST_CELL_EASE },
-    scale: { duration: 0.28, ease: TEST_CELL_EASE },
+    scale: { duration: 0.22, ease: TEST_CELL_EASE },
   },
 } as const
 const TEST_PART_RE =/^(.*?)[\s,.:—–-]+часть\s+(\d+)\s*$/i
@@ -7580,7 +7580,7 @@ function CustomTestStackCard({ base, parts, done, onClick }: {
         // CSS-transform поверх layout-анимации дёргался бы.
         <motion.div key={k} aria-hidden layout
           animate={{ x: hover ? k * 2 : 0, y: hover ? -k * 2 : 0 }}
-          transition={{ layout: { duration: 0.38, ease: TEST_CELL_EASE }, default: { duration: 0.16 } }}
+          transition={{ layout: { duration: 0.38, ease: TEST_CELL_EASE }, default: { duration: 0.15 } }}
           style={{
             position: 'absolute', left: k * 4, top: 8 - k * 4, right: 8 - k * 4, bottom: k * 4,
             // Радиус растёт со смещением — дуги листов концентричны углу карточки.
@@ -7710,7 +7710,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
       <motion.div
         initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         <PanelHeader title={label} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
         <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -7726,11 +7726,11 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
             <button
               onClick={copyLink}
               style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: 'none', fontFamily: 'inherit',
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '12px 14px', borderRadius: 12, cursor: 'pointer', border: 'none', fontFamily: 'inherit',
                 background: copied ? 'var(--color-green-soft)' : soft,
                 color: copied ? 'var(--color-green-text)' : accent,
-                fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
+                fontSize: 13, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
               }}
             >
               {copied ? <Check size={14} /> : <Link2 size={14} />}
@@ -7739,11 +7739,11 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
             <button
               onClick={onEditTest}
               style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: 'none', fontFamily: 'inherit',
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '12px 14px', borderRadius: 12, cursor: 'pointer', border: 'none', fontFamily: 'inherit',
                 background: 'var(--color-bg-3)',
                 color: 'var(--color-text-2)',
-                fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
+                fontSize: 13, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
               }}
             >
               <Pencil size={14} /> {t('Редактировать')}
@@ -7753,21 +7753,21 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
           {/* Sections overview */}
           <div>
             <SectionHead>{sections.length} {t('тем ·')} {questions.length} {t('вопросов')}</SectionHead>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {sections.map(([sectionName, qs]) => {
                 const isExp = expandedSection === sectionName
                 return (
                   <div key={sectionName} style={{ borderRadius: 12, border: `1px solid ${isExp ? accent : 'var(--color-border)'}`, overflow: 'hidden', transition: 'border-color 0.15s' }}>
                     <button
                       onClick={() => setExpandedSection(prev => prev === sectionName ? null : sectionName)}
-                      style={{ width: '100%', padding: '9px 12px', display: 'flex', alignItems: 'center', gap: 8, background: isExp ? `${accent}10` : 'var(--color-bg-2)', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
+                      style={{ width: '100%', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8, background: isExp ? `${accent}10` : 'var(--color-bg-2)', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
                     >
                       <div style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, flexShrink: 0 }}>{qs.length}</div>
                       <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isExp ? accent : 'var(--color-text)' }}>{sectionName}</div>
                       {isExp ? <ChevronUp size={14} style={{ color: accent, flexShrink: 0 }} /> : <ChevronDown size={14} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />}
                     </button>
                     {isExp && (
-                      <div style={{ borderTop: `1px solid ${accent}22`, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 7 }}>
+                      <div style={{ borderTop: `1px solid ${accent}22`, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {qs.map((q, i) => (
                           <div key={q.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                             <div style={{ width: 18, height: 18, borderRadius: 5, background: 'var(--color-bg-3)', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, flexShrink: 0, marginTop: 2 }}>{i + 1}</div>
@@ -7791,11 +7791,11 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
               <Database size={14} style={{ color: accent }} />
               {t('Результаты')}
               {anonResults.length > 0 && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 6, padding: '1px 7px' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 6, padding: '1px 8px' }}>
                   {anonResults.length}
                 </span>
               )}
-              <button onClick={refreshResults} title={t("Обновить")} style={{ marginLeft: 'auto', padding: '3px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 10, fontWeight: 600 }}>↻</button>
+              <button onClick={refreshResults} title={t("Обновить")} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 10, fontWeight: 600 }}>↻</button>
             </div>
             {anonResults.length === 0 ? (
               <div style={{ padding: '24px 16px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', textAlign: 'center', color: 'var(--color-muted)', fontSize: 12 }}>
@@ -7848,7 +7848,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
     <motion.div
       initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
-      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-4)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title={t('Редактор: ') + (label)} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -7893,14 +7893,14 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                   )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                     <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
-                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />{t('Сохранить')}</button>
+                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
                   </div>
                 </div>
               ) : (
                 <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{q.text}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{q.text}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
@@ -9405,7 +9405,7 @@ export default function TeacherConstructorPage() {
                     color: editMode ? 'var(--color-red-text)' : 'var(--color-muted)',
                     opacity: editToggleShown ? 1 : 0.4,
                     boxShadow: editMode ? '0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
-                    transition: 'all 0.15s',
+                    transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   } as React.CSSProperties}
                 >
                   {editMode ? <X size={18} strokeWidth={2.5} /> : <Pencil size={16} strokeWidth={2} />}
@@ -9423,12 +9423,12 @@ export default function TeacherConstructorPage() {
                   <button
                     onClick={() => setFormImportOpen(true)}
                     style={{
-                      marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 7,
+                      marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8,
                       height: PILL_H, boxSizing: 'border-box',
-                      padding: '0 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
+                      padding: '0 18px', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: 'pointer',
                       background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
                       color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0,
+                      boxShadow: 'var(--shadow-2)', flexShrink: 0,
                     }}
                   >
                     <Link2 size={14} strokeWidth={2.5} />
@@ -9471,12 +9471,12 @@ export default function TeacherConstructorPage() {
                         <button
                           onClick={duplicateChecked}
                           style={{
-                            display: 'flex', alignItems: 'center', gap: 7,
+                            display: 'flex', alignItems: 'center', gap: 8,
                             height: PILL_H, boxSizing: 'border-box',
-                            padding: '0 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
+                            padding: '0 18px', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: 'pointer',
                             background: 'rgba(var(--glass-rgb),0.92)', ...PILL_GLASS,
                             color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            boxShadow: 'var(--shadow-2)',
                           } as React.CSSProperties}
                         >
                           <Copy size={14} strokeWidth={2.5} />
@@ -9486,7 +9486,7 @@ export default function TeacherConstructorPage() {
                       <button
                         onClick={deleteChecked}
                         style={{
-                          display: 'flex', alignItems: 'center', gap: 7,
+                          display: 'flex', alignItems: 'center', gap: 8,
                           height: PILL_H, boxSizing: 'border-box',
                           padding: '0 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
                           background: '#c0303a', color: '#fff', fontSize: 13, fontWeight: 700,
@@ -9543,7 +9543,7 @@ export default function TeacherConstructorPage() {
                     style={{ flexShrink: 0, overflow: 'hidden', padding: 2, marginTop: -2, marginBottom: -2, marginRight: -2,
                       maxWidth: testPassHidden ? 0 : 400, opacity: testPassHidden ? 0 : 1,
                       marginLeft: testPassHidden ? -10 : -2, visibility: testPassHidden ? 'hidden' : 'visible',
-                      transition: 'max-width 0.2s ease, opacity 0.16s ease, margin-left 0.2s ease, visibility 0.2s' }}>
+                      transition: 'max-width 0.22s ease, opacity 0.15s ease, margin-left 0.22s ease, visibility 0.22s' }}>
                     <div ref={testPassInnerRef} style={{ width: 'max-content' }}>
                       <SegmentFilter<TestPassFilter>
                         value={testPass} compact={testRowCompact}
@@ -9571,14 +9571,14 @@ export default function TeacherConstructorPage() {
                   {!editMode && seriesOpenCount > 0 && seriesOpenCount < seriesTotal && (
                     // Вся таблетка — одна кнопка: «Свернуть» внутри только подсказывает действие.
                     <button type="button" onClick={() => setAllSeries('stack')} title={t('Собрать все серии в стопки')}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 2px 2px 11px', borderRadius: 999,
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 2px 2px 12px', borderRadius: 999,
                         border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                         background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
                       <Layers size={12} strokeWidth={2} />
                       {t('Раскрыто')} {seriesOpenCount} {t('из')} {seriesTotal}
                       {/* Поля как у кнопок SegmentFilter (обёртка 2px + 5px) — таблетка ровно по высоте соседей. */}
-                      <span style={{ padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
-                        background: 'var(--color-surface)', color: 'var(--color-purple-text)', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+                      <span style={{ padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                        background: 'var(--color-surface)', color: 'var(--color-purple-text)', boxShadow: 'var(--shadow-1)' }}>
                         {t('Свернуть')}
                       </span>
                     </button>
@@ -9638,10 +9638,10 @@ export default function TeacherConstructorPage() {
                             const on = taskView === v
                             return (
                               <button key={v} onClick={() => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
-                                style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                                style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                                   background: on ? 'var(--color-peach-soft)' : 'var(--color-bg-3)',
-                                  color: on ? 'var(--color-peach-text)' : 'var(--color-muted)', transition: 'all 0.15s' }}>
+                                  color: on ? 'var(--color-peach-text)' : 'var(--color-muted)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                                 <Icon size={13} strokeWidth={2.2} /> {label}
                               </button>
                             )
@@ -9687,13 +9687,13 @@ export default function TeacherConstructorPage() {
                                   border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                                   background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                                  cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', zIndex: 5, boxShadow: 'var(--shadow-1)',
                                 }}>
                                   {checkedIds.has(w.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                                 </div>
                                 <button onClick={e => { e.stopPropagation(); duplicateWidget(w) }} title={t("Дублировать")}
                                   style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
-                                    background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                                    background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
                                   <Copy size={14} strokeWidth={2} />
                                 </button>
@@ -9773,9 +9773,9 @@ export default function TeacherConstructorPage() {
                     {editMode && c.shared && (
                       <div title={t("Общий курс — только для чтения")} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
-                        border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-5)',
+                        border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
-                        boxShadow: '0 1px 6px rgba(0,0,0,0.12)', color: 'var(--color-text-3)',
+                        boxShadow: 'var(--shadow-1)', color: 'var(--color-text-3)',
                       }}>
                         <Lock size={12} strokeWidth={2} />
                       </div>
@@ -9787,14 +9787,14 @@ export default function TeacherConstructorPage() {
                           border: checkedIds.has(c.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                           background: checkedIds.has(c.id) ? '#c0303a' : 'var(--color-bg-5)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
-                          boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                          cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', zIndex: 5,
+                          boxShadow: 'var(--shadow-1)',
                         }}>
                           {checkedIds.has(c.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                         </div>
                         <button onClick={e => { e.stopPropagation(); duplicateCourse(c) }} title={t("Дублировать")}
                           style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
-                            background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                            background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
                           <Copy size={14} strokeWidth={2} />
                         </button>
@@ -9827,7 +9827,7 @@ export default function TeacherConstructorPage() {
                         border: checkedIds.has(subject) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                         background: checkedIds.has(subject) ? '#c0303a' : 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                        cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', zIndex: 5, boxShadow: 'var(--shadow-1)',
                       }}>
                         {checkedIds.has(subject) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                       </div>
@@ -9851,7 +9851,7 @@ export default function TeacherConstructorPage() {
                         border: checkedIds.has(ct.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                         background: checkedIds.has(ct.id) ? '#c0303a' : 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                        cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', zIndex: 5, boxShadow: 'var(--shadow-1)',
                       }}>
                         {checkedIds.has(ct.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                       </div>
@@ -9983,7 +9983,7 @@ function AssignTestModal({
         initial={{ scale: 0.94, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 16 }}
         transition={{ type: 'spring', stiffness: 360, damping: 32 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 500, background: 'var(--color-bg-input)', borderRadius: 22, border: '1px solid var(--color-border-glass)', boxShadow: '0 32px 80px rgba(0,0,0,0.22)', overflow: 'hidden' }}
+        style={{ width: '100%', maxWidth: 500, background: 'var(--color-bg-input)', borderRadius: 22, border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-5)', overflow: 'hidden' }}
       >
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -10003,7 +10003,7 @@ function AssignTestModal({
             <div style={{ display: 'flex', gap: 8 }}>
               {(['test', 'trial'] as const).map(ty => (
                 <button key={ty} onClick={() => setAssignType(ty)}
-                  style={{ padding: '7px 16px', borderRadius: 10, border: `1.5px solid ${assignType === ty ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: assignType === ty ? 'var(--color-purple-soft)' : 'transparent', color: assignType === ty ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                  style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${assignType === ty ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: assignType === ty ? 'var(--color-purple-soft)' : 'transparent', color: assignType === ty ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                   {ty === 'test' ? t('Контрольная') : t('Пробник (ЕГЭ)')}
                 </button>
               ))}
@@ -10018,7 +10018,7 @@ function AssignTestModal({
                   style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
                     background: recipientMode === m ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                     color: recipientMode === m ? 'var(--color-accent)' : 'var(--color-muted)',
-                    fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                    fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                   {m === 'group' ? t('Группе') : t('Студенту')}
                 </button>
               ))}
@@ -10036,11 +10036,11 @@ function AssignTestModal({
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Дедлайн (необязательно)')}</div>
             <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-              style={{ padding: '9px 12px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }} />
+              style={{ padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }} />
           </div>
 
           <button onClick={handleSave} disabled={!canSave || saving}
-            style={{ padding: '12px', borderRadius: 12, border: 'none', background: canSave ? 'var(--color-purple-soft)' : 'var(--color-bg-5)', color: canSave ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: canSave ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+            style={{ padding: '12px', borderRadius: 12, border: 'none', background: canSave ? 'var(--color-purple-soft)' : 'var(--color-bg-5)', color: canSave ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: canSave ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
             {saving ? t('Сохраняем…') : t('Назначить тест')}
           </button>
         </div>
@@ -10082,14 +10082,14 @@ function AssignmentsPanel({
                 style={{ padding: '12px 16px', borderRadius: 14, background: 'var(--color-bg-card)', border: `1.5px solid ${isOpen ? 'var(--color-accent)' : 'var(--color-border-soft)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, transition: 'border-color 0.15s' }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 3 }}>{a.title}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{a.title}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {assignedGroups.map(g => <span key={g.id} style={{ color: g.color }}>● {g.name}</span>)}
                     {assignedStudents.map(s => <span key={s.id}>{tn(s.name)}</span>)}
                     {a.dueDate && <span>{t('до')} {a.dueDate}</span>}
                   </div>
                 </div>
-                <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? 'var(--color-yellow-text)' : 'var(--color-purple-text)' }}>
+                <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? 'var(--color-yellow-text)' : 'var(--color-purple-text)' }}>
                   {a.assignType === 'trial' ? t('Пробник') : t('Тест')}
                 </span>
                 <button onClick={e => { e.stopPropagation(); onDelete(a.id) }}

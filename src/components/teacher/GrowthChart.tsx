@@ -41,7 +41,8 @@ export default function GrowthChart({ name, subject }: { name: string; subject?:
   const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${xs(i).toFixed(1)} ${ys(p.pct).toFixed(1)}`).join(' ')
   const first = points[0].pct, last = points[points.length - 1].pct
   const delta = last - first
-  const ACC = '#f59e0b'
+  // Линия — акцент интерфейса, а не свой янтарный (палитра графиков — токены).
+  const ACC = 'var(--color-accent)'
 
   return (
     <div>
@@ -53,14 +54,14 @@ export default function GrowthChart({ name, subject }: { name: string; subject?:
       </div>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
         {[0, 50, 100].map(g => (
-          <line key={g} x1={pad} x2={W - pad} y1={ys(g)} y2={ys(g)} stroke="var(--color-border-soft)" strokeWidth="1" strokeDasharray="3 3" />
+          <line key={g} x1={pad} x2={W - pad} y1={ys(g)} y2={ys(g)} stroke="var(--color-border-strong)" strokeWidth="1" strokeDasharray="3 3" />
         ))}
         <path d={path} fill="none" stroke={ACC} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
         {points.map((p, i) => (
           <g key={i}>
             <circle cx={xs(i)} cy={ys(p.pct)} r="3.5" fill={ACC} />
-            <text x={xs(i)} y={ys(p.pct) - 8} fontSize="9" fill="var(--color-text-2)" textAnchor="middle" fontWeight="700">{p.pct}%</text>
-            <text x={xs(i)} y={H - 6} fontSize="8" fill="var(--color-text-3)" textAnchor="middle">{p.date}</text>
+            <text x={xs(i)} y={ys(p.pct) - 8} fontSize="10" fill="var(--color-text-2)" textAnchor="middle" fontWeight="700">{p.pct}%</text>
+            <text x={xs(i)} y={H - 6} fontSize="10" fill="var(--color-text-3)" textAnchor="middle">{p.date}</text>
           </g>
         ))}
       </svg>

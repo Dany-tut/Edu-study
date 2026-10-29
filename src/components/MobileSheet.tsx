@@ -65,6 +65,14 @@ export default function MobileSheet({
     dragControls.start(e)
   }
 
+  // Esc закрывает, как и окна: шторка открывается и на ПК (узкое окно).
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   // Палец: свой жест на touch-событиях (см. шапку файла) + замок на страницу
   // позади шторки — она не должна листаться под ней.
   useEffect(() => {
@@ -184,13 +192,13 @@ export default function MobileSheet({
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
             style={{
               y,
               position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 81,
               background: 'rgba(var(--glass-rgb), 0.98)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              backdropFilter: 'var(--blur-solid)',
+              WebkitBackdropFilter: 'var(--blur-solid)',
               borderRadius: '28px 28px 0 0',
               boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
               // Низа у шторки нет: контент уходит под край экрана, как на
