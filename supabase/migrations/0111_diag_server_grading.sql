@@ -7,6 +7,12 @@
 -- записать себе 100%. Встроенные наборы (биология, AP Chemistry, placement…)
 -- вдобавок лежали с ключами прямо в JS-бандле.
 --
+-- ДВА ШАГА. Эта миграция только ДОБАВЛЯЕТ: новые функции, сид, проверку
+-- ответов в save_diag_progress. Старый клиент (вкладки, открытые до деплоя)
+-- продолжает работать: читает diag_questions напрямую, сохраняет через ту же
+-- функцию с теми же параметрами — просто его балл больше не берётся. Закрывает
+-- доступ к ключам 0112, после выката клиента на get_diag_questions.
+--
 -- ЧТО ТЕПЕРЬ.
 --   • diag_questions читает только staff (редактор в Конструкторе). Ученику
 --     вопросы отдаёт get_diag_questions — те же поля, без correct и accepts.
@@ -73,15 +79,6 @@ from public.diag_question_defaults d
 cross join lateral jsonb_array_elements(d.questions) with ordinality as e(q, o)
 where not exists (select 1 from public.diag_questions x where x.subject = d.subject)
 on conflict (id) do nothing;
-
--- ── Ключи — только staff ────────────────────────────────────────────────────
-
-drop policy if exists anon_read on public.diag_questions;
-drop policy if exists auth_read on public.diag_questions;
-drop policy if exists diag_questions_read_staff on public.diag_questions;
-create policy diag_questions_read_staff on public.diag_questions
-  for select to authenticated using (public.is_staff());
-revoke all on public.diag_questions from anon;
 
 -- ── Проверка ответа ─────────────────────────────────────────────────────────
 
@@ -328,9 +325,3 @@ $$;
 
 revoke all on function public.log_diag_confidence(text, text, boolean) from public;
 grant execute on function public.log_diag_confidence(text, text, boolean) to anon, authenticated;
-
--- ── Прямая вставка — только скринингу ───────────────────────────────────────
-
-drop policy if exists diag_results_insert on public.diag_results;
-create policy diag_results_insert on public.diag_results
-  for insert to anon, authenticated with check (subject = 'logic');

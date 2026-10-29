@@ -4,9 +4,8 @@ import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Check, CheckCircle, Circle, ChevronRight, Maximize2, Target, X } from 'lucide-react'
 import {
-  loadDiagQuestions, fetchDiagQuestions, saveDiagProgress, updateStudentScoreFromAssignment,
-  loadDiagProgress, discardDiagProgress, type DiagProgress,
-  isDiagAnswerCorrect, diagCorrectLabel,
+  fetchPublicDiagQuestions, saveDiagProgress, logDiagConfidence,
+  loadDiagProgress, discardDiagProgress, type DiagProgress, type DiagSaveResult,
   type DiagSubject, type DiagQuestion, type DiagResults, type DiagAnswer,
   type CustomTestMeta,
 } from '../data/diagnosticData'
@@ -14,7 +13,6 @@ import { getPlacementVerdict, type PlacementVerdict } from '../data/placementTes
 import CognitiveScreeningPage from './CognitiveScreeningPage'
 import PartyPopperLottie from '../components/PartyPopperLottie'
 import { captureMistake } from '../data/reviewDeck'
-import { logConfidence } from '../data/confidence'
 import { getContrastColor, getCircleShadow } from '../lib/utils'
 import { useTheme } from '../store/themeStore'
 import { lighten } from '../lib/subjects'
@@ -438,12 +436,14 @@ export default function DiagnosticTestPage() {
   // Use rawSubject for data ops so custom test IDs are fetched correctly
   const fetchSubject = rawSubject as DiagSubject
 
-  const [questions, setQuestions] = useState<DiagQuestion[]>(() => isKnown ? loadDiagQuestions(subject) : [])
+  // Вопросы приходят без ключей (get_diag_questions): верность ответа знает
+  // только база. Встроенных наборов в бандле больше нет — грузим всегда.
+  const [questions, setQuestions] = useState<DiagQuestion[]>([])
   // For custom tests load metadata + questions from Supabase
   const [customMeta, setCustomMeta] = useState<{ label: string; accent: string; soft: string; doneLabel?: string } | null>(
     !isKnown ? inferMeta(rawSubject) : null  // show inferred name immediately while loading
   )
-  const [questionsLoading, setQuestionsLoading] = useState(!isKnown)
+  const [questionsLoading, setQuestionsLoading] = useState(true)
   useEffect(() => {
     if (!isKnown) {
       import('../data/diagnosticData').then(({ fetchCustomTestsMeta }) =>
@@ -453,8 +453,8 @@ export default function DiagnosticTestPage() {
           // else keep the inferred fallback already set
         })
       )
-      fetchDiagQuestions(fetchSubject).then(qs => { setQuestions(qs ?? []); setQuestionsLoading(false) })
     }
+    fetchPublicDiagQuestions(fetchSubject).then(qs => { setQuestions(qs); setQuestionsLoading(false) })
   }, [fetchSubject])
 
   const theme = customMeta
@@ -500,6 +500,8 @@ export default function DiagnosticTestPage() {
   const [termDraft, setTermDraft] = useState('')
   const isDesktop = useIsDesktop()
   const [results, setResults] = useState<DiagResults>(snap?.results ?? {})
+  // Верно/неверно по ответам — от базы и только у прогона по назначению.
+  const [feedback, setFeedback] = useState<NonNullable<DiagSaveResult['feedback']>>(snap?.feedback ?? {})
   const [saveFailed, setSaveFailed] = useState(false)
   const [retrying, setRetrying] = useState(false)
   // Секрет владения строкой: по нему аноним дописывает СВОЙ прогон и ничей
@@ -691,78 +693,78 @@ export default function DiagnosticTestPage() {
   function pick(idx: DiagAnswer) {
     if (!q || chosen[q.id] !== undefined) return
     if (askConfidence && confident === null) return  // must rate confidence first
-    setChosen(prev => ({ ...prev, [q!.id]: idx }))
-    if (askConfidence && confident !== null) {
-      logConfidence({ anonName: studentName.trim() || 'Аноним', subject, source: 'diagnostic', confident, correct: isDiagAnswerCorrect(q!, idx) })
-    }
-    const next = { ...chosen, [q!.id]: idx }
-    // Дозапись после КАЖДОГО ответа, не дожидаясь конца: строка появляется на
-    // первом же ответе и дальше только дополняется. Не ждём её — прохождение
-    // не должно зависеть от сети; итоговая запись свою неудачу покажет сама.
-    if (current < total - 1) {
-      const { res, answered, scorePct } = tally(next)
-      void saveDiagProgress({
+    const qid = q.id
+    const conf = askConfidence ? confident : null
+    setChosen(prev => ({ ...prev, [qid]: idx }))
+    const next = { ...chosen, [qid]: idx }
+    const last = current >= total - 1
+    // Дозапись после КАЖДОГО ответа: строка появляется на первом же ответе и
+    // дальше только дополняется. Проверяет ответ база — ключей у клиента нет.
+    // По общей ссылке не ждём её: прохождение не должно зависеть от сети,
+    // итоговая запись свою неудачу покажет сама. По назначению ждём — из неё
+    // приходит «верно / неверно».
+    let saved: Promise<unknown> = Promise.resolve()
+    if (!last) {
+      const p = saveDiagProgress({
         token: ownerToken, name: studentName.trim() || 'Аноним', subject: fetchSubject,
-        results: res, answers: next, answered, total, completed: false,
-        studentId: assignedStudentId, assignmentId, scorePct,
+        answers: next, completed: false, studentId: assignedStudentId, assignmentId,
+      }).then(r => {
+        if (r?.feedback) setFeedback(r.feedback)
+        // Уверенность — к уже записанному ответу: верность база берёт из строки.
+        if (r && conf !== null) void logDiagConfidence(ownerToken, qid, conf)
+        return r
       })
+      if (!isLinkMode) saved = p
     }
-    setTimeout(() => {
-      if (current < total - 1) {
+    const pause = new Promise(res => setTimeout(res, 600))
+    void Promise.all([saved, pause]).then(() => {
+      if (!last) {
         advance(() => { setConfident(null); setTermDraft(''); setCurrent(c => c + 1) })
       } else {
         setConfident(null)
         setTermDraft('')
-        finishTest(next)
+        void finishTest(next, conf === null ? null : { qid, confident: conf })
       }
-    }, 600)
+    })
   }
 
-  // Разбивка по системам считается ТОЛЬКО по отвеченным вопросам: у брошенного
-  // на середине прогона иначе получилось бы 3/36 вместо 3/3 по первой системе,
-  // и учитель прочитал бы это как провал вместо «дошёл до третьего вопроса».
-  function tally(answers: Record<string, DiagAnswer>) {
-    const res: DiagResults = {}
-    let answered = 0, correct = 0
-    for (const dq of questions) {
-      const a = answers[dq.id]
-      if (a === undefined) continue
-      answered++
-      if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
-      res[dq.section].total++
-      if (isDiagAnswerCorrect(dq, a)) { res[dq.section].correct++; correct++ }
-    }
-    return { res, answered, scorePct: answered > 0 ? Math.round((correct / answered) * 100) : 0 }
-  }
-
-  // Что именно уходило в базу — чтобы повтор отправлял ровно это, не пересчитывая
-  // и не записывая ошибки в колоду повторений второй раз.
+  // Что именно уходило в базу — чтобы повтор отправлял ровно это.
   const payload = useRef<Parameters<typeof saveDiagProgress>[0] | null>(null)
+  const lastConfidence = useRef<{ qid: string; confident: boolean } | null>(null)
 
-  async function finishTest(answers: Record<string, DiagAnswer>) {
-    const res: DiagResults = {}
-    const name = studentName.trim() || 'Аноним'
-    for (const dq of questions) {
-      if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
-      res[dq.section].total++
-      if (isDiagAnswerCorrect(dq, answers[dq.id])) res[dq.section].correct++
-      // Термины в колоду не идут: текст задания у них общий на весь тест
-      // («Запишите пропущенный термин…»), без таблицы карточка бессмысленна.
-      else if (dq.kind !== 'term') captureMistake({ anonName: name, subject: fetchSubject, source: 'diagnostic', prompt: dq.text, answer: dq.options[dq.correct], options: dq.options })
+  // Итог сдачи: разбивка и балл — из базы. Ошибки в колоду повторений — только
+  // когда база отдала верные ответы (прогон по назначению): по общей ссылке
+  // ключ ученику не положен, даже после сдачи.
+  function applyFinal(r: DiagSaveResult) {
+    setResults(r.results ?? {})
+    if (r.feedback) {
+      setFeedback(r.feedback)
+      const name = payload.current?.name ?? 'Аноним'
+      for (const dq of questions) {
+        const fb = r.feedback[dq.id]
+        // Термины в колоду не идут: текст задания у них общий на весь тест
+        // («Запишите пропущенный термин…»), без таблицы карточка бессмысленна.
+        if (fb && !fb.correct && fb.label && dq.kind !== 'term') {
+          void captureMistake({ anonName: name, subject: fetchSubject, source: 'diagnostic', prompt: dq.text, answer: fb.label, options: dq.options })
+        }
+      }
     }
-    const { scorePct } = tally(answers)
+    if (lastConfidence.current) {
+      void logDiagConfidence(ownerToken, lastConfidence.current.qid, lastConfidence.current.confident)
+      lastConfidence.current = null
+    }
+    clearLocal()
+  }
+
+  async function finishTest(answers: Record<string, DiagAnswer>, conf: { qid: string; confident: boolean } | null) {
     payload.current = {
-      token: ownerToken, name, subject: fetchSubject, results: res, answers,
-      answered: questions.length, total: questions.length, completed: true,
-      studentId: assignedStudentId, assignmentId, scorePct,
+      token: ownerToken, name: studentName.trim() || 'Аноним', subject: fetchSubject, answers,
+      completed: true, studentId: assignedStudentId, assignmentId,
     }
-    const ok = await saveDiagProgress(payload.current)
-    if (ok && assignedStudentId && assignmentId) {
-      await updateStudentScoreFromAssignment(assignedStudentId, assignmentId, scorePct)
-    }
-    setSaveFailed(!ok)
-    if (ok) clearLocal()
-    setResults(res)
+    lastConfidence.current = conf
+    const r = await saveDiagProgress(payload.current)
+    setSaveFailed(!r)
+    if (r) applyFinal(r)
     setStep('done')
   }
 
@@ -771,20 +773,35 @@ export default function DiagnosticTestPage() {
   async function retrySave() {
     if (!payload.current || retrying) return
     setRetrying(true)
-    const ok = await saveDiagProgress(payload.current)
-    setSaveFailed(!ok)
-    if (ok) clearLocal()
+    const r = await saveDiagProgress(payload.current)
+    setSaveFailed(!r)
+    if (r) applyFinal(r)
     setRetrying(false)
   }
+
+  // Прогон по назначению, продолженный после перезагрузки или по ссылке:
+  // разбор уже отвеченных вопросов заново спрашиваем у базы (ответы она не
+  // перепишет — шлём то, что есть).
+  const feedbackSynced = useRef(false)
+  useEffect(() => {
+    if (feedbackSynced.current || isLinkMode || step !== 'test' || !questions.length) return
+    if (!Object.keys(chosen).some(id => !feedback[id])) return
+    feedbackSynced.current = true
+    void saveDiagProgress({
+      token: ownerToken, name: studentName.trim() || 'Аноним', subject: fetchSubject,
+      answers: chosen, completed: false, studentId: assignedStudentId, assignmentId,
+    }).then(r => { if (r?.feedback) setFeedback(r.feedback) })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLinkMode, step, questions.length, chosen])
 
   // Снимок пишется на каждое изменение: перезагрузка может случиться в любой
   // момент, и «сохраним на выходе» здесь не работает — выхода не будет.
   useEffect(() => {
     if (step === 'name' && !Object.keys(chosen).length) return
     try {
-      sessionStorage.setItem(snapKey, JSON.stringify({ step, studentName, current, chosen, results, ownerToken }))
+      sessionStorage.setItem(snapKey, JSON.stringify({ step, studentName, current, chosen, results, feedback, ownerToken }))
     } catch { /* приватный режим — просто не переживём перезагрузку */ }
-  }, [snapKey, step, studentName, current, chosen, results, ownerToken])
+  }, [snapKey, step, studentName, current, chosen, results, feedback, ownerToken])
 
   useEffect(() => {
     if (step !== 'test' || !Object.keys(chosen).length) return
@@ -913,6 +930,9 @@ export default function DiagnosticTestPage() {
   if (step !== 'test' || !q) return null
 
   const picked = chosen[q.id]
+  // Разбор ответа — из базы; у выбора верный вариант узнаём по подписи.
+  const fb = picked !== undefined && !isLinkMode ? feedback[q.id] : undefined
+  const correctIdx = fb && q.kind !== 'term' ? q.options.indexOf(fb.label) : -1
 
   return (
     <div ref={pageRef} style={{
@@ -1157,8 +1177,8 @@ export default function DiagnosticTestPage() {
               {optionOrder.map((canon, place) => {
                 const opt = q.options[canon]
                 const isChosen = picked === canon
-                const isCorrect = q.correct === canon
-                const showResult = picked !== undefined && !isLinkMode
+                const isCorrect = canon === correctIdx
+                const showResult = !!fb
 
                 // Цвет выбора берётся из темы теста, а не фиксирован фиолетовым:
                 // у каждой диагностики свой акцент (у английского восстановления
@@ -1220,10 +1240,10 @@ export default function DiagnosticTestPage() {
 
             {/* Result feedback card — shown below options, not inside them */}
             <AnimatePresence>
-              {picked !== undefined && !isLinkMode && (() => {
-                const isRight = isDiagAnswerCorrect(q, picked)
+              {fb && (() => {
+                const isRight = fb.correct
                 // Термин без расставленных ответов проверить нечем — не пишем «Неверно».
-                if (q.kind === 'term' && !q.accepts?.length) return null
+                if (q.kind === 'term' && !fb.label) return null
                 return (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -1249,7 +1269,7 @@ export default function DiagnosticTestPage() {
                       </div>
                       {!isRight && (
                         <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 2 }}>
-                          {t('Правильный ответ:')} <span style={{ fontWeight: 600, color: '#22c55e' }}>{diagCorrectLabel(q)}</span>
+                          {t('Правильный ответ:')} <span style={{ fontWeight: 600, color: '#22c55e' }}>{fb.label}</span>
                         </div>
                       )}
                     </div>

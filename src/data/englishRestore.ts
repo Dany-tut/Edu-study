@@ -29,7 +29,7 @@
 // аптека, касса), а не учебные: конструкция должна узнаваться в той обстановке,
 // где ей предстоит работать.
 
-import type { DiagQuestion, DiagResults } from './diagnosticData'
+import type { DiagResults } from './diagnosticData'
 import type { PlacementVerdict } from './placementTests'
 
 // Система → день программы. Порядок = порядок дней.

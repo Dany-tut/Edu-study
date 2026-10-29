@@ -5,7 +5,7 @@
 // разбивка по разделам у учителя сама показывает, сколько взято на каждом
 // уровне, а вердикт (getPlacementVerdict) считает лесенку по этим префиксам.
 
-import type { DiagQuestion, DiagResults } from './diagnosticData'
+import type { DiagResults } from './diagnosticData'
 import { englishRestoreVerdict } from './englishRestore'
 
 

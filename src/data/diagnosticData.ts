@@ -1,9 +1,8 @@
-// Pre-designed diagnostic test questions for biology, chemistry, and logic screening.
+// Diagnostic tests: types, answer helpers, Supabase I/O. Built-in question sets (with keys)
+// live in scripts/diag/defaultQuestions.ts and in the DB — never in the bundle.
 // Teachers can view and edit these in Constructor → Тестирование.
 
 import { supabase } from '../lib/supabase'
-import { ENGLISH_PLACEMENT_QUESTIONS, KOREAN_PLACEMENT_QUESTIONS } from './placementTests'
-import { ENGLISH_RESTORE_QUESTIONS } from './englishRestore'
 import type { QTable } from '../components/QuestionTable'
 
 export type DiagSubject = 'biology' | 'chemistry' | 'logic' | 'ap-chem-ru' | 'ap-chem-en' | 'eng-placement' | 'kor-placement' | 'eng-restore'
@@ -77,14 +76,13 @@ export function diagAnswerLabel(q: DiagQuestion, a: DiagAnswer): string {
 export type DiagResults = Record<string, { correct: number; total: number }>
 
 
-// In-memory cache pre-seeded with compiled defaults so sync reads always work.
-const questionsCache = new Map<DiagSubject, DiagQuestion[]>(
-  (['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en', 'eng-placement', 'kor-placement', 'eng-restore'] as DiagSubject[]).map(s => [s, DEFAULT_QUESTIONS[s]])
-)
+// Кэш вопросов С КЛЮЧАМИ — только для staff (Конструктор). Встроенных наборов в
+// бандле больше нет (они публичны вместе со всей сборкой): всё приходит из базы.
+const questionsCache = new Map<DiagSubject, DiagQuestion[]>()
 
 // Sync read from cache (instant, no flicker). Call fetchDiagQuestions in useEffect to hydrate.
 export function loadDiagQuestions(subject: DiagSubject): DiagQuestion[] {
-  return questionsCache.get(subject) ?? DEFAULT_QUESTIONS[subject] ?? []
+  return questionsCache.get(subject) ?? []
 }
 
 /**
@@ -129,8 +127,8 @@ async function fetchDiagQuestionsNow(subject: DiagSubject): Promise<DiagQuestion
     .select('id, section, text, options, correct, payload')
     .eq('subject', subject)
     .order('position')
-  if (error || !data?.length) return loadDiagQuestions(subject)
-  const qs: DiagQuestion[] = data.map(r => withTermBlank({
+  if (error) { console.error('fetchDiagQuestions:', error); return loadDiagQuestions(subject) }
+  const qs: DiagQuestion[] = (data ?? []).map(r => withTermBlank({
     id: r.id as string,
     section: r.section as string,
     text: r.text as string,
@@ -143,6 +141,32 @@ async function fetchDiagQuestionsNow(subject: DiagSubject): Promise<DiagQuestion
   if (cached && JSON.stringify(cached) === JSON.stringify(qs)) return cached
   questionsCache.set(subject, qs)
   return qs
+}
+
+/**
+ * Вопросы для прохождения — БЕЗ КЛЮЧЕЙ (get_diag_questions, миграция 0111).
+ * `correct` = -1, `accepts` нет: проверяет база в save_diag_progress. Кэш
+ * staff-вопросов не трогаем — учитель, открывший тест во вкладке, иначе
+ * потерял бы ключи в редакторе.
+ */
+export async function fetchPublicDiagQuestions(subject: string): Promise<DiagQuestion[]> {
+  const { data, error } = await supabase.rpc('get_diag_questions', { p_subject: subject })
+  if (error) { console.error('fetchPublicDiagQuestions:', error); return [] }
+  return ((data ?? []) as Record<string, unknown>[]).map(r => withTermBlank({
+    id: r.id as string,
+    section: r.section as string,
+    text: r.text as string,
+    options: (r.options as string[] | null) ?? [],
+    correct: -1,
+    ...((r.payload as Partial<DiagQuestion> | null) ?? {}),
+  }))
+}
+
+/** Исходный набор встроенного теста — «Сбросить к исходным» (diag_question_defaults, только staff). */
+export async function fetchDiagDefaults(subject: DiagSubject): Promise<DiagQuestion[] | null> {
+  const { data, error } = await supabase.from('diag_question_defaults').select('questions').eq('subject', subject).maybeSingle()
+  if (error) { console.error('fetchDiagDefaults:', error); return null }
+  return (data?.questions as DiagQuestion[] | undefined) ?? null
 }
 
 // Async save — updates cache + upserts all rows to Supabase.
@@ -381,34 +405,61 @@ async function loadAnonResultsNow(): Promise<AnonDiagResult[]> {
  * ронять на ней прохождение нельзя. Итоговый вызов (`completed: true`) свою
  * неудачу показывает — там есть экран с повтором.
  */
+export interface DiagSaveResult {
+  completed: boolean
+  answered: number
+  total: number
+  /** Разбивка по разделам. По общей ссылке — только у сданного прогона. */
+  results: DiagResults | null
+  scorePct: number | null
+  /** Верно/неверно по ответам — только у прогона по назначению. */
+  feedback: Record<string, { correct: boolean; label: string }> | null
+}
+
+/**
+ * Балл считает база (миграция 0111): клиент присылает только ответы. Ключей у
+ * него нет — вопросы приходят из get_diag_questions без correct/accepts.
+ * Записанный ответ база не меняет: повторная отправка того же вопроса молча
+ * оставляет первый.
+ */
 export async function saveDiagProgress(p: {
   token: string
   name: string
   subject: DiagSubject | string
-  results: DiagResults
   answers: Record<string, DiagAnswer>
-  answered: number
-  total: number
   completed: boolean
   studentId?: string
   assignmentId?: string
-  scorePct?: number
-}): Promise<boolean> {
-  const { error } = await supabase.rpc('save_diag_progress', {
+}): Promise<DiagSaveResult | null> {
+  const { data, error } = await supabase.rpc('save_diag_progress', {
     p_token: p.token,
     p_name: p.name,
     p_subject: p.subject,
-    p_results: p.results,
+    p_results: null,
     p_answers: p.answers,
     p_student_id: p.studentId ?? null,
     p_assignment_id: p.assignmentId ?? null,
-    p_score_pct: p.scorePct ?? null,
-    p_answered: p.answered,
-    p_total: p.total,
+    p_score_pct: null,
+    p_answered: null,
+    p_total: null,
     p_completed: p.completed,
   })
-  if (error) { console.error('saveDiagProgress:', error); return false }
-  return true
+  if (error) { console.error('saveDiagProgress:', error); return null }
+  const r = (data ?? {}) as Record<string, unknown>
+  return {
+    completed: !!r.completed,
+    answered: (r.answered as number) ?? 0,
+    total: (r.total as number) ?? 0,
+    results: (r.results as DiagResults | null) ?? null,
+    scorePct: (r.score_pct as number | null) ?? null,
+    feedback: (r.feedback as DiagSaveResult['feedback']) ?? null,
+  }
+}
+
+/** «Уверен / не уверен» к уже сохранённому ответу; верность определяет база. */
+export async function logDiagConfidence(token: string, questionId: string, confident: boolean): Promise<void> {
+  const { error } = await supabase.rpc('log_diag_confidence', { p_token: token, p_question_id: questionId, p_confident: confident })
+  if (error) console.error('logDiagConfidence:', error)
 }
 
 // ── Продолжить брошенный прогон (0094) ──────────────────────────────────────
