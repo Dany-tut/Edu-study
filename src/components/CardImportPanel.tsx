@@ -362,8 +362,8 @@ export default function CardImportPanel({
             <button
               onClick={add}
               disabled={kept === 0}
-              style={{
-                height: 34, padding: '0 16px', borderRadius: 12, border: 'none', fontFamily: 'inherit',
+              style={{ height: 40,
+                padding: '0 16px', borderRadius: 12, border: 'none', fontFamily: 'inherit',
                 background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
                 opacity: kept === 0 ? 0.45 : 1, cursor: kept === 0 ? 'default' : 'pointer',
               }}

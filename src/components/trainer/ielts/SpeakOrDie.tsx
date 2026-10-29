@@ -173,9 +173,9 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button type="button" onClick={start} disabled={!asr} style={{
-                  height: 44, padding: '0 24px', borderRadius: 999, border: 'none', cursor: asr ? 'pointer' : 'default',
-                  background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, fontFamily: 'inherit',
+                <button type="button" onClick={start} disabled={!asr} style={{ height: 40,
+                  padding: '0 16px', borderRadius: 12, border: 'none', cursor: asr ? 'pointer' : 'default',
+                  background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
                   display: 'inline-flex', alignItems: 'center', gap: 8, opacity: asr ? 1 : 0.5,
                 }}>
                   <Mic size={16} /> {t('Начать')}
@@ -240,9 +240,9 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                 </p>
               )}
               <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" onClick={start} style={{
-                  height: 42, padding: '0 22px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 14, fontFamily: 'inherit',
+                <button type="button" onClick={start} style={{ height: 40,
+                  padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                  background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
                 }}>{t('Ещё раз')}</button>
                 <button type="button" onClick={again} style={{
                   height: 42, padding: '0 18px', borderRadius: 999, border: 'none', cursor: 'pointer',

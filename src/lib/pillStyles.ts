@@ -110,30 +110,43 @@ export const GRAD = {
   teal:      'var(--grad-teal)',
 } as const
 
-// ── 3. SOLID CTA BUTTON — purple accent, white text ─────────────────────────
-/** Primary call-to-action: --grad-purple (одинаков в обеих темах; --color-accent
- *  в тёмной теме светлый, и белые буквы на нём тонут). `style={ctaBtn}` */
-export const ctaBtn: CSSProperties = {
-  background: 'var(--grad-purple)', color: '#fff',
-  border: 'none', borderRadius: 12, cursor: 'pointer',
-  padding: '9px 18px', fontSize: 13, fontWeight: 700,
+// ── 3. КНОПКИ — три размера и четыре вида (дизайн-система, круг 2) ──────────
+/**
+ * `style={btn('M', 'primary')}`.
+ * Размеры: S — 32 / радиус 10 / 12 · 700, M — 40 / 12 / 13 · 700,
+ * L — 48 / 14 / 15 · 700 во всю ширину окна.
+ * Виды: primary — градиент (одинаков в обеих темах; --color-accent в тёмной
+ * светлый, и белые буквы на нём тонут), secondary — bg-3, quiet — без фона,
+ * danger — красный градиент. Неактивность — opacity, не бледная заливка.
+ */
+export type BtnSize = 'S' | 'M' | 'L'
+export type BtnKind = 'primary' | 'secondary' | 'quiet' | 'danger'
+const BTN_GEO: Record<BtnSize, CSSProperties> = {
+  S: { height: 32, padding: '0 12px', borderRadius: 10, fontSize: 12 },
+  M: { height: 40, padding: '0 16px', borderRadius: 12, fontSize: 13 },
+  L: { height: 48, padding: '0 22px', borderRadius: 14, fontSize: 15, width: '100%' },
+}
+const BTN_KIND: Record<BtnKind, CSSProperties> = {
+  primary:   { background: 'var(--grad-purple)', color: '#fff' },
+  secondary: { background: 'var(--color-bg-3)', color: 'var(--color-text)' },
+  quiet:     { background: 'transparent', color: 'var(--color-text-3)' },
+  danger:    { background: 'var(--btn-red-bg)', color: '#fff' },
+}
+export function btn(size: BtnSize = 'M', kind: BtnKind = 'primary', extra?: CSSProperties): CSSProperties {
+  return {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+    border: 'none', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+    ...BTN_GEO[size], ...BTN_KIND[kind], ...extra,
+  }
 }
 
-/** Gradient call-to-action (the "Готово" / nav-active look). */
-export const ctaGradBtn: CSSProperties = {
-  background: 'var(--grad-purple)', color: '#fff',
-  border: 'none', borderRadius: 12, cursor: 'pointer',
-  padding: '9px 18px', fontSize: 13, fontWeight: 700,
-}
+/** @deprecated — btn('M', 'primary'). Оставлено для старых вызовов. */
+export const ctaBtn: CSSProperties = btn('M', 'primary')
+/** @deprecated — btn('M', 'primary'). */
+export const ctaGradBtn: CSSProperties = btn('M', 'primary')
+/** Мягкая акцентная кнопка: фиолетовая подложка и фиолетовый текст. */
+export const softBtn: CSSProperties = btn('M', 'secondary', { background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' })
 
-/** Soft (secondary) accent button: purple fill + purple text, no white. */
-export const softBtn: CSSProperties = {
-  background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
-  border: 'none', borderRadius: 12, cursor: 'pointer',
-  padding: '9px 18px', fontSize: 13, fontWeight: 700,
-}
-
-// ── ENTITY → TONE MAP — keeps colour assignment consistent app-wide ─────────
 export const ENTITY_TONE = {
   course: 'purple', trainer: 'purple', group: 'purple', student: 'purple',
   diagnostics: 'purple', quiz: 'purple',

@@ -559,14 +559,14 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             whileHover={{ scale: 1.03, y: -1 }}
                             whileTap={{ scale: 0.97 }}
                             onClick={() => { setSelectedLessonId(null); openHomeworkForLesson(selectedLesson.id) }}
-                            style={{
+                            style={{ height: 40,
                               fontSize: 13,
                               fontWeight: 700,
                               color: '#fff',
                               background: 'var(--grad-purple)',
                               border: 'none',
-                              borderRadius: 14,
-                              padding: '8px 16px 8px 8px',
+                              borderRadius: 12,
+                              padding: '0 16px',
                               whiteSpace: 'nowrap',
                               cursor: 'pointer',
                               flex: 1,
@@ -700,13 +700,13 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       whileHover={{ scale: 1.04 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={() => { setSelectedHardLessonId(null); openHomeworkForLesson(selectedHardLesson.id, 'hard') }}
-                      style={{
-                        fontSize: 13,
+                      style={{ height: 48,
+                        fontSize: 15,
                         fontWeight: 700,
                         color: '#fff',
                         background: 'var(--grad-purple)',
-                        borderRadius: 12,
-                        padding: '9px 18px',
+                        borderRadius: 14,
+                        padding: '0 22px',
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
                         width: '100%',

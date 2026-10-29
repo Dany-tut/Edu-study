@@ -426,9 +426,9 @@ export default function TeacherHomeworkReviewPage() {
         <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
           {hw && group ? t('Пока никто не сдал работу') : t('Домашка не найдена')}
         </p>
-        <button onClick={() => setActivePage('homework')} style={{
-          padding: '9px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
-          background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 600,
+        <button onClick={() => setActivePage('homework')} style={{ height: 40,
+          padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+          background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
           boxShadow: '0 4px 14px rgba(99,84,207,0.38)',
         }}>
           {t('К списку ДЗ')}
@@ -765,10 +765,10 @@ export default function TeacherHomeworkReviewPage() {
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
                       onClick={() => handleVerdict('accepted')}
                       className="flex items-center cursor-pointer"
-                      style={{
-                        gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
+                      style={{ height: 40,
+                        gap: 8, padding: '0 16px', borderRadius: 12, border: 'none',
                         background: 'var(--grad-purple)',
-                        color: '#fff', fontSize: 14, fontWeight: 600,
+                        color: '#fff', fontSize: 13, fontWeight: 700,
                         boxShadow: '0 6px 18px rgba(124,108,224,0.35)',
                       }}
                     >

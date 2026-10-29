@@ -188,10 +188,10 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           whileHover={{ scale: 1.015 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleRestart}
-          style={{
-            height: 40, padding: '0 20px', borderRadius: 14, border: 'none', cursor: 'pointer',
+          style={{ height: 40,
+            padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
             background: 'var(--grad-purple)',
-            color: '#fff', fontSize: 14, fontWeight: 600, lineHeight: 1,
+            color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1,
           }}
         >
           {t('Начать заново')}

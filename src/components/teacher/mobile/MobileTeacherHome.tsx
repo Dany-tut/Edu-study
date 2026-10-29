@@ -238,7 +238,7 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
       {/* «Материалы» рядом была без обработчика с июля — кнопка, которая ничего
           не делает. В мобильном кабинете экрана материалов нет; убрана. */}
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700 }}>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ height: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0 16px', borderRadius: 12, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700}}>
           <Play size={14} /> {t('Открыть')}
         </motion.button>
       </div>

@@ -163,9 +163,9 @@ function GuestBar({ onLead }: { onLead: () => void }) {
           </button>
           <button
             onClick={onLead}
-            style={{
+            style={{ height: 40,
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '9px 14px', borderRadius: 12, cursor: 'pointer',
+              padding: '0 16px', borderRadius: 12, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
               border: 'none', background: 'var(--grad-purple)', color: '#fff',
             }}

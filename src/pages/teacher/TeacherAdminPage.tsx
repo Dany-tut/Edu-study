@@ -204,7 +204,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
             </div>
             <div style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', borderRadius: 12, padding: '10px 12px', wordBreak: 'break-all', marginBottom: 12 }}>{link}</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={copyLink} style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <button onClick={copyLink} style={{ height: 40, flex: 1, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} />}
                 {copied ? t('Скопировано!') : t('Скопировать ссылку')}
               </button>
@@ -246,10 +246,10 @@ function InviteModal({ onClose }: { onClose: () => void }) {
             <button
               onClick={createInvite}
               disabled={creating}
-              style={{
-                width: '100%', padding: '12px', borderRadius: 12, border: 'none', marginTop: 18,
+              style={{ height: 48,
+                width: '100%', padding: '0 22px', borderRadius: 14, border: 'none', marginTop: 18,
                 background: 'var(--grad-purple)', color: '#fff',
-                fontSize: 14, fontWeight: 600, cursor: creating ? 'wait' : 'pointer',
+                fontSize: 15, fontWeight: 700, cursor: creating ? 'wait' : 'pointer',
               }}
             >
               {creating ? t('Создаём…') : t('Создать пригласительную ссылку')}
@@ -1122,11 +1122,11 @@ export default function TeacherAdminPage() {
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={() => setInviteOpen(true)}
-              style={{
+              style={{ height: 32,
                 display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 14px', borderRadius: 12, border: 'none',
+                padding: '0 12px', borderRadius: 10, border: 'none',
                 background: 'var(--grad-purple)', color: '#fff',
-                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 boxShadow: '0 2px 10px rgba(106,90,230,0.35)',
               }}
             >

@@ -133,8 +133,8 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
                 <button
                   onClick={handleParse}
                   disabled={loading || !url.trim()}
-                  style={{
-                    padding: '10px 18px', borderRadius: 12, border: 'none', cursor: loading ? 'default' : 'pointer',
+                  style={{ height: 40,
+                    padding: '0 16px', borderRadius: 12, border: 'none', cursor: loading ? 'default' : 'pointer',
                     background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
                     display: 'flex', alignItems: 'center', gap: 6, opacity: loading || !url.trim() ? 0.6 : 1, flexShrink: 0,
                   }}
@@ -171,8 +171,8 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
                 <button
                   onClick={handleImport}
                   disabled={importing || !selectedCount}
-                  style={{
-                    padding: '9px 18px', borderRadius: 12, border: 'none', cursor: importing ? 'default' : 'pointer',
+                  style={{ height: 40,
+                    padding: '0 16px', borderRadius: 12, border: 'none', cursor: importing ? 'default' : 'pointer',
                     background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
                     opacity: importing || !selectedCount ? 0.6 : 1,
                   }}

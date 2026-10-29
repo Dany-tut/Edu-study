@@ -217,8 +217,8 @@ export default function JoinPage() {
             <button
               onClick={handleRegister}
               disabled={!emailValid || !passwordValid || saving}
-              style={{
-                marginTop: 22, width: '100%', padding: '13px 0',
+              style={{ height: 48,
+                marginTop: 22, width: '100%', padding: '0 22px',
                 background: 'var(--grad-purple)', opacity: emailValid && passwordValid ? 1 : 0.45,
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14,

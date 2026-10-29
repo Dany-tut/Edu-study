@@ -86,7 +86,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
             onClick={save}
             disabled={saving || roster.length === 0}
             className="cursor-pointer"
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 16, background: 'var(--grad-purple)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, opacity: roster.length === 0 ? 0.5 : 1 }}
+            style={{ height: 48, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 22px', borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, opacity: roster.length === 0 ? 0.5 : 1 }}
           >
             {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckSquare size={18} />} {t('Сохранить журнал')}
           </motion.button>

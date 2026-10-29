@@ -104,10 +104,10 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
                       <button
                         onClick={() => void requestPlan(p)}
                         disabled={requesting !== null}
-                        style={{
-                          width: '100%', padding: '10px 0', borderRadius: 12, border: 'none',
+                        style={{ height: 48,
+                          width: '100%', padding: '0 22px', borderRadius: 14, border: 'none',
                           cursor: requesting !== null ? 'default' : 'pointer',
-                          background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
+                          background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
                           opacity: requesting !== null && requesting.code !== p.code ? 0.5 : 1,
                         }}
                       >

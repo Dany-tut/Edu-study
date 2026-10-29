@@ -427,9 +427,9 @@ export default function TeacherFinancesPage() {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => students[0] && setPaying(students[0])}
-            style={{
+            style={{ height: 40,
               display: 'flex', alignItems: 'center', gap: 6,
-              padding: '9px 16px', borderRadius: 12,
+              padding: '0 16px', borderRadius: 12,
               background: 'var(--grad-purple)', border: 'none',
               color: '#fff', fontSize: 13, fontWeight: 700,
               cursor: 'pointer',

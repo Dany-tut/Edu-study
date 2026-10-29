@@ -29,10 +29,11 @@ export function teacherSaveStyle(opts: { accent?: SaveAccent; disabled?: boolean
   return {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
     flexShrink: 0, width: fullWidth ? '100%' : undefined,
-    padding: '9px 18px', borderRadius: 999, border: 'none',
+    // Размер M дизайн-системы (круг 2): 40 / радиус 12 / 13 · 700 — как btn('M').
+    height: 40, padding: '0 16px', borderRadius: 12, border: 'none',
     cursor: disabled ? 'not-allowed' : 'pointer',
     background: a.gradient, color: '#fff',
-    fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
+    fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
     boxShadow: a.glow
       ? `0 4px 14px ${a.shadow}, 0 0 22px 2px ${a.glow}`
       : `0 4px 14px ${a.shadow}`,

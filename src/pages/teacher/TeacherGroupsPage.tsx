@@ -204,8 +204,8 @@ function AddGroupModal({ onClose, onSave }: {
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}
-          style={{
-            marginTop: 22, width: '100%', padding: '12px 0',
+          style={{ height: 48,
+            marginTop: 22, width: '100%', padding: '0 22px',
             background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
@@ -489,8 +489,8 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}
-          style={{
-            marginTop: 22, width: '100%', padding: '12px 0',
+          style={{ height: 48,
+            marginTop: 22, width: '100%', padding: '0 22px',
             background: 'var(--grad-purple)', opacity: (name.trim() && selectedGroup) ? 1 : 0.45,
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: (name.trim() && selectedGroup) ? 'pointer' : 'not-allowed',
@@ -792,8 +792,8 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             <button
               onClick={handleSave}
               disabled={!name.trim() || saving}
-              style={{
-                marginTop: 22, width: '100%', padding: '12px 0',
+              style={{ height: 48,
+                marginTop: 22, width: '100%', padding: '0 22px',
                 background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
@@ -1036,8 +1036,8 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           <button
             onClick={issueAll}
             disabled={issuing}
-            style={{
-              padding: '9px 14px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
+            style={{ height: 40,
+              padding: '0 16px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
               border: 'none', opacity: issuing ? 0.7 : 1,
               background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
             }}
@@ -1867,7 +1867,7 @@ function TracksSection({
                 // Заливка — канонический --grad-purple (как у всех «Сохранить»):
                 // --color-purple/--color-accent светлые, они для ТЕКСТА, и белые
                 // буквы на них тонут. Неактивность — прозрачностью, не бледнотой.
-                style={{ flex: 1, padding: '8px 0', borderRadius: 9, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: 'var(--grad-purple)', opacity: (!subject.trim() || busy) ? 0.45 : 1, color: '#fff', fontSize: 12, fontWeight: 700 }}
+                style={{ height: 32, flex: 1, padding: '0 12px', borderRadius: 10, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: 'var(--grad-purple)', opacity: (!subject.trim() || busy) ? 0.45 : 1, color: '#fff', fontSize: 12, fontWeight: 700}}
               >
                 {busy ? t('Создаём…') : t('Создать карточку')}
               </button>
@@ -2149,12 +2149,12 @@ function StudentPanel({
       <div style={{ padding: '12px 20px 16px', flexShrink: 0, borderTop: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button
           onClick={onAddHomework}
-          style={{
-            width: '100%', padding: '11px 0',
+          style={{ height: 48,
+            width: '100%', padding: '0 22px',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
             background: 'var(--grad-purple)', border: 'none',
-            borderRadius: 12, cursor: 'pointer',
-            fontSize: 13, fontWeight: 700, color: '#fff',
+            borderRadius: 14, cursor: 'pointer',
+            fontSize: 15, fontWeight: 700, color: '#fff',
             transition: 'filter 0.15s',
           }}
           onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)' }}
@@ -2633,9 +2633,9 @@ export default function TeacherGroupsPage() {
                               const r = e.currentTarget.getBoundingClientRect()
                               setRosterAddMenu(v => v ? null : { top: r.bottom + 6, right: window.innerWidth - r.right })
                             }}
-                            style={{
+                            style={{ height: 40,
                               display: 'inline-flex', alignItems: 'center', gap: 6,
-                              padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+                              padding: '0 16px', borderRadius: 12, cursor: 'pointer',
                               background: 'var(--grad-purple)', border: 'none',
                               color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                             }}

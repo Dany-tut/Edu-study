@@ -158,7 +158,7 @@ export default function MobileProfilePage() {
                   onClick={() => { tactile(); pickImageFile(setCropFile) }}
                   aria-label={avatarPath ? t('Сменить фото') : t('Загрузить фото')}
                   className="flex items-center justify-center"
-                  style={{ position: 'relative', width: 58, height: 58, borderRadius: 999, padding: 0, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 24, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
+                  style={{ height: 40, position: 'relative', width: 58, borderRadius: 12, padding: '0 16px', border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
                 >
                   {initial}
                   <AvatarPhotoFill path={avatarPath} />
