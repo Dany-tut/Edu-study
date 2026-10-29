@@ -158,9 +158,10 @@ export default function NotificationToastContainer() {
           transition={{ type: 'spring', stiffness: 420, damping: 28 }}
           style={{
             position: 'fixed',
-            top: 76,
-            right: 24,
-            width: 300,
+            // С учётом выреза и полей телефона (16), а не прибито к 76/24.
+            top: 'calc(env(safe-area-inset-top, 0px) + 76px)',
+            right: 16,
+            width: 'min(300px, calc(100vw - 32px))',
             zIndex: 8500,
             pointerEvents: 'auto',
           }}
@@ -221,8 +222,9 @@ export default function NotificationToastContainer() {
                 </span>
                 <button
                   onClick={e => { e.stopPropagation(); dismissAll() }}
+                  aria-label={t('Закрыть')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--color-text-3)', display: 'flex', padding: 2 }}
+                    color: 'var(--color-text-3)', display: 'flex', padding: 11, margin: -9 }}
                 >
                   <X size={14} />
                 </button>
@@ -243,7 +245,7 @@ export default function NotificationToastContainer() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {live.map((n, i) => (
                         <div key={n.id}>
-                          {i > 0 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />}
+                          {i > 0 && <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 0' }} />}
                           <NotifRow n={n} onRead={markRead} onAction={handleAction} />
                         </div>
                       ))}

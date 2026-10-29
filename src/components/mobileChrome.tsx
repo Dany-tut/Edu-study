@@ -75,12 +75,15 @@ export function GlassIconButton({
   icon,
   onClick,
   dot = false,
+  dotTone = 'accent',
   ariaLabel,
   size = MOBILE_PILL_H,
 }: {
   icon: ReactNode
   onClick?: () => void
   dot?: boolean
+  /** alert — красная точка «непрочитано» (как у колокольчика на ПК). */
+  dotTone?: 'accent' | 'alert'
   ariaLabel?: string
   size?: number
 }) {
@@ -120,7 +123,7 @@ export function GlassIconButton({
           <span style={{
             position: 'absolute', top: size * 0.22, right: size * 0.24,
             width: 7, height: 7, borderRadius: 999,
-            background: 'var(--color-accent)', border: '1.5px solid var(--color-bg)',
+            background: dotTone === 'alert' ? 'var(--btn-red-bg)' : 'var(--color-accent)', border: '1.5px solid var(--color-bg)',
           }} />
         )}
       </span>
