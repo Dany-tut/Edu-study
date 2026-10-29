@@ -110,10 +110,15 @@ function optionTexts(entry: unknown): string[] | undefined {
 }
 
 function parseQuestions(loadData: unknown[]): ImportedQuestion[] {
-  const items = (loadData?.[1] as unknown[]) ?? []
+  // loadData[1] = [описание формы, [вопросы…], …] — сами вопросы лежат в [1][1].
+  // Раньше брали [1] целиком: «вопросами» становились буквы описания, а настоящие
+  // вопросы склеивались через запятую в один.
+  const formInfo = loadData?.[1] as unknown[] | undefined
+  const items = Array.isArray(formInfo?.[1]) ? formInfo[1] as unknown[] : []
   const questions: ImportedQuestion[] = []
 
   for (const raw of items) {
+    if (!Array.isArray(raw)) continue
     const item = raw as unknown[]
     const itemId = String(item?.[0] ?? '')
     const itemTitle = String(item?.[1] ?? '').trim()
