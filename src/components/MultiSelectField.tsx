@@ -179,6 +179,9 @@ export default function MultiSelectField({
         {open ? (
           // Expanded: input first so it stays on the same line as chips.
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* В форме выбранное — первым, курсор за ним, как в поле ввода:
+                справа от длинной строки ввода плашки читались как чужие. */}
+            {field && values.map(chip)}
             <input
               ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
               className="mobile-input-16"
@@ -206,7 +209,7 @@ export default function MultiSelectField({
               // коробка остаётся на своих 38.
               style={{ flex: 1, minWidth: 80, border: 'none', outline: 'none', background: 'transparent', fontSize, lineHeight: '20px', height: 20, color: 'var(--color-text)', fontFamily: 'inherit', padding: 0 }}
             />
-            {values.map(chip)}
+            {!field && values.map(chip)}
           </div>
         ) : isEmpty ? (
           <span style={{ flex: 1, minWidth: 0, fontSize, color: field ? 'var(--color-muted)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
