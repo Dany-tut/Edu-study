@@ -29,6 +29,9 @@ import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
+import TestlyPicker, { testlyRef } from '../../components/teacher/TestlyPicker'
+import { TestlyTile } from '../../components/TestlyMark'
+import { useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import ScrollFade from '../../components/ScrollFade'
 import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
@@ -331,6 +334,12 @@ const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.E
   taskTypesFor({ language: true }).map(d => ({
     type: d.id, label: d.label, hint: d.hint, Icon: d.Icon, ...d.visual, languageOnly: d.languageOnly,
   }))
+
+// Тест из Тестли в палитру не входит — карточке нужна та же запись.
+const TESTLY_CFG = (() => {
+  const d = TASK_TYPES_BY_ID.testly
+  return { type: d.id, label: d.label, hint: d.hint, Icon: d.Icon, ...d.visual, languageOnly: false }
+})()
 
 // Свежее задание с дефолтами по типу — общая фабрика для всех мест добавления.
 function makeHWTask(type: HWTaskType, isHard: boolean): HWTask {
@@ -2698,7 +2707,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   onGripDown?: () => void
 }) {
   const t = useT()
-  const cfg = TASK_TYPES.find(x => x.type === task.type)!
+  const cfg = task.type === 'testly' ? TESTLY_CFG : TASK_TYPES.find(x => x.type === task.type)!
   const [expanded, setExpanded] = useState(true)
   const imgInputRef = useRef<HTMLInputElement>(null)
   const choices = task.choices ?? ['', '', '', '']
@@ -2752,14 +2761,14 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
             style={{ overflow: 'hidden' }}
           >
             <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Question */}
-              <AutoTextarea
+              {/* Question — у теста из Тестли ни условия, ни фото: вопросы в самом тесте. */}
+              {task.type !== 'testly' && <AutoTextarea
                 value={task.question ?? ''}
                 onChange={v => onUpdate({ ...task, question: v })}
                 placeholder={t('Условие задания...')}
                 minHeight={TASK_TEXT_MIN_H}
                 style={taskTextSt}
-              />
+              />}
 
               {/* Условие-картинка */}
               <input ref={imgInputRef} type="file" accept="image/*" style={{ display: 'none' }}
@@ -2771,7 +2780,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   e.target.value = ''
                 }}
               />
-              {task.image ? (
+              {task.type !== 'testly' && (task.image ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {IMG_SIZES.map(s => (
@@ -2797,7 +2806,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
                   <Camera size={13} /> {t('Добавить фото к условию')}
                 </button>
-              )}
+              ))}
 
               {/* Choice options */}
               {(task.type === 'single' || task.type === 'multi') && (
@@ -3789,6 +3798,24 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
   )
 }
 
+/** «Из Тестли» под «Из тренажёра»: та же пунктирная кнопка, список раскрывается под ней. */
+function TestlyButton({ onPick, addedIds }: { onPick: (x: TestlyTest) => void; addedIds: Set<string> }) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  return (
+    <div>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%',
+        padding: '10px 12px', borderRadius: 13, border: '1.5px dashed var(--color-border)',
+        background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)',
+      }}>
+        <TestlyTile size={14} /> {open ? t('Скрыть Тестли') : t('Из Тестли')}
+      </button>
+      {open && <div style={{ marginTop: 6 }}><TestlyPicker compact addedIds={addedIds} onPick={onPick} /></div>}
+    </div>
+  )
+}
+
 // ─── LEFT: Homework meta + task-type picker ──────────────────────────────────
 
 function HomeworkLeftPanel({
@@ -3820,6 +3847,12 @@ function HomeworkLeftPanel({
   function addFromBank(bt: BankTask, isHard: boolean) {
     onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, hwTaskFromBank(bt, isHard)] }))
   }
+
+  // Тест из Тестли — кнопкой под «Из тренажёра», когда модуль подключён.
+  const testlyOn = useTestlyModule(s => s.connected)
+  const loadTestly = useTestlyModule(s => s.load)
+  useEffect(() => { void loadTestly() }, [loadTestly])
+  const testlyIds = new Set(tasks.flatMap(x => (x.type === 'testly' && x.testly ? [x.testly.id] : [])))
 
   // Сложные задания: развёрнутый ответ, выбор и доска (ребёнок рисует решение).
   const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'extended' || t.type === 'single' || t.type === 'multi' || t.type === 'whiteboard')
@@ -3865,6 +3898,7 @@ function HomeworkLeftPanel({
           <TaskTypeRow key={tt.type} type={tt.type} onClick={() => addTask(tt.type, false)} />
         ))}
         <BankPicker onPick={bt => addFromBank(bt, false)} />
+        {testlyOn && <TestlyButton addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />}
       </PaletteSection>
       ) : (
       <PaletteSection title={t('СЛОЖНОЕ ЗАДАНИЕ')} count={hardCount} accent="#D97706">

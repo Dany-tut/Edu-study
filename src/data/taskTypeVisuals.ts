@@ -84,6 +84,9 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   columnSort:    { color: 'var(--color-rose-text)',      bg: 'var(--color-rose-soft)',      fill: 'var(--color-rose-fill)' },
   // Внешнее упражнение засчитывается прохождением — к видео, тот же синий.
   embed:         { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
+  // Тест из Тестли — нейтральный, без своей семьи: узнаётся по знаку (TestlyTile),
+  // а не по цвету. Текст — цвет темы, иначе чернила пропадают в тёмной.
+  testly:        { color: 'var(--color-text)',           bg: 'var(--color-bg-3)',           fill: '#080F14' },
 }
 
 export function typeVisual(t: string): TypeVisual {

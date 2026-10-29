@@ -20,6 +20,7 @@ import { uploadAvatarPhoto, removeAvatarPhoto, saveTeacherAvatarPath } from '../
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
 import { Alert } from '../../components/Alert'
+import TeacherModules from '../../components/teacher/TeacherModules'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -314,6 +315,9 @@ export default function TeacherProfileSettingsPage() {
             onClick={handleSave} icon={<Save size={15} strokeWidth={2.5} />} fullWidth
           />
         </div>
+
+        {/* Модули — подключаемые продукты (Тестли): кнопки «Из Тестли» в ДЗ и уроках. */}
+        <TeacherModules />
 
         {/* Цвета предметов — сохраняются сразу по выбору, отдельно от имени:
             менять цвет и жать «Сохранить» внизу формы — лишний шаг. */}

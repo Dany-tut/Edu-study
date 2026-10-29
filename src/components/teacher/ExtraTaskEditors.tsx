@@ -15,7 +15,7 @@ import GrowTextarea from '../GrowTextarea'
 import { alertDialog } from '../ConfirmHost'
 import {
   gapTextParts,
-  type GapChoice, type SortItem, type TfStatement, type TfVerdict,
+  type GapChoice, type SortItem, type TestlyRef, type TfStatement, type TfVerdict,
 } from '../../data/taskTypes'
 
 /**
@@ -35,8 +35,12 @@ export interface ExtraTaskFields {
   columns?: string[]
   sortItems?: SortItem[]
   embedUrl?: string
+  testly?: TestlyRef
+  /** testly: название теста дублируется в условие — его видно в шапке карточки. */
+  question?: string
 }
 import { parseEmbed, EMBED_HOST_LABELS } from '../../lib/embed'
+import TestlyTaskEditor from './TestlyTaskEditor'
 import { useT } from '../../lib/i18n'
 
 /** Цвета типа (из реестра): по ним красятся выбранный вердикт и корзина. */
@@ -375,6 +379,11 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                   </div>
                 )
               })()}
+
+              {/* testly — тест из Тестли: вопросы живут там, здесь выбор и ссылка. */}
+              {task.type === 'testly' && (
+                <TestlyTaskEditor value={task.testly} onChange={ref => onUpdate({ ...task, testly: ref, question: ref.title })} />
+              )}
 
     </>
   )

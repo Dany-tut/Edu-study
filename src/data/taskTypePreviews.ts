@@ -400,6 +400,14 @@ export const TASK_TYPE_PREVIEWS: Record<TaskTypeId, TaskTypePreview> = {
     ],
   },
 
+  testly: {
+    teaches: 'Готовый тест из Тестли целиком: ученик проходит его на весь экран и возвращается в домашку.',
+    blocks: [
+      { kind: 'media', shape: 'embed' },
+      { kind: 'verdict', text: 'Тест сдан', ok: true },
+    ],
+  },
+
   crossword: {
     teaches: 'Единственное задание без подсказки формы: слово вспоминается по значению, а пересечения проверяют себя сами.',
     blocks: [

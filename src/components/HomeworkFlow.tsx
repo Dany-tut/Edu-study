@@ -57,12 +57,13 @@ import { homeworkStorageKey } from '../lib/homeworkReset'
 import VoiceRecorder from './VoiceRecorder'
 import SpeechHeard from './SpeechHeard'
 import {
-  answerMap, charUnits, gapChoiceRows, sentenceTokens, sortRows, tfRows, EMBED_DONE,
+  answerMap, charUnits, gapChoiceRows, sentenceTokens, sortRows, tfRows, EMBED_DONE, testlyDoneAt,
 } from '../data/taskTypes'
 import TrueFalseSolver from './TrueFalseSolver'
 import DropdownGapSolver from './DropdownGapSolver'
 import ColumnSortSolver from './ColumnSortSolver'
 import EmbedTask from './EmbedTask'
+import TestlyTask from './TestlyTask'
 import CharTilesSolver from './CharTilesSolver'
 import BlockOrderSolver from './BlockOrderSolver'
 import JamoTypeSolver from './JamoTypeSolver'
@@ -918,6 +919,8 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
   }
   // Внешнее упражнение: отвечено ровно тогда, когда ученик отметил прохождение.
   if (qType(q) === 'embed') return ans === EMBED_DONE
+  // Тест из Тестли — так же: отвечено, когда ученик отметил сдачу.
+  if (qType(q) === 'testly') return testlyDoneAt(ans) !== null
   // Кроссворд: отвечено, когда заполнены все клетки сетки.
   if (qType(q) === 'crossword') {
     const clues = crosswordRows(q)
@@ -979,6 +982,7 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'columnSort') return sortRows(q).length > 0 && namedColumns(q).length >= 2
   // Внешнее упражнение: проверяем ровно то, что можем, — отметку о прохождении.
   if (langTp === 'embed') return !!q.embedUrl?.trim()
+  if (langTp === 'testly') return !!q.testly?.id
   // Устное задание проверяет себя само ТОЛЬКО там, где автор задал эталон
   // («прочитайте вслух»). Свободный устный ответ и описание картинки эталона
   // не имеют — они по-прежнему целиком у преподавателя.
@@ -1029,6 +1033,7 @@ function taskBodyMissing(q: HomeworkQuizQuestion): boolean {
     case 'dropdownGap': return gapChoiceRows(q).length === 0 || !(q.gapText ?? '').trim()
     case 'columnSort': return sortRows(q).length === 0 || namedColumns(q).length < 2
     case 'embed': return !q.embedUrl?.trim()
+    case 'testly': return !q.testly?.id
     case 'dialogGap': return (q.dialog?.length ?? 0) < 2 || !q.referenceAnswer
     case 'pattern': return drillItems(q).length === 0
     case 'videoWatch': return !q.videoUrl
@@ -1164,6 +1169,8 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
     }
     // Внешнее упражнение: единственное, что мы знаем, — прошёл или нет.
     if (langTp === 'embed') return ans === EMBED_DONE
+    // Тест из Тестли (шаг 1): балла ещё нет, засчитывается сдача.
+    if (langTp === 'testly') return testlyDoneAt(ans) !== null
   }
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') {
@@ -2015,6 +2022,8 @@ export default function HomeworkFlow({
           .join('; ')
       } else if (tp === 'embed') {
         answer = raw === EMBED_DONE ? tStatic('прошёл') : ''
+      } else if (tp === 'testly') {
+        answer = testlyDoneAt(raw) !== null ? tStatic('сдал тест в Тестли') : ''
       } else if (tp === 'pattern') {
         // Дрилл хранится JSON-картой «строка → что вписали»: преподавателю она
         // нечитаема, разворачиваем в те же строки, что видел ученик.
@@ -4003,6 +4012,14 @@ export default function HomeworkFlow({
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
                     /* Пропуски по банку слов: одна пачка строк, один банк. */
+                    /* Тест из Тестли: проходится на его сайте, сюда — отметка сдачи. */
+                    ) : qType(question) === 'testly' ? (
+                    <TestlyTask
+                      test={question.testly}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
                     ) : qType(question) === 'wordDrop' && dropRows(question).length > 0 ? (
                     <WordDropSolver
                       rows={dropRows(question)}

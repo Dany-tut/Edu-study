@@ -4,7 +4,7 @@ import { ContentCard, CardSkeleton, type CardActions } from '../../components/te
 import { SortDropdown, FacetDropdown, SubjectFacet, useShelfSubjects, PickSubjectHint, canonSubject, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BookOpen, Zap, Layers, Plus, Clock, GraduationCap, Brain, FileText, X, Check, Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown, CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh, Image as ImageIcon, Key, Maximize2, ListChecks, Eye, EyeOff, CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon, AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp, CheckCircle, Circle, Globe, Copy, Search, LayoutGrid, Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette, ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette, Calculator, Star, Lightbulb, Microscope, Music, Sigma, Lock, Loader2, Library, AlertTriangle } from 'lucide-react'
+import { BookOpen, Zap, Layers, Plus, Clock, GraduationCap, Brain, FileText, X, Check, Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown, CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh, Image as ImageIcon, Key, Maximize2, ListChecks, Eye, EyeOff, CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon, AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp, CheckCircle, Circle, Globe, Copy, Search, LayoutGrid, Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette, ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette, Calculator, Star, Lightbulb, Microscope, Music, Sigma, Lock, Loader2, Library, AlertTriangle, ExternalLink as ExternalLinkIcon } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
@@ -53,6 +53,8 @@ import { useTheme } from '../../store/themeStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
+import TestlyMark, { TestlyTile } from '../../components/TestlyMark'
+import { fetchTestlyTests, testlyEditUrl, testlyMeta, testlyNewUrl, useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, BankFilterFields, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
@@ -1552,7 +1554,8 @@ type TestSortMode = CourseSortMode | 'recent' | 'popular'
 const TEST_SORT_OPTS: [TestSortMode, string][] = [
   ['newest', 'Новые'], ['oldest', 'Старые'], ['recent', 'Недавно проходили'], ['popular', 'Популярные'], ['az', 'А → Я'],
 ]
-type TestPassFilter = '' | 'taken' | 'untaken'
+// 'testly' — только тесты из Тестли (появляется, когда модуль подключён).
+type TestPassFilter = '' | 'taken' | 'untaken' | 'testly'
 
 function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChange: (v: CourseSortMode) => void }) {
   return <SortDropdown value={value} options={COURSE_SORT_OPTS} accent="var(--color-green-text)" onChange={onChange} />
@@ -8201,6 +8204,17 @@ export default function TeacherConstructorPage() {
   const [testQuery, setTestQuery] = useState('')
   const [testSort, setTestSort] = usePersistentState<TestSortMode>('ctor.testSort', 'newest')
   const [testPass, setTestPass] = usePersistentState<TestPassFilter>('ctor.testPass', '')
+  // Тесты из Тестли на той же полке: карточки-ссылки, вопросы живут в Тестли.
+  const testlyOn = useTestlyModule(s => s.connected)
+  const loadTestly = useTestlyModule(s => s.load)
+  useEffect(() => { void loadTestly() }, [loadTestly])
+  const [testlyTests, setTestlyTests] = useState<TestlyTest[]>([])
+  useEffect(() => {
+    if (!testlyOn || activeTab !== 'testing') return
+    let alive = true
+    fetchTestlyTests().then(list => { if (alive) setTestlyTests(list) }, () => { if (alive) setTestlyTests([]) })
+    return () => { alive = false }
+  }, [testlyOn, activeTab])
   // Части серии («…, часть 2») — стопкой или подряд. Тумблер задаёт режим для
   // всех серий разом (и запоминается), а клик по стопке или «свернуть» у части
   // переворачивает одну серию — такие исключения лежат в seriesFlip до
@@ -8353,6 +8367,7 @@ export default function TeacherConstructorPage() {
   const testVisible = (id: string) => {
     if (!testSubjectVisible(id)) return false
     if (activeTestLevel && !testLevelsOf.get(id)?.includes(activeTestLevel)) return false
+    if (testPass === 'testly') return false
     if (testPass && !!testStats.get(id)?.last !== (testPass === 'taken')) return false
     if (testNeedle && !normSearch(testTitleOf(id)).includes(testNeedle)) return false
     return true
@@ -9544,6 +9559,7 @@ export default function TeacherConstructorPage() {
                           ['', t('Все')],
                           ['taken', t('Проходят'), 'var(--color-green-text)'],
                           ['untaken', t('Без сдач'), 'var(--color-peach-text)'],
+                          ...(testlyOn ? [['testly', t('Тестли')] as [TestPassFilter, string]] : []),
                         ]}
                         onChange={setTestPass}
                       />
@@ -9850,6 +9866,29 @@ export default function TeacherConstructorPage() {
                     )}
                   </motion.div>
                 ) })() })())}
+                {activeTab === 'testing' && testlyOn && (testPass === '' || testPass === 'testly') && (<>
+                  {testlyTests.filter(x => !testNeedle || normSearch(x.title).includes(testNeedle)).map(x => (
+                    <ContentCard key={'testly-' + x.id}
+                      accentColor="#080F14" accentBg="rgba(8,15,20,0.05)"
+                      isSelected={false}
+                      onClick={() => window.open(testlyEditUrl(x.id), '_blank', 'noopener')}
+                      icon={<TestlyMark size={15} style={{ color: "#fff" }} />} iconBg="#080F14"
+                      badge={<span style={cardChip('var(--color-text)')}>{t('Тестли')}</span>}
+                      title={x.title}
+                      subtitle={testlyMeta(x)}
+                      footerLeft={<><ListChecks size={13} strokeWidth={1.8} /><span>{x.status === 'draft' ? t('Черновик') : x.manual ? t('Есть часть 2') : t('Автопроверка')}</span></>}
+                      footerRight={<><ExternalLinkIcon size={11} strokeWidth={2} />{t('Открыть')}</>}
+                    />
+                  ))}
+                  <a href={testlyNewUrl()} target="_blank" rel="noopener noreferrer" style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 150,
+                    borderRadius: 20, border: '1.5px dashed var(--color-border-medium)', textDecoration: 'none', padding: 18, textAlign: 'center',
+                  }}>
+                    <TestlyTile size={36} />
+                    <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>{t('Новый тест в Тестли')}</span>
+                    <span style={{ fontSize: 11, lineHeight: 1.4, color: 'var(--color-text-3)', maxWidth: 200 }}>{t('Тесты из вашего Тестли появляются здесь сами')}</span>
+                  </a>
+                </>)}
               </div>
 
               </motion.div>

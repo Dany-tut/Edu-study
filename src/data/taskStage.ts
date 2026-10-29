@@ -61,6 +61,7 @@ export function taskStage(t: AnyTask): Stage {
     case 'flashcard':
     case 'videoWatch':
     case 'embed':
+    case 'testly':
       return 0
 
     case 'single':
@@ -139,6 +140,7 @@ const SECONDS: Record<string, number> = {
   trueFalse: 60,
   dropdownGap: 40,
   embed: 120,
+  testly: 1500,
   columnSort: 60,
   tableFill: 45,
   wordDrop: 90,

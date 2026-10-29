@@ -1,5 +1,5 @@
 import { type Lesson } from './mockData'
-import { normalizeTaskType, type CrosswordClue, type DialogLine, type GapChoice, type GapRow, type PatternItem, type SortItem, type StoredTaskType, type TaskPayload, type TfStatement } from './taskTypes'
+import { normalizeTaskType, type CrosswordClue, type DialogLine, type GapChoice, type GapRow, type PatternItem, type SortItem, type StoredTaskType, type TaskPayload, type TestlyRef, type TfStatement } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
 import { apLessonContent } from './apLessonChunk'
 import type { ApLessonContent } from './apChemistryLessons'
@@ -79,6 +79,8 @@ export interface HomeworkQuizQuestion {
   sortItems?: SortItem[]
   /** embed — адрес внешнего упражнения (разбирается lib/embed.ts). */
   embedUrl?: string
+  /** testly — тест из Тестли: id для адреса и карточка (lib/testlyModule.ts). */
+  testly?: TestlyRef
   /** crossword — слова и подсказки; сетка считается по ним. */
   clues?: CrosswordClue[]
   /** wordBank / listenBank — эталонное предложение (режется на плитки по пробелам). */
@@ -406,6 +408,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     columns: t.columns,
     sortItems: t.sortItems,
     embedUrl: t.embedUrl,
+    testly: t.testly,
     sentence: t.sentence,
     distractors: t.distractors,
     audioUrl: t.audioUrl,

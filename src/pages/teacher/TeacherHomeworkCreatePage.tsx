@@ -36,8 +36,11 @@ import { useOverlayScroll, ScrollOverlays, fadeMask } from '../../components/tea
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
 import ExtraTaskEditors from '../../components/teacher/ExtraTaskEditors'
+import TestlyPicker, { testlyRef } from '../../components/teacher/TestlyPicker'
+import { TestlyTile } from '../../components/TestlyMark'
+import { useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
-import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
+import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, TASK_TYPES as TASK_TYPE_DEFS, type TaskTypeId, type TaskPayload, type TestlyRef } from '../../data/taskTypes'
 import { alertMissingAnswers, isMissingAnswer } from '../../lib/answerCheck'
 import BackCircle from '../../components/BackCircle'
 
@@ -61,6 +64,8 @@ type HWTask = {
   sequenceItems?: string[]
   table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
   canvasData?: string
+  /** testly — тест из Тестли (вкладка «Из Тестли»). */
+  testly?: TestlyRef
 }
 
 function makeTask(type: HWTaskType): HWTask {
@@ -173,7 +178,15 @@ const TASK_TYPES: { type: HWTaskType; label: string; hint: string; icon: React.E
     type: d.id, label: d.label, hint: d.hint, icon: d.Icon, ...d.visual, languageOnly: d.languageOnly,
   }))
 
+// Тест из Тестли в палитру не входит (taskTypesFor его не отдаёт), но карточке
+// нужна та же запись — подпись и цвет чипа.
+const TESTLY_CFG = (() => {
+  const d = TASK_TYPE_DEFS.testly
+  return { type: d.id, label: d.label, hint: d.hint, icon: d.Icon, ...d.visual, languageOnly: false }
+})()
+
 function typeConfig(t: HWTaskType) {
+  if (t === 'testly') return TESTLY_CFG
   return TASK_TYPES.find(x => x.type === t) ?? TASK_TYPES[0]
 }
 
@@ -333,8 +346,8 @@ function TaskCard({
               style={{ overflow: 'hidden' }}
             >
               <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {/* Question */}
-                <div>
+                {/* Question — у теста из Тестли условия нет: вопросы в самом тесте. */}
+                {task.type !== 'testly' && <div>
                   <RichConditionEditor
                     value={task.question}
                     onChange={updateQuestion}
@@ -345,7 +358,7 @@ function TaskCard({
                     autoGrow
                     minHeight={growMinHeight(3, 16, 6) + 54}
                   />
-                </div>
+                </div>}
 
                 {/* Choice options */}
                 {(task.type === 'single' || task.type === 'multi') && task.choices && (
@@ -550,9 +563,11 @@ const TASK_TYPE_DESCS: Record<HWTaskType, string> = Object.fromEntries(
   taskTypesFor({ language: true }).map(d => [d.id, d.hint]),
 ) as Record<HWTaskType, string>
 
-function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, isLanguage }: {
+function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, isLanguage }: {
   onAdd: (type: HWTaskType) => void; onAddHard: (type: HWTaskType) => void
   onImport: () => void; onImportHard: () => void
+  /** Модуль Тестли подключён — строка «Тест из Тестли» открывает его вкладку. */
+  onTestly?: () => void
   /** Домашка адресована языковой группе — показываем и языковые типы. */
   isLanguage: boolean
 }) {
@@ -592,6 +607,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, isLanguage
           onClick={() => flash(tt.type, onAdd)}
         />
       ))}
+      {onTestly && <TestlyPaletteRow onClick={onTestly} />}
       <button
         onClick={onImport}
         style={{
@@ -641,6 +657,37 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, isLanguage
       </button>
     </motion.div>
   )
+}
+
+/** Строка «Тест из Тестли» в палитре: как TaskTypeRow, но со знаком Тестли и
+ *  своим цветом наведения — чернильный bg типа под всей строкой был бы чёрным. */
+function TestlyPaletteRow({ onClick }: { onClick: () => void }) {
+  const t = useT()
+  const [hover, setHover] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+        padding: '10px 30px 10px 10px', borderRadius: 13, border: '1.5px solid transparent',
+        background: hover ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+        cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'background 0.13s',
+      }}
+    >
+      <TestlyTile size={34} />
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 12, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>{t('Тест из Тестли')}</span>
+        <span style={{ display: 'block', fontSize: 10, lineHeight: 1.25, color: 'var(--color-muted)', marginTop: 2 }}>{t('Тест целиком, со своими баллами')}</span>
+      </span>
+    </button>
+  )
+}
+
+/** Значок вкладки «Из Тестли»: маленькая чернильная плитка со знаком. */
+function TestlyTabIcon({ size = 14 }: { size?: number }) {
+  return <TestlyTile size={size + 1} />
 }
 
 // ─── Compose tab ───────────────────────────────────────────────────────────────
@@ -2067,7 +2114,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
-type MainTab = 'compose' | 'trainer' | 'preview'
+type MainTab = 'compose' | 'trainer' | 'preview' | 'testly'
 
 // Drop base64-capable fields before drafting a task list (sessionStorage quota).
 function stripHeavyFields(tasks: HWTask[]) {
@@ -2139,6 +2186,9 @@ export default function TeacherHomeworkCreatePage() {
     ? known.some(isLanguageSubject)
     : teacherSubjects.length > 0 && teacherSubjects.some(isLanguageSubject)
   const [activeTab, setActiveTab] = useState<MainTab>('compose')
+  const testlyOn = useTestlyModule(s => s.connected)
+  const loadTestly = useTestlyModule(s => s.load)
+  useEffect(() => { void loadTestly() }, [loadTestly])
   const [hwTasks, setHwTasks] = useState<HWTask[]>(() => readDraft<HWTask[]>(`${draftScope}.hwTasks`) ?? [])
   const [hardTasks, setHardTasks] = useState<HWTask[]>(() => readDraft<HWTask[]>(`${draftScope}.hardTasks`) ?? [])
   // Persist task lists without base64 payloads (photos/whiteboard) — sessionStorage quota.
@@ -2267,6 +2317,13 @@ export default function TeacherHomeworkCreatePage() {
     else setHwTasks(ts => [...ts, t])
   }
 
+  // Тест из Тестли встаёт в домашку заданием-ссылкой; вопросы остаются в Тестли.
+  const testlyAddedIds = new Set(hwTasks.flatMap(x => (x.type === 'testly' && x.testly ? [x.testly.id] : [])))
+  function addFromTestly(test: TestlyTest) {
+    const ref = testlyRef(test)
+    setHwTasks(ts => [...ts, { ...makeTask('testly'), question: ref.title, testly: ref }])
+  }
+
   function addImportedTasks(questions: ImportedQuestion[], isHard: boolean) {
     const tasks = questions.map(hwTaskFromImported)
     if (isHard) setHardTasks(ts => [...ts, ...tasks])
@@ -2377,6 +2434,8 @@ export default function TeacherHomeworkCreatePage() {
   const TABS: { key: MainTab; label: string; icon: React.ElementType }[] = [
     { key: 'compose', label: 'Составить', icon: AlignLeft },
     { key: 'trainer', label: 'Из тренажера', icon: BookOpen },
+    // Третья вкладка — только когда учитель подключил Тестли (Профиль → Модули).
+    ...(testlyOn ? [{ key: 'testly' as const, label: 'Из Тестли', icon: TestlyTabIcon }] : []),
   ]
 
   return (
@@ -2572,6 +2631,9 @@ export default function TeacherHomeworkCreatePage() {
                     onAdd={addFromBank}
                   />
                 )}
+                {activeTab === 'testly' && (
+                  <TestlyPicker addedIds={testlyAddedIds} onPick={addFromTestly} />
+                )}
                 {activeTab === 'preview' && (
                   <>
                     <PreviewTab
@@ -2618,11 +2680,12 @@ export default function TeacherHomeworkCreatePage() {
           ...paletteLift,
         }}>
           <AnimatePresence mode="wait">
-            {activeTab === 'compose' && (
+            {(activeTab === 'compose' || activeTab === 'testly') && (
               <ComposeTypePanel
                 key="compose-types"
                 isLanguage={isLanguage}
-                onAdd={type => addCustomTask(type)}
+                onTestly={testlyOn ? () => setActiveTab('testly') : undefined}
+                onAdd={type => { addCustomTask(type); setActiveTab('compose') }}
                 onAddHard={type => addCustomTask(type, true)}
                 onImport={() => setImportTarget('basic')}
                 onImportHard={() => setImportTarget('hard')}

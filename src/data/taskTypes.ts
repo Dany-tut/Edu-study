@@ -33,6 +33,7 @@ import { matchesAnyAnswer, sameAnswer } from '../lib/answerForms'
 import { chamoOf, composeKeys, isSyllable, keysOf } from './hangul'
 import { videoAnswerDone } from '../lib/videoAnswer'
 import { buildCrossword } from '../lib/crossword'
+import TestlyMark from '../components/TestlyMark'
 
 // ─── Идентификаторы ──────────────────────────────────────────────────────────
 
@@ -74,6 +75,8 @@ export type TaskTypeId =
   | 'dropdownGap'   // пропуски в предложении с выпадающими списками
   | 'columnSort'    // разложить предметы по именованным столбцам
   | 'embed'         // внешнее упражнение (Wordwall, Quizlet) в рамке
+  // — подключаемые модули —
+  | 'testly'        // тест из Тестли целиком (модуль в Профиль → Модули)
 
 /**
  * Написания, встречающиеся в данных, записанных до переименования типов:
@@ -419,7 +422,22 @@ export interface TaskPayload {
   /** Адрес встраивания. Открывается только с разрешённых площадок (lib/embed). */
   embedUrl?: string
 
+  // — тест из Тестли (testly) —
+  /** Какой тест и что о нём показать. Вопросы и ключи живут в Тестли. */
+  testly?: TestlyRef
+
   bankId?: number
+}
+
+/** Ссылка на тест в Тестли: id для адреса и снимок карточки на момент выбора. */
+export interface TestlyRef {
+  id: string
+  title: string
+  questions: number
+  points: number
+  minutes: number | null
+  /** есть развёрнутые ответы — их проверяет учитель в Тестли */
+  manual: boolean
 }
 
 /** Ответ ученика. Сериализуемый, одна форма на тип. */
@@ -1357,6 +1375,27 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
   }),
+
+  /**
+   * Тест из Тестли целиком — модуль, который учитель подключает в профиле.
+   *
+   * Это не тип палитры: его нет в taskTypesFor(), задание добавляют вкладкой
+   * «Из Тестли» в ДЗ и кнопкой «Из Тестли» в уроке курса. Шаг 1 — засчитываем
+   * сдачу по отметке ученика, как у внешнего упражнения. Балл из Тестли придёт
+   * на шаге 2 (личное приглашение на ученика).
+   */
+  testly: def({
+    id: 'testly', family: 'audio',
+    label: 'Тест из Тестли', hint: 'Тест целиком, со своими баллами',
+    Icon: TestlyMark,
+    makeDefault: () => ({}),
+    isGradable: t => !!t.testly?.id,
+    grade: (t, a) => {
+      if (!TASK_TYPES.testly.isGradable(t)) return NOT_AUTO
+      return { auto: true, correct: testlyDoneAt(a) !== null }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
+  }),
 }
 
 // ─── Вспомогательное ─────────────────────────────────────────────────────────
@@ -1417,6 +1456,12 @@ export function sortRows(t: { sortItems?: SortItem[] }): SortItem[] {
 /** Отметка «прошёл» у внешнего упражнения. Ответа с результатом оттуда нет. */
 export const EMBED_DONE = 'done'
 
+/** Отметка «сдал тест» у теста из Тестли (шаг 1 — без балла): «done@<ISO-время>». */
+export const TESTLY_DONE_PREFIX = 'done@'
+export const TESTLY_DONE = 'done'
+export const testlyDoneAt = (a: unknown): string | null =>
+  typeof a === 'string' && a.startsWith(TESTLY_DONE_PREFIX) ? a.slice(TESTLY_DONE_PREFIX.length) : a === TESTLY_DONE ? '' : null
+
 /** Ответ на «порядок» приходит массивом чисел либо строкой "2,0,1" (легаси). */
 function toOrder(a: TaskAnswer): number[] | null {
   if (Array.isArray(a) && a.every(v => typeof v === 'number')) return a as number[]
@@ -1436,7 +1481,8 @@ function toWords(a: TaskAnswer): string[] | null {
 
 // ─── Публичный API ───────────────────────────────────────────────────────────
 
-export const ALL_TASK_TYPE_IDS = Object.keys(TASK_TYPES) as TaskTypeId[]
+// Тест из Тестли в палитры не идёт: его добавляют из списка тестов модуля.
+export const ALL_TASK_TYPE_IDS = (Object.keys(TASK_TYPES) as TaskTypeId[]).filter(id => id !== 'testly')
 
 /**
  * Приведение легаси-написаний к каноническому идентификатору, с типом.
