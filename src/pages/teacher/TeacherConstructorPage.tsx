@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
-import { SortDropdown, FacetDropdown, SubjectFacet, canonSubject, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from '../../components/teacher/ShelfFilters'
+import { SortDropdown, FacetDropdown, SubjectFacet, useShelfSubjects, PickSubjectHint, canonSubject, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -26,7 +26,7 @@ import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import Checkbox from '../../components/Checkbox'
 import ScrollFade from '../../components/ScrollFade'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { bankSubjectOptions, courseSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
+import { bankSubjectOptionsFor, subjectIcon, getSubject, isLanguageSubject, SUBJECTS, isMySubject, courseSubjectOptionsFor, teacherSubjectDefs } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
 import { languageTaxonomy, tagsLabel, type TaskLanguageTags } from '../../data/languageTaxonomy'
 import { diagShareUrl } from '../../lib/diagShareUrl'
@@ -170,7 +170,7 @@ function GoogleFormBankCategoryModal({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <TeacherSelect value={subject} onChange={v => { setSubject(v as Subject); setSection(''); setTopic('') }} placeholder={t("Предмет")}
-            options={bankSubjectOptions(false).map(o => ({ value: o.value, label: t(o.label) }))} />
+            options={bankSubjectOptionsFor(useTeacherAccess.getState().subjects, false).map(o => ({ value: o.value, label: t(o.label) }))} />
           <TeacherSelect value={section} onChange={v => { setSection(v); setTopic('') }} placeholder={t("Раздел")}
             options={sections.map(s => ({ value: s, label: s }))} />
           <TeacherSelect value={topic} onChange={setTopic} placeholder={t("Тема")}
@@ -2868,7 +2868,7 @@ function CreatorView({
                 value={tkSubject}
                 onChange={v => { setTkSubject(v); setTkSection(''); setTkTopic('') }}
                 placeholder={t('Предмет')}
-                options={SUBJECTS.map(s => ({ value: s.name, label: `${s.icon} ${tc(s.name)}` }))}
+                options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [tkSubject]).map(s => ({ value: s.name, label: `${s.icon} ${tc(s.name)}` }))}
               />
             </div>
             {/* Разметка. У языкового предмета своя: уровень / навык / тема —
@@ -5941,7 +5941,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
                 <TeacherSelect value={subjectState} onChange={handleSubjectChange} placeholder={t('Предмет')}
                   accent={accent} accentBg={accent + '1f'}
-                  options={courseSubjectOptions().map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
+                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, subjectState).map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
               </div>
             )}
             {isCustomTest && (
@@ -7140,7 +7140,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
                 <TeacherSelect value={testSubject} onChange={setTestSubject} placeholder={t('Предмет')}
                   accent={accent} accentBg={accent + '1f'}
-                  options={courseSubjectOptions().map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
+                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, testSubject).map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
               </div>
               <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
               {/* Mode tabs */}
@@ -8194,15 +8194,22 @@ export default function TeacherConstructorPage() {
    * предмета): курсы и тесты хранят предмет русским именем и переводят его на
    * границе через canonSubject, а не заводят второй словарь.
    */
-  const [shelfSubject, setShelfSubject] = usePersistentState('ctor.subject', '')
+  // Мультивыбор без «все»: пока у учителя несколько предметов и ни один не
+  // отмечен, витрины пусты (см. activeShelfSubjects в ShelfFilters).
+  const [shelfSubjects, setShelfSubjects] = usePersistentState<string[]>('ctor.subjects', [])
   // Банк заданий отбирается своим набором полей, и предмет — его вершина:
-  // разделы, темы, части и линии бывают только внутри предмета. Сменился общий
-  // предмет — уточнения под старым теряют смысл и сбрасываются.
+  // разделы, темы, части и линии бывают только внутри ОДНОГО предмета. Отмечено
+  // несколько — банк показывает их задания, а уточнения по разделу молчат.
+  // Сменился выбор — уточнения под старым теряют смысл и сбрасываются.
+  const bankSubjects = useShelfSubjects(shelfSubjects).active
+  const bankSubjectsKey = bankSubjects?.join(',') ?? '\u0000'
   useEffect(() => {
-    setBankFilters(prev => prev.subject === shelfSubject ? prev : ({
-      ...prev, subject: shelfSubject, sections: [], topics: [], lines: [], parts: [], levels: [], skills: [],
+    const subject = bankSubjects?.length === 1 ? bankSubjects[0] : ''
+    const subjects = bankSubjects ?? []
+    setBankFilters(prev => prev.subject === subject && (prev.subjects ?? []).join(',') === subjects.join(',') ? prev : ({
+      ...prev, subject, subjects, sections: [], topics: [], lines: [], parts: [], levels: [], skills: [],
     }))
-  }, [shelfSubject])
+  }, [bankSubjectsKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const [courseLevel, setCourseLevel] = usePersistentState('ctor.courseLevel', '')
   const [testLevel, setTestLevel] = usePersistentState('ctor.testLevel', '')
   // Поиск не переживает перезагрузку: забытый запрос прятал бы тесты без видимой причины.
@@ -8262,6 +8269,15 @@ export default function TeacherConstructorPage() {
   const isAdmin = useTeacherAccess(s => s.isAdmin)
   const accessLoaded = useTeacherAccess(s => s.loaded)
   useEffect(() => { if (!accessLoaded) useTeacherAccess.getState().load() }, [accessLoaded])
+  // «Мои предметы» учителя: чужие готовые курсы, встроенные тесты и задания
+  // банка по другим предметам на витрины не попадают. Своё (созданное
+  // учителем или выданное ему админом) видно всегда, в каком бы предмете ни было.
+  const mySubjects = useTeacherAccess(s => s.subjects)
+  const myDiag = useMemo(
+    // Логика без предмета — общая для всех, её не прячем.
+    () => DIAG_SUBJECTS.filter(id => !testSubjectName(id) || isMySubject(testSubjectName(id), mySubjects)),
+    [mySubjects],
+  )
   const seedById = useMemo(() => {
     const map = new Map<string, CourseSeed>()
     // Пока свои курсы не приехали, плиток сидов нет: иначе витрина на секунду
@@ -8289,8 +8305,8 @@ export default function TeacherConstructorPage() {
   // Всё, что вообще показывается на вкладке: свои курсы + плитки сидов. Из этого
   // же списка собираются опции фильтров, поэтому пустых вариантов не бывает.
   const allCourses = useMemo(
-    () => [...courses, ...[...seedById].map(([id, s]) => seedToCourse(s, id))],
-    [courses, seedById],
+    () => [...courses, ...[...seedById].map(([id, s]) => seedToCourse(s, id)).filter(c => isMySubject(c.subject, mySubjects))],
+    [courses, seedById, mySubjects],
   )
   // Языки идут своим блоком: их курсов больше всего, и искать «Корейский»
   // среди химий неудобно. Между «все предметы», языками и остальным — черта.
@@ -8300,27 +8316,30 @@ export default function TeacherConstructorPage() {
   )
   // Тот же расклад, что у тестов: общий предмет, по которому курсов нет, не
   // прячет витрину — он просто не сужает её.
-  const activeCourseSubject = subjectOpts.includes(shelfSubject) ? shelfSubject : ''
+  // null — предметов несколько, а не отмечен ни один: курсов не показываем.
+  // Курс без предмета ничьим не мешает и виден всегда.
+  const courseSubjects = useShelfSubjects(shelfSubjects, subjectOpts).active
+  const courseSubjectOk = (c: Course) => { const id = canonSubject(c.subject.trim()); return !id || !!courseSubjects?.includes(id) }
   const testSubjectOf = useMemo(() => {
     const m = new Map<string, string>()
-    DIAG_SUBJECTS.forEach(id => m.set(id, testSubjectName(id)))
+    myDiag.forEach(id => m.set(id, testSubjectName(id)))
     customTests.forEach(ct => m.set(ct.id, ct.subject || testSubjectName(ct.id, ct.label, ct.iconKey)))
     return m
-  }, [customTests])
+  }, [customTests, myDiag])
   const testSubjectOpts = useMemo(
     () => [...new Set([...testSubjectOf.values()].filter(Boolean).map(canonSubject))],
     [testSubjectOf],
   )
   // Общий предмет мог указывать на тот, тестов которого нет: витрина тогда
   // показывает всё, а не пустой экран — отбор общий, а полки у вкладок разные.
-  const activeTestSubject = testSubjectOpts.includes(shelfSubject) ? shelfSubject : ''
+  const testSubjects = useShelfSubjects(shelfSubjects, testSubjectOpts).active
   // Уровни теста — те же корзины, что у курсов. Явный уровень главнее; без
   // него пробуем название и чип («Химия ЕГЭ»), но только по известным корзинам —
   // само название уровнем не становится.
   const testLevelsOf = useMemo(() => {
     const known = (raw: string) => { const b = levelBuckets(raw); return b.length === 1 && b[0] === raw.trim() ? [] : b }
     const m = new Map<string, string[]>()
-    DIAG_SUBJECTS.forEach(id => m.set(id, DIAG_BUILTIN_LEVEL[id] ?? []))
+    myDiag.forEach(id => m.set(id, DIAG_BUILTIN_LEVEL[id] ?? []))
     customTests.forEach(ct => m.set(ct.id, ct.level ? levelBuckets(ct.level) : known(`${ct.label} ${ct.chip ?? ''}`)))
     return m
   }, [customTests])
@@ -8336,11 +8355,12 @@ export default function TeacherConstructorPage() {
     }
     return m
   }, [diagAnonResults])
-  const testSubjectVisible = (id: string) => !activeTestSubject || canonSubject(testSubjectOf.get(id) ?? '') === activeTestSubject
+  // Тест без предмета («Логика») общий — виден при любом выборе.
+  const testSubjectVisible = (id: string) => { const s = canonSubject(testSubjectOf.get(id) ?? ''); return !s || !!testSubjects?.includes(s) }
   const testLevelOpts = useMemo(
-    () => sortLevels([...new Set([...DIAG_SUBJECTS, ...customTests.map(ct => ct.id)].filter(testSubjectVisible).flatMap(id => testLevelsOf.get(id) ?? []))]),
+    () => sortLevels([...new Set([...myDiag, ...customTests.map(ct => ct.id)].filter(testSubjectVisible).flatMap(id => testLevelsOf.get(id) ?? []))]),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [customTests, testLevelsOf, activeTestSubject, testSubjectOf],
+    [customTests, testLevelsOf, testSubjects, testSubjectOf, myDiag],
   )
   const activeTestLevel = testLevelOpts.includes(testLevel) ? testLevel : ''
   const testNeedle = normSearch(testQuery)
@@ -8358,7 +8378,7 @@ export default function TeacherConstructorPage() {
     const created = new Map(customTests.map(ct => [ct.id, ct.createdAt ?? ''] as const))
     const titleOf = (id: string) => customTests.find(ct => ct.id === id)?.label ?? getSubjectMeta(id as DiagSubject).label
     const items: ({ kind: 'builtin'; id: DiagSubject } | { kind: 'custom'; id: string; ct: CustomTest })[] = [
-      ...DIAG_SUBJECTS.filter(testVisible).map(id => ({ kind: 'builtin' as const, id })),
+      ...myDiag.filter(testVisible).map(id => ({ kind: 'builtin' as const, id })),
       ...customTests.filter(ct => testVisible(ct.id)).map(ct => ({ kind: 'custom' as const, id: ct.id, ct })),
     ]
     if (testSort === 'newest' || testSort === 'oldest') {
@@ -8374,7 +8394,7 @@ export default function TeacherConstructorPage() {
     return sorted.sort((a, b) => (testStats.get(b.id)?.done ?? 0) - (testStats.get(a.id)?.done ?? 0)
       || (testStats.get(b.id)?.last ?? '').localeCompare(testStats.get(a.id)?.last ?? ''))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customTests, testSort, testStats, activeTestSubject, activeTestLevel, testPass, testNeedle, testLevelsOf, testSubjectOf])
+  }, [customTests, testSort, testStats, testSubjects, activeTestLevel, testPass, testNeedle, testLevelsOf, testSubjectOf, myDiag])
   const visibleDiagSubjects = visibleTests.filter(x => x.kind === 'builtin').map(x => x.id as DiagSubject)
   const visibleCustomTests = visibleTests.flatMap(x => x.kind === 'custom' ? [x.ct] : [])
   // Клетки сетки: серия встаёт на место своей первой части в текущей сортировке
@@ -8421,8 +8441,9 @@ export default function TeacherConstructorPage() {
   // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
   // языковых курсов, а языкам ЕГЭ.
   const levelOpts = useMemo(
-    () => levelOptions(activeCourseSubject ? allCourses.filter(c => canonSubject(c.subject.trim()) === activeCourseSubject) : allCourses),
-    [allCourses, activeCourseSubject],
+    () => levelOptions(allCourses.filter(courseSubjectOk)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allCourses, courseSubjects],
   )
   // Сменили предмет — выбранный уровень мог исчезнуть из его списка. Без сброса
   // список курсов молча опустел бы под фильтром, которого уже не видно.
@@ -8465,7 +8486,7 @@ export default function TeacherConstructorPage() {
   const filteredCourses = useMemo(() => {
     let cs = allCourses
     if (courseStatus) cs = cs.filter(c => c.status === courseStatus)
-    if (activeCourseSubject) cs = cs.filter(c => canonSubject(c.subject.trim()) === activeCourseSubject)
+    cs = cs.filter(courseSubjectOk)
     if (courseLevel) cs = cs.filter(c => matchesLevel(c, courseLevel))
     if (courseStudent) cs = cs.filter(c => personsByCourse[c.id]?.has(courseStudent))
     if (courseNeedle) cs = cs.filter(c => normSearch(c.title).includes(courseNeedle))
@@ -8476,7 +8497,7 @@ export default function TeacherConstructorPage() {
     // (publishedAt) поднимает курс наверх, обычная правка не двигает вообще.
     const dir = courseSort === 'newest' ? -1 : 1
     return sorted.sort((a, b) => dir * courseSortAt(a).localeCompare(courseSortAt(b)))
-  }, [allCourses, courseSort, courseStatus, activeCourseSubject, courseLevel, courseStudent, courseNeedle, personsByCourse])
+  }, [allCourses, courseSort, courseStatus, courseSubjects, courseLevel, courseStudent, courseNeedle, personsByCourse])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
@@ -8508,8 +8529,9 @@ export default function TeacherConstructorPage() {
   /** Условие задания без разметки — для карточки в общей сетке. */
   const plainText = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
   const bankTasksOfSubject = useMemo(
-    () => shelfSubject ? allTasks.filter(x => x.subject === shelfSubject) : allTasks,
-    [allTasks, shelfSubject],
+    () => bankSubjects ? allTasks.filter(x => bankSubjects.includes(x.subject)) : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allTasks, bankSubjectsKey],
   )
   const bankTaskCount = bankTasksOfSubject.length
   /**
@@ -8697,7 +8719,7 @@ export default function TeacherConstructorPage() {
       lessons = course.lessons.map((l, i) => ({ id: l.id, title: l.title, number: i + 1 }))
     }
     if (modules.length === 0) {
-      modules = [{ id: uid(), label: t('Модуль 1'), expanded: true, lessonIds: lessons.map(l => l.id as string) }]
+      modules = [{ id: uid(), label: '', expanded: true, lessonIds: lessons.map(l => l.id as string) }]
     }
 
     const edData = {
@@ -8748,7 +8770,7 @@ export default function TeacherConstructorPage() {
       id, title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
       color: 'var(--color-purple)', bg: 'var(--color-purple-soft)',
       description: '', groupIds: [], studentIds: [],
-      modules: [{ id: uid(), label: t('Модуль 1'), expanded: true, lessonIds: [] }],
+      modules: [],
       lessons: [],
     }
     openCourseEditor(JSON.stringify(edData))
@@ -9490,9 +9512,9 @@ export default function TeacherConstructorPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
                   <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
                   <SubjectFacet
-                    value={activeCourseSubject} only={subjectOpts} allLabel={t('Все предметы')}
+                    values={shelfSubjects} only={subjectOpts}
                     accent="var(--color-green-text)"
-                    onChange={setShelfSubject}
+                    onChange={setShelfSubjects}
                   />
                   <CourseFacetDropdown
                     value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
@@ -9516,9 +9538,9 @@ export default function TeacherConstructorPage() {
                 <div ref={testRowRef} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10, ...diagShiftStyle }}>
                   <SortDropdown value={testSort} options={TEST_SORT_OPTS} accent="var(--color-green-text)" minWidth={136} onChange={setTestSort} />
                   <SubjectFacet
-                    value={activeTestSubject} only={testSubjectOpts} allLabel={t('Все предметы')}
+                    values={shelfSubjects} only={testSubjectOpts}
                     accent="var(--color-green-text)"
-                    onChange={setShelfSubject}
+                    onChange={setShelfSubjects}
                   />
                   <CourseFacetDropdown
                     value={activeTestLevel} options={testLevelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
@@ -9582,7 +9604,7 @@ export default function TeacherConstructorPage() {
               {activeTab === 'decks' && (
                 <TrainerMaterials
                   createNonce={deckNonce}
-                  subject={shelfSubject} onSubject={setShelfSubject}
+                  subjects={shelfSubjects} onSubjects={setShelfSubjects}
                   onShelfChange={setBaseShelf}
                   editMode={editMode}
                   onOpen={openMaterialPage}
@@ -9597,9 +9619,9 @@ export default function TeacherConstructorPage() {
                         onSearch={v => setBankFilters(prev => ({ ...prev, search: v }))}
                         facet={
                           <SubjectFacet
-                            value={shelfSubject} allLabel={t('Все предметы')}
+                            values={shelfSubjects}
                             accent="var(--color-peach-text)" searchable
-                            onChange={setShelfSubject}
+                            onChange={setShelfSubjects}
                           />
                         }
                         selectedIds={new Set([...checkedIds].map(Number).filter(n => !isNaN(n)))}
@@ -9713,6 +9735,7 @@ export default function TeacherConstructorPage() {
               {/* Сетка сжимается мгновенно, а плавность даёт framer: один замер до и
                   после. CSS-переход здесь менял столбцы посреди кадров, и плитки
                   перескакивали мимо layout-анимации. */}
+              {((activeTab === 'course' && !dbLoading && !courseSubjects) || (activeTab === 'testing' && !testSubjects)) && <PickSubjectHint />}
               <div style={{ position: 'relative', marginRight: diagShift }}>
               {diagClampH != null && <ScrollOverlays thumb={diagScroll.thumb} />}
               {/* layoutScroll: переезды плиток меряются с учётом прокрутки окна. */}

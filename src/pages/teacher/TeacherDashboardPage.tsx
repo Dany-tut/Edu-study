@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPrompt'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
 import NotificationToastContainer from '../../components/NotificationToast'
@@ -126,6 +127,7 @@ export default function TeacherDashboardPage() {
     {/* Desktop surfaces live notifications inside TeacherCompactPill (top-right),
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
+    <TeacherSubjectsPrompt />
     <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}

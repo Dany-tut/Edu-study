@@ -10,7 +10,8 @@ import {
   Search, Plus,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
-import { SUBJECT_ICON_MAP } from '../../lib/subjects'
+import { SUBJECT_ICON_MAP, mySubjectNames } from '../../lib/subjects'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
@@ -133,7 +134,7 @@ function AddGroupModal({ onClose, onSave }: {
               if (level && !levelOptionsForSubject(v).includes(level)) setLevel('')
             }}
             placeholder={t('Предмет')}
-            options={Object.keys(subjectIcons).map(o => ({ value: o, label: t(o) }))}
+            options={mySubjectNames(useTeacherAccess.getState().subjects, subject).map(o => ({ value: o, label: t(o) }))}
             triggerStyle={selectTriggerStyle}
           />
 
@@ -553,7 +554,7 @@ function TrackFields({
               if (level && !levelOptionsForSubject(v).includes(level)) onLevel('')
             }}
             placeholder={t('Предмет')}
-            options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+            options={mySubjectNames(useTeacherAccess.getState().subjects, subject).map(o => ({ value: o, label: t(o) }))}
             triggerStyle={selectTriggerStyle}
           />
         </div>
@@ -573,7 +574,7 @@ function TrackFields({
                 ...(tr.level && !levelOptionsForSubject(v).includes(tr.level) ? { level: '' } : {}),
               })}
               placeholder={t('Предмет')}
-              options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+              options={mySubjectNames(useTeacherAccess.getState().subjects, tr.subject).map(o => ({ value: o, label: t(o) }))}
               triggerStyle={selectTriggerStyle}
             />
           </div>
@@ -1859,7 +1860,7 @@ function TracksSection({
                     if (level && !levelOptionsForSubject(v).includes(level)) setLevel('')
                   }}
                   placeholder={t('Предмет')}
-                  options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+                  options={mySubjectNames(useTeacherAccess.getState().subjects, subject).map(o => ({ value: o, label: t(o) }))}
                   triggerStyle={selectTriggerStyle}
                 />
               </div>
@@ -2903,7 +2904,7 @@ export default function TeacherGroupsPage() {
         {showExistingIndiv && (
           <AddExistingIndividualModal
             people={people}
-            subjectOptions={Object.keys(SUBJECT_ICONS)}
+            subjectOptions={mySubjectNames(useTeacherAccess.getState().subjects)}
             onCreate={createIndivForExisting}
             onClose={() => setShowExistingIndiv(false)}
           />

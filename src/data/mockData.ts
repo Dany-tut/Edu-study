@@ -85,6 +85,8 @@ export interface Lesson {
 export interface Module {
   id: number
   label: string
+  /** Уроки без модуля (в базе — модуль с пустым названием): своей вкладки-заголовка нет. */
+  loose?: boolean
   lessons: Lesson[]
 }
 

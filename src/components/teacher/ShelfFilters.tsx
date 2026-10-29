@@ -25,9 +25,10 @@
 
 import { useState, useRef, type ReactNode, type CSSProperties, type ComponentType } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowUpDown, Search, X } from 'lucide-react'
+import { ArrowUpDown, ChevronUp, Search, X } from 'lucide-react'
 import { useT } from '../../lib/i18n'
-import { SUBJECTS, getSubject } from '../../lib/subjects'
+import { SUBJECTS, getSubject, isMySubject } from '../../lib/subjects'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import ScrollFade from '../ScrollFade'
 
 /**
@@ -357,6 +358,44 @@ export function ShelfCount({ children, style }: { children: ReactNode; style?: C
 }
 
 /**
+ * Предметы, из которых выбирает витрина: канонические id реестра, свои
+ * предметы учителя — строкой как есть.
+ *
+ * `only` — то, что правда лежит на витрине (курсы, тесты): там уже только
+ * «моё», и своё в чужом предмете из выбора не пропадает. Без `only` — реестр,
+ * суженный до предметов учителя (пустой набор = ещё не выбрал = весь реестр).
+ * Порядок — языки, черта, остальные, свои.
+ */
+export function shelfSubjectOpts(only: string[] | undefined, mine: string[] | null | undefined): string[] {
+  const pool = only ?? SUBJECTS.filter(s => isMySubject(s.id, mine)).map(s => s.id)
+  const defs = SUBJECTS.filter(s => pool.includes(s.id))
+  const own = [...new Set(pool.filter(v => v && !getSubject(v)))]
+  return [...defs.filter(s => s.isLanguage).map(s => s.id), ...defs.filter(s => !s.isLanguage).map(s => s.id), ...own]
+}
+
+/**
+ * Какие предметы витрина показывает сейчас — или `null`: «сначала выберите».
+ *
+ * «Все предметы» больше не бывает. Учителю химии ни к чему корейские полки
+ * вперемешку с его заданиями, а учителю трёх предметов — каша из трёх сразу.
+ * Предмет один — он и показан, выбирать нечего. Несколько — витрина пуста,
+ * пока в фасете не отмечен хотя бы один (можно несколько). Выбор общий на все
+ * вкладки; отмеченное, чего на этой витрине нет, просто не участвует.
+ */
+export function activeShelfSubjects(picked: string[], opts: string[]): string[] | null {
+  if (opts.length <= 1) return opts
+  const on = picked.filter(v => opts.includes(v))
+  return on.length ? on : null
+}
+
+/** Опции и активный выбор витрины — то же, что рисует SubjectFacet с тем же `only`. */
+export function useShelfSubjects(picked: string[], only?: string[]) {
+  const mine = useTeacherAccess(s => s.subjects)
+  const opts = shelfSubjectOpts(only, mine)
+  return { opts, active: activeShelfSubjects(picked, opts) }
+}
+
+/**
  * Предмет витрины — ОДНА таблетка на все вкладки Конструктора.
  *
  * До неё каждая витрина спрашивала предмет по-своему: курсы и тесты — фасетом
@@ -364,40 +403,99 @@ export function ShelfCount({ children, style }: { children: ReactNode; style?: C
  * словарях (там русское имя предмета, тут английский id). Человек переключал
  * предмет заново на каждой вкладке и находил его каждый раз в новом месте.
  *
- * ЗНАЧЕНИЕ — КАНОНИЧЕСКИЙ id предмета (`biology`, `korean`). Вкладка, которая
+ * ЗНАЧЕНИЯ — КАНОНИЧЕСКИЕ id предметов (`biology`, `korean`). Вкладка, которая
  * хранит предмет строкой («Биология» в courses.subject), переводит его на
  * границе через canonSubject/subjectNameOf, а не заводит второй словарь.
  *
- * `only` сужает список до предметов, по которым на витрине правда что-то есть:
- * фасет не должен обещать отбор, дающий пустой экран. Порядок — языки, черта,
- * остальные: языковых предметов больше всего, и мешать их с биологией в один
- * столбик значит каждый раз вычитывать список целиком.
+ * МУЛЬТИВЫБОР, БЕЗ «ВСЕ». Клик по строке отмечает/снимает предмет, меню не
+ * закрывается. Пока ничего не отмечено, таблетка просит «Выберите предмет», а
+ * витрина пуста (см. activeShelfSubjects). Предмет один — таблетки нет.
  */
-export function SubjectFacet({ value, onChange, accent, allLabel, only, minWidth = 116, searchable }: {
-  value: string
-  onChange: (v: string) => void
+export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, searchable }: {
+  values: string[]
+  onChange: (v: string[]) => void
   accent: string
-  allLabel: string
-  /** Канонические id, которые показывать. Без него — весь реестр. */
+  /** Канонические id, которые показывать. Без него — предметы учителя. */
   only?: string[]
   minWidth?: number
   searchable?: boolean
 }) {
   const t = useT()
-  const defs = only ? SUBJECTS.filter(s => only.includes(s.id)) : SUBJECTS
-  const langs = defs.filter(s => s.isLanguage)
-  const rest = defs.filter(s => !s.isLanguage)
-  const ids = langs.length && rest.length
-    ? [...langs.map(s => s.id), FACET_SEP, ...rest.map(s => s.id)]
-    : defs.map(s => s.id)
+  const { opts, active } = useShelfSubjects(values, only)
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  if (opts.length < 2) return null
+  const on = active ?? []
+  const label = (v: string) => t(getSubject(v)?.name ?? v)
+  const soft = softOf(accent)
+  const q = query.trim().toLowerCase()
+  const nLang = opts.filter(v => getSubject(v)?.isLanguage).length
+  const rows = q
+    ? opts.filter(v => label(v).toLowerCase().includes(q))
+    : nLang && nLang < opts.length ? [...opts.slice(0, nLang), FACET_SEP, ...opts.slice(nLang)] : opts
+  const toggle = (v: string) => {
+    // Отмеченное на другой вкладке, чего здесь нет, не трогаем: вернёшься туда —
+    // выбор на месте.
+    const rest = values.filter(x => x !== v)
+    onChange(rest.length === values.length ? [...values, v] : rest)
+  }
+  const head = on.length === 0 ? t('Выберите предмет')
+    : on.length === 1 ? label(on[0])
+    : `${label(on[0])} +${on.length - 1}`
   return (
-    <FacetDropdown
-      value={value} options={ids} allLabel={allLabel}
-      labels={Object.fromEntries(defs.map(s => [s.id, t(s.name)]))}
-      accent={accent} minWidth={minWidth} searchable={searchable}
-      icon={<span style={{ fontSize: 12 }}>{getSubject(value)?.icon ?? '📚'}</span>}
-      onChange={onChange}
-    />
+    <div style={{ position: 'relative' }}
+      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
+      <button onClick={() => { setOpen(o => !o); setQuery('') }}
+        // Пустой выбор — единственное, что держит витрину пустой: таблетка
+        // горит акцентом, чтобы взгляд сразу нашёл, куда нажать.
+        style={pillStyle(open, on.length ? { fontWeight: 700 } : { color: accent, borderColor: accent })}>
+        <span style={{ display: 'flex', fontSize: 12 }}>{on.length === 1 ? getSubject(on[0])?.icon ?? '📚' : '📚'}</span>
+        <span style={{ minWidth, textAlign: 'left', whiteSpace: 'nowrap' }}>{head}</span>
+        <Caret open={open} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={menuStyle}>
+            {searchable && (
+              <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+                onMouseDown={e => e.stopPropagation()}
+                placeholder={t('Найти предмет')}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', marginBottom: 4,
+                  borderRadius: 9, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)',
+                  fontSize: 13, color: 'var(--color-text)', fontFamily: 'inherit', outline: 'none' }} />
+            )}
+            <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
+              {rows.map((val, i) => val === FACET_SEP ? (
+                <div key={`sep${i}`} style={{ height: 1, margin: '5px 8px', background: 'var(--color-border)' }} />
+              ) : (
+                <button key={val} onMouseDown={e => { e.preventDefault(); toggle(val) }}
+                  style={rowStyle(on.includes(val), soft)}
+                  onMouseEnter={e => { e.currentTarget.style.background = soft }}
+                  onMouseLeave={e => { e.currentTarget.style.background = on.includes(val) ? soft : 'transparent' }}>
+                  <MenuRowLabel label={<>{getSubject(val)?.icon ?? '📚'}&nbsp;&nbsp;{label(val)}</>} on={on.includes(val)} accent={accent} />
+                </button>
+              ))}
+            </ScrollFade>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/**
+ * Витрина ждёт предмета: у учителя их несколько, а отмеченных нет. Вместо
+ * сетки — одна строка, указывающая на фасет; карточки чужих предметов не
+ * показываем даже «пока».
+ */
+export function PickSubjectHint() {
+  const t = useT()
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '28px 4px', fontSize: 13, color: 'var(--color-muted)' }}>
+      <ChevronUp size={14} />
+      {t('Выберите предмет — можно несколько')}
+    </div>
   )
 }
 

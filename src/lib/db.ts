@@ -694,7 +694,8 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
       .sort((a, b) => a.position - b.position)
       .map(mod => ({
         id: mod.position,
-        label: mod.label,
+        label: mod.label.trim() ? mod.label : 'Уроки',
+        loose: !mod.label.trim() || undefined,
         lessons: [...mod.lessons]
           .sort((a, b) => a.lesson_number - b.lesson_number)
           .flatMap(l => {

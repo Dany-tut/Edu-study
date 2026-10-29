@@ -16,6 +16,8 @@ import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from '../../components/AvatarPhoto'
 import { uploadAvatarPhoto, removeAvatarPhoto, saveTeacherAvatarPath } from '../../lib/avatarPhoto'
+import { useTeacherAccess } from '../../lib/teacherAccess'
+import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -100,6 +102,19 @@ export default function TeacherProfileSettingsPage() {
     setSubjectColors(next)
     const ok = await saveTeacherSubjectColors(next)
     if (ok) { setColorSaved(true); setTimeout(() => setColorSaved(false), 2000) }
+  }
+
+  // ── Мои предметы ───────────────────────────────────────────────────────────
+  // Сохраняются сразу, как цвета: по ним сужаются списки предметов по всему
+  // кабинету. У админа строки в profiles нет — он видит всё, поля нет.
+  const mySubjects = useTeacherAccess(s => s.subjects)
+  const saveSubjects = useTeacherAccess(s => s.saveSubjects)
+  const [subjectsNote, setSubjectsNote] = useState<'saved' | 'error' | null>(null)
+
+  async function changeSubjects(next: string[]) {
+    const ok = await saveSubjects(next)
+    setSubjectsNote(ok ? 'saved' : 'error')
+    if (ok) setTimeout(() => setSubjectsNote(n => (n === 'saved' ? null : n)), 2000)
   }
 
   const selectedAvatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
@@ -258,6 +273,19 @@ export default function TeacherProfileSettingsPage() {
             placeholder={t('Имя')}
             style={inputStyle}
           />
+
+          {role !== 'admin' && (
+            <div>
+              <TeacherSubjectsField value={mySubjects} onChange={changeSubjects} look="profile" />
+              <div style={{ fontSize: 11, marginTop: 5, color: subjectsNote === 'error' ? 'var(--color-red-text)' : subjectsNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
+                {subjectsNote === 'error'
+                  ? t('Не удалось сохранить предметы. Попробуйте ещё раз.')
+                  : subjectsNote === 'saved'
+                    ? t('Сохранено')
+                    : t('Остальные предметы уберём из списков в Конструкторе, тренажёре, ДЗ и группах')}
+              </div>
+            </div>
+          )}
 
           <div>
             <div style={{ position: 'relative' }}>

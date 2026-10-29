@@ -369,6 +369,63 @@ export function bankSubjectIdsFor(allowed: string[] | null | undefined): string[
   return allowedSubjectDefs(allowed).filter(s => s.hasBank).map(s => s.id)
 }
 
+// ── «Мои предметы» учителя ──────────────────────────────────────────────────
+// В profiles.subjects лежат id реестра и свои предметы строкой («Экономика»).
+// Поле выбора работает именами — их видит учитель; на границе с базой имя
+// реестрового предмета переводится в id, своё остаётся как есть.
+
+/** Имена реестра — подсказки поля «Предметы, которые вы ведёте». */
+export const SUBJECT_NAMES: string[] = SUBJECTS.map(s => s.name)
+
+/** profiles.subjects → то, что показывает поле. */
+export const subjectNamesFromStored = (stored: string[]): string[] =>
+  stored.map(v => getSubject(v)?.name ?? v)
+
+/** Поле → profiles.subjects. Повторы схлопываются. */
+export const subjectsToStored = (names: string[]): string[] =>
+  [...new Set(names.map(n => getSubject(n)?.id ?? n.trim()).filter(Boolean))]
+
+/**
+ * Предметы для списка выбора у учителя: его набор плюс то, что уже стоит в его
+ * данных (`keep`) — старый курс по чужому предмету не должен пропасть из
+ * фильтра. Пустой набор = ещё не выбрал = весь реестр.
+ */
+export function teacherSubjectDefs(allowed: string[] | null | undefined, keep: (string | null | undefined)[] = []): SubjectDef[] {
+  if (!allowed || allowed.length === 0) return SUBJECTS
+  const ids = new Set([...allowed, ...keep].map(a => getSubject(a)?.id).filter(Boolean) as string[])
+  return SUBJECTS.filter(s => ids.has(s.id))
+}
+
+/** Свои предметы учителя — то, чего нет в реестре. */
+export const customSubjects = (allowed: string[] | null | undefined): string[] =>
+  (allowed ?? []).filter(a => !getSubject(a))
+
+/**
+ * Предмет (id, русское имя или свой строкой) — из набора учителя. Пустой набор
+ * = ещё не выбрал = всё «моё». Сравнение своих — без регистра.
+ */
+export function isMySubject(idOrName: string | null | undefined, allowed: string[] | null | undefined): boolean {
+  if (!allowed || allowed.length === 0) return true
+  if (!idOrName || !idOrName.trim()) return false
+  const id = getSubject(idOrName)?.id
+  if (id) return allowed.some(a => getSubject(a)?.id === id)
+  const low = idOrName.trim().toLowerCase()
+  return allowed.some(a => a.trim().toLowerCase() === low)
+}
+
+/** Русские имена предметов учителя (реестр + свои) — для списков, где предмет хранится именем (группы). */
+export function mySubjectNames(allowed: string[] | null | undefined, keep?: string): string[] {
+  const own = [...customSubjects(allowed), ...(keep && !getSubject(keep) ? [keep] : [])]
+  return [...teacherSubjectDefs(allowed, [keep]).map(s => s.name), ...new Set(own)]
+}
+
+/** Варианты «Предмет курса» под набор учителя: реестр + свои; `keep` — текущее значение. */
+export function courseSubjectOptionsFor(allowed: string[] | null | undefined, keep?: string): { value: string; label: string }[] {
+  const reg = teacherSubjectDefs(allowed, [keep]).map(s => ({ value: s.name, label: `${s.icon} ${s.name}` }))
+  const own = [...customSubjects(allowed), ...(keep && !getSubject(keep) ? [keep] : [])]
+  return [...reg, ...[...new Set(own)].map(n => ({ value: n, label: `📚 ${n}` }))]
+}
+
 /** True if the subject (by id or Russian name) is a language subject — gates the language task palette. */
 export function isLanguageSubject(idOrName: string | undefined): boolean {
   return !!getSubject(idOrName)?.isLanguage

@@ -210,7 +210,8 @@ function TrackForSubject({ subject }: { subject: Subject }) {
     <div className="flex-1 min-h-0 flex flex-col" style={{ padding: '8px 0 0' }}>
       {/* ── Top row: Module tabs — one line, extra modules scroll under the
            edge fade instead of wrapping onto a second row. ── */}
-      <div ref={moduleRowRef} style={{ flexShrink: 0 }}>
+      {/* Курс без модулей — вкладка одна и без названия, ряд не нужен. */}
+      <div ref={moduleRowRef} style={{ flexShrink: 0, display: subject.modules.length === 1 && subject.modules[0].loose ? 'none' : undefined }}>
       <HScrollFade padX={32} gap={0} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
         <div
           ref={modulePill.containerRef}

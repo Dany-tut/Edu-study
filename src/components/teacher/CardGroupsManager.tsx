@@ -39,7 +39,8 @@ import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'
 import { useTeacher } from '../../store/teacherStore'
 import { useAllStudents } from '../../lib/useGroups'
-import { SUBJECTS } from '../../lib/subjects'
+import { SUBJECTS, teacherSubjectDefs } from '../../lib/subjects'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import {
   fetchOwnCardGroups, deleteCardGroup, deleteCardSet,
   groupSets, moveSetsToGroup, ungroupSets, isShelf,
@@ -77,7 +78,7 @@ const LANG_OPTIONS = SUBJECTS
  * наборы по предмету своего кабинета (см. fetchCardGroups), поэтому здесь
  * выбирается именно предмет, а язык из него выводится.
  */
-const SUBJECT_OPTIONS = SUBJECTS.map(s => ({ value: s.id, label: `${s.icon} ${s.name}` }))
+// Список строится на месте — по «Моим предметам» учителя (teacherSubjectDefs).
 
 /**
  * Язык группы по выбранному предмету.
@@ -1108,7 +1109,7 @@ function ScopeFields({ group, patch, studentOptions, stacked = false }: {
         <Field label={t('Предмет')}>
           <TeacherSelect
             value={group.subject ?? ''}
-            options={SUBJECT_OPTIONS}
+            options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [group.subject]).map(s => ({ value: s.id, label: `${s.icon} ${s.name}` }))}
             onChange={v => patch({ subject: v, lang: langOfSubject(v) })}
             clearable={false}
           />

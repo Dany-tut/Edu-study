@@ -7,6 +7,8 @@ import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
+import TeacherSubjectsField from '../components/teacher/TeacherSubjectsField'
+import { getSubject } from '../lib/subjects'
 
 // Teacher self-registration from an admin invite link (#/join-teacher?token=…).
 // Mirrors JoinPage: create an auth account (role: teacher), then apply the baked
@@ -44,7 +46,8 @@ export default function JoinTeacherPage() {
   const [step, setStep] = useState<Step>('loading')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [subject, setSubject] = useState('')
+  // Формат profiles.subjects: id реестра + свои строкой.
+  const [subjects, setSubjects] = useState<string[]>([])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
@@ -59,6 +62,8 @@ export default function JoinTeacherPage() {
       const row = Array.isArray(data) ? data[0] : null
       if (error || !row || row.consumed) { setStep('error'); return }
       if (row.email) setEmail(row.email)
+      // Админ мог отметить предметы в приглашении — подставляем, учитель правит.
+      if (Array.isArray(row.subjects)) setSubjects(row.subjects)
       setStep('form')
     })
   }, [token])
@@ -68,8 +73,10 @@ export default function JoinTeacherPage() {
   const emailTouched = email.length > 0
   const passwordTouched = password.length > 0
 
+  const ready = emailValid && passwordValid && consent && subjects.length > 0
+
   async function handleRegister() {
-    if (!emailValid || !passwordValid) return
+    if (!ready) return
     setSaving(true)
     setErrorMsg('')
 
@@ -83,7 +90,8 @@ export default function JoinTeacherPage() {
           name: fullName || email.split('@')[0],
           first_name: firstName.trim(),
           last_name: lastName.trim(),
-          subject: subject.trim(),
+          // Старое поле — подпись в Админке; источник правды — profiles.subjects.
+          subject: subjects.map(v => getSubject(v)?.name ?? v).join(', '),
           analytics_consent: analyticsOptIn,
           consent_at: new Date().toISOString(),
         },
@@ -103,6 +111,13 @@ export default function JoinTeacherPage() {
       setErrorMsg(t('Аккаунт создан, но не удалось применить настройки доступа: ') + t(authErrorRu(applyErr)))
       setSaving(false)
       return
+    }
+
+    // Предметы — после apply_teacher_invite: тот переписывает subjects
+    // значением из приглашения. Сбой не держит на форме: аккаунт уже есть, а
+    // предметы спросит разовое окно в кабинете.
+    if (subjects.length) {
+      await supabase.from('profiles').update({ subjects }).eq('id', authData.user.id)
     }
 
     void trackNow('register', { role: 'teacher' })
@@ -154,7 +169,7 @@ export default function JoinTeacherPage() {
                 <input className="auth-input" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('Имя')} style={inputStyle} autoFocus />
                 <input className="auth-input" value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('Фамилия')} style={inputStyle} />
               </div>
-              <input className="auth-input" value={subject} onChange={e => setSubject(e.target.value)} placeholder={t('Предмет (напр. Химия)')} style={inputStyle} />
+              <TeacherSubjectsField value={subjects} onChange={setSubjects} look="auth" />
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <input className="auth-input"
                   type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('Email (логин)')}
@@ -193,12 +208,12 @@ export default function JoinTeacherPage() {
 
             <button
               onClick={handleRegister}
-              disabled={!emailValid || !passwordValid || !consent || saving}
+              disabled={!ready || saving}
               style={{
                 marginTop: 22, width: '100%', padding: '13px 0',
-                background: emailValid && passwordValid && consent ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
+                background: 'var(--grad-purple)', opacity: ready ? 1 : 0.55,
                 color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14,
-                cursor: emailValid && passwordValid && consent ? 'pointer' : 'not-allowed',
+                cursor: ready ? 'pointer' : 'not-allowed',
               }}
             >
               {saving ? t('Создаём аккаунт...') : t('Войти в платформу')}

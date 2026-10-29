@@ -1,5 +1,4 @@
 import { supabase } from './supabase'
-import { t } from './i18n'
 import { baseLessonRef } from './extraHomework'
 
 // Load the course that owns a lesson, then open it in the course editor so the
@@ -30,7 +29,7 @@ export async function openLessonInCourseEditor(lessonId: string, openCourseEdito
     lessonIds: dbLessons.filter((l: any) => l.module_id === m.id).map((l: any) => l.short_id),
   }))
   if (modules.length === 0) {
-    modules = [{ id: 'm1', label: t('Модуль 1'), expanded: true, lessonIds: lessons.map((l: any) => l.id) }]
+    modules = [{ id: 'm1', label: '', expanded: true, lessonIds: lessons.map((l: any) => l.id) }]
   } else {
     const grouped = new Set(modules.flatMap((m: any) => m.lessonIds))
     const ungrouped = dbLessons.filter((l: any) => !grouped.has(l.short_id)).map((l: any) => l.short_id)

@@ -18,6 +18,9 @@ import AppVersionRow from '../../AppVersionRow'
 import { getSessionUser } from '../../../lib/owner'
 import { AvatarPhotoFill } from '../../AvatarPhoto'
 import { useMyTeacherAvatarPath } from '../../../lib/avatarPhoto'
+import { useTeacherAccess } from '../../../lib/teacherAccess'
+import { subjectNamesFromStored } from '../../../lib/subjects'
+import TeacherSubjectsField from '../TeacherSubjectsField'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -54,6 +57,12 @@ export default function MobileTeacherProfile() {
   const [tariffOpen, setTariffOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
 
+  const isTeacher = useTeacherAccess(s => s.isTeacher)
+  const mySubjects = useTeacherAccess(s => s.subjects)
+  const saveSubjects = useTeacherAccess(s => s.saveSubjects)
+  const [subjectsError, setSubjectsError] = useState(false)
+  const changeSubjects = async (next: string[]) => setSubjectsError(!(await saveSubjects(next)))
+
   const finance = useFinanceSummary()
   const home = useHomeData()
 
@@ -80,7 +89,7 @@ export default function MobileTeacherProfile() {
   const emailName = email ? email.split('@')[0] : t('Учитель')
   const m: TeacherProfileModel = useDemo ? DEMO_TEACHER_PROFILE : {
     name: profile?.name || emailName,
-    subject: profile?.subject || t('Учительский кабинет'),
+    subject: (mySubjects.length ? subjectNamesFromStored(mySubjects).join(', ') : profile?.subject) || t('Учительский кабинет'),
     planName: plan?.planName || t('Бета-доступ'),
     studentsUsed: plan?.studentsUsed ?? home.totalStudents,
     maxStudents: plan?.maxStudents ?? null,
@@ -119,6 +128,14 @@ export default function MobileTeacherProfile() {
             <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(m.subject)}</div>
           </div>
         </div>
+
+        {/* Мои предметы — span 2. Сохраняются сразу; у админа поля нет. */}
+        {isTeacher && (
+          <div style={{ gridColumn: 'span 2' }}>
+            <TeacherSubjectsField value={mySubjects} onChange={changeSubjects} look="profile" />
+            {subjectsError && <div style={{ fontSize: 11.5, color: 'var(--color-red-text)', marginTop: 5 }}>{t('Не удалось сохранить предметы. Попробуйте ещё раз.')}</div>}
+          </div>
+        )}
 
         {/* Tariff + quota — span 2, gradient. Opens the tariff screen (same as
             the «Повысить» row below). Payment isn't wired, so choosing a plan

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
+import { AlertStack } from '../../components/Alert'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -17,7 +18,8 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
-import { courseSubjectOptions, isLanguageSubject } from '../../lib/subjects'
+import { courseSubjectOptionsFor, isLanguageSubject } from '../../lib/subjects'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import AudioStimulusEditor from '../../components/teacher/AudioStimulusEditor'
 import { useGroups, useAllStudents, groupStudentsByPerson, type PersonRow } from '../../lib/useGroups'
@@ -195,6 +197,10 @@ export interface CourseEdData {
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
+// Модули необязательны. Уроки «без модуля» живут в модуле с пустым названием:
+// в базе урок обязан висеть на модуле (ученик читает уроки через course_modules),
+// а в редакторе и у ученика у такого модуля нет заголовка.
+function isLooseModule(m: { label: string }) { return !m.label.trim() }
 
 /** Поле с сохранённым названием/описанием: без фокуса в английском режиме
  *  показывает перевод (tc), в фокусе — исходник, так что правится оригинал.
@@ -355,6 +361,7 @@ function LeftCourseMeta({
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
 }) {
   const t = useT()
+  const mySubjects = useTeacherAccess(s => s.subjects)
   const titleField = useContentField(course.title)
   const descField = useContentField(course.description ?? '')
   // Title is a textarea so long names wrap onto a 2nd line instead of clipping;
@@ -385,7 +392,7 @@ function LeftCourseMeta({
           <Label>{t('Предмет')}</Label>
           <TeacherSelect
             value={course.subject}
-            options={COURSE_SUBJECTS.map(o => ({ ...o, label: t(o.label) }))}
+            options={courseSubjectOptionsFor(mySubjects, course.subject).map(o => ({ ...o, label: t(o.label) }))}
             onChange={v => setCourse(c => ({ ...c, subject: v }))}
             placeholder={t('Выберите предмет')}
             clearable={false}
@@ -438,7 +445,6 @@ function LeftCourseMeta({
 // ─── CENTER: Course access — who gets the course (no lesson selected) ─────────
 
 // Subjects a course can belong to — sourced from the subject registry.
-const COURSE_SUBJECTS = courseSubjectOptions()
 
 type AccessMode = 'full' | 'custom' | 'by_date'
 const ACCESS_MODE_OPTIONS: Array<{ value: AccessMode; label: string }> = [
@@ -4630,12 +4636,14 @@ function RightPanelLessons({
   function appendLesson(lesson: CELesson) {
     setCourse(c => {
       const updatedLessons = [...c.lessons, lesson]
-      if (c.modules.length === 0) return { ...c, lessons: updatedLessons }
-      const targetId = activeModuleId && c.modules.some(m => m.id === activeModuleId)
-        ? activeModuleId
-        : c.modules[c.modules.length - 1].id
+      // Выбран модуль — урок идёт в него, иначе — в уроки без модуля.
+      const active = activeModuleId ? c.modules.find(m => m.id === activeModuleId) : undefined
+      const target = active ?? c.modules.find(isLooseModule)
+      if (!target) {
+        return { ...c, lessons: updatedLessons, modules: [{ id: uid(), label: '', expanded: true, lessonIds: [lesson.id] }, ...c.modules] }
+      }
       const mods = c.modules.map(m =>
-        m.id === targetId ? { ...m, lessonIds: [...m.lessonIds, lesson.id] } : m
+        m.id === target.id ? { ...m, lessonIds: [...m.lessonIds, lesson.id] } : m
       )
       return { ...c, lessons: updatedLessons, modules: mods }
     })
@@ -4679,6 +4687,25 @@ function RightPanelLessons({
       ...c,
       modules: c.modules.map(m => m.id === id ? { ...m, label: trimmed } : m),
     }))
+  }
+
+  // Убрать модуль, не трогая уроки: они уходят в уроки без модуля.
+  function dissolveModule(id: string) {
+    setCourse(c => {
+      const mod = c.modules.find(m => m.id === id)
+      if (!mod) return c
+      const rest = c.modules.filter(m => m.id !== id)
+      const loose = rest.find(isLooseModule)
+      return {
+        ...c,
+        modules: loose
+          ? rest.map(m => m === loose ? { ...m, lessonIds: [...m.lessonIds, ...mod.lessonIds] } : m)
+          : mod.lessonIds.length
+            ? [{ id: uid(), label: '', expanded: true, lessonIds: mod.lessonIds }, ...rest]
+            : rest,
+      }
+    })
+    if (activeModuleId === id) setActiveModuleId(null)
   }
 
   function deleteLesson(lessonId: string) {
@@ -4845,7 +4872,7 @@ function RightPanelLessons({
                           onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-2)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
-                          {tc(m.label)}
+                          {isLooseModule(m) ? t('Без модуля') : tc(m.label)}
                         </button>
                       ))}
                       </ScrollFade>
@@ -4919,9 +4946,10 @@ function RightPanelLessons({
             .filter(Boolean) as CELesson[]
           const isTarget = dropTarget?.moduleId === mod.id
           const isActive = activeModuleId === mod.id
+          const loose = isLooseModule(mod)
           return (
             <div key={mod.id} style={{ marginBottom: 6 }}>
-              <button
+              {!loose && <button
                 onClick={e => {
                   // e.detail > 1 — это второй клик двойного, его глотаем:
                   // раскрытие/сворачивание должно реагировать только на одиночный.
@@ -5013,18 +5041,29 @@ function RightPanelLessons({
                     {t('в конец')}
                   </span>
                 )}
+                {isActive && editingModuleId !== mod.id && (
+                  <span
+                    role="button"
+                    title={t('Убрать модуль — уроки останутся без модуля')}
+                    onClick={e => { e.stopPropagation(); dissolveModule(mod.id) }}
+                    onDoubleClick={e => e.stopPropagation()}
+                    style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', color: 'var(--color-green-text)', padding: 1, margin: -1 }}
+                  >
+                    <X size={12} />
+                  </span>
+                )}
                 <span style={{ fontSize: 10, color: isActive ? 'var(--color-green-text)' : 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
-              </button>
+              </button>}
               {/* initial={false}: при входе в курс модули уже развёрнуты — без него
                   каждый вырастал с нуля, и правая колонка дёргалась на входе. */}
               <AnimatePresence initial={false}>
-                {mod.expanded && (
+                {(loose || mod.expanded) && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.18 }}
-                    style={{ overflow: 'hidden', paddingLeft: 10, paddingTop: 3, paddingBottom: 3 }}
+                    style={{ overflow: 'hidden', paddingLeft: loose ? 0 : 10, paddingTop: loose ? 0 : 3, paddingBottom: 3 }}
                     onDragOver={e => {
                       e.preventDefault()
                       if (dropTarget?.moduleId !== mod.id) {
@@ -5035,7 +5074,9 @@ function RightPanelLessons({
                     {modLessons.length === 0 ? (
                       isTarget
                         ? <DropLine />
-                        : <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', fontStyle: 'italic' }}>{t('Нет уроков')}</div>
+                        : loose
+                          ? (dragging && <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', borderRadius: 8, border: '1.5px dashed var(--color-border)' }}>{t('Без модуля')}</div>)
+                          : <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', fontStyle: 'italic' }}>{t('Нет уроков')}</div>
                     ) : (
                       <>
                         {modLessons.map((l, i) => (
@@ -5185,7 +5226,7 @@ export default function TeacherCourseEditorPage() {
           id: uid(), title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
           color: 'var(--color-purple)', bg: 'var(--color-green-soft)',
           groupIds: [], studentIds: [],
-          modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: [] }],
+          modules: [],
           lessons: [],
         }
     // Unsaved edits win over the snapshot the editor was opened with: the
@@ -5703,7 +5744,23 @@ export default function TeacherCourseEditorPage() {
     return lessonStamp > courseStamp ? lessonStamp : courseStamp
   }
 
-  async function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
+  // ── Записи курса идут строго по одной ─────────────────────────────────────
+  //
+  // Сохранение длится секунду-другую (курс, модули, уроки, календарь), а
+  // автосейв срабатывает через 900 мс после правки. Учитель печатает дальше —
+  // и вторая запись стартовала, пока первая ещё писала. Вторая видела отпечаток
+  // первой (курс уже переписан, а baselineStamp сдвигается только в самом
+  // конце) и принимала нашу же запись за чужую: «Курс изменили в другом месте»
+  // плюс красное «Не удалось сохранить», хотя вкладка одна. Поэтому очередь:
+  // следующая запись ждёт, пока предыдущая не сдвинет отпечаток.
+  const saveChain = useRef<Promise<unknown>>(Promise.resolve())
+  function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
+    const run = saveChain.current.then(() => syncCourseNow(c), () => syncCourseNow(c))
+    saveChain.current = run
+    return run
+  }
+
+  async function syncCourseNow(c: CourseEdData): Promise<boolean> {
     const shortId = c.dbCourseId ?? c.id
 
     // Страховка на случай нового пути в сохранение: запись идёт курсом целиком,
@@ -5782,9 +5839,11 @@ export default function TeacherCourseEditorPage() {
     // course_modules → lessons, so every lesson must live under a module.
     // Build the ordered lesson list: module order, then each module's lessonIds,
     // with any ungrouped lesson appended to the first module.
-    const editorModules = c.modules.length > 0
-      ? c.modules
-      : [{ id: 'm0', label: 'Модуль 1', expanded: true, lessonIds: c.lessons.map(l => l.id) }]
+    // Пустой модуль «без названия» не пишем — иначе у ученика пустая вкладка.
+    const keptModules = c.modules.filter(m => !isLooseModule(m) || m.lessonIds.length > 0)
+    const editorModules = keptModules.length > 0
+      ? keptModules
+      : [{ id: 'm0', label: '', expanded: true, lessonIds: c.lessons.map(l => l.id) }]
     const firstModuleLocalId = editorModules[0].id
 
     // 1. Reuse existing modules by position; create missing, drop extras.
@@ -6477,65 +6536,28 @@ export default function TeacherCourseEditorPage() {
         document.body
       )}
 
-      {/* ── Publish-blocked banner ── */}
-      <AnimatePresence>
-        {/* Курс изменили, пока вкладка была открыта. Не ошибка сети, а
-            развилка: сохранить отсюда — значит откатить чужую работу. Поэтому
-            не «попробуйте ещё раз», а «перезагрузите» — и предупреждение, что
-            несохранённое в этой вкладке при этом пропадёт. */}
-        {staleConflict && (
-          <motion.div
-            key="stale-conflict"
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              flexShrink: 0,
-              margin: '0 24px 8px', padding: '12px 14px', borderRadius: 12,
-              border: '1px solid var(--color-yellow-text)', background: 'var(--color-yellow-soft)',
-              color: 'var(--color-text)', fontSize: 13,
-              display: 'flex', alignItems: 'center', gap: 10,
-            }}
-          >
-            <span style={{ flex: 1, lineHeight: 1.5 }}>
-              <b>{t('Курс изменили в другом месте.')}</b>{' '}
-              {t('Сохранение отсюда откатило бы те правки, поэтому запись отменена. Перезагрузите страницу — правки, сделанные в этой вкладке и не сохранённые, при этом пропадут.')}
-            </span>
-            <button
-              onClick={() => { clearDrafts(draftNs); window.location.reload() }}
-              className="cursor-pointer flex-shrink-0"
-              style={{ padding: '8px 14px', borderRadius: 999, border: 'none', background: 'var(--color-control-accent)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit' }}
-            >
-              {t('Перезагрузить')}
-            </button>
-            <button
-              onClick={() => setStaleConflict(false)}
-              aria-label={t('Закрыть')}
-              className="cursor-pointer flex-shrink-0 flex items-center justify-center"
-              style={{ width: 28, height: 28, borderRadius: 9, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-muted)' }}
-            >
-              <X size={14} />
-            </button>
-          </motion.div>
-        )}
-
-        {publishErr && (
-          <motion.div
-            key="publish-err"
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              flexShrink: 0,
-              margin: '0 24px 8px', padding: '10px 14px', borderRadius: 12,
-              border: '1px solid var(--color-red-soft)', background: 'var(--color-red-soft)',
-              color: 'var(--color-red-text)', fontSize: 13, fontWeight: 600,
-              display: 'flex', alignItems: 'center', gap: 8,
-            }}
-          >
-            <span style={{ flexShrink: 0 }}>⚠️</span>
-            <span>{publishErr}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Алерты редактора — одной карточкой (см. components/Alert.tsx) ── */}
+      {/* Конфликт версий — не ошибка сети, а развилка: сохранить отсюда —
+          значит откатить чужую работу. Поэтому не «попробуйте ещё раз», а
+          «перезагрузите» с предупреждением о потере несохранённого. Пока он
+          висит, красное «Не удалось сохранить» — лишь его следствие: та же
+          отменённая запись, — второй строкой его не показываем. */}
+      <AlertStack
+        style={{ flexShrink: 0, margin: '0 24px 8px' }}
+        items={[
+          staleConflict && {
+            id: 'stale-conflict', tone: 'warning',
+            title: t('Курс изменили в другом месте.'),
+            text: t('Сохранение отсюда откатило бы те правки, поэтому запись отменена. Перезагрузите страницу — правки, сделанные в этой вкладке и не сохранённые, при этом пропадут.'),
+            action: { label: t('Перезагрузить'), onClick: () => { clearDrafts(draftNs); window.location.reload() } },
+            onClose: () => setStaleConflict(false),
+          },
+          !!publishErr && !staleConflict && {
+            id: 'publish-err', tone: 'danger', text: publishErr,
+            onClose: () => setPublishErr(null),
+          },
+        ]}
+      />
 
       {/* ── 3-column body — ровно по высоте окна (flex:1 + minHeight:0), чтобы
              колонки не могли вытянуть страницу и остались независимыми ── */}
