@@ -91,8 +91,10 @@ export default function Modal({
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: `${padding - 4}px ${padding}px 12px`, flexShrink: 0 }}>
               {icon}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>{title}</div>
-                {subtitle != null && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.3 }}>{subtitle}</div>}
+                {/* Строка заголовка высотой с крестик (36) и по центру его: иначе
+                    заголовок висел у верхнего края, а крестик ниже. */}
+                <div style={{ minHeight: 36, display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>{title}</div>
+                {subtitle != null && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: -6, lineHeight: 1.3 }}>{subtitle}</div>}
               </div>
               <ModalClose onClose={onClose} />
             </div>
