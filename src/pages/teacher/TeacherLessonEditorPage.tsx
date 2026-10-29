@@ -39,7 +39,7 @@ function tileBase(active: boolean): React.CSSProperties {
     display: 'flex', alignItems: 'center', gap: 12,
     padding: 16, borderRadius: 18, minHeight: 92, width: '100%',
     background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'rgba(74,222,128,0.04)',
-    border: active ? '1px solid var(--color-border-soft)' : '1.5px dashed rgba(74,222,128,0.3)',
+    border: active ? '1px solid var(--color-border-soft)' : '1.5px dashed var(--color-border-medium)',
     boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
     cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
   }
@@ -431,7 +431,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
         onClick={() => onChange([...codes, { time: '', label: '' }])}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          padding: '8px 0', borderRadius: 11, border: '1.5px dashed rgba(74,222,128,0.3)',
+          padding: '8px 0', borderRadius: 11, border: '1.5px dashed var(--color-border-medium)',
           background: 'rgba(74,222,128,0.05)', cursor: 'pointer',
           fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', fontFamily: 'inherit',
         }}
@@ -484,7 +484,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
   return (
     <div style={{
       width: '100%', height: '54vh', borderRadius: 24,
-      border: '2px dashed rgba(74,222,128,0.3)', background: 'rgba(74,222,128,0.04)',
+      border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24,
     }}>
       <div style={{
@@ -684,7 +684,7 @@ function AudiencePicker({
           style={{
             display: 'flex', alignItems: 'center', gap: 7, width: '100%',
             padding: '9px 12px', borderRadius: 11, cursor: 'pointer',
-            border: '1.5px dashed rgba(74,222,128,0.3)',
+            border: '1.5px dashed var(--color-border-medium)',
             background: open ? 'rgba(74,222,128,0.08)' : 'rgba(74,222,128,0.04)',
             color: 'var(--color-green-text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
