@@ -15,6 +15,8 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
 import { useT, t, useTc } from '../../lib/i18n'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
+import AiGradeCard from '../../components/teacher/AiGradeCard'
+import { useAiGrades, confirmAiGrade } from '../../lib/useAiGrades'
 import { alertDialog } from '../../components/ConfirmHost'
 import { Alert } from '../../components/Alert'
 import { btn } from '../../lib/pillStyles'
@@ -396,6 +398,8 @@ export default function TeacherHomeworkReviewPage() {
     }
     return m
   }, [rawSubmissions])
+  // Предоценка ИИ по критериям ФИПИ (hw_ai_grades) — для химии и биологии.
+  const { byProgress: aiByProgress, reload: reloadAi } = useAiGrades(rawSubmissions.map(s => s.id))
 
   const idx = reviewIdx
   const prevIdxRef = useRef(reviewIdx)
@@ -441,6 +445,7 @@ export default function TeacherHomeworkReviewPage() {
   const student = submitters[idx]
   const currentSubmission = subByStudent.get(student?.id)
   const reviewed = currentSubmission?.verdict === 'accepted' || currentSubmission?.verdict === 'returned'
+  const aiGrade = currentSubmission ? aiByProgress.get(currentSubmission.id) : undefined
   const draftKey = `hwReview:${hw.id}:${student.id}`
   const draft = drafts[student.id] ?? readDraft<ReviewDraft>(draftKey) ?? {
     score: reviewed ? String(currentSubmission!.score) : '',
@@ -486,13 +491,17 @@ export default function TeacherHomeworkReviewPage() {
     if (target !== -1 && target !== idx) go(target)
   }
 
-  async function handleVerdict(verdict: 'accepted' | 'returned') {
+  // ai — «Ок» на предоценке ИИ: балл и комментарий ИИ вместо полей формы
+  // (свой комментарий учителя, если он уже написан, остаётся).
+  async function handleVerdict(verdict: 'accepted' | 'returned', ai?: { score: number; comment: string }) {
     const submissionId = currentSubmission?.id
     if (!submissionId) return
-    const score = hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
+    const score = ai ? ai.score
+      : hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
+    const comment = ai && !draft.comment.trim() ? ai.comment : draft.comment
     // Реальная запись в lesson_progress (та же строка, куда ученик сдал) —
     // вердикт/оценка/комментарий/фото/доска дойдут до ученика и переживут reload.
-    const ok = await reviewHomework(submissionId, verdict, score, draft.comment, {
+    const ok = await reviewHomework(submissionId, verdict, score, comment, {
       photos: draft.photos, board: draft.board,
     })
     if (!ok) {
@@ -501,6 +510,12 @@ export default function TeacherHomeworkReviewPage() {
       void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
       return
     }
+    // Балл ушёл ученику прежним путём; здесь — отметка «ИИ → учитель»:
+    // принял балл ИИ или поставил свой.
+    if (verdict === 'accepted' && aiGrade && (aiGrade.status === 'graded' || aiGrade.status === 'dismissed')) {
+      await confirmAiGrade(aiGrade.id, score)
+    }
+    void reloadAi()
     clearDraft(draftKey)
     setDrafts(d => {
       const { [student.id]: _gone, ...rest } = d
@@ -685,6 +700,17 @@ export default function TeacherHomeworkReviewPage() {
                     <Star size={16} style={{ color: '#F5A623' }} />
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Оценка и комментарий')}</span>
                   </div>
+
+                  {aiGrade && (
+                    <AiGradeCard
+                      grade={aiGrade}
+                      onAccept={() => { if (aiGrade.score != null) void handleVerdict('accepted', { score: aiGrade.score, comment: aiGrade.comment }) }}
+                      onEdit={() => setDraft({
+                        score: aiGrade.score != null ? String(aiGrade.score) : draft.score,
+                        comment: draft.comment.trim() ? draft.comment : aiGrade.comment,
+                      })}
+                    />
+                  )}
 
                   {/* Score field */}
                   <div style={{ marginBottom: 16 }}>
