@@ -1551,6 +1551,7 @@ export const EN: Record<string, string> = {
   "Вернуть стандартную структуру ЕГЭ для этого предмета? Ваши правки будут потеряны.": "Restore the standard exam structure for this subject? Your edits will be lost.",
   "Сбросить к стандарту ЕГЭ": "Reset to the standard exam structure",
   "Сбросить": "Reset",
+  "Вернуть порядок по умолчанию": "Restore the default order",
   "тем": "topics",
   "линий": "lines",
   "Часть 1": "Part 1",

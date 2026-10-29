@@ -2,9 +2,9 @@ import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion
 import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { GripVertical, Plus, Minus, X } from 'lucide-react'
+import { GripVertical, Plus, Minus, X, RotateCcw } from 'lucide-react'
 import { useDashboard } from '../store/dashboardStore'
-import { WIDGET_META } from '../data/widgets'
+import { WIDGET_META, DEFAULT_WIDGET_ORDER } from '../data/widgets'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useT } from '../lib/i18n'
 
@@ -111,6 +111,11 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
   // Keep at least one widget visible — the carousel needs something to show.
   const hide = (id: number) => setOrder(prev => (prev.length <= 1 ? prev : prev.filter(x => x !== id)))
   const show = (id: number) => setOrder(prev => (prev.includes(id) ? prev : [...prev, id]))
+  // «Сбросить» возвращает заводской порядок и показ, но только в черновик —
+  // сохранится, как и всё остальное, по «Готово».
+  const defaultOrder = DEFAULT_WIDGET_ORDER.filter(editable)
+  const isDefault = order.length === defaultOrder.length && order.every((id, i) => id === defaultOrder[i])
+  const reset = () => setOrder(defaultOrder)
 
   // Виджеты, которых в модалке не было (скрыты предметом или пустотой), нельзя
   // потерять при сохранении — иначе один визит в настройки на языковом курсе
@@ -235,7 +240,22 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
               )}
 
               {/* Footer */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 24 }}>
+                <motion.button
+                  whileTap={isDefault ? undefined : { scale: 0.97 }}
+                  onClick={reset}
+                  disabled={isDefault}
+                  title={t('Вернуть порядок по умолчанию')}
+                  style={{
+                    marginRight: 'auto', display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '0 12px', height: 42, borderRadius: 12, border: 'none',
+                    cursor: isDefault ? 'default' : 'pointer', opacity: isDefault ? 0.4 : 1,
+                    background: 'transparent', color: 'var(--color-muted)', fontSize: 14, fontWeight: 600,
+                  }}
+                >
+                  <RotateCcw size={15} />
+                  {t('Сбросить')}
+                </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={onClose}
