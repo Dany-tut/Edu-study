@@ -3,7 +3,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { computeSubjectStats } from '../lib/db'
 import StarStickerLottie from './StarStickerLottie'
 import Skeleton from './Skeleton'
-import { useT, tc } from '../lib/i18n'
+import { useT } from '../lib/i18n'
 import { useSeason, seasonImg } from '../lib/season'
 import { useSeasonStars, SeasonFlask } from './season/Season'
 
@@ -83,29 +83,11 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
   // ≤2 widgets per row → single row of 4; ≥3 → 2×2
   const gridCols = columns >= 3 ? 2 : 4
 
-  // Подпись «чей это счёт» — только когда курсов больше одного: иначе она
-  // повторяет единственную вкладку трека. Лежит поверх свободного поля первой
-  // карточки (цифра в ней центрирована), чтобы карточки остались той же высоты,
-  // что и соседние виджеты в ряду. В плотной раскладке 2×2 места нет — там
-  // карточка вдвое ниже и подпись налезла бы на цифру.
-  const scopeLabel = course && subjects.length > 1 && columns < 3 ? tc(course.name) : null
+  // Подписи «чей это счёт» над первой карточкой нет: активный курс и так виден
+  // вкладкой трека прямо под плитками, а над цифрой она читалась шумом (Даня, 29.10.2026).
 
   return (
     <div className="relative h-full w-full">
-      {scopeLabel && (
-        <span
-          className="truncate"
-          style={{
-            position: 'absolute', top: 12, left: 20, zIndex: 1,
-            maxWidth: `calc(${100 / gridCols}% - 40px)`,
-            fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
-            textTransform: 'uppercase', color: 'var(--color-text-4)',
-            pointerEvents: 'none',
-          }}
-        >
-          {scopeLabel}
-        </span>
-      )}
       <div
         className="stats-grid h-full"
         data-testid="stats-grid"

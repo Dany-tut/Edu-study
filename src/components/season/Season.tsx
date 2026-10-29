@@ -85,7 +85,13 @@ export function SeasonCat() {
 export function SeasonCornerPumpkin() {
   const s = useSeason()
   if (!s.on('decor') || (s.variant !== 'candy' && s.variant !== 'potions')) return null
-  return <img aria-hidden src={seasonImg('pumpkin-spark')} alt="" className={`season-corner season-corner--${s.variant}`} />
+  // Обрезающий слой: тыква выглядывает из-за края окна, но не удлиняет страницу —
+  // иначе у главной появлялась прокрутка ровно на высоту её выступа.
+  return (
+    <div aria-hidden className="season-clip">
+      <img src={seasonImg('pumpkin-spark')} alt="" className={`season-corner season-corner--${s.variant}`} />
+    </div>
+  )
 }
 
 /** Пустой день в расписании: привидение-листок вместо «Пока нет данных». */
