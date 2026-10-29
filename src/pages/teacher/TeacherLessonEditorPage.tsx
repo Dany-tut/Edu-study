@@ -8,7 +8,7 @@ import {
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { LessonLinkAttach } from '../../components/teacher/LessonLinkAttach'
-import { useTeacher } from '../../store/teacherStore'
+import { useTeacher, setLeaveGuard } from '../../store/teacherStore'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
@@ -1041,6 +1041,24 @@ export default function TeacherLessonEditorPage() {
   const [files, setFiles] = usePersistentState<LessonFiles>(`${draftNs}.files`, {})
   const [description, setDescription] = usePersistentState(`${draftNs}.description`, '')
   const [published, setPublished] = useState(false)
+
+  // Сторож ухода. До «Опубликовать» правки живут только в черновике вкладки:
+  // меню, «назад» и закрытие вкладки молча их теряли.
+  // Изменения в первые полторы секунды — загрузка урока из базы, не правка.
+  const openedAt = useRef(Date.now())
+  const editDirty = useRef(false)
+  useEffect(() => {
+    if (Date.now() - openedAt.current > 1500) editDirty.current = true
+  }, [meta, videoUrl, timecodes, files, description])
+  useEffect(() => {
+    const isDirty = () => editDirty.current && !publishedRef.current
+    const warn = (e: BeforeUnloadEvent) => { if (isDirty()) { e.preventDefault(); e.returnValue = '' } }
+    window.addEventListener('beforeunload', warn)
+    setLeaveGuard(isDirty)
+    return () => { window.removeEventListener('beforeunload', warn); setLeaveGuard(null) }
+  }, [])
+  const publishedRef = useRef(false)
+  publishedRef.current = published
   const [publishErr, setPublishErr] = useState<string | null>(null)
 
   // Содержимое привязанного урока — из `lessons`, а не из воздуха. Черновик
@@ -1130,28 +1148,43 @@ export default function TeacherLessonEditorPage() {
       }
     }
 
+    // Ошибки записи расписания раньше не проверялись: «Опубликован» и чистка
+    // черновика шли при любом исходе. А урок только для ученика (без группы) не
+    // вставлялся вовсе — строка расписания умеет быть и на ученика (0003).
+    const scheduleBase = {
+      lesson_title: meta.title,
+      lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
+      date: isoDate,
+      time_start: meta.startTime || null,
+      time_end: meta.endTime || null,
+    }
     if (editingScheduleId) {
-      await supabase.from('schedule_lessons').update({
-        lesson_title: meta.title,
-        lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
-        date: isoDate,
-        time_start: meta.startTime || null,
-        time_end: meta.endTime || null,
-      }).eq('id', editingScheduleId)
-    } else if (groupRecipients.length > 0) {
-      await Promise.all(groupRecipients.map(r => {
-        const group = groups.find(g => g.id === r.id)
-        return supabase.from('schedule_lessons').insert({
-          group_id: r.id,
-          lesson_title: meta.title,
-          lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
-          date: isoDate,
-          time_start: meta.startTime || null,
-          time_end: meta.endTime || null,
-          subject: group?.subject ?? '',
-          status: 'upcoming',
-        })
-      }))
+      const { error } = await supabase.from('schedule_lessons').update(scheduleBase).eq('id', editingScheduleId)
+      if (error) {
+        console.error('[lesson-editor] schedule update failed', error)
+        setPublishErr(t('Не удалось сохранить дату и время урока — попробуйте ещё раз.'))
+        return
+      }
+    } else {
+      const studentRecipients = meta.recipients.filter(r => r.kind === 'student')
+      const rows = [
+        ...groupRecipients.map(r => ({
+          ...scheduleBase, group_id: r.id, student_id: null,
+          subject: groups.find(g => g.id === r.id)?.subject ?? '', status: 'upcoming',
+        })),
+        ...studentRecipients.map(r => ({
+          ...scheduleBase, group_id: null, student_id: r.id,
+          subject: '', status: 'upcoming',
+        })),
+      ]
+      if (rows.length > 0) {
+        const { error } = await supabase.from('schedule_lessons').insert(rows)
+        if (error) {
+          console.error('[lesson-editor] schedule insert failed', error)
+          setPublishErr(t('Не удалось поставить урок в расписание — попробуйте ещё раз.'))
+          return
+        }
+      }
     }
 
     clearDrafts(draftNs)

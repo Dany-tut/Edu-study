@@ -6041,19 +6041,28 @@ export default function TeacherCourseEditorPage() {
     // lessons, then insert the fresh set. Deleting only the lessons that still
     // produce a row (the old behaviour) orphaned entries whenever a date was
     // cleared or a recording stopped diverging → phantom calendar dates.
+    //
+    // ПОРЯДОК: прочитать старые → вставить новые → удалить старые по id. Было
+    // «удалить всё, потом вставить», и упавшая вставка оставляла курс без
+    // календаря, а сохранение всё равно возвращало true — «Сохранено!».
     const allLessonIds = dbLessons.map(l => l.id)
+    let oldScheduleIds: string[] = []
     if (allLessonIds.length > 0) {
-      const { error: delErr } = await supabase
-        .from('schedule_lessons')
-        .delete()
-        .in('lesson_id', allLessonIds)
-      if (delErr) console.error('schedule_lessons delete failed:', delErr)
+      const { data: oldRows, error: readErr } = await supabase
+        .from('schedule_lessons').select('id').in('lesson_id', allLessonIds)
+      if (readErr) { console.error('schedule_lessons read failed:', readErr); return false }
+      oldScheduleIds = (oldRows ?? []).map(r => (r as { id: string }).id)
     }
     if (rows.length > 0) {
       const { error: insErr } = await supabase
         .from('schedule_lessons')
         .insert(rows)
-      if (insErr) console.error('schedule_lessons insert failed:', insErr)
+      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return false }
+    }
+    if (oldScheduleIds.length > 0) {
+      const { error: delErr } = await supabase
+        .from('schedule_lessons').delete().in('id', oldScheduleIds)
+      if (delErr) { console.error('schedule_lessons delete failed:', delErr); return false }
     }
     // Записали мы — значит теперь свежая версия наша. Без этого следующее же
     // сохранение упёрлось бы в собственный след и решило, что курс изменили со
