@@ -113,11 +113,11 @@ export function SeasonCat() {
 }
 
 /** Тыква-искра, которая время от времени подмигивает правым глазом-звездой. */
-export function SeasonPumpkin({ className = '', style }: { className?: string; style?: CSSProperties }) {
+export function SeasonPumpkin({ className = '', style, wink = true }: { className?: string; style?: CSSProperties; wink?: boolean }) {
   return (
     <span aria-hidden className={`season-wink ${className}`} style={style}>
       <img src={seasonImg('pumpkin-spark')} alt="" />
-      <span className="season-wink__lid" />
+      {wink && <span className="season-wink__lid" />}
     </span>
   )
 }
@@ -143,7 +143,9 @@ export function SeasonCornerPumpkin() {
   // иначе у главной появлялась прокрутка ровно на высоту её выступа.
   return (
     <div aria-hidden className="season-clip">
-      <SeasonPumpkin className={`season-corner season-corner--${s.variant}`} />
+      {/* Без подмигивания: из угла видна только макушка, и веко мелькало у
+          края окна непонятным пятном (Дани, 30.10.2026). */}
+      <SeasonPumpkin wink={false} className={`season-corner season-corner--${s.variant}`} />
     </div>
   )
 }

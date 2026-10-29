@@ -542,6 +542,13 @@ textarea:not([style*="background: transparent"]):not([style*="background: none"]
   padding-top: 100px;
 }
 
+/* Главная: расписание, виджеты и трек — по центру высоты окна. Сверху вниз
+   они прижимались к шапке, и после того как курс и модули сжались в одну
+   строку, под треком на большом экране оставалось ~340 px пустоты. safe —
+   на низком окне блок не уезжает вверх под шапку, а встаёт от её края. */
+.dashboard-root--home { justify-content: safe center; }
+.dashboard-root--home .dashboard-main { flex: 0 0 auto; }
+
 .topbar-row {
   position: absolute;
   top: 0;

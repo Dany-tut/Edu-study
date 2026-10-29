@@ -379,7 +379,7 @@ export default function DashboardPage() {
           «сначала не та вёрстка» не будет. */}
       {isDesktop && (
       <LayoutGroup>
-      <div className="dashboard-root" style={{ display: 'flex' }}>
+      <div className={activePage === 'home' ? 'dashboard-root dashboard-root--home' : 'dashboard-root'} style={{ display: 'flex' }}>
         {/* Праздничная тема (lib/season.ts): фон за всеми блоками главной. Без темы — ничего. */}
         {activePage === 'home' && <SeasonBackdrop />}
         {/* Full-width progressive blur+fade strip pinned to the top, behind the
