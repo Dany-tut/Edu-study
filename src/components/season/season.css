@@ -112,7 +112,7 @@ html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top:
 .season-hero--candy .season-hero__img { right: 9%; bottom: 4px; height: 168px; filter: drop-shadow(0 20px 30px rgba(194, 81, 10, 0.25)); }
 /* Наклейки вокруг ведёрка, как в макете: конфета слева снизу, луна в правом верхнем углу. */
 .season-hero__sticker { position: absolute; width: auto; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.3)); }
-.season-hero__sticker--candy { right: calc(9% + 190px); bottom: 10px; height: 44px; transform: rotate(-18deg); }
+.season-hero__sticker--candy { right: calc(9% + 190px); bottom: 14px; height: 44px; transform: rotate(30deg); }
 .season-hero__sticker--moon { right: 22px; top: 12px; height: 46px; transform: rotate(12deg); }
 
 /* Телефон: карточка-шапка в ленте главной. */
@@ -175,7 +175,7 @@ html[data-season-variant="candy"] .stat-card--season-stars {
    и чуть выглядывает за верх. */
 html[data-season-variant="candy"] .stats-grid:not([data-triple]) { grid-template-columns: 1fr 1fr 1fr 1.75fr !important; }
 html[data-season-variant="candy"] .stat-card--season-stars .season-stat-img {
-  position: absolute; right: -4px; bottom: 8px; height: 90% !important; max-height: 150px;
+  position: absolute; right: -22px; bottom: 22px; height: 90% !important; max-height: 150px;
   filter: drop-shadow(0 12px 18px rgba(154, 58, 0, 0.3));
 }
 html[data-season-variant="candy"] .stat-card--season-stars .stat-value,
@@ -246,7 +246,7 @@ html[data-season-variant="potions"] .season-track-fill {
   transform: translate(-50%, 42%); pointer-events: none;
 }
 .season-node-img--lanterns { filter: drop-shadow(0 0 22px rgba(255, 179, 71, 0.75)); transform: translate(-50%, 48%) scale(0.86); transform-origin: 50% 2%; }
-.season-node-img--candy { transform: translate(-50%, 50%) scale(0.72) rotate(-12deg); filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.35)); }
+.season-node-img--candy { transform: translate(-50%, 50%) scale(0.72) rotate(30deg); filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.35)); }
 .season-node-orb {
   position: absolute; inset: -4px; border-radius: 999px; z-index: 2; pointer-events: none;
   background: #34D399; box-shadow: 0 0 0 4px #fff, 0 0 22px rgba(52, 211, 153, 0.7);
@@ -398,4 +398,29 @@ html[data-season-variant="potions"] .season-node-label--now { position: relative
 }
 @media (prefers-reduced-motion: reduce) {
   .season-node-wrap:hover .season-node-img, .season-node-wrap:hover .season-node-orb { animation: none; }
+}
+
+/* «Сладость» на компьютере — шапка-картинка без текста: паук на паутине в левом
+   верхнем углу (паутина зеркальная, растёт из угла), справа ведёрко и скелет на нитке.
+   Оба качаются от точки подвеса; при «меньше движения» висят спокойно. */
+.season-hero--picture { min-height: 112px; }
+.season-hero__spider {
+  position: absolute; left: 14px; top: 4px; height: 100px; width: auto; pointer-events: none;
+  transform-origin: 0 0; animation: season-spider-sway 5s ease-in-out infinite;
+  filter: drop-shadow(0 6px 10px rgba(30, 24, 48, 0.18));
+}
+.season-hero__skeleton {
+  position: absolute; right: 2.5%; top: -24px; height: 128px; width: auto; pointer-events: none;
+  transform-origin: 50% 0; animation: season-skeleton-swing 3.4s ease-in-out infinite alternate;
+  filter: drop-shadow(0 10px 14px rgba(30, 24, 48, 0.2));
+}
+@keyframes season-spider-sway { 0%, 100% { rotate: 0deg; } 50% { rotate: 2.5deg; } }
+@keyframes season-skeleton-swing { from { rotate: -7deg; } to { rotate: 7deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .season-hero__spider, .season-hero__skeleton { animation: none; }
+}
+@media (min-width: 1024px) and (max-height: 860px) {
+  .season-hero--picture { min-height: 96px; }
+  .season-hero__spider { height: 86px; }
+  .season-hero__skeleton { height: 112px; }
 }

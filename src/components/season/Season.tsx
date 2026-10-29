@@ -62,19 +62,27 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
   const s = useSeason()
   if (!s.on('hero') || !s.variant || !s.season) return null
   const c = heroCopy(s.variant, untilLabel(s.season.endsAt))
+  // «Сладость» на компьютере — чистая картинка без текста (решение Дани 29.10.2026):
+  // паук на паутине слева, справа ведёрко и качающийся скелет. Заголовок остаётся
+  // для экранного диктора. На телефоне текст нужен — без него карточка непонятна.
+  const pictureOnly = s.variant === 'candy' && !compact
   return (
-    <div className={`season-hero season-hero--${s.variant}${compact ? ' season-hero--compact' : ''}`}>
-      <div className="season-hero__copy">
-        <span className="season-hero__chip">{t(c.chip)}</span>
-        <h2 className="season-hero__title">{t(c.title)}</h2>
-        <p className="season-hero__sub">{t(c.sub)}</p>
-      </div>
+    <div className={`season-hero season-hero--${s.variant}${compact ? ' season-hero--compact' : ''}${pictureOnly ? ' season-hero--picture' : ''}`}>
+      {pictureOnly ? (
+        <h2 className="sr-only">{t(c.title)}</h2>
+      ) : (
+        <div className="season-hero__copy">
+          <span className="season-hero__chip">{t(c.chip)}</span>
+          <h2 className="season-hero__title">{t(c.title)}</h2>
+          <p className="season-hero__sub">{t(c.sub)}</p>
+        </div>
+      )}
       <img aria-hidden src={seasonImg(c.img)} alt="" className="season-hero__img season-float" />
-      {/* «Сладость»: наклейки вокруг ведёрка — конфета слева снизу, луна справа сверху. */}
-      {s.variant === 'candy' && !compact && (
+      {pictureOnly && (
         <>
+          <img aria-hidden src={seasonImg('spider-web')} alt="" className="season-hero__spider" />
           <img aria-hidden src={seasonImg('sticker-candy')} alt="" className="season-hero__sticker season-hero__sticker--candy" />
-          <img aria-hidden src={seasonImg('sticker-moon')} alt="" className="season-hero__sticker season-hero__sticker--moon" />
+          <img aria-hidden src={seasonImg('skeleton')} alt="" className="season-hero__skeleton" />
         </>
       )}
     </div>
