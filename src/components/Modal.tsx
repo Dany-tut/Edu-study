@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { OverlayScrollArea } from './teacher/OverlayScroll'
+import { useNativeOverlay } from '../lib/nativeGlass'
 
 /**
  * ОКНО — один каркас на всё приложение.
@@ -58,6 +59,8 @@ export default function Modal({
   cardStyle?: CSSProperties
 }) {
   const t = useT()
+  // Нативный таб-бар приложения лежит над WebView — пока окно открыто, он уезжает.
+  useNativeOverlay(true)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }

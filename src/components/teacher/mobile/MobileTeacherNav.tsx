@@ -6,6 +6,8 @@ import { tactile } from '../../../lib/feedback'
 import { useNavCollapse } from '../../../lib/useNavCollapse'
 import { useKeyboardOpen } from '../../../lib/useKeyboardInset'
 import { useT } from '../../../lib/i18n'
+import { GLASS } from '../../../lib/nativeGlass'
+import MobileTeacherGlassTabs from './MobileTeacherGlassTabs'
 
 // Shared ease/duration for the scroll collapse (matches the student dock).
 const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
@@ -44,6 +46,8 @@ export default function MobileTeacherNav({
   // Клавиатура открыта (комментарий к работе, поиск) — док уезжает вниз, как
   // у ученика: иначе он вставал над клавиатурой и закрывал поле ввода.
   const kbOpen = useKeyboardOpen()
+  // В приложении на iOS навигацию рисует система (UITabBar со стеклом).
+  if (GLASS) return <MobileTeacherGlassTabs items={visibleItems} active={active} onChange={onChange} reviewBadge={reviewBadge} />
   return (
     <motion.div
       initial={false}

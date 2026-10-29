@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useNativeOverlay } from '../lib/nativeGlass'
 import { motion, AnimatePresence, useMotionValue, useDragControls, animate } from 'framer-motion'
 import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
 
@@ -182,6 +183,9 @@ export default function MobileSheet({
   // коробки в её собственный слой: fixed-шторка с zIndex 81 оказывалась ПОД
   // fixed-навигацией (z 50) снаружи, и док учителя закрывал низ карточки
   // ученика — в приложении и в Safari на айфоне; Chrome этого не делает.
+  // Нативный таб-бар приложения лежит над WebView — пока шторка открыта, он уезжает.
+  useNativeOverlay(open)
+
   return createPortal(
     <AnimatePresence>
       {open && (

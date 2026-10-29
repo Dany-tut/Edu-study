@@ -129,5 +129,6 @@ public class NativeSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesize
 class MainViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(NativeSpeechPlugin())
+        bridge?.registerPluginInstance(NativeGlassPlugin())
     }
 }

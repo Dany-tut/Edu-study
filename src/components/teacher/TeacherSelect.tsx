@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, Plus, Trash2, X } from 'lucide-react'
 import ScrollFade from '../ScrollFade'
 import { useT, tc } from '../../lib/i18n'
+import { GLASS, glassMenu } from '../../lib/nativeGlass'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 
 export type TeacherSelectOption = string | { value: string; label: string }
@@ -73,6 +74,15 @@ export default function TeacherSelect({
     : opts
 
   const openDropdown = () => {
+    // В приложении на iOS — системное меню со стеклом (lib/nativeGlass.ts).
+    // Список с правкой (добавить/удалить пункт) остаётся своим: в UIMenu
+    // поля ввода нет.
+    if (GLASS && !editable && btnRef.current) {
+      void glassMenu(btnRef.current, opts.map(o => ({ label: tc(t(o.label)), checked: o.value === value }))).then(i => {
+        if (i >= 0) onChange(opts[i].value)
+      })
+      return
+    }
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
     const itemH = small ? 28 : 33

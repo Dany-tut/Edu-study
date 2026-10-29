@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, Info } from 'lucide-react'
 import { t } from '../lib/i18n'
 import { btn } from '../lib/pillStyles'
+import { GLASS, glassAlert, glassConfirm } from '../lib/nativeGlass'
 
 export type ConfirmOpts = {
   /** Главный вопрос. Одна строка, без «вы уверены?» — что произойдёт. */
@@ -46,7 +47,18 @@ let push: ((d: Dialog) => void) | null = null
 /** Очередь до монтирования хоста: диалог из раннего эффекта не должен пропасть. */
 const pending: Dialog[] = []
 
+// В приложении на iOS спрашивает сама система (UIAlertController, стекло
+// Liquid Glass) — lib/nativeGlass.ts. Очередь там своя: следующий алерт UIKit
+// покажет, когда закроется предыдущий.
 function enqueue(d: Dialog) {
+  if (GLASS) {
+    if (d.kind === 'alert') void glassAlert(d.title, d.message, d.confirmLabel ?? t('Понятно')).then(() => d.resolve(true))
+    else void glassConfirm({
+      title: d.title, message: d.message, danger: d.tone === 'danger',
+      confirmLabel: d.confirmLabel ?? t('Продолжить'), cancelLabel: d.cancelLabel ?? t('Отмена'),
+    }).then(d.resolve)
+    return
+  }
   if (push) push(d)
   else pending.push(d)
 }
