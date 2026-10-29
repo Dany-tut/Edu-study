@@ -377,7 +377,8 @@ function LeftCourseMeta({
         rows={1}
         {...titleField}
         onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
-        style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '11px 14px', lineHeight: 1.35, resize: 'none', overflow: 'hidden' }}
+        // flexShrink 0: колонка — флекс, и в низком окне она ужимала поле по высоте
+        style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '11px 14px', lineHeight: 1.35, resize: 'none', overflow: 'hidden', flexShrink: 0 }}
         placeholder={t('Название курса')}
       />
 
