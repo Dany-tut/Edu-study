@@ -10,6 +10,7 @@ import { PLAN_TIERS, planPrice } from '../lib/plan'
 import { submitLead } from '../lib/leads'
 import { useLang, useT } from '../lib/i18n'
 import ThemeToggleBtn from '../components/ThemeToggleBtn'
+import IskraMark from '../components/landing/IskraMark'
 
 // Мокап продукта — 81 КБ рисованного интерфейса, и он стоит ПОД первым экраном
 // (внутри Reveal, который и так ждёт прокрутки). Держать его в главном чанке
@@ -118,8 +119,8 @@ export default function LandingPage() {
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         borderBottom: '1px solid color-mix(in srgb, var(--color-border) 70%, transparent)',
       }}>
-        <div className="lp-brand" style={{ display: 'flex', alignItems: 'center', gap: 11, fontWeight: 800, fontSize: 20, letterSpacing: -0.3, flexShrink: 0 }}>
-          <img src="/icon.svg?v=3" alt="" width={30} height={30} style={{ borderRadius: 8 }} />
+        <div className="lp-brand iskra-host" style={{ display: 'flex', alignItems: 'center', gap: 11, fontWeight: 800, fontSize: 20, letterSpacing: -0.3, flexShrink: 0 }}>
+          <IskraMark size={30} />
           Искра
         </div>
         <nav style={{ marginLeft: 28, display: 'flex', gap: 22 }} className="lp-nav">
@@ -383,7 +384,7 @@ export default function LandingPage() {
 
       <footer style={{ marginTop: 'clamp(64px, 9vw, 110px)', padding: '30px clamp(16px, 5vw, 56px) 44px', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', color: 'var(--color-text-3)', fontSize: 13 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 700, color: 'var(--color-text-2)' }}>
-          <img src="/icon.svg?v=3" alt="" width={22} height={22} style={{ borderRadius: 6 }} /> Искра
+          <img src="/icon-512.png" alt="" width={22} height={22} style={{ borderRadius: '22.5%' }} /> Искра
         </div>
         <span style={{ marginLeft: 'auto' }}>© Искра · {t('Платформа для преподавателей')}</span>
       </footer>
