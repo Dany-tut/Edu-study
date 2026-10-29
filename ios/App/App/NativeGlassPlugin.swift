@@ -28,6 +28,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         CAPPluginMethod(name: "tabBarSet", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "tabBarHidden", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "tabBarRemove", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "headerSet", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "headerHidden", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "headerRemove", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setAppearance", returnType: CAPPluginReturnPromise),
     ]
 
@@ -36,8 +39,82 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
     private var anchor: UIButton?
     private var menuCall: CAPPluginCall?
     private var menuPicked = false
+    private var headerHost: UIView?
+    private var leadingPill: GlassPillView?
+    private var trailingPill: GlassPillView?
 
     private var host: UIViewController? { bridge?.viewController }
+
+    // MARK: — верхняя шапка (плавающие стеклянные пилюли)
+
+    // Пилюли шапки каждого экрана (приветствие + счётчик, либо заголовок) —
+    // настоящим стеклом, как нижний бар. Веб-topZone в приложении прячется,
+    // а их место занимают эти капсулы: leading слева, trailing справа; если
+    // trailing нет — одна капсула по центру (экраны с одним заголовком).
+    @objc func headerSet(_ call: CAPPluginCall) {
+        let leading = call.getString("leading") ?? ""
+        let leadingSymbol = call.getString("leadingSymbol")
+        let trailingText = call.getString("trailingText")
+        let trailingSymbol = call.getString("trailingSymbol")
+        DispatchQueue.main.async {
+            guard let host = self.host else { call.resolve(); return }
+            let container: UIView
+            if let existing = self.headerHost {
+                container = existing
+            } else {
+                container = UIView()
+                container.translatesAutoresizingMaskIntoConstraints = false
+                container.isUserInteractionEnabled = false
+                host.view.addSubview(container)
+                NSLayoutConstraint.activate([
+                    container.leadingAnchor.constraint(equalTo: host.view.leadingAnchor, constant: 16),
+                    container.trailingAnchor.constraint(equalTo: host.view.trailingAnchor, constant: -16),
+                    container.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 8),
+                    container.heightAnchor.constraint(equalToConstant: 40),
+                ])
+                self.headerHost = container
+            }
+
+            let lead = self.leadingPill ?? { let p = GlassPillView(); container.addSubview(p); self.leadingPill = p; return p }()
+            lead.setText(leading, symbol: leadingSymbol, accentIcon: false)
+
+            if let tt = trailingText {
+                let tr = self.trailingPill ?? { let p = GlassPillView(); container.addSubview(p); self.trailingPill = p; return p }()
+                tr.setText(tt, symbol: trailingSymbol, accentIcon: true)
+                tr.isHidden = false
+                // leading слева, trailing справа.
+                lead.center(in: container, axis: .leading)
+                tr.center(in: container, axis: .trailing)
+            } else {
+                self.trailingPill?.isHidden = true
+                // единственная капсула — по центру.
+                lead.center(in: container, axis: .center)
+            }
+            call.resolve()
+        }
+    }
+
+    @objc func headerHidden(_ call: CAPPluginCall) {
+        let hidden = call.getBool("hidden") ?? false
+        DispatchQueue.main.async {
+            guard let c = self.headerHost else { call.resolve(); return }
+            UIView.animate(withDuration: 0.2, delay: 0, options: [.beginFromCurrentState]) {
+                c.alpha = hidden ? 0 : 1
+                c.transform = hidden ? CGAffineTransform(translationX: 0, y: -24) : .identity
+            }
+            call.resolve()
+        }
+    }
+
+    @objc func headerRemove(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.headerHost?.removeFromSuperview()
+            self.headerHost = nil
+            self.leadingPill = nil
+            self.trailingPill = nil
+            call.resolve()
+        }
+    }
 
     // MARK: — тема
 
@@ -223,6 +300,90 @@ private final class MenuAnchorButton: UIButton {
     override func contextMenuInteraction(_ interaction: UIContextMenuInteraction, willEndFor configuration: UIContextMenuConfiguration, animator: UIContextMenuInteractionAnimating?) {
         super.contextMenuInteraction(interaction, willEndFor: configuration, animator: animator)
         if let animator { animator.addCompletion { [weak self] in self?.onMenuEnd?() } } else { onMenuEnd?() }
+    }
+}
+
+/// Плавающая капсула со стеклом — верхняя шапка. На iOS 26 это Liquid Glass
+/// (UIGlassEffect), на старых — системное размытие. Внутри иконка SF Symbol
+/// (для счётчика) и подпись; ширина обнимает содержимое.
+private final class GlassPillView: UIView {
+    private let effect = UIVisualEffectView()
+    private let label = UILabel()
+    private let icon = UIImageView()
+    private var lastAxis: Axis?
+
+    enum Axis { case leading, trailing, center }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        translatesAutoresizingMaskIntoConstraints = false
+        if #available(iOS 26.0, *) {
+            effect.effect = UIGlassEffect(style: .regular)
+        } else {
+            effect.effect = UIBlurEffect(style: .systemThinMaterial)
+        }
+        effect.translatesAutoresizingMaskIntoConstraints = false
+        effect.clipsToBounds = true
+        effect.layer.cornerRadius = 20
+        effect.layer.cornerCurve = .continuous
+        addSubview(effect)
+
+        icon.contentMode = .scaleAspectFit
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 15, weight: .bold)
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = UIStackView(arrangedSubviews: [icon, label])
+        stack.axis = .horizontal
+        stack.spacing = 6
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        effect.contentView.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            effect.topAnchor.constraint(equalTo: topAnchor),
+            effect.bottomAnchor.constraint(equalTo: bottomAnchor),
+            effect.leadingAnchor.constraint(equalTo: leadingAnchor),
+            effect.trailingAnchor.constraint(equalTo: trailingAnchor),
+            heightAnchor.constraint(equalToConstant: 40),
+            stack.centerYAnchor.constraint(equalTo: effect.contentView.centerYAnchor),
+            stack.leadingAnchor.constraint(equalTo: effect.contentView.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: effect.contentView.trailingAnchor, constant: -16),
+            icon.widthAnchor.constraint(equalToConstant: 17),
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    func setText(_ text: String, symbol: String?, accentIcon: Bool) {
+        label.text = text
+        label.textColor = .label
+        icon.tintColor = accentIcon
+            ? UIColor(red: 0x78/255, green: 0x6A/255, blue: 0xD7/255, alpha: 1) // акцент кабинета
+            : .label
+        if let symbol, let img = UIImage(systemName: symbol) {
+            icon.image = img
+            icon.isHidden = false
+        } else {
+            icon.image = nil
+            icon.isHidden = true
+        }
+    }
+
+    /// Поставить капсулу к краю контейнера или по центру (повторный тот же —
+    /// без переустановки, иначе констрейнты копятся).
+    func center(in container: UIView, axis: Axis) {
+        guard axis != lastAxis else { return }
+        lastAxis = axis
+        constraints.filter { $0.firstAttribute == .centerX || $0.firstAttribute == .leading || $0.firstAttribute == .trailing }.forEach { _ in }
+        // Снимаем прежние опорные констрейнты этой капсулы в контейнере.
+        container.constraints.filter { ($0.firstItem === self || $0.secondItem === self) }.forEach { container.removeConstraint($0) }
+        centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
+        switch axis {
+        case .leading: leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
+        case .trailing: trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
+        case .center: centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
+        }
     }
 }
 

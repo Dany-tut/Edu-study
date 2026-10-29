@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
+import { GLASS, type GlassHeader } from '../lib/nativeGlass'
+import MobileGlassHeader from './MobileGlassHeader'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
@@ -30,6 +32,7 @@ export const MOBILE_SCROLL_ATTR = 'data-mobile-scroll'
 
 export default function MobileScreen({
   topZone,
+  glassHeader,
   topPad = DEFAULT_TOP_PAD,
   topRaise = 0,
   bottomDock,
@@ -39,6 +42,9 @@ export default function MobileScreen({
 }: {
   /** Floating glass widget/context pinned to the top. Content scrolls under it. */
   topZone?: ReactNode
+  /** В приложении на iOS шапку рисует система (плавающие стеклянные капсулы):
+   *  подпись слева, счётчик справа. Задан — веб-topZone прячется в пользу неё. */
+  glassHeader?: GlassHeader
   /** Height the top zone occupies — body padding matches it. */
   topPad?: number
   /** How many px to pull the top chrome up into the safe-area band (0 = sit just
@@ -129,8 +135,12 @@ export default function MobileScreen({
         background: 'transparent',
       }}
     >
+      {/* В приложении на iOS шапку рисует система (стеклянные капсулы) — веб-пилюли
+          не рендерим, место под них (topPad) остаётся. */}
+      {GLASS && glassHeader && <MobileGlassHeader {...glassHeader} />}
+
       {/* TOP — floating glass widget zone. pointer-events pass through empty areas. */}
-      {topZone != null && (
+      {topZone != null && !(GLASS && glassHeader) && (
         <div
           // Верхние кнопки на свайпе «назад» стоят, а не едут: по линии стыка
           // они сменяются кнопками нижнего экрана (lib/useSwipeBack.ts).

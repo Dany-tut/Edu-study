@@ -406,7 +406,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
   )
 
   return (
-    <MobileScreen topZone={topZone} topPad={72} scrollKey="t-home">
+    <MobileScreen topZone={topZone} glassHeader={{ leading: model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя'), trailingText: String(model.studentTotal), trailingSymbol: 'person.2' }} topPad={72} scrollKey="t-home">
       <style>{`@keyframes mth-confetti-fall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(240px) rotate(560deg);opacity:0}}`}</style>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 

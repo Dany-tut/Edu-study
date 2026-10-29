@@ -23,12 +23,17 @@ type AlertButton = { label: string; style?: 'default' | 'cancel' | 'destructive'
 export type GlassMenuItem = { label: string; checked?: boolean; destructive?: boolean; disabled?: boolean; symbol?: string }
 export type GlassTab = { id: string; title: string; symbol: string; badge?: number }
 
+export type GlassHeader = { leading: string; leadingSymbol?: string; trailingText?: string; trailingSymbol?: string }
+
 interface NativeGlassPlugin {
   alert(o: { title?: string; message?: string; buttons: AlertButton[] }): Promise<{ index: number }>
   menu(o: { x: number; y: number; width: number; height: number; title?: string; items: GlassMenuItem[] }): Promise<{ index: number }>
   tabBarSet(o: { items: GlassTab[]; selected?: string; tint?: string }): Promise<void>
   tabBarHidden(o: { hidden: boolean }): Promise<void>
   tabBarRemove(): Promise<void>
+  headerSet(o: GlassHeader): Promise<void>
+  headerHidden(o: { hidden: boolean }): Promise<void>
+  headerRemove(): Promise<void>
   setAppearance(o: { dark: boolean }): Promise<void>
   addListener(e: 'tabSelect', fn: (d: { id: string }) => void): Promise<PluginListenerHandle>
 }
@@ -78,7 +83,14 @@ export async function glassMenu(anchor: Element, items: GlassMenuItem[], title?:
 let overlays = 0
 let keyboard = false
 let barShown = false
-const syncBar = () => { if (barShown) void NativeGlass.tabBarHidden({ hidden: overlays > 0 || keyboard }).catch(() => {}) }
+let headerShown = false
+const syncBar = () => {
+  const hide = overlays > 0 || keyboard
+  if (barShown) void NativeGlass.tabBarHidden({ hidden: hide }).catch(() => {})
+  // Шапка прячется под шторкой/окном (она плавает над WebView и легла бы
+  // поверх затемнения), но НЕ под клавиатурой — она вверху, не мешает.
+  if (headerShown) void NativeGlass.headerHidden({ hidden: overlays > 0 }).catch(() => {})
+}
 
 /** Веб-шторка или окно открыто: нативный бар не должен лежать поверх. */
 export function useNativeOverlay(open: boolean) {
@@ -110,6 +122,19 @@ export function removeGlassTabs() {
 export function onGlassTab(fn: (id: string) => void): () => void {
   const h = NativeGlass.addListener('tabSelect', d => fn(d.id))
   return () => { void h.then(x => x.remove()) }
+}
+
+// ── верхняя шапка ──────────────────────────────────────────────────────────────
+
+export function setGlassHeader(h: GlassHeader) {
+  headerShown = true
+  void NativeGlass.headerSet(h).catch(() => {})
+  syncBar()
+}
+
+export function removeGlassHeader() {
+  headerShown = false
+  void NativeGlass.headerRemove().catch(() => {})
 }
 
 // ── тема ─────────────────────────────────────────────────────────────────────

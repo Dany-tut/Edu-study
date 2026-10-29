@@ -269,7 +269,7 @@ export default function MobileTeacherStudents() {
   )
 
   return (
-    <MobileScreen topZone={topZone} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}>
+    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}>
       {openGroup ? (
         <GroupRoster group={openGroup} onBack={() => setOpenGroup(null)} />
       ) : (

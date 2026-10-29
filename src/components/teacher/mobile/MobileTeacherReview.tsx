@@ -181,7 +181,7 @@ export default function MobileTeacherReview() {
   )
 
   return (
-    <MobileScreen topZone={topZone} topPad={64} scrollKey="t-review">
+    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Проверка'), leadingSymbol: 'checkmark.rectangle.stack' }} topPad={64} scrollKey="t-review">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {pendingHard.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

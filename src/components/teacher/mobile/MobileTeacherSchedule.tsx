@@ -15,7 +15,7 @@ export default function MobileTeacherSchedule({ onAttendance }: { onAttendance: 
     </div>
   )
   return (
-    <MobileScreen topZone={topZone} topPad={64} restoreKey="t-schedule">
+    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Расписание'), leadingSymbol: 'calendar' }} topPad={64} restoreKey="t-schedule">
       <TeacherSchedule mobile onAttendance={onAttendance} />
     </MobileScreen>
   )

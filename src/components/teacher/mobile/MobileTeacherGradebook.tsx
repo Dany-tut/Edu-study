@@ -164,7 +164,7 @@ export default function MobileTeacherGradebook() {
   )
 
   return (
-    <MobileScreen topZone={topZone} topPad={64} scrollKey={`t-grade-${groupId}-${savedTick}`}>
+    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Журнал'), leadingSymbol: 'checklist' }} topPad={64} scrollKey={`t-grade-${groupId}-${savedTick}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Group selector */}
         <MobileHScroll padX={0}>
