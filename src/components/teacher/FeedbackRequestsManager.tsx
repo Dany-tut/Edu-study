@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Segmented from '../Segmented'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Inbox, GraduationCap, User, X, RefreshCw, MessageCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -67,19 +68,10 @@ export default function FeedbackRequestsManager() {
   return (
     <div>
       {/* Верхний переключатель: разовые заявки ↔ диалоги из Telegram-бота */}
-      <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, width: 'fit-content', marginBottom: 18 }}>
-        {([['requests', t('Заявки'), Inbox], ['dialogs', t('Диалоги'), MessageCircle]] as const).map(([id, label, Icon]) => (
-          <button key={id} onClick={() => setView(id)} style={{
-            display: 'flex', alignItems: 'center', gap: 7, padding: '7px 15px', borderRadius: 9, border: 'none', cursor: 'pointer',
-            fontSize: 13, fontWeight: 600,
-            background: view === id ? 'var(--color-purple-soft)' : 'transparent',
-            color: view === id ? 'var(--color-purple)' : 'var(--color-text-3)',
-            transition: 'background 0.15s, color 0.15s',
-          }}>
-            <Icon size={14} /> {label}
-          </button>
-        ))}
-      </div>
+      <Segmented
+        variant="mode" value={view} onChange={setView} style={{ marginBottom: 18 }}
+        items={[{ id: 'requests', label: t('Заявки'), icon: Inbox }, { id: 'dialogs', label: t('Диалоги'), icon: MessageCircle }]}
+      />
 
       {view === 'dialogs' && <TgDialogs />}
 
@@ -87,24 +79,10 @@ export default function FeedbackRequestsManager() {
       <>
       {/* Filter row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3 }}>
-          {(['all', ...STATUS_ORDER] as const).map(key => {
-            const active = filter === key
-            const label = key === 'all' ? t('Все') : t(STATUS_META[key].label)
-            return (
-              <button key={key} onClick={() => setFilter(key)}
-                style={{
-                  padding: '6px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                  fontSize: 13, fontWeight: 600,
-                  background: active ? 'var(--color-purple-soft)' : 'transparent',
-                  color: active ? 'var(--color-purple)' : 'var(--color-text-3)',
-                  transition: 'background 0.15s, color 0.15s',
-                }}>
-                {label} · {counts[key]}
-              </button>
-            )
-          })}
-        </div>
+        <Segmented
+          variant="filter" value={filter} onChange={setFilter}
+          items={(['all', ...STATUS_ORDER] as const).map(key => ({ id: key, label: `${key === 'all' ? t('Все') : t(STATUS_META[key].label)} · ${counts[key]}` }))}
+        />
         <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}

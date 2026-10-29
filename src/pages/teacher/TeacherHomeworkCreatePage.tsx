@@ -793,7 +793,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
     <div
       style={{
         display: 'flex', flexDirection: 'column', gap: 14,
-        padding: 20, borderRadius: 26,
+        padding: 20, borderRadius: 24,
         background: 'rgba(var(--glass-rgb), 0.96)',
         border: modified ? '1px solid rgba(99,84,207,0.35)' : '1px solid var(--color-border-soft)',
         boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
@@ -2752,9 +2752,9 @@ export default function TeacherHomeworkCreatePage() {
                     {t('Отмена')}
                   </button>
                   <motion.button
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                     onClick={doPublish}
-                    style={{ flex: 2, padding: '10px 0', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(99,84,207,0.3)' }}
+                    style={{ height: 40, flex: 2, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(99,84,207,0.3)' }}
                   >
                     <Send size={14} /> {t('Опубликовать')}
                   </motion.button>

@@ -129,8 +129,8 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
       <button
         onClick={() => { if (playing) { stopSpeech(); setSpeakingLine(-1) } else speakAll(0) }}
         className="flex items-center self-start cursor-pointer"
-        style={{
-          gap: 8, padding: '9px 16px', borderRadius: 999, border: 'none',
+        style={{ height: 40,
+          gap: 8, padding: '0 16px', borderRadius: 12, border: 'none',
           background: 'var(--grad-purple)', color: '#fff',
           fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
         }}

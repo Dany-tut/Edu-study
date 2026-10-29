@@ -138,7 +138,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
     <div className="widget-carousel relative" data-widget={page}>
       {/* Left nav */}
       <motion.button
-        whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}
+        whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
         onClick={goLeft}
         style={{ y: '-50%' }}
         className="carousel-nav carousel-nav--left"
@@ -195,7 +195,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
 
       {/* Right nav */}
       <motion.button
-        whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}
+        whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
         onClick={goRight}
         style={{ y: '-50%' }}
         className="carousel-nav carousel-nav--right"

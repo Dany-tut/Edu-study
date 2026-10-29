@@ -107,7 +107,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
 
         <div className="flex items-center gap-2">
           <motion.button
-            whileHover={{ scale: 1.015 }}
+            whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
             onClick={pomoRunning ? pomoPause : pomoStart}
             aria-label={pomoRunning ? t('Пауза') : t('Начать фокус')}

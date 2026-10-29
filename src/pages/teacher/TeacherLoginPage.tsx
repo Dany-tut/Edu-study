@@ -88,7 +88,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
       <div style={{
         background: 'rgba(var(--glass-rgb), 0.92)',
         backdropFilter: 'blur(20px)',
-        borderRadius: 28,
+        borderRadius: 24,
         padding: '40px 36px',
         width: '100%',
         maxWidth: 400,
@@ -198,13 +198,13 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           <button
             type="submit"
             disabled={loading}
-            style={{
-              padding: '13px 24px',
-              borderRadius: 14,
+            style={{ height: 40,
+              padding: '0 16px',
+              borderRadius: 12,
               background: 'var(--grad-purple)', opacity: loading ? 0.6 : 1,
               color: '#fff',
               fontWeight: 700,
-              fontSize: 15,
+              fontSize: 13,
               border: 'none',
               cursor: loading ? 'not-allowed' : 'pointer',
               marginTop: 4,

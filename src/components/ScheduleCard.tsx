@@ -120,7 +120,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
     >
       {isCenter ? (
         <div
-          className="w-full h-full rounded-[28px]"
+          className="w-full h-full rounded-[24px]"
           style={{
             padding: '16px',
             background: 'rgba(var(--glass-rgb), 0.85)',
@@ -154,7 +154,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 return (
                 <motion.div
                   key={lesson.id}
-                  whileHover={{ scale: 1.01 }}
+                  whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.99 }}
                   onClick={(e) => {
                     e.stopPropagation()
@@ -248,7 +248,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
         </div>
       ) : (
         <div
-          className="w-full h-full rounded-[28px]"
+          className="w-full h-full rounded-[24px]"
           style={{
             padding: '14px 16px',
             background: `rgba(var(--glass-rgb), ${glassFade ? (0.35 + 0.4 * opacity).toFixed(2) : 0.80})`,

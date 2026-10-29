@@ -163,7 +163,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
   return (
     <div style={{
       borderRadius: 16, border: '1px solid var(--color-border-soft)',
-      background: 'var(--color-bg-1)', padding: 14,
+      background: 'var(--color-bg-2)', padding: 14,
       display: 'flex', flexDirection: 'column', gap: 10,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

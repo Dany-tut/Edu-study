@@ -529,7 +529,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                   ) : (
                     <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 8, width: '100%' }}>
                       <motion.button
-                        whileHover={{ scale: 1.04 }}
+                        whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() => { setSelectedLessonId(null); openLesson(selectedLesson.id) }}
                         style={{
@@ -559,14 +559,14 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             whileHover={{ scale: 1.03, y: -1 }}
                             whileTap={{ scale: 0.97 }}
                             onClick={() => { setSelectedLessonId(null); openHomeworkForLesson(selectedLesson.id) }}
-                            style={{
+                            style={{ height: 40,
                               fontSize: 13,
                               fontWeight: 700,
                               color: '#fff',
                               background: 'var(--grad-purple)',
                               border: 'none',
-                              borderRadius: 14,
-                              padding: '8px 16px 8px 8px',
+                              borderRadius: 12,
+                              padding: '0 16px',
                               whiteSpace: 'nowrap',
                               cursor: 'pointer',
                               flex: 1,
@@ -679,7 +679,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             />
                           ))}
                         </div>
-                        <span style={{ fontSize: 14, fontWeight: 800, color: '#F5C842' }}>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-yellow-text)' }}>
                           {hardAssessment.hardScore}/5
                         </span>
                       </div>
@@ -697,16 +697,16 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     {/* Action button — скрыт для locked: хард недоступен, пока базовая < 80 */}
                     {hardStatus !== 'locked' && (
                     <motion.button
-                      whileHover={{ scale: 1.04 }}
+                      whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={() => { setSelectedHardLessonId(null); openHomeworkForLesson(selectedHardLesson.id, 'hard') }}
-                      style={{
-                        fontSize: 13,
+                      style={{ height: 48,
+                        fontSize: 15,
                         fontWeight: 700,
                         color: '#fff',
                         background: 'var(--grad-purple)',
-                        borderRadius: 12,
-                        padding: '9px 18px',
+                        borderRadius: 14,
+                        padding: '0 22px',
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
                         width: '100%',

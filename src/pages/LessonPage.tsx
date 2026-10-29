@@ -1092,14 +1092,14 @@ export default function LessonPage() {
                   <div
                     style={{
                       height: '100%', width: `${Math.max(2, watchedPct)}%`, borderRadius: 999,
-                      background: watch.completed ? 'var(--color-success, #1DB97D)' : 'var(--grad-purple)',
+                      background: watch.completed ? 'var(--grad-green-bar)' : 'var(--grad-purple)',
                       transition: 'width 0.6s ease',
                     }}
                   />
                 </div>
                 <span
                   className="flex items-center flex-shrink-0"
-                  style={{ gap: 5, fontSize: 13, fontWeight: 600, color: watch.completed ? 'var(--color-success, #1DB97D)' : 'var(--color-text-3)' }}
+                  style={{ gap: 5, fontSize: 13, fontWeight: 600, color: watch.completed ? 'var(--color-green-text)' : 'var(--color-text-3)' }}
                 >
                   {watch.completed
                     ? <><CheckCircle2 size={14} /> {t('Запись просмотрена')}</>

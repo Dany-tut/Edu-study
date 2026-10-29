@@ -133,12 +133,12 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
 
         <button
           onClick={() => setEditMode(false)}
-          style={{
+          style={{ height: 40,
             display: 'flex', alignItems: 'center', gap: 6,
-            padding: '7px 18px', borderRadius: 100,
+            padding: '0 16px', borderRadius: 12,
             border: 'none',
             background: 'var(--grad-purple)',
-            color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
             boxShadow: '0 2px 12px rgba(120,106,215,0.4)',
             flexShrink: 0,
           }}

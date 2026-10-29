@@ -249,9 +249,9 @@ export function AvatarCropModal({
             type="button"
             onClick={save}
             disabled={!img || busy}
-            style={{
-              flex: 1, padding: '10.5px 12px 13.5px', borderRadius: 13, border: 'none',
-              background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 700,
+            style={{ height: 40,
+              flex: 1, padding: '0 16px', borderRadius: 12, border: 'none',
+              background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
               cursor: busy ? 'wait' : 'pointer', opacity: !img || busy ? 0.6 : 1, fontFamily: 'inherit',
               boxShadow: '0 3px 12px rgba(106,90,230,0.35)',
             }}

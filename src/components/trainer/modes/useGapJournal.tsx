@@ -225,7 +225,7 @@ function Composer({ accent, onAdd }: { accent: string; onAdd: (ru: string) => Pr
           style={{ ...primaryBtn(accent), ...smallBtn, opacity: !text.trim() || busy ? 0.5 : 1 }}>
           {busy ? t('Записываю…') : t('Записать')}
         </button>
-        {error && <span style={{ fontSize: 13, color: 'var(--color-danger, #d9534f)' }}>{t('Не сохранилось — попробуйте ещё раз')}</span>}
+        {error && <span style={{ fontSize: 13, color: 'var(--color-red-text)' }}>{t('Не сохранилось — попробуйте ещё раз')}</span>}
       </div>
     </div>
   )
@@ -374,7 +374,7 @@ function DoneList({ gaps }: { gaps: PhraseGap[] }) {
           display: 'flex', gap: 10, alignItems: 'baseline', padding: '8px 12px', borderRadius: 12,
           background: 'var(--color-bg-2)', fontSize: 14, lineHeight: 1.3,
         }}>
-          <Check size={14} style={{ color: 'var(--color-success, #3aa76d)', flexShrink: 0, alignSelf: 'center' }} />
+          <Check size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0, alignSelf: 'center' }} />
           <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{g.en}</span>
           <span style={{ color: 'var(--color-text-3)' }}>{g.ru}</span>
         </div>

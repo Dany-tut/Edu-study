@@ -588,7 +588,8 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                     position: 'relative', width: 28, height: 28, borderRadius: 9, flexShrink: 0,
                     background: studentPresent ? 'var(--color-avatar-bg)' : 'var(--color-bg-5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, fontWeight: 700, color: '#fff',
+                    // У отсутствующего фон светло-серый — белые инициалы на нём пропадали.
+                    fontSize: 10, fontWeight: 700, color: studentPresent ? '#fff' : 'var(--color-text-3)',
                     transition: 'background 0.2s',
                   }}>
                     {initials}

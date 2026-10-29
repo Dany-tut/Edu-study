@@ -154,9 +154,9 @@ export default function NewStudentConfig({
       <button
         onClick={apply}
         disabled={saving}
-        style={{
+        style={{ height: 48,
           flexShrink: 0, marginTop: 16,
-          width: '100%', padding: '12px 0',
+          width: '100%', padding: '0 22px',
           background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15,
           border: 'none', borderRadius: 14, cursor: saving ? 'not-allowed' : 'pointer',
         }}

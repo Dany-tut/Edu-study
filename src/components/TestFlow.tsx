@@ -123,7 +123,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
             ? `${t('Верно')} ${result.correct} ${t('из')} ${result.gradable} · ${result.score}%`
             : t('Ответы отправлены преподавателю на проверку')}
         </p>
-        <button onClick={onBack} style={{ padding: '11px 26px', borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+        <button onClick={onBack} style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
           {t('К курсу')}
         </button>
       </div>
@@ -555,9 +555,9 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             onClick={submit}
             disabled={submitting}
-            style={{
-              padding: '13px 40px', borderRadius: 16, border: 'none',
-              background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700,
+            style={{ height: 40,
+              padding: '0 16px', borderRadius: 12, border: 'none',
+              background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
               cursor: submitting ? 'wait' : 'pointer', fontFamily: 'inherit',
               boxShadow: '0 8px 24px rgba(var(--accent-rgb), 0.35)', opacity: submitting ? 0.7 : 1,
             }}>

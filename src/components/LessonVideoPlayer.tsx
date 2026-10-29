@@ -976,7 +976,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 : { border: 'none', background: 'transparent', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', padding: 0 }}
             >
               <motion.span
-                whileHover={{ scale: 1.08 }}
+                whileHover={{ scale: 1.06 }}
                 whileTap={{ scale: 0.94 }}
                 style={{
                   width: 72, height: 72, borderRadius: '50%',
@@ -1347,7 +1347,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               style={{ border: 'none', background: 'transparent', padding: 0 }}
             >
               <motion.div
-                whileHover={{ scale: 1.08 }}
+                whileHover={{ scale: 1.06 }}
                 whileTap={{ scale: 0.94 }}
                 style={{
                   width: 76, height: 76, borderRadius: '50%',

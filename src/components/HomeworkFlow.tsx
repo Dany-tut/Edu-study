@@ -3193,7 +3193,7 @@ export default function HomeworkFlow({
           } : {
             padding: 16,
             gap: 12,
-            borderRadius: 28,
+            borderRadius: 24,
             background: 'rgba(var(--glass-rgb), 0.98)',
             border: '1px solid var(--color-border-glass)',
             boxShadow: '0 8px 32px rgba(17, 12, 34, 0.08)',
@@ -3378,7 +3378,7 @@ export default function HomeworkFlow({
                   ref={summaryRef}
                   className="flex flex-col"
                   style={{
-                    gap: 16, padding: 20, borderRadius: 26,
+                    gap: 16, padding: 20, borderRadius: 24,
                     background: 'rgba(var(--glass-rgb), 0.96)',
                     border: '1px solid var(--color-border-medium)',
                   }}
@@ -3677,7 +3677,7 @@ export default function HomeworkFlow({
                     } : {
                       gap: 14,
                       padding: 20,
-                      borderRadius: 26,
+                      borderRadius: 24,
                       background: 'rgba(var(--glass-rgb), 0.96)',
                       border: showVerdict
                         ? `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : 'rgba(244,139,145,0.5)'}`
@@ -4522,7 +4522,7 @@ export default function HomeworkFlow({
                 <section
                   className="flex flex-col"
                   style={{
-                    gap: 14, padding: 20, borderRadius: 26,
+                    gap: 14, padding: 20, borderRadius: 24,
                     background: 'rgba(var(--glass-rgb), 0.96)',
                     border: '1px solid var(--color-amber-border)',
                   }}
@@ -4618,7 +4618,7 @@ export default function HomeworkFlow({
                 <section
                   className="flex flex-col"
                   style={{
-                    gap: 14, padding: 20, borderRadius: 26,
+                    gap: 14, padding: 20, borderRadius: 24,
                     background: 'rgba(var(--glass-rgb), 0.96)',
                     border: '1px solid var(--color-border-soft)',
                   }}
@@ -4697,7 +4697,7 @@ export default function HomeworkFlow({
                   style={{
                     minHeight: 420,
                     padding: 28,
-                    borderRadius: 28,
+                    borderRadius: 24,
                     border: '1px dashed rgba(0,0,0,0.12)',
                     background: 'rgba(var(--glass-rgb), 0.78)',
                     textAlign: 'center',
@@ -4733,7 +4733,7 @@ export default function HomeworkFlow({
                   style={{
                     gap: 18,
                     padding: 22,
-                    borderRadius: 28,
+                    borderRadius: 24,
                     background: 'rgba(var(--glass-rgb), 0.96)',
                     border: '1px solid var(--color-border-soft)',
                   }}

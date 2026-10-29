@@ -420,7 +420,7 @@ export default function MobileHome() {
                     key={l.id}
                     onClick={() => { tactile(); openCourses() }}
                     className="flex items-center text-left"
-                    style={{ gap: 10, padding: '7px 0', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}
+                    style={{ gap: 10, padding: '7px 0', background: 'none', border: 'none', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)', cursor: 'pointer', width: '100%' }}
                   >
                     <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-accent)', minWidth: 44 }}>{l.time}</span>
                     <span className="flex-1 min-w-0 truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</span>

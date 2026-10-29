@@ -241,8 +241,10 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
           style={{
             // Крестик выравнен по полю, как текст, а не задвинут в угол: в углу
             // он спорил бы с большой дугой карточки.
-            position: 'absolute', top: PADDING, right: PADDING, width: 26, height: 26,
-            borderRadius: '50%',
+            // Видимый кружок 26, а зона нажатия 36: прозрачное поле 5 px вокруг
+            // (фон — только по содержимому), чтобы палец попадал на телефоне.
+            position: 'absolute', top: PADDING - 5, right: PADDING - 5, width: 36, height: 36,
+            padding: 5, backgroundClip: 'content-box', borderRadius: '50%',
             border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
             cursor: 'pointer', display: 'grid', placeItems: 'center',
           }}

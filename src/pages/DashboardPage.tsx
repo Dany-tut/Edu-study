@@ -707,7 +707,7 @@ function AssignedTestsBlock() {
         {pending.map(a => (
           <motion.div
             key={a.id}
-            whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+            whileHover={{ y: -2 }} whileTap={{ scale: 0.99 }}
             onClick={() => openTest(a)}
             style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 14, background: 'var(--color-bg-card)', border: '1.5px solid var(--color-accent)', cursor: 'pointer', boxShadow: '0 2px 12px rgba(99,84,207,0.08)' }}
           >

@@ -32,6 +32,7 @@
 // следующего деплоя и молча пропадала.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import Tooltip from '../Tooltip'
 import { FIELD } from '../../lib/fieldStyle'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Trash2, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
@@ -709,7 +710,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                   display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                   borderRadius: 12, border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                   cursor: !busy && shelfName.trim() ? 'pointer' : 'default',
-                  background: shelfName.trim() ? MAT_BG : 'var(--color-bg-1)',
+                  background: shelfName.trim() ? MAT_BG : 'var(--color-bg-2)',
                   color: shelfName.trim() ? MAT_COLOR : 'var(--color-text-3)',
                 }}
               >
@@ -998,7 +999,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
                 {set.cards.length} {t('карточек')}
               </div>
             </div>
-            <button onClick={() => onOpenSet(set.id)} style={ghost} title={t('Открыть набор')}><Pencil size={14} /></button>
+            <Tooltip label={t('Открыть набор')}><button onClick={() => onOpenSet(set.id)} style={ghost}><Pencil size={14} /></button></Tooltip>
             <button
               onClick={() => {
                 if (i === 0) return
@@ -1019,13 +1020,12 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
               style={ghost}
               title={t('Ниже')}
             >↓</button>
-            <button
+            <Tooltip label={t('Удалить набор')}><button
               onClick={() => setSets(group.sets.filter((_, j) => j !== i))}
               style={{ ...ghost, color: 'var(--color-red-text)' }}
-              title={t('Удалить набор')}
             >
               <Trash2 size={14} />
-            </button>
+            </button></Tooltip>
           </div>
         ))}
         <button
@@ -1508,14 +1508,13 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
             <span style={{ fontWeight: 700 }}>{sub.title || t('Без названия')}</span>
             <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>{sub.cards.length} {t('карточек')}</span>
           </button>
-          <button
+          <Tooltip label={t('Удалить стопку')}><button
             type="button"
-            title={t('Удалить стопку')}
             onClick={() => patchSubsets(subsets.filter(x => x.id !== sub.id))}
             style={ghostBtn}
           >
             <Trash2 size={14} />
-          </button>
+          </button></Tooltip>
         </div>
       ))}
       <button
@@ -1642,13 +1641,12 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
             placeholder="—"
             style={cellStyle({ fontSize: 12, color: 'var(--color-text-3)' })}
           />
-          <button
+          <Tooltip label={t('Убрать карточку')}><button
             onClick={() => onCards(cards.filter((_, j) => j !== i))}
             style={{ ...ghost, width: 26, height: 26, border: 'none', color: 'var(--color-muted)' }}
-            title={t('Убрать карточку')}
           >
             <Trash2 size={14} />
-          </button>
+          </button></Tooltip>
         </div>
       ))}
 
@@ -1693,10 +1691,9 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
           placeholder={t('S01E04')}
           style={cellStyle({ fontSize: 12, color: 'var(--color-text-3)' })}
         />
-        <button
+        <Tooltip label={t('Добавить')}><button
           onClick={addRow}
           disabled={!ready}
-          title={t('Добавить')}
           style={{
             ...ghost, width: 26, height: 26, border: 'none',
             cursor: ready ? 'pointer' : 'default',
@@ -1704,7 +1701,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
           }}
         >
           <Plus size={16} />
-        </button>
+        </button></Tooltip>
       </div>
     </div>
   )
@@ -1745,7 +1742,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
               style={{
                 height: 34, padding: '0 14px', borderRadius: 12, border: 'none', fontFamily: 'inherit',
                 cursor: parseBulk(bulk).length > 0 ? 'pointer' : 'default',
-                background: parseBulk(bulk).length > 0 ? MAT_BG : 'var(--color-bg-1)',
+                background: parseBulk(bulk).length > 0 ? MAT_BG : 'var(--color-bg-2)',
                 color: parseBulk(bulk).length > 0 ? MAT_COLOR : 'var(--color-text-3)',
                 fontSize: 13, fontWeight: 700,
               }}

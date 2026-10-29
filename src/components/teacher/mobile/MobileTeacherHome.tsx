@@ -141,7 +141,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
       <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, background: PAIR.success.bg, padding: '22px 16px', textAlign: 'center' }}>
         <Confetti />
         <div style={{ position: 'relative', zIndex: 4 }}>
-          <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--color-bg-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+          <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--color-bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
             <PartyPopper size={24} style={{ color: PAIR.success.text }} />
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, color: PAIR.success.text }}>{t('Всё проверено — инбокс пуст')}</div>
@@ -160,7 +160,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
   return (
     <div style={{ borderRadius: 20, background: pair.bg, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-bg-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <ClipboardCheck size={20} style={{ color: pair.text }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -220,7 +220,7 @@ const statusDot: Record<ScheduleItem['status'], string> = {
 function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => void }) {
   const t = useT()
   return (
-    <div style={{ borderRadius: 16, background: 'var(--color-bg-1)', border: '1.5px solid var(--color-purple-soft)', padding: '13px 14px' }}>
+    <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1.5px solid var(--color-purple-soft)', padding: '13px 14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--color-accent)', flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -238,7 +238,7 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
       {/* «Материалы» рядом была без обработчика с июля — кнопка, которая ничего
           не делает. В мобильном кабинете экрана материалов нет; убрана. */}
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700 }}>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ height: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0 16px', borderRadius: 12, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700}}>
           <Play size={14} /> {t('Открыть')}
         </motion.button>
       </div>

@@ -158,7 +158,7 @@ export default function MobileProfilePage() {
                   onClick={() => { tactile(); pickImageFile(setCropFile) }}
                   aria-label={avatarPath ? t('Сменить фото') : t('Загрузить фото')}
                   className="flex items-center justify-center"
-                  style={{ position: 'relative', width: 58, height: 58, borderRadius: 999, padding: 0, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 24, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
+                  style={{ height: 40, position: 'relative', width: 58, borderRadius: 12, padding: '0 16px', border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
                 >
                   {initial}
                   <AvatarPhotoFill path={avatarPath} />
@@ -343,7 +343,7 @@ export default function MobileProfilePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setTintOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Цвет курса')}
@@ -362,7 +362,7 @@ export default function MobileProfilePage() {
                   whileTap={{ scale: 0.99 }}
                   onClick={() => { tactile(); setCourseOrderOpen(true) }}
                   className="flex items-center justify-between cursor-pointer"
-                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 >
                   <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                     {t('Порядок курсов')}
@@ -379,7 +379,7 @@ export default function MobileProfilePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Лента и жесты')}
@@ -396,7 +396,7 @@ export default function MobileProfilePage() {
               <button
                 onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
               >
                 <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Язык')}</span>
@@ -409,7 +409,7 @@ export default function MobileProfilePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedbackOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Обратная связь')}
@@ -422,7 +422,7 @@ export default function MobileProfilePage() {
                   whileTap={{ scale: 0.99 }}
                   onClick={() => { tactile(); requestShowInstall() }}
                   className="flex items-center justify-between cursor-pointer"
-                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 >
                   <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                     <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}

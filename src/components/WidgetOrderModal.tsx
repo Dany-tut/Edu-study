@@ -269,9 +269,9 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={apply}
-                  style={{
-                    padding: '0 22px', height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
-                    background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600,
+                  style={{ height: 40,
+                    padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                    background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
                   }}
                 >
                   {t('Готово')}

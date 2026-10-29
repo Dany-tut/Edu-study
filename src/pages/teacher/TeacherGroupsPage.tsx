@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { cardChip } from '../../lib/pillStyles'
+import Tooltip from '../../components/Tooltip'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
@@ -203,8 +205,8 @@ function AddGroupModal({ onClose, onSave }: {
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}
-          style={{
-            marginTop: 22, width: '100%', padding: '12px 0',
+          style={{ height: 48,
+            marginTop: 22, width: '100%', padding: '0 22px',
             background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
@@ -488,8 +490,8 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}
-          style={{
-            marginTop: 22, width: '100%', padding: '12px 0',
+          style={{ height: 48,
+            marginTop: 22, width: '100%', padding: '0 22px',
             background: 'var(--grad-purple)', opacity: (name.trim() && selectedGroup) ? 1 : 0.45,
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: (name.trim() && selectedGroup) ? 'pointer' : 'not-allowed',
@@ -582,8 +584,8 @@ function TrackFields({
           <div style={{ flex: 1 }}>
             <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={levelOptionsForSubject(tr.subject).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
           </div>
-          <button
-            type="button" onClick={() => removeTrack(i)} title={t('Убрать направление')}
+          <Tooltip label={t('Убрать направление')}><button
+            type="button" onClick={() => removeTrack(i)}
             style={{
               width: 32, height: 32, flexShrink: 0, borderRadius: 9, cursor: 'pointer',
               border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)',
@@ -591,7 +593,7 @@ function TrackFields({
             }}
           >
             <X size={16} />
-          </button>
+          </button></Tooltip>
         </div>
       ))}
 
@@ -791,8 +793,8 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             <button
               onClick={handleSave}
               disabled={!name.trim() || saving}
-              style={{
-                marginTop: 22, width: '100%', padding: '12px 0',
+              style={{ height: 48,
+                marginTop: 22, width: '100%', padding: '0 22px',
                 background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
@@ -1023,7 +1025,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
                 }}
               >
                 {copiedId === s.id
-                  ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-success, #2C7A58)' }} />
+                  ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
                   : <Copy size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />}
                 {s.name}
               </button>
@@ -1035,8 +1037,8 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           <button
             onClick={issueAll}
             disabled={issuing}
-            style={{
-              padding: '9px 14px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
+            style={{ height: 40,
+              padding: '0 16px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
               border: 'none', opacity: issuing ? 0.7 : 1,
               background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
             }}
@@ -1198,13 +1200,7 @@ function GroupCard({
 
       {/* Level badge + count */}
       <div className="group-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{
-          fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
-          color: group.color,
-          background: group.color + '22',
-          padding: '3px 9px', borderRadius: 8,
-          border: `1px solid ${group.color}33`,
-        }}>
+        <span style={cardChip(group.color)}>
           {t(group.level)}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-muted)' }}>
@@ -1803,7 +1799,7 @@ function TracksSection({
             <span>{tc(group.subject)}{group.level ? ` · ${t(group.level)}` : ''}</span>
           </div>
           {siblings.length > 0 && (
-            <button
+            <Tooltip label={t('Удалить карточку')}><button
               type="button"
               onClick={async () => {
                 const ok = await confirmDialog({
@@ -1814,11 +1810,10 @@ function TracksSection({
                 })
                 if (ok) await onRemoveCard(group.id)
               }}
-              title={t('Удалить карточку')}
               style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <X size={14} />
-            </button>
+            </button></Tooltip>
           )}
         </div>
 
@@ -1832,12 +1827,12 @@ function TracksSection({
               <span>{sc.icon}</span>
               <span>{tc(sc.subject)}{sc.level ? ` · ${t(sc.level)}` : ''}</span>
             </button>
-            <button
-              type="button" onClick={() => onRemoveCard(sc.id)} title={t('Удалить карточку')}
+            <Tooltip label={t('Удалить карточку')}><button
+              type="button" onClick={() => onRemoveCard(sc.id)}
               style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <X size={14} />
-            </button>
+            </button></Tooltip>
           </div>
         ))}
 
@@ -1867,7 +1862,7 @@ function TracksSection({
                 // Заливка — канонический --grad-purple (как у всех «Сохранить»):
                 // --color-purple/--color-accent светлые, они для ТЕКСТА, и белые
                 // буквы на них тонут. Неактивность — прозрачностью, не бледнотой.
-                style={{ flex: 1, padding: '8px 0', borderRadius: 9, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: 'var(--grad-purple)', opacity: (!subject.trim() || busy) ? 0.45 : 1, color: '#fff', fontSize: 12, fontWeight: 700 }}
+                style={{ height: 32, flex: 1, padding: '0 12px', borderRadius: 10, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: 'var(--grad-purple)', opacity: (!subject.trim() || busy) ? 0.45 : 1, color: '#fff', fontSize: 12, fontWeight: 700}}
               >
                 {busy ? t('Создаём…') : t('Создать карточку')}
               </button>
@@ -1963,15 +1958,14 @@ function StudentPanel({
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button
+            <Tooltip label={t('Полная статистика ученика')}><button
               onClick={onOpenFullCard}
-              title={t('Полная статистика ученика')}
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-accent)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
             >
               <BarChart2 size={14} />
-            </button>
+            </button></Tooltip>
             <button
               onClick={onClose}
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
@@ -2150,12 +2144,12 @@ function StudentPanel({
       <div style={{ padding: '12px 20px 16px', flexShrink: 0, borderTop: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button
           onClick={onAddHomework}
-          style={{
-            width: '100%', padding: '11px 0',
+          style={{ height: 48,
+            width: '100%', padding: '0 22px',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
             background: 'var(--grad-purple)', border: 'none',
-            borderRadius: 12, cursor: 'pointer',
-            fontSize: 13, fontWeight: 700, color: '#fff',
+            borderRadius: 14, cursor: 'pointer',
+            fontSize: 15, fontWeight: 700, color: '#fff',
             transition: 'filter 0.15s',
           }}
           onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)' }}
@@ -2557,11 +2551,7 @@ export default function TeacherGroupsPage() {
                         {activeGroup.name}
                       </span>
                       {activeGroup.isIndividual && (
-                        <span style={{
-                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6, flex: 'none',
-                          background: `${activeGroup.color}22`, color: activeGroup.color,
-                          border: `1px solid ${activeGroup.color}44`,
-                        }}>1:1</span>
+                        <span style={cardChip(activeGroup.color, { flex: 'none' })}>1:1</span>
                       )}
                       <span style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flex: 'none' }}>
                         · {groupStudents.length} {groupStudents.length === 1 ? t('студент') : t('студентов')}
@@ -2634,9 +2624,9 @@ export default function TeacherGroupsPage() {
                               const r = e.currentTarget.getBoundingClientRect()
                               setRosterAddMenu(v => v ? null : { top: r.bottom + 6, right: window.innerWidth - r.right })
                             }}
-                            style={{
+                            style={{ height: 40,
                               display: 'inline-flex', alignItems: 'center', gap: 6,
-                              padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+                              padding: '0 16px', borderRadius: 12, cursor: 'pointer',
                               background: 'var(--grad-purple)', border: 'none',
                               color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                             }}

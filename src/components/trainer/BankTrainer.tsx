@@ -350,7 +350,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
     <div
       className="flex flex-col"
       style={{
-        gap: 14, padding: '20px 20px 12px 20px', borderRadius: 26,
+        gap: 14, padding: '20px 20px 12px 20px', borderRadius: 24,
         position: 'relative',
         background: 'rgba(var(--glass-rgb), 0.96)',
         border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : isWrong ? 'rgba(244,139,145,0.5)' : 'var(--color-border-soft)'}`,
@@ -1187,7 +1187,7 @@ function ProgressModal({
           backdropFilter: 'blur(28px) saturate(200%)',
           WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           border: '1px solid var(--color-border-glass)',
-          borderRadius: 28, boxShadow: '0 28px 70px rgba(0,0,0,0.22)',
+          borderRadius: 22, boxShadow: '0 28px 70px rgba(0,0,0,0.22)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}
       >

@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import CountBadge from '../../components/CountBadge'
+import Segmented from '../../components/Segmented'
 import { FIELD } from '../../lib/fieldStyle'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -425,9 +427,9 @@ export default function TeacherFinancesPage() {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => students[0] && setPaying(students[0])}
-            style={{
+            style={{ height: 40,
               display: 'flex', alignItems: 'center', gap: 6,
-              padding: '9px 16px', borderRadius: 12,
+              padding: '0 16px', borderRadius: 12,
               background: 'var(--grad-purple)', border: 'none',
               color: '#fff', fontSize: 13, fontWeight: 700,
               cursor: 'pointer',
@@ -466,34 +468,13 @@ export default function TeacherFinancesPage() {
         </div>
 
         {/* Filter tabs */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setFilter(tab.id)}
-              style={{
-                padding: '6px 13px', borderRadius: 10,
-                background: filter === tab.id ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                border: filter === tab.id ? '1px solid transparent' : '1px solid var(--color-border)',
-                color: filter === tab.id ? 'var(--color-purple)' : 'var(--color-text-2)',
-                fontSize: 13, fontWeight: 600,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
-                transition: 'background 0.15s, color 0.15s',
-              } as React.CSSProperties}
-            >
-              {tab.label}
-              {tab.count != null && tab.count > 0 && (
-                <span style={{
-                  background: filter === tab.id ? 'var(--color-bg-3)' : 'var(--color-red-soft)',
-                  color: filter === tab.id ? 'var(--color-purple)' : 'var(--color-red-text)',
-                  borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700,
-                }}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          variant="filter" value={filter} onChange={setFilter} style={{ marginBottom: 14 }}
+          items={tabs.map(tab => ({
+            id: tab.id, title: tab.label,
+            label: tab.count ? <>{tab.label} <CountBadge count={tab.count} tone={tab.id === 'overdue' ? 'danger' : 'accent'} /></> : tab.label,
+          }))}
+        />
 
         {/* Student list */}
         <div style={{

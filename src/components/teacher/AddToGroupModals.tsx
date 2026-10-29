@@ -336,7 +336,7 @@ export function AddExistingIndividualModal({
             />
             <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={levelOptionsForSubject(subject)} triggerStyle={selectTrigger} />
             <button onClick={create} disabled={!subject.trim() || busy}
-              style={{ marginTop: 4, width: '100%', padding: '12px 0', background: 'var(--grad-purple)', opacity: subject.trim() ? 1 : 0.45, color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
+              style={{ height: 48, marginTop: 4, width: '100%', padding: '0 22px', background: 'var(--grad-purple)', opacity: subject.trim() ? 1 : 0.45, color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
               {busy ? t('Создаём…') : t('Создать карточку 1:1')}
             </button>
           </div>

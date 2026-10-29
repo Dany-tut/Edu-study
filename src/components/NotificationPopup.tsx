@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
+import EmptyState from './EmptyState'
 import CountBadge from './CountBadge'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -8,7 +9,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { findLessonById } from '../data/lessonContent'
 import { baseLessonRef } from '../lib/extraHomework'
 import { t, useT } from '../lib/i18n'
-import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen } from 'lucide-react'
+import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen, BellOff } from 'lucide-react'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
   homework_assigned:    <ClipboardList size={16} />,
@@ -216,9 +217,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
               style={{ maxHeight: 380, overflowY: 'auto', padding: '6px 6px' }}
             >
               {notifications.length === 0 ? (
-                <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--color-muted)', fontSize: 13 }}>
-                  {t('Нет уведомлений')}
-                </div>
+                <EmptyState icon={BellOff} title={t('Нет уведомлений')} style={{ background: 'transparent', border: 'none', padding: '28px 12px' }} />
               ) : (
                 notifications.map(n => <NotifRow key={n.id} n={n} onActivate={activate} />)
               )}

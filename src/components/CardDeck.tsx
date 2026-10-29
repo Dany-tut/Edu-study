@@ -58,7 +58,7 @@ interface Seat {
 }
 
 const TONE: Record<string, string> = {
-  bad: 'var(--color-red-text)', hard: '#f59e0b', good: 'var(--color-green-accent)', easy: 'var(--color-green-text)',
+  bad: 'var(--color-red-text)', hard: 'var(--color-peach-text)', good: 'var(--color-green-accent)', easy: 'var(--color-green-text)',
   // Нейтральный тон для «не знаю»: это не ответ, а отказ отвечать, и красным
   // он бы читался как второе «неверно».
   mute: 'var(--color-text-2)',
@@ -435,7 +435,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   if (queue.length === 0) return (
     <Shell>
       <Empty
-        icon={<Layers size={24} style={{ color: 'var(--color-text-3)' }} />}
+        icon={<Layers size={20} />}
         title={source?.emptyTitle ? t(source.emptyTitle) : t('Колода пуста')}
         text={source?.emptyText
           ? t(source.emptyText)
@@ -1298,13 +1298,17 @@ function Empty({ icon, title, text, extra }: {
   icon: React.ReactNode; title: string; text: string; extra?: React.ReactNode
 }) {
   return (
+    // Вид — как EmptyState: сплошная карточка, иконка в плитке тона 44,
+    // заголовок 15/700. Абзацы по \n остаются своими.
     <div style={{
-      padding: '32px 22px', borderRadius: 20, textAlign: 'center',
-      border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
+      padding: '24px 18px', borderRadius: 18, textAlign: 'center',
+      border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
     }}>
-      <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>{icon}</div>
+      <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
+        <span aria-hidden style={{ width: 44, height: 44, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>{icon}</span>
+      </div>
       <div style={{
-        fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginBottom: 6,
+        fontSize: 15, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)', marginBottom: 6,
         ...balancedWrap,
       }}>{bindShortWords(title)}</div>
       {/* Длину строки держим сами: на широком экране абзац растягивался во всю
@@ -1312,7 +1316,7 @@ function Empty({ icon, title, text, extra }: {
       <div style={{ maxWidth: 380, margin: '0 auto' }}>
         {text.split('\n').map((line, i) => (
           <div key={i} style={{
-            fontSize: 13, lineHeight: 1.6, color: 'var(--color-muted)',
+            fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)',
             marginTop: i ? 6 : 0, ...balancedWrap,
           }}>{bindShortWords(line)}</div>
         ))}

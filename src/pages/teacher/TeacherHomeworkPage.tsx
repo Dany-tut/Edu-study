@@ -237,12 +237,12 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           {/* Submit */}
           <motion.button
             type="submit"
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
-            style={{
-              marginTop: 4, padding: '12px 0', borderRadius: 16, border: 'none', cursor: 'pointer',
+            style={{ height: 40,
+              marginTop: 4, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
               background: 'var(--grad-purple)',
-              color: '#fff', fontSize: 14, fontWeight: 700,
+              color: '#fff', fontSize: 13, fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               boxShadow: '0 4px 16px rgba(99,84,207,0.32)',
             }}
@@ -507,7 +507,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         {/* Continue / start review */}
         {hw.submittedCount > 0 && (
           <motion.button
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
             onClick={() => openHomeworkReview(hw.id)}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -816,8 +816,8 @@ export default function TeacherHomeworkPage() {
                   <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={item.onClick}
-                    style={{
-                      flex: 'none', padding: '9px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                    style={{ height: 40,
+                      flex: 'none', padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                       background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                     }}
                   >

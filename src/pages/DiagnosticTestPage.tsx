@@ -893,7 +893,7 @@ export default function DiagnosticTestPage() {
                   </div>
                 </div>
                 <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
                   onClick={() => applyResume(offer.token, offer.p)}
                   style={{ width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer', background: theme.accent, color: '#fff', fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >

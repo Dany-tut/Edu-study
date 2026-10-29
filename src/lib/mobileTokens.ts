@@ -156,3 +156,12 @@ export const MOBILE_TOP_ENTER = {
 } as const
 export const JELLY_EASE = [0.34, 1.46, 0.64, 1] as const
 export const TAP_SCALE = 0.94
+
+// ── Наведение — одно правило на роль (дизайн-система, круг 2) ────────────────
+// Карточка — подъём на 2 px, кнопка — на 1 px, таблетка — 1.03, кнопка-иконка
+// — 1.06. Строка списка — фон --color-bg-3 через класс .hover-row (index.css),
+// а не ручной onMouseEnter.
+export const HOVER_CARD = { y: -2 } as const
+export const HOVER_BUTTON = { y: -1 } as const
+export const HOVER_PILL = { scale: 1.03 } as const
+export const HOVER_ICON = { scale: 1.06 } as const

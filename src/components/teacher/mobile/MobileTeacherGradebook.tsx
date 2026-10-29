@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import EmptyState from '../../EmptyState'
 import MobileHScroll from '../../MobileHScroll'
 import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
-import { CheckSquare, Check, X, CalendarCheck, Loader2 } from 'lucide-react'
+import { CheckSquare, Check, X, CalendarCheck, Loader2, CalendarX2 } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import MobilePill from '../../MobilePill'
@@ -85,7 +86,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
             onClick={save}
             disabled={saving || roster.length === 0}
             className="cursor-pointer"
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 16, background: 'var(--grad-purple)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, opacity: roster.length === 0 ? 0.5 : 1 }}
+            style={{ height: 48, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 22px', borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, opacity: roster.length === 0 ? 0.5 : 1 }}
           >
             {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckSquare size={18} />} {t('Сохранить журнал')}
           </motion.button>
@@ -240,7 +241,7 @@ export default function MobileTeacherGradebook() {
             )
           })}
           {lessons.length === 0 && (
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>{t('Нет запланированных уроков для этой группы')}</div>
+            <EmptyState icon={CalendarX2} title={t('Нет запланированных уроков')} text={t('Для этой группы уроки ещё не поставлены в расписание.')} style={{ marginTop: 8 }} />
           )}
         </div>
       </div>

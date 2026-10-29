@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import CountBadge from '../CountBadge'
+import Segmented from '../Segmented'
 import Skeleton from '../Skeleton'
 import { motion } from 'framer-motion'
 import {
@@ -718,57 +720,29 @@ export default function TeacherAnalytics() {
     <div>
       {/* Period + main tabs */}
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20, flexWrap:'wrap' }}>
-        <div style={{ display:'flex', gap:4, background:'var(--color-bg-3)', borderRadius:12, padding:3 }}>
-          {(activeTab === 'heatmap' ? [7, CLICK_RETENTION_DAYS] : [7,30,90]).map(d => (
-            <button key={d} onClick={() => setDays(d)} style={{
-              padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
-              fontSize:13, fontWeight:600,
-              background: (activeTab==='heatmap' ? clickDays : days)===d ? 'var(--color-purple-soft)' : 'transparent',
-              color: (activeTab==='heatmap' ? clickDays : days)===d ? 'var(--color-purple)' : 'var(--color-text-3)',
-              transition:'background 0.15s, color 0.15s',
-            }}>{d} {t('дней')}</button>
-          ))}
-        </div>
+        <Segmented
+          variant="filter" value={String(activeTab==='heatmap' ? clickDays : days)} onChange={v => setDays(Number(v))}
+          items={(activeTab === 'heatmap' ? [7, CLICK_RETENTION_DAYS] : [7,30,90]).map(d => ({ id: String(d), label: `${d} ${t('дней')}` }))}
+        />
         {/* Static tabs — no width/content morphing, so the bar never twitches
             when switching. The Учителя/Ученики role split lives in its own
             stable segmented control below (see next row). */}
-        <div style={{ display:'flex', gap:4, marginLeft:'auto', background:'var(--color-bg-3)', borderRadius:12, padding:3 }}>
-          {([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')], ['digest', t('Разбор')]] as const).map(([id,label]) => (
-            <button key={id} onClick={() => setActiveTab(id)} style={{
-              display:'flex', alignItems:'center', gap:7, whiteSpace:'nowrap',
-              padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
-              fontSize:13, fontWeight:600,
-              background: activeTab===id ? 'var(--color-purple-soft)' : 'transparent',
-              color: activeTab===id ? 'var(--color-purple)' : 'var(--color-text-3)',
-              transition:'background 0.15s, color 0.15s',
-            }}>
-              {label}
-              {id==='issues' && totalErrors>0 && (
-                <span style={{
-                  borderRadius:9, padding:'1px 7px',
-                  fontSize:12, fontWeight:700, lineHeight:'16px',
-                  background:'var(--color-red-soft)', color:'var(--color-red-text)',
-                }}>{totalErrors}</span>
-              )}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          variant="mode" value={activeTab} onChange={setActiveTab} style={{ marginLeft:'auto' }}
+          items={([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')], ['digest', t('Разбор')]] as const).map(([id,label]) => ({
+            id, title: label,
+            label: id==='issues' && totalErrors>0 ? <>{label} <CountBadge count={totalErrors} tone="danger" /></> : label,
+          }))}
+        />
       </div>
 
       {/* Role split for the activity & heatmap tabs — a stable segmented control
           that never reflows the tab bar above it. */}
       {activeTab !== 'issues' && activeTab !== 'digest' && (
-        <div style={{ display:'flex', gap:4, background:'var(--color-bg-3)', borderRadius:12, padding:3, width:'fit-content', marginBottom:20 }}>
-          {([['teacher', t('Учителя'), ACCENT], ['student', t('Ученики'), ACCENT_S]] as const).map(([id,label,color]) => (
-            <button key={id} onClick={() => setHeatRole(id)} style={{
-              padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
-              fontSize:13, fontWeight:600,
-              background: heatRole===id ? 'var(--color-bg-2)' : 'transparent',
-              color: heatRole===id ? color : 'var(--color-text-3)',
-              transition:'background 0.15s, color 0.15s',
-            }}>{label}</button>
-          ))}
-        </div>
+        <Segmented
+          variant="filter" value={heatRole} onChange={setHeatRole} style={{ marginBottom:20 }}
+          items={[{ id: 'teacher', label: t('Учителя') }, { id: 'student', label: t('Ученики') }]}
+        />
       )}
 
       {err && (
