@@ -248,8 +248,12 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
         className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
         style={{ top: 'calc(100% + 7px)' }}
       >
-        <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
-          #{lesson.number + 1}
+        <span
+          className={cn('season-node-label', displayStatus === 'completed' && 'season-node-label--done', seasonNode && 'season-node-label--now')}
+          style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}
+        >
+          {/* В теме под фонарём/конфетой — «Урок N · сейчас», как в макетах. */}
+          {seasonNode ? `${tr('Урок')} ${lesson.number + 1} · ${tr('сейчас')}` : `#${lesson.number + 1}`}
         </span>
       </div>
 

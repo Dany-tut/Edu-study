@@ -6,6 +6,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
 import ScheduleCard from './ScheduleCard'
 import Skeleton from './Skeleton'
+import { useSeason } from '../lib/season'
 
 // Side card widths by distance from center — must match ScheduleCard.
 const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
@@ -13,6 +14,7 @@ const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 
 export default function ScheduleCarousel() {
   const t = useT()
+  const seasonHero = useSeason().on('hero')
   const { scheduleIndex, setScheduleIndex } = useDashboard()
   const scheduleDays = useStudentData(s => s.scheduleDays)
   const loaded = useStudentData(s => s.loaded)
@@ -43,7 +45,9 @@ export default function ScheduleCarousel() {
   // Fixed strip height for every day so switching between a 3+-lesson card
   // (which scrolls internally above the fade) and a 1–2-lesson card never makes
   // the whole strip grow/shrink — keeping the tallest height avoids the jump.
-  const stripHeight = 210
+  // Праздничная тема: шапка над расписанием забирает высоту, и полоса карточек —
+  // компактная, как в макетах (место уходит плиткам статистики).
+  const stripHeight = seasonHero && !mobile ? 160 : 210
 
   const offsets = [-3, -2, -1, 0, 1, 2, 3]
   const slots = offsets.map(offset => {

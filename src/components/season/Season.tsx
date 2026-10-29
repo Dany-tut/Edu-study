@@ -70,6 +70,13 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
         <p className="season-hero__sub">{t(c.sub)}</p>
       </div>
       <img aria-hidden src={seasonImg(c.img)} alt="" className="season-hero__img season-float" />
+      {/* «Сладость»: наклейки вокруг ведёрка — конфета слева снизу, луна справа сверху. */}
+      {s.variant === 'candy' && !compact && (
+        <>
+          <img aria-hidden src={seasonImg('sticker-candy')} alt="" className="season-hero__sticker season-hero__sticker--candy" />
+          <img aria-hidden src={seasonImg('sticker-moon')} alt="" className="season-hero__sticker season-hero__sticker--moon" />
+        </>
+      )}
     </div>
   )
 }
