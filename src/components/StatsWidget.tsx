@@ -5,7 +5,7 @@ import StarStickerLottie from './StarStickerLottie'
 import Skeleton from './Skeleton'
 import { useT } from '../lib/i18n'
 import { useSeason, seasonImg } from '../lib/season'
-import { useSeasonStars, SeasonFlask } from './season/Season'
+import { useSeasonStars, SeasonFlask, SeasonPumpkin } from './season/Season'
 
 const STAT_ICONS: Record<string, string> = {
   'Успеваемость': '📈',
@@ -124,7 +124,9 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
             {hasLessons ? (
               <>
                 {seasonStars
-                  ? <img aria-hidden src={seasonImg(seasonStars.img)} alt="" className="season-stat-img" style={columns >= 3 ? { height: 40 } : undefined} />
+                  ? (seasonStars.img === 'pumpkin-spark'
+                    ? <SeasonPumpkin className="season-stat-img" style={columns >= 3 ? { height: 40 } : undefined} />
+                    : <img aria-hidden src={seasonImg(seasonStars.img)} alt="" className="season-stat-img" style={columns >= 3 ? { height: 40 } : undefined} />)
                   : <span style={{ display: 'flex', transform: 'translateY(-1px)' }}><StarStickerLottie size={36} /></span>}
                 <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{stats.stars}</span>
               </>

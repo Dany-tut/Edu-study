@@ -241,6 +241,12 @@ html[data-season-variant="potions"] .season-track-fill {
 }
 
 /* Текущий урок: картинка поверх кружка, кружок прячем, кнопка остаётся кликабельной. */
+/* Сброс Tailwind даёт картинкам max-width: 100%: внутри узла дорожки (44 px) конфету
+   и фонарь сжимало по ширине — конфета выглядела сплюснутой и «кривой». У картинок
+   темы размер задан высотой, ширина — по пропорции. */
+.season-node-img, .season-hero__img, .season-hero__spider, .season-hero__skeleton,
+.season-hero__sticker, .season-stat-img, .season-cat, .season-corner, .season-empty__ghost,
+.season-ask__img { max-width: none; }
 .season-node-img {
   position: absolute; left: 50%; bottom: 50%; width: auto; z-index: 2;
   transform: translate(-50%, 42%); pointer-events: none;
@@ -430,4 +436,115 @@ html[data-season] .season-hero-row:has(.season-hero--picture) { z-index: 0; }
   .season-hero--picture { min-height: 72px; }
   .season-hero__spider { height: 140px; }
   .season-hero__skeleton { height: 190px; }
+}
+
+/* ── Живые объекты (29.10.2026, просьба Дани) ─────────────────────────── */
+
+/* Обёртки с наложениями: картинка задаёт размер, слои — в процентах от неё. */
+.season-cat, .season-wink { display: inline-block; }
+.season-cat__img, .season-wink > img { display: block; height: 100%; width: auto; max-width: none; }
+
+/* Кот: хвост — слой того же кадра, качается от основания; веки — тёмные овалы,
+   раз в несколько секунд моргает (иногда дважды). */
+.season-cat__tail {
+  position: absolute; left: 0; top: 0; height: 100%; width: auto; max-width: none;
+  transform-origin: 70% 55%; animation: season-cat-tail 3.4s ease-in-out infinite;
+}
+.season-cat__lid {
+  position: absolute; border-radius: 50%; transform: scaleY(0); transform-origin: 50% 0;
+  background: radial-gradient(ellipse at 50% 30%, #2a2433, #121016 70%);
+  animation: season-blink 5.2s ease-in-out infinite;
+}
+.season-cat__lid--l { left: 17%; top: 16.8%; width: 13%; height: 9.4%; }
+.season-cat__lid--r { left: 39.2%; top: 20.2%; width: 15%; height: 10%; }
+@keyframes season-cat-tail { 0%, 100% { rotate: 0deg; } 35% { rotate: -6deg; } 70% { rotate: 3deg; } }
+@keyframes season-blink {
+  0%, 88%, 100% { transform: scaleY(0); }
+  90% { transform: scaleY(1); } 92% { transform: scaleY(0); }
+  94.5% { transform: scaleY(1); } 96.5% { transform: scaleY(0); }
+}
+
+/* Тыква подмигивает правым глазом-звездой: оранжевое «веко» со складкой. */
+.season-wink { position: relative; }
+/* Тыква в углу — та же подмигивающая обёртка, но позиция у неё своя, абсолютная. */
+.season-wink.season-corner { position: absolute; }
+.season-wink__lid {
+  position: absolute; left: 70.5%; top: 39.5%; width: 18%; height: 20%; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 35%, #F7963F, #E06A14 75%);
+  transform: scaleY(0); transform-origin: 50% 0;
+  animation: season-wink 6.5s ease-in-out infinite;
+}
+.season-wink__lid::after {
+  content: ''; position: absolute; left: 14%; right: 14%; bottom: 30%; height: 34%;
+  border-bottom: 2px solid rgba(110, 38, 4, 0.75); border-radius: 0 0 50% 50%;
+}
+@keyframes season-wink {
+  0%, 72%, 100% { transform: scaleY(0); }
+  75%, 83% { transform: scaleY(1); }
+  86% { transform: scaleY(0); }
+}
+
+/* Привидение-листок летает: плывёт вверх-вниз с лёгким креном. */
+.season-empty__ghost { animation: season-ghost-fly 4.2s ease-in-out infinite; }
+@keyframes season-ghost-fly {
+  0%, 100% { translate: 0 0; rotate: -3deg; }
+  30% { translate: 4px -10px; rotate: 2deg; }
+  60% { translate: -3px -4px; rotate: 4deg; }
+  80% { translate: 2px -12px; rotate: -1deg; }
+}
+
+/* «Ночь фонарей»: фонарь в шапке мерцает тёплым светом, луна дышит ореолом. */
+.season-hero--lanterns .season-hero__img {
+  animation: season-float 4.5s ease-in-out infinite, season-lantern-glow 2.8s ease-in-out infinite;
+}
+@keyframes season-lantern-glow {
+  0%, 100% { filter: drop-shadow(0 0 40px rgba(255, 179, 71, 0.45)) brightness(1); }
+  20% { filter: drop-shadow(0 0 58px rgba(255, 190, 90, 0.7)) brightness(1.08); }
+  28% { filter: drop-shadow(0 0 46px rgba(255, 179, 71, 0.55)) brightness(1.02); }
+  55% { filter: drop-shadow(0 0 70px rgba(255, 196, 100, 0.85)) brightness(1.12); }
+}
+.season-node-img--lanterns { animation: season-lantern-glow 2.8s ease-in-out infinite; }
+/* Ореол луны — над луной баннера. Баннер: cover по ширине, по центру по высоте 520 px
+   (исходник 1792×768, центр луны 1514×221): x = 84.5%, y = 260px − 9.1vw. */
+.season-moon-glow {
+  position: absolute; left: 84.5%; top: calc(260px - 9.1vw);
+  width: 30vw; height: 30vw; translate: -50% -50%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 238, 180, 0.32) 0, rgba(255, 220, 140, 0.14) 32%, transparent 60%);
+  animation: season-moon 6s ease-in-out infinite;
+}
+@keyframes season-moon { 0%, 100% { opacity: 0.6; scale: 1; } 50% { opacity: 1; scale: 1.06; } }
+
+/* Летучие мыши пролетают по небу время от времени, машут крыльями. */
+.season-bat { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
+.season-bat__flap { position: relative; display: block; width: 100%; aspect-ratio: 505 / 220; animation: season-bat-bob 0.9s ease-in-out infinite; }
+.season-bat__flap > img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
+.season-bat__wing--l { transform-origin: 36% 46%; animation: season-wing-l 0.26s ease-in-out infinite alternate; }
+.season-bat__wing--r { transform-origin: 64% 46%; animation: season-wing-r 0.26s ease-in-out infinite alternate; }
+.season-bat--a { width: 86px; animation: season-bat-fly-a 17s linear 2s infinite; }
+.season-bat--b { width: 58px; animation: season-bat-fly-b 23s linear 9s infinite; }
+@keyframes season-wing-l { from { transform: rotate(-6deg) scaleY(1); } to { transform: rotate(16deg) scaleY(0.5); } }
+@keyframes season-wing-r { from { transform: rotate(6deg) scaleY(1); } to { transform: rotate(-16deg) scaleY(0.5); } }
+@keyframes season-bat-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@keyframes season-bat-fly-a {
+  0% { transform: translate(-10vw, 190px) rotate(8deg); opacity: 0; }
+  3% { opacity: 1; }
+  20% { transform: translate(40vw, 90px) rotate(-4deg); }
+  36% { opacity: 1; }
+  40% { transform: translate(108vw, 30px) rotate(6deg); opacity: 0; }
+  100% { transform: translate(108vw, 30px); opacity: 0; }
+}
+@keyframes season-bat-fly-b {
+  0% { transform: translate(105vw, 60px) rotate(-6deg); opacity: 0; }
+  3% { opacity: 0.9; }
+  18% { transform: translate(60vw, 140px) rotate(4deg); }
+  33% { opacity: 0.9; }
+  36% { transform: translate(-10vw, 70px) rotate(-8deg); opacity: 0; }
+  100% { transform: translate(-10vw, 70px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .season-cat__tail, .season-cat__lid, .season-wink__lid, .season-empty__ghost,
+  .season-hero--lanterns .season-hero__img, .season-node-img--lanterns, .season-moon-glow,
+  .season-bat, .season-bat__flap, .season-bat__wing--l, .season-bat__wing--r { animation: none; }
+  .season-bat { display: none; }
 }
