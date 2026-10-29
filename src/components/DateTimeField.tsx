@@ -203,7 +203,7 @@ export default function DateTimeField({ value, onChange, label }: {
                 <button type="button" onClick={() => shift(1)} aria-label={t('Следующий месяц')} style={navBtn}><ChevronRight size={14} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
-                {DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{t(d)}</div>)}
+                {DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', padding: '2px 0' }}>{t(d)}</div>)}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
                 {cells.map((day, i) => {
@@ -214,12 +214,13 @@ export default function DateTimeField({ value, onChange, label }: {
                     <button
                       key={i} type="button" onClick={() => pick(day)}
                       onMouseEnter={e => { if (!sel) e.currentTarget.style.background = 'var(--color-bg-3)' }}
-                      onMouseLeave={e => { if (!sel) e.currentTarget.style.background = isToday ? 'var(--color-accent-soft)' : 'transparent' }}
+                      onMouseLeave={e => { if (!sel) e.currentTarget.style.background = 'transparent' }}
                       style={{
                         aspectRatio: '1', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                         fontSize: 13, fontWeight: sel || isToday ? 700 : 500,
-                        background: sel ? 'var(--grad-purple)' : isToday ? 'var(--color-accent-soft)' : 'transparent',
-                        color: sel ? '#fff' : isToday ? 'var(--color-purple-text)' : 'var(--color-text)',
+                        background: sel ? 'var(--grad-purple)' : 'transparent',
+                        boxShadow: !sel && isToday ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none',
+                        color: sel ? '#fff' : 'var(--color-text)',
                       }}
                     >
                       {day}

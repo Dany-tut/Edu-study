@@ -5415,7 +5415,7 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
           const tod = d.toDateString() === today.toDateString()
           return (
             <button key={i} onClick={() => { onChange(formatDateISO(d)); onClose() }}
-              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? accent : tod ? soft : 'transparent', color: sel ? '#fff' : tod ? accent : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}>
+              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? accent : 'transparent', boxShadow: !sel && tod ? `inset 0 0 0 1.5px ${accent}` : 'none', color: sel ? '#fff' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}>
               {d.getDate()}
             </button>
           )

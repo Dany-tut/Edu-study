@@ -1529,7 +1529,7 @@ function HardTaskAccordion({
 
 const navBtnStyle: React.CSSProperties = {
   width: 26, height: 26, borderRadius: 8, border: 'none',
-  background: 'var(--color-bg-2)', cursor: 'pointer', display: 'flex',
+  background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex',
   alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
 }
 function todayDotStr() {
@@ -1648,7 +1648,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             {/* Day headers */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
               {RU_DAYS_SHORT.map(d => (
-                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{t(d)}</div>
+                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', padding: '2px 0' }}>{t(d)}</div>
               ))}
             </div>
 
@@ -1666,8 +1666,9 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
                     style={{
                       width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
                       cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                      background: isSelected ? 'var(--grad-purple)' : isToday ? 'var(--color-purple-soft)' : 'transparent',
-                      color: isSelected ? '#fff' : isToday ? 'var(--color-accent)' : 'var(--color-text)',
+                      background: isSelected ? 'var(--grad-purple)' : 'transparent',
+                      boxShadow: !isSelected && isToday ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none',
+                      color: isSelected ? '#fff' : 'var(--color-text)',
                       transition: 'background 0.12s',
                     }}
                   >

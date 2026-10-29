@@ -425,7 +425,7 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
             <button key={d} type="button" disabled={past} onClick={() => onPick(iso(d))} style={{
               height: 30, borderRadius: 8, border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: on ? 800 : 600,
               cursor: past ? 'default' : 'pointer', opacity: past ? 0.35 : 1,
-              background: on ? soft : 'transparent', color: on ? accent : 'var(--color-text)',
+              background: on ? accent : 'transparent', color: on ? '#fff' : 'var(--color-text)',
             }}>{d}</button>
           )
         })}

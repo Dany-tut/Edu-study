@@ -180,7 +180,7 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
         {RU_DAYS_SHORT.map(d => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#B0A8CC', paddingBottom: 4 }}>{t(d)}</div>
+          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', paddingBottom: 4 }}>{t(d)}</div>
         ))}
       </div>
 
@@ -196,13 +196,15 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
               style={{
                 width: 30, height: 30, borderRadius: 8, border: 'none',
                 cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500,
-                background: sel ? 'var(--grad-purple)' : tod ? 'var(--color-purple-soft)' : 'transparent',
-                color: sel ? '#fff' : tod ? 'var(--color-accent)' : 'var(--color-text)',
+                background: sel ? 'var(--grad-purple)' : 'transparent',
+                // Сегодня — кольцо, а не заливка: выбранный и сегодня не путаются.
+                boxShadow: !sel && tod ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none',
+                color: sel ? '#fff' : 'var(--color-text)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'background 0.1s',
               }}
               onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? 'var(--color-purple-soft)' : 'transparent' }}
+              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               {d.getDate()}
             </button>

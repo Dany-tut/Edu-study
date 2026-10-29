@@ -2285,7 +2285,7 @@ function CenterLesson({
 
 const navBtnSt: React.CSSProperties = {
   width: 26, height: 26, borderRadius: 8, border: 'none',
-  background: 'var(--color-bg-2)', cursor: 'pointer', display: 'flex',
+  background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex',
   alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
 }
 const RU_MONTHS_CAL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь']
@@ -2525,7 +2525,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
               {RU_DAYS_SHORT.map(d => (
-                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{t(d)}</div>
+                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', padding: '2px 0' }}>{t(d)}</div>
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
@@ -2538,12 +2538,13 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
                   <button key={idx} onClick={() => pickDay(day)} style={{
                     width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
                     cursor: 'pointer', fontSize: 12, fontWeight: isSelected || isToday ? 700 : 400,
-                    background: isSelected ? 'var(--color-green-soft)' : isToday ? 'var(--color-green-soft)' : 'transparent',
-                    color: isSelected ? 'var(--color-green-text)' : isToday ? 'var(--color-green-text)' : 'var(--color-text)',
+                    background: isSelected ? 'var(--grad-purple)' : 'transparent',
+                    boxShadow: !isSelected && isToday ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none',
+                    color: isSelected ? '#fff' : 'var(--color-text)',
                     transition: 'background 0.12s',
                   }}
                     onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-                    onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = isToday ? 'var(--color-green-soft)' : 'transparent' }}
+                    onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                   >
                     {day}
                   </button>
