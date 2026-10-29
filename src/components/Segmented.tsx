@@ -11,11 +11,20 @@ import Tooltip from './Tooltip'
  *             в курсе было видно сразу. Дорожка 12 / 3, кнопка 9.
  *  - filter — фильтр списка (Все / Просрочено…). Выбранный — белая плашка с
  *             тенью, ширина кнопки по тексту. Капсула 999 / 3 / 999.
- *  - narrow — длинные названия (темы, разделы). Равные ячейки с многоточием,
- *             чтобы ряд не растягивался в ленту на телефоне и ПК; полное
- *             название — в подсказке. Вид — как у filter.
+ *  - narrow — длинные названия (темы, разделы). Равные ячейки; не влезшее
+ *             тает фейдом у правого края (не «…»), чтобы ряд не растягивался
+ *             в ленту на телефоне и ПК; полное название — в подсказке.
  * Скругления концентричны: внутренний радиус = внешний − отступ дорожки.
  */
+// Не влезло — текст уходит в прозрачность у правого края, без «…» (Дани:
+// «давай не ... а фейд»). Подпись занимает всю ячейку: короткая стоит по
+// центру и под фейд не попадает, длинная начинается слева и тает справа.
+const NARROW_FADE = 'linear-gradient(90deg, #000 calc(100% - 18px), transparent)'
+const NARROW_LABEL: CSSProperties = {
+  flex: 1, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textAlign: 'center',
+  WebkitMaskImage: NARROW_FADE, maskImage: NARROW_FADE,
+}
+
 export interface SegmentItem<T extends string> {
   id: T
   label: ReactNode
@@ -63,7 +72,7 @@ export default function Segmented<T extends string>({ variant, items, value, onC
             }}
           >
             {Icon && <Icon size={14} />}
-            <span style={variant === 'narrow' ? { overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 } : undefined}>{it.label}</span>
+            <span style={variant === 'narrow' ? NARROW_LABEL : undefined}>{it.label}</span>
           </button>
         )
         const full = it.title ?? (typeof it.label === 'string' ? it.label : undefined)
