@@ -129,7 +129,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
-    <div ref={wrapperRef} className="relative flex-shrink-0" style={{ width: size, height: size }}>
+    <div ref={wrapperRef} className="season-node-wrap relative flex-shrink-0" style={{ width: size, height: size }}>
       {isHighlighted && (
         <div
           className="course-node-flash-ring"
