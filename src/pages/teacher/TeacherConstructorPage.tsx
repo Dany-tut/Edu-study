@@ -26,7 +26,7 @@ import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import Checkbox from '../../components/Checkbox'
 import ScrollFade from '../../components/ScrollFade'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { bankSubjectOptionsFor, subjectIcon, getSubject, isLanguageSubject, SUBJECTS, isMySubject, courseSubjectOptionsFor, teacherSubjectDefs } from '../../lib/subjects'
+import { bankSubjectOptionsFor, subjectIcon, getSubject, isLanguageSubject, SUBJECTS, isMySubject, courseSubjectOptionsFor, teacherSubjectDefs, ICON_GAP } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
 import { languageTaxonomy, tagsLabel, type TaskLanguageTags } from '../../data/languageTaxonomy'
 import { diagShareUrl } from '../../lib/diagShareUrl'
@@ -2868,7 +2868,7 @@ function CreatorView({
                 value={tkSubject}
                 onChange={v => { setTkSubject(v); setTkSection(''); setTkTopic('') }}
                 placeholder={t('Предмет')}
-                options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [tkSubject]).map(s => ({ value: s.name, label: `${s.icon} ${tc(s.name)}` }))}
+                options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [tkSubject]).map(s => ({ value: s.name, label: `${s.icon}${ICON_GAP}${tc(s.name)}` }))}
               />
             </div>
             {/* Разметка. У языкового предмета своя: уровень / навык / тема —
@@ -5941,7 +5941,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
                 <TeacherSelect value={subjectState} onChange={handleSubjectChange} placeholder={t('Предмет')}
                   accent={accent} accentBg={accent + '1f'}
-                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, subjectState).map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
+                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, subjectState).map(o => ({ value: o.value, label: `${subjectIcon(o.value)}${ICON_GAP}${t(o.value)}` }))} />
               </div>
             )}
             {isCustomTest && (
@@ -7140,7 +7140,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
                 <TeacherSelect value={testSubject} onChange={setTestSubject} placeholder={t('Предмет')}
                   accent={accent} accentBg={accent + '1f'}
-                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, testSubject).map(o => ({ value: o.value, label: `${subjectIcon(o.value)} ${t(o.value)}` }))} />
+                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, testSubject).map(o => ({ value: o.value, label: `${subjectIcon(o.value)}${ICON_GAP}${t(o.value)}` }))} />
               </div>
               <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
               {/* Mode tabs */}

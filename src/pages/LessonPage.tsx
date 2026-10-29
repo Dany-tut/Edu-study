@@ -13,7 +13,7 @@ import { downloadLessonFile, formatFileSize, isLinkFile, type LessonFile } from 
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
-import { getSubject } from '../lib/subjects'
+import { getSubject, ICON_GAP } from '../lib/subjects'
 import {
   emptyWatch, loadVideoWatch, saveVideoWatch, watchRatio, type VideoWatch,
 } from '../lib/videoProgress'
@@ -867,7 +867,7 @@ export default function LessonPage() {
   // родной язык незачем.
   const glossLang = subjectDef?.isLanguage && !subjectDef.native ? subjectDef.langCode : undefined
   const glossAccent = resolveSubjectPalette(subjectDef?.id, dark).accent
-  const videoBadge = subjectDef ? `${subjectDef.icon} ${t(subjectDef.name)}` : undefined
+  const videoBadge = subjectDef ? `${subjectDef.icon}${ICON_GAP}${t(subjectDef.name)}` : undefined
 
   const watchedPct = Math.round(watchRatio({ ...watch, duration: videoDuration || watch.duration }) * 100)
 

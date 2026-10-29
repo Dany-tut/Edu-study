@@ -39,7 +39,7 @@ import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'
 import { useTeacher } from '../../store/teacherStore'
 import { useAllStudents } from '../../lib/useGroups'
-import { SUBJECTS, teacherSubjectDefs } from '../../lib/subjects'
+import { SUBJECTS, teacherSubjectDefs, ICON_GAP } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import {
   fetchOwnCardGroups, deleteCardGroup, deleteCardSet,
@@ -68,7 +68,7 @@ const LANG_OPTIONS = SUBJECTS
   // значением (React ругался на дублирующийся ключ), а подпись у обеих бралась
   // от последней. Первый выигрывает — это сам язык.
   .filter((s, i, all) => all.findIndex(x => x.langCode === s.langCode) === i)
-  .map(s => ({ value: s.langCode!, label: `${s.icon} ${s.name}`, subject: s.id }))
+  .map(s => ({ value: s.langCode!, label: `${s.icon}${ICON_GAP}${s.name}`, subject: s.id }))
 
 /**
  * Предметы для поля набора — ВСЕ, а не только языковые.
@@ -158,7 +158,7 @@ const langLabelOf = (lang: string) => LANG_OPTIONS.find(o => o.value === lang)?.
  */
 const scopeLabelOf = (g: { subject?: string | null; lang: string }) => {
   const s = g.subject ? SUBJECTS.find(x => x.id === g.subject) : undefined
-  return s ? `${s.icon} ${s.name}` : langLabelOf(g.lang)
+  return s ? `${s.icon}${ICON_GAP}${s.name}` : langLabelOf(g.lang)
 }
 const subjectOf = (lang: string) => LANG_OPTIONS.find(o => o.value === lang)?.subject ?? null
 
@@ -1109,7 +1109,7 @@ function ScopeFields({ group, patch, studentOptions, stacked = false }: {
         <Field label={t('Предмет')}>
           <TeacherSelect
             value={group.subject ?? ''}
-            options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [group.subject]).map(s => ({ value: s.id, label: `${s.icon} ${s.name}` }))}
+            options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [group.subject]).map(s => ({ value: s.id, label: `${s.icon}${ICON_GAP}${s.name}` }))}
             onChange={v => patch({ subject: v, lang: langOfSubject(v) })}
             clearable={false}
           />

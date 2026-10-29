@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
 import { CheckSquare, Check, X, CalendarCheck, Loader2 } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
@@ -172,7 +173,7 @@ export default function MobileTeacherGradebook() {
         }} className="no-scrollbar">
           {groups.map(g => (
             <MobilePill key={g.id} active={g.id === groupId} onClick={() => setGroupId(g.id)} size="sm">
-              {g.icon} {g.name}
+              {g.icon}{ICON_GAP}{g.name}
             </MobilePill>
           ))}
         </div>
