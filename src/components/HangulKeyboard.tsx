@@ -123,7 +123,7 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
       disabled={disabled}
       className="flex items-center justify-center"
       style={{
-        width: wide ? 122 : 38, height: 42, flexShrink: 0,
+        width: wide ? 124 : 38, height: 42, flexShrink: 0,
         borderRadius: 12, padding: 0,
         border: '1px solid var(--color-border-strong)',
         background: 'rgba(var(--glass-rgb), 0.96)',
