@@ -123,6 +123,9 @@ interface DashboardState {
   moduleFocusNonce: number
   avatarId: string
   setAvatarId: (id: string) => void
+  /** Своё фото вместо иконки: путь в бакете avatars (students.avatar_path). */
+  avatarPath: string | null
+  setAvatarPath: (path: string | null) => void
   scheduleIndex: number
   setScheduleIndex: (idx: number) => void
   quizDismissed: boolean
@@ -325,6 +328,8 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   setActiveModule: (id) => set({ activeModuleId: id }),
   avatarId: 'flower',
   setAvatarId: (id) => set({ avatarId: id }),
+  avatarPath: null,
+  setAvatarPath: (path) => set({ avatarPath: path }),
   scheduleIndex: 3,
   setScheduleIndex: (idx) => set({ scheduleIndex: idx }),
   quizDismissed: false,

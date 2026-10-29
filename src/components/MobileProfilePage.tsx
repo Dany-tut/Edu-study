@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState, useMemo } from 'react'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks } from 'lucide-react'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks, Camera, X } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import HScrollFade from './HScrollFade'
@@ -28,6 +28,8 @@ import AppVersionRow from './AppVersionRow'
 import type { LucideIcon } from 'lucide-react'
 import type { Subject } from '../data/mockData'
 import { XP_PER_LEVEL } from '../lib/xp'
+import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
+import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
 
 // MOBILE ONLY profile. Desktop has no profile screen. Floating glass chrome
 // (Dynamic Island streak/XP) + identity + level/XP hero + stats + settings.
@@ -70,6 +72,8 @@ export default function MobileProfilePage() {
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const { dark, toggle } = useTheme()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const { avatarPath, savePhoto, removePhoto } = useStudentAvatarPhoto()
+  const [cropFile, setCropFile] = useState<File | null>(null)
   const [tintOpen, setTintOpen] = useState(false)
   const [courseOrderOpen, setCourseOrderOpen] = useState(false)
   const [feedOpen, setFeedOpen] = useState(false)
@@ -145,11 +149,27 @@ export default function MobileProfilePage() {
               печаталось дважды (подпись под именем и заголовок XP-плашки). */}
           <div style={{ borderRadius: 24, padding: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
             <div className="flex items-center" style={{ gap: 14 }}>
-              <div
-                className="flex items-center justify-center flex-shrink-0"
-                style={{ width: 58, height: 58, borderRadius: 999, background: 'var(--grad-purple)', color: '#fff', fontSize: 25, fontWeight: 700, boxShadow: 'var(--glow-accent)' }}
-              >
-                {initial}
+              {/* Тап по кружку — загрузить или сменить фото. */}
+              <div className="flex-shrink-0" style={{ position: 'relative', width: 58, height: 58 }}>
+                <button
+                  type="button"
+                  onClick={() => { tactile(); pickImageFile(setCropFile) }}
+                  aria-label={avatarPath ? t('Сменить фото') : t('Загрузить фото')}
+                  className="flex items-center justify-center"
+                  style={{ position: 'relative', width: 58, height: 58, borderRadius: 999, padding: 0, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 25, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
+                >
+                  {initial}
+                  <AvatarPhotoFill path={avatarPath} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { tactile(); if (avatarPath) void removePhoto(); else pickImageFile(setCropFile) }}
+                  aria-label={avatarPath ? t('Убрать фото') : t('Загрузить фото')}
+                  className="flex items-center justify-center"
+                  style={{ position: 'absolute', right: -3, bottom: -3, width: 22, height: 22, borderRadius: 999, padding: 0, cursor: 'pointer', border: '2px solid var(--color-bg-3)', background: 'var(--color-bg-5)', color: 'var(--color-text-2)' }}
+                >
+                  {avatarPath ? <X size={11} strokeWidth={2.6} /> : <Camera size={11} strokeWidth={2.4} />}
+                </button>
               </div>
               <div className="min-w-0" style={{ flex: 1 }}>
                 <div style={{ fontSize: 21, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.15 }}>{name}</div>
@@ -446,6 +466,7 @@ export default function MobileProfilePage() {
           })}
         </div>
       </MobileSheet>
+      {cropFile && <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={async b => { await savePhoto(b); setCropFile(null) }} />}
     </>
   )
 }

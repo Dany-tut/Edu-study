@@ -56,6 +56,8 @@ export type Student = {
   email?: string
   tempPassword?: string
   inviteToken?: string | null
+  /** Фото профиля ученика — путь в бакете avatars (src/lib/avatarPhoto.ts). */
+  avatarPath?: string | null
 }
 
 export type ScheduleItem = {

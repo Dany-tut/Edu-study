@@ -10,6 +10,25 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  // — Файл урока ссылкой (components/teacher/LessonLinkAttach.tsx) —
+  "или ссылкой на Диск": "or link from Drive",
+  "Это не похоже на ссылку": "This doesn't look like a link",
+  "Доступ на Диске: «Все, у кого есть ссылка»": "Drive access: “Anyone with the link”",
+  "Прикрепите ссылкой на Google Диск": "Attach it as a Google Drive link",
+  "Google Диск": "Google Drive",
+  "Яндекс Диск": "Yandex Disk",
+  "Облако Mail": "Mail Cloud",
+  // — Фото профиля (components/AvatarPhoto.tsx) —
+  "Загрузить фото": "Upload photo",
+  "Сменить фото": "Change photo",
+  "Убрать фото": "Remove photo",
+  "Фото профиля": "Profile photo",
+  "Отдалить": "Zoom out",
+  "Приблизить": "Zoom in",
+  "Двигайте фото пальцем": "Drag to position",
+  "Не удалось загрузить фото. Попробуйте ещё раз.": "Could not upload the photo. Please try again.",
+  "Не удалось убрать фото. Попробуйте ещё раз.": "Could not remove the photo. Please try again.",
+  "Этот файл не открывается. Выберите фото в JPG или PNG.": "This file can't be opened. Choose a JPG or PNG photo.",
   // — Превью типов заданий (data/taskTypePreviews.ts) —
   'Узнавание: верная форма опознаётся среди похожих, писать ничего не нужно.': 'Recognition: the right form is spotted among similar ones, nothing to write.',
   'Признак проверяется на выборке: верных вариантов несколько, и угадать один недостаточно.': 'A feature is checked across a set: several options are correct, so guessing one is not enough.',

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
-  ArrowLeft, Save, User,
+  ArrowLeft, Save, User, Camera, X,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -14,6 +14,8 @@ import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
+import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from '../../components/AvatarPhoto'
+import { uploadAvatarPhoto, removeAvatarPhoto, saveTeacherAvatarPath } from '../../lib/avatarPhoto'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -46,6 +48,9 @@ export default function TeacherProfileSettingsPage() {
   const [name,     setName]     = usePersistentState('profile.name', '')
   const [avatarId, setAvatarId] = usePersistentState('profile.avatarId', 'flower')
   const [email,    setEmail]    = useState('')
+  // Фото сохраняется сразу, без кнопки «Сохранить»: файл уже в хранилище.
+  const [avatarPath, setAvatarPath] = useState<string | null>(null)
+  const [cropFile,   setCropFile]   = useState<File | null>(null)
   const [role,     setRole]     = useState<'admin' | 'teacher'>('teacher')
   const [saving,   setSaving]   = useState(false)
   const [saved,    setSaved]    = useState(false)
@@ -58,6 +63,7 @@ export default function TeacherProfileSettingsPage() {
       setEmail(u.email ?? '')
       setRole(u.app_metadata?.role === 'admin' ? 'admin' : 'teacher')
       if (!hadDraft.avatarId) setAvatarId(u.user_metadata?.avatarId ?? 'flower')
+      setAvatarPath(u.user_metadata?.avatarPath ?? null)
     })
   }, [])
 
@@ -99,6 +105,28 @@ export default function TeacherProfileSettingsPage() {
   const selectedAvatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
   const AvatarIcon = selectedAvatar.Icon
 
+  async function savePhoto(blob: Blob) {
+    const path = await uploadAvatarPhoto(blob)
+    await saveTeacherAvatarPath(path)
+    const old = avatarPath
+    setAvatarPath(path)
+    setCropFile(null)
+    removeAvatarPhoto(old)
+  }
+
+  async function removePhoto() {
+    const old = avatarPath
+    if (!old) return
+    setAvatarPath(null)
+    try {
+      await saveTeacherAvatarPath(null)
+      removeAvatarPhoto(old)
+    } catch {
+      setAvatarPath(old)
+      setError(t('Не удалось убрать фото. Попробуйте ещё раз.'))
+    }
+  }
+
   async function handleSave() {
     setSaving(true); setSaved(false); setError('')
     const { error: err } = await supabase.auth.updateUser({
@@ -109,6 +137,13 @@ export default function TeacherProfileSettingsPage() {
     clearDrafts('profile.')
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
+  }
+
+  const photoBtnStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 6,
+    padding: '7px 12px', borderRadius: 10,
+    border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
+    color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
   }
 
   const inputStyle: React.CSSProperties = {
@@ -141,7 +176,7 @@ export default function TeacherProfileSettingsPage() {
         {/* Avatar preview + picker */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
           <motion.div
-            key={avatarId}
+            key={avatarPath ?? avatarId}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 460, damping: 22 }}
@@ -157,22 +192,44 @@ export default function TeacherProfileSettingsPage() {
                 by the circular container (kills GPU corner-bleed on transforms). */}
             <div style={{ position: 'absolute', inset: -2, background: selectedAvatar.gradient }} />
             <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff', position: 'relative' }} />
+            <AvatarPhotoFill path={avatarPath} />
           </motion.div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 12 }}>
             {role === 'admin' ? t('Администратор') : t('Учитель')}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={() => pickImageFile(setCropFile)}
+              style={photoBtnStyle}
+            >
+              <Camera size={14} strokeWidth={2.2} />
+              <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
+            </motion.button>
+            {avatarPath && (
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={removePhoto}
+                style={photoBtnStyle}
+              >
+                <X size={14} strokeWidth={2.2} />
+                <span style={{ position: 'relative', top: '-0.12em' }}>{t('Убрать фото')}</span>
+              </motion.button>
+            )}
           </div>
 
           {/* Avatar grid — same recipe as the student sidebar picker */}
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${AVATARS.length}, 1fr)`, gap: 12, width: '100%' }}>
             {AVATARS.map(opt => {
               const Ic = opt.Icon
-              const isSelected = avatarId === opt.id
+              const isSelected = !avatarPath && avatarId === opt.id
               return (
                 <motion.button
                   key={opt.id}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.92 }}
-                  onClick={() => setAvatarId(opt.id)}
+                  onClick={() => { setAvatarId(opt.id); removePhoto() }}
                   aria-label={opt.id}
                   style={{
                     width: 52, height: 52, justifySelf: 'center',
@@ -262,6 +319,9 @@ export default function TeacherProfileSettingsPage() {
         )}
 
       </div>
+      {cropFile && (
+        <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={savePhoto} />
+      )}
     </div>
   )
 }

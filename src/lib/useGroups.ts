@@ -541,6 +541,7 @@ export function useStudents(groupId: string | null) {
         tempPassword: s.temp_password ?? '',
         authUserId: s.auth_user_id ?? null,
         personId: s.person_id ?? undefined,
+        avatarPath: s.avatar_path ?? null,
       })))
     }
     setLoading(false)
@@ -684,7 +685,7 @@ export function useGroupLessons(groupId: string | null) {
   return lessons
 }
 
-export type RosterStudent = { id: string; name: string }
+export type RosterStudent = { id: string; name: string; avatarPath?: string | null }
 
 // The students a given lesson should be graded for: a group-scoped lesson →
 // the whole group; a student-scoped lesson → that one student.
@@ -698,12 +699,12 @@ export function useLessonRoster(lesson: GroupLesson | null) {
     ;(async () => {
       if (lesson.groupId) {
         const { data } = await supabase
-          .from('students').select('id, name').eq('group_id', lesson.groupId).order('created_at')
-        if (!cancelled) setRoster((data ?? []).map((s: any) => ({ id: s.id, name: s.name })))
+          .from('students').select('*').eq('group_id', lesson.groupId).order('created_at')
+        if (!cancelled) setRoster((data ?? []).map((s: any) => ({ id: s.id, name: s.name, avatarPath: s.avatar_path ?? null })))
       } else if (lesson.studentId) {
         const { data } = await supabase
-          .from('students').select('id, name').eq('id', lesson.studentId).single()
-        if (!cancelled) setRoster(data ? [{ id: data.id, name: data.name }] : [])
+          .from('students').select('*').eq('id', lesson.studentId).single()
+        if (!cancelled) setRoster(data ? [{ id: data.id, name: data.name, avatarPath: data.avatar_path ?? null }] : [])
       } else {
         setRoster([])
       }
@@ -974,6 +975,7 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
     isIndividual: s.groups?.is_individual ?? false,
     authUserId: s.auth_user_id ?? undefined,
     personId: s.person_id ?? undefined,
+    avatarPath: s.avatar_path ?? null,
     name: s.name,
     phone: s.phone ?? '',
     telegramLink: s.telegram_link ?? '',

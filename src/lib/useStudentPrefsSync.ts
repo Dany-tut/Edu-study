@@ -21,6 +21,7 @@ type SavedPrefs = {
 // back to Supabase whenever they change.
 export function useStudentPrefsSync() {
   const setAvatarId = useDashboard(s => s.setAvatarId)
+  const setAvatarPath = useDashboard(s => s.setAvatarPath)
   const setWidgetColumns = useDashboard(s => s.setWidgetColumns)
   const setWidgetOrder = useDashboard(s => s.setWidgetOrder)
   const setHiddenWidgets = useDashboard(s => s.setHiddenWidgets)
@@ -63,6 +64,22 @@ export function useStudentPrefsSync() {
           if (p.subjectColors) setStudentColors(p.subjectColors)
         }
         loaded.current = true
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Фото — отдельным запросом: колонка из 0106, и пока миграция не доехала,
+  // ошибка здесь не должна ронять загрузку остальных настроек.
+  useEffect(() => {
+    const session = getStudentSession()
+    if (!session?.id) return
+    supabase
+      .from('students')
+      .select('avatar_path')
+      .eq('id', session.id)
+      .single()
+      .then(({ data }: { data: { avatar_path: string | null } | null }) => {
+        setAvatarPath(data?.avatar_path ?? null)
       })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

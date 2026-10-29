@@ -10,6 +10,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster, useJournalPending } from '../../lib/useGroups'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
+import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -168,12 +169,13 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                         <div style={{
-                          width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                          position: 'relative', width: 28, height: 28, borderRadius: 9, flexShrink: 0,
                           background: 'var(--color-avatar-bg)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 10, fontWeight: 700, color: '#fff',
                         }}>
                           {initials}
+                          <AvatarPhotoFill path={student.avatarPath} />
                         </div>
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                           {tn(student.name)}
@@ -276,12 +278,13 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
-                        width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                        position: 'relative', width: 28, height: 28, borderRadius: 9, flexShrink: 0,
                         background: 'var(--color-purple)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700, color: '#fff',
                       }}>
                         {initials}
+                        <AvatarPhotoFill path={student.avatarPath} />
                       </div>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                         {tn(student.name)}
@@ -586,13 +589,14 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                 {/* Name */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <div style={{
-                    width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                    position: 'relative', width: 28, height: 28, borderRadius: 9, flexShrink: 0,
                     background: studentPresent ? 'var(--color-avatar-bg)' : 'var(--color-bg-5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, fontWeight: 700, color: '#fff',
                     transition: 'background 0.2s',
                   }}>
                     {initials}
+                    <AvatarPhotoFill path={student.avatarPath} />
                   </div>
                   <span style={{
                     fontSize: 13, fontWeight: 600,

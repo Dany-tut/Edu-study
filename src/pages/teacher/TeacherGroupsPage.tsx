@@ -34,6 +34,7 @@ import {
   fetchStudentWrongTasks, type WrongTask,
   fetchStudentSessionDays,
 } from '../../lib/db'
+import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 
 // ─── Цвета для выбора группы ─────────────────────────────────────────────────
 const GROUP_COLORS = [
@@ -1436,7 +1437,7 @@ function StudentAvatar({
       title={isRegistered ? '' : t('Скопировать ссылку приглашения')}
     >
       <div style={{
-        width: 46, height: 46, borderRadius: 16,
+        position: 'relative', width: 46, height: 46, borderRadius: 16,
         background: group.color,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 18, fontWeight: 700, color: '#fff',
@@ -1444,6 +1445,7 @@ function StudentAvatar({
         opacity: hovered ? 0.25 : 1,
       }}>
         {initials}
+        <AvatarPhotoFill path={student.avatarPath} />
       </div>
 
       {/* Overlay: copy icon (not registered) */}

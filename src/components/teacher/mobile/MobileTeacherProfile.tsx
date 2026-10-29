@@ -16,6 +16,8 @@ import { useT, useLang, type Lang, useTc } from '../../../lib/i18n'
 import { requestShowInstall, isStandalone } from '../../../lib/pwaInstall'
 import AppVersionRow from '../../AppVersionRow'
 import { getSessionUser } from '../../../lib/owner'
+import { AvatarPhotoFill } from '../../AvatarPhoto'
+import { useMyTeacherAvatarPath } from '../../../lib/avatarPhoto'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -91,6 +93,7 @@ export default function MobileTeacherProfile() {
   }
 
   const initial = (m.name.charAt(0) || 'У').toUpperCase()
+  const photoPath = useMyTeacherAvatarPath()
   const quotaPct = m.maxStudents ? Math.min(100, Math.round((m.studentsUsed / m.maxStudents) * 100)) : null
 
   const logout = async () => {
@@ -107,7 +110,10 @@ export default function MobileTeacherProfile() {
 
         {/* Identity — span 2 */}
         <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 13, padding: '14px 15px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
-          <div style={{ width: 52, height: 52, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 23, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0, textTransform: 'uppercase' }}>{initial}</div>
+          <div style={{ position: 'relative', width: 52, height: 52, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 23, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0, textTransform: 'uppercase' }}>
+            {initial}
+            <AvatarPhotoFill path={photoPath} />
+          </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1, textTransform: 'capitalize' }}>{tn(m.name)}</div>
             <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(m.subject)}</div>

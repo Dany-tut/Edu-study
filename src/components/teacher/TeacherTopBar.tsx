@@ -31,6 +31,7 @@ import { useNotificationsStore } from '../../store/notificationsStore'
 import { useT, useLang, type Lang, useTc } from '../../lib/i18n'
 import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
 import { getAuthUser } from '../../lib/owner'
+import { AvatarPhotoFill } from '../AvatarPhoto'
 import { useDashboard } from '../../store/dashboardStore'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
@@ -156,6 +157,7 @@ export default function TeacherTopBar() {
   const [teacherEmail, setTeacherEmail] = useState('')
   const [teacherRole,  setTeacherRole]  = useState<'admin' | 'teacher'>('teacher')
   const [avatarId,     setAvatarId]     = useState('flower')
+  const [avatarPath,   setAvatarPath]   = useState<string | null>(null)
   useEffect(() => {
     getAuthUser().then(u => {
       if (!u) return
@@ -165,7 +167,18 @@ export default function TeacherTopBar() {
       setTeacherEmail(u.email ?? '')
       setTeacherRole(role)
       setAvatarId(u.user_metadata?.avatarId ?? 'flower')
+      setAvatarPath(u.user_metadata?.avatarPath ?? null)
     })
+    // Профиль правят на соседней странице — бар подхватывает имя, иконку и
+    // фото сразу, без перезагрузки.
+    const { data: sub } = supabase.auth.onAuthStateChange((evt, session) => {
+      if (evt !== 'USER_UPDATED' || !session?.user) return
+      const m = session.user.user_metadata ?? {}
+      if (m.name) setTeacherName(m.name)
+      setAvatarId(m.avatarId ?? 'flower')
+      setAvatarPath(m.avatarPath ?? null)
+    })
+    return () => sub.subscription.unsubscribe()
   }, [])
 
   const [myPlan, setMyPlan] = useState<MyPlan | null>(null)
@@ -494,9 +507,10 @@ export default function TeacherTopBar() {
         <motion.div
           whileHover={{ scale: 1.10, boxShadow: '0 0 0 3px rgba(120,106,215,0.35), 0 4px 16px rgba(106,90,230,0.55)' }}
           transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-          style={{ width: 30, height: 30, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}
+          style={{ position: 'relative', width: 30, height: 30, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}
         >
           <AvatarIcon size={16} strokeWidth={1.8} style={{ color: '#fff' }} />
+          <AvatarPhotoFill path={avatarPath} />
         </motion.div>
         <div ref={profileTextRef} style={{
           overflow: 'hidden', whiteSpace: 'nowrap',
@@ -571,8 +585,9 @@ export default function TeacherTopBar() {
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle, width: 252, minWidth: 252 }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px 10px' }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}>
+              <div style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}>
                 <AvatarIcon size={18} strokeWidth={1.8} style={{ color: '#fff' }} />
+                <AvatarPhotoFill path={avatarPath} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{teacherName || (teacherRole === 'admin' ? t('Админ') : t('Учитель'))}</div>

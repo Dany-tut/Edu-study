@@ -23,6 +23,7 @@ import {
 } from '../../lib/db'
 import { useT, t, useTc, tn } from '../../lib/i18n'
 import BackCircle from '../../components/BackCircle'
+import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -38,13 +39,14 @@ function Avatar({ student, group, size = 56 }: { student: Student; group: Group;
   const hue = nameToHue(student.name)
   return (
     <div style={{
-      width: size, height: size, borderRadius: '50%', flexShrink: 0,
+      position: 'relative', width: size, height: size, borderRadius: '50%', flexShrink: 0,
       background: `linear-gradient(135deg, hsl(${hue} 70% 68%), hsl(${(hue + 40) % 360} 60% 54%))`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: size * 0.32, fontWeight: 700, color: '#fff',
       boxShadow: `0 0 0 3px ${group.color}44`,
     }}>
       {nameInitials(tn(student.name))}
+      <AvatarPhotoFill path={student.avatarPath} />
     </div>
   )
 }
