@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft, Save, User, Camera, X,
@@ -307,23 +308,11 @@ export default function TeacherProfileSettingsPage() {
             <Alert tone="danger" text={error} />
           )}
 
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={handleSave}
-            disabled={saving || !name.trim()}
-            style={{
-              padding: '12px', borderRadius: 13, border: 'none',
-              background: saved ? 'var(--color-green-soft)' : 'var(--grad-purple)',
-              color: saved ? 'var(--color-green-text)' : '#fff',
-              fontSize: 14, fontWeight: 700, cursor: saving ? 'wait' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              transition: 'background 0.2s, color 0.2s',
-              boxShadow: saved ? 'none' : '0 3px 12px rgba(106,90,230,0.35)',
-            }}
-          >
-            <Save size={15} strokeWidth={2.5} />
-            {saving ? t('Сохраняем…') : saved ? t('Сохранено!') : t('Сохранить')}
-          </motion.button>
+          <TeacherSaveButton
+            label={t('Сохранить')} savingLabel={t('Сохраняем…')}
+            saving={saving} saved={saved} disabled={!name.trim()}
+            onClick={handleSave} icon={<Save size={15} strokeWidth={2.5} />} fullWidth
+          />
         </div>
 
         {/* Цвета предметов — сохраняются сразу по выбору, отдельно от имени:

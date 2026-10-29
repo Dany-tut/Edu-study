@@ -3064,13 +3064,13 @@ export default function HomeworkFlow({
           aria-label={t('Назад')}
           className="flex items-center justify-center cursor-pointer flex-shrink-0"
           style={{
-            gap: 4, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            // «Назад» — шеврон в круге везде, как BackCircle.
+            gap: 4, padding: 0, width: 40, height: 40, borderRadius: 999, border: '1px solid var(--color-border-soft)',
             background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
           <ChevronLeft size={18} />
-          {!isMobile && t('Назад')}
         </motion.button>
 
         <h1
@@ -3105,15 +3105,14 @@ export default function HomeworkFlow({
               aria-label={t('Назад')}
               className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
-                gap: 4, padding: isMobile ? 0 : '0 16px 0 12px', borderRadius: 999,
-                // Высота шапки — общая на все экраны (MOBILE_PILL_H).
-                height: MOBILE_PILL_H, width: isMobile ? MOBILE_PILL_H : undefined, boxSizing: 'border-box',
+                gap: 4, padding: 0, borderRadius: 999,
+                // Высота шапки — общая на все экраны (MOBILE_PILL_H); круг, как BackCircle.
+                height: MOBILE_PILL_H, width: MOBILE_PILL_H, boxSizing: 'border-box',
                 ...dockGlass,
                 color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
               <ChevronLeft size={18} />
-              {!isMobile && t('Назад')}
             </motion.button>
 
             <div

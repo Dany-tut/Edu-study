@@ -157,7 +157,7 @@ export default function NewStudentConfig({
         style={{
           flexShrink: 0, marginTop: 16,
           width: '100%', padding: '12px 0',
-          background: 'var(--color-purple)', color: '#fff', fontWeight: 700, fontSize: 15,
+          background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15,
           border: 'none', borderRadius: 14, cursor: saving ? 'not-allowed' : 'pointer',
         }}
       >

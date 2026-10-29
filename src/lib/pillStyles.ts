@@ -110,9 +110,10 @@ export const GRAD = {
 } as const
 
 // ── 3. SOLID CTA BUTTON — purple accent, white text ─────────────────────────
-/** Primary call-to-action: solid accent. `style={ctaBtn}` */
+/** Primary call-to-action: --grad-purple (одинаков в обеих темах; --color-accent
+ *  в тёмной теме светлый, и белые буквы на нём тонут). `style={ctaBtn}` */
 export const ctaBtn: CSSProperties = {
-  background: 'var(--color-accent)', color: '#fff',
+  background: 'var(--grad-purple)', color: '#fff',
   border: 'none', borderRadius: 12, cursor: 'pointer',
   padding: '9px 18px', fontSize: 13, fontWeight: 700,
 }

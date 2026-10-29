@@ -4,20 +4,7 @@ import { ContentCard, CardSkeleton, type CardActions } from '../../components/te
 import { SortDropdown, FacetDropdown, SubjectFacet, useShelfSubjects, PickSubjectHint, canonSubject, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  BookOpen, Zap, Layers, Plus, Clock,
-  GraduationCap, Brain, FileText, X, Check,
-  Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown,
-  CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh,
-  Image as ImageIcon, Key, Maximize2,
-  ListChecks, Eye, EyeOff,
-  CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
-  AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
-  CheckCircle, Circle, Globe, Copy, Search, LayoutGrid,
-  Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
-  ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette,
-  Calculator, Star, Lightbulb, Microscope, Music, Sigma,
-  Lock, Loader2, Library,} from 'lucide-react'
+import { BookOpen, Zap, Layers, Plus, Clock, GraduationCap, Brain, FileText, X, Check, Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown, CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh, Image as ImageIcon, Key, Maximize2, ListChecks, Eye, EyeOff, CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon, AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp, CheckCircle, Circle, Globe, Copy, Search, LayoutGrid, Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette, ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette, Calculator, Star, Lightbulb, Microscope, Music, Sigma, Lock, Loader2, Library, AlertTriangle } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
@@ -188,7 +175,7 @@ function GoogleFormBankCategoryModal({
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
           <button onClick={onClose} style={{ padding: '9px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
           <button onClick={handleConfirm} disabled={saving}
-            style={{ padding: '9px 18px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
+            style={{ padding: '9px 18px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
             {t('Импортировать')} {questions.length}
           </button>
         </div>
@@ -4687,7 +4674,7 @@ function DiagnosticStudentCard({
               {/* Weak spots */}
               {weakSections.length > 0 && (
                 <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', marginBottom: 6 }}>{t('⚠ Слабые темы для проработки')}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}><AlertTriangle size={12} strokeWidth={2.4} />{t('Слабые темы для проработки')}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {weakSections.map(([sec, { correct: c, total: t }]) => (
                       <div key={sec} style={{ fontSize: 12, color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>

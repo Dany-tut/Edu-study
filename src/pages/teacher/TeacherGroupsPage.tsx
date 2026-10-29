@@ -427,7 +427,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
                 transition: 'background 0.2s',
               }}
             >
-              {copied ? t('✓ Скопировано') : t('Скопировать ссылку')}
+              {copied ? <><Check size={15} strokeWidth={2.6} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
             </button>
             <button
               onClick={onClose}
@@ -730,7 +730,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
               color: '#fff', fontWeight: 700, fontSize: 15,
               border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s',
             }}>
-              {copied ? t('✓ Скопировано') : t('Скопировать ссылку')}
+              {copied ? <><Check size={15} strokeWidth={2.6} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
             </button>
             <button onClick={onClose} style={{
               width: '100%', padding: '10px 0',

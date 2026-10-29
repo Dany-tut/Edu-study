@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { CheckboxMark } from './Checkbox'
+import BackCircle from './BackCircle'
 import { usePersistentState, clearDraft } from '../lib/useDraft'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
+import { ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
 import {
@@ -138,9 +140,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '12px 20px 80px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-        <button onClick={onBack} aria-label={t('Назад')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: isDesktop ? '7px 12px' : 7, borderRadius: 999, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
-          <ChevronLeft size={15} /> {isDesktop && t('Назад')}
-        </button>
+        <BackCircle onClick={onBack} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 13px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700 }}>
           <ClipboardCheck size={14} /> {t('Финальный тест')}
         </div>
@@ -214,14 +214,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                           background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
                           fontSize: 14, color: 'var(--color-text)', fontWeight: selected ? 600 : 400,
                         }}>
-                          <div style={{
-                            width: 18, height: 18, borderRadius: 5, flexShrink: 0,
-                            border: selected ? '2px solid var(--color-accent)' : '2px solid var(--color-border-medium)',
-                            background: selected ? 'var(--color-accent)' : 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s',
-                          }}>
-                            {selected && <span style={{ color: '#fff', fontSize: 10, fontWeight: 900 }}>✓</span>}
-                          </div>
+                          <CheckboxMark checked={selected} />
                           <span style={proseWrap}>{bindShortWords(ch)}</span>
                         </button>
                       )

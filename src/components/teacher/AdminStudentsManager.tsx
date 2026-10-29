@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import TeacherSaveButton from './TeacherSaveButton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RefreshCw, Search, Pencil, X, ShieldAlert, KeyRound, User, ArrowRightLeft, ChevronRight } from 'lucide-react'
@@ -532,7 +533,8 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
-        <button
+        <TeacherSaveButton
+          label={t('Сохранить')}
           onClick={() => onSave({
             name: name.trim(),
             email: email.trim(),
@@ -541,8 +543,7 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
             parent_contact: parent.trim(),
             comment: comment.trim(),
           }, groupId)}
-          style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
-        >{t('Сохранить')}</button>
+        />
       </div>
     </Backdrop>,
     document.body

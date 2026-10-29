@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react'
+import { AlertIcon } from './Alert'
 import { trackEvent } from '../lib/analytics'
 import { hardReload, isChunkError, recoverFromChunkError } from '../lib/chunkError'
 import { t } from '../lib/i18n'
@@ -72,7 +73,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         gap: 16, padding: '32px 20px', textAlign: 'center',
       }}>
-        <div style={{ fontSize: 44, opacity: 0.35 }}>⚠️</div>
+        <AlertIcon tone="danger" />
         <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Что-то пошло не так')}</div>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', maxWidth: 360, lineHeight: 1.5 }}>
           {t('Произошла ошибка на этой странице. Попробуйте обновить — если повторяется, сообщите нам.')}

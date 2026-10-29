@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Send, MessageCircle, ArrowLeft, RefreshCw } from 'lucide-react'
+import BackCircle from '../BackCircle'
+import { Send, MessageCircle, RefreshCw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useT } from '../../lib/i18n'
 import {
@@ -163,7 +164,7 @@ function Conversation({ thread, onBack, onStatus }: {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 12, borderBottom: '1px solid var(--color-border)' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', padding: 4 }}><ArrowLeft size={18} /></button>
+        <BackCircle onClick={onBack} style={{ width: 32, height: 32 }} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)' }}>{threadName(thread)}</div>
           <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
@@ -221,7 +222,7 @@ function Conversation({ thread, onBack, onStatus }: {
           <button onClick={send} disabled={sending || !text.trim()} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12,
             border: 'none', cursor: sending || !text.trim() ? 'default' : 'pointer', flexShrink: 0,
-            background: 'var(--color-purple)', color: '#fff', opacity: sending || !text.trim() ? 0.5 : 1,
+            background: 'var(--grad-purple)', color: '#fff', opacity: sending || !text.trim() ? 0.5 : 1,
           }}><Send size={18} /></button>
         </div>
       </div>

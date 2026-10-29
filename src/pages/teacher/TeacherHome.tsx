@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import Checkbox from '../../components/Checkbox'
 import { useState, useEffect, useRef } from 'react'
 import CreateTaskModal from '../../components/teacher/CreateTaskModal'
 import {
@@ -671,18 +672,11 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-4)' : 'var(--color-bg-3)' }}
       onMouseLeave={e => { setShowDelete(false); (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)' }}
     >
-      <button
-        onClick={e => { e.stopPropagation(); onToggle() }}
-        style={{
-          width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-          border: `2px solid ${task.done ? 'var(--color-accent)' : '#C4B0F0'}`,
-          background: task.done ? 'var(--color-accent)' : 'transparent',
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'all 0.15s',
-        }}
-      >
-        {task.done && <CheckCircle2 size={11} strokeWidth={3} style={{ color: '#fff' }} />}
-      </button>
+      {/* Общий Checkbox: своя рамка #C4B0F0 не менялась с темой. Клик не
+          доходит до строки — она открывает задачу. */}
+      <span onClick={e => e.stopPropagation()} style={{ display: 'flex', flexShrink: 0 }}>
+        <Checkbox checked={task.done} onChange={() => onToggle()} />
+      </span>
 
       {task.typeLabel && task.typeBg && task.typeColor && (
         <span style={{

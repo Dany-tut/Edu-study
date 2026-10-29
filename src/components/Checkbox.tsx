@@ -43,29 +43,7 @@ export default function Checkbox({
   // подписи (label выровнен по baseline), а квадрат абсолютно центрируется
   // внутри этой строки. Так галочка стоит по середине кириллицы при любой
   // высоте строки и любом масштабе конспекта.
-  const box = (
-    <span
-      aria-hidden
-      style={{
-        width: size,
-        height: size,
-        flexShrink: 0,
-        borderRadius: Math.round(size / 3),
-        border: `1.5px solid ${checked ? accent : 'var(--color-border-medium)'}`,
-        background: checked ? accent : 'var(--color-bg-input)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.15s ease, border-color 0.15s ease',
-      }}
-    >
-      {checked && (
-        <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 12 12" fill="none">
-          <path d="M2.5 6.2L4.8 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </span>
-  )
+  const box = <CheckboxMark checked={checked} size={size} accent={accent} />
 
   return (
     <label
@@ -101,5 +79,40 @@ export default function Checkbox({
         : box}
       {children != null && <span>{children}</span>}
     </label>
+  )
+}
+
+/**
+ * Только квадрат с галочкой, без <label> и <input>. Для строк, где кликабельна
+ * вся строка-кнопка: класть туда <Checkbox> — значит вложить один контрол в
+ * другой. Вид — тот же, что у Checkbox.
+ */
+export function CheckboxMark({ checked, size = 18, accent = 'var(--color-control-accent)' }: {
+  checked: boolean
+  size?: number
+  accent?: string
+}) {
+  return (
+  <span
+    aria-hidden
+    style={{
+      width: size,
+      height: size,
+      flexShrink: 0,
+      borderRadius: Math.round(size / 3),
+      border: `1.5px solid ${checked ? accent : 'var(--color-border-medium)'}`,
+      background: checked ? accent : 'var(--color-bg-input)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'background 0.15s ease, border-color 0.15s ease',
+    }}
+  >
+    {checked && (
+      <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 12 12" fill="none">
+        <path d="M2.5 6.2L4.8 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    )}
+  </span>
   )
 }

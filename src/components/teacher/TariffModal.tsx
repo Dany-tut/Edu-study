@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AlertIcon } from '../Alert'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { X, Check, Sparkles } from 'lucide-react'
@@ -84,7 +85,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
 
           {sentPlan ? (
             <div style={{ padding: '28px 8px', textAlign: 'center' }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
+              <AlertIcon tone="success" style={{ margin: '0 auto 10px' }} />
               <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Заявка отправлена')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 4 }}>
                 {t('Мы свяжемся с вами и подключим тариф')} «{t(sentPlan.name)}».
@@ -133,7 +134,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
                             style={{
                               width: '100%', padding: '10px 0', borderRadius: 12, border: 'none',
                               cursor: requesting !== null ? 'default' : 'pointer',
-                              background: 'var(--color-purple)', color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
+                              background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
                               opacity: requesting !== null && requesting.code !== p.code ? 0.5 : 1,
                             }}
                           >

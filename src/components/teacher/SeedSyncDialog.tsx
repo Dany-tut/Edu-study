@@ -254,7 +254,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
             className="cursor-pointer flex items-center"
             style={{
               gap: 7, padding: '9px 18px', borderRadius: 999, border: 'none',
-              background: picked.size ? 'var(--color-control-accent)' : 'var(--color-border)',
+              background: picked.size ? 'var(--grad-purple)' : 'var(--color-border)',
               color: picked.size ? '#fff' : 'var(--color-muted)',
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
             }}

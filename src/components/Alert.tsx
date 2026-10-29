@@ -113,6 +113,24 @@ function AlertRow({ item }: { item: AlertItem }) {
   )
 }
 
+/**
+ * Значок тона без карточки — для экранов-итогов («Заявка отправлена», «Что-то
+ * пошло не так»). Вместо эмодзи ✅ / ⚠️: те рисуются по-разному на каждой
+ * системе и не берут цвет темы.
+ */
+export function AlertIcon({ tone, size = 52, style }: { tone: AlertTone; size?: number; style?: React.CSSProperties }) {
+  const { Icon, soft, ink } = TONE[tone]
+  return (
+    <span
+      aria-hidden
+      className="flex items-center justify-center flex-shrink-0"
+      style={{ width: size, height: size, borderRadius: Math.round(size * 0.31), background: soft, color: ink, ...style }}
+    >
+      <Icon size={Math.round(size * 0.46)} strokeWidth={2.2} />
+    </span>
+  )
+}
+
 /** Один алерт. Для нескольких — <AlertStack>, а не два <Alert> подряд. */
 export function Alert(props: Omit<AlertItem, 'id'> & { style?: React.CSSProperties }) {
   const { style, ...item } = props

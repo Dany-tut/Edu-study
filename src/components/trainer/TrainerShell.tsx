@@ -1322,7 +1322,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
       {on && (
         <span style={{
           minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
-          background: 'var(--color-accent)', color: '#fff',
+          background: 'var(--grad-purple)', color: '#fff',
           fontSize: 10, fontWeight: 800, lineHeight: '16px', textAlign: 'center',
         }}>{count}</span>
       )}

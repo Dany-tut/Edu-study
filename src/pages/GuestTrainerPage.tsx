@@ -167,7 +167,7 @@ function GuestBar({ onLead }: { onLead: () => void }) {
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '9px 14px', borderRadius: 12, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-              border: 'none', background: 'var(--color-purple)', color: '#fff',
+              border: 'none', background: 'var(--grad-purple)', color: '#fff',
             }}
           >
             <Sparkles size={14} /> {t('Хочу заниматься')}

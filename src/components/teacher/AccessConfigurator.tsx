@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CheckboxMark } from '../Checkbox'
 import { Lock, BookOpen, Users, LayoutGrid, Copy, Share2, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
@@ -172,9 +173,7 @@ export default function AccessConfigurator({
                 return (
                   <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 11, border: `1px solid ${a ? 'var(--color-purple)' : 'var(--color-border)'}`, background: a ? 'var(--color-purple-soft)' : 'transparent' }}>
                     <button onClick={() => toggleCourse(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 6, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1.5px solid ${a ? 'var(--color-purple)' : 'var(--color-border-medium)'}`, background: a ? 'var(--color-purple)' : 'transparent', color: '#fff' }}>
-                        {a && <Check size={12} strokeWidth={3} />}
-                      </div>
+                      <CheckboxMark checked={!!a} />
                       <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(c.title) || '—'}</span>
                       <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>· {tn(c.owner_name)}</span>
                     </button>

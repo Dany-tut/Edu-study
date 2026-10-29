@@ -65,8 +65,9 @@ export default function MobileTeacherNav({
           backdropFilter: 'blur(28px) saturate(200%)',
           WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           border: '1px solid var(--color-border-glass)',
-          // Frosted glass: outer drop shadow + a hairline top highlight.
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5)',
+          // Тень бара из темы: свой белый inset 0.5 в тёмной теме рисовал
+          // жёсткую линию по верхнему краю. [[feedback-glass-no-white-inset]]
+          boxShadow: 'var(--shadow-bar)',
         }}
       >
         {visibleItems.map(item => {

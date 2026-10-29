@@ -1,8 +1,9 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import BackCircle from '../components/BackCircle'
 import { createPortal } from 'react-dom'
 import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Check, CheckCircle, Circle, ChevronRight, Maximize2, Target, X } from 'lucide-react'
+import { Check, CheckCircle, Circle, ChevronRight, Maximize2, Target, X } from 'lucide-react'
 import {
   fetchPublicDiagQuestions, saveDiagProgress, logDiagConfidence,
   loadDiagProgress, discardDiagProgress, type DiagProgress, type DiagSaveResult,
@@ -964,18 +965,7 @@ export default function DiagnosticTestPage() {
         {/* Top bar */}
         {/* Узкий экран: название теста режется многоточием, кнопка и счётчик не переносятся */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: isDesktop ? 24 : 12 }}>
-          <button
-            onClick={goBack}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap',
-              padding: isDesktop ? '8px 14px 8px 10px' : '6px 12px 6px 8px', borderRadius: 999,
-              border: '1px solid var(--color-border-soft)',
-              background: 'rgba(var(--glass-rgb), 0.9)',
-              color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}
-          >
-            <ArrowLeft size={14} /> {t('Выйти')}
-          </button>
+          <BackCircle onClick={goBack} label="Выйти" />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
             <div style={{

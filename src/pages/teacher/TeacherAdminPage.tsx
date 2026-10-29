@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -566,20 +567,11 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
       />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
-        <button
-          onClick={save}
-          disabled={saving}
-          style={{
-            padding: '9px 20px', borderRadius: 12, border: 'none',
-            background: 'var(--grad-purple)', color: '#fff',
-            fontSize: 13, fontWeight: 600, cursor: saving ? 'wait' : 'pointer',
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}
-        >
-          {saved ? <Check size={14} strokeWidth={2.6} /> : null}
-          {saving ? t('Сохраняем…') : saved ? t('Сохранено') : t('Сохранить')}
-        </button>
-        {error && <span style={{ fontSize: 11, color: '#E04848' }}>{error}</span>}
+        <TeacherSaveButton
+          label={t('Сохранить')} savingLabel={t('Сохраняем…')} savedLabel={t('Сохранено')}
+          saving={saving} saved={saved} onClick={save}
+        />
+        {error && <span style={{ fontSize: 11, color: 'var(--color-red-text)' }}>{error}</span>}
       </div>
 
       {/* Тариф (0037): ручное назначение админом; «без тарифа» = бета-аккаунт,
@@ -1174,7 +1166,7 @@ export default function TeacherAdminPage() {
               return (
                 <div key={tr.id} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--grad-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
                       {initials}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { AlertIcon } from './Alert'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { X, ImagePlus } from 'lucide-react'
@@ -148,7 +149,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
 
           {done ? (
             <div style={{ padding: '28px 8px', textAlign: 'center' }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
+              <AlertIcon tone="success" style={{ margin: '0 auto 10px' }} />
               <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Спасибо! Заявка отправлена')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 4 }}>{t('Мы посмотрим её в ближайшее время.')}</div>
             </div>

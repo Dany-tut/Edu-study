@@ -1,13 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { RadioMark } from '../../components/Radio'
+import { CheckboxMark } from '../../components/Checkbox'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Send, Plus, X, Trash2,
-  Star, ChevronDown, ChevronUp, Search,
-  AlignLeft, CheckSquare, Type, Shuffle, Eye,
-  BookOpen, AlertCircle, Check, GripVertical, Sparkles,
-  ChevronLeft, ChevronRight, Calendar, Users,
-  PenLine, ArrowUpDown, ArrowUp, ArrowDown, Table as TableIcon, Link2,
-} from 'lucide-react'
+import { Send, Plus, X, Trash2, Star, ChevronDown, ChevronUp, Search, AlignLeft, CheckSquare, Type, Shuffle, Eye, BookOpen, AlertCircle, Check, GripVertical, Sparkles, ChevronLeft, ChevronRight, Calendar, Users, PenLine, ArrowUpDown, ArrowUp, ArrowDown, Table as TableIcon, Link2, AlertTriangle } from 'lucide-react'
 import ScrollFade from '../../components/ScrollFade'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { useTeacher } from '../../store/teacherStore'
@@ -369,18 +364,13 @@ function TaskCard({
                                 onUpdate({ correctChoices: isCorrect ? correct.filter(x => x !== ci) : [...correct, ci] })
                               }
                             }}
-                            style={{
-                              width: 22, height: 22,
-                              borderRadius: task.type === 'single' ? '50%' : 6,
-                              border: '2px solid',
-                              borderColor: (task.correctChoices ?? []).includes(ci) ? 'var(--color-accent)' : 'var(--color-border)',
-                              // Заливка под белой галочкой — приглушённый вариант: --color-accent
-                              // подобран как цвет текста и в тёмной теме давал 2.2:1.
-                              background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-control-accent)' : 'transparent',
-                              cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            }}
+                            aria-label={t('Верный ответ')}
+                            style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', flexShrink: 0, display: 'flex' }}
                           >
-                            {(task.correctChoices ?? []).includes(ci) && <Check size={12} style={{ color: '#fff' }} />}
+                            {/* Общие отметки: один верный — кольцо, несколько — квадрат. */}
+                            {task.type === 'single'
+                              ? <RadioMark checked={(task.correctChoices ?? []).includes(ci)} size={20} />
+                              : <CheckboxMark checked={(task.correctChoices ?? []).includes(ci)} size={20} />}
                           </button>
                           <GrowTextarea
                             value={ch}
@@ -1084,7 +1074,7 @@ function PreviewTab({
                       onClick={() => onOpenTrainerDialog(task.id)}
                       style={cardChipTone('peach', { border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}
                     >
-                      ⚠ {t('изменено')}
+                      <AlertTriangle size={11} strokeWidth={2.4} style={{ marginRight: 4, verticalAlign: '-1px' }} />{t('изменено')}
                     </button>
                   )}
                 </div>

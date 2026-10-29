@@ -236,7 +236,7 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--color-accent)', color: '#fff', fontSize: 12.5, fontWeight: 700 }}>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700 }}>
           <Play size={13} /> {t('Открыть')}
         </motion.button>
         <button className="cursor-pointer" style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, border: '1px solid var(--color-border-soft)' }}>
@@ -305,7 +305,7 @@ function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string
         <div className="truncate" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
         {sub && <div className="truncate" style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</div>}
       </div>
-      <span className="flex items-center flex-shrink-0" style={{ gap: 5, padding: '7px 12px', borderRadius: 999, background: copied ? 'var(--color-green-soft)' : 'var(--color-accent)', color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700, transition: 'background 0.18s' }}>
+      <span className="flex items-center flex-shrink-0" style={{ gap: 5, padding: '7px 12px', borderRadius: 999, background: copied ? 'var(--color-green-soft)' : 'var(--grad-purple)', color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700, transition: 'background 0.18s' }}>
         {copied ? <Check size={13} /> : <Copy size={13} />}
         {copied ? t('Готово') : t('Копировать')}
       </span>

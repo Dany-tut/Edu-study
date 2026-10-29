@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
+import BackCircle from '../BackCircle'
 import { motion } from 'framer-motion'
-import { X, Search, Users, Check, User, ChevronLeft } from 'lucide-react'
+import { X, Search, Users, Check, User } from 'lucide-react'
 import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSelect from './TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
@@ -260,7 +261,7 @@ export function AddExistingIndividualModal({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <span style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
             {step === 'subject' && (
-              <button onClick={() => setStep('pick')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><ChevronLeft size={18} /></button>
+              <BackCircle onClick={() => setStep('pick')} style={{ width: 32, height: 32 }} />
             )}
             {step === 'result' ? t('Карточка 1:1 создана') : t('Существующий ученик → 1:1')}
           </span>
@@ -334,7 +335,7 @@ export function AddExistingIndividualModal({
             />
             <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={levelOptionsForSubject(subject)} triggerStyle={selectTrigger} />
             <button onClick={create} disabled={!subject.trim() || busy}
-              style={{ marginTop: 4, width: '100%', padding: '12px 0', background: subject.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
+              style={{ marginTop: 4, width: '100%', padding: '12px 0', background: 'var(--grad-purple)', opacity: subject.trim() ? 1 : 0.45, color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
               {busy ? t('Создаём…') : t('Создать карточку 1:1')}
             </button>
           </div>
@@ -353,8 +354,8 @@ export function AddExistingIndividualModal({
                   <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
                 </div>
-                <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--color-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s' }}>
-                  {copied ? t('✓ Скопировано') : t('Скопировать ссылку')}
+                <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s' }}>
+                  {copied ? <><Check size={15} strokeWidth={2.6} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
                 </button>
               </>
             )}

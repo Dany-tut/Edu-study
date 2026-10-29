@@ -925,16 +925,16 @@ export default function LessonPage() {
           aria-label={t('Назад')}
           className="flex items-center justify-center cursor-pointer flex-shrink-0"
           style={{
-            gap: 4, padding: isDesktop ? '0 16px 0 12px' : 0, borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            gap: 4, padding: 0, borderRadius: 999, border: '1px solid var(--color-border-soft)',
             // Высота — общая для шапок (MOBILE_PILL_H): на свайпе таблетка
             // перетекает в таблетку соседнего экрана, и разница видна.
-            height: MOBILE_PILL_H, width: isDesktop ? undefined : MOBILE_PILL_H, boxSizing: 'border-box',
+            // «Назад» — шеврон в круге везде, как BackCircle; подпись — в aria-label.
+            height: MOBILE_PILL_H, width: MOBILE_PILL_H, boxSizing: 'border-box',
             background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
           <ChevronLeft size={18} />
-          {isDesktop && t('Назад')}
         </motion.button>
 
         <h1
@@ -990,14 +990,13 @@ export default function LessonPage() {
               data-swipe-morph="lead"
               className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
-                gap: 4, padding: isDesktop ? '0 16px 0 12px' : 0, borderRadius: 999,
-                height: MOBILE_PILL_H, width: isDesktop ? undefined : MOBILE_PILL_H, boxSizing: 'border-box',
+                gap: 4, padding: 0, borderRadius: 999,
+                height: MOBILE_PILL_H, width: MOBILE_PILL_H, boxSizing: 'border-box',
                 ...dockGlass,
                 color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
               <ChevronLeft size={18} />
-              {isDesktop && t('Назад')}
             </motion.button>
 
             <div

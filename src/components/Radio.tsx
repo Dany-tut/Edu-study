@@ -59,38 +59,50 @@ export default function Radio({
         onChange={onChange}
         style={{ position: 'absolute', opacity: 0, width: 0, height: 0, margin: 0 }}
       />
-      <span
-        aria-hidden
-        style={{
-          marginTop: align === 'start' ? 1 : 0,
-          width: size,
-          height: size,
-          flexShrink: 0,
-          borderRadius: '50%',
-          // Кольцо толще, чем рамка чекбокса: у круга периметр «съедает» вес
-          // линии, и при 1.5px выбранное кольцо читается как невыбранное.
-          border: `${checked ? 2 : 1.5}px solid ${checked ? accent : 'var(--color-border-medium)'}`,
-          background: 'var(--color-bg-input)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'border-color 0.15s ease, border-width 0.15s ease',
-        }}
-      >
-        <span
-          style={{
-            width: size * 0.5,
-            height: size * 0.5,
-            borderRadius: '50%',
-            background: accent,
-            // Точка не появляется рывком, а вырастает из центра — на группе из
-            // 4–5 вариантов переключение иначе читается как мигание.
-            transform: checked ? 'scale(1)' : 'scale(0)',
-            transition: 'transform 0.15s cubic-bezier(.22,1,.36,1)',
-          }}
-        />
-      </span>
+      <RadioMark checked={checked} size={size} accent={accent} style={{ marginTop: align === 'start' ? 1 : 0 }} />
       {children != null && <span>{children}</span>}
     </label>
+  )
+}
+
+/** Только кольцо с точкой, без <label> и <input> — для строк-кнопок (см. CheckboxMark). */
+export function RadioMark({ checked, size = 18, accent = 'var(--color-control-accent)', style }: {
+  checked: boolean
+  size?: number
+  accent?: string
+  style?: React.CSSProperties
+}) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: size,
+        height: size,
+        flexShrink: 0,
+        borderRadius: '50%',
+        // Кольцо толще, чем рамка чекбокса: у круга периметр «съедает» вес
+        // линии, и при 1.5px выбранное кольцо читается как невыбранное.
+        border: `${checked ? 2 : 1.5}px solid ${checked ? accent : 'var(--color-border-medium)'}`,
+        background: 'var(--color-bg-input)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'border-color 0.15s ease, border-width 0.15s ease',
+        ...style,
+      }}
+    >
+      <span
+        style={{
+          width: size * 0.5,
+          height: size * 0.5,
+          borderRadius: '50%',
+          background: accent,
+          // Точка не появляется рывком, а вырастает из центра — на группе из
+          // 4–5 вариантов переключение иначе читается как мигание.
+          transform: checked ? 'scale(1)' : 'scale(0)',
+          transition: 'transform 0.15s cubic-bezier(.22,1,.36,1)',
+        }}
+      />
+    </span>
   )
 }
