@@ -51,6 +51,8 @@ Deno.serve(async (req) => {
   const { data: userData, error: userErr } = await caller.auth.getUser()
   if (userErr || !userData.user) return json({ error: 'auth' }, 401)
   const teacher = userData.user.id
+  // Тестли показывает учителю, к какому аккаунту Искры он подключён.
+  const iskraEmail = userData.user.email ?? ''
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
 
   let body: Record<string, unknown>
@@ -65,7 +67,7 @@ Deno.serve(async (req) => {
   try {
     switch (body.action) {
       case 'connect': {
-        const r = await testly({ action: 'exchange', code: String(body.code ?? '') })
+        const r = await testly({ action: 'exchange', code: String(body.code ?? ''), iskraEmail })
         if (!r.ok) return json({ error: r.data.error === 'bad_code' ? 'bad_code' : 'testly' }, r.status === 400 ? 400 : 502)
         const old = await tokenOf()
         const meta = { email: String(r.data.email ?? ''), tests: Number(r.data.tests ?? 0) }
@@ -79,7 +81,7 @@ Deno.serve(async (req) => {
       case 'tests': {
         const token = await tokenOf()
         if (!token) return json({ error: 'not_connected' }, 409)
-        const r = await testly({ action: 'tests', token })
+        const r = await testly({ action: 'tests', token, iskraEmail })
         if (r.status === 401) return json({ error: 'revoked' }, 409)
         if (!r.ok) return json({ error: 'testly' }, 502)
         const tests = Array.isArray(r.data.tests) ? r.data.tests : []
