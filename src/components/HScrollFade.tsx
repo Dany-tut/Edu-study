@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { glassCircle } from '../lib/mobileTokens'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
 
 /**
@@ -34,7 +32,6 @@ export default function HScrollFade({
   padTop = HSCROLL_PAD_TOP,
   padBottom = 7,
   fadeWidth = 40,
-  arrows = true,
   style,
   scrollStyle,
 }: {
@@ -46,9 +43,6 @@ export default function HScrollFade({
   padTop?: number
   padBottom?: number
   fadeWidth?: number
-  /** Стрелки у краёв. Включены по умолчанию: в тёмной теме один фейд не виден
-   *  и ряд выглядит обрезанным. Выключать только там, где край виден иначе. */
-  arrows?: boolean
   /** Merged into the outer (relative) wrapper. */
   style?: React.CSSProperties
   /** Merged into the inner scrollable element. */
@@ -69,7 +63,6 @@ export default function HScrollFade({
     setEdges(prev => (prev.left === left && prev.right === right ? prev : { left, right }))
   }
 
-  const nudge = (dir: 'left' | 'right') => { if (ref.current) nudgeScroll(ref.current, dir) }
 
   useWheelHScroll(ref)
 
@@ -122,57 +115,6 @@ export default function HScrollFade({
           opacity: edges.right ? 1 : 0, transition: 'opacity 0.15s ease',
         }}
       />
-      {/* Стрелки. Одного градиента мало: на тёмной теме фейд по чёрному фону
-          глазом не читается, и ряд выглядит просто обрезанным — «скролл не
-          работает». Кнопка появляется только с той стороны, где что-то спрятано. */}
-      {arrows && (['left', 'right'] as const).map(side => (
-        <ScrollArrow key={side} side={side} visible={edges[side]} onClick={() => nudge(side)} />
-      ))}
     </div>
-  )
-}
-
-// Клик по стрелке листает на 3/4 видимой ширины — так на краю всегда остаётся
-// «якорь» из предыдущего экрана и ряд не перепрыгивает вслепую.
-export function nudgeScroll(el: HTMLElement, dir: 'left' | 'right') {
-  const step = Math.max(120, el.clientWidth * 0.75)
-  const from = el.scrollLeft
-  const to = Math.max(0, Math.min(el.scrollWidth - el.clientWidth, from + (dir === 'left' ? -step : step)))
-  el.scrollTo({ left: to, behavior: 'smooth' })
-  // Плавность глушат prefers-reduced-motion и часть вебвью — молча, без
-  // ошибки. Если через кадр ряд не тронулся, доводим рывком: кнопка обязана
-  // листать всегда. [[reference-invisible-in-dark]]
-  setTimeout(() => { if (el.scrollLeft === from && from !== to) el.scrollLeft = to }, 120)
-}
-
-/**
- * Стеклянная стрелка у края прокручиваемого ряда. Одного градиента мало: на
- * тёмной теме фейд по чёрному фону глазом не читается, и ряд выглядит просто
- * обрезанным. Видна только с той стороны, где что-то спрятано. Родитель —
- * `position: relative`; `inset` отодвигает стрелку от края (рамка таблицы).
- */
-export function ScrollArrow({ side, visible, onClick, inset = 0 }: {
-  side: 'left' | 'right'
-  visible: boolean
-  onClick: () => void
-  inset?: number
-}) {
-  return (
-    <button
-      type="button"
-      aria-hidden={!visible}
-      tabIndex={-1}
-      onClick={onClick}
-      style={{
-        position: 'absolute', [side]: inset, top: '50%', transform: 'translateY(-50%)',
-        width: 26, height: 26, padding: 0, cursor: 'pointer', zIndex: 6,
-        opacity: visible ? 1 : 0,
-        pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity 0.15s ease',
-        ...glassCircle,
-      }}
-    >
-      {side === 'left' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-    </button>
   )
 }

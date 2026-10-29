@@ -10,18 +10,15 @@ export default function MobileHScroll({
   gap = 8,
   fade = 'var(--color-bg)',
   padX = 16,
-  arrows = true,
 }: {
   children: ReactNode
   gap?: number
   /** Color the edge fade blends into — match the surface behind the row. */
   fade?: string
   padX?: number
-  /** Стрелки у краёв (см. HScrollFade). Включены по умолчанию. */
-  arrows?: boolean
 }) {
   return (
-    <HScrollFade gap={gap} fade={fade} padX={padX} fadeWidth={28} arrows={arrows}>
+    <HScrollFade gap={gap} fade={fade} padX={padX} fadeWidth={28}>
       {children}
     </HScrollFade>
   )

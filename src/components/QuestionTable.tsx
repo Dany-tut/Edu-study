@@ -2,7 +2,6 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useT } from '../lib/i18n'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import GrowTextarea from './GrowTextarea'
-import { ScrollArrow, nudgeScroll } from './HScrollFade'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // QuestionTable — ONE table renderer for every surface (trainer, homework,
@@ -155,8 +154,6 @@ export default function QuestionTable({
       {!atStart && (
         <div style={{ position: 'absolute', top: 1, bottom: 1, left: 1, width: 18, borderRadius: '15px 0 0 15px', pointerEvents: 'none', background: 'linear-gradient(to right, var(--color-bg), transparent)' }} />
       )}
-      <ScrollArrow side="left" visible={!atStart} onClick={() => boxRef.current && nudgeScroll(boxRef.current, 'left')} inset={6} />
-      <ScrollArrow side="right" visible={!atEnd} onClick={() => boxRef.current && nudgeScroll(boxRef.current, 'right')} inset={6} />
     </div>
   )
 }

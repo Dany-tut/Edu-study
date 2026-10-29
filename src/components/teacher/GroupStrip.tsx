@@ -7,7 +7,6 @@ import type { Group } from '../../data/teacherMockData'
 import { useStudents } from '../../lib/useGroups'
 import { mergeIndividuals, type PersonGroup } from '../../lib/personGroups'
 import { t, useT, tc, tn } from '../../lib/i18n'
-import { ScrollArrow, nudgeScroll } from '../HScrollFade'
 
 export type TabConfig = {
   tabs: { id: string; label: string }[]
@@ -538,8 +537,6 @@ export default function GroupStrip({
 
   return (
     <div style={{ position: 'relative', height: CARD_H + PAD_TOP + PAD_BOTTOM }}>
-      {/* Маска справа в тёмной теме не видна — без стрелки лента выглядит обрезанной. */}
-      <ScrollArrow side="right" visible={rightFade > 4} onClick={() => scrollRef.current && nudgeScroll(scrollRef.current, 'right')} />
       <div
         ref={scrollRef}
         onScroll={recomputeFade}
