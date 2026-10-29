@@ -1088,3 +1088,8 @@ input::-webkit-textfield-decoration-container {
 @media (prefers-reduced-motion: reduce) {
   .deck-share { transition: none; }
 }
+
+/* Строка списка при наведении — одно правило (дизайн-система, круг 2) вместо
+   ручных onMouseEnter с разными фонами (bg, bg-2, bg-3, bg-5). */
+.hover-row { transition: background 0.15s ease; }
+.hover-row:hover { background: var(--color-bg-3); }

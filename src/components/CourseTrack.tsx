@@ -529,7 +529,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                   ) : (
                     <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 8, width: '100%' }}>
                       <motion.button
-                        whileHover={{ scale: 1.04 }}
+                        whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() => { setSelectedLessonId(null); openLesson(selectedLesson.id) }}
                         style={{
@@ -697,7 +697,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     {/* Action button — скрыт для locked: хард недоступен, пока базовая < 80 */}
                     {hardStatus !== 'locked' && (
                     <motion.button
-                      whileHover={{ scale: 1.04 }}
+                      whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={() => { setSelectedHardLessonId(null); openHomeworkForLesson(selectedHardLesson.id, 'hard') }}
                       style={{ height: 48,

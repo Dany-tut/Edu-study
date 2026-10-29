@@ -154,7 +154,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 return (
                 <motion.div
                   key={lesson.id}
-                  whileHover={{ scale: 1.01 }}
+                  whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.99 }}
                   onClick={(e) => {
                     e.stopPropagation()

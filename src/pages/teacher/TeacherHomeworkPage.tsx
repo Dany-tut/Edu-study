@@ -237,7 +237,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           {/* Submit */}
           <motion.button
             type="submit"
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             style={{ height: 40,
               marginTop: 4, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
@@ -507,7 +507,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         {/* Continue / start review */}
         {hw.submittedCount > 0 && (
           <motion.button
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
             onClick={() => openHomeworkReview(hw.id)}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

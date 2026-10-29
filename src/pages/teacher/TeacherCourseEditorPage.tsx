@@ -6680,7 +6680,7 @@ export default function TeacherCourseEditorPage() {
                       const isOpened = openLessonShortIds.has(lessonShortIdById[selectedLesson.id])
                       return (
                         <motion.button
-                          whileHover={{ scale: 1.04 }}
+                          whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => openLessonForStudents(selectedLesson.id)}
                           disabled={openingLesson}

@@ -615,7 +615,7 @@ function QuickAction({
 }: { icon: React.ElementType; label: string; bg: string; color: string; onClick?: () => void }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.04 }}
+      whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       onClick={onClick}
       style={{

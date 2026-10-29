@@ -919,7 +919,7 @@ export default function Sidebar() {
         <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
 
         <motion.button
-          whileHover={{ scale: 1.08 }}
+          whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.96 }}
           onClick={() => {
             // A single visible toggle regardless of WHY the bar is compact:

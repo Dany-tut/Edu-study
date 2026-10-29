@@ -832,7 +832,7 @@ function TrainerEditor({
             <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
               {t('Доступно:')} {TASK_BANK.filter(q => q.topic === bankTopic).length} {t('вопросов')}
             </div>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={loadFromBank}
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={loadFromBank}
               style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <Database size={14} strokeWidth={2} /> {t('Загрузить из банка')}
             </motion.button>
@@ -994,7 +994,7 @@ function WidgetEditor({
             <TeacherSelect value={linkedId} onChange={setLinkedId} placeholder={t("Тренажёр")}
               accent="#1a7a3f" accentBg="var(--color-green-soft)"
               options={trainers.map(tr => ({ value: tr.id, label: (tr.title) + ' (' + (tr.questions.length) + t(' вопр.)') }))} />
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               onClick={autoPopulate} disabled={!linkedId}
               style={{
                 padding: '9px 0', borderRadius: 12, border: 'none', cursor: linkedId ? 'pointer' : 'not-allowed',
@@ -1820,7 +1820,7 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus,
   return (
     <motion.button
       className="tab-pill"
-      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onClick}
+      whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} onClick={onClick}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: 8,

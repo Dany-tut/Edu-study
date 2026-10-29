@@ -68,7 +68,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
           {!revealed ? (
             <motion.button
               key="reveal"
-              whileHover={{ scale: 1.015 }}
+              whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setRevealed(true)}
               initial={{ opacity: 0, y: 4 }}

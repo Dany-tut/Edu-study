@@ -185,7 +185,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           ))}
         </div>
         <motion.button
-          whileHover={{ scale: 1.015 }}
+          whileHover={{ y: -1 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleRestart}
           style={{ height: 40,
@@ -240,7 +240,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
               {timeLeft} {t('сек')}
             </span>
             <motion.button
-              whileHover={{ scale: 1.08 }}
+              whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.96 }}
               onClick={handleStop}
               style={{ width: 30, height: 30, borderRadius: 999, flexShrink: 0, background: 'var(--color-bg-3)', color: 'var(--color-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
@@ -269,7 +269,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
       {quizState === 'preview' && (
         <div className="flex items-center gap-3 flex-wrap" style={{ flexShrink: 0 }}>
           <motion.button
-            whileHover={{ scale: 1.015 }}
+            whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleStart}
             style={{
@@ -295,7 +295,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             {shuffledAnswers.map(ans => (
               <motion.button
                 key={ans.id}
-                whileHover={{ scale: 1.015 }}
+                whileHover={{ y: -1 }}
                 whileTap={{ scale: 0.985 }}
                 onClick={() => handleAnswer(ans.id)}
                 className="rounded-2xl text-left cursor-pointer"

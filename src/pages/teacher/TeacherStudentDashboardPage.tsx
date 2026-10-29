@@ -202,7 +202,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
             <motion.button
               key={r.id}
               onClick={() => setExpanded(isOpen ? null : r.id)}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
