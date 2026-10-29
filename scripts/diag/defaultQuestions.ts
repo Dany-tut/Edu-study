@@ -7,7 +7,7 @@
 //
 // Файл — источник сида: `npm run build:diag-defaults` печатает SQL, который
 // кладёт наборы в diag_question_defaults («Сбросить к исходным» у учителя) и
-// досеивает в diag_questions предметы, которых там ещё нет (миграция 0099).
+// досеивает в diag_questions предметы, которых там ещё нет (миграция 0111).
 // Поправил вопрос здесь — перегенерируй SQL новой миграцией.
 
 import type { DiagQuestion, DiagSubject } from '../../src/data/diagnosticData'

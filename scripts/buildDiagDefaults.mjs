@@ -1,5 +1,5 @@
 // Печатает SQL-сид встроенных наборов диагностик (scripts/diag/defaultQuestions.ts)
-// в diag_question_defaults. Вывод вставляется в миграцию — см. 0099.
+// в diag_question_defaults. Вывод вставляется в миграцию — см. 0111.
 //
 //   npm run build:diag-defaults > /tmp/defaults.sql
 
