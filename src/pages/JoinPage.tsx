@@ -7,6 +7,7 @@ import { setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
+import { Alert } from '../components/Alert'
 
 function getToken() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
@@ -210,9 +211,7 @@ export default function JoinPage() {
             </div>
 
             {errorMsg && (
-              <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
-                {errorMsg}
-              </div>
+              <Alert tone="danger" text={errorMsg} style={{ marginTop: 12 }} />
             )}
 
             <button

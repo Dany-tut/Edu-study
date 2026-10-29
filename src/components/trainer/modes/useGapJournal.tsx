@@ -26,6 +26,7 @@ import {
   addGap, askPhrase, deleteGap, gapToCards, listGaps, phraseHelpEnabled, saveGap,
   type PhraseGap, type PhraseVariant,
 } from '../../../lib/phraseGaps'
+import { Alert } from '../../Alert'
 
 /** Ключ журнала в поле открытой темы. Префикс `my-`, как у словаря: с id темы не совпадёт. */
 export const GAPS_ID = 'my-gaps'
@@ -338,7 +339,7 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
       {variants && variants.length === 0 && (
         <div style={{ fontSize: 12.5, color: 'var(--color-text-3)' }}>{t('Подсказка ничего не предложила — впишите вариант сами.')}</div>
       )}
-      {askError && <div style={{ fontSize: 12.5, color: 'var(--color-danger, #d9534f)' }}>{askError}</div>}
+      {askError && <Alert tone="danger" text={askError} />}
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {helpOn && (

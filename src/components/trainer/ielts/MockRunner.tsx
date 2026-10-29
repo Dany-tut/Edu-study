@@ -22,7 +22,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Clock, Headphones, LogOut, Mic, Square, Volume2, AlertTriangle, Pause, Play, Highlighter } from 'lucide-react'
+import { Clock, Headphones, LogOut, Mic, Square, Volume2, Pause, Play, Highlighter } from 'lucide-react'
 import { useT } from '../../../lib/i18n'
 import GrowTextarea, { growMinHeight } from '../../GrowTextarea'
 import MockGroupView from './MockQuestions'
@@ -40,6 +40,7 @@ import {
   listeningQuestions, readingQuestions, sectionQuestions,
   type IeltsMock, type IeltsSection, type ListeningPart, type ScriptLine,
 } from '../../../data/ieltsMocks'
+import { Alert } from '../../Alert'
 
 const mmss = (ms: number) => {
   const s = Math.max(0, Math.ceil(ms / 1000))
@@ -382,15 +383,12 @@ function SectionIntro({ section, index, total, onStart, accent }: {
         {INTRO[section].map((x, i) => <li key={i}>{t(x)}</li>)}
       </ul>
       {(noVoice || noAsr) && (
-        <div style={{
-          display: 'flex', gap: 10, padding: '12px 14px', borderRadius: 14, fontSize: 13.5, lineHeight: 1.5,
-          background: 'rgba(228,87,58,0.08)', color: 'var(--color-text)',
-        }}>
-          <AlertTriangle size={16} style={{ color: 'var(--color-red-text)', flexShrink: 0, marginTop: 2 }} />
-          {noVoice
+        <Alert
+          tone="warning"
+          text={noVoice
             ? t('В этом браузере нет английского голоса — записи Listening не прозвучат. Откройте пробник в Chrome, Edge или Safari.')
             : t('В этом браузере нет распознавания речи — ответы Speaking не запишутся. Откройте пробник в Chrome, Edge или Safari.')}
-        </div>
+        />
       )}
       <div>
         <button type="button" onClick={onStart} style={{ ...solidBtn, height: 44, padding: '0 26px', fontSize: 15 }}>

@@ -11,6 +11,7 @@ import { submitLead } from '../lib/leads'
 import { useLang, useT } from '../lib/i18n'
 import ThemeToggleBtn from '../components/ThemeToggleBtn'
 import IskraMark from '../components/landing/IskraMark'
+import { Alert } from '../components/Alert'
 
 // Мокап продукта — 81 КБ рисованного интерфейса, и он стоит ПОД первым экраном
 // (внутри Reveal, который и так ждёт прокрутки). Держать его в главном чанке
@@ -583,7 +584,7 @@ export function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose
                 </div>
               </div>
               <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t('Сообщение — коротко о задаче (необязательно)')} rows={3} style={{ ...field, resize: 'vertical', minHeight: 84 }} />
-              {error && <div style={{ fontSize: 13, color: '#E86A6A', fontWeight: 600 }}>{error}</div>}
+              {error && <Alert tone="danger" text={error} />}
               <button onClick={send} disabled={sending} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '14px', fontSize: 16, opacity: sending ? 0.7 : 1, cursor: sending ? 'default' : 'pointer' }}>
                 <Send size={17} /> {sending ? t('Отправляем…') : t('Отправить заявку')}
               </button>

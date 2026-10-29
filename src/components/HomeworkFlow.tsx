@@ -93,6 +93,7 @@ import {
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
+import { Alert } from './Alert'
 
 /**
  * Поле ответа в домашке обнимает текст: высота = содержимому, внутреннего
@@ -3000,28 +3001,15 @@ export default function HomeworkFlow({
     {/* Неотправленная сдача. Поверх всего и с кнопкой: тупика «ошибка есть,
         деться некуда» быть не должно. */}
     {submitFailed && (
-      <div style={{
-        position: 'fixed', left: 12, right: 12, zIndex: 6000,
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
-        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-        padding: '12px 14px', borderRadius: 16,
-        background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
-        border: '1px solid var(--color-red-fill)',
-        boxShadow: '0 12px 34px rgba(0,0,0,0.18)',
-        fontSize: 13, lineHeight: 1.4,
-      }}>
-        <span style={{ flex: 1, minWidth: 180 }}>{submitFailed.text}</span>
-        <button
-          onClick={() => { const r = submitFailed.retry; setSubmitFailed(null); r() }}
-          style={{
-            padding: '8px 16px', borderRadius: 12, border: 'none',
-            background: 'var(--grad-purple, #786AD7)', color: '#fff',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-          }}
-        >
-          {t('Отправить ещё раз')}
-        </button>
-      </div>
+      <Alert
+        tone="danger"
+        text={submitFailed.text}
+        action={{ label: t('Отправить ещё раз'), onClick: () => { const r = submitFailed.retry; setSubmitFailed(null); r() } }}
+        style={{
+          position: 'fixed', left: 12, right: 12, zIndex: 6000,
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+        }}
+      />
     )}
     <AnimatePresence>
       {showResultModal && (
@@ -3840,15 +3828,7 @@ export default function HomeworkFlow({
                     /* Пустой экран вместо задания — то же самое, что молчание:
                        ученик сидит и ждёт, что сейчас дорисуется. Говорим прямо
                        и не держим на нём: кнопка внизу пропускает задание. */
-                    <div className="flex items-start" style={{
-                      gap: 10, padding: '14px 16px', borderRadius: 18,
-                      background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
-                    }}>
-                      <CircleAlert size={17} style={{ color: 'var(--color-amber)', flexShrink: 0, marginTop: 1 }} />
-                      <span style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
-                        {t('Это задание приехало без содержимого — решать нечего. Пропусти его, оно не пойдёт в ошибки.')}
-                      </span>
-                    </div>
+                    <Alert tone="warning" text={t('Это задание приехало без содержимого — решать нечего. Пропусти его, оно не пойдёт в ошибки.')} />
                     ) : isChoice ? (
                     <div className="grid" style={{ gap: 10 }}>
                       {/* Стимул — звук, а не текст: «что вы услышали?» (ступень 2,

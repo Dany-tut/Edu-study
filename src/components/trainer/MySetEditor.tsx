@@ -24,6 +24,7 @@ import { saveCardGroup, applyCardSaveIds, type CardGroup, type CardSet, type Set
 import GrowTextarea from '../GrowTextarea'
 import CardImportPanel from '../CardImportPanel'
 import BackCircle from '../../components/BackCircle'
+import { Alert } from '../Alert'
 
 const input = (accent: string): React.CSSProperties => ({
   width: '100%', boxSizing: 'border-box', borderRadius: 12,
@@ -92,7 +93,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
         </button>
       </div>
 
-      {err && <div style={{ fontSize: 12.5, color: 'var(--color-red-text)' }}>{err}</div>}
+      {err && <Alert tone="danger" text={err} />}
 
       <input
         value={draft.title}

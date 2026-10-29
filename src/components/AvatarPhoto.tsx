@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Minus, Plus } from 'lucide-react'
 import { renderAvatarBlob, useAvatarUrl } from '../lib/avatarPhoto'
 import { useT } from '../lib/i18n'
+import { Alert } from './Alert'
 
 /** Фото поверх кружка (иконки, инициалов). Родителю нужен position: relative.
  *  Пока ссылки нет — ничего не рисует, и виден запасной вариант под ним. */
@@ -228,7 +229,7 @@ export function AvatarCropModal({
         </div>
 
         {error && (
-          <div style={{ fontSize: 12, color: '#E04848', background: 'rgba(224,72,72,0.08)', borderRadius: 10, padding: '8px 12px', alignSelf: 'stretch' }}>{error}</div>
+          <Alert tone="danger" text={error} style={{ alignSelf: 'stretch' }} />
         )}
 
         <div style={{ display: 'flex', gap: 10, alignSelf: 'stretch' }}>

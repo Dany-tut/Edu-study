@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Mic, Square, Play, Volume2, Repeat, Trash2, AlertCircle, ChevronRight } from 'lucide-react'
+import { Mic, Square, Play, Volume2, Repeat, Trash2, ChevronRight } from 'lucide-react'
 import { speak, stopSpeech, preferredVoice, type SpeechHandle } from '../../lib/speech'
 import { isAsrAvailable, listen, type AsrSession } from '../../lib/asr'
 import SpeechHeard from '../SpeechHeard'
 import { useT } from '../../lib/i18n'
 import { micProblem } from '../../lib/micAccess'
+import { Alert } from '../Alert'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Шэдоуинг: повторить за эталоном и услышать себя рядом с ним
@@ -348,9 +349,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
       </div>
 
       {error && (
-        <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 6, fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-red-text)' }}>
-          <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 2 }} /> {error}
-        </span>
+        <Alert tone="danger" text={error} />
       )}
 
       {/* Что услышал браузер (только где ASR есть — см. шапку файла). Сверка

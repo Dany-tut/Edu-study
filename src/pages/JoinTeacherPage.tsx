@@ -9,6 +9,7 @@ import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
 import TeacherSubjectsField from '../components/teacher/TeacherSubjectsField'
 import { getSubject } from '../lib/subjects'
+import { Alert } from '../components/Alert'
 
 // Teacher self-registration from an admin invite link (#/join-teacher?token=…).
 // Mirrors JoinPage: create an auth account (role: teacher), then apply the baked
@@ -203,7 +204,7 @@ export default function JoinTeacherPage() {
             </div>
 
             {errorMsg && (
-              <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>{errorMsg}</div>
+              <Alert tone="danger" text={errorMsg} style={{ marginTop: 12 }} />
             )}
 
             <button
