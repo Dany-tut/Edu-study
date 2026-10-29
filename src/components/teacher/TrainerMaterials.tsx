@@ -639,7 +639,7 @@ function MaterialRows({ items, grouped, showLang, onOpen }: {
     if (grouped && x.family.id !== lastFamily) {
       lastFamily = x.family.id
       out.push(
-        <div key={`h-${x.family.id}`} style={{ ...ROW, background: 'var(--color-bg-2)', padding: '7px 14px' }}>
+        <div key={`h-${x.family.id}`} style={{ ...ROW, background: 'var(--color-bg-2)', padding: '8px 14px' }}>
           <span style={{
             fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
             color: 'var(--color-text-3)',
@@ -742,7 +742,7 @@ function FilterPanel({
             {mode === TASKS_ID && (
               <div style={{
                 display: 'flex', flexDirection: 'column', gap: 8,
-                margin: '4px 0 6px 10px', paddingLeft: 9,
+                margin: '4px 0 6px 10px', paddingLeft: 10,
                 borderLeft: '1px solid var(--color-border-soft)',
               }}>
                 {tasks.fields}
@@ -767,7 +767,7 @@ function FilterPanel({
               {on && (mode === 'vocab' || families.length > 0) && (
                 <div style={{
                   display: 'flex', flexDirection: 'column', gap: 1,
-                  margin: '2px 0 4px 10px', paddingLeft: 9,
+                  margin: '2px 0 4px 10px', paddingLeft: 10,
                   borderLeft: '1px solid var(--color-border-soft)',
                 }}>
                   <NavRow small label={t('Все')} on={!familyId} onClick={() => onFamily('')} />
@@ -832,7 +832,7 @@ function PanelLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-      color: 'var(--color-text-3)', marginBottom: 5,
+      color: 'var(--color-text-3)', marginBottom: 6,
     }}>
       {children}
     </div>
@@ -849,7 +849,7 @@ function NavRow({ label, title, count, on, small, skeleton, onClick }: {
       onClick={onClick} title={title}
       style={{
         display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-        padding: small ? '5px 8px' : '7px 9px', borderRadius: 9, border: 'none', cursor: 'pointer',
+        padding: small ? '6px 8px' : '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
         fontFamily: 'inherit', fontSize: small ? 12 : 13, fontWeight: on ? 700 : 500,
         background: on ? MAT_BG : 'transparent',
         color: on ? MAT_COLOR : 'var(--color-text-2)',
@@ -859,7 +859,7 @@ function NavRow({ label, title, count, on, small, skeleton, onClick }: {
         // Инлайн бьёт правило из таблицы стилей, поэтому шорткат outline
         // оттуда доедет, а цвет возьмётся отсюда.
         outlineColor: MAT_COLOR,
-        transition: 'all 0.14s',
+        transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
       }}
       onMouseEnter={e => { if (!on) e.currentTarget.style.background = 'var(--color-bg-3)' }}
       onMouseLeave={e => { if (!on) e.currentTarget.style.background = 'transparent' }}
@@ -1063,7 +1063,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
             >
               {backBtn(true)}
               <div style={{
-                padding: '9px 16px', borderRadius: 999, ...pageGlass, fontSize: 14, fontWeight: 700,
+                padding: '10px 16px', borderRadius: 999, ...pageGlass, fontSize: 14, fontWeight: 700,
                 color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: 280,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
@@ -1076,7 +1076,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
 
       {/* ── Шапка в потоке: назад · полка · источник ── */}
       <motion.div
-        animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
+        animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.22 }}
         style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12, padding: '10px 24px 20px' }}
       >
         <div>{backBtn(false)}</div>
@@ -1113,7 +1113,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
         <div style={{ ...RAIL_CARD, width: 300, flexShrink: 0, position: 'sticky', top: 20, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {item ? (
             <>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <PassportRow label={t('Язык')} value={t(langLabel(item.lang))} />
                 <PassportRow label={t('Полка')} value={t(item.family.label)} />
                 {item.level && <PassportRow label={t('Уровень')} value={item.level} accent />}
@@ -1172,10 +1172,10 @@ export function MaterialPage({ target, onSwitch, onClose }: {
                     return (
                       <button key={s.label} onClick={() => setSegLabel(s.label)} onMouseDown={e => e.preventDefault()}
                         style={{
-                          position: 'relative', flex: 1, padding: '7px 10px', borderRadius: 10,
+                          position: 'relative', flex: 1, padding: '8px 10px', borderRadius: 10,
                           border: 'none', cursor: 'pointer', background: 'transparent',
                           color: active ? MAT_COLOR : 'var(--color-text)',
-                          fontSize: 13, fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.2s',
+                          fontSize: 13, fontWeight: 600, fontFamily: 'inherit', transition: 'color 0.22s',
                           outlineColor: MAT_COLOR,
                         }}>
                         {active && (
@@ -1327,7 +1327,7 @@ function ShelfRail({ groups, flat, loading, current, onPick }: {
                     title={x.title}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                      padding: '7px 10px', marginLeft: named ? 6 : 0, maxWidth: named ? 'calc(100% - 6px)' : '100%',
+                      padding: '8px 10px', marginLeft: named ? 6 : 0, maxWidth: named ? 'calc(100% - 6px)' : '100%',
                       borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                       background: on ? MAT_BG : 'transparent', outlineColor: MAT_COLOR,
                     }}
@@ -1410,7 +1410,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
           {block.rows.map((r, i) => (
             <div key={i} style={{
               display: 'flex', flexDirection: 'column', gap: 2,
-              padding: '9px 12px', borderRadius: 12,
+              padding: '10px 12px', borderRadius: 12,
               background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
             }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{r.term}</div>
@@ -1435,7 +1435,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
               <tr>
                 {block.head.map((h, i) => (
                   <th key={i} style={{
-                    textAlign: 'left', padding: '7px 12px', whiteSpace: 'nowrap',
+                    textAlign: 'left', padding: '8px 12px', whiteSpace: 'nowrap',
                     fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)',
                     borderBottom: '1px solid var(--color-border-soft)',
                   }}>{h}</th>
@@ -1447,7 +1447,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
                 <tr key={i}>
                   {row.map((cell, j) => (
                     <td key={j} style={{
-                      padding: '7px 12px', color: j === 0 ? 'var(--color-text)' : 'var(--color-text-2)',
+                      padding: '8px 12px', color: j === 0 ? 'var(--color-text)' : 'var(--color-text-2)',
                       fontWeight: j === 0 ? 600 : 400,
                       borderBottom: '1px solid var(--color-border-soft)',
                     }}>{cell}</td>
@@ -1468,7 +1468,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
         {block.items.map((q, i) => (
           <div key={i} style={{
             display: 'flex', flexDirection: 'column', gap: 6,
-            padding: '11px 14px', borderRadius: 14,
+            padding: '12px 14px', borderRadius: 14,
             background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
           }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5 }}>{q.q}</div>

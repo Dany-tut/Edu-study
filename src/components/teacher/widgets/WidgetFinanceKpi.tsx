@@ -48,7 +48,7 @@ function KpiCard({ icon: Icon, label, value, sub, accentBg, accentColor }: KpiCa
 
       <div style={{
         fontSize: 11, fontWeight: 600, color: accentColor,
-        background: accentBg, borderRadius: 8, padding: '3px 8px',
+        background: accentBg, borderRadius: 8, padding: '4px 8px',
         alignSelf: 'flex-start',
       }}>
         {sub}

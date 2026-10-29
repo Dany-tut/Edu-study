@@ -11,7 +11,7 @@ import { useT } from '../../../lib/i18n'
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 18 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.42, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.38, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
@@ -67,7 +67,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         background: task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
         border: 'none',
         opacity: task.done ? 0.6 : 1,
-        transition: 'opacity 0.2s, background 0.15s',
+        transition: 'opacity 0.22s, background 0.15s',
         cursor: 'pointer',
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-4)' : 'var(--color-bg-3)' }}

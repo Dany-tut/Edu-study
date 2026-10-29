@@ -49,7 +49,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
         border: `1px solid ${done ? 'transparent' : 'var(--color-border-medium)'}`,
         boxShadow: done ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.16)',
         cursor: clickable ? 'pointer' : 'default',
-        transition: 'background 0.25s',
+        transition: 'background 0.22s',
         ...styleOverride,
       }}
     >
@@ -82,7 +82,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
       {!done && item.urgency === 'high' && (
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
-          padding: '3px 9px 3px 7px', borderRadius: 999,
+          padding: '4px 10px 4px 8px', borderRadius: 999,
           background: `color-mix(in srgb, ${accent} 16%, transparent)`,
           color: accent, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
         }}>
@@ -108,7 +108,7 @@ const stackTypeLabel: Record<Reminder['type'], string> = {
 
 const COLLAPSE = {
   height: { type: 'spring' as const, stiffness: 300, damping: 44 },
-  opacity: { duration: 0.2, ease: 'easeOut' as const },
+  opacity: { duration: 0.22, ease: 'easeOut' as const },
 }
 
 function ReminderGroupStack({ items, getAction, isDone }: {
@@ -161,7 +161,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                 </div>
               </div>
               <div style={{
-                height: 18, marginTop: -3, marginLeft: 11, marginRight: 11,
+                height: 18, marginTop: -4, marginLeft: 12, marginRight: 12,
                 position: 'relative', zIndex: 2,
                 background: `color-mix(in srgb, ${accent} 14%, rgba(var(--glass-rgb), 0.55))`,
                 backdropFilter: 'blur(9px) saturate(135%)',
@@ -203,7 +203,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                 <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>
                   {t(stackTypeLabel[front.type])} · {items.length}
                 </span>
-                <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
+                <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 4 }}>
                   {t('Свернуть')} <ChevronRight size={12} style={{ transform: 'rotate(-90deg)' }} />
                 </span>
               </div>

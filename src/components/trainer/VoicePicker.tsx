@@ -278,7 +278,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
           }}
         >
           <Mic size={16} strokeWidth={2} />
-          <ChevronDown size={14} strokeWidth={2} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }} />
+          <ChevronDown size={14} strokeWidth={2} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
         </button>
       ) : (
         <button
@@ -286,8 +286,8 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
           onClick={toggle}
           aria-expanded={open}
           style={{
-            display: 'flex', alignItems: 'center', gap: 7, width: '100%',
-            padding: '7px 9px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+            padding: '8px 10px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
             border: '1px solid transparent', boxSizing: 'border-box',
             background: open ? soft : 'transparent',
             color: open ? accent : 'var(--color-text-2)', fontSize: 13, fontWeight: 600,
@@ -299,7 +299,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
           </span>
           <ChevronDown
             size={14}
-            style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
+            style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
           />
         </button>
       )}
@@ -372,7 +372,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                 <button
                   onClick={() => setAll(true)}
                   style={{
-                    marginTop: 2, padding: '7px 10px', width: '100%', textAlign: 'left',
+                    marginTop: 2, padding: '8px 10px', width: '100%', textAlign: 'left',
                     border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
                     fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
                   }}

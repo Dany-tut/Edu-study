@@ -122,7 +122,7 @@ const inputStyle: React.CSSProperties = { ...FIELD }
 
 /** Кнопка без заливки: возврат, «добавить», удаление строки. */
 const ghostBtn: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 7,
+  display: 'flex', alignItems: 'center', gap: 8,
   border: 'none', background: 'transparent', cursor: 'pointer',
   fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
   color: 'var(--color-muted)', padding: '6px 8px', borderRadius: 8,
@@ -751,7 +751,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
           <button
             onClick={() => setPicked(new Set())}
             style={{
-              marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, height: 36, padding: '0 12px',
+              marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 12px',
               borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', border: 'none',
               background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600,
             }}
@@ -834,7 +834,7 @@ function ShelfChip({ label, hint, active, onClick, onEdit }: {
     <div
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: onEdit ? '0 6px 0 12px' : '0 12px',
+        display: 'flex', alignItems: 'center', gap: 8, height: 34, padding: onEdit ? '0 6px 0 12px' : '0 12px',
         borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 700,
         border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
         background: active ? MAT_BG : 'transparent',
@@ -1035,7 +1035,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
             onOpenSet(set.id)
           }}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             height: 42, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
             border: '1px dashed var(--color-border-medium)', background: 'transparent',
             color: 'var(--color-text-2)', fontSize: 13, fontWeight: 700,
@@ -1061,7 +1061,7 @@ function AudienceField({ group, patch, studentOptions }: {
   const t = useT()
   return (
     <div style={{ minWidth: 0 }}>
-      <div style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 5 }}>
+      <div style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6 }}>
         <Users size={12} /> {t('Кому показать')}
       </div>
       <MultiSelectField
@@ -1072,7 +1072,7 @@ function AudienceField({ group, patch, studentOptions }: {
           studentIds: studentOptions.filter(o => labels.includes(o.label)).map(o => o.value),
         })}
       />
-      <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 5 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 6 }}>
         {group.studentIds.length === 0
           ? t('Никто не отмечен — значит, это увидят все ваши ученики этого предмета.')
           : `${t('Видят только отмеченные:')} ${group.studentIds.length}`}
@@ -1207,7 +1207,7 @@ function SetProps({ group, set, patch, onGroupChange, studentOptions }: {
   // по три слова. Иконка сидит в тексте как буква.
   const shelfLine = (
     <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-muted)' }}>
-      <Layers size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 5 }} />
+      <Layers size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />
       {t('Лежит на полке')} «{group.title}» · {scopeLabelOf(group)}{' '}
       <span style={{ color: 'var(--color-text-3)' }}>
         {t('— предмет и адресность у полки общие.')}
@@ -1285,7 +1285,7 @@ function SetStart({ lang, onAdd, onAddGrouped, onManual, onBulk }: {
 }
 
 const startBtn: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   height: 40, borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
   border: '1px solid var(--color-border-soft)', background: 'transparent',
   color: 'var(--color-text-2)', fontSize: 13, fontWeight: 700,
@@ -1598,7 +1598,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
 
   const sheet = (
     <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-      <div style={{ ...gridCols, padding: '9px 14px', borderBottom: '1px solid var(--color-border-soft)' }}>
+      <div style={{ ...gridCols, padding: '10px 14px', borderBottom: '1px solid var(--color-border-soft)' }}>
         <div style={labelStyle0}>{t('Слово')}</div>
         <div style={labelStyle0}>{t('Перевод')}</div>
         <div style={labelStyle0}>{t('Серия')}</div>
@@ -1606,7 +1606,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
       </div>
 
       {cards.map((c, i) => (
-        <div key={i} style={{ ...gridCols, padding: '7px 14px', borderBottom: '1px solid var(--color-border-soft)' }}>
+        <div key={i} style={{ ...gridCols, padding: '8px 14px', borderBottom: '1px solid var(--color-border-soft)' }}>
           <div style={{ minWidth: 0 }}>
             <input
               value={c.term}
@@ -1651,7 +1651,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
       ))}
 
       {/* Хвост листа: сюда пишут новую карточку. */}
-      <div style={{ ...gridCols, padding: '7px 14px', background: 'var(--color-bg-input)' }}>
+      <div style={{ ...gridCols, padding: '8px 14px', background: 'var(--color-bg-input)' }}>
         <div style={{ minWidth: 0 }}>
           <input
             ref={termRef}

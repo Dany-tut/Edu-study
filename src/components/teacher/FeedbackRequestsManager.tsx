@@ -126,7 +126,7 @@ export default function FeedbackRequestsManager() {
                     {r.section ? `${r.section} · ` : ''}{fmtDate(r.created_at)}
                   </div>
                 </div>
-                <span style={{ padding: '3px 10px', borderRadius: 7, fontSize: 12, fontWeight: 700, background: sm.bg, color: sm.color, flexShrink: 0 }}>{t(sm.label)}</span>
+                <span style={{ padding: '4px 10px', borderRadius: 7, fontSize: 12, fontWeight: 700, background: sm.bg, color: sm.color, flexShrink: 0 }}>{t(sm.label)}</span>
               </div>
 
               <div style={{ fontSize: 14, color: 'var(--color-text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{r.message}</div>
@@ -145,7 +145,7 @@ export default function FeedbackRequestsManager() {
                 {STATUS_ORDER.map(s => (
                   <button key={s} onClick={() => setStatus(r.id, s)} disabled={r.status === s}
                     style={{
-                      padding: '5px 11px', borderRadius: 8, border: '1px solid var(--color-border)', cursor: r.status === s ? 'default' : 'pointer',
+                      padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border)', cursor: r.status === s ? 'default' : 'pointer',
                       fontSize: 12, fontWeight: 600,
                       background: r.status === s ? STATUS_META[s].bg : 'transparent',
                       color: r.status === s ? STATUS_META[s].color : 'var(--color-text-3)',

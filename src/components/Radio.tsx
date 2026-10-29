@@ -45,7 +45,7 @@ export default function Radio({
       style={{
         display: 'inline-flex',
         alignItems: align === 'start' ? 'flex-start' : 'center',
-        gap: 9,
+        gap: 10,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.55 : 1,
         ...labelStyle,

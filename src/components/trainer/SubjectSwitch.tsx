@@ -86,7 +86,7 @@ export function SubjectList({ state, onPicked, accent }: {
               onClick={() => { pick(o.def.id); onPicked?.() }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                padding: '9px 10px', borderRadius: 10, cursor: 'pointer', border: 'none',
+                padding: '10px 10px', borderRadius: 10, cursor: 'pointer', border: 'none',
                 background: active ? `${pal.accent}1f` : 'transparent',
                 fontFamily: 'inherit', textAlign: 'left',
               }}
@@ -295,7 +295,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
         aria-label={compact ? (current ? t(current.def.name) : t('Тренажёр')) : undefined}
         style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          gap: compact ? 0 : 7,
+          gap: compact ? 0 : 8,
           // Высота шапки общая на все экраны (MOBILE_PILL_H): таблетка предмета
           // стоит в той же строке, что и чипсы соседних экранов, и перетекает
           // в них на свайпе «назад».

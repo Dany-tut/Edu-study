@@ -27,7 +27,7 @@ const card = {
 const searchBox = {
   display: 'flex', alignItems: 'center', gap: 8,
   background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
-  borderRadius: 12, padding: '9px 12px', marginBottom: 12,
+  borderRadius: 12, padding: '10px 12px', marginBottom: 12,
 }
 
 function initials(name: string) {
@@ -58,7 +58,7 @@ export function PickStudentModal({
     <div style={overlay} onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.2 }}
+        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()} style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -141,7 +141,7 @@ export function PickGroupModal({
     <div style={overlay} onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.2 }}
+        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()} style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -256,7 +256,7 @@ export function AddExistingIndividualModal({
     <div style={overlay} onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.2 }}
+        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()} style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -355,7 +355,7 @@ export function AddExistingIndividualModal({
                   <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
                 </div>
-                <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s' }}>
+                <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.22s' }}>
                   {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
                 </button>
               </>

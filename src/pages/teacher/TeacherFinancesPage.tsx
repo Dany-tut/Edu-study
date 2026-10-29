@@ -126,7 +126,7 @@ function AddPaymentModal({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Сумма, ₽')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Сумма, ₽')}</div>
             <input
               style={inputStyle}
               type="number"
@@ -138,7 +138,7 @@ function AddPaymentModal({
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Занятий оплачено')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Занятий оплачено')}</div>
             <input
               style={inputStyle}
               type="number"
@@ -149,7 +149,7 @@ function AddPaymentModal({
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Заметка (необязательно)')}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Заметка (необязательно)')}</div>
             <input
               style={inputStyle}
               placeholder={t('Перевод на карту...')}
@@ -165,14 +165,14 @@ function AddPaymentModal({
           disabled={saving || saved || !amount}
           style={{
             marginTop: 16,
-            width: '100%', padding: '11px',
+            width: '100%', padding: '12px',
             background: saved ? 'var(--color-green-soft)' : 'var(--grad-purple)',
             border: 'none', borderRadius: 12,
             color: saved ? 'var(--color-green-text)' : '#fff',
             fontSize: 14, fontWeight: 700,
             cursor: saving || saved ? 'default' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            transition: 'background 0.2s',
+            transition: 'background 0.22s',
           } as React.CSSProperties}
         >
           {saved
@@ -231,7 +231,7 @@ function StudentRow({
       <div
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
-          padding: '11px 16px', cursor: 'pointer',
+          padding: '12px 16px', cursor: 'pointer',
         }}
         onClick={onToggle}
       >
@@ -262,7 +262,7 @@ function StudentRow({
 
         {/* Balance chip */}
         <div style={{
-          padding: '3px 8px', borderRadius: 8,
+          padding: '4px 8px', borderRadius: 8,
           background: balance < 0 ? 'var(--color-red-soft)' : balance === 0 ? 'var(--color-bg-3)' : 'var(--color-green-soft)',
           fontSize: 11, fontWeight: 700,
           color: balance < 0 ? 'var(--color-red-text)' : balance === 0 ? 'var(--color-text-3)' : 'var(--color-green-text)',
@@ -315,7 +315,7 @@ function StudentRow({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22 }}
             style={{ overflow: 'hidden' }}
           >
             <div style={{
@@ -457,7 +457,7 @@ export default function TeacherFinancesPage() {
               flex: 1, padding: '14px 8px', textAlign: 'center',
               borderRight: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none',
             }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 {item.icon} {item.label}
               </div>
               <div style={{ fontSize: 18, fontWeight: 800, color: item.color, marginTop: 4, letterSpacing: '-0.5px' }}>

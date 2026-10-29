@@ -49,7 +49,7 @@ export default function Switch({ checked, onChange, disabled, label, size = 'M' 
           // заливок), выключенное — нейтральная подложка с обводкой.
           background: checked ? 'var(--grad-purple)' : 'var(--color-bg-5)',
           border: `1px solid ${checked ? 'transparent' : 'var(--color-border-medium)'}`,
-          transition: 'background .18s ease, border-color .18s ease',
+          transition: 'background 0.15s ease, border-color 0.15s ease',
         }}
       />
       <span
@@ -59,7 +59,7 @@ export default function Switch({ checked, onChange, disabled, label, size = 'M' 
           width: knob, height: knob, borderRadius: 999, background: '#fff',
           boxShadow: 'var(--shadow-1)',
           transform: `translateX(${checked ? W - knob - PAD * 2 : 0}px)`,
-          transition: 'transform .2s cubic-bezier(0.32, 0.72, 0, 1)',
+          transition: 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)',
         }}
       />
     </label>

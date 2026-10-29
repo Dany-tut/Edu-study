@@ -81,8 +81,8 @@ function NotifRow({ n, onAction, onRead }: {
         </div>
         {n.action && (
           <button onClick={() => { onRead(n.id); onAction(n) }} style={{
-            marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '6px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
             background: 'rgba(255,90,90,0.18)', color: '#FF5A5A',
             fontSize: 12, fontWeight: 700,
           }}>
@@ -224,7 +224,7 @@ export default function NotificationToastContainer() {
                   onClick={e => { e.stopPropagation(); dismissAll() }}
                   aria-label={t('Закрыть')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--color-text-3)', display: 'flex', padding: 11, margin: -9 }}
+                    color: 'var(--color-text-3)', display: 'flex', padding: 12, margin: -10 }}
                 >
                   <X size={14} />
                 </button>
@@ -252,7 +252,7 @@ export default function NotificationToastContainer() {
                     </div>
                     {live.length > 1 && (
                       <button onClick={dismissAll} style={{
-                        marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10,
+                        marginTop: 10, width: '100%', padding: '8px 0', borderRadius: 10,
                         border: `1px solid rgba(${rgb},0.2)`, background: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600, color: 'var(--color-muted)',
                       }}>

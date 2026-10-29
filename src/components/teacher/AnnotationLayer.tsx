@@ -356,7 +356,7 @@ export default function AnnotationLayer({
       {active && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-          padding: '7px 10px', marginBottom: 10,
+          padding: '8px 10px', marginBottom: 10,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 12,
           position: 'sticky', top: 8, zIndex: 6,
         }}>

@@ -188,7 +188,7 @@ export default function DateTimeField({ value, onChange, label }: {
             <motion.div
               ref={popRef}
               initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
+              exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.15 }}
               style={{
                 position: 'fixed', top: pos.top, left: pos.left, width: 280, zIndex: 4000,
                 background: 'rgba(var(--glass-rgb), 0.97)',

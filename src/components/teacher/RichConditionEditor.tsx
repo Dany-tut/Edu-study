@@ -25,7 +25,7 @@ function ToolbarBtn({ children, onClick, title, active }: {
         background: active ? 'var(--color-bg-3)' : 'transparent',
         color: active ? 'var(--color-text)' : 'var(--color-text-2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'background 0.1s',
+        transition: 'background 0.15s',
         flexShrink: 0,
       }}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg-3)' }}
@@ -55,7 +55,7 @@ function hexToRgba(hex: string, alpha: number) {
 const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28']
 
 const DEFAULT_INPUT_ST: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '9px 12px',
+  width: '100%', boxSizing: 'border-box', padding: '10px 12px',
   borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
   fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit',
@@ -307,7 +307,7 @@ export default function RichConditionEditor({
 
   const st = inputSt ?? DEFAULT_INPUT_ST
   const isEmpty = !value || value === '<br>' || value === ''
-  const divider = <div style={{ width: 1, height: 20, background: 'var(--color-border-medium)', margin: '0 3px', flexShrink: 0 }} />
+  const divider = <div style={{ width: 1, height: 20, background: 'var(--color-border-medium)', margin: '0 4px', flexShrink: 0 }} />
 
   return (
     <div>
@@ -346,7 +346,7 @@ export default function RichConditionEditor({
             overflowY: autoGrow ? 'visible' : 'auto',
             height: autoGrow ? 'auto' : undefined,
             wordBreak: 'break-word',
-            transition: 'padding-bottom 0.18s ease',
+            transition: 'padding-bottom 0.15s ease',
             cursor: 'text',
             resize: autoGrow ? 'none' : 'vertical',
           }}
@@ -358,7 +358,7 @@ export default function RichConditionEditor({
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
-              transition={{ duration: 0.14 }}
+              transition={{ duration: 0.15 }}
               onMouseDown={e => e.preventDefault()}
               style={{
                 position: 'absolute', bottom: 6, left: 6, right: 6,
@@ -409,7 +409,7 @@ export default function RichConditionEditor({
                       <button key={s}
                         onMouseDown={e => { e.preventDefault(); applyFontSize(s); setSizeOpen(false) }}
                         style={{
-                          padding: '5px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                          padding: '6px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
                           background: fontSize === s ? 'var(--color-bg-3)' : 'transparent',
                           color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit',
                           textAlign: 'left', fontWeight: fontSize === s ? 700 : 400,
@@ -517,7 +517,7 @@ export default function RichConditionEditor({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22 }}
             style={{ overflow: 'hidden', marginTop: 8 }}
           >
             <WhiteboardCanvas compact onSave={data => { drawDataRef.current = data }} />

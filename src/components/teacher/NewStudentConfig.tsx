@@ -105,7 +105,7 @@ export default function NewStudentConfig({
               onClick={() => toggle(w.id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
-                padding: '9px 12px', borderRadius: 12, cursor: 'pointer',
+                padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
                 border: '1.5px solid var(--color-border-medium)',
                 background: 'var(--color-bg-4)',
                 opacity: isHidden ? 0.55 : 1,
@@ -142,12 +142,12 @@ export default function NewStudentConfig({
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: 28, pointerEvents: 'none',
           background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)',
-          opacity: fadeTop ? 1 : 0, transition: 'opacity 0.18s',
+          opacity: fadeTop ? 1 : 0, transition: 'opacity 0.15s',
         }} />
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, height: 32, pointerEvents: 'none',
           background: 'linear-gradient(to top, var(--color-bg-input), transparent)',
-          opacity: fadeBottom ? 1 : 0, transition: 'opacity 0.18s',
+          opacity: fadeBottom ? 1 : 0, transition: 'opacity 0.15s',
         }} />
       </div>
 

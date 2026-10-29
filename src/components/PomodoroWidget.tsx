@@ -56,7 +56,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
             cx="52" cy="52" r={46} fill="none" stroke={accent} strokeWidth="8" strokeLinecap="round"
             strokeDasharray={C}
             animate={{ strokeDashoffset: C * (1 - progress) }}
-            transition={{ duration: 0.5, ease: 'linear' }}
+            transition={{ duration: 0.38, ease: 'linear' }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -74,7 +74,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
       <div className="flex min-w-0 flex-1 flex-col" style={{ gap: 10 * sz.scale }}>
         <div className="flex items-center justify-between gap-2">
           {/* Mode toggle */}
-          <div className="flex" style={{ background: 'var(--color-bg-3)', borderRadius: 999, padding: 3 }}>
+          <div className="flex" style={{ background: 'var(--color-bg-3)', borderRadius: 999, padding: 4 }}>
             {(['focus', 'break'] as PomoMode[]).map(m => (
               <button
                 key={m}
@@ -85,7 +85,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
                   color: pomoMode === m ? 'var(--color-text)' : '#9A9AA0',
                   background: pomoMode === m ? 'var(--color-pill-active-bg)' : 'transparent',
                   boxShadow: pomoMode === m ? 'var(--color-pill-active-shadow)' : 'none',
-                  transition: 'color 0.2s, background 0.2s',
+                  transition: 'color 0.22s, background 0.22s',
                 }}
               >
                 {t(MODE_LABEL[m])}

@@ -153,7 +153,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
                 key={slot.key}
                 initial={filled ? { scale: 0.8, opacity: 0.4 } : false}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.16 }}
+                transition={{ duration: 0.15 }}
                 onClick={() => cutFrom(i)}
                 disabled={disabled || !filled}
                 title={filled ? t('Убрать эту букву') : undefined}
@@ -161,7 +161,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
                 style={{
                   gridColumn: slot.span ? '1 / -1' : undefined,
                   minHeight: slot.span ? 44 : 58,
-                  borderRadius: 12, fontFamily: 'inherit', overflow: 'hidden', padding: '0 3px',
+                  borderRadius: 12, fontFamily: 'inherit', overflow: 'hidden', padding: '0 4px',
                   fontSize: 32, lineHeight: 1, fontWeight: 700,
                   color: filled ? 'var(--color-text)' : 'var(--color-text-4)',
                   border: filled
@@ -188,7 +188,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
           key={preview || 'empty'}
           initial={{ scale: 0.86, opacity: 0.4 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.15 }}
           style={{
             fontSize: 62, lineHeight: 1, fontWeight: 700, minWidth: 68, textAlign: 'center',
             color: preview ? 'var(--color-text)' : 'var(--color-text-4)',
@@ -223,7 +223,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
               }}
             >
               <span style={{ fontSize: 28, lineHeight: 1.2, fontWeight: 700 }}>{c}</span>
-              <span style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3 }}>
+              <span style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 4 }}>
                 {CHAMO[c]?.sound}
               </span>
             </motion.button>

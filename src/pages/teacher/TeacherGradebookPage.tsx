@@ -17,7 +17,7 @@ import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.34, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.38, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
 function ScorePill({ value }: { value: number | null }) {
@@ -29,7 +29,7 @@ function ScorePill({ value }: { value: number | null }) {
     <span style={{
       display: 'inline-block', minWidth: 34,
       fontSize: 12, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums',
-      background: bg, borderRadius: 7, padding: '2px 7px', textAlign: 'center',
+      background: bg, borderRadius: 7, padding: '2px 8px', textAlign: 'center',
     }}>
       {value}
     </span>
@@ -163,7 +163,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                       padding: '10px 16px', position: 'sticky', left: 0,
                       background: 'rgba(var(--glass-rgb), 0.95)', zIndex: 1,
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{
                           position: 'relative', width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                           background: 'var(--color-avatar-bg)',
@@ -272,7 +272,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                     padding: '10px 16px', position: 'sticky', left: 0,
                     background: 'rgba(var(--glass-rgb), 0.95)', zIndex: 1,
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{
                         position: 'relative', width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                         background: 'var(--grad-purple)',
@@ -363,7 +363,7 @@ function GradeButton({ value, selected, onMouseDown, onMouseEnter }: {
         width: 32, height: 32, borderRadius: 9, border: selected ? 'none' : '1.5px solid transparent',
         background: selected ? c.selBg : c.bg,
         color: selected ? '#fff' : c.color,
-        fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+        fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
         outline: selected ? `2px solid ${c.selBg}` : 'none',
         outlineOffset: 1,
       }}
@@ -476,7 +476,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
         onClick={e => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.94, y: 16 }}
         animate={saved ? { opacity: 0, scale: 0.96, y: -8 } : { opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         style={{
           background: 'rgba(var(--glass-rgb), 0.97)',
           backdropFilter: 'blur(20px)',
@@ -503,7 +503,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
               {t('Оценки за урок')}
             </h2>
-            <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--color-text-3)' }}>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-3)' }}>
               {t('Присутствовало')} {presentCount} {t('из')} {groupStudents.length} · {t('оценок выставлено')} {gradedCount}
             </p>
           </div>
@@ -572,25 +572,25 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                 data-student-id={student.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.2, delay: si * 0.03 }}
+                transition={{ duration: 0.22, delay: si * 0.03 }}
                 style={{
                   display: 'grid', gridTemplateColumns: '1fr 72px 1fr',
                   alignItems: 'center',
                   padding: '10px 24px',
                   borderBottom: '1px solid var(--color-border-soft)',
                   background: studentPresent ? 'transparent' : 'rgba(192,48,58,0.025)',
-                  transition: 'background 0.2s',
+                  transition: 'background 0.22s',
                 }}
               >
                 {/* Name */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
                     position: 'relative', width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                     background: studentPresent ? 'var(--color-avatar-bg)' : 'var(--color-bg-5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     // У отсутствующего фон светло-серый — белые инициалы на нём пропадали.
                     fontSize: 10, fontWeight: 700, color: studentPresent ? '#fff' : 'var(--color-text-3)',
-                    transition: 'background 0.2s',
+                    transition: 'background 0.22s',
                   }}>
                     {initials}
                     <AvatarPhotoFill path={student.avatarPath} />
@@ -598,7 +598,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                   <span style={{
                     fontSize: 13, fontWeight: 600,
                     color: studentPresent ? 'var(--color-text)' : '#A0A0A8',
-                    transition: 'color 0.2s',
+                    transition: 'color 0.22s',
                   }}>
                     {tn(student.name)}
                   </span>
@@ -617,7 +617,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                       width: 32, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer',
                       background: studentPresent ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'all 0.15s',
+                      transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                     }}
                   >
                     {studentPresent
@@ -632,7 +632,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                   style={{
                     display: 'flex', gap: 4, paddingLeft: 16,
                     opacity: studentPresent ? 1 : 0.3, pointerEvents: studentPresent ? 'auto' : 'none',
-                    transition: 'opacity 0.2s',
+                    transition: 'opacity 0.22s',
                   }}
                 >
                   {([1, 2, 3, 4, 5] as const).map(g => (
@@ -664,7 +664,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           <button
             onClick={onClose}
             style={{
-              padding: '9px 20px', borderRadius: 13, border: '1.5px solid var(--color-border-medium)',
+              padding: '10px 20px', borderRadius: 13, border: '1.5px solid var(--color-border-medium)',
               background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
@@ -773,7 +773,7 @@ export default function TeacherGradebookPage() {
                 key={s.groupId}
                 onClick={() => setActiveGroupId(s.groupId)}
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
                   fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                   padding: '6px 12px', borderRadius: 10,
                   color: active ? '#fff' : s.color,
@@ -795,7 +795,7 @@ export default function TeacherGradebookPage() {
         <motion.button
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
           style={{
-            display: 'flex', alignItems: 'center', gap: 7,
+            display: 'flex', alignItems: 'center', gap: 8,
             padding: '8px 16px', borderRadius: 14, border: '1px solid var(--color-border)', cursor: 'pointer',
             background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
@@ -810,7 +810,7 @@ export default function TeacherGradebookPage() {
         key={`${activeTab}:${activeGroupId ?? 'all'}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
       >
         {activeTab === 'attendance'
           ? <AttendanceTab groupId={activeGroupId} />

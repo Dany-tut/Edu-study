@@ -117,7 +117,7 @@ export function TaskTypeRow({ type, onClick, active = false }: {
           border: `1.5px solid ${active ? color : 'transparent'}`,
           background: active || hover ? bg : 'var(--color-bg-2)',
           cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
-          transition: 'background 0.13s, border-color 0.13s',
+          transition: 'background 0.15s, border-color 0.15s',
         }}
       >
         <span style={{
@@ -151,7 +151,7 @@ export function TaskTypeRow({ type, onClick, active = false }: {
           // цвет самого типа, он контрастен своей же подложке по построению.
           color,
           opacity: hover || open ? 1 : 0,
-          transition: 'opacity 0.12s',
+          transition: 'opacity 0.15s',
         }}
       >
         <Info size={14} />
@@ -168,7 +168,7 @@ export function TaskTypeRow({ type, onClick, active = false }: {
             position: 'fixed', left: pos?.left ?? -9999, top: pos?.top ?? -9999,
             width: CARD_W, zIndex: 4000,
             visibility: pos ? 'visible' : 'hidden',
-            padding: '12px 13px', borderRadius: 18,
+            padding: '12px 12px', borderRadius: 18,
             background: 'rgba(var(--glass-rgb), 0.9)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',

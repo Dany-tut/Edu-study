@@ -50,7 +50,7 @@ export default function SubjectPicker({
     const only = options[0]
     return (
       <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6, padding: size === 'sm' ? '6px 11px' : '7px 12px',
+        display: 'inline-flex', alignItems: 'center', gap: 6, padding: size === 'sm' ? '6px 12px' : '8px 12px',
         borderRadius: 10, background: accentBg, color: activeColor, fontSize: fs, fontWeight: 700, alignSelf: 'flex-start',
       }}>
         {only.icon && <span aria-hidden>{only.icon}</span>}
@@ -70,7 +70,7 @@ export default function SubjectPicker({
               style={{
                 flex: 1, padding: pad, borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: fs,
                 fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: 5, minWidth: 0, background: on ? accentBg : idleBg, color: on ? activeColor : idleColor,
+                gap: 6, minWidth: 0, background: on ? accentBg : idleBg, color: on ? activeColor : idleColor,
               }}>
               {o.icon && <span aria-hidden>{o.icon}</span>}
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.label}</span>
@@ -129,7 +129,7 @@ function SubjectDropdown({
       <button ref={btnRef} onClick={() => setOpen(o => !o)} aria-haspopup="listbox" aria-expanded={open} aria-label={ariaLabel}
         style={{
           width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8,
-          padding: size === 'sm' ? '6px 9px' : '7px 11px', minHeight: size === 'sm' ? 32 : 38,
+          padding: size === 'sm' ? '6px 10px' : '8px 12px', minHeight: size === 'sm' ? 32 : 38,
           borderRadius: 11, ...dropdownRing(open, accent), cursor: 'pointer',
           background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: fs, fontWeight: 700, fontFamily: 'inherit',
         }}>

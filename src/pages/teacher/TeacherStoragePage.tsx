@@ -164,7 +164,7 @@ export default function TeacherStoragePage() {
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(tbl.bytes / maxTableBytes) * 100}%` }}
-                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                       style={{ height: '100%', borderRadius: 5, background: 'var(--color-accent)', opacity: 0.75 }}
                     />
                   </div>

@@ -40,7 +40,7 @@ export default function MobilePill({
       aria-label={ariaLabel}
       aria-pressed={active}
       whileTap={{ scale: TAP_SCALE }}
-      transition={{ duration: 0.16, ease: JELLY_EASE }}
+      transition={{ duration: 0.15, ease: JELLY_EASE }}
       onClick={() => {
         if (active && !onClick) return
         tactile()

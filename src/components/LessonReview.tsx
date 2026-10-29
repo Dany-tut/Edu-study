@@ -121,7 +121,7 @@ export default function LessonReview({
                   background: reveal ? 'var(--color-green-soft)' : wrong ? 'var(--color-red-soft)' : 'var(--color-bg-input)',
                   color: 'var(--color-text)',
                   fontSize: 14, lineHeight: 1.45, fontWeight: 600,
-                  transition: 'all 0.18s ease',
+                  transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
                   opacity: done && !reveal && !wrong ? 0.84 : 1,
                   position: 'relative', fontFamily: 'inherit',
                   ...proseWrap,

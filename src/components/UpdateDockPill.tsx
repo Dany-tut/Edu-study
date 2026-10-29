@@ -18,7 +18,7 @@ import { TAP_SCALE } from '../lib/mobileTokens'
 // этом не белеет целиком — её перекрашивает сама заливка (см. ProgressFill).
 
 const LABEL: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 7, minWidth: 0,
+  display: 'flex', alignItems: 'center', gap: 8, minWidth: 0,
   fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
 }
 
@@ -63,7 +63,7 @@ export default function UpdateDockPill() {
       aria-label={t('Обновить')}
       style={{
         position: 'relative', overflow: 'hidden',
-        display: 'flex', alignItems: 'center', gap: 9,
+        display: 'flex', alignItems: 'center', gap: 10,
         // Справа 6px — это место под кнопку, которая сама несёт свой отступ.
         // Пока идёт загрузка кнопки нет, и подпись «Обновляем… 100%» вплотную
         // упиралась в кромку: без кнопки правый отступ обязан быть таким же,
@@ -90,7 +90,7 @@ export default function UpdateDockPill() {
         <span
           style={{
             position: 'relative', flexShrink: 0,
-            height: 34, display: 'inline-flex', alignItems: 'center', padding: '0 15px',
+            height: 34, display: 'inline-flex', alignItems: 'center', padding: '0 16px',
             borderRadius: 999, background: 'var(--grad-purple)', color: '#fff',
             fontSize: 13, fontWeight: 700,
           }}

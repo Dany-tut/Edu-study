@@ -153,7 +153,7 @@ function GuestBar({ onLead }: { onLead: () => void }) {
             onClick={() => { window.location.hash = '#/login' }}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '9px 14px', borderRadius: 12, cursor: 'pointer',
+              padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
               border: '1px solid var(--color-border-medium)',
               background: 'transparent', color: 'var(--color-text)',

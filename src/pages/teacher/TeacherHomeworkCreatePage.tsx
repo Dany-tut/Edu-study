@@ -131,7 +131,7 @@ const inputStyle: React.CSSProperties = { ...FIELD }
 
 function Label({ children }: { children: React.ReactNode }) {
   // Отступ = начало текста в поле под подписью (12 + рамка 1.5), а не край рамки.
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 13 }}>{children}</div>
+  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6, paddingLeft: 13 }}>{children}</div>
 }
 
 function GlassCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
@@ -232,7 +232,7 @@ function SaveToTrainerDialog({
               onClick={() => onChoice(opt.value)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
-                padding: '11px 14px', borderRadius: 13,
+                padding: '12px 14px', borderRadius: 13,
                 border: `1.5px solid ${opt.bg}`,
                 background: opt.bg, cursor: 'pointer', textAlign: 'left',
               }}
@@ -406,7 +406,7 @@ function TaskCard({
                       ))}
                       <button
                         onClick={() => onUpdate({ choices: [...(task.choices ?? []), ''] })}
-                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                       >
                         <Plus size={12} /> {t('Добавить вариант')}
                       </button>
@@ -454,7 +454,7 @@ function TaskCard({
                       ))}
                       <button
                         onClick={() => onUpdate({ pairs: [...(task.pairs ?? []), { left: '', right: '' }] })}
-                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                       >
                         <Plus size={12} /> {t('Добавить пару')}
                       </button>
@@ -487,7 +487,7 @@ function TaskCard({
                             )}
                           </div>
                         ))}
-                        <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
+                        <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
                           <Plus size={12} /> {t('Добавить шаг')}
                         </button>
                       </div>
@@ -607,7 +607,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, 
         onClick={onImport}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 13,
+          padding: '10px 12px', borderRadius: 13,
           border: '1.5px dashed var(--color-border-medium)',
           background: 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
           color: 'var(--color-muted)', fontSize: 12, fontWeight: 600,
@@ -630,7 +630,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, 
             border: '1.5px solid transparent',
             background: 'var(--color-yellow-soft)',
             cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-            transition: 'all 0.13s',
+            transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
           }}
         >
           <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
@@ -641,7 +641,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, 
         onClick={onImportHard}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 12px', borderRadius: 11,
+          padding: '8px 12px', borderRadius: 11,
           border: '1.5px dashed var(--color-border-medium)',
           background: 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
           color: 'var(--color-muted)', fontSize: 11, fontWeight: 600,
@@ -668,7 +668,7 @@ function TestlyPaletteRow({ onClick }: { onClick: () => void }) {
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
         padding: '10px 30px 10px 10px', borderRadius: 13, border: '1.5px solid transparent',
         background: hover ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
-        cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'background 0.13s',
+        cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'background 0.15s',
       }}
     >
       <TestlyTile size={34} />
@@ -798,13 +798,13 @@ function BankTaskCard({ task, index, added, onAdd }: {
         background: 'rgba(var(--glass-rgb), 0.96)',
         border: modified ? '1px solid rgba(99,84,207,0.35)' : '1px solid var(--color-border-soft)',
         boxShadow: 'var(--shadow-3)',
-        transition: 'border-color 0.2s',
+        transition: 'border-color 0.22s',
       }}
     >
       {/* Header: badges + actions */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>{t('Задание')} {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <span style={cardChipTone('red')}>№{task.id}</span>
@@ -835,9 +835,9 @@ function BankTaskCard({ task, index, added, onAdd }: {
               cursor: added ? 'default' : 'pointer',
               background: added ? 'var(--color-green-soft)' : 'var(--grad-purple)',
               color: added ? 'var(--color-green-text)' : '#fff',
-              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5,
+              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
               boxShadow: added ? 'none' : '0 3px 12px rgba(99,84,207,0.32)',
-              transition: 'all 0.15s', whiteSpace: 'nowrap',
+              transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', whiteSpace: 'nowrap',
             }}
           >
             {added ? <><Check size={12} /> {t('Добавлено')}</> : <><Plus size={12} /> {t('Добавить')}</>}
@@ -852,7 +852,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                 initial={{ opacity: 0, y: -4, height: 0 }}
                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                 exit={{ opacity: 0, y: -4, height: 0 }}
-                transition={{ duration: 0.18 }}
+                transition={{ duration: 0.15 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}
               >
                 {/* Add-as-new-variant toggle — shown while editing or once a variant exists */}
@@ -861,23 +861,23 @@ function BankTaskCard({ task, index, added, onAdd }: {
                   onClick={toggleVariant}
                   title={t('Добавить как новое задание в тренажёр (новый номер)')}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 7,
+                    display: 'flex', alignItems: 'center', gap: 8,
                     padding: '6px 10px', borderRadius: 10, cursor: 'pointer',
                     border: variantId !== null ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
                     background: variantId !== null ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
                     fontSize: 12, fontWeight: 700,
                     color: variantId !== null ? 'var(--color-green-text)' : 'var(--color-muted)',
-                    fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
+                    fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   }}
                 >
                   <span style={{
                     width: 26, height: 15, borderRadius: 999, flexShrink: 0, position: 'relative',
-                    background: variantId !== null ? '#22C55E' : 'var(--color-bg-5)', transition: 'background 0.18s',
+                    background: variantId !== null ? '#22C55E' : 'var(--color-bg-5)', transition: 'background 0.15s',
                   }}>
                     <span style={{
                       position: 'absolute', top: 2, left: variantId !== null ? 13 : 2,
                       width: 11, height: 11, borderRadius: '50%', background: 'var(--color-bg-input)',
-                      transition: 'left 0.18s', boxShadow: 'var(--shadow-1)',
+                      transition: 'left 0.15s', boxShadow: 'var(--shadow-1)',
                     }} />
                   </span>
                   {variantId !== null
@@ -892,13 +892,13 @@ function BankTaskCard({ task, index, added, onAdd }: {
                   onClick={replaceInTrainer}
                   title={t('Заменить оригинал в тренажёре этим текстом')}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 5,
+                    display: 'flex', alignItems: 'center', gap: 6,
                     padding: '6px 12px', borderRadius: 10, cursor: 'pointer',
                     border: justReplaced ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
                     background: justReplaced ? 'var(--color-green-soft)' : 'var(--color-surface)',
                     fontSize: 12, fontWeight: 700,
                     color: justReplaced ? 'var(--color-green-text)' : 'var(--color-red-text)',
-                    fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
+                    fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   }}
                 >
                   {justReplaced ? <><Check size={12} /> {t('Заменено')}</> : <><Shuffle size={12} /> {t('Заменить')}</>}
@@ -926,7 +926,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
               <tbody>
                 {task.questionTable.rows.map((row, ri) => (
                   <tr key={ri} style={{ background: ri % 2 === 1 ? 'rgba(0,0,0,0.02)' : undefined }}>{row.map((cell, ci) => (
-                    <td key={ci} style={{ borderTop: '1px solid var(--color-border)', borderRight: ci < row.length - 1 ? '1px solid var(--color-border)' : undefined, padding: '9px 16px', color: 'var(--color-text)' }}>{cell}</td>
+                    <td key={ci} style={{ borderTop: '1px solid var(--color-border)', borderRight: ci < row.length - 1 ? '1px solid var(--color-border)' : undefined, padding: '10px 16px', color: 'var(--color-text)' }}>{cell}</td>
                   ))}</tr>
                 ))}
               </tbody>
@@ -1129,7 +1129,7 @@ function PreviewTab({
                     {task.choices.map((ch, ci) => (
                       <div key={ci} style={{
                         display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '5px 10px', borderRadius: 8,
+                        padding: '6px 10px', borderRadius: 8,
                         background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-green-soft)' : 'var(--color-bg)',
                       }}>
                         <div style={{
@@ -1149,11 +1149,11 @@ function PreviewTab({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
                     {task.pairs.map((p, pi) => (
                       <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'var(--color-purple-soft)', fontSize: 12, color: 'var(--color-accent)', fontWeight: 600 }}>
+                        <div style={{ flex: 1, padding: '6px 10px', borderRadius: 8, background: 'var(--color-purple-soft)', fontSize: 12, color: 'var(--color-accent)', fontWeight: 600 }}>
                           {p.left || `${t('Левая')} ${pi + 1}`}
                         </div>
                         <span style={{ color: 'var(--color-text-4)' }}>↔</span>
-                        <div style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'var(--color-peach-soft)', fontSize: 12, color: 'var(--color-peach-text)', fontWeight: 600 }}>
+                        <div style={{ flex: 1, padding: '6px 10px', borderRadius: 8, background: 'var(--color-peach-soft)', fontSize: 12, color: 'var(--color-peach-text)', fontWeight: 600 }}>
                           {p.right || `${t('Правая')} ${pi + 1}`}
                         </div>
                       </div>
@@ -1165,7 +1165,7 @@ function PreviewTab({
                   <button
                     onClick={() => toggleAnswer(task.id)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 5,
+                      display: 'flex', alignItems: 'center', gap: 6,
                       padding: '4px 10px', borderRadius: 8, border: 'none',
                       background: showAnswer.has(task.id) ? 'var(--color-green-soft)' : 'var(--color-bg)',
                       cursor: 'pointer', fontSize: 11, fontWeight: 600,
@@ -1257,7 +1257,7 @@ function TrainerFilterPanel({
         ...fadeMask(filterFade),
       }}>
       {/* Header with filter icon */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
         <Search size={14} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
       </div>
@@ -1284,7 +1284,7 @@ function TrainerFilterPanel({
             const active = filters.parts.includes(p)
             return (
               <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
-                style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                   background: active ? 'rgba(139,92,246,0.15)' : 'var(--color-bg-3)',
                   color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
                 {p}
@@ -1361,7 +1361,7 @@ function HardTaskAccordion({
           padding: '12px 16px', borderRadius: open ? '16px 16px 0 0' : 16,
           border: '1.5px solid rgba(255,180,0,0.3)',
           background: open ? 'var(--color-yellow-soft)' : 'var(--color-yellow-soft)',
-          cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
+          cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.22s',
         }}
       >
         <Star size={16} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
@@ -1385,7 +1385,7 @@ function HardTaskAccordion({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.22 }}
             style={{ overflow: 'hidden' }}
           >
             <div style={{
@@ -1408,11 +1408,11 @@ function HardTaskAccordion({
                       key={opt.v}
                       onClick={() => setAssignTo(opt.v as 'all' | 'selected')}
                       style={{
-                        flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
+                        flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600,
                         background: assignTo === opt.v ? 'var(--color-yellow-soft)' : 'var(--color-bg)',
                         color: assignTo === opt.v ? 'var(--color-yellow-text)' : 'var(--color-muted)',
-                        fontFamily: 'inherit', transition: 'all 0.15s',
+                        fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                       }}
                     >
                       {t(opt.l)}
@@ -1434,10 +1434,10 @@ function HardTaskAccordion({
                           onClick={() => toggleStudent(s.id)}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 10,
-                            padding: '7px 10px', borderRadius: 10,
+                            padding: '8px 10px', borderRadius: 10,
                             border: 'none', cursor: 'pointer', textAlign: 'left',
                             background: sel ? 'var(--color-yellow-soft)' : 'var(--color-bg-2)',
-                            fontFamily: 'inherit', transition: 'background 0.12s',
+                            fontFamily: 'inherit', transition: 'background 0.15s',
                           }}
                         >
                           <div style={{
@@ -1462,17 +1462,17 @@ function HardTaskAccordion({
 
               {/* Mini tabs */}
               <div>
-                <div style={{ display: 'flex', gap: 4, marginBottom: 12, background: 'var(--color-bg)', borderRadius: 11, padding: 3 }}>
+                <div style={{ display: 'flex', gap: 4, marginBottom: 12, background: 'var(--color-bg)', borderRadius: 11, padding: 4 }}>
                   {[{ v: 'compose', l: 'Составить' }, { v: 'trainer', l: 'Из тренажера' }].map(opt => (
                     <button
                       key={opt.v}
                       onClick={() => setTab(opt.v as 'compose' | 'trainer')}
                       style={{
-                        flex: 1, padding: '7px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
+                        flex: 1, padding: '8px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600,
                         background: tab === opt.v ? 'var(--color-surface)' : 'transparent',
                         color: tab === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
-                        fontFamily: 'inherit', transition: 'all 0.15s',
+                        fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                         boxShadow: tab === opt.v ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                       }}
                     >
@@ -1598,9 +1598,9 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: 'none',
+          padding: '10px 12px', borderRadius: 11, border: 'none',
           cursor: 'pointer', background: 'var(--color-bg-input)',
-          fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
+          fontFamily: 'inherit', textAlign: 'left', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
         }}
       >
         <Calendar size={14} strokeWidth={2} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
@@ -1618,7 +1618,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             <X size={12} />
           </span>
         )}
-        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
 
       <AnimatePresence>
@@ -1627,7 +1627,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.16 }}
+            transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 999,
               background: 'rgba(var(--glass-rgb), 0.96)',
@@ -1669,7 +1669,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
                       background: isSelected ? 'var(--grad-purple)' : 'transparent',
                       boxShadow: !isSelected && isToday ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none',
                       color: isSelected ? '#fff' : 'var(--color-text)',
-                      transition: 'background 0.12s',
+                      transition: 'background 0.15s',
                     }}
                   >
                     {day}
@@ -1708,9 +1708,9 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: 'none',
+          padding: '10px 12px', borderRadius: 11, border: 'none',
           cursor: 'pointer', background: 'var(--color-bg-input)',
-          fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
+          fontFamily: 'inherit', textAlign: 'left', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
         }}
       >
         <Users size={14} strokeWidth={2} style={{ flexShrink: 0, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
@@ -1728,7 +1728,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
             <X size={12} />
           </span>
         )}
-        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
 
       <AnimatePresence>
@@ -1737,7 +1737,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.16 }}
+            transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 999,
               background: 'rgba(var(--glass-rgb), 0.96)',
@@ -1759,7 +1759,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
                   width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                   padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                   background: g.id === value ? 'var(--color-purple-soft)' : 'transparent',
-                  transition: 'background 0.12s', textAlign: 'left',
+                  transition: 'background 0.15s', textAlign: 'left',
                 }}
               >
                 <div style={{
@@ -1841,9 +1841,9 @@ function LessonPicker({
         onClick={() => { if (!open) { setQuery(''); setFade({ top: 0, bottom: 0 }) } setOpen(o => !o) }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: 'none',
+          padding: '10px 12px', borderRadius: 11, border: 'none',
           cursor: 'pointer', background: 'var(--color-bg-input)',
-          fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
+          fontFamily: 'inherit', textAlign: 'left', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
         }}
       >
         <BookOpen size={14} strokeWidth={2} style={{ flexShrink: 0, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
@@ -1868,7 +1868,7 @@ function LessonPicker({
             <X size={12} />
           </span>
         )}
-        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+        <ChevronDown size={14} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
 
       {/* Dropdown */}
@@ -1878,7 +1878,7 @@ function LessonPicker({
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.16 }}
+            transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 60,
               padding: 8, borderRadius: 14,
@@ -1917,7 +1917,7 @@ function LessonPicker({
                 <button
                   onClick={() => { onChange(''); setOpen(false) }}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 9, width: '100%',
+                    display: 'flex', alignItems: 'center', gap: 10, width: '100%',
                     padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
                     background: !value ? 'var(--color-purple-soft)' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
                   }}
@@ -1934,7 +1934,7 @@ function LessonPicker({
                 {/* Suggested section */}
                 {suggested.length > 0 && !query && (
                   <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 8px 4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px 4px' }}>
                       <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
                       <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.3 }}>{t('ПОДХОДЯТ К ТЕМЕ')}</span>
                     </div>
@@ -1957,8 +1957,8 @@ function LessonPicker({
               </div>
 
               {/* Edge fades */}
-              <div aria-hidden style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 26, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', opacity: fade.top, transition: 'opacity 0.2s', pointerEvents: 'none' }} />
-              <div aria-hidden style={{ position: 'absolute', bottom: -2, left: 0, right: 0, height: 26, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', opacity: fade.bottom, transition: 'opacity 0.2s', pointerEvents: 'none' }} />
+              <div aria-hidden style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 26, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', opacity: fade.top, transition: 'opacity 0.22s', pointerEvents: 'none' }} />
+              <div aria-hidden style={{ position: 'absolute', bottom: -2, left: 0, right: 0, height: 26, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', opacity: fade.bottom, transition: 'opacity 0.22s', pointerEvents: 'none' }} />
             </div>
           </motion.div>
         )}
@@ -1974,7 +1974,7 @@ function LessonOption({ lesson, active, suggested, onClick }: {
     <button
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'center', gap: 9, width: '100%',
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
         padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
         background: active ? 'var(--color-purple-soft)' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
       }}
@@ -2025,7 +2025,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
     }}>
       <GlassCard style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Кому */}
-        <div style={{ display: 'flex', gap: 5 }}>
+        <div style={{ display: 'flex', gap: 6 }}>
           {(['group', 'student'] as const).map(mode => (
             <button
               key={mode}
@@ -2035,7 +2035,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
                 fontSize: 12, fontWeight: 600,
                 background: meta.assignTo === mode ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                 color: meta.assignTo === mode ? 'var(--color-accent)' : 'var(--color-muted)',
-                fontFamily: 'inherit', transition: 'all 0.15s',
+                fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
               }}
             >
               {mode === 'group' ? t('Группе') : t('Студенту')}
@@ -2052,14 +2052,14 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         {meta.assignTo === 'student' && (
           <>
             {subjects.length > 1 && (
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {[{ v: '', label: 'Все' }, ...subjects.map(s => ({ v: s, label: tc(s) }))].map(opt => (
                   <button
                     key={opt.v || 'all'}
                     onClick={() => { setSubjectFilter(opt.v); onChange({ studentId: '' }) }}
                     style={{
                       padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                      fontSize: 11, fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.15s',
+                      fontSize: 11, fontWeight: 600, fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                       background: subjectFilter === opt.v ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                       color: subjectFilter === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
                     }}
@@ -2462,7 +2462,7 @@ export default function TeacherHomeworkCreatePage() {
 
             <div style={{
               flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              padding: '9px 16px', borderRadius: 999, ...dockGlass,
+              padding: '10px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
               {tc(meta.title) || (isEditing ? t('Редактировать домашку') : t('Создать домашнее задание'))}
@@ -2472,7 +2472,7 @@ export default function TeacherHomeworkCreatePage() {
 
             <button
               style={{
-                flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass,
+                flexShrink: 0, padding: '10px 16px', borderRadius: 999, ...dockGlass,
                 cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--color-muted)',
                 fontFamily: 'inherit', pointerEvents: 'auto',
               }}
@@ -2500,7 +2500,7 @@ export default function TeacherHomeworkCreatePage() {
         <motion.div
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
           animate={{ opacity: docked ? 0 : 1 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
         >
           <BackCircle onClick={exitPage} label="Назад" />
 
@@ -2519,7 +2519,7 @@ export default function TeacherHomeworkCreatePage() {
             </div>
             <button
               style={{
-                padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)',
+                padding: '10px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)',
                 background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', cursor: 'pointer',
                 fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit',
               }}
@@ -2574,7 +2574,7 @@ export default function TeacherHomeworkCreatePage() {
                   fontSize: 13, fontWeight: 600,
                   background: activeTab === tab.key ? 'var(--color-surface)' : 'transparent',
                   color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-muted)',
-                  fontFamily: 'inherit', transition: 'all 0.15s',
+                  fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   boxShadow: activeTab === tab.key ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',
                 }}
               >
@@ -2602,7 +2602,7 @@ export default function TeacherHomeworkCreatePage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.18 }}
+                transition={{ duration: 0.15 }}
                 style={{ paddingBottom: 32 }}
               >
                 {activeTab === 'compose' && (

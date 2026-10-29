@@ -50,7 +50,7 @@ export default function TestlyPicker({ onPick, addedIds, compact = false }: {
         style={{
           width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', outline: 'none', color: 'var(--color-text)',
           ...(compact
-            ? { fontSize: 11.5, padding: '6px 9px 6px 26px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)' }
+            ? { fontSize: 11.5, padding: '6px 10px 6px 26px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)' }
             : { fontSize: 13, padding: '10px 14px 10px 36px', borderRadius: 12, border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.88)', boxShadow: 'var(--shadow-sm-page)' }),
         }}
       />
@@ -78,15 +78,15 @@ export default function TestlyPicker({ onPick, addedIds, compact = false }: {
 
   if (compact) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {search}
         {status ?? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 260, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 260, overflowY: 'auto' }}>
             {shown.map(x => {
               const added = addedIds?.has(x.id)
               return (
                 <button key={x.id} onClick={() => onPick(x)} disabled={added} style={{
-                  display: 'flex', gap: 8, alignItems: 'center', textAlign: 'left', padding: '7px 9px', borderRadius: 9, border: 'none',
+                  display: 'flex', gap: 8, alignItems: 'center', textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none',
                   background: 'var(--color-bg-2)', cursor: added ? 'default' : 'pointer', fontFamily: 'inherit', opacity: added ? 0.6 : 1,
                 }}>
                   <TestlyTile size={22} />
@@ -111,7 +111,7 @@ export default function TestlyPicker({ onPick, addedIds, compact = false }: {
       {search}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px', fontSize: 12, color: 'var(--color-text-3)' }}>
         {tests && <span>{tests.length} {t('в вашем Тестли')}</span>}
-        <a href={testlyNewUrl()} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>
+        <a href={testlyNewUrl()} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>
           <ExternalLink size={12} /> {t('Новый тест в Тестли')}
         </a>
       </div>
@@ -128,9 +128,9 @@ export default function TestlyPicker({ onPick, addedIds, compact = false }: {
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{x.title}</span>
                 {badges(x)}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 5, fontSize: 12, color: 'var(--color-text-3)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><ListChecks size={12} /> {testlyMeta({ ...x, minutes: null })}</span>
-                {x.minutes ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {x.minutes} {t('мин')}</span> : null}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 6, fontSize: 12, color: 'var(--color-text-3)' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ListChecks size={12} /> {testlyMeta({ ...x, minutes: null })}</span>
+                {x.minutes ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Clock size={12} /> {x.minutes} {t('мин')}</span> : null}
               </div>
             </div>
             <button onClick={() => onPick(x)} disabled={added} style={{

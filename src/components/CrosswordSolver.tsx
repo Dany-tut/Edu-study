@@ -150,7 +150,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
       <div style={{ overflowX: 'auto' }}>
         <div
           style={{
-            display: 'grid', gap: 3, width: 'max-content', margin: '0 auto',
+            display: 'grid', gap: 4, width: 'max-content', margin: '0 auto',
             gridTemplateColumns: `repeat(${grid.cols}, ${CELL}px)`,
             gridTemplateRows: `repeat(${grid.rows}, ${CELL}px)`,
           }}
@@ -212,7 +212,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                     whileTap={{ scale: 0.92 }}
                     onClick={() => press(kk)}
                     style={{
-                      minWidth: 40, padding: '8px 9px', borderRadius: 11,
+                      minWidth: 40, padding: '8px 10px', borderRadius: 11,
                       border: '1px solid var(--color-border-strong)',
                       background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-text)',
                       fontFamily: 'inherit', fontSize: 20, fontWeight: 700, cursor: 'pointer',
@@ -226,7 +226,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                 onClick={clear}
                 className="self-center cursor-pointer"
                 style={{
-                  padding: '7px 15px', borderRadius: 999, border: '1px solid var(--color-border)',
+                  padding: '8px 16px', borderRadius: 999, border: '1px solid var(--color-border)',
                   background: 'transparent', color: 'var(--color-muted)',
                   fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                 }}

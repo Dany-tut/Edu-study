@@ -209,7 +209,7 @@ export default function AdminStudentsManager() {
             onChange={e => setQuery(e.target.value)}
             placeholder={t('Поиск: имя, группа, учитель…')}
             style={{
-              width: '100%', boxSizing: 'border-box', padding: '8px 11px 8px 32px',
+              width: '100%', boxSizing: 'border-box', padding: '8px 12px 8px 32px',
               borderRadius: 11, border: '1px solid var(--color-border-medium)',
               background: 'var(--color-bg-input)', color: 'var(--color-text)',
               fontSize: 13, outline: 'none', fontFamily: 'inherit',
@@ -230,7 +230,7 @@ export default function AdminStudentsManager() {
             onClick={() => { setForceAll(!allOpen); if (allOpen) setOpenOwners(new Set()) }}
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
           >
-            <ChevronRight size={14} strokeWidth={2} style={{ transform: allOpen ? 'rotate(90deg)' : 'none', transition: 'transform 140ms ease' }} />
+            <ChevronRight size={14} strokeWidth={2} style={{ transform: allOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease' }} />
             {/* Ширина кнопки — по САМОЙ ДЛИННОЙ подписи, а не по текущей.
                 «Развернуть все» длиннее «Свернуть все», и на переключении ряд
                 дёргался целиком: поиск в нём тянущийся (flex), и он ловил
@@ -273,7 +273,7 @@ export default function AdminStudentsManager() {
                 onClick={() => toggleOwner(ownerId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                  marginBottom: open ? 8 : 0, padding: '7px 8px',
+                  marginBottom: open ? 8 : 0, padding: '8px 8px',
                   background: 'transparent', border: 'none', borderRadius: 10,
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                 }}
@@ -283,7 +283,7 @@ export default function AdminStudentsManager() {
                   style={{
                     color: 'var(--color-text-3)', flexShrink: 0,
                     transform: open ? 'rotate(90deg)' : 'none',
-                    transition: 'transform 140ms ease',
+                    transition: 'transform 0.15s ease',
                   }}
                 />
                 <span style={{
@@ -300,7 +300,7 @@ export default function AdminStudentsManager() {
                   <div key={row.id} style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
-                    borderRadius: 14, padding: '11px 13px',
+                    borderRadius: 14, padding: '12px 12px',
                     opacity: busyId === row.id ? 0.5 : 1,
                   }}>
                     <div style={{
@@ -333,7 +333,7 @@ export default function AdminStudentsManager() {
                         onChange={v => askReassign(row, v)}
                         options={teacherOptions}
                         triggerStyle={{
-                          padding: '7px 10px', borderRadius: 9, fontWeight: 600,
+                          padding: '8px 10px', borderRadius: 9, fontWeight: 600,
                           background: 'var(--color-bg-3)',
                           border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : 'var(--color-peach-text)'}`,
                         }}
@@ -420,7 +420,7 @@ function Field({ label, value, onChange, placeholder }: {
 }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6, paddingLeft: 13 }}>{label}</span>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={fieldStyle} />
     </label>
   )
@@ -466,12 +466,12 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
       <Field label={t('Контакт родителя')} value={parent} onChange={setParent} />
 
       <label style={{ display: 'block', marginBottom: 12 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{t('Комментарий')}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6, paddingLeft: 13 }}>{t('Комментарий')}</span>
         <GrowTextarea value={comment} onChange={setComment} minHeight={60} style={fieldStyle} />
       </label>
 
       <div style={{ marginBottom: 18 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 5, paddingLeft: 13 }}>{t('Группа (и вместе с ней — учитель)')}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6, paddingLeft: 13 }}>{t('Группа (и вместе с ней — учитель)')}</span>
         <TeacherSelect
           clearable={false}
           placeholder={t('— без группы —')}

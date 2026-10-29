@@ -71,7 +71,7 @@ function TabBar({ tabs, statuses, activeKey, onSelect }: {
             onClick={() => onSelect(tab.key)}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '9px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '10px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 13, fontWeight: 700,
               border: `1px solid ${active ? 'transparent' : 'var(--color-border-medium)'}`,
               background: active ? 'var(--color-text)' : 'var(--color-bg-2)',
@@ -120,7 +120,7 @@ function CommentCard({ ev, repliesTo, onZoomPhoto }: { ev: HardEvent & { kind: '
           {fmtDate(ev.at) && <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginTop: 4 }}>{fmtDate(ev.at)}</div>}
         </div>
         {ev.verdict && (
-          <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, background: 'rgba(var(--glass-rgb),0.7)', padding: '3px 9px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, background: 'rgba(var(--glass-rgb),0.7)', padding: '4px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
             {accepted ? <><Star size={12} fill="currentColor" /> {t('Принято')}{typeof ev.score === 'number' ? ` · ${ev.score}/5` : ''}</> : <><RotateCcw size={12} /> {t('На доработку')}</>}
           </span>
         )}
@@ -238,15 +238,15 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-          <button onClick={() => fileRef.current?.click()} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => fileRef.current?.click()} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <ImageIcon size={16} /> {t('Фото')}
           </button>
-          <button onClick={() => setShowBoard(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 14, border: `1px solid ${showBoard || board ? palette.accent : 'var(--color-border-medium)'}`, background: showBoard || board ? palette.soft : 'var(--color-bg-2)', color: showBoard || board ? palette.text : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => setShowBoard(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 14, border: `1px solid ${showBoard || board ? palette.accent : 'var(--color-border-medium)'}`, background: showBoard || board ? palette.soft : 'var(--color-bg-2)', color: showBoard || board ? palette.text : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <PenLine size={16} /> {board ? t('Доска ✓') : t('Доска')}
           </button>
         </div>
         <motion.button whileHover={{ y: has && !busy ? -1 : 0 }} whileTap={{ scale: 0.99 }} disabled={!has || busy} onClick={() => onSubmit({ answer: draft, photos, board, voice })}
-          style={{ padding: '13px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: has && !busy ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          style={{ padding: '12px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: has && !busy ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <Send size={16} /> {busy ? t('Отправляю…') : t('Отправить решение')}
         </motion.button>
       </div>
@@ -298,7 +298,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
             <Label>{t('Разметка поверх решения')}</Label>
-            <button onClick={() => setAnnotating(a => !a)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, border: `1px solid ${annotating ? 'transparent' : 'var(--color-border-medium)'}`, background: annotating ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: annotating ? 'var(--color-green-text)' : 'var(--color-text)' }}>
+            <button onClick={() => setAnnotating(a => !a)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, border: `1px solid ${annotating ? 'transparent' : 'var(--color-border-medium)'}`, background: annotating ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: annotating ? 'var(--color-green-text)' : 'var(--color-text)' }}>
               {annotating ? <><Check size={14} /> {t('Готово')}</> : <><PenLine size={14} /> {t('Разметить')}</>}
             </button>
           </div>
@@ -361,11 +361,11 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('completed')} disabled={busy}
-          style={{ padding: '13px 0', borderRadius: 14, border: 'none', background: 'var(--grad-green)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 6px 18px rgba(42,125,79,0.28)', opacity: busy ? 0.6 : 1 }}>
+          style={{ padding: '12px 0', borderRadius: 14, border: 'none', background: 'var(--grad-green)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 6px 18px rgba(42,125,79,0.28)', opacity: busy ? 0.6 : 1 }}>
           <Check size={16} /> {t('Принять задание')} · {score}/5
         </motion.button>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('returned')} disabled={busy}
-          style={{ padding: '13px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: busy ? 0.6 : 1 }}>
+          style={{ padding: '12px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: busy ? 0.6 : 1 }}>
           <RotateCcw size={14} /> {t('На доработку')}
         </motion.button>
       </div>
@@ -421,7 +421,7 @@ export default function HardConversation({
       <div style={{ padding: 18, borderRadius: 20, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: tab.statement ? 10 : 0 }}>
           <Label color="var(--color-accent)">{t('Задание от преподавателя')} · {tab.title}</Label>
-          <span style={{ fontSize: 11, fontWeight: 700, color: meta.color, background: meta.bg, padding: '3px 9px', borderRadius: 8, flexShrink: 0 }}>{t(meta.label)}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: meta.color, background: meta.bg, padding: '4px 10px', borderRadius: 8, flexShrink: 0 }}>{t(meta.label)}</span>
         </div>
         {tab.statement && (
           /<\/?[a-z][\s\S]*>/i.test(tab.statement)
@@ -458,7 +458,7 @@ export default function HardConversation({
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>
                 <Star size={16} fill="currentColor" /> {t('Задание принято')} · {score}/5
               </div>
-              <div style={{ fontSize: 13, color: 'var(--color-green-text)', opacity: 0.85, marginTop: 3 }}>
+              <div style={{ fontSize: 13, color: 'var(--color-green-text)', opacity: 0.85, marginTop: 4 }}>
                 {role === 'student' ? `${t('Стикер')} «${t(tierOf(score).name)}» ${t('добавлен в коллекцию')}` : `${t('Ученик получил стикер')} «${t(tierOf(score).name)}»`}
               </div>
             </div>

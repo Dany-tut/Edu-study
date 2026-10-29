@@ -175,13 +175,13 @@ export default function TaskVideo({
           <div style={{
             width: `${Math.round(ratio * 100)}%`, height: '100%', borderRadius: 999,
             background: done ? 'var(--color-green-fill)' : 'var(--color-blue-fill)',
-            transition: 'width 0.3s ease',
+            transition: 'width 0.38s ease',
           }} />
         </div>
         <div style={{
           fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
           color: done ? 'var(--color-green-text)' : 'var(--color-text-2)',
-          display: 'flex', alignItems: 'center', gap: 5,
+          display: 'flex', alignItems: 'center', gap: 6,
         }}>
           {done && <Check size={14} />}
           {done

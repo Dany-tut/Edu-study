@@ -148,12 +148,12 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
           return (
             <div key={i} className="flex" style={{ justifyContent: side ? 'flex-end' : 'flex-start' }}>
               <div style={{
-                maxWidth: '86%', padding: '9px 13px',
+                maxWidth: '86%', padding: '10px 12px',
                 borderRadius: side ? '15px 15px 4px 15px' : '15px 15px 15px 4px',
                 background: side ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                 border: `1px solid ${active ? 'rgba(var(--accent-rgb), 0.45)' : 'var(--color-border-soft)'}`,
               }}>
-                <div className="flex items-center" style={{ gap: 7, marginBottom: 2 }}>
+                <div className="flex items-center" style={{ gap: 8, marginBottom: 2 }}>
                   <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-accent)' }}>
                     {line.speaker}
                   </span>
@@ -198,7 +198,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                   }}
                   className="cursor-pointer"
                   style={{
-                    padding: '9px 14px', borderRadius: 12, fontFamily: 'inherit',
+                    padding: '10px 14px', borderRadius: 12, fontFamily: 'inherit',
                     fontSize: 14, fontWeight: 600, lineHeight: 1.3,
                     border: `1.5px solid ${active ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
                     background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
@@ -221,7 +221,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
               placeholder={t('Впиши пропущенную реплику…')}
               inputMode={scriptKeyboardCovers(answer) ? 'none' : undefined}
               style={{
-                width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 14,
+                width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
                 fontFamily: 'inherit', fontSize: 14, color: 'var(--color-text)',
                 background: 'var(--color-bg-input)', outline: 'none',
                 border: `1px solid ${showVerdict ? (correct ? 'var(--color-green-border)' : 'var(--color-red-border)') : 'var(--color-border)'}`,

@@ -239,7 +239,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
         initial={{ opacity: 0, scale: 0.94, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
@@ -429,7 +429,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
                 background: copied ? 'var(--btn-green-bg)' : 'var(--grad-purple)',
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14, cursor: 'pointer',
-                transition: 'background 0.2s',
+                transition: 'background 0.22s',
               }}
             >
               {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
@@ -729,7 +729,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
               width: '100%', padding: '12px 0',
               background: copied ? 'var(--btn-green-bg)' : 'var(--grad-purple)',
               color: '#fff', fontWeight: 700, fontSize: 15,
-              border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s',
+              border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.22s',
             }}>
               {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
             </button>
@@ -744,7 +744,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             {onPickExisting && (
               <button
                 type="button" onClick={onPickExisting}
-                style={{ width: '100%', marginBottom: 14, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit' }}
+                style={{ width: '100%', marginBottom: 14, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit' }}
               >
                 <UserPlus size={16} /> {t('Выбрать из существующих')}
               </button>
@@ -998,7 +998,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
         <button
           onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
           style={{
-            padding: '7px 12px', borderRadius: 10, cursor: 'pointer',
+            padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
             border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
             color: 'var(--color-text)', fontSize: 12, fontWeight: 600,
           }}
@@ -1017,8 +1017,8 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
                 onClick={() => copyOne(s)}
                 title={t('Скопировать ссылку приглашения')}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 7,
-                  padding: '7px 11px', borderRadius: 999, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 12px', borderRadius: 999, cursor: 'pointer',
                   border: '1px solid var(--color-border-medium)',
                   background: 'var(--color-bg-3)', color: 'var(--color-text)',
                   fontSize: 13, fontWeight: 600,
@@ -1049,7 +1049,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
           <button
             onClick={copyAll}
             style={{
-              padding: '9px 14px', borderRadius: 12, cursor: 'pointer',
+              padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
               border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
               color: 'var(--color-text)', fontSize: 13, fontWeight: 600,
             }}
@@ -1220,7 +1220,7 @@ function GroupCard({
           {t('с')} {group.startDate}
         </div>
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Прогресс')}</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>
               {group.lessonsCompleted}/{group.totalLessons}
@@ -1320,7 +1320,7 @@ function Th({
         borderBottom: '1px solid var(--color-border-soft)',
       }}
     >
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
         {label}
         {active
           ? dir === 'asc'
@@ -1342,7 +1342,7 @@ function ScorePill({ value, max = 100 }: { value: number | null; max?: number })
     <span style={{
       display: 'inline-block', minWidth: 34,
       fontSize: 12, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums',
-      background: bg, borderRadius: 7, padding: '2px 7px', textAlign: 'center',
+      background: bg, borderRadius: 7, padding: '2px 8px', textAlign: 'center',
     }}>
       {value}
     </span>
@@ -1375,7 +1375,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
   const mono: React.CSSProperties = { fontFamily: 'monospace', fontSize: 13, fontWeight: 600 }
   const rowStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    gap: 8, padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10,
+    gap: 8, padding: '8px 10px', background: 'var(--color-bg)', borderRadius: 10,
   }
   const shimBar: React.CSSProperties = {
     flex: 1, height: 14, borderRadius: 6,
@@ -1552,7 +1552,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
           <div style={{ display: 'flex', gap: 0 }}>
             {([['main', BookOpen, 'Основное'], ['trainer', Target, 'Тренажёр']] as const).map(([key, Icon, label]) => (
               <button key={key} onClick={() => setTab(key)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === key ? 700 : 500, color: tab === key ? 'var(--color-text)' : 'var(--color-text-3)', borderBottom: `2px solid ${tab === key ? group.color : 'transparent'}`, transition: 'all 0.15s' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === key ? 700 : 500, color: tab === key ? 'var(--color-text)' : 'var(--color-text-3)', borderBottom: `2px solid ${tab === key ? group.color : 'transparent'}`, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                 <Icon size={13} />
                 {t(label)}
               </button>
@@ -1564,7 +1564,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <AnimatePresence mode="wait">
             {tab === 'main' ? (
-              <motion.div key="main" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
+              <motion.div key="main" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
                 style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
                 {/* Left col */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -1591,8 +1591,8 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                       <ScoreBar label={t('ДЗ')} icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
                       <ScoreBar label={t('Тесты')} icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="#EFE0FF" />
                       {student.trialScore !== null && <ScoreBar label={t('Пробник')} icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <Clock size={14} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
                           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
                         </div>
@@ -1605,7 +1605,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 </div>
               </motion.div>
             ) : (
-              <motion.div key="trainer" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
+              <motion.div key="trainer" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
                 style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {/* Summary row */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
@@ -1640,14 +1640,14 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                       const color = pct >= 0.7 ? '#34C877' : pct >= 0.4 ? '#FAC775' : '#F09595'
                       return (
                         <div key={section}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                             <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{section}</span>
                             <span style={{ fontSize: 12, fontWeight: 700, color, flexShrink: 0, marginLeft: 8 }}>{correct}/{total} · {Math.round(pct * 100)}%</span>
                           </div>
                           <div style={{ height: 7, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }} transition={{ duration: 0.55, delay: 0.1 }}
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }} transition={{ duration: 0.38, delay: 0.1 }}
                               style={{ height: '100%', background: color, flexShrink: 0 }} />
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${((total - correct) / total) * 100}%` }} transition={{ duration: 0.55, delay: 0.1 }}
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${((total - correct) / total) * 100}%` }} transition={{ duration: 0.38, delay: 0.1 }}
                               style={{ height: '100%', background: '#F4B3B344', flexShrink: 0 }} />
                           </div>
                         </div>
@@ -1672,7 +1672,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                       <div key={wt.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)', cursor: 'pointer' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,139,145,0.18)' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-red-soft)' }}>
-                        <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{wt.id}</span>
+                        <span style={{ padding: '2px 8px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{wt.id}</span>
                         <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>{wt.topic}</span>
                         <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Линия')} {wt.line}</span>
                         <CheckCircle2 size={14} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
@@ -1727,11 +1727,11 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${pct * 100}%` }}
-                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                     style={{ height: '100%', background: group.color, borderRadius: 99 }}
                   />
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 3 }}>{Math.round(pct * 100)}% {t('пройдено')}</div>
+                <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>{Math.round(pct * 100)}% {t('пройдено')}</div>
               </div>
             )
           })}
@@ -1781,7 +1781,7 @@ function TracksSection({
   const chip = (icon: string, subj: string, lvl: string, color: string): React.CSSProperties => ({
     display: 'inline-flex', alignItems: 'center', gap: 6,
     background: color + '22', border: `1px solid ${color}44`,
-    borderRadius: 9, padding: '5px 10px', fontSize: 12, fontWeight: 600, color: 'var(--color-text)',
+    borderRadius: 9, padding: '6px 10px', fontSize: 12, fontWeight: 600, color: 'var(--color-text)',
   })
 
   return (
@@ -1877,7 +1877,7 @@ function TracksSection({
         ) : (
           <button
             type="button" onClick={() => setAdding(true)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '7px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
           >
             <Plus size={14} /> {individual ? t('Ещё направление') : t('Направление 1:1')}
           </button>
@@ -1948,7 +1948,7 @@ function StudentPanel({
                 {tn(student.name)}
               </div>
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 4, marginTop: 5, maxWidth: '100%',
+                display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, maxWidth: '100%',
                 background: group.color + '33', borderRadius: 7, padding: '2px 8px',
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
@@ -2048,9 +2048,9 @@ function StudentPanel({
             )}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10,
+              padding: '8px 10px', background: 'var(--color-bg)', borderRadius: 10,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Clock size={14} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
               </div>
@@ -2108,7 +2108,7 @@ function StudentPanel({
               <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-red)' }}>{t('не сохранилось — повторите')}</span>
             )}
             {commentSaved && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)' }}>
                 <Check size={12} /> {t('сохранено')}
               </span>
             )}
@@ -2146,7 +2146,7 @@ function StudentPanel({
           onClick={onAddHomework}
           style={{ height: 48,
             width: '100%', padding: '0 22px',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             background: 'var(--grad-purple)', border: 'none',
             borderRadius: 14, cursor: 'pointer',
             fontSize: 15, fontWeight: 700, color: '#fff',
@@ -2162,7 +2162,7 @@ function StudentPanel({
             onClick={onAddToGroup}
             style={{
               width: '100%', padding: '10px 0',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
               borderRadius: 12, cursor: 'pointer',
               fontSize: 13, fontWeight: 600, color: 'var(--color-text)',
@@ -2213,10 +2213,10 @@ function ContactRow({ icon: Icon, label, href }: { icon: React.ElementType; labe
       rel="noreferrer"
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '7px 10px', background: 'var(--color-bg)',
+        padding: '8px 10px', background: 'var(--color-bg)',
         borderRadius: 10, textDecoration: 'none',
         color: 'var(--color-text)', fontSize: 12, fontWeight: 500,
-        transition: 'background 0.12s',
+        transition: 'background 0.15s',
       }}
       onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-purple-soft)')}
       onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-bg)')}
@@ -2244,7 +2244,7 @@ function ScoreBar({ label, icon: Icon, value, color, bg }: {
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
           style={{ height: '100%', background: color, borderRadius: 99, opacity: 0.8 }}
         />
       </div>
@@ -2257,7 +2257,7 @@ function RosterAddItem({ title, subtitle, onClick }: { title: string; subtitle: 
     <button
       onClick={onClick}
       style={{
-        display: 'block', width: '100%', textAlign: 'left', padding: '9px 10px',
+        display: 'block', width: '100%', textAlign: 'left', padding: '10px 10px',
         background: 'transparent', border: 'none', borderRadius: 10, cursor: 'pointer',
       }}
       onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-3)' }}
@@ -2531,7 +2531,7 @@ export default function TeacherGroupsPage() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0, marginRight: activeStudentId ? 344 : 0 }}
               exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
             >
               <Card style={{ padding: 0, overflow: 'hidden' }}>
                 {/* Table header */}
@@ -2597,9 +2597,9 @@ export default function TeacherGroupsPage() {
                     {/* Right: search */}
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flex: '0 0 auto' }}>
                       <div style={{
-                        display: 'flex', alignItems: 'center', gap: 7,
+                        display: 'flex', alignItems: 'center', gap: 8,
                         background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
-                        borderRadius: 10, padding: '7px 11px', width: 180,
+                        borderRadius: 10, padding: '8px 12px', width: 180,
                       }}>
                         <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
                         <input
@@ -2684,7 +2684,7 @@ export default function TeacherGroupsPage() {
                             key={student.id}
                             initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.24, delay: i * 0.04 }}
+                            transition={{ duration: 0.22, delay: i * 0.04 }}
                             onClick={() => setActiveStudentId(isSelected ? null : student.id)}
                             style={{
                               cursor: 'pointer',
@@ -2700,7 +2700,7 @@ export default function TeacherGroupsPage() {
                             }}
                           >
                             {/* Name */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', ...colBg('name') }}>
+                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', ...colBg('name') }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <div style={{
                                   width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
@@ -2716,21 +2716,21 @@ export default function TeacherGroupsPage() {
                               </div>
                             </td>
                             {/* Last visit */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap', ...colBg('lastVisit') }}>
+                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap', ...colBg('lastVisit') }}>
                               {student.lastVisit}
                             </td>
                             {/* Scores */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('hwScore') }}>
+                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('hwScore') }}>
                               <ScorePill value={student.hwScore} />
                             </td>
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('testScore') }}>
+                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('testScore') }}>
                               <ScorePill value={student.testScore} />
                             </td>
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('trialScore') }}>
+                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('trialScore') }}>
                               <ScorePill value={student.trialScore} />
                             </td>
                             {/* Attendance */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('attendance') }}>
+                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('attendance') }}>
                               <span style={{
                                 fontSize: 12, fontWeight: 700,
                                 color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-text-2)' : 'var(--color-red-text)',
@@ -2739,7 +2739,7 @@ export default function TeacherGroupsPage() {
                               </span>
                             </td>
                             {/* Last payment */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('lastPayment') }}>
+                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('lastPayment') }}>
                               <span style={{ fontSize: 12, color: student.lastPayment ? 'var(--color-muted)' : 'var(--color-text-4)' }}>
                                 {student.lastPayment
                                   ? new Date(student.lastPayment).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -2747,7 +2747,7 @@ export default function TeacherGroupsPage() {
                               </span>
                             </td>
                             {/* Debt */}
-                            <td style={{ padding: '11px 24px 11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
+                            <td style={{ padding: '12px 24px 12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
                               {student.debt != null && student.debt > 0 ? (
                                 <span style={{
                                   fontSize: 12, fontWeight: 700,
@@ -2755,7 +2755,7 @@ export default function TeacherGroupsPage() {
                                   background: 'var(--color-red-soft)',
                                   border: '1px solid var(--color-red)',
                                   borderRadius: 6,
-                                  padding: '2px 7px',
+                                  padding: '2px 8px',
                                 }}>
                                   {student.debt.toLocaleString('ru-RU')} ₽
                                 </span>
@@ -2779,7 +2779,7 @@ export default function TeacherGroupsPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
+            transition={{ duration: 0.38, delay: 0.3 }}
             style={{
               textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)',
             }}

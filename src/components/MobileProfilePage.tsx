@@ -175,7 +175,7 @@ export default function MobileProfilePage() {
               </div>
               <div className="min-w-0" style={{ flex: 1 }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{name}</div>
-                <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 7 }}>
+                <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 8 }}>
                   {/* Строка уровня — она же вход в смену карточки, когда их
                       несколько: стрелка появляется только тогда, иначе это
                       обычная подпись без обещания тапа. */}
@@ -200,7 +200,7 @@ export default function MobileProfilePage() {
                 </div>
               </div>
             </div>
-            <div style={{ marginTop: 15 }}>
+            <div style={{ marginTop: 16 }}>
               <div className="flex items-center justify-between" style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
                 <span style={{ color: 'var(--color-text-3)' }}>{t('До уровня')} {level + 1}</span>
                 <span style={{ color: 'var(--color-purple-text)' }}>{xpInLevel}/{XP_PER_LEVEL} XP</span>
@@ -216,7 +216,7 @@ export default function MobileProfilePage() {
               скоупит статистику ниже — отдельный док-переключатель с теми же
               названиями больше не нужен. */}
           {subjects.length > 0 && (
-            <div className="flex flex-col" style={{ gap: 9 }}>
+            <div className="flex flex-col" style={{ gap: 10 }}>
               <div className="flex items-baseline justify-between" style={{ padding: '0 2px' }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                   {t('Мои курсы')} · {subjects.length}
@@ -261,7 +261,7 @@ export default function MobileProfilePage() {
                   <div className="flex items-center" style={{ gap: 8, marginTop: 6 }}>
                     <span style={{ fontSize: 36, fontWeight: 800, lineHeight: 1 }}>{heroAvg ? `${heroAvg}%` : '—'}</span>
                     {delta !== null && (
-                      <span className="flex items-center" style={{ gap: 2, fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.18)' }}>
+                      <span className="flex items-center" style={{ gap: 2, fontSize: 12, fontWeight: 800, padding: '4px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.18)' }}>
                         {delta >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                         {delta > 0 ? '+' : ''}{delta}
                       </span>
@@ -313,11 +313,11 @@ export default function MobileProfilePage() {
               <button
                 onClick={() => { tactile(); toggle() }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
                 aria-label={t('Переключить тему')}
               >
                 <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Тема оформления')}</span>
-                <span className="flex items-center" style={{ gap: 5, height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
+                <span className="flex items-center" style={{ gap: 6, height: 34, padding: '0 16px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
                   {dark ? <Moon size={14} strokeWidth={2} /> : <Sun size={14} strokeWidth={2} />}
                   {dark ? t('Тёмная') : t('Светлая')}
                 </span>
@@ -329,10 +329,10 @@ export default function MobileProfilePage() {
                 <button
                   onClick={() => { tactile(); openSeasonPicker() }}
                   className="flex items-center justify-between cursor-pointer"
-                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+                  style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 >
                   <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Хэллоуин-тема')}</span>
-                  <span className="flex items-center" style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
+                  <span className="flex items-center" style={{ height: 34, padding: '0 16px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
                     {t(season.active ? (VARIANTS.find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
                   </span>
                 </button>
@@ -343,7 +343,7 @@ export default function MobileProfilePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setTintOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Цвет курса')}
@@ -362,7 +362,7 @@ export default function MobileProfilePage() {
                   whileTap={{ scale: 0.99 }}
                   onClick={() => { tactile(); setCourseOrderOpen(true) }}
                   className="flex items-center justify-between cursor-pointer"
-                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+                  style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 >
                   <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                     {t('Порядок курсов')}
@@ -379,7 +379,7 @@ export default function MobileProfilePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Лента и жесты')}
@@ -396,11 +396,11 @@ export default function MobileProfilePage() {
               <button
                 onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
               >
                 <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Язык')}</span>
-                <span className="flex items-center" style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
+                <span className="flex items-center" style={{ height: 34, padding: '0 16px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
                   {lang === 'ru' ? 'Русский' : 'English'}
                 </span>
               </button>
@@ -409,7 +409,7 @@ export default function MobileProfilePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedbackOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
-                style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Обратная связь')}
@@ -422,7 +422,7 @@ export default function MobileProfilePage() {
                   whileTap={{ scale: 0.99 }}
                   onClick={() => { tactile(); requestShowInstall() }}
                   className="flex items-center justify-between cursor-pointer"
-                  style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+                  style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 >
                   <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                     <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
@@ -439,7 +439,7 @@ export default function MobileProfilePage() {
               whileTap={{ scale: 0.97 }}
               onClick={logout}
               className="flex items-center justify-center cursor-pointer"
-              style={{ gap: 8, padding: '13px', borderRadius: 16, background: 'transparent', color: PAIR.error.text, border: 'none', fontSize: 15, fontWeight: 600 }}
+              style={{ gap: 8, padding: '12px', borderRadius: 16, background: 'transparent', color: PAIR.error.text, border: 'none', fontSize: 15, fontWeight: 600 }}
             >
               <LogOut size={18} />
               {t('Выйти из аккаунта')}
@@ -579,7 +579,7 @@ function CourseCard({ title, icon, caption, progress, pair, active, onClick }: {
         {title}
       </span>
       {typeof progress === 'number' ? (
-        <span className="flex items-center" style={{ gap: 7 }}>
+        <span className="flex items-center" style={{ gap: 8 }}>
           <span style={{ flex: 1, height: 5, borderRadius: 99, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
             <span style={{ display: 'block', width: `${Math.max(2, progress)}%`, height: '100%', borderRadius: 99, background: accent }} />
           </span>
@@ -604,7 +604,7 @@ function HeroStat({ label, value }: { label: string; value: string }) {
 
 function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value: string | number; label: string; pair: { bg: string; text: string } }) {
   return (
-    <div style={{ flex: 1, minWidth: 0, padding: '12px 12px', borderRadius: 16, background: pair.bg, display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <div style={{ flex: 1, minWidth: 0, padding: '12px 12px', borderRadius: 16, background: pair.bg, display: 'flex', flexDirection: 'column', gap: 6 }}>
       <Icon size={16} style={{ color: pair.text }} />
       <div style={{ fontSize: 20, fontWeight: 800, color: pair.text, lineHeight: 1 }}>{value}</div>
       <div style={{ fontSize: 11, fontWeight: 600, color: pair.text, opacity: 0.85, lineHeight: 1.2 }}>{label}</div>

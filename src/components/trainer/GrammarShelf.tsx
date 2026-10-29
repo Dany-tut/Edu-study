@@ -54,7 +54,7 @@ export function GrammarGrid({ groups, result, accent, soft, onOpen }: {
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
               {t(g.chapter)}
             </h2>
-            <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: '3px 0 0', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: '4px 0 0', lineHeight: 1.5 }}>
               {g.forms.length} {t(formsWord(g.forms.length))}
             </p>
           </header>
@@ -64,7 +64,7 @@ export function GrammarGrid({ groups, result, accent, soft, onOpen }: {
               const r = result(f.id)
               return (
                 <Tile key={f.id} accent={accent} onClick={() => onOpen(f.id)}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <TileChip tone="accent" accent={accent} soft={soft}>{f.level}</TileChip>
                     <TileChip tone="mute">{f.examples.length} {t('примеров')}</TileChip>
                   </span>
@@ -147,7 +147,7 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <TileChip tone="accent" accent={accent} soft={soft}>{form.level}</TileChip>
           <TileChip tone="mute">{form.chapter}</TileChip>
         </div>
@@ -181,7 +181,7 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
             <div key={i} style={{
               padding: '12px 14px', borderRadius: 14,
               background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
-              display: 'flex', flexDirection: 'column', gap: 5,
+              display: 'flex', flexDirection: 'column', gap: 6,
             }}>
               <GlossedText text={ex.text} lang={lang} accent={accent} subject={subject} />
               <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
@@ -202,7 +202,7 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
       {/* Ошибка русскоязычного */}
       {form.pitfall && (
         <div style={{
-          display: 'flex', gap: 10, padding: '13px 16px', borderRadius: 14,
+          display: 'flex', gap: 10, padding: '12px 16px', borderRadius: 14,
           background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
         }}>
           <AlertTriangle size={16} style={{ color: 'var(--color-amber)', flexShrink: 0, marginTop: 2 }} />
@@ -216,7 +216,7 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
       {/* Сравнение с соседями — половина вопросов к грамматике именно такие */}
       {form.contrast && form.contrast.length > 0 && (
         <Section title={t('Не путать с')}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {form.contrast.map(c => {
               const other = all.forms.find(f => f.id === c.with)
               return (
@@ -228,7 +228,7 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
                     textAlign: 'left', cursor: other ? 'pointer' : 'default',
                     padding: '12px 14px', borderRadius: 14,
                     background: soft, border: `1px solid ${accent}33`,
-                    display: 'flex', flexDirection: 'column', gap: 5,
+                    display: 'flex', flexDirection: 'column', gap: 6,
                   }}
                 >
                   <span style={{
@@ -271,7 +271,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
       <header>
         <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>{title}</h3>
         {hint && (
-          <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '3px 0 0', lineHeight: 1.5, ...proseWrap }}>
+          <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '4px 0 0', lineHeight: 1.5, ...proseWrap }}>
             {bindShortWords(hint)}
           </p>
         )}
@@ -295,7 +295,7 @@ function FormTable({ table, accent, soft }: {
           <tr style={{ background: soft }}>
             {table.head.map((h, i) => (
               <th key={i} style={{
-                textAlign: 'left', padding: '10px 13px', fontSize: 12,
+                textAlign: 'left', padding: '10px 12px', fontSize: 12,
                 fontWeight: 700, color: accent, whiteSpace: 'nowrap',
               }}>
                 {h}
@@ -308,7 +308,7 @@ function FormTable({ table, accent, soft }: {
             <tr key={i} style={{ borderTop: '1px solid var(--color-border-soft)' }}>
               {row.map((cell, j) => (
                 <td key={j} style={{
-                  padding: '10px 13px', fontSize: 13, lineHeight: 1.5,
+                  padding: '10px 12px', fontSize: 13, lineHeight: 1.5,
                   color: j === 0 ? 'var(--color-text)' : 'var(--color-text-2)',
                   fontWeight: j === 0 ? 600 : 400,
                 }}>
@@ -359,13 +359,13 @@ function Quiz({ form, accent, soft, onDone }: {
         <div key={qi} style={{
           padding: '14px 16px', borderRadius: 16,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
-          display: 'flex', flexDirection: 'column', gap: 9,
+          display: 'flex', flexDirection: 'column', gap: 10,
         }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5, ...proseWrap }}>
             {bindShortWords(q.q)}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {q.options.map((o, oi) => {
               const chosen = picked[qi] === oi
               const done = picked[qi] !== undefined
@@ -380,8 +380,8 @@ function Quiz({ form, accent, soft, onDone }: {
                   onClick={() => pick(qi, oi)}
                   style={{
                     textAlign: 'left', cursor: done ? 'default' : 'pointer',
-                    padding: '10px 13px', borderRadius: 12,
-                    display: 'flex', alignItems: 'center', gap: 9,
+                    padding: '10px 12px', borderRadius: 12,
+                    display: 'flex', alignItems: 'center', gap: 10,
                     fontSize: 14, lineHeight: 1.5,
                     color: 'var(--color-text-2)',
                     background: tone === 'right' ? 'var(--color-green-soft)'
@@ -404,7 +404,7 @@ function Quiz({ form, accent, soft, onDone }: {
           {picked[qi] !== undefined && (
             <div style={{
               fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)',
-              padding: '10px 13px', borderRadius: 12, background: soft, ...proseWrap,
+              padding: '10px 12px', borderRadius: 12, background: soft, ...proseWrap,
             }}>
               {bindShortWords(q.why)}
             </div>

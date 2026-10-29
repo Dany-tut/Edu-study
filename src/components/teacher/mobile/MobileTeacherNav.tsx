@@ -7,7 +7,7 @@ import { useNavCollapse } from '../../../lib/useNavCollapse'
 import { useT } from '../../../lib/i18n'
 
 // Shared ease/duration for the scroll collapse (matches the student dock).
-const COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
+const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileTeacherNav — bottom nav for the MOBILE teacher app (MOBILE ONLY).
@@ -58,8 +58,8 @@ export default function MobileTeacherNav({
         // margin together so the dock also shrinks in length on scroll-down.
         animate={{
           height: collapsed ? 50 : 62,
-          paddingTop: collapsed ? 7 : 9,
-          paddingBottom: collapsed ? 7 : 9,
+          paddingTop: collapsed ? 8 : 10,
+          paddingBottom: collapsed ? 8 : 10,
           marginLeft: collapsed ? 52 : MOBILE_DOCK_EDGE + 8,
           marginRight: collapsed ? 52 : MOBILE_DOCK_EDGE + 8,
         }}

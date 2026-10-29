@@ -140,7 +140,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
         <TileGrid min={260}>
           <Tile accent={accent} tint={{ surface: `${accent}14`, border: `${accent}4d` }} onClick={() => setRunning(draft)}>
             <TileChip tone="solid" accent={accent} soft={soft}>{t('Не досдан')}</TileChip>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
               <Play size={16} style={{ color: accent }} /> {t('Продолжить')}: {t(draftMock.title)}
             </span>
             <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>
@@ -190,7 +190,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
                       <TileChip>{t('Одна секция')}</TileChip>
                       {done && <Check size={14} style={{ color: 'var(--color-green-text)' }} />}
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
                       <Icon size={15} style={{ color: accent }} /> {SECTION_LABEL[s]}
                     </span>
                     <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45 }}>{t(SECTION_HINT[s])}</span>
@@ -337,7 +337,7 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 700 }}>{t('цель')}</div>
           {/* Степпер — одна капсула: 34 = 3 + круг 28 + 3, число постоянной ширины. */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, height: 34, padding: 3, borderRadius: 999, background: 'var(--color-bg-3)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, height: 34, padding: 4, borderRadius: 999, background: 'var(--color-bg-3)' }}>
             <button type="button" onClick={() => set({ target: Math.max(4, target - 0.5) })} style={stepBtn} aria-label={t('Ниже')}><Minus size={14} /></button>
             <span style={{ fontSize: 24, fontWeight: 800, lineHeight: 1, color: accent, minWidth: 48, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{fmtBand(target)}</span>
             <button type="button" onClick={() => set({ target: Math.min(9, target + 0.5) })} style={stepBtn} aria-label={t('Выше')}><Plus size={14} /></button>

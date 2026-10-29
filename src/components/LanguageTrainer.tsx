@@ -1353,7 +1353,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                       Шрифт и отступы — как у заголовка набора (PhraseDecks):
                       строки полки и соседних плиток стоят по одной сетке. */}
                   <div style={{
-                    display: 'flex', alignItems: 'flex-start', gap: 7,
+                    display: 'flex', alignItems: 'flex-start', gap: 8,
                     fontSize: 15, lineHeight: 1.3, fontWeight: 700, color: 'var(--color-text)',
                   }}>
                     <Layers size={16} style={{ color: palette.accent, flexShrink: 0, marginTop: 2 }} aria-hidden />
@@ -1519,7 +1519,7 @@ export function Chips({ label, value, options, onChange, accent }: {
         return (
           <button key={o} onClick={() => onChange(on ? '' : o)}
             style={{
-              padding: '5px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 13, fontWeight: 600,
               border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
               background: on ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
@@ -1565,7 +1565,7 @@ const TOUR_KEY = 'lang-reader-tour-v1'
 /** Кнопки служебной строки на титрах: все одного роста, различаются только цветом. */
 const finishChip = {
   display: 'inline-flex', alignItems: 'center', gap: 6,
-  padding: '9px 12px', borderRadius: 11, background: 'transparent',
+  padding: '10px 12px', borderRadius: 11, background: 'transparent',
   fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
 } as const
 
@@ -1797,7 +1797,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             disabled={takingWords || tookWords !== null}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
-              padding: '9px 12px', borderRadius: 12,
+              padding: '10px 12px', borderRadius: 12,
               cursor: takingWords || tookWords !== null ? 'default' : 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
               border: `1px solid ${tookWords !== null ? 'var(--color-border-soft)' : `${accent}66`}`,
@@ -1858,7 +1858,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 5,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
               fontSize: 12, color: 'var(--color-muted)', textDecoration: 'none',
             }}
           >
@@ -1891,9 +1891,9 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           почему сцена вообще чего-то стоит. */}
       {scene && (
         <div style={{
-          padding: '15px 18px', borderRadius: 18,
+          padding: '16px 18px', borderRadius: 18,
           background: palette.soft, border: `1px solid ${accent}33`,
-          display: 'flex', flexDirection: 'column', gap: 9,
+          display: 'flex', flexDirection: 'column', gap: 10,
         }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', color: accent, textTransform: 'uppercase' }}>
             {t('Что вокруг')}
@@ -1908,7 +1908,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
                 <span style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-text-2)', lineHeight: 1.5 }}>
                   {work.quote.text}
                 </span>
-                <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-3)', marginTop: 3 }}>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>
                   {work.quote.attribution}
                 </span>
               </div>
@@ -2000,7 +2000,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
           onClick={check}
           disabled={!allAnswered}
           style={{
-            width: '100%', padding: '13px', borderRadius: 16, border: 'none',
+            width: '100%', padding: '12px', borderRadius: 16, border: 'none',
             cursor: allAnswered ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
             fontSize: 15, fontWeight: 700, color: '#fff',
             background: allAnswered ? accent : 'var(--color-border-medium)',
@@ -2083,7 +2083,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             <button
               onClick={onBack}
               style={{
-                ...finishChip, marginLeft: 'auto', padding: '9px 15px',
+                ...finishChip, marginLeft: 'auto', padding: '10px 16px',
                 border: `1px solid ${accent}66`, color: accent, fontWeight: 600,
               }}
             >
@@ -2093,7 +2093,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
 
           {showTranslation && text.translation && !(hasScore && scoreView) && (
             <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-soft)' }}>
-              <div style={{ fontSize: 12, letterSpacing: 0.3, color: 'var(--color-text-3)', marginBottom: 7 }}>
+              <div style={{ fontSize: 12, letterSpacing: 0.3, color: 'var(--color-text-3)', marginBottom: 8 }}>
                 {t('Перевод текста')}
               </div>
               <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap', ...proseWrap }}>
@@ -2132,10 +2132,10 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
   const on = showRu && !!ru
 
   return (
-    <div style={{ padding: '15px 17px', borderRadius: 18, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
+    <div style={{ padding: '16px 16px', borderRadius: 18, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{
         display: 'flex', gap: 6, fontSize: 15, fontWeight: 600,
-        color: 'var(--color-text)', marginBottom: 11,
+        color: 'var(--color-text)', marginBottom: 12,
       }}>
         <span style={{ flexShrink: 0 }}>{index + 1}.</span>
         {on
@@ -2161,7 +2161,7 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
           </button>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {q.options.map((opt, oi) => {
           const picked = value === oi
           const right = q.correct === oi
@@ -2173,8 +2173,8 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
               onClick={() => onPick(oi)}
               disabled={checked}
               style={{
-                display: 'flex', alignItems: 'center', gap: 9, textAlign: 'left',
-                padding: '10px 13px', borderRadius: 13, fontFamily: 'inherit', fontSize: 14,
+                display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
+                padding: '10px 12px', borderRadius: 13, fontFamily: 'inherit', fontSize: 14,
                 cursor: checked ? 'default' : 'pointer', color: 'var(--color-text)',
                 border: `1.5px solid ${showRight ? 'var(--color-green-border)' : showWrong ? 'var(--color-red-border)' : picked ? accent : 'var(--color-border-soft)'}`,
                 background: showRight ? 'var(--color-green-soft)' : showWrong ? 'var(--color-red-soft)' : picked ? 'var(--color-bg-3)' : 'var(--color-bg-input)',
@@ -2300,7 +2300,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
           onClick={check}
           disabled={!allAnswered}
           style={{
-            width: '100%', padding: '13px', borderRadius: 16, border: 'none',
+            width: '100%', padding: '12px', borderRadius: 16, border: 'none',
             cursor: allAnswered ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
             fontSize: 15, fontWeight: 700, color: '#fff',
             background: allAnswered ? accent : 'var(--color-border-medium)',
@@ -2337,12 +2337,12 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
             </details>
           )}
           {item.glossary.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
               {item.glossary.map(g => {
                 const reading = wordReading(g.term, lang)
                 return (
                   <span key={g.term} style={{
-                    padding: '5px 10px', borderRadius: 999, fontSize: 13,
+                    padding: '6px 10px', borderRadius: 999, fontSize: 13,
                     background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
                   }}>
                     {g.term}

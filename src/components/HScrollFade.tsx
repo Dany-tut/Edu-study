@@ -112,14 +112,14 @@ export default function HScrollFade({
         style={{
           position: 'absolute', left: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none', zIndex: 5,
           background: `linear-gradient(to right, ${fade}, transparent)`,
-          opacity: edges.left ? 1 : 0, transition: 'opacity 0.18s ease',
+          opacity: edges.left ? 1 : 0, transition: 'opacity 0.15s ease',
         }}
       />
       <div
         style={{
           position: 'absolute', right: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none', zIndex: 5,
           background: `linear-gradient(to left, ${fade}, transparent)`,
-          opacity: edges.right ? 1 : 0, transition: 'opacity 0.18s ease',
+          opacity: edges.right ? 1 : 0, transition: 'opacity 0.15s ease',
         }}
       />
       {/* Стрелки. Одного градиента мало: на тёмной теме фейд по чёрному фону
@@ -168,7 +168,7 @@ export function ScrollArrow({ side, visible, onClick, inset = 0 }: {
         width: 26, height: 26, padding: 0, cursor: 'pointer', zIndex: 6,
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity 0.18s ease',
+        transition: 'opacity 0.15s ease',
         ...glassCircle,
       }}
     >

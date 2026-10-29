@@ -298,7 +298,7 @@ function AutoTextarea({ style, ...rest }: React.ComponentProps<typeof GrowTextar
 function Label({ children }: { children: React.ReactNode }) {
   return (
     // Отступ = начало текста в поле под подписью (поле: 12 + рамка 1.5), а не край рамки.
-    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5, paddingLeft: 13 }}>
+    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6, paddingLeft: 13 }}>
       {children}
     </div>
   )
@@ -389,7 +389,7 @@ function LeftCourseMeta({
         {...titleField}
         onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
         // flexShrink 0: колонка — флекс, и в низком окне она ужимала поле по высоте
-        style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '11px 14px', lineHeight: 1.3, resize: 'none', overflow: 'hidden', flexShrink: 0 }}
+        style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '12px 14px', lineHeight: 1.3, resize: 'none', overflow: 'hidden', flexShrink: 0 }}
         placeholder={t('Название курса')}
       />
 
@@ -424,12 +424,12 @@ function LeftCourseMeta({
                   key={l}
                   onClick={() => setCourse(c => ({ ...c, level: l }))}
                   style={{
-                    padding: '7px 14px', borderRadius: 10, cursor: 'pointer',
+                    padding: '8px 14px', borderRadius: 10, cursor: 'pointer',
                     border: 'none',
                     background: active ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
                     color: active ? 'var(--color-green-text)' : 'var(--color-text-3)',
                     fontWeight: active ? 600 : 400, fontSize: 13,
-                    transition: 'all 0.12s',
+                    transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   }}
                 >{t(l)}</button>
               )
@@ -553,7 +553,7 @@ function RemoveDot({ onClick, label }: { onClick: () => void; label: string }) {
         background: hover ? 'var(--color-green-text)' : 'transparent',
         color: hover ? 'var(--color-bg)' : 'var(--color-green-text)',
         opacity: hover ? 1 : 0.7,
-        transition: 'background 0.14s, color 0.14s, opacity 0.14s',
+        transition: 'background 0.15s, color 0.15s, opacity 0.15s',
       }}
     >
       <X size={14} strokeWidth={2.5} />
@@ -622,7 +622,7 @@ function AssignPicker({
         {q && <X size={14} style={{ color: 'var(--color-text-3)', cursor: 'pointer' }} onClick={() => setQ('')} />}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {shown.map(item => {
           const selected = selectedIdOf(item)
           const on = selected !== null
@@ -645,11 +645,11 @@ function AssignPicker({
                 : needsPick ? '1.5px solid var(--color-yellow-text)'
                 : '1.5px solid var(--color-border)',
               background: on ? 'var(--color-green-soft)' : 'transparent',
-              transition: 'all 0.14s',
+              transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}>
               <button onClick={() => onToggle(item)} style={{
                 display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                padding: on ? '9px 42px 9px 14px' : '9px 14px', border: 'none', background: 'transparent',
+                padding: on ? '10px 42px 10px 14px' : '10px 14px', border: 'none', background: 'transparent',
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 <div style={{
@@ -681,18 +681,18 @@ function AssignPicker({
               )}
 
               {(chips.length > 1 || (needsPick && chips.length > 0)) && onPickCard && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, padding: '0 14px 9px 48px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 14px 10px 48px' }}>
                   {chips.map(c => {
                     const active = c.id === selected
                     return (
                       <button key={c.id} onClick={() => onPickCard(item, c.id)} style={{
-                        padding: '3px 10px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+                        padding: '4px 10px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
                         fontSize: 11, fontWeight: 700,
                         border: '1px solid transparent',
                         borderColor: active ? 'transparent' : 'var(--color-border-soft)',
                         background: active ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
                         color: active ? 'var(--color-green-text)' : 'var(--color-text-2)',
-                        transition: 'all 0.14s',
+                        transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                       }}>
                         {tc(c.subject) || t('Без предмета')}
                       </button>
@@ -704,7 +704,7 @@ function AssignPicker({
                       нельзя. */}
                   {needsPick && !hasWantCard && wantSubject && onCreateCard && (
                     <button onClick={() => onCreateCard(item)} disabled={creatingId === item.id} style={{
-                      padding: '3px 10px', borderRadius: 999, cursor: creatingId === item.id ? 'default' : 'pointer',
+                      padding: '4px 10px', borderRadius: 999, cursor: creatingId === item.id ? 'default' : 'pointer',
                       fontFamily: 'inherit', fontSize: 11, fontWeight: 700,
                       border: '1px dashed var(--color-green-text)', background: 'transparent',
                       color: 'var(--color-green-text)', opacity: creatingId === item.id ? 0.6 : 1,
@@ -936,7 +936,7 @@ function CenterCourseAccess({
         color: resetDone === rowKey ? 'var(--color-green-text)' : 'var(--color-text-3)',
         cursor: resetting === rowKey ? 'default' : 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        opacity: resetting === rowKey ? 0.5 : 1, transition: 'all 0.15s',
+        opacity: resetting === rowKey ? 0.5 : 1, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
       }}
     >
       {resetDone === rowKey ? <Check size={14} /> : <RotateCcw size={14} />}
@@ -1113,7 +1113,7 @@ function CenterCourseAccess({
                 fontSize: 12, fontWeight: 700,
                 background: assignTab === tab ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
                 color: assignTab === tab ? 'var(--color-green-text)' : 'var(--color-text-2)',
-                transition: 'all 0.15s', fontFamily: 'inherit',
+                transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontFamily: 'inherit',
               }}>
                 {tab === 'group' ? t('Группе') : t('Ученику')}
               </button>
@@ -1160,7 +1160,7 @@ function CenterCourseAccess({
                   return (
                     <div key={g.id} style={{
                       display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '7px 7px 7px 12px', borderRadius: 18, background: 'var(--color-green-soft)',
+                      padding: '8px 8px 8px 12px', borderRadius: 18, background: 'var(--color-green-soft)',
                     }}>
                       <Users size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                       <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0 }}>
@@ -1183,7 +1183,7 @@ function CenterCourseAccess({
                 {assignedStudents.map(s => (
                   <div key={s.id} style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '7px 7px 7px 12px', borderRadius: 18, background: 'var(--color-bg-3)',
+                    padding: '8px 8px 8px 12px', borderRadius: 18, background: 'var(--color-bg-3)',
                   }}>
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0 }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', ...oneLine }} title={tn(s.name)}>
@@ -1319,7 +1319,7 @@ function ScheduleCard({
       boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18, padding: '16px 16px 18px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <Calendar size={14} style={{ color: date ? accent : 'var(--color-muted)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: date ? 'var(--color-text)' : 'var(--color-text-3)' }}>
           {isRec ? t('Дата записи') : t('Дата урока')}
@@ -1360,7 +1360,7 @@ function ScheduleCard({
         />
       </div>
       {date && time && (
-        <div style={{ marginTop: 12, fontSize: 11, color: accent, display: 'flex', alignItems: 'flex-start', gap: 5, lineHeight: 1.4 }}>
+        <div style={{ marginTop: 12, fontSize: 11, color: accent, display: 'flex', alignItems: 'flex-start', gap: 6, lineHeight: 1.4 }}>
           <Check size={12} style={{ flexShrink: 0, marginTop: 1 }} />
           <span>{footerText}</span>
         </div>
@@ -1473,14 +1473,14 @@ function TimecodeRail({
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
         {codes.map((tc, i) => {
           const isActive = i === active && total > 0
           return (
             <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 5, padding: 4, borderRadius: 12,
+              display: 'flex', alignItems: 'center', gap: 6, padding: 4, borderRadius: 12,
               background: isActive ? 'var(--color-green-soft)' : 'transparent',
-              transition: 'background 0.2s',
+              transition: 'background 0.22s',
             }}>
               <button
                 onClick={() => onSeek?.(tc.seconds)}
@@ -1507,7 +1507,7 @@ function TimecodeRail({
                 value={tc.label}
                 onChange={e => patch(i, { label: e.target.value })}
                 placeholder={t('Название главы')}
-                style={{ ...inputSt, flex: 1, minWidth: 0, padding: '6px 9px' }}
+                style={{ ...inputSt, flex: 1, minWidth: 0, padding: '6px 10px' }}
               />
               <button
                 onClick={() => onChange(codes.filter((_, j) => j !== i))}
@@ -1541,11 +1541,11 @@ function TimecodeRail({
             />
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setBulk(null)}
-                style={{ padding: '7px 12px', borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {t('Отмена')}
               </button>
               <button onClick={applyBulk}
-                style={{ flex: 1, padding: '7px 12px', borderRadius: 10, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {t('Добавить')}
               </button>
             </div>
@@ -1558,7 +1558,7 @@ function TimecodeRail({
           onClick={addHere}
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+            padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
             background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
             fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
           }}
@@ -1671,7 +1671,7 @@ function CenterRecording({
           />
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setLinkMode(false)}
-              style={{ padding: '9px 18px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ padding: '10px 18px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               {t('Отмена')}
             </button>
             <TeacherSaveButton label={t('Сохранить')} onClick={() => { onUpdate({ ...lesson, videoUrl }); setLinkMode(false) }} style={{ flex: 1 }} />
@@ -1805,7 +1805,7 @@ function TheoryFigure({
           onChange={e => onCaption(e.target.value)}
           placeholder={t('Подпись к картинке')}
           style={{
-            marginTop: 8, width: '100%', maxWidth: 340, padding: '3px 0',
+            marginTop: 8, width: '100%', maxWidth: 340, padding: '4px 0',
             border: 'none', borderBottom: '1px solid var(--color-border-medium)',
             background: 'transparent', color: 'var(--color-text)',
             fontSize: 12, fontFamily: 'inherit', outline: 'none',
@@ -1989,7 +1989,7 @@ function TheoryEditor({
               <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
                 <button onClick={() => restore(image.key)}
                   style={{
-                    flex: 1, padding: '3px 0', borderRadius: 8, border: 'none',
+                    flex: 1, padding: '4px 0', borderRadius: 8, border: 'none',
                     background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
                     fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                   }}
@@ -2147,7 +2147,7 @@ function CenterLesson({
                 {/* Список файлов «Материалов»: имя, размер, крестик. У одиночных
                     слотов крестик стоит прямо на карточке — списка не нужно. */}
                 {has && multiple && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
                     {files.map(f => (
                       <div key={f.path} style={{
                         display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px', borderRadius: 8,
@@ -2225,7 +2225,7 @@ function CenterLesson({
               initial={{ scale: 0.9, opacity: 0, y: 12 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 8 }}
-              transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+              transition={{ duration: 0.22, ease: [0.34, 1.56, 0.64, 1] }}
               onClick={e => e.stopPropagation()}
               style={{
                 background: 'var(--color-bg-card, var(--color-bg))',
@@ -2270,7 +2270,7 @@ function CenterLesson({
                 )
               })}
               <button onClick={() => setPastePicker(null)}
-                style={{ padding: '7px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', fontSize: 12, fontFamily: 'inherit', marginTop: 2 }}>
+                style={{ padding: '8px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', fontSize: 12, fontFamily: 'inherit', marginTop: 2 }}>
                 {t('Отмена')}
               </button>
             </motion.div>
@@ -2312,7 +2312,7 @@ function pickerOptionStyle(active: boolean): React.CSSProperties {
     cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: active ? 700 : 500,
     background: active ? 'var(--color-green-soft)' : 'transparent',
     color: active ? 'var(--color-green-text)' : 'var(--color-text)',
-    transition: 'background 0.12s',
+    transition: 'background 0.15s',
   }
 }
 
@@ -2365,16 +2365,16 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 10px', borderRadius: 11, border: 'none',
+          padding: '8px 10px', borderRadius: 11, border: 'none',
           cursor: 'pointer', background: 'var(--color-bg-input)',
-          fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s', fontSize: 12,
+          fontFamily: 'inherit', textAlign: 'left', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontSize: 12,
         }}
       >
         {Icon && <Icon size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />}
         <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {selected?.label ?? placeholder ?? '—'}
         </span>
-        <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+        <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
       {createPortal(
         <AnimatePresence>
@@ -2382,7 +2382,7 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
           <motion.div
             ref={popRef}
             initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.15 }}
             style={{
               position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, width: pos.width,
               minWidth: width ?? 110,
@@ -2482,9 +2482,9 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 10px', borderRadius: 11, border: 'none',
+          padding: '8px 10px', borderRadius: 11, border: 'none',
           cursor: 'pointer', background: 'var(--color-bg-input)',
-          fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s', fontSize: 12,
+          fontFamily: 'inherit', textAlign: 'left', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontSize: 12,
         }}
       >
         <Calendar size={14} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
@@ -2499,7 +2499,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
             <X size={12} />
           </button>
         ) : (
-          <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+          <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
         )}
       </button>
       {createPortal(
@@ -2508,7 +2508,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
           <motion.div
             ref={popRef}
             initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.15 }}
             style={{
               position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, minWidth: 260,
               background: 'rgba(var(--glass-rgb), 0.97)',
@@ -2541,7 +2541,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
                     background: isSelected ? 'var(--grad-purple)' : 'transparent',
                     boxShadow: !isSelected && isToday ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none',
                     color: isSelected ? '#fff' : 'var(--color-text)',
-                    transition: 'background 0.12s',
+                    transition: 'background 0.15s',
                   }}
                     onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
                     onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -2615,8 +2615,8 @@ function ChamoPicker({ value, onChange, accent, accentBg }: {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {groups.map(g => (
         <div key={g.kind}>
-          <div style={{ fontSize: 11, color: 'var(--color-text-4)', marginBottom: 5 }}>{g.title}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          <div style={{ fontSize: 11, color: 'var(--color-text-4)', marginBottom: 6 }}>{g.title}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {ALL_CHAMO.filter(c => c.kind === g.kind).map(c => {
               const on = c.ch === value
               return (
@@ -2630,7 +2630,7 @@ function ChamoPicker({ value, onChange, accent, accentBg }: {
                     border: `1.5px solid ${on ? accent : 'var(--color-border-soft)'}`,
                     background: on ? accentBg : 'var(--color-bg-input)',
                     color: on ? accent : 'var(--color-text)',
-                    transition: 'all 0.12s',
+                    transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   }}
                 >
                   {c.ch}
@@ -2717,7 +2717,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
       <div
         onClick={() => setExpanded(e => !e)}
         style={{
-          display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px',
+          display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px',
           borderBottom: expanded ? '1px solid var(--color-border-soft)' : 'none',
           cursor: 'pointer',
         }}
@@ -2754,7 +2754,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
         {expanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
+            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}
             style={{ overflow: 'hidden' }}
           >
             <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -2782,12 +2782,12 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {IMG_SIZES.map(s => (
                       <button key={s.value} onClick={() => onUpdate({ ...task, imageSize: s.value })}
-                        style={{ padding: '3px 9px', borderRadius: 7, border: `1.5px solid ${(task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.color : 'var(--color-border-medium)'}`, background: (task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.bg : 'var(--color-bg-2)', color: (task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.color : 'var(--color-text-3)', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
+                        style={{ padding: '4px 10px', borderRadius: 7, border: `1.5px solid ${(task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.color : 'var(--color-border-medium)'}`, background: (task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.bg : 'var(--color-bg-2)', color: (task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.color : 'var(--color-text-3)', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
                         {s.label}
                       </button>
                     ))}
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginLeft: 2 }}>{task.imageSize ?? DEFAULT_IMAGE_SIZE}%</span>
-                    <button onClick={() => imgInputRef.current?.click()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
+                    <button onClick={() => imgInputRef.current?.click()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
                       <Camera size={12} /> {t('Заменить')}
                     </button>
                     <button onClick={() => onUpdate({ ...task, image: undefined, imageSize: undefined })} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', color: 'var(--color-text-3)' }}>
@@ -2831,12 +2831,12 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                             border: `2px solid ${isCorrect ? cfg.fill : 'var(--color-border-medium)'}`,
                             background: isCorrect ? cfg.fill : 'transparent',
                             cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            position: 'relative', transition: 'all 0.14s',
+                            position: 'relative', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                           }}
                         >
                           {isCorrect && <Check size={14} strokeWidth={2.5} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff' }} />}
                         </button>
-                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                           <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0 }}>{letter}</div>
                           <AutoTextarea
                             value={ch}
@@ -2862,7 +2862,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     })}
                     <button
                       onClick={() => onUpdate({ ...task, choices: [...choices, ''] })}
-                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
                       <Plus size={12} /> {t('Добавить вариант')}
                     </button>
@@ -2910,7 +2910,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     ))}
                     <button
                       onClick={() => onUpdate({ ...task, pairs: [...pairs, { left: '', right: '' }] })}
-                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
                       <Plus size={12} /> {t('Добавить пару')}
                     </button>
@@ -2947,7 +2947,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           )}
                         </div>
                       ))}
-                      <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
+                      <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
                         <Plus size={12} /> {t('Добавить шаг')}
                       </button>
                     </div>
@@ -2977,7 +2977,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               {/* Whiteboard — ученик нарисует ответ */}
               {task.type === 'whiteboard' && (
                 <div style={{
-                  display: 'flex', alignItems: 'center', gap: 9, padding: '12px 14px',
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px',
                   borderRadius: 12, border: '1.5px dashed var(--color-border)',
                   background: 'var(--color-blue-pill-bg)',
                 }}>
@@ -3079,7 +3079,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   <button
                     onClick={() => onUpdate({ ...task, patternItems: [...(task.patternItems ?? []), { cue: '', answer: '' }] })}
                     style={{
-                      alignSelf: 'flex-start', padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
+                      alignSelf: 'flex-start', padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
                       border: '1px dashed var(--color-border)', background: 'transparent',
                       color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                     }}
@@ -3302,7 +3302,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         {lines.length > 2 && (
                           <button
                             onClick={() => setLines(lines.filter((_, k) => k !== li))}
-                            style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, marginTop: 5 }}
+                            style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, marginTop: 6 }}
                           >
                             <X size={12} />
                           </button>
@@ -3311,7 +3311,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     ))}
                     <button
                       onClick={() => setLines([...lines, { speaker: lines.length % 2 ? 'A' : 'B', text: '' }])}
-                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
                       <Plus size={12} /> {t('Добавить реплику')}
                     </button>
@@ -3354,8 +3354,8 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         setRows(rows.map((x, k) => k === ri ? { ...x, ...next } : x))
                       return (
                         <div key={ri} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                          <span style={{ width: 24, height: 24, marginTop: 5, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{ri + 1}</span>
-                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                          <span style={{ width: 24, height: 24, marginTop: 6, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{ri + 1}</span>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
                             <AutoTextarea
                               value={row.text}
                               onChange={v => patch({ text: v })}
@@ -3380,7 +3380,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           {rows.length > 1 && (
                             <button
                               onClick={() => setRows(rows.filter((_, k) => k !== ri))}
-                              style={{ width: 24, height: 24, marginTop: 5, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                              style={{ width: 24, height: 24, marginTop: 6, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
                               <X size={12} />
                             </button>
@@ -3390,7 +3390,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     })}
                     <button
                       onClick={() => setRows([...rows, { text: '', answer: '' }])}
-                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
                       <Plus size={12} /> {t('Добавить строку с пропуском')}
                     </button>
@@ -3438,7 +3438,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           {items.length > 2 && (
                             <button
                               onClick={() => setItems(items.filter((_, k) => k !== ci))}
-                              style={{ width: 24, height: 24, marginTop: 5, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                              style={{ width: 24, height: 24, marginTop: 6, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
                               <X size={12} />
                             </button>
@@ -3448,7 +3448,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     })}
                     <button
                       onClick={() => setItems([...items, { answer: '', clue: '' }])}
-                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
                       <Plus size={12} /> {t('Добавить слово')}
                     </button>
@@ -3508,16 +3508,16 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       return (
                         <div key={side} style={{
                           flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8,
-                          padding: '0 9px 0 0', borderRadius: 11,
+                          padding: '0 10px 0 0', borderRadius: 11,
                           border: `1.5px solid ${isCorrect ? 'var(--color-control-accent)' : 'var(--color-border-medium)'}`,
-                          background: 'var(--color-bg-input)', transition: 'border-color 0.14s',
+                          background: 'var(--color-bg-input)', transition: 'border-color 0.15s',
                         }}>
                           <AutoTextarea
                             value={(side === 'A' ? task.pairA : task.pairB) ?? ''}
                             onChange={v => onUpdate({ ...task, [side === 'A' ? 'pairA' : 'pairB']: v })}
                             placeholder={side === 'A' ? t('Вариант A') : t('Вариант B')}
                             style={{
-                              flex: 1, minWidth: 0, padding: '9px 0 9px 12px', border: 'none', borderRadius: 0,
+                              flex: 1, minWidth: 0, padding: '10px 0 10px 12px', border: 'none', borderRadius: 0,
                               background: 'transparent', fontSize: 13, lineHeight: TASK_TEXT_LH, color: 'var(--color-text)',
                               fontFamily: 'inherit', outline: 'none',
                             }}
@@ -3652,8 +3652,8 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHar
 
   const btnBase: React.CSSProperties = {
     flex: '1 1 0', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-    padding: '7px 8px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-    fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', transition: 'background 0.13s',
+    padding: '8px 8px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+    fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', transition: 'background 0.15s',
   }
   // «★ Сложное» переключает палитру слева на сложные задания; они ложатся в
   // домашку открытой вкладки (ДЗ или Доп).
@@ -3689,7 +3689,7 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHar
     <>
     {/* flexShrink 0: колонка — flex-столбец с прокруткой; без него ряд сплющивало
         в полоску, когда заданий много. Вкладки переносятся, а не режутся. */}
-    <div style={{ flexShrink: 0, display: 'flex', flexWrap: 'wrap', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
+    <div style={{ flexShrink: 0, display: 'flex', flexWrap: 'wrap', gap: 4, padding: 4, borderRadius: 12, background: 'var(--color-bg-2)' }}>
       {tabs.map(tt => {
         const on = active === tt.id
         return (
@@ -3697,11 +3697,11 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHar
             onClick={() => setHwTab(tt.id)}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHwTab(tt.id) } }}
             style={{
-              flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-              padding: '7px 8px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
+              flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '8px 8px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
               background: on ? 'var(--color-green-soft)' : 'transparent',
               color: on ? 'var(--color-green-text)' : 'var(--color-text-3)',
-              transition: 'background 0.13s',
+              transition: 'background 0.15s',
             }}>
             {tt.label}
             {tt.n > 0 && (
@@ -3746,7 +3746,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
   return (
     <div>
       <button onClick={() => setOpen(o => !o)} style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%',
         padding: '10px 12px', borderRadius: 13, border: `1.5px dashed ${border}`,
         background: accentBg, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: accent,
       }}>
@@ -3756,24 +3756,24 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
         {open && (
           <motion.div
             initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}
+            transition={{ duration: 0.22 }} style={{ overflow: 'hidden' }}
           >
-            <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div style={{ position: 'relative' }}>
                 <Search size={12} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-4)' }} />
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder={t('Поиск задания…')}
-                  style={{ ...inputSt, fontSize: 12, padding: '6px 9px 6px 26px' }}
+                  style={{ ...inputSt, fontSize: 12, padding: '6px 10px 6px 26px' }}
                 />
               </div>
-              <OverlayScrollArea style={{ maxHeight: 260 }} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <OverlayScrollArea style={{ maxHeight: 260 }} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {filtered.slice(0, 80).map(bt => (
                   <button
                     key={bt.id}
                     onClick={() => onPick(bt)}
-                    style={{ textAlign: 'left', padding: '7px 9px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}
+                    style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}
                   >
                     <Plus size={12} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-green-text)' }} />
                     <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
@@ -3802,7 +3802,7 @@ function TestlyButton({ onPick, addedIds }: { onPick: (x: TestlyTest) => void; a
   return (
     <div>
       <button onClick={() => setOpen(o => !o)} style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%',
         padding: '10px 12px', borderRadius: 13, border: '1.5px dashed var(--color-border)',
         background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)',
       }}>
@@ -3905,7 +3905,7 @@ function HomeworkLeftPanel({
             padding: '10px 12px', borderRadius: 13,
             border: 'none', background: 'rgba(245,158,11,0.1)',
             cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
-            transition: 'opacity 0.12s',
+            transition: 'opacity 0.15s',
           }}
           onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
@@ -3942,7 +3942,7 @@ function PaletteSection({ title, count, accent, children }: {
           // заголовком. Рядом со словом «ТИП ЗАДАНИЯ» цифра читается как
           // «столько типов», поэтому она подписана.
           <span title={t('Заданий добавлено')} style={{
-            fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 999,
+            fontSize: 10, fontWeight: 700, padding: '1px 8px', borderRadius: 999,
             background: accent ? 'rgba(245,158,11,0.15)' : 'var(--color-bg-3)',
             color: accent ?? 'var(--color-muted)',
           }}>{count}</span>
@@ -4002,7 +4002,7 @@ function CenterHomework({
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
           <BookOpen size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
           <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Выберите тип задания слева')}</span>
-          <span style={{ fontSize: 12, color: 'var(--color-text-4)', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ fontSize: 12, color: 'var(--color-text-4)', display: 'flex', alignItems: 'center', gap: 6 }}>
             {t('Сложные задания — кнопкой')}
             <Star size={12} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
             {t('Сложное')}
@@ -4066,13 +4066,13 @@ function CenterTestView({
       {/* Header */}
       <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 11px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>
             <ClipboardCheck size={12} /> {t('Финальный тест')}
           </div>
         </div>
         <Label>{t('Название теста')}</Label>
-        <ContentInput value={lesson.title} onChange={e => onUpdate({ ...lesson, title: e.target.value })} style={{ ...inputSt, padding: '8px 11px', fontSize: 13 }} placeholder={t('Например: Контрольная по модулю 1')} />
-        <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <ContentInput value={lesson.title} onChange={e => onUpdate({ ...lesson, title: e.target.value })} style={{ ...inputSt, padding: '8px 12px', fontSize: 13 }} placeholder={t('Например: Контрольная по модулю 1')} />
+        <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
           <Unlock size={12} /> {t('Откроется у студента автоматически после прохождения предыдущего модуля')}
         </div>
       </div>
@@ -4194,20 +4194,20 @@ function StudentsLeftPanel({
       borderRadius: 18, padding: '16px 16px 18px',
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Users size={14} style={{ color: 'var(--color-green-text)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить к уроку')}</span>
       </div>
 
       {/* student / group toggle */}
-      <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
+      <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--color-bg-2)' }}>
         {(['student', 'group'] as const).map(tab => (
           <button key={tab} onClick={() => setAddTab(tab)} style={{
             flex: 1, padding: '6px 8px', borderRadius: 9, border: 'none', cursor: 'pointer',
             fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
             background: addTab === tab ? 'var(--color-green-soft)' : 'transparent',
             color: addTab === tab ? 'var(--color-green-text)' : 'var(--color-text-3)',
-            transition: 'background 0.13s',
+            transition: 'background 0.15s',
           }}>
             {tab === 'group' ? t('Группа') : t('Ученик')}
           </button>
@@ -4219,22 +4219,22 @@ function StudentsLeftPanel({
         value={query}
         onChange={e => setQuery(e.target.value)}
         placeholder={addTab === 'student' ? t('Поиск ученика…') : t('Поиск группы…')}
-        style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
+        style={{ ...inputSt, padding: '8px 10px', fontSize: 12 }}
       />
 
       {/* choices list */}
       <div style={{ minHeight: 0, position: 'relative' }}>
         <ScrollOverlays thumb={choicesThumb} />
-        <div ref={choicesRef} onScroll={handleChoicesScroll} className="no-scrollbar" style={{ maxHeight: 306, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 5, ...fadeMask(choicesFade) }}>
+        <div ref={choicesRef} onScroll={handleChoicesScroll} className="no-scrollbar" style={{ maxHeight: 306, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 6, ...fadeMask(choicesFade) }}>
         {addTab === 'student' && studentChoices.map(s => {
           const on = extraStudentIds.includes(s.id)
           return (
             <button key={s.id} onClick={() => toggleExtraStudent(s.id)} style={{
               display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-              padding: '7px 10px', borderRadius: 11,
+              padding: '8px 10px', borderRadius: 11,
               border: on ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
               background: on ? 'var(--color-green-soft)' : 'transparent',
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: '50%',
@@ -4263,10 +4263,10 @@ function StudentsLeftPanel({
           return (
             <button key={g.id} onClick={() => toggleExtraGroup(g.id)} style={{
               display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-              padding: '7px 10px', borderRadius: 11,
+              padding: '8px 10px', borderRadius: 11,
               border: on ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
               background: on ? 'var(--color-green-soft)' : 'transparent',
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: '50%',
@@ -4387,16 +4387,16 @@ function CenterLessonStudents({
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {courseGroups.map(g => (
                 <div key={g.id} style={{
-                  padding: '4px 11px', borderRadius: 999,
+                  padding: '4px 12px', borderRadius: 999,
                   background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
-                  display: 'flex', alignItems: 'center', gap: 5,
+                  display: 'flex', alignItems: 'center', gap: 6,
                 }}>
                   <Users size={12} /> {g.name}
                 </div>
               ))}
               {courseStudents.map(s => (
                 <div key={s.id} style={{
-                  padding: '4px 11px', borderRadius: 999,
+                  padding: '4px 12px', borderRadius: 999,
                   background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
                 }}>
                   {tn(s.name)}
@@ -4409,7 +4409,7 @@ function CenterLessonStudents({
         {/* Course-wide access mode — how lessons open for each baseline member */}
         {!baselineEmpty && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-green-text)' }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
                 {t('Как открываются уроки')}
@@ -4424,7 +4424,7 @@ function CenterLessonStudents({
                 return (
                   <div key={g.id} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '7px 10px 7px 8px', borderRadius: 12, background: 'var(--color-green-soft)',
+                    padding: '8px 10px 8px 8px', borderRadius: 12, background: 'var(--color-green-soft)',
                   }}>
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Users size={14} style={{ color: '#fff' }} />
@@ -4441,7 +4441,7 @@ function CenterLessonStudents({
               {courseStudents.map(s => (
                 <div key={s.id} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '7px 10px 7px 8px', borderRadius: 12, background: 'var(--color-bg-3)',
+                  padding: '8px 10px 8px 8px', borderRadius: 12, background: 'var(--color-bg-3)',
                 }}>
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     {tn(s.name).slice(0, 1).toUpperCase()}
@@ -4451,7 +4451,7 @@ function CenterLessonStudents({
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {[
                 { label: t('По датам'), desc: t('открывается в свою дату, прошлые — сразу') },
                 { label: t('Всё открыто'), desc: t('доступны все уроки') },
@@ -4494,7 +4494,7 @@ function CenterLessonStudents({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {extraGroups.map(g => (
                 <div key={g.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 9, padding: '8px 12px', borderRadius: 12,
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12,
                   background: 'var(--color-green-soft)', border: '1px solid var(--color-border-glass)',
                 }}>
                   <Users size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
@@ -4507,7 +4507,7 @@ function CenterLessonStudents({
               ))}
               {extraStudentsList.map(s => (
                 <div key={s.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 9, padding: '8px 12px', borderRadius: 12,
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12,
                   background: 'var(--color-green-soft)', border: '1px solid var(--color-border-glass)',
                 }}>
                   <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
@@ -4550,7 +4550,7 @@ function LessonRow({
         // Тот же зелёный, что у вкладок «ДЗ урока» / «Домашка»: green-soft + green-text.
         background: checked || selected ? 'var(--color-green-soft)' : 'transparent',
         boxShadow: checked ? 'inset 0 0 0 1.5px color-mix(in srgb, var(--color-green-text) 55%, transparent)' : undefined,
-        transition: 'background 0.13s, box-shadow 0.13s', fontFamily: 'inherit', textAlign: 'left',
+        transition: 'background 0.15s, box-shadow 0.15s', fontFamily: 'inherit', textAlign: 'left',
         marginBottom: 2,
       }}
     >
@@ -4577,8 +4577,8 @@ function LessonRow({
       {/* Open-for-students badge */}
       {isOpen && (
         <span title={t('Открыт ученикам')} style={{
-          display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
-          padding: '2px 7px 2px 5px', borderRadius: 999,
+          display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+          padding: '2px 8px 2px 6px', borderRadius: 999,
           background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
           fontSize: 10, fontWeight: 700,
         }}>
@@ -4592,7 +4592,7 @@ function LessonRow({
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: checked ? 'var(--color-green-text)' : 'transparent',
           border: checked ? 'none' : '1.5px solid var(--color-border)',
-          color: '#fff', transition: 'background 0.13s',
+          color: '#fff', transition: 'background 0.15s',
         }}>
           {checked && <Check size={12} strokeWidth={2.5} />}
         </div>
@@ -4606,7 +4606,7 @@ function LessonRow({
             width: 22, height: 22, borderRadius: 6, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--color-red-text)', background: 'rgba(192,48,58,0.12)', cursor: 'pointer',
-            transition: 'background 0.13s',
+            transition: 'background 0.15s',
           }}
           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(192,48,58,0.2)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'rgba(192,48,58,0.12)')}
@@ -4614,7 +4614,7 @@ function LessonRow({
           <Trash2 size={14} />
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
           {lesson.kind === 'test'
             ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Вопросы')} />
             : <>
@@ -4849,7 +4849,7 @@ function RightPanelLessons({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.16 }}
+            transition={{ duration: 0.15 }}
             style={{ flexShrink: 0, overflow: 'visible', borderBottom: '1px solid var(--color-border-soft)', position: 'relative', zIndex: 5 }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: 'var(--color-green-soft)' }}>
@@ -4860,7 +4860,7 @@ function RightPanelLessons({
                 <button
                   onClick={() => setMoveMenuOpen(o => !o)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 8,
+                    display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 8,
                     border: 'none', background: 'var(--color-green-text)', color: '#fff', cursor: 'pointer',
                     fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
                   }}
@@ -4871,7 +4871,7 @@ function RightPanelLessons({
                   {moveMenuOpen && (
                     <motion.div
                       initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.13 }}
+                      transition={{ duration: 0.15 }}
                       style={{
                         position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 20,
                         minWidth: 160, padding: 4,
@@ -4887,7 +4887,7 @@ function RightPanelLessons({
                           key={m.id}
                           onClick={() => bulkMoveToModule(m.id)}
                           style={{
-                            width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 7,
+                            width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 7,
                             border: 'none', background: 'transparent', cursor: 'pointer',
                             fontSize: 12, fontWeight: 600, color: 'var(--color-text)', fontFamily: 'inherit',
                           }}
@@ -4906,7 +4906,7 @@ function RightPanelLessons({
                 onClick={bulkDelete}
                 title={t('Удалить выбранные')}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 8,
+                  display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 8,
                   border: 'none', background: 'rgba(192,48,58,0.14)', color: 'var(--color-red-text)',
                   cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
                 }}
@@ -4995,10 +4995,10 @@ function RightPanelLessons({
                 }}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 10px', borderRadius: 10, border: 'none',
+                  padding: '8px 10px', borderRadius: 10, border: 'none',
                   background: isActive || (dragging && isTarget) ? 'var(--color-green-soft)' : 'var(--color-bg-2)',
                   boxShadow: (dragging && isTarget) || isActive ? 'inset 0 0 0 1.5px var(--color-green-text)' : undefined,
-                  cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s, box-shadow 0.13s',
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.15s, box-shadow 0.15s',
                 }}
               >
                 <span
@@ -5013,7 +5013,7 @@ function RightPanelLessons({
                     style={{
                       color: isActive ? 'var(--color-green-text)' : 'var(--color-muted)',
                       transform: mod.expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
-                      transition: 'transform 0.18s ease',
+                      transition: 'transform 0.15s ease',
                     }}
                   />
                 </span>
@@ -5084,8 +5084,8 @@ function RightPanelLessons({
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.18 }}
-                    style={{ overflow: 'hidden', paddingLeft: loose ? 0 : 10, paddingTop: loose ? 0 : 3, paddingBottom: 3 }}
+                    transition={{ duration: 0.15 }}
+                    style={{ overflow: 'hidden', paddingLeft: loose ? 0 : 10, paddingTop: loose ? 0 : 4, paddingBottom: 4 }}
                     onDragOver={e => {
                       e.preventDefault()
                       if (dropTarget?.moduleId !== mod.id) {
@@ -5145,7 +5145,7 @@ function RightPanelLessons({
               value={newModuleLabel}
               onChange={e => setNewModuleLabel(e.target.value)}
               placeholder={t('Название модуля')}
-              style={{ ...inputSt, fontSize: 12, padding: '7px 10px' }}
+              style={{ ...inputSt, fontSize: 12, padding: '8px 10px' }}
               autoFocus
               onKeyDown={e => { if (e.key === 'Enter') addModule(); if (e.key === 'Escape') setAddingModule(false) }}
             />
@@ -5167,7 +5167,7 @@ function RightPanelLessons({
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 placeholder={t('Название урока…')}
-                style={{ ...inputSt, fontSize: 12, padding: '7px 10px' }}
+                style={{ ...inputSt, fontSize: 12, padding: '8px 10px' }}
                 onKeyDown={e => { if (e.key === 'Enter') addLesson() }}
               />
               <button onClick={addLesson} style={{
@@ -6387,10 +6387,10 @@ export default function TeacherCourseEditorPage() {
               <motion.button
                 key="back-to-course"
                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }}
-                transition={{ duration: 0.16 }}
+                transition={{ duration: 0.15 }}
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
                 onClick={() => setSelectedLessonId(null)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '10px 16px 10px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <ChevronLeft size={16} strokeWidth={2} /> {t('Курс')}
               </motion.button>
             )}
@@ -6411,7 +6411,7 @@ export default function TeacherCourseEditorPage() {
           {/* Вне потока, слева от группы: плашка живёт секунду, и пока она была в
               ряду, её уход менял ширину группы — название по центру съезжало. */}
           {course.heavyPending && (
-            <div style={{ position: 'absolute', right: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: heavyErr ? 'var(--color-red-text)' : 'var(--color-muted)', fontSize: 13, fontWeight: 600 }}>
+            <div style={{ position: 'absolute', right: 'calc(100% + 8px)', top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: heavyErr ? 'var(--color-red-text)' : 'var(--color-muted)', fontSize: 13, fontWeight: 600 }}>
               {heavyErr
                 ? <>{t('Не удалось догрузить уроки — перезагрузите страницу')}</>
                 : <><Loader2 size={14} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} /> {t('Догружаем уроки…')}</>}
@@ -6420,7 +6420,7 @@ export default function TeacherCourseEditorPage() {
           {seedDiff.changes.length > 0 && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
               title={`${t('Из сида')} · ${seedDiff.changes.length} — ${t('Показать, что изменилось в готовом курсе с момента добавления')}`}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: seedCompact ? '9px 11px' : '9px 15px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: 'var(--shadow-2)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: seedCompact ? '10px 12px' : '10px 16px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: 'var(--shadow-2)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               <RefreshCw size={14} strokeWidth={2} />
               {!seedCompact && <span ref={seedLabelRef}>{t('Из сида')} · {seedDiff.changes.length}</span>}
             </motion.button>
@@ -6428,7 +6428,7 @@ export default function TeacherCourseEditorPage() {
           {course.dbCourseId && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={openHandout}
               title={t('Скопировать курс для другой группы со своим стартом дат')}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
             </motion.button>
           )}
@@ -6481,7 +6481,7 @@ export default function TeacherCourseEditorPage() {
             initial={{ scale: 0.96, y: 8 }} animate={{ scale: 1, y: 0 }}
             onClick={e => e.stopPropagation()}
             style={{ width: 460, maxWidth: '92vw', maxHeight: '88vh', overflow: 'auto', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', borderRadius: 22, boxShadow: 'var(--shadow-5)', padding: 22 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
               <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Copy size={18} strokeWidth={2} color="var(--color-green-text)" />
               </div>
@@ -6504,7 +6504,7 @@ export default function TeacherCourseEditorPage() {
                   const on = handoutGroupId === g.id
                   return (
                     <button key={g.id} onClick={() => setHandoutGroupId(g.id)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                         border: on ? '1px solid var(--color-green-text)' : '1px solid var(--color-border-soft)',
                         background: on ? 'var(--color-green-soft)' : 'var(--color-bg-3)' }}>
                       <Users size={16} color={on ? 'var(--color-green-text)' : 'var(--color-muted)'} />
@@ -6537,7 +6537,7 @@ export default function TeacherCourseEditorPage() {
 
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               <button onClick={() => !handoutBusy && setHandoutOpen(false)}
-                style={{ padding: '11px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ padding: '12px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {t('Отмена')}
               </button>
               <TeacherSaveButton
@@ -6602,7 +6602,7 @@ export default function TeacherCourseEditorPage() {
           // иначе левая колонка мигала вместе с открытием страницы.
           initial={railFx.current ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           style={{ ...railWrapSt, width: RAIL_BOX }}
         >
           {railVariant === 'meta' && (
@@ -6625,7 +6625,7 @@ export default function TeacherCourseEditorPage() {
                 key={lessonMode === 'homework' ? 'rail-hw' : lessonMode === 'students' ? 'rail-students' : 'rail-sched'}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.13 }}
+                transition={{ duration: 0.15 }}
                 style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}
               >
                 {(lessonMode === 'recording' || lessonMode === 'lesson') && (
@@ -6683,7 +6683,7 @@ export default function TeacherCourseEditorPage() {
               React-ключом на самих панелях ниже. */}
           <motion.div
             key={selectedLesson ? 'lesson' : 'course-meta'}
-            initial={railFx.current ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.16 }}
+            initial={railFx.current ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.15 }}
             style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
             {!selectedLesson ? (
@@ -6732,7 +6732,7 @@ export default function TeacherCourseEditorPage() {
                             boxShadow: isOpened
                               ? 'var(--glow-green-open)'
                               : 'var(--btn-green-glow)',
-                            transition: 'background 0.3s, box-shadow 0.3s',
+                            transition: 'background 0.38s, box-shadow 0.38s',
                             opacity: openingLesson ? 0.7 : 1,
                           }}
                         >
@@ -6744,16 +6744,16 @@ export default function TeacherCourseEditorPage() {
                       )
                     })()}
                   </div>
-                  <div style={{ display: 'flex', background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, gap: 2 }}>
+                  <div style={{ display: 'flex', background: 'var(--color-bg-3)', borderRadius: 12, padding: 4, gap: 2 }}>
                     {LESSON_MODES.map(m => {
                       const active = lessonMode === m.id
                       return (
                         <button key={m.id} onClick={() => setLessonMode(m.id)} onMouseDown={e => e.preventDefault()} style={{
-                          position: 'relative', flex: 1, padding: '7px 10px', borderRadius: 9,
+                          position: 'relative', flex: 1, padding: '8px 10px', borderRadius: 9,
                           border: 'none', cursor: 'pointer', background: 'transparent',
                           color: active ? 'var(--color-green-text)' : 'var(--color-text)',
                           fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
-                          transition: 'color 0.2s', outline: 'none',
+                          transition: 'color 0.22s', outline: 'none',
                         }}>
                           {active && (
                             <motion.span
@@ -6780,7 +6780,7 @@ export default function TeacherCourseEditorPage() {
                     key={lessonMode}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.16 }}
+                    transition={{ duration: 0.15 }}
                     style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                   >
                     {/* key={id} — обычный React-ремоунт: сбрасывает локальное

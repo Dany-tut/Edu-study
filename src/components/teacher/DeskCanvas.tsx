@@ -123,10 +123,10 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
       {/* Scroll fades */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,
         background: 'linear-gradient(to bottom, rgba(var(--glass-rgb),0.92), transparent)',
-        opacity: edges.top ? 1 : 0, transition: 'opacity .18s', borderRadius: '24px 24px 0 0' }} />
+        opacity: edges.top ? 1 : 0, transition: 'opacity 0.15s', borderRadius: '24px 24px 0 0' }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,
         background: 'linear-gradient(to top, rgba(var(--glass-rgb),0.92), transparent)',
-        opacity: edges.bottom ? 1 : 0, transition: 'opacity .18s', borderRadius: '0 0 24px 24px' }} />
+        opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.15s', borderRadius: '0 0 24px 24px' }} />
 
       {/* Edit overlay — blocks widget-internal clicks, acts as drag surface */}
       {editMode && (
@@ -455,7 +455,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
                       borderRight: `2.5px solid rgba(255,255,255,${isResizing ? 1 : 0.7})`,
                       borderBottom: `2.5px solid rgba(255,255,255,${isResizing ? 1 : 0.7})`,
                       borderRadius: '0 0 16px 0',
-                      transition: 'border-color .15s',
+                      transition: 'border-color 0.15s',
                     }} />
                   </div>
                 )}

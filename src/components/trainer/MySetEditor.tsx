@@ -123,7 +123,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
       <button
         onClick={() => setSets([...draft.sets, newSet(draft.sets.length)])}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           height: 42, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
           border: `1px dashed ${accent}66`, background: 'transparent',
           color: accent, fontSize: 13, fontWeight: 700,
@@ -187,7 +187,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
       </div>
 
       {set.cards.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {set.cards.map((c, i) => (
             <div
               key={`${c.term}-${i}`}

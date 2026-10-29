@@ -42,7 +42,7 @@ export function StoryGrid({ story, read, accent, soft, onOpen }: {
         const done = seen >= ch.cards.length
         return (
           <Tile key={ch.id} accent={accent} onClick={() => onOpen(ch.id)}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <TileChip tone="accent" accent={accent} soft={soft}>{t('Глава')} {i + 1}</TileChip>
               <TileChip>{ch.cards.length} {t('карточек')}</TileChip>
               {done && (
@@ -107,7 +107,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
             style={{
               flex: 1, height: 4, borderRadius: 999,
               background: k <= at ? accent : 'var(--color-bg-3)',
-              transition: 'background 200ms',
+              transition: 'background 0.22s',
             }}
           />
         ))}
@@ -124,7 +124,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
           key={at}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.15 }}
           style={{
             display: 'flex', flexDirection: 'column', gap: 14,
             padding: 22, borderRadius: 20,
@@ -165,8 +165,8 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
           )}
           {card.keep && (
             <div style={{
-              display: 'flex', alignItems: 'baseline', gap: 9,
-              padding: '11px 14px', borderRadius: 12, background: soft,
+              display: 'flex', alignItems: 'baseline', gap: 10,
+              padding: '12px 14px', borderRadius: 12, background: soft,
               fontSize: 14, lineHeight: 1.5, fontWeight: 600, color: 'var(--color-text)',
             }}>
               <Check size={14} style={{ color: accent, flexShrink: 0, transform: 'translateY(2px)' }} />
@@ -181,7 +181,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
           onClick={() => onAt(Math.max(0, at - 1))}
           disabled={at === 0}
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, height: 42, padding: '0 16px',
+            display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 16px',
             borderRadius: 999, border: '1px solid var(--color-border)', background: 'transparent',
             color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
             cursor: at === 0 ? 'default' : 'pointer', opacity: at === 0 ? 0.4 : 1,
@@ -196,7 +196,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
         <button
           onClick={() => (last ? onDone() : onAt(at + 1))}
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, height: 42, padding: '0 20px',
+            display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 20px',
             borderRadius: 999, border: 'none', background: accent, color: '#fff',
             fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
           }}

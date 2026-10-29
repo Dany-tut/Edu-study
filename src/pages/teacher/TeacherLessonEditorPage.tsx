@@ -124,7 +124,7 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
           const tod = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()
           return (
             <button key={i} onClick={() => { onChange(formatDateDot(d)); onClose() }}
-              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? 'var(--grad-purple)' : 'transparent', boxShadow: !sel && tod ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none', color: sel ? '#fff' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
+              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? 'var(--grad-purple)' : 'transparent', boxShadow: !sel && tod ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none', color: sel ? '#fff' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
               onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
               onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >{d.getDate()}</button>
@@ -171,7 +171,7 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
             const active = t === value
             return (
               <button key={t} onClick={() => { onChange(t); onClose() }}
-                style={{ width: '100%', border: 'none', background: active ? 'var(--color-green-soft)' : 'transparent', color: active ? 'var(--color-green-text)' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}
+                style={{ width: '100%', border: 'none', background: active ? 'var(--color-green-soft)' : 'transparent', color: active ? 'var(--color-green-text)' : 'var(--color-text)', padding: '8px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.15s, color 0.15s' }}
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >{t}</button>
@@ -405,13 +405,13 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
               value={tc.time}
               onChange={e => { const c = [...codes]; c[i] = { ...c[i], time: e.target.value }; onChange(c) }}
               placeholder="00:00"
-              style={{ ...inputStyle, width: 60, padding: '7px 8px', textAlign: 'center', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}
+              style={{ ...inputStyle, width: 60, padding: '8px 8px', textAlign: 'center', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}
             />
             <input
               value={tc.label}
               onChange={e => { const c = [...codes]; c[i] = { ...c[i], label: e.target.value }; onChange(c) }}
               placeholder={t('Глава...')}
-              style={{ ...inputStyle, flex: 1, padding: '7px 10px' }}
+              style={{ ...inputStyle, flex: 1, padding: '8px 10px' }}
             />
             <button
               onClick={() => onChange(codes.filter((_, j) => j !== i))}
@@ -470,7 +470,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
         <button
           onClick={() => onChange('')}
           style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 11,
+            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 11,
             border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.16)',
             color: '#fff', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
@@ -524,7 +524,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
           <button
             onClick={() => setEditing(true)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 12,
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12,
               border: 'none', cursor: 'pointer', background: 'var(--grad-green)',
               color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
               boxShadow: '0 4px 14px rgba(74,222,128,0.3)',
@@ -535,7 +535,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
           <button
             onClick={() => onChange('https://rutube.ru/video/upload-' + Math.random().toString(36).slice(2, 8))}
             style={{
-              display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 12,
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12,
               border: '1.5px solid var(--color-border-medium)', cursor: 'pointer', background: 'transparent',
               color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
             }}
@@ -640,7 +640,7 @@ function AudiencePicker({
                 key={`${r.kind}-${r.id}`}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '4px 6px 4px 5px', borderRadius: 9,
+                  padding: '4px 6px 4px 6px', borderRadius: 9,
                   background: r.kind === 'group' ? 'var(--color-green-soft)' : 'var(--color-green-soft)',
                   maxWidth: '100%',
                 }}
@@ -682,8 +682,8 @@ function AudiencePicker({
         <button
           onClick={() => setOpen(o => !o)}
           style={{
-            display: 'flex', alignItems: 'center', gap: 7, width: '100%',
-            padding: '9px 12px', borderRadius: 11, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+            padding: '10px 12px', borderRadius: 11, cursor: 'pointer',
             border: '1.5px dashed var(--color-border-medium)',
             background: open ? 'rgba(74,222,128,0.08)' : 'rgba(74,222,128,0.04)',
             color: 'var(--color-green-text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
@@ -812,9 +812,9 @@ function AudiencePicker({
 }
 
 const pickerRow: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 9, width: '100%',
-  padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer',
-  background: 'transparent', fontFamily: 'inherit', transition: 'background 0.12s',
+  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+  padding: '8px 8px', borderRadius: 10, border: 'none', cursor: 'pointer',
+  background: 'transparent', fontFamily: 'inherit', transition: 'background 0.15s',
 }
 
 function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>) => void }) {
@@ -883,7 +883,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         <div ref={calRef} style={{ position: 'relative' }}>
           <button
             onClick={() => { setShowCal(v => !v); setShowStartTime(false); setShowEndTime(false) }}
-            style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 11, textAlign: 'left' }}
+            style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 12, textAlign: 'left' }}
           >
             <Calendar size={14} color="#9A9AA2" style={{ flexShrink: 0 }} />
             <span style={{ flex: 1 }}>{displayDate}</span>
@@ -906,7 +906,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <div ref={startRef} style={{ position: 'relative', flex: 1 }}>
             <button
               onClick={() => { setShowStartTime(v => !v); setShowCal(false); setShowEndTime(false) }}
-              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
+              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
             >
               <Clock size={14} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.startTime || '—'}</span>
@@ -925,7 +925,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <div ref={endRef} style={{ position: 'relative', flex: 1 }}>
             <button
               onClick={() => { setShowEndTime(v => !v); setShowCal(false); setShowStartTime(false) }}
-              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
+              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
             >
               <Clock size={14} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.endTime || '—'}</span>
@@ -1217,7 +1217,7 @@ export default function TeacherLessonEditorPage() {
         <motion.div
           style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}
           animate={{ opacity: docked ? 0 : 1 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
         >
           <BackCircle onClick={() => setActivePage('home')} label="Назад" />
 
@@ -1246,7 +1246,7 @@ export default function TeacherLessonEditorPage() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
               }}
@@ -1256,7 +1256,7 @@ export default function TeacherLessonEditorPage() {
               <div
                 style={{
                   flexShrink: 1, minWidth: 0, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  padding: '9px 16px', borderRadius: 999, ...dockGlass,
+                  padding: '10px 16px', borderRadius: 999, ...dockGlass,
                   fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
                 }}
               >
@@ -1344,7 +1344,7 @@ export default function TeacherLessonEditorPage() {
                   onClick={() => setActivePage('constructor')}
                   style={{
                     alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '9px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                    padding: '10px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                     background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
                     fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                   }}

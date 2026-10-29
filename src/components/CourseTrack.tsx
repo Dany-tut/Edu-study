@@ -274,7 +274,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                 style={{
                   position: 'relative',
                   zIndex: 1,
-                  padding: '7px 20px',
+                  padding: '8px 20px',
                   borderRadius: 999,
                   fontSize: 13,
                   fontWeight: 600,
@@ -283,7 +283,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                   border: '1px solid transparent',
                   cursor: isLocked ? 'default' : 'pointer',
                   opacity: isLocked ? 0.7 : 1,
-                  transition: 'color 0.16s ease, opacity 0.16s ease',
+                  transition: 'color 0.15s ease, opacity 0.15s ease',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}
@@ -518,7 +518,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         color: 'var(--color-muted)',
                         background: 'rgba(var(--glass-rgb), 0.5)',
                         borderRadius: 12,
-                        padding: '9px 18px',
+                        padding: '10px 18px',
                         whiteSpace: 'nowrap',
                         cursor: 'not-allowed',
                         width: 'fit-content',
@@ -540,7 +540,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             ? 'linear-gradient(135deg, #34C877, #2A7D4F)'
                             : 'var(--grad-purple)',
                           borderRadius: 12,
-                          padding: '9px 18px',
+                          padding: '10px 18px',
                           whiteSpace: 'nowrap',
                           cursor: 'pointer',
                           flex: 1,
@@ -848,7 +848,7 @@ export default function CourseTrack() {
                 color: 'var(--color-text)',
                 border: '1px solid transparent',
                 cursor: 'pointer',
-                transition: 'color 0.16s ease, font-weight 0.16s ease',
+                transition: 'color 0.15s ease, font-weight 0.15s ease',
                 flexShrink: 0,
               }}
             >

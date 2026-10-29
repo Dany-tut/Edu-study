@@ -80,7 +80,7 @@ export default function WidgetFinanceActivity() {
                 key={p.id}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '9px 16px',
+                  padding: '10px 16px',
                   borderBottom: i < recent.length - 1 ? '1px solid var(--color-border)' : 'none',
                   transition: 'background 0.15s',
                 }}

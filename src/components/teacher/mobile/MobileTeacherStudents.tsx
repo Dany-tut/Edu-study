@@ -41,7 +41,7 @@ function studentSignal(s: Student, t: (k: string) => string): Signal | null {
 function SignalChip({ signal }: { signal: Signal }) {
   const c = signal.kind === 'danger' ? PAIR.error : PAIR.review
   return (
-    <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: c.bg, color: c.text, flexShrink: 0, whiteSpace: 'nowrap' }}>{signal.text}</span>
+    <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 999, background: c.bg, color: c.text, flexShrink: 0, whiteSpace: 'nowrap' }}>{signal.text}</span>
   )
 }
 
@@ -57,7 +57,7 @@ function PersonRow({ student, subject, onClick }: { student: Student; subject?: 
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
     >
       <div style={{ position: 'relative', width: 40, height: 40, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {initials(tn(student.name))}
@@ -95,11 +95,11 @@ function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClic
           {group.studentCount} {t('учеников')}{agg.avgHw != null ? ` · ${t('ср. ДЗ')} ${agg.avgHw}%` : ''}
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
-        {agg.pending > 0 && <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, whiteSpace: 'nowrap' }}>{agg.pending} {t('проверить')}</span>}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+        {agg.pending > 0 && <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, whiteSpace: 'nowrap' }}>{agg.pending} {t('проверить')}</span>}
         {agg.debtCount > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: PAIR.error.text, whiteSpace: 'nowrap' }}>{agg.debtCount} {t('долг')}</span>}
         {agg.pending === 0 && agg.debtCount === 0 && (
-          <span style={{ fontSize: 11, fontWeight: 600, color: PAIR.success.text, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={12} /> {t('всё сдано')}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: PAIR.success.text, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={12} /> {t('всё сдано')}</span>
         )}
       </div>
     </motion.button>
@@ -121,7 +121,7 @@ function SummaryTile({ value, label, tone }: { value: number; label: string; ton
 
 function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; label: string; value: string; danger?: boolean }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--color-border-soft)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0', borderBottom: '1px solid var(--color-border-soft)' }}>
       <span style={{ color: 'var(--color-muted)', display: 'flex' }}>{icon}</span>
       <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--color-text-2)' }}>{label}</span>
       <span style={{ fontSize: 14, fontWeight: 600, color: danger ? 'var(--color-red-text)' : 'var(--color-text)' }}>{value}</span>
@@ -210,7 +210,7 @@ const FILTERS: { key: StudentsFilter; label: string }[] = [
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '6px 15px 2px' }}>{children}</div>
+    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '6px 16px 2px' }}>{children}</div>
   )
 }
 

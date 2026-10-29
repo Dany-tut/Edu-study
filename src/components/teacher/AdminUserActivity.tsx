@@ -121,8 +121,8 @@ export default function AdminUserActivity() {
 
 function Kpi({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 14, padding: '13px 16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+    <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 14, padding: '12px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <Icon size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>{label}</span>
       </div>
@@ -133,7 +133,7 @@ function Kpi({ icon: Icon, label, value }: { icon: React.ElementType; label: str
 
 const thStyle: React.CSSProperties = {
   fontSize: 11, letterSpacing: '0.05em', textTransform: 'uppercase',
-  color: 'var(--color-text-3)', textAlign: 'left', fontWeight: 600, padding: '9px 12px',
+  color: 'var(--color-text-3)', textAlign: 'left', fontWeight: 600, padding: '10px 12px',
 }
 const tdStyle: React.CSSProperties = { padding: '10px 12px', fontSize: 14, color: 'var(--color-text-2)', borderTop: '1px solid var(--color-border)' }
 const numTd: React.CSSProperties = { ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }
@@ -180,7 +180,7 @@ function HintTh({ label, hint, align = 'left' }: { label: string; hint: string; 
             position: 'fixed', left: pos.x, top: pos.y, transform: 'translateX(-50%)',
             zIndex: 4000, pointerEvents: 'none', maxWidth: 260,
             background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
-            borderRadius: 10, padding: '8px 11px', boxShadow: 'var(--shadow-3)',
+            borderRadius: 10, padding: '8px 12px', boxShadow: 'var(--shadow-3)',
             fontSize: 13, lineHeight: 1.3, fontWeight: 500, letterSpacing: 0,
             textTransform: 'none', textAlign: 'left', color: 'var(--color-text-2)',
           }}
@@ -291,7 +291,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
                   onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
                   title={t('Открыть кабинет этого преподавателя')}
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
                     padding: '6px 10px', borderRadius: 9, cursor: 'pointer',
                     background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
                     color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
@@ -351,7 +351,7 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
   }
 
   const btn = (danger: boolean): React.CSSProperties => ({
-    padding: '9px 14px', borderRadius: 11, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+    padding: '10px 14px', borderRadius: 11, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
     cursor: armed && !busy ? 'pointer' : 'default', opacity: armed ? 1 : 0.45,
     border: danger ? 'none' : '1px solid #E04848',
     background: danger ? 'var(--color-red-text)' : 'transparent', color: danger ? '#fff' : 'var(--color-red-text)',
@@ -376,11 +376,11 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
           value={typed}
           onChange={e => setTyped(e.target.value)}
           autoFocus
-          style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', marginBottom: 14 }}
+          style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', marginBottom: 14 }}
         />
         {err && <Alert tone="danger" text={err} style={{ marginBottom: 12 }} />}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <button onClick={onClose} style={{ padding: '9px 14px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>{t('Отмена')}</button>
+          <button onClick={onClose} style={{ padding: '10px 14px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}>{t('Отмена')}</button>
           <button disabled={!armed || !!busy} onClick={() => run(true)} style={btn(false)}>{busy === 'wipe' ? t('Стираем…') : t('Стереть данные')}</button>
           <button disabled={!armed || !!busy} onClick={() => run(false)} style={btn(true)}>{busy === 'delete' ? t('Удаляем…') : t('Удалить аккаунт')}</button>
         </div>

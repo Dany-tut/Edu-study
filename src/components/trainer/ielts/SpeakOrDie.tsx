@@ -211,7 +211,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                 </div>
                 <div style={{ height: 12, borderRadius: 6, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
                   <div style={{
-                    width: `${danger * 100}%`, height: '100%', transition: 'width 0.25s linear',
+                    width: `${danger * 100}%`, height: '100%', transition: 'width 0.22s linear',
                     background: danger > 0.6 ? 'var(--color-red-text)' : accent,
                   }} />
                 </div>

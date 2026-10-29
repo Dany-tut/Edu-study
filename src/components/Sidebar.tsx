@@ -39,7 +39,7 @@ const navItems = [
 // One ease + duration shared by every animated element so the whole bar
 // expands/collapses as a single synchronized motion (no competing timings).
 const EASE = [0.32, 0.72, 0, 1] as const
-const transition = { duration: 0.32, ease: EASE }
+const transition = { duration: 0.38, ease: EASE }
 
 // Avatar: a flower glyph on a deterministic gradient generated from the name.
 // The gradient stays as a per-user backdrop; an icon picker can swap the glyph later.
@@ -122,7 +122,7 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        padding: '9px 8px',
+        padding: '10px 8px',
         borderRadius: 8,
         border: 'none',
         cursor: 'pointer',
@@ -494,7 +494,7 @@ export default function Sidebar() {
                   // Close as an eased tween (no spring overshoot) that only
                   // shrinks part-way while fading to transparent: it's gone via
                   // opacity before it ever gets tiny enough to jitter.
-                  exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }}
+                  exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }}
                   transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
                   style={{
                     position: 'fixed',
@@ -616,7 +616,7 @@ export default function Sidebar() {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         // Same eased fade-out so it doesn't jitter when tiny.
-                        exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }}
+                        exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }}
                         transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
                         style={{ ...panelBox, transformOrigin: 'left top', marginTop: 158 }}
                       >
@@ -662,7 +662,7 @@ export default function Sidebar() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', padding: '9px 8px',
+                            width: '100%', padding: '10px 8px',
                             display: 'flex', alignItems: 'center',
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
@@ -686,7 +686,7 @@ export default function Sidebar() {
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                             style={{
-                              width: '100%', padding: '9px 8px',
+                              width: '100%', padding: '10px 8px',
                               display: 'flex', alignItems: 'center',
                               gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                               background: 'transparent',
@@ -710,7 +710,7 @@ export default function Sidebar() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', padding: '9px 8px',
+                            width: '100%', padding: '10px 8px',
                             display: 'flex', alignItems: 'center',
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
@@ -731,7 +731,7 @@ export default function Sidebar() {
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                             style={{
-                              width: '100%', padding: '9px 8px',
+                              width: '100%', padding: '10px 8px',
                               display: 'flex', alignItems: 'center',
                               gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                               background: 'transparent',
@@ -752,7 +752,7 @@ export default function Sidebar() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', padding: '9px 8px',
+                            width: '100%', padding: '10px 8px',
                             display: 'flex', alignItems: 'center',
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
@@ -775,7 +775,7 @@ export default function Sidebar() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', padding: '9px 8px',
+                            width: '100%', padding: '10px 8px',
                             display: 'flex', alignItems: 'center',
                             gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',

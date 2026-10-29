@@ -42,12 +42,12 @@ export default function AudioStimulusEditor({
   }
 
   const inSt: React.CSSProperties = inputStyle ?? {
-    width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10,
+    width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 10,
     border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)',
     fontSize: 13, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit',
   }
   const chip = (active: boolean): React.CSSProperties => ({
-    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 10,
+    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10,
     cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
     border: `1.5px solid ${active ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
     background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
@@ -80,7 +80,7 @@ export default function AudioStimulusEditor({
               {uploading ? <Loader2 size={14} className="spin" /> : <Upload size={14} />}
               {uploading ? t('Загрузка…') : t('Загрузить аудио')}
             </button>
-            {value.ttsText && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-text-3)' }}><Volume2 size={12} /> {t('будет синтез речи')}</span>}
+            {value.ttsText && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)' }}><Volume2 size={12} /> {t('будет синтез речи')}</span>}
           </div>
         </>
       )}

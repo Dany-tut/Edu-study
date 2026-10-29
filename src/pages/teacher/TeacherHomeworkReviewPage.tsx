@@ -70,7 +70,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(student.name)}</div>
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5,
+              display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6,
               background: group.color + '33', borderRadius: 7, padding: '2px 8px',
             }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
@@ -97,8 +97,8 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
         {student.trialScore !== null && (
           <ScoreBar label={t('Пробник')} icon={Award} value={student.trialScore} color="#F5A623" />
         )}
-        <div className="flex items-center justify-between" style={{ padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
-          <div className="flex items-center" style={{ gap: 7 }}>
+        <div className="flex items-center justify-between" style={{ padding: '8px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
+          <div className="flex items-center" style={{ gap: 8 }}>
             <Clock size={14} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
             <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
           </div>
@@ -110,7 +110,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           </span>
         </div>
         <div className="flex items-center justify-between" style={{
-          padding: '7px 10px', borderRadius: 10,
+          padding: '8px 10px', borderRadius: 10,
           background: 'var(--color-yellow-soft)', border: '1px solid color-mix(in srgb, var(--color-yellow-text) 28%, transparent)',
         }}>
           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Желаемый балл')}</span>
@@ -148,7 +148,7 @@ function ScoreBar({ label, icon: Icon, value, color }: {
       <div style={{ height: 5, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }} animate={{ width: `${value}%` }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
           style={{ height: '100%', background: color, borderRadius: 99, opacity: 0.85 }}
         />
       </div>
@@ -208,7 +208,7 @@ function ReviewBottomBar({
             return (
               <button key={s.id} onClick={() => onJump(i)} title={tn(s.name)} style={{
                 flex: 1, height: i < activeIdx ? 6 : 4, minWidth: 2, borderRadius: 3, border: 'none', cursor: 'pointer',
-                background: bg, padding: 0, transition: 'height 0.2s ease',
+                background: bg, padding: 0, transition: 'height 0.22s ease',
               }} />
             )
           })}
@@ -271,7 +271,7 @@ function TaskScoreGrid({
                 onChange={e => onScoreChange(task.id, e.target.value)}
                 placeholder="—"
                 style={{
-                  width: 64, boxSizing: 'border-box', padding: '7px 10px', borderRadius: 10,
+                  width: 64, boxSizing: 'border-box', padding: '8px 10px', borderRadius: 10,
                   border: `1.5px solid ${over ? 'var(--color-red-text)' : 'var(--color-border-medium)'}`,
                   fontSize: 16, fontWeight: 700, color: over ? 'var(--color-red-text)' : 'var(--color-text)',
                   background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
@@ -294,7 +294,7 @@ function TaskScoreGrid({
         <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>/ {maxTotal}</span>
         <span style={{
           fontSize: 12, fontWeight: 700,
-          padding: '3px 8px', borderRadius: 8,
+          padding: '4px 8px', borderRadius: 8,
           background: groupColor + '22', color: groupColor,
         }}>{pct}%</span>
       </div>
@@ -526,7 +526,7 @@ export default function TeacherHomeworkReviewPage() {
         className="flex items-center"
         initial={false}
         animate={{ opacity: docked ? 0 : 1 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
         style={{ position: 'relative', flexShrink: 0, justifyContent: 'space-between', paddingLeft: 32, paddingRight: 32, paddingBottom: 14, gap: 12, pointerEvents: docked ? 'none' : 'auto' }}
       >
         <motion.button
@@ -534,7 +534,7 @@ export default function TeacherHomeworkReviewPage() {
           onClick={() => setActivePage('homework')}
           className="flex items-center cursor-pointer flex-shrink-0"
           style={{
-            gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
+            gap: 4, padding: '10px 16px 10px 12px', borderRadius: 999,
             border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
             boxShadow: 'var(--shadow-2)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
@@ -551,8 +551,8 @@ export default function TeacherHomeworkReviewPage() {
           {tc(hw.title)}
         </span>
         <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
-          background: `${group.color}26`, borderRadius: 8, padding: '3px 10px',
+          display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0,
+          background: `${group.color}26`, borderRadius: 8, padding: '4px 10px',
         }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: group.color }} />
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
@@ -577,7 +577,7 @@ export default function TeacherHomeworkReviewPage() {
               onClick={() => setActivePage('homework')}
               className="flex items-center cursor-pointer flex-shrink-0"
               style={{
-                gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
+                gap: 4, padding: '10px 16px 10px 12px', borderRadius: 999,
                 ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
@@ -587,7 +587,7 @@ export default function TeacherHomeworkReviewPage() {
 
             <div style={{
               flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              padding: '9px 16px', borderRadius: 999, ...dockGlass,
+              padding: '10px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
               {tc(hw.title)}
@@ -601,7 +601,7 @@ export default function TeacherHomeworkReviewPage() {
             </div>
 
             <div className="flex-shrink-0 flex items-center" style={{
-              gap: 7, padding: '9px 16px', borderRadius: 999,
+              gap: 8, padding: '10px 16px', borderRadius: 999,
               ...dockGlass, color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
             }}>
               <CheckCircle2 size={16} style={{ color: 'var(--color-green-text)' }} />
@@ -625,7 +625,7 @@ export default function TeacherHomeworkReviewPage() {
               key={student.id}
               initial={{ opacity: 0, x: dir * 40 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="grid"
               style={{ gridTemplateColumns: 'minmax(260px, 320px) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}
             >
@@ -645,7 +645,7 @@ export default function TeacherHomeworkReviewPage() {
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Работа ученика')}</span>
                     {formatSubmittedAt(currentSubmission?.submittedAt) && (
                       <span className="flex items-center" style={{
-                        gap: 5, marginLeft: 'auto', padding: '4px 10px', borderRadius: 999,
+                        gap: 6, marginLeft: 'auto', padding: '4px 10px', borderRadius: 999,
                         background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600,
                       }}>
                         <Clock size={12} />
@@ -780,7 +780,7 @@ export default function TeacherHomeworkReviewPage() {
                       onClick={() => handleVerdict('returned')}
                       className="flex items-center cursor-pointer"
                       style={{
-                        gap: 8, padding: '13px 20px', borderRadius: 16, border: 'none',
+                        gap: 8, padding: '12px 20px', borderRadius: 16, border: 'none',
                         background: 'var(--color-peach-soft)',
                         color: 'var(--color-peach-text)', fontSize: 14, fontWeight: 600,
                       }}
@@ -820,7 +820,7 @@ export default function TeacherHomeworkReviewPage() {
                       whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                       onClick={() => setActivePage('homework')}
                       style={{
-                        flexShrink: 0, padding: '11px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                        flexShrink: 0, padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
                         background: 'var(--color-green-accent)', color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                       }}
                     >

@@ -50,7 +50,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
         border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-input)',
       }}>
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 7, padding: '8px 12px',
+          display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
           borderBottom: '1px solid var(--color-border-soft)',
           fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
         }}>
@@ -78,7 +78,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 15px',
+                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px',
                 borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: 'none',
                 background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)',
               }}
@@ -94,7 +94,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
           onClick={mark}
           disabled={disabled || done}
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px',
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px',
             borderRadius: 12, fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
             border: 'none', cursor: disabled || done ? 'default' : 'pointer',
             background: done ? 'var(--color-green-soft)' : 'var(--btn-green-bg)',

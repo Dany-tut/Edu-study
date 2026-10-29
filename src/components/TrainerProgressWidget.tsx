@@ -118,16 +118,16 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
       {/* Progress bar */}
       {totalCount > 0 && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
               {kind === 'lang' ? t('Выучено из разговорника') : t('Решено верно')}
             </span>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{Math.round(pct)}%</span>
           </div>
           <div style={{ height: 7, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
-            <motion.div animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: 'easeOut' }}
+            <motion.div animate={{ width: `${pct}%` }} transition={{ duration: 0.38, ease: 'easeOut' }}
               style={{ height: '100%', background: accent, flexShrink: 0 }} />
-            <motion.div animate={{ width: `${wrongPct}%` }} transition={{ duration: 0.6, ease: 'easeOut' }}
+            <motion.div animate={{ width: `${wrongPct}%` }} transition={{ duration: 0.38, ease: 'easeOut' }}
               style={{ height: '100%', background: 'var(--color-red-text)', flexShrink: 0 }} />
           </div>
         </div>
@@ -139,11 +139,11 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
           <Clock size={12} /> {t('Сегодня')}
         </span>
         {/* Та же точка, что в пилюле верхней строки: идёт счёт или пауза. */}
-        <span style={{ padding: '3px 9px', borderRadius: 999, background: `${accent}1F`, color: palette.text, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ padding: '4px 10px', borderRadius: 999, background: `${accent}1F`, color: palette.text, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <motion.span
             aria-label={counting ? t('Время идёт') : t('Пауза')}
             animate={counting ? { opacity: [1, 0.3, 1] } : { opacity: 1 }}
-            transition={counting ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+            transition={counting ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.22 }}
             style={{
               width: 6, height: 6, borderRadius: '50%', display: 'block', flexShrink: 0,
               background: counting ? accent : 'transparent',
@@ -153,10 +153,10 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
           {formatDur(todayMs)}
         </span>
         {todayCorrect > 0 && (
-          <span style={{ padding: '3px 9px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>✓ {todayCorrect}</span>
+          <span style={{ padding: '4px 10px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>✓ {todayCorrect}</span>
         )}
         {todayWrong > 0 && (
-          <span style={{ padding: '3px 9px', borderRadius: 999, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}>✗ {todayWrong}</span>
+          <span style={{ padding: '4px 10px', borderRadius: 999, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}>✗ {todayWrong}</span>
         )}
       </div>
     </div>

@@ -192,7 +192,7 @@ export default function MobileSheet({
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
             style={{
               y,
               position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 81,

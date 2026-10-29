@@ -75,7 +75,7 @@ export default function TeacherSubjectsPrompt() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginTop: 20, flexDirection: isPhone ? 'column-reverse' : 'row' }}>
             <button
               onClick={postpone}
-              style={{ padding: '9px 16px', borderRadius: 999, border: 'none', background: 'transparent', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', width: isPhone ? '100%' : undefined }}
+              style={{ padding: '10px 16px', borderRadius: 999, border: 'none', background: 'transparent', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', width: isPhone ? '100%' : undefined }}
             >
               {t('Позже')}
             </button>

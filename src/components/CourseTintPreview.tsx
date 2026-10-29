@@ -102,9 +102,9 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
         padding: '12px 12px 10px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 9,
+        gap: 10,
         // Цвета внутри переезжают плавно — это и есть ответ на тап по уровню.
-        transition: 'background-color 0.32s ease',
+        transition: 'background-color 0.38s ease',
       }}
       aria-hidden
     >
@@ -145,7 +145,7 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
               height: 32, borderRadius: 10,
               background: i === 0 ? 'var(--color-purple-soft)' : 'var(--color-bg-5)',
               color: i === 0 ? 'var(--color-purple-text)' : 'var(--color-text-3)',
-              transition: 'background-color 0.32s ease, color 0.32s ease',
+              transition: 'background-color 0.38s ease, color 0.38s ease',
             }}>
               <Icon size={14} strokeWidth={2} />
             </div>
@@ -159,14 +159,14 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
       {/* Герой «Продолжить» */}
       <Zone tier={1} flash={flash} radius={14}>
       <div style={{
-        borderRadius: 14, padding: '10px 11px', color: '#fff',
+        borderRadius: 14, padding: '10px 12px', color: '#fff',
         background: 'var(--grad-purple)', boxShadow: 'var(--glow-accent)',
-        transition: 'background 0.32s ease',
+        transition: 'background 0.38s ease',
       }}>
         <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.85, letterSpacing: '0.05em' }}>
           {t('ПРОДОЛЖИТЬ')}
         </div>
-        <div style={{ fontSize: 12, fontWeight: 800, margin: '3px 0 7px' }}>{t('Занятие')} #4</div>
+        <div style={{ fontSize: 12, fontWeight: 800, margin: '4px 0 8px' }}>{t('Занятие')} #4</div>
         <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.3)' }}>
           <div style={{ width: '42%', height: 4, borderRadius: 99, background: '#fff' }} />
         </div>
@@ -179,10 +179,10 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
         <div style={{ display: 'flex', gap: 6 }}>
           {[Star, Trophy, Sparkles].map((Icon, i) => (
             <div key={i} className="flex items-center" style={{
-              gap: 4, height: 22, padding: '0 9px', borderRadius: 999,
+              gap: 4, height: 22, padding: '0 10px', borderRadius: 999,
               background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)',
               fontSize: 10, fontWeight: 800,
-              transition: 'background-color 0.32s ease, color 0.32s ease',
+              transition: 'background-color 0.38s ease, color 0.38s ease',
             }}>
               <Icon size={10} />{[7, 3, 12][i]}
             </div>
@@ -194,16 +194,16 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
         <Zone tier={2} flash={flash} radius={10}>
         <div className="flex items-center" style={{
-          gap: 5, height: 30, padding: '0 9px', borderRadius: 10,
+          gap: 6, height: 30, padding: '0 10px', borderRadius: 10,
           background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)',
           fontSize: 11, fontWeight: 800,
-          transition: 'background-color 0.32s ease, color 0.32s ease',
+          transition: 'background-color 0.38s ease, color 0.38s ease',
         }}>
           <BookOpen size={12} />42%
         </div>
         </Zone>
         <div className="flex items-center" style={{
-          gap: 5, height: 30, padding: '0 9px', borderRadius: 10,
+          gap: 6, height: 30, padding: '0 10px', borderRadius: 10,
           background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
           fontSize: 11, fontWeight: 800,
         }}>
@@ -223,7 +223,7 @@ export default function CourseTintPreview({ hex, level }: { hex: string; level: 
             key={i}
             size={14}
             strokeWidth={i === 0 ? 2.5 : 1.8}
-            style={{ color: i === 0 ? 'var(--color-accent)' : 'var(--color-text-4)', transition: 'color 0.32s ease' }}
+            style={{ color: i === 0 ? 'var(--color-accent)' : 'var(--color-text-4)', transition: 'color 0.38s ease' }}
           />
         ))}
       </div>

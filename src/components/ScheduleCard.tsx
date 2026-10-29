@@ -107,7 +107,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
       layout
       animate={{ scale, opacity: glassFade ? 1 : opacity }}
       whileHover={isCenter ? undefined : { scale: scale * 1.04, opacity: glassFade ? 1 : Math.min(1, opacity + 0.18) }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className="flex-shrink-0 cursor-pointer h-full"
       style={{
@@ -167,13 +167,13 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   className="rounded-2xl flex items-center cursor-pointer"
                   style={{
                     minHeight: 58,
-                    padding: '9px 12px 9px 14px',
+                    padding: '10px 12px 10px 14px',
                     gap: 14,
                     background: (isUpcoming || isMissed) ? pal.soft : 'var(--color-schedule-row)',
                     opacity: isMissed ? 1 : isPassed ? 0.55 : 1,
                     outline: isSelected ? `2px solid ${pal.accent}` : '2px solid transparent',
                     outlineOffset: isSelected ? 2 : 0,
-                    transition: 'outline-color 160ms ease, outline-offset 160ms ease',
+                    transition: 'outline-color 0.15s ease, outline-offset 0.15s ease',
                   }}
                 >
                   <div className="flex-1 min-w-0">
@@ -182,13 +182,13 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                         {tc(lesson.subject)}
                       </span>
                       {isMissed && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 7px', borderRadius: 999 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 8px', borderRadius: 999 }}>
                           {t('Пропущен')}
                         </span>
                       )}
                       {!isPassed && st.secondsUntil > 0 && st.secondsUntil <= 3600 && (
                         isUpcoming ? (
-                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 7px', borderRadius: 999 }} />
+                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 8px', borderRadius: 999 }} />
                         ) : (
                           <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-5)', padding: '1px 6px', borderRadius: 999 }} />
                         )
@@ -220,7 +220,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   <>
                     <CalendarX2 size={20} style={{ marginBottom: 8 }} />
                     <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
-                    <p style={{ fontSize: 12, marginTop: 3 }}>{t('Преподаватель еще не проставил уроки')}</p>
+                    <p style={{ fontSize: 12, marginTop: 4 }}>{t('Преподаватель еще не проставил уроки')}</p>
                   </>
                 )}
               </div>
@@ -274,7 +274,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             ) : (
               <div style={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center', color: 'var(--color-muted)' }}>
                 <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
-                <p style={{ fontSize: 11, marginTop: 3 }}>{t('Уроки еще не проставлены')}</p>
+                <p style={{ fontSize: 11, marginTop: 4 }}>{t('Уроки еще не проставлены')}</p>
               </div>
             )}
           </div>

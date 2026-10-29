@@ -37,7 +37,7 @@ const ROW_H = 56
 // цветные плитки статистики (soft-пары из дизайн-системы)
 function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value: React.ReactNode; label: string; bg: string; fg: string }) {
   return (
-    <div style={{ background: bg, borderRadius: 14, padding: '12px 13px', minHeight: 66, display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div style={{ background: bg, borderRadius: 14, padding: '12px 12px', minHeight: 66, display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ color: fg, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {icon}
       </div>
@@ -119,7 +119,7 @@ export default function MobileTeacherProfile() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
 
         {/* Identity — span 2 */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 13, padding: '14px 15px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
           <div style={{ position: 'relative', width: 52, height: 52, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 24, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0, textTransform: 'uppercase' }}>
             {initial}
             <AvatarPhotoFill path={photoPath} />
@@ -143,13 +143,13 @@ export default function MobileTeacherProfile() {
             there files a prefilled feedback request; admin assigns it by hand. */}
         <button
           onClick={() => { tactile(); setTariffOpen(true) }}
-          style={{ gridColumn: 'span 2', padding: '14px 15px', borderRadius: 16, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff', border: 'none', textAlign: 'left', cursor: 'pointer' }}
+          style={{ gridColumn: 'span 2', padding: '14px 16px', borderRadius: 16, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff', border: 'none', textAlign: 'left', cursor: 'pointer' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 14, fontWeight: 700 }}>{t('Тариф')} · {m.planName}</span>
             {quotaPct !== null
               ? <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.9 }}>{m.studentsUsed} / {m.maxStudents} {t('учеников')}</span>
-              : <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, background: 'rgba(255,255,255,0.2)', padding: '3px 9px', borderRadius: 20 }}>{t('без лимита')}</span>}
+              : <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 20 }}>{t('без лимита')}</span>}
           </div>
           {quotaPct !== null && (
             <div style={{ height: 6, background: 'rgba(255,255,255,0.3)', borderRadius: 20, marginTop: 10, overflow: 'hidden' }}>
@@ -176,13 +176,13 @@ export default function MobileTeacherProfile() {
           <button
             onClick={() => { tactile(); setTariffOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+            style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
               <Sparkles size={18} style={{ color: 'var(--color-purple-text)' }} />{t('Тариф')} · {m.planName}
             </span>
             {m.maxStudents !== null
-              ? <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-purple-text)', background: 'var(--color-purple-soft)', padding: '4px 11px', borderRadius: 20 }}>{t('Повысить')}</span>
+              ? <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-purple-text)', background: 'var(--color-purple-soft)', padding: '4px 12px', borderRadius: 20 }}>{t('Повысить')}</span>
               : <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />}
           </button>
 
@@ -190,7 +190,7 @@ export default function MobileTeacherProfile() {
           <button
             onClick={() => { tactile(); toggleTheme() }}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+            style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
               {dark ? <Moon size={18} style={{ color: 'var(--color-muted)' }} /> : <Sun size={18} style={{ color: 'var(--color-muted)' }} />}{t('Тема оформления')}
@@ -203,7 +203,7 @@ export default function MobileTeacherProfile() {
             onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
             aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+            style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
               <Languages size={18} style={{ color: 'var(--color-muted)' }} />{t('Язык')}
@@ -215,7 +215,7 @@ export default function MobileTeacherProfile() {
           <button
             onClick={() => { tactile(); setFeedbackOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+            style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
               <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />{t('Обратная связь')}
@@ -228,7 +228,7 @@ export default function MobileTeacherProfile() {
             <button
               onClick={() => { tactile(); requestShowInstall() }}
               className="flex items-center justify-between cursor-pointer"
-              style={{ width: '100%', height: ROW_H, padding: '0 15px', background: 'transparent', border: 'none' }}
+              style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
             >
               <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                 <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
@@ -242,7 +242,7 @@ export default function MobileTeacherProfile() {
         </div>
 
         {/* Desktop tools footer — span 2, compact */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 9, padding: '11px 13px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
+        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 12px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
           <Monitor size={16} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
           <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.3 }}>
             {t('Конструктор курсов и редактор уроков — на компьютере.')}
@@ -254,7 +254,7 @@ export default function MobileTeacherProfile() {
           whileTap={{ scale: 0.97 }}
           onClick={logout}
           className="flex items-center justify-center cursor-pointer"
-          style={{ gridColumn: 'span 2', gap: 8, padding: 13, borderRadius: 16, background: 'transparent', color: 'var(--color-red-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
+          style={{ gridColumn: 'span 2', gap: 8, padding: 12, borderRadius: 16, background: 'transparent', color: 'var(--color-red-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
         >
           <LogOut size={18} /> {t('Выйти из аккаунта')}
         </motion.button>

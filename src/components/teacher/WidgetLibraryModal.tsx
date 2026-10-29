@@ -46,7 +46,7 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
       </div>
       <div style={{
         flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
-        background: 'var(--color-bg-3)', borderRadius: 8, padding: '3px 8px',
+        background: 'var(--color-bg-3)', borderRadius: 8, padding: '4px 8px',
       }}>
         {def.defaultW}×{def.defaultH}
       </div>
@@ -128,7 +128,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
           }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить виджет')}</div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 3 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>
                 {t('Кликните — виджет появится на столе')}
               </div>
             </div>

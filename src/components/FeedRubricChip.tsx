@@ -68,12 +68,12 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
         // лишнее место делится поверх содержимого, и обрезать нечего.
         flex: grow ? '1 0 auto' : '0 1 auto',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minWidth: 20, height: 32, padding: label ? '0 11px' : '0 7px',
+        minWidth: 20, height: 32, padding: label ? '0 12px' : '0 8px',
         borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
         fontSize: 12, fontWeight: on ? 700 : 500, whiteSpace: 'nowrap',
         background: on ? `${accent}26` : 'transparent',
         color: on ? accent : 'var(--color-text-3)',
-        transition: 'background 0.18s ease, color 0.18s ease, padding 0.24s cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: 'background 0.15s ease, color 0.15s ease, padding 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
       }}
     >
       <Icon size={14} />
@@ -86,7 +86,7 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 'auto', opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.24, ease: EASE }}
+            transition={{ duration: 0.22, ease: EASE }}
             style={{ display: 'block', overflow: 'hidden' }}
           >
             {/* Зазор до значка внутри уезжающей коробки: снаружи (gap у кнопки)

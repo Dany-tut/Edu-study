@@ -158,7 +158,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
         </span>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.15 }}
           style={{ display: 'flex', alignItems: 'center', flexShrink: 0, opacity: 0.6 }}
         >
           <ChevronDown size={14} />
@@ -186,7 +186,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                   <button
                     onClick={() => setPendingPlan(null)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 5, width: '100%', textAlign: 'left',
+                      display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left',
                       padding: '6px 8px', marginBottom: 2, borderRadius: 8, border: 'none', cursor: 'pointer',
                       background: 'transparent', color: 'var(--color-text-3)',
                       fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
@@ -202,7 +202,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                       disabled={busy !== null}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
-                        padding: '9px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                        padding: '10px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
                         fontFamily: 'inherit', background: 'transparent', color: 'var(--color-text)',
                         fontSize: 13, fontWeight: 700,
                       }}
@@ -219,7 +219,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                 return (
                   <button key={p.code} onClick={() => setPendingPlan(p.code)} disabled={busy !== null} style={{
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
-                    padding: '9px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                    padding: '10px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
                     fontFamily: 'inherit',
                     background: sel ? 'var(--color-purple-soft)' : 'transparent', color: 'var(--color-text)',
                   }}>

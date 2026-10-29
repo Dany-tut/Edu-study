@@ -100,7 +100,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
         onClick={() => setOpen(o => !o)}
         style={{
           display: 'flex', alignItems: 'center', gap: 8, width: compact ? 'auto' : '100%',
-          justifyContent: 'space-between', padding: compact ? '8px 12px' : '11px 14px',
+          justifyContent: 'space-between', padding: compact ? '8px 12px' : '12px 14px',
           borderRadius: 12, cursor: 'pointer',
           border: `1px solid ${current.color}44`, background: current.color + '18',
           color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
@@ -127,7 +127,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
                 onClick={() => { switchTo(c); setOpen(false) }}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                  padding: '9px 10px', borderRadius: 10, cursor: 'pointer', border: 'none',
+                  padding: '10px 10px', borderRadius: 10, cursor: 'pointer', border: 'none',
                   background: active ? c.color + '18' : 'transparent',
                   color: 'var(--color-text)', fontSize: 13, fontWeight: active ? 700 : 500, textAlign: 'left',
                 }}

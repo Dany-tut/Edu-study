@@ -52,7 +52,7 @@ export default function InstallPrompt() {
           key="scrim"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.22 }}
           onClick={close}
           style={{
             position: 'fixed', inset: 0, zIndex: 9997,
@@ -118,7 +118,7 @@ export default function InstallPrompt() {
               <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', marginTop: 18, letterSpacing: '-0.01em' }}>
                 {t('Установить «Искру»')}
               </div>
-              <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.4, textAlign: 'center', marginTop: 5, maxWidth: 300 }}>
+              <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.4, textAlign: 'center', marginTop: 6, maxWidth: 300 }}>
                 {t('Быстрый доступ прямо с экрана «Домой» — без адресной строки')}
               </div>
 
@@ -137,7 +137,7 @@ export default function InstallPrompt() {
                 <button
                   onClick={onInstall}
                   style={{
-                    width: '100%', padding: '15px 0', borderRadius: 16, border: 'none',
+                    width: '100%', padding: '16px 0', borderRadius: 16, border: 'none',
                     background: 'linear-gradient(135deg,#9B6FE8,#6F3FBF)', color: '#fff',
                     fontSize: 16, fontWeight: 700, cursor: 'pointer',
                     boxShadow: '0 10px 26px rgba(111,63,191,0.4)',
@@ -211,7 +211,7 @@ function Perk({ icon: Icon, label }: { icon: typeof Rocket; label: string }) {
   return (
     <div style={{
       flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-      padding: '11px 6px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
+      padding: '12px 6px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
     }}>
       <Icon size={17} style={{ color: 'var(--color-accent)' }} />
       <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', textAlign: 'center', lineHeight: 1.2 }}>{label}</span>
@@ -223,7 +223,7 @@ function Glyph({ children }: { children: React.ReactNode }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', verticalAlign: 'middle',
-      width: 22, height: 22, borderRadius: 7, margin: '0 3px',
+      width: 22, height: 22, borderRadius: 7, margin: '0 4px',
       background: 'var(--color-purple-soft, rgba(120,106,215,0.15))', color: 'var(--color-accent)',
     }}>
       {children}

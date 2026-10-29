@@ -177,7 +177,7 @@ export default function SpoilerText({
           justifyContent: 'center',
         }}
       >
-        <span style={{ opacity: revealed ? 1 : 0, transition: 'opacity 0.4s ease', position: 'relative', zIndex: 1, ...style }}>
+        <span style={{ opacity: revealed ? 1 : 0, transition: 'opacity 0.38s ease', position: 'relative', zIndex: 1, ...style }}>
           {children}
         </span>
         <canvas
@@ -190,7 +190,7 @@ export default function SpoilerText({
             height: '100%',
             pointerEvents: 'none',
             opacity: revealed ? 0 : 1,
-            transition: 'opacity 0.35s ease',
+            transition: 'opacity 0.38s ease',
           }}
         />
       </div>
@@ -200,7 +200,7 @@ export default function SpoilerText({
   return (
     <span className={className} style={{ position: 'relative', display: 'inline-block', ...style }}>
       {/* Text — invisible while hidden so it still reserves layout space */}
-      <span style={{ opacity: revealed ? 1 : 0, transition: 'opacity 0.4s ease' }}>
+      <span style={{ opacity: revealed ? 1 : 0, transition: 'opacity 0.38s ease' }}>
         {children}
       </span>
       <canvas
@@ -218,7 +218,7 @@ export default function SpoilerText({
           height: `calc(100% + ${pad * 2}px)`,
           pointerEvents: 'none',
           opacity: revealed ? 0 : 1,
-          transition: 'opacity 0.35s ease',
+          transition: 'opacity 0.38s ease',
         }}
       />
     </span>

@@ -49,7 +49,7 @@ export default function TeacherHardReviewPage() {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
         <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t('Работа не найдена')}</div>
-        <button onClick={() => setActivePage('homework')} style={{ padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Назад')}</button>
+        <button onClick={() => setActivePage('homework')} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Назад')}</button>
       </div>
     )
   }
@@ -111,7 +111,7 @@ export default function TeacherHardReviewPage() {
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {t('Хард-уровень')} · {tc(sub.lessonTitle) || sub.baseRef}
           </span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: statusBg, padding: '3px 9px', borderRadius: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: statusBg, padding: '4px 10px', borderRadius: 8 }}>
             {statusLabel}
           </span>
         </div>
@@ -150,7 +150,7 @@ export default function TeacherHardReviewPage() {
               disabled={hwBusy}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '11px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
+                padding: '12px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
                 cursor: hwBusy ? 'default' : 'pointer', background: 'var(--color-bg-2)', color: 'var(--color-text)',
                 fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: hwBusy ? 0.6 : 1,
               }}

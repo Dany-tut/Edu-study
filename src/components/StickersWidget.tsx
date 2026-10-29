@@ -56,7 +56,7 @@ export default function StickersWidget({ columns }: { columns: number }) {
               const tier = STICKER_TIERS[s as 1 | 2 | 3 | 4 | 5]
               return (
                 <span key={s} style={{
-                  fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
+                  fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999,
                   color: tier.inkDark, background: `${tier.ink}2E`,
                 }}>{s}/5 · {byScore[s]}</span>
               )

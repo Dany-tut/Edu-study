@@ -93,7 +93,7 @@ function Kpi({ icon: Icon, label, value, sub, accent, loading }: {
 }) {
   return (
     <Card style={{ padding: '14px 16px' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:8 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
         <Icon size={14} strokeWidth={2} style={{ color: accent ?? 'var(--color-text-3)' }} />
         <span style={{ fontSize:12, color:'var(--color-text-3)', fontWeight:500 }}>{label}</span>
       </div>
@@ -114,7 +114,7 @@ function Markdown({ text }: { text: string }) {
       return <strong key={i} style={{ color:'var(--color-text)' }}>{piece.slice(2,-2)}</strong>
     if (piece.startsWith('`') && piece.endsWith('`'))
       return <code key={i} style={{
-        background:'var(--color-bg-3)', borderRadius:5, padding:'1px 5px',
+        background:'var(--color-bg-3)', borderRadius:5, padding:'1px 6px',
         fontSize:'0.92em', fontFamily:'ui-monospace, SFMono-Regular, monospace',
       }}>{piece.slice(1,-1)}</code>
     return <span key={i}>{piece}</span>
@@ -126,7 +126,7 @@ function Markdown({ text }: { text: string }) {
     if (list.length === 0) return
     out.push(
       <ul key={`ul${out.length}`} style={{ margin:'6px 0 12px', paddingLeft:20, lineHeight:1.6 }}>
-        {list.map((li, i) => <li key={i} style={{ marginBottom:3 }}>{bold(li)}</li>)}
+        {list.map((li, i) => <li key={i} style={{ marginBottom:4 }}>{bold(li)}</li>)}
       </ul>,
     )
     list = []
@@ -222,7 +222,7 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
           ))}
         </div>
         {DOW_LABELS.map((label,di) => (
-          <div key={label} style={{ display:'flex', gap:4, alignItems:'center', marginBottom:3 }}>
+          <div key={label} style={{ display:'flex', gap:4, alignItems:'center', marginBottom:4 }}>
             <div style={{ width:24, fontSize:10, color:'var(--color-text-3)', fontWeight:600 }}>{t(label)}</div>
             {Array.from({length:24}).map((_,h) => {
               const cnt = heatMap.get(`${DOW_PG[di]}-${h}`) ?? 0
@@ -234,7 +234,7 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
           </div>
         ))}
       </div>
-      <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:10, fontSize:10, color:'var(--color-text-3)' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:10, fontSize:10, color:'var(--color-text-3)' }}>
         {t('меньше')}
         {[0,0.25,0.5,0.75,1].map(a => {
           const hex=color.replace('#',''); const r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16)
@@ -809,7 +809,7 @@ export default function TeacherAnalytics() {
           <Card style={{ marginBottom:24 }}>
             {daily.length === 0
               ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Данные появятся после первых посещений.')}</div>
-              : <div style={{ display:'flex', alignItems:'flex-end', gap:3, height:100 }}>
+              : <div style={{ display:'flex', alignItems:'flex-end', gap:4, height:100 }}>
                   {daily.map(d => (
                     <div key={d.day} title={`${d.day} — ${d.events} ${t('событий')}, ${d.users} ${t('польз.')}`}
                       style={{ flex:1, minWidth:2, height:`${Math.max(2,(d.events/dailyMax)*100)}%`, background:currentColor, borderRadius:'3px 3px 0 0', opacity:0.8 }} />
@@ -833,7 +833,7 @@ export default function TeacherAnalytics() {
                     </div>
                     <div style={{ height:8, borderRadius:4, background:'var(--color-bg-3)' }}>
                       <motion.div initial={{width:0}} animate={{width:`${(s.v/fMax)*100}%`}}
-                        transition={{duration:0.5,delay:i*0.06}}
+                        transition={{duration:0.38,delay:i*0.06}}
                         style={{ height:'100%', borderRadius:4, background:currentColor }} />
                     </div>
                   </div>
@@ -879,7 +879,7 @@ export default function TeacherAnalytics() {
                     <span style={{ textAlign:'right' }}>{t('Всего')}</span>
                   </div>
                   {geo.map((g,i) => (
-                    <div key={g.code} style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr 1fr 1fr', alignItems:'center', fontSize:13, padding:'9px 0', borderBottom:i<geo.length-1?'1px solid var(--color-border)':'none' }}>
+                    <div key={g.code} style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr 1fr 1fr', alignItems:'center', fontSize:13, padding:'10px 0', borderBottom:i<geo.length-1?'1px solid var(--color-border)':'none' }}>
                       <span style={{ color:'var(--color-text)', display:'flex', alignItems:'center', gap:8 }}>
                         <span style={{ fontSize:16 }}>{g.flag}</span>{t(g.name)}
                       </span>
@@ -903,7 +903,7 @@ export default function TeacherAnalytics() {
           {/* Copy everything on this tab as text — for pasting into a bug report */}
           <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
             <button onClick={() => void copyIssues()} style={{
-              display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:10,
+              display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:10,
               border:'1px solid var(--color-border)', cursor:'pointer', fontSize:12, fontWeight:600,
               background: copied ? 'rgba(63,168,103,0.15)' : 'var(--color-bg-2)',
               color: copied ? 'var(--color-green-text)' : 'var(--color-text-2)',
@@ -1169,11 +1169,11 @@ export default function TeacherAnalytics() {
                     const active = p.path === clickPath
                     return (
                       <button key={p.path} onClick={() => setClickPath(p.path)} style={{
-                        display:'flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:10,
+                        display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:10,
                         border:'1px solid', borderColor: active ? currentColor : 'var(--color-border)',
                         background: active ? withAlpha(currentColor,0.12) : 'var(--color-bg-2)',
                         color: active ? 'var(--color-text)' : 'var(--color-text-3)',
-                        fontSize:12, fontWeight:600, cursor:'pointer', transition:'border-color .15s, background .15s',
+                        fontSize:12, fontWeight:600, cursor:'pointer', transition:'border-color 0.15s, background 0.15s',
                       }}>
                         {pLabel(p.path)}
                         <span style={{ fontSize:11, fontWeight:500, color:'var(--color-text-3)',
@@ -1186,7 +1186,7 @@ export default function TeacherAnalytics() {
                   )}
                   {!pathQ && (pathsHidden > 0 || pathsOpen) && (
                     <button onClick={() => setPathsOpen(o => !o)} style={{
-                      padding:'7px 12px', borderRadius:10, border:'1px dashed var(--color-border)',
+                      padding:'8px 12px', borderRadius:10, border:'1px dashed var(--color-border)',
                       background:'transparent', color:'var(--color-text-3)',
                       fontSize:12, fontWeight:600, cursor:'pointer',
                     }}>
@@ -1225,7 +1225,7 @@ export default function TeacherAnalytics() {
           <>
             <SectionTitle action={
               <button onClick={() => void runDigest()} disabled={digestBusy} style={{
-                display:'flex', alignItems:'center', gap:7, padding:'7px 13px', borderRadius:10,
+                display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:10,
                 border:'1px solid var(--color-border)', background:'var(--color-bg-2)',
                 color: digestBusy ? 'var(--color-text-3)' : 'var(--color-text)',
                 fontSize:12, fontWeight:600, cursor: digestBusy ? 'default' : 'pointer',
@@ -1254,7 +1254,7 @@ export default function TeacherAnalytics() {
               <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:14 }}>
                 {reports.map((r, i) => (
                   <button key={r.id} onClick={() => setReportIdx(i)} style={{
-                    padding:'6px 11px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer',
+                    padding:'6px 12px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer',
                     border:'1px solid', borderColor: i === reportIdx ? ACCENT : 'var(--color-border)',
                     background: i === reportIdx ? withAlpha(ACCENT, 0.12) : 'var(--color-bg-2)',
                     color: i === reportIdx ? 'var(--color-text)' : 'var(--color-text-3)',

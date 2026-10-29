@@ -150,7 +150,7 @@ export default function MobileCourses() {
           <div className="flex flex-col" style={{ gap: 14 }}>
             {/* Level / XP hero */}
             <div style={{ borderRadius: 20, padding: '14px 16px', background: pal.soft }}>
-              <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
                 <span style={{ fontSize: 14, fontWeight: 800, color: pal.text }}>{t('Уровень')} {level} · {t(rank)}</span>
                 <span className="flex items-center" style={{ gap: 4, fontSize: 12, fontWeight: 700, color: pal.text }}>
                   <Zap size={14} />{xpInLevel}/{XP_PER_LEVEL} XP
@@ -183,7 +183,7 @@ export default function MobileCourses() {
                       onClick={() => { setModuleTab(tab.id); if (tab.id !== ALL) setActiveModule(tab.id) }}>
                       {tab.label}
                       {module && pct > 0 && (
-                        <span style={{ marginLeft: 5, fontSize: 11, fontWeight: 600, color: pct === 100 ? 'var(--color-green-text)' : 'var(--color-muted)' }}>{pct}%</span>
+                        <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, color: pct === 100 ? 'var(--color-green-text)' : 'var(--color-muted)' }}>{pct}%</span>
                       )}
                     </MobilePill>
                   )
@@ -259,7 +259,7 @@ function CoursesSkeleton() {
   return (
     <div className="flex flex-col" style={{ gap: 14 }} aria-hidden>
       <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--color-bg-3)' }}>
-        <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
           <Skeleton w={148} h={14} radius={6} />
           <Skeleton w={72} h={12} radius={6} />
         </div>
@@ -283,7 +283,7 @@ function CoursesSkeleton() {
         {[0, 1, 2, 3].map(i => (
           <div key={i} className="flex items-center" style={{ gap: 12, padding: 12, borderRadius: 16, background: 'var(--color-surface)', border: '1px solid var(--color-border-glass)' }}>
             <Skeleton circle w={34} />
-            <span className="flex flex-col min-w-0" style={{ gap: 5, flex: 1 }}>
+            <span className="flex flex-col min-w-0" style={{ gap: 6, flex: 1 }}>
               <Skeleton w={i % 2 ? '54%' : '72%'} h={14} radius={6} />
               <Skeleton w="38%" h={11} radius={6} />
             </span>
@@ -296,7 +296,7 @@ function CoursesSkeleton() {
 
 function CourseStat({ value, label, pair }: { value: string; label: string; pair: StatusVisual }) {
   return (
-    <div style={{ flex: 1, minWidth: 0, borderRadius: 14, padding: '11px 12px', background: pair.tintBg }}>
+    <div style={{ flex: 1, minWidth: 0, borderRadius: 14, padding: '12px 12px', background: pair.tintBg }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: pair.tint, lineHeight: 1 }}>{value}</div>
       <div style={{ fontSize: 11, fontWeight: 600, color: pair.tint, opacity: 0.85, marginTop: 4 }}>{label}</div>
     </div>
@@ -316,7 +316,7 @@ function ModuleRow({ label, total, done, active, onClick, pal }: { label: string
     >
       <div className="flex-1 min-w-0">
         <div className="truncate" style={{ fontSize: 15, fontWeight: 700, color: active ? pal.text : 'var(--color-text)' }}>{label}</div>
-        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 3 }}>{done} {t('из')} {total} · {pct}%</div>
+        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>{done} {t('из')} {total} · {pct}%</div>
       </div>
       <div style={{ width: 40, height: 6, borderRadius: 99, background: 'var(--color-bg-3)', overflow: 'hidden', flexShrink: 0 }}>
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: pct === 100 ? 'var(--color-green-accent)' : pal.accent }} />
@@ -358,7 +358,7 @@ function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: L
             {tc(lesson.title)}
           </span>
           {status === 'completed' && lesson.points != null && (
-            <span className="flex items-center flex-shrink-0" style={{ gap: 3, fontSize: 11, fontWeight: 700, color: 'var(--color-yellow-text)', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999, marginTop: 1 }}>
+            <span className="flex items-center flex-shrink-0" style={{ gap: 4, fontSize: 11, fontWeight: 700, color: 'var(--color-yellow-text)', background: 'var(--color-yellow-soft)', padding: '4px 8px', borderRadius: 999, marginTop: 1 }}>
               <Zap size={12} />+{lesson.points}
             </span>
           )}

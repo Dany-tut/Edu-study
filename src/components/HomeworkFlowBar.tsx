@@ -72,7 +72,7 @@ export default function HomeworkFlowBar({
     <motion.div
       initial={false}
       animate={{ bottom: lift }}
-      transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+      transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
       style={{
         position: 'fixed',
         left: 0,
@@ -96,7 +96,7 @@ export default function HomeworkFlowBar({
           <motion.div
             initial={false}
             animate={{ width: `${total > 0 ? Math.min(100, (step / total) * 100) : 0}%` }}
-            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.38, ease: [0.32, 0.72, 0, 1] }}
             style={{ height: '100%', background: 'var(--grad-purple-bar)', borderRadius: 999 }}
           />
         </div>
@@ -135,7 +135,7 @@ export default function HomeworkFlowBar({
             disabled={disabled}
             className="flex items-center justify-center"
             style={{
-              flex: 1, gap: 8, padding: '15px 22px', borderRadius: 18,
+              flex: 1, gap: 8, padding: '16px 22px', borderRadius: 18,
               border: disabled ? '1px solid var(--color-border-soft)' : 'none',
               background: disabled ? 'rgba(var(--glass-rgb), 0.86)' : 'var(--grad-purple)',
               backdropFilter: disabled ? 'blur(14px)' : undefined,
@@ -144,7 +144,7 @@ export default function HomeworkFlowBar({
               cursor: disabled ? 'default' : 'pointer',
               boxShadow: disabled ? '0 6px 18px rgba(0,0,0,0.08)' : '0 10px 24px rgba(var(--accent-rgb), 0.35)',
               pointerEvents: 'auto',
-              transition: 'background 0.18s ease, color 0.18s ease',
+              transition: 'background 0.15s ease, color 0.15s ease',
             }}
           >
             {label}

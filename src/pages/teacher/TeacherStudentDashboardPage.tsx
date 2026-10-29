@@ -54,7 +54,7 @@ function Avatar({ student, group, size = 56 }: { student: Student; group: Group;
 
 function SectionHeader({ icon: Icon, label, accent }: { icon: React.FC<{ size?: number; style?: React.CSSProperties }>; label: string; accent?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 16 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
       <Icon size={13} style={{ color: accent ?? 'var(--color-text-3)' }} />
       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
     </div>
@@ -84,7 +84,7 @@ function ScoreBar({ label, icon: Icon, value, color, bg }: { label: string; icon
       <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ width: 80, height: 5, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
-          <motion.div initial={{ width: 0 }} animate={{ width: `${value}%` }} transition={{ duration: 0.6, delay: 0.1 }}
+          <motion.div initial={{ width: 0 }} animate={{ width: `${value}%` }} transition={{ duration: 0.38, delay: 0.1 }}
             style={{ height: '100%', background: color, borderRadius: 999 }} />
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color, minWidth: 32, textAlign: 'right' }}>{value}%</span>
@@ -98,14 +98,14 @@ function SectionRow({ section, correct, total }: { section: string; correct: num
   const color = pct >= 0.7 ? 'var(--color-green-text)' : pct >= 0.4 ? '#FAC775' : '#F09595'
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{section}</span>
         <span style={{ fontSize: 12, fontWeight: 700, color, flexShrink: 0, marginLeft: 8 }}>{correct}/{total} · {Math.round(pct * 100)}%</span>
       </div>
       <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
-        <motion.div initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }} transition={{ duration: 0.55, delay: 0.1 }}
+        <motion.div initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }} transition={{ duration: 0.38, delay: 0.1 }}
           style={{ height: '100%', background: color, flexShrink: 0 }} />
-        <motion.div initial={{ width: 0 }} animate={{ width: `${((total - correct) / total) * 100}%` }} transition={{ duration: 0.55, delay: 0.1 }}
+        <motion.div initial={{ width: 0 }} animate={{ width: `${((total - correct) / total) * 100}%` }} transition={{ duration: 0.38, delay: 0.1 }}
           style={{ height: '100%', background: '#F4B3B344', flexShrink: 0 }} />
       </div>
     </div>
@@ -206,7 +206,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
               whileTap={{ scale: 0.97 }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '7px 14px', borderRadius: 999,
+                padding: '8px 14px', borderRadius: 999,
                 border: `1.5px solid ${isOpen ? accent + '70' : accent + '35'}`,
                 background: isOpen ? `${accent}1C` : `${accent}0D`,
                 cursor: 'pointer', fontFamily: 'inherit',
@@ -216,7 +216,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{label}</span>
               <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{date}</span>
               <span style={{ fontSize: 15, fontWeight: 800, color: pctColor, marginLeft: 2 }}>{pct}%</span>
-              <ChevronDown size={12} style={{ color: 'var(--color-text-3)', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
+              <ChevronDown size={12} style={{ color: 'var(--color-text-3)', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.22s', flexShrink: 0 }} />
             </motion.button>
           )
         })}
@@ -249,7 +249,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
               style={{ overflow: 'hidden' }}
             >
               <div style={{ marginTop: 8, borderRadius: 16, border: `1px solid ${accent}30`, overflow: 'hidden' }}>
@@ -284,7 +284,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${p}%` }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
+                            transition={{ duration: 0.38, delay: 0.1 }}
                             style={{ height: '100%', borderRadius: 999, background: col }}
                           />
                         </div>
@@ -408,7 +408,7 @@ export default function TeacherStudentDashboardPage() {
               <div style={{
                 flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden',
                 textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                padding: '9px 16px', borderRadius: 999, ...dockGlass,
+                padding: '10px 16px', borderRadius: 999, ...dockGlass,
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
               }}>
                 {tn(student.name)}
@@ -421,7 +421,7 @@ export default function TeacherStudentDashboardPage() {
                 onClick={() => printStudentCard(tn(student.name))}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-                  padding: '9px 18px 9px 14px', borderRadius: 999, ...dockGlass,
+                  padding: '10px 18px 10px 14px', borderRadius: 999, ...dockGlass,
                   color: group.color, fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   pointerEvents: 'auto', border: `1px solid ${group.color}40`,
                 }}
@@ -487,12 +487,12 @@ export default function TeacherStudentDashboardPage() {
         {/* ── In-flow toolbar (fades when docked) ─────────────────────── */}
         <motion.div
           animate={{ opacity: docked ? 0 : 1 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.15 }}
           style={{ paddingTop: 24, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', pointerEvents: docked ? 'none' : 'auto' }}
         >
           <button
             onClick={() => setActivePage('groups')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 16px 8px 12px', borderRadius: 999, border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'color 0.15s', fontFamily: 'inherit' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px 8px 12px', borderRadius: 999, border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'color 0.15s', fontFamily: 'inherit' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
           >
@@ -501,7 +501,7 @@ export default function TeacherStudentDashboardPage() {
           </button>
           <button
             onClick={() => printStudentCard(tn(student.name))}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 18px 8px 14px', borderRadius: 999, border: `1px solid ${group.color}40`, background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: group.color, fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'all 0.15s', fontFamily: 'inherit' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px 8px 14px', borderRadius: 999, border: `1px solid ${group.color}40`, background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: group.color, fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontFamily: 'inherit' }}
           >
             <Download size={14} />
             {t('Скачать PDF')}
@@ -521,8 +521,8 @@ export default function TeacherStudentDashboardPage() {
             <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{tn(student.name)}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-                background: group.color + '20', borderRadius: 8, padding: '3px 10px',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: group.color + '20', borderRadius: 8, padding: '4px 10px',
                 border: `1px solid ${group.color}30`,
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
@@ -538,7 +538,7 @@ export default function TeacherStudentDashboardPage() {
               {student.lastVisit && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{t('вход:')} {student.lastVisit}</span>}
               {studentCourses.map(c => (
                 <span key={c.id} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
                   fontSize: 12, color: group.color,
                   padding: '2px 10px', borderRadius: 7,
                   background: group.color + '18', border: `1px solid ${group.color}30`,
@@ -586,7 +586,7 @@ export default function TeacherStudentDashboardPage() {
           display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12,
           marginBottom: (hasStats && diagResults.length > 0) ? 0 : 20,
           opacity: !hasStats && diagResults.length > 0 ? 0.45 : 1,
-          transition: 'opacity 0.2s',
+          transition: 'opacity 0.22s',
         }}>
           {[
             { icon: ClipboardCheck, label: t('ДЗ'), value: `${Math.round(hwAvg)}%`, color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
@@ -595,7 +595,7 @@ export default function TeacherStudentDashboardPage() {
             { icon: Clock,          label: t('Посещаемость'), value: `${realAttendance}%`, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)', bg: realAttendance >= 90 ? 'var(--color-green-soft)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
             { icon: Target,         label: t('Тренажёр'), value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: 'rgba(109,155,255,0.14)' },
           ].map(({ icon: Icon, label, value, color, bg }) => (
-            <div key={label} style={{ padding: '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <div key={label} style={{ padding: '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon size={13} style={{ color }} />
                 <span style={{ fontSize: 11, color, opacity: 0.85, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
@@ -621,7 +621,7 @@ export default function TeacherStudentDashboardPage() {
             >
               <div style={{ flex: 1, height: 1, background: 'var(--color-border-soft)' }} />
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 5,
+                display: 'flex', alignItems: 'center', gap: 6,
                 padding: '4px 12px', borderRadius: 999,
                 background: 'var(--color-bg-card)', border: '1px solid var(--color-border-soft)',
               }}>
@@ -631,7 +631,7 @@ export default function TeacherStudentDashboardPage() {
                 </span>
                 <motion.div
                   animate={{ rotate: diagExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.22 }}
                   style={{ display: 'flex', alignItems: 'center' }}
                 >
                   <ChevronDown size={14} style={{ color: 'var(--color-text-3)' }} />
@@ -647,7 +647,7 @@ export default function TeacherStudentDashboardPage() {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                  transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
                   style={{ overflow: 'hidden' }}
                 >
                   <div style={{ paddingTop: 8, paddingBottom: 4 }}>
@@ -692,11 +692,11 @@ export default function TeacherStudentDashboardPage() {
                   const h = (val / 100) * 64
                   const isLast = i === scoreDynamics.length - 1
                   return (
-                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 3 }}>
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
                       <motion.div
                         initial={{ height: 0 }}
                         animate={{ height: h }}
-                        transition={{ duration: 0.5, delay: i * 0.04 }}
+                        transition={{ duration: 0.38, delay: i * 0.04 }}
                         style={{ width: '100%', borderRadius: 4, background: isLast ? group.color : group.color + '66', flexShrink: 0 }}
                       />
                       <span style={{ fontSize: 10, color: isLast ? 'var(--color-text)' : 'var(--color-muted)', fontWeight: isLast ? 700 : 400 }}>{val}</span>
@@ -721,7 +721,7 @@ export default function TeacherStudentDashboardPage() {
                   const pct = hw.returned ? 0 : Math.round((hw.score / hw.maxScore) * 100)
                   const color = hw.returned ? 'var(--color-red-text)' : pct >= 80 ? 'var(--color-green-text)' : pct >= 50 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                   return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-bg)' }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg)' }}>
                       <div style={{ width: 24, height: 24, borderRadius: '50%', background: hw.returned ? 'var(--color-red-soft)' : pct === 100 ? 'var(--color-green-soft)' : 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         {hw.returned ? <AlertCircle size={12} style={{ color: 'var(--color-red-text)' }} /> : pct === 100 ? <CheckCheck size={12} style={{ color: 'var(--color-green-text)' }} /> : <CheckCircle2 size={12} style={{ color: 'var(--color-muted)' }} />}
                       </div>
@@ -729,7 +729,7 @@ export default function TeacherStudentDashboardPage() {
                         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(hw.title)}</div>
                         <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{hw.date}</div>
                       </div>
-                      <span style={{ padding: '3px 8px', borderRadius: 8, background: hw.returned ? 'var(--color-red-soft)' : pct >= 80 ? '#E8F7EF' : '#FFF3D6', color, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                      <span style={{ padding: '4px 8px', borderRadius: 8, background: hw.returned ? 'var(--color-red-soft)' : pct >= 80 ? '#E8F7EF' : '#FFF3D6', color, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                         {hw.returned ? t('Возврат') : `${hw.score}/${hw.maxScore}`}
                       </span>
                     </div>
@@ -745,18 +745,18 @@ export default function TeacherStudentDashboardPage() {
             {/* История занятий */}
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Calendar size={14} style={{ color: 'var(--color-muted)' }} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('История занятий')}</span>
                 </div>
                 <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{t('Посетил')} {attendedCount}/{lessonHistory.length}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {lessonHistory.length === 0 && (
                   <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 0' }}>{t('Нет данных о посещаемости')}</div>
                 )}
                 {lessonHistory.map((l, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 10, background: l.attended ? 'var(--color-bg)' : 'var(--color-red-soft)' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: l.attended ? 'var(--color-bg)' : 'var(--color-red-soft)' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.attended ? 'var(--color-green-text)' : 'var(--color-red-text)', flexShrink: 0 }} />
                     <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{l.topic}</span>
                     <span style={{ fontSize: 11, color: 'var(--color-muted)', flexShrink: 0 }}>{l.date}</span>
@@ -773,19 +773,19 @@ export default function TeacherStudentDashboardPage() {
                     <SectionHeader icon={CreditCard} label={t('Оплата')} />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {student.paymentDue && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--color-border-soft)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border-soft)' }}>
                           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Следующий платёж')}</span>
                           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{student.paymentDue}</span>
                         </div>
                       )}
                       {student.paymentAmount && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--color-border-soft)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border-soft)' }}>
                           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Сумма')}</span>
                           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{student.paymentAmount?.toLocaleString('ru')} ₽</span>
                         </div>
                       )}
                       {student.debt != null && student.debt > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 10px', borderRadius: 10, background: 'var(--color-red-soft)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 10, background: 'var(--color-red-soft)' }}>
                           <span style={{ fontSize: 12, color: 'var(--color-red-text)', fontWeight: 600 }}>{t('Долг')}</span>
                           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-red-text)' }}>{student.debt.toLocaleString('ru')} ₽</span>
                         </div>
@@ -831,7 +831,7 @@ export default function TeacherStudentDashboardPage() {
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${pct * 100}%` }}
-                            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                             style={{ height: '100%', background: pctColor, borderRadius: 99 }}
                           />
                         </div>
@@ -857,7 +857,7 @@ export default function TeacherStudentDashboardPage() {
                 ].map(({ val, label, color, bg }) => (
                   <div key={label} style={{ padding: '10px 12px', borderRadius: 14, background: bg, textAlign: 'center' }}>
                     <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1 }}>{val}</div>
-                    <div style={{ fontSize: 10, color, opacity: 0.7, marginTop: 3 }}>{label}</div>
+                    <div style={{ fontSize: 10, color, opacity: 0.7, marginTop: 4 }}>{label}</div>
                   </div>
                 ))}
               </div>
@@ -872,7 +872,7 @@ export default function TeacherStudentDashboardPage() {
             {/* Задания с ошибками */}
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <XCircle size={14} style={{ color: 'var(--color-red-text)' }} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Задания с ошибками')}</span>
                 </div>
@@ -884,10 +884,10 @@ export default function TeacherStudentDashboardPage() {
                 )}
                 {wrongTasks.map(wt => (
                   <div key={wt.id}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)', cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)', cursor: 'pointer' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,139,145,0.18)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-red-soft)' }}>
-                    <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{wt.id}</span>
+                    <span style={{ padding: '2px 8px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{wt.id}</span>
                     <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{wt.topic}</span>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Линия')} {wt.line}</span>
                     <CheckCircle2 size={14} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
@@ -895,7 +895,7 @@ export default function TeacherStudentDashboardPage() {
                 ))}
               </div>
               {wrongTasks.length === 0 && (
-                <div style={{ marginTop: 12, padding: '9px 12px', borderRadius: 12, background: 'rgba(155,109,255,0.08)', border: '1px solid rgba(155,109,255,0.2)', fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 12, background: 'rgba(155,109,255,0.08)', border: '1px solid rgba(155,109,255,0.2)', fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                   <Lightbulb size={12} style={{ flexShrink: 0, marginTop: 1, color: 'rgba(155,109,255,0.7)' }} /> {t('Данные появятся автоматически, когда ученик занимается в тренажёре под своим аккаунтом.')}
                 </div>
               )}

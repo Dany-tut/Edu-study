@@ -39,7 +39,7 @@ function UsageBar({
   const pct = Math.min(100, (used / limit) * 100)
   const c = barColor(pct)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ width: 26, height: 26, borderRadius: 8, background: c.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Icon size={14} strokeWidth={2} style={{ color: c.text }} />
@@ -53,7 +53,7 @@ function UsageBar({
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
           style={{ height: '100%', borderRadius: 6, background: c.fill }}
         />
       </div>
@@ -116,7 +116,7 @@ export default function StorageUsagePanel() {
         {t('Хранилище базы данных')}
         <motion.span
           animate={{ rotate: open ? 0 : -90 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.22 }}
           style={{ display: 'flex', color: 'var(--color-text-4)' }}
         >
           <ChevronDown size={16} strokeWidth={2} />
@@ -156,7 +156,7 @@ export default function StorageUsagePanel() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 style={{ overflow: 'hidden' }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 18 }}>

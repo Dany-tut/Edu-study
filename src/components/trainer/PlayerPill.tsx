@@ -89,11 +89,11 @@ export default function PlayerPill({
     <motion.div
       initial={false}
       animate={inline ? { height: grown ? 58 : 46, borderRadius: grown ? 26 : 23 } : undefined}
-      transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+      transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
       style={{
         pointerEvents: 'auto',
         display: 'flex', alignItems: 'center', gap: inline ? 8 : 12,
-        padding: inline ? (grown ? '0 8px 0 5px' : '0 4px 0 3px') : '10px 12px',
+        padding: inline ? (grown ? '0 8px 0 6px' : '0 4px 0 4px') : '10px 12px',
         borderRadius: inline ? undefined : 22,
         background: 'rgba(var(--glass-rgb), 0.86)',
         backdropFilter: 'blur(28px) saturate(200%)',
@@ -107,7 +107,7 @@ export default function PlayerPill({
         aria-label={playLabel}
         initial={false}
         animate={inline ? { width: grown ? 46 : 40, height: grown ? 46 : 40 } : undefined}
-        transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+        transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
         style={{
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0, border: 'none',
           display: 'grid', placeItems: 'center', cursor: 'pointer',
@@ -151,13 +151,13 @@ export default function PlayerPill({
             style={{
               position: 'relative', width: '100%', height: barH, borderRadius: 4,
               background: 'var(--color-border-soft)',
-              transition: 'height .14s ease',
+              transition: 'height 0.15s ease',
             }}
           >
             {hint && (
               <span style={{
                 position: 'absolute', left: `${frac * 100}%`, bottom: 16, transform: 'translateX(-50%)',
-                padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap', pointerEvents: 'none',
+                padding: '4px 8px', borderRadius: 8, whiteSpace: 'nowrap', pointerEvents: 'none',
                 fontSize: 11, fontWeight: 700, background: accent, color: '#fff',
               }}>
                 {hint}
@@ -180,7 +180,7 @@ export default function PlayerPill({
               width: dotSize, height: dotSize, marginTop: -dotSize / 2, marginLeft: -dotSize / 2,
               borderRadius: '50%', background: accent,
               border: held ? '2.5px solid rgba(var(--glass-rgb), 1)' : 'none',
-              transition: 'width .14s ease, height .14s ease, margin .14s ease',
+              transition: 'width 0.15s ease, height 0.15s ease, margin 0.15s ease',
             }} />
           </div>
         </div>
@@ -193,10 +193,10 @@ export default function PlayerPill({
         <motion.div
           initial={false}
           animate={inline ? { height: grown ? 14 : 0, opacity: grown ? 1 : 0, marginTop: grown ? 4 : 0 } : undefined}
-          transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+          transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
           style={{
             display: 'flex', justifyContent: 'space-between', gap: 8, overflow: 'hidden',
-            marginTop: inline ? undefined : 3,
+            marginTop: inline ? undefined : 4,
             fontSize: 11, color: 'var(--color-muted)', fontVariantNumeric: 'tabular-nums',
           }}
         >
@@ -236,7 +236,7 @@ export default function PlayerPill({
           display: 'grid', placeItems: 'center', cursor: 'pointer',
           border: 'none', background: 'transparent', color: 'var(--color-muted)',
           WebkitTapHighlightColor: 'transparent',
-          opacity: menuHeld ? 0.55 : 1, transition: 'opacity .12s ease',
+          opacity: menuHeld ? 0.55 : 1, transition: 'opacity 0.15s ease',
         }}
       >
         <Menu size={18} />
@@ -270,7 +270,7 @@ export function CueList({ items, active, playing, accent, soft, onPick }: {
   onPick: (index: number) => void
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {items.map((l, i) => {
         const on = i === active
         return (
@@ -279,7 +279,7 @@ export function CueList({ items, active, playing, accent, soft, onPick }: {
             onClick={() => onPick(i)}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
-              padding: '9px 11px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '10px 12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
               border: on ? `1px solid ${accent}` : '1px solid var(--color-border-soft)',
               background: on ? soft : 'var(--color-bg-2)',
               color: on ? accent : 'var(--color-text)',

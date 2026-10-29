@@ -50,7 +50,7 @@ export default function Checkbox({
       style={{
         display: 'inline-flex',
         alignItems: align === 'start' ? 'baseline' : 'center',
-        gap: 9,
+        gap: 10,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.55 : 1,
         ...labelStyle,

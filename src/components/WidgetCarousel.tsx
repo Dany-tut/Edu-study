@@ -162,7 +162,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ x: { type: 'spring', stiffness: 320, damping: 34 }, opacity: { duration: 0.2 } }}
+            transition={{ x: { type: 'spring', stiffness: 320, damping: 34 }, opacity: { duration: 0.22 } }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.18}
@@ -211,7 +211,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
           bottom: -18,
           opacity: dotsVisible ? 1 : 0,
           pointerEvents: dotsVisible ? 'auto' : 'none',
-          transition: 'opacity 0.25s ease',
+          transition: 'opacity 0.22s ease',
         }}
       >
         {Array.from({ length: pageCount }, (_, i) => (
@@ -225,7 +225,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
               height: 7,
               borderRadius: 999,
               background: i === page ? 'var(--color-accent)' : 'var(--color-text-4)',
-              transition: 'width 0.3s ease, background 0.3s ease',
+              transition: 'width 0.38s ease, background 0.38s ease',
             }}
           />
         ))}

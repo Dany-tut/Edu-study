@@ -66,14 +66,14 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {PLAN_TIERS.map(p => {
               const current = isCurrent(p)
               return (
                 <div
                   key={p.code}
                   style={{
-                    borderRadius: 16, padding: '15px 16px',
+                    borderRadius: 16, padding: '16px 16px',
                     border: current ? '2px solid var(--color-purple)' : '1px solid var(--color-border-soft)',
                     background: current ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                   }}
@@ -86,7 +86,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>{t(p.tagline)}</div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 11 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
                     {p.features.map((f, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-text-2)' }}>
                         <Check size={14} style={{ color: 'var(--color-purple)', flexShrink: 0 }} strokeWidth={2.5} />
@@ -95,9 +95,9 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
                     ))}
                   </div>
 
-                  <div style={{ marginTop: 13 }}>
+                  <div style={{ marginTop: 12 }}>
                     {current ? (
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--color-purple)', background: 'var(--color-bg-2)', padding: '7px 13px', borderRadius: 20 }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--color-purple)', background: 'var(--color-bg-2)', padding: '8px 12px', borderRadius: 20 }}>
                         <Check size={14} strokeWidth={2.5} /> {t('Ваш тариф')}
                       </div>
                     ) : (

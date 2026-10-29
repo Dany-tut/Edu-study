@@ -36,7 +36,7 @@ export default function SubjectTabs() {
                 setActiveSubject(tab.id)
               }
             }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
             className="px-6 py-2.5 font-semibold cursor-pointer"
             style={{
               borderRadius: 999,

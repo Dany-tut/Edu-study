@@ -172,7 +172,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
         whileTap={{ scale: 0.98 }}
         onClick={() => { tactile(); onOpen() }}
         className="cursor-pointer"
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', marginTop: 12, padding: '11px', borderRadius: 12, background: pair.text, color: '#fff', fontSize: 14, fontWeight: 700 }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', marginTop: 12, padding: '12px', borderRadius: 12, background: pair.text, color: '#fff', fontSize: 14, fontWeight: 700 }}
       >
         <ArrowRight size={16} /> {t('Проверить сейчас')}
       </motion.button>
@@ -190,7 +190,7 @@ function MoneyStrip({ received, debt, debtorCount, plannedLessons, onOpen }: {
       whileTap={{ scale: 0.99 }}
       onClick={() => { tactile(); onOpen() }}
       className="cursor-pointer"
-      style={{ display: 'flex', alignItems: 'center', gap: 11, width: '100%', textAlign: 'left', padding: '12px 13px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}
+      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '12px 12px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}
     >
       <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Wallet size={18} />
@@ -202,7 +202,7 @@ function MoneyStrip({ received, debt, debtorCount, plannedLessons, onOpen }: {
         </div>
       </div>
       {debt > 0 && (
-        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
+        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
           {debtorCount} {debtorCount === 1 ? t('долг') : debtorCount < 5 ? t('долга') : t('долгов')} {rub(debt)}
         </span>
       )}
@@ -220,11 +220,11 @@ const statusDot: Record<ScheduleItem['status'], string> = {
 function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => void }) {
   const t = useT()
   return (
-    <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1.5px solid var(--color-purple-soft)', padding: '13px 14px' }}>
+    <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1.5px solid var(--color-purple-soft)', padding: '12px 14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--color-accent)', flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
             {item.time} · {item.groupName}
             <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>
               {item.status === 'live' ? t('идёт') : t('ближайший')}
@@ -237,8 +237,8 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
       </div>
       {/* «Материалы» рядом была без обработчика с июля — кнопка, которая ничего
           не делает. В мобильном кабинете экрана материалов нет; убрана. */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ height: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0 16px', borderRadius: 12, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700}}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ height: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 16px', borderRadius: 12, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700}}>
           <Play size={14} /> {t('Открыть')}
         </motion.button>
       </div>
@@ -250,7 +250,7 @@ function ScheduleRow({ item, last }: { item: ScheduleItem; last: boolean }) {
   const t = useT()
   const done = item.status === 'completed'
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
       <span style={{ width: 8, height: 8, borderRadius: '50%', background: statusDot[item.status], flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{item.time} · {item.groupName}</div>
@@ -273,12 +273,12 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
   const t = useT()
   const { tn } = useTc()
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
       <div style={{ width: 32, height: 32, borderRadius: '50%', background: c.avBg, color: c.avText, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{item.initials}</div>
       <button onClick={() => { tactile(); onOpen() }} className="cursor-pointer text-left" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
           {tn(item.name)}
-          <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: c.bg, color: c.text }}>{item.tag}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: c.bg, color: c.text }}>{item.tag}</span>
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>{item.sub}</div>
       </button>
@@ -299,12 +299,12 @@ function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string
     setTimeout(() => setCopied(false), 1600)
   }
   return (
-    <button onClick={copy} className="flex items-center cursor-pointer text-left" style={{ gap: 11, width: '100%', padding: '12px 13px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+    <button onClick={copy} className="flex items-center cursor-pointer text-left" style={{ gap: 12, width: '100%', padding: '12px 12px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="truncate" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
         {sub && <div className="truncate" style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</div>}
       </div>
-      <span className="flex items-center flex-shrink-0" style={{ gap: 5, padding: '7px 12px', borderRadius: 999, background: copied ? 'var(--color-green-soft)' : 'var(--grad-purple)', color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700, transition: 'background 0.18s' }}>
+      <span className="flex items-center flex-shrink-0" style={{ gap: 6, padding: '8px 12px', borderRadius: 999, background: copied ? 'var(--color-green-soft)' : 'var(--grad-purple)', color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700, transition: 'background 0.15s' }}>
         {copied ? <Check size={14} /> : <Copy size={14} />}
         {copied ? t('Готово') : t('Копировать')}
       </span>
@@ -421,7 +421,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
             <SectionLabel>{t('Сегодня')}</SectionLabel>
             {nextLesson && <NextLessonCard item={nextLesson} onOpen={() => onNavigate('gradebook')} />}
             {restSchedule.length > 0 && (
-              <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', padding: '2px 13px' }}>
+              <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', padding: '2px 12px' }}>
                 {restSchedule.map((s, i) => (
                   <ScheduleRow key={s.id} item={s} last={i === restSchedule.length - 1} />
                 ))}
@@ -444,7 +444,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
         {model.attention.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <SectionLabel action={t('все ›')} onAction={() => onNavigate('students')}>{t('Требуют внимания')}</SectionLabel>
-            <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', padding: '4px 13px' }}>
+            <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', padding: '4px 12px' }}>
               {model.attention.map((a, i) => (
                 <AttentionRow
                   key={a.id}
@@ -466,7 +466,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
         <button
           onClick={() => { tactile(); setLinksOpen(true) }}
           className="flex items-center cursor-pointer text-left"
-          style={{ gap: 12, width: '100%', padding: '13px 14px', borderRadius: 16, background: PAIR.success.bg }}
+          style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 16, background: PAIR.success.bg }}
         >
           <Link2 size={18} style={{ color: PAIR.success.text, flexShrink: 0 }} />
           <span style={{ flex: 1, minWidth: 0 }}>

@@ -204,7 +204,7 @@ export function useBlocksMode({
       {view === 'stems' && (
         <RailCard title="Хвосты" accent={accent} icon={<Layers size={16} />}>
           {KO_ENDINGS.map(e => (
-            <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+            <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <span style={{ fontSize: 13, fontWeight: 800, color: TONE[e.tone].fg, whiteSpace: 'nowrap' }}>
                 {e.block}
               </span>
@@ -243,7 +243,7 @@ export function useBlocksMode({
             ['ㄱ ㅋ ㄲ', '[к]'], ['ㄴ', '[н]'], ['ㄷ ㅅ ㅆ ㅈ ㅊ ㅌ ㅎ', '[т]'],
             ['ㄹ', '[ль]'], ['ㅁ', '[м]'], ['ㅂ ㅍ', '[п]'], ['ㅇ', '[нъ]'],
           ] as const).map(([letters, sound]) => (
-            <div key={sound} style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+            <div key={sound} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <span style={{ fontSize: 13, fontWeight: 800, color: accent, whiteSpace: 'nowrap' }}>
                 {letters}
               </span>

@@ -375,7 +375,7 @@ export default function WhiteboardCanvas({
     <div style={{ border: '1.5px solid var(--color-border-medium)', borderRadius: 12, overflow: 'visible', position: 'relative' }}>
       {!readOnly && (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
+          display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
           padding: '6px 10px', background: 'var(--color-bg-2)',
           borderBottom: '1px solid var(--color-border-medium)',
           borderRadius: '10px 10px 0 0',
@@ -433,7 +433,7 @@ export default function WhiteboardCanvas({
           {tool === 'select' && (
             <>
               {divider}
-              <button title={t('Выделить всё')} onClick={selectAll} style={{ height: 32, padding: '0 8px', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--color-muted)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+              <button title={t('Выделить всё')} onClick={selectAll} style={{ height: 32, padding: '0 8px', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', color: 'var(--color-muted)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
                 <BoxSelect size={12} /> {t('Всё')}
               </button>
               {sel && (
@@ -551,7 +551,7 @@ export default function WhiteboardCanvas({
           background: 'var(--color-bg)',
           border: '1.5px solid var(--color-border-medium)',
           borderRadius: 10,
-          padding: '7px 9px',
+          padding: '8px 10px',
           boxShadow: 'var(--shadow-2)',
           minWidth: 36,
         }}>

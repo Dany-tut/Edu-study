@@ -57,7 +57,7 @@ export default function Tooltip({ label, keys, children }: {
           role="tooltip"
           style={{
             position: 'fixed', left: pos.x, top: pos.y, transform: 'translateX(-50%)', zIndex: 4000,
-            display: 'flex', alignItems: 'center', gap: 8, padding: '6px 9px', borderRadius: 8,
+            display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8,
             background: 'var(--color-text)', color: 'var(--color-bg)',
             fontSize: 12, fontWeight: 600, lineHeight: 1.2, whiteSpace: 'nowrap', pointerEvents: 'none',
             boxShadow: 'var(--shadow-2)',

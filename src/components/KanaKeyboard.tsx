@@ -163,7 +163,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
     <div
       className="flex flex-col items-center"
       style={{
-        gap: 5, padding: '12px 12px 14px', borderRadius: 20,
+        gap: 6, padding: '12px 12px 14px', borderRadius: 20,
         background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
       }}
     >
@@ -174,14 +174,14 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
         ? (
           <span style={{
             fontSize: 18, fontWeight: 700, color: 'var(--color-text)',
-            textAlign: 'center', marginBottom: 5, wordBreak: 'break-word',
+            textAlign: 'center', marginBottom: 6, wordBreak: 'break-word',
           }}>
             {value}
           </span>
         )
         : (
           <span style={{
-            fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center', marginBottom: 5,
+            fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center', marginBottom: 6,
           }}>
             {t('Ответ по-японски — нижний ряд меняет последний знак')}
           </span>
@@ -193,9 +193,9 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
           там весь экран, и до нижних клавиш приходилось прокручивать. */}
       <div className="flex flex-wrap justify-center" style={{ gap: 12 }}>
         {[GOJUON.slice(0, 5), GOJUON.slice(5)].map((half, hi) => (
-          <div key={hi} className="flex flex-col" style={{ gap: 5 }}>
+          <div key={hi} className="flex flex-col" style={{ gap: 6 }}>
             {/* Шапка столбцов — те же a i u e o, что в таблице урока. */}
-            <div className="flex" style={{ gap: 5 }}>
+            <div className="flex" style={{ gap: 6 }}>
               {['a', 'i', 'u', 'e', 'o'].map(h => (
                 <span
                   key={h}
@@ -207,7 +207,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
               ))}
             </div>
             {half.map((row, i) => (
-              <div key={i} className="flex" style={{ gap: 5 }}>
+              <div key={i} className="flex" style={{ gap: 6 }}>
                 {row.map((ch, j) => {
                   // Подпись клавиши — в текущей азбуке: переключив тумблер,
                   // ученик должен видеть ТО, что нажимает.
@@ -221,7 +221,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
       </div>
 
       {/* Модификаторы и переключатель азбуки — ряд в ширину таблицы. */}
-      <div className="flex" style={{ gap: 5, marginTop: 5 }}>
+      <div className="flex" style={{ gap: 6, marginTop: 6 }}>
         {key('゛', () => mod(DAKUTEN), { quiet: true })}
         {key('゜', () => mod(HANDAKUTEN), { quiet: true })}
         {key('小', () => mod(SMALL), { quiet: true })}
@@ -229,7 +229,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
         {key(kata ? 'あ' : 'ア', () => { if (!disabled) { playPop(); setKata(v => !v) } })}
       </div>
 
-      <div className="flex" style={{ gap: 5, marginTop: 5 }}>
+      <div className="flex" style={{ gap: 6, marginTop: 6 }}>
         {key(t('пробел'), () => { if (!disabled) { playPop(); emit(prev => `${prev} `) } }, { wide: true })}
         <motion.button
           type="button"

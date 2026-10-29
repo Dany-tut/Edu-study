@@ -240,9 +240,9 @@ export default function MatchingSolver({
   const tileBase: React.CSSProperties = {
     position: 'relative',
     display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 46,
-    padding: '10px 13px', borderRadius: 12, fontFamily: 'inherit', fontSize: 15,
+    padding: '10px 12px', borderRadius: 12, fontFamily: 'inherit', fontSize: 15,
     lineHeight: 1.3, textAlign: 'left', color: 'var(--color-text)',
-    cursor: disabled ? 'default' : 'pointer', transition: 'background .12s, border-color .12s',
+    cursor: disabled ? 'default' : 'pointer', transition: 'background 0.15s, border-color 0.15s',
   }
 
   /**
@@ -335,7 +335,7 @@ export default function MatchingSolver({
                     саму картинку — «правильный ответ: cat» рядом с чужой
                     фотографией разобрать невозможно. */}
                 {showAnswer && (
-                  <span style={{ display: 'block', marginTop: 5 }}>
+                  <span style={{ display: 'block', marginTop: 6 }}>
                     {pair.rightImage
                       ? <SideImage src={pair.rightImage} alt={pair.right} />
                       : <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)' }}>{pair.right}</span>}

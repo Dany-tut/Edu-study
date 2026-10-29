@@ -72,7 +72,7 @@ export default function ReviewSession({ owner, onDone }: {
           Внутренний AnimatePresence на ответе оставлен: там показ/скрытие
           одного элемента, оно самовосстанавливается следующим переключением. */}
         <motion.div key={card.id}
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}
           style={{ background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-glass)', borderRadius: 18, padding: 22, minHeight: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
         >
           {/* Рисунок предмета — та же картинка, что на карточке в колоде:

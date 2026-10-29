@@ -187,7 +187,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
           <motion.div
             key="theory-backdrop"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.15 }}
             onClick={onClose}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.38)', zIndex: 200 }}
           />
@@ -203,7 +203,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
             style={{
               ...(isDesktop ? null : { y }),
               position: 'fixed', zIndex: 201,

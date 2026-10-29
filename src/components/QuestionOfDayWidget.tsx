@@ -42,9 +42,9 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
       <div className="flex items-center gap-2" style={{ marginBottom: 10 * scale }}>
         <span
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
             fontSize: 12 * scale, fontWeight: 600, lineHeight: 1,
-            padding: '5px 12px', borderRadius: 999,
+            padding: '6px 12px', borderRadius: 999,
             color: 'var(--color-teal-pill-text)', background: 'var(--color-teal-pill-bg)',
           }}
         >
@@ -74,7 +74,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18 }}
+              transition={{ duration: 0.15 }}
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 height: 44 * scale, padding: `0 ${22 * scale}px`, borderRadius: 24,
@@ -91,7 +91,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.22 }}
               className="flex items-center gap-2"
             >
               <div

@@ -69,7 +69,7 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
           </div>
           {cur.comment && (
             <div style={{
-              marginTop: 12, padding: '9px 12px', borderRadius: 12, textAlign: 'left',
+              marginTop: 12, padding: '10px 12px', borderRadius: 12, textAlign: 'left',
               fontSize: 13, lineHeight: 1.45, color: 'var(--color-text-2)',
               background: 'var(--color-bg)', border: '1px solid var(--color-border)',
             }}>
@@ -80,7 +80,7 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
           <button
             onClick={() => (last ? onClose() : setI(i + 1))}
             style={{
-              marginTop: 16, width: '100%', padding: '11px 16px', borderRadius: 14, border: 'none',
+              marginTop: 16, width: '100%', padding: '12px 16px', borderRadius: 14, border: 'none',
               cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               background: `linear-gradient(135deg, ${tier.ink}, ${tier.inkDark})`,

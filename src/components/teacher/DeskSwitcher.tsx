@@ -74,7 +74,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
                 background: desk.id === activeDeskId ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.6)',
                 color: desk.id === activeDeskId ? 'var(--color-text)' : 'var(--color-muted)',
                 fontSize: 13, fontWeight: desk.id === activeDeskId ? 600 : 500,
-                cursor: 'pointer', transition: 'all 0.15s',
+                cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                 outline: desk.id === activeDeskId ? '1.5px solid var(--color-accent)' : 'none',
                 outlineOffset: -1,
               }}
@@ -103,7 +103,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
             onClick={onAddWidget}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              padding: '7px 16px', borderRadius: 100,
+              padding: '8px 16px', borderRadius: 100,
               border: 'none',
               background: 'rgba(var(--glass-rgb), 0.6)',
               color: 'var(--color-text)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
@@ -257,8 +257,8 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.7 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, height: 20 }}
+            transition={{ duration: 0.15 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 20 }}
           >
             {desks.map(desk => (
               <motion.div

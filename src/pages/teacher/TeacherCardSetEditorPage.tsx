@@ -208,7 +208,7 @@ export default function TeacherCardSetEditorPage() {
 
 const headBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-  padding: '9px 16px 9px 12px', borderRadius: 999,
+  padding: '10px 16px 10px 12px', borderRadius: 999,
   border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
   boxShadow: 'var(--shadow-2)', color: 'var(--color-text)',
   fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',

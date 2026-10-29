@@ -69,7 +69,7 @@ function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notifica
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
           {n.body}
         </div>
-        <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 3 }}>
+        <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>
           {timeAgo(n.createdAt)}
         </div>
       </div>
@@ -166,7 +166,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: [0.32, 0.72, 0, 1] } }}
+          exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: [0.32, 0.72, 0, 1] } }}
           transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
           style={{
             width: 320,
@@ -185,7 +185,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '14px 14px 10px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Bell size={16} style={{ color: 'var(--color-muted)' }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
                 {t('Уведомления')}

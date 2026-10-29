@@ -117,7 +117,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               style={{
                 minHeight: 50,
                 lineHeight: '22px',
-                padding: '13px 16px',
+                padding: '12px 16px',
                 borderRadius: 14,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,
@@ -145,7 +145,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
                 boxSizing: 'border-box',
                 minHeight: 50,
                 lineHeight: '22px',
-                padding: '13px 44px 13px 16px',
+                padding: '12px 44px 12px 16px',
                 borderRadius: 14,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,

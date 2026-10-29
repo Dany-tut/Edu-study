@@ -156,7 +156,7 @@ export function AlertStack({ items, style }: { items: Array<AlertItem | false | 
         <motion.div
           key="alert-stack"
           initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.15 }}
           style={{ ...CARD, ...style }}
         >
           {shown.map((item, i) => (
@@ -176,7 +176,7 @@ export function AlertStack({ items, style }: { items: Array<AlertItem | false | 
               }}
             >
               {open ? t('Свернуть') : `${t('Ещё')} ${hidden}`}
-              <ChevronDown size={14} style={{ transform: open ? 'rotate(180deg)' : undefined, transition: 'transform .15s' }} />
+              <ChevronDown size={14} style={{ transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s' }} />
             </button>
           )}
         </motion.div>

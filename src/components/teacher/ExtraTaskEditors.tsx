@@ -47,7 +47,7 @@ import { useT } from '../../lib/i18n'
 export interface EditorAccent { color: string; bg: string; fill: string }
 
 const fieldSt: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10,
+  width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 10,
   border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)',
   fontSize: 13, lineHeight: 1.45, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit',
 }
@@ -119,21 +119,21 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                         setRows(rows.map((x, k) => k === ri ? { ...x, ...next } : x))
                       return (
                         <div key={ri} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                          <span style={{ width: 24, height: 24, marginTop: 5, borderRadius: 8, flexShrink: 0, background: accent.bg, color: accent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{ri + 1}</span>
-                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                          <span style={{ width: 24, height: 24, marginTop: 6, borderRadius: 8, flexShrink: 0, background: accent.bg, color: accent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{ri + 1}</span>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
                             <AutoTextarea
                               value={row.text}
                               onChange={v => patch({ text: v })}
                               placeholder={t('Утверждение по тексту')}
                               style={fieldSt}
                             />
-                            <div style={{ display: 'flex', gap: 5 }}>
+                            <div style={{ display: 'flex', gap: 6 }}>
                               {CAPS.map(c => (
                                 <button
                                   key={c.v}
                                   onClick={() => patch({ verdict: c.v })}
                                   style={{
-                                    padding: '5px 11px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
+                                    padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
                                     fontSize: 12, fontWeight: 700,
                                     border: `1.5px solid ${row.verdict === c.v ? accent.color : 'var(--color-border-medium)'}`,
                                     background: row.verdict === c.v ? accent.bg : 'var(--color-bg-2)',
@@ -148,7 +148,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                           {rows.length > 1 && (
                             <button
                               onClick={() => setRows(rows.filter((_, k) => k !== ri))}
-                              style={{ width: 24, height: 24, marginTop: 5, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                              style={{ width: 24, height: 24, marginTop: 6, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
                               <X size={12} />
                             </button>
@@ -158,7 +158,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                     })}
                     <button
                       onClick={() => setRows([...rows, { text: '', verdict: 'T' }])}
-                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
                       <Plus size={12} /> {t('Добавить утверждение')}
                     </button>
@@ -198,7 +198,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                       const patch = (next: Partial<typeof gap>) =>
                         setGaps(gaps.map((x, k) => k === gi ? { ...x, ...next } : x))
                       return (
-                        <div key={gi} style={{ display: 'flex', flexDirection: 'column', gap: 5, padding: '8px 10px', borderRadius: 12, background: 'var(--color-bg-2)' }}>
+                        <div key={gi} style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 10px', borderRadius: 12, background: 'var(--color-bg-2)' }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)' }}>
                             {t('Пропуск')} {gi + 1}
                           </div>
@@ -237,7 +237,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                           ))}
                           <button
                             onClick={() => patch({ options: [...gap.options, ''] })}
-                            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                           >
                             <Plus size={12} /> {t('Вариант')}
                           </button>
@@ -293,7 +293,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                       {cols.length < 4 && (
                         <button
                           onClick={() => onUpdate({ ...task, columns: [...cols, ''] })}
-                          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                         >
                           <Plus size={12} /> {t('Столбец')}
                         </button>
@@ -315,7 +315,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                               key={ci}
                               onClick={() => onUpdate({ ...task, sortItems: items.map((x, k) => k === ii ? { ...x, column: ci } : x) })}
                               style={{
-                                padding: '5px 10px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
+                                padding: '6px 10px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
                                 fontSize: 12, fontWeight: 700, maxWidth: 92, overflow: 'hidden',
                                 textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                 border: `1.5px solid ${item.column === ci ? accent.color : 'var(--color-border-medium)'}`,
@@ -339,7 +339,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                     ))}
                     <button
                       onClick={() => onUpdate({ ...task, sortItems: [...items, { text: '', column: 0 }] })}
-                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
                       <Plus size={12} /> {t('Добавить предмет')}
                     </button>

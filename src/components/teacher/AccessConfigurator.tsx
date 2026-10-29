@@ -33,11 +33,11 @@ function Chip({ label, on, onToggle, dimmed }: { label: string; on: boolean; onT
       onClick={onToggle}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
-        padding: '6px 11px', borderRadius: 10, cursor: 'pointer',
+        padding: '6px 12px', borderRadius: 10, cursor: 'pointer',
         border: `1px solid ${on ? 'var(--color-purple)' : 'var(--color-border)'}`,
         background: on ? 'var(--color-purple-soft)' : 'transparent',
         color: on ? 'var(--color-purple)' : 'var(--color-text-3)',
-        fontSize: 13, fontWeight: 600, transition: 'all 0.12s',
+        fontSize: 13, fontWeight: 600, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
         opacity: dimmed ? 0.4 : 1,
       }}
     >
@@ -134,7 +134,7 @@ export default function AccessConfigurator({
             {tr('Предметы (что видит)')}
             {subjList.length === 0 && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-3)', textTransform: 'none', letterSpacing: 0 }}>{tr('· пусто = все предметы')}</span>}
           </SectionTitle>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
             {SUBJECTS.map(s => (
               <Chip key={s.id} label={`${s.icon}${ICON_GAP}${s.name}`} on={subjList.includes(s.id)} onToggle={() => toggleSubject(s.id)} />
             ))}
@@ -144,7 +144,7 @@ export default function AccessConfigurator({
 
       {/* Sections */}
       <SectionTitle>{tr('Разделы (что видит)')}</SectionTitle>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
         {TEACHER_TABS.map(tab => (
           <Chip key={tab.id} label={tr(tab.label)} on={selectedTabs.includes(tab.id)} onToggle={() => toggleTab(tab.id)} />
         ))}
@@ -155,7 +155,7 @@ export default function AccessConfigurator({
         {tr('Виджеты «Главной»')}
         {!homeShown && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-3)', textTransform: 'none', letterSpacing: 0 }}>{tr('· раздел «Главная» скрыт целиком')}</span>}
       </SectionTitle>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: showContent ? 18 : 0, opacity: homeShown ? 1 : 0.45, transition: 'opacity 0.15s' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: showContent ? 18 : 0, opacity: homeShown ? 1 : 0.45, transition: 'opacity 0.15s' }}>
         {WIDGET_REGISTRY.map(def => (
           <Chip key={def.type} label={tr(def.label)} on={selectedWidgets.includes(def.type)} onToggle={() => toggleWidget(def.type)} />
         ))}
@@ -178,7 +178,7 @@ export default function AccessConfigurator({
                       <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>· {tn(c.owner_name)}</span>
                     </button>
                     {a && (
-                      <div style={{ display: 'flex', gap: 3, background: 'var(--color-bg-3)', borderRadius: 8, padding: 2, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 8, padding: 2, flexShrink: 0 }}>
                         {([['copy', tr('Копия'), Copy], ['share', tr('Общий'), Share2]] as const).map(([m, label, Icon]) => (
                           <button key={m} onClick={() => setCourseMode(c.id, m)} title={m === 'copy' ? tr('Независимый дубликат') : tr('Общий доступ (read-only)')} style={{
                             display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
@@ -198,7 +198,7 @@ export default function AccessConfigurator({
 
           {/* Groups */}
           <SectionTitle><Users size={12} /> {tr('Группы / ученики (передать)')}</SectionTitle>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
             {groups.length === 0
               ? <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{tr('Нет групп.')}</div>
               : groups.map(g => (
@@ -217,7 +217,7 @@ export default function AccessConfigurator({
               <div key={tile.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)' }}>
                 <span style={{ color: 'var(--color-purple)', flexShrink: 0 }}>{tile.icon}</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.label}</span>
-                {tile.badge && <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-purple)', background: 'var(--color-purple-soft)', padding: '2px 5px', borderRadius: 5, flexShrink: 0 }}>{tile.badge}</span>}
+                {tile.badge && <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-purple)', background: 'var(--color-purple-soft)', padding: '2px 6px', borderRadius: 5, flexShrink: 0 }}>{tile.badge}</span>}
               </div>
             ))}
           </div>

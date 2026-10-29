@@ -32,7 +32,7 @@ const RAIL_W = 300
 const PAD_TOP = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
 
 const CARD = {
-  display: 'flex', flexDirection: 'column' as const, gap: 9,
+  display: 'flex', flexDirection: 'column' as const, gap: 10,
   padding: '16px 18px', borderRadius: 18,
   background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
 }
@@ -68,7 +68,7 @@ export default function TrainerBootSkeleton({ desktop }: { desktop: boolean }) {
           }}>
             <Bar h={104} r={16} />
             <div style={{
-              display: 'flex', flexDirection: 'column', gap: 11, padding: 14, borderRadius: 16,
+              display: 'flex', flexDirection: 'column', gap: 12, padding: 14, borderRadius: 16,
               background: 'rgba(var(--glass-rgb), 0.94)',
               border: '1px solid var(--color-border-soft)',
             }}>
@@ -95,7 +95,7 @@ export default function TrainerBootSkeleton({ desktop }: { desktop: boolean }) {
           display: 'flex', flexDirection: 'column', gap: 12,
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <Bar w={112} h={36} r={999} />
               <Bar w={196} h={36} r={999} />
               <Bar w={148} h={36} r={999} />

@@ -38,7 +38,7 @@ function revealStyle(visible: boolean, size: number, gap: number): React.CSSProp
     marginLeft: visible ? 0 : -gap,
     overflow: 'hidden',
     pointerEvents: visible ? 'auto' : 'none',
-    transition: 'opacity 0.15s, width 0.18s, margin 0.18s',
+    transition: 'opacity 0.15s, width 0.15s, margin 0.15s',
   }
 }
 
@@ -103,7 +103,7 @@ function AddInline({ onAdd, placeholder, accent }: { onAdd: (v: string) => void;
   if (!open) {
     return (
       <button onClick={() => { setOpen(true); setTimeout(() => ref.current?.focus(), 20) }}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
         <Plus size={14} strokeWidth={2.5} /> {placeholder}
       </button>
     )
@@ -114,9 +114,9 @@ function AddInline({ onAdd, placeholder, accent }: { onAdd: (v: string) => void;
         onBlur={() => { if (draft.trim()) commit(); else setOpen(false) }}
         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit() } if (e.key === 'Escape') { setDraft(''); setOpen(false) } }}
         placeholder={placeholder}
-        style={{ border: `1.5px solid ${accent}`, borderRadius: 999, padding: '5px 12px', outline: 'none', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', minWidth: 160 }} />
+        style={{ border: `1.5px solid ${accent}`, borderRadius: 999, padding: '6px 12px', outline: 'none', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', minWidth: 160 }} />
       <button onMouseDown={e => { e.preventDefault(); commit() }}
-        style={{ display: 'flex', background: accent, color: getContrastColor(accent), border: 'none', borderRadius: 999, padding: 5, cursor: 'pointer' }}>
+        style={{ display: 'flex', background: accent, color: getContrastColor(accent), border: 'none', borderRadius: 999, padding: 6, cursor: 'pointer' }}>
         <Check size={14} strokeWidth={2.5} />
       </button>
     </span>
@@ -140,7 +140,7 @@ function TopicChip({ subject, section, topic, accent, renameTopic, removeTopic }
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5, padding: showCross ? '5px 6px 5px 11px' : '5px 11px',
+        display: 'inline-flex', alignItems: 'center', gap: 6, padding: showCross ? '6px 6px 6px 12px' : '6px 12px',
         borderRadius: 999, cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s',
         background: armed ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
         border: `1px solid ${armed ? 'var(--color-red-text)' : 'var(--color-border-soft)'}`,
@@ -173,21 +173,21 @@ function LineRow({ subject, l, accent, accentBg, updateLine, removeLine }: {
   const t = useT()
   const del = useRightHover()
   return (
-    <div {...del.bind} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 11, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)' }}>
+    <div {...del.bind} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 11, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)' }}>
       {/* Number */}
       <input type="number" min={1} value={l.n}
         onChange={e => { const v = Number(e.target.value); if (v > 0) updateLine(subject, l.n, { n: v }) }}
-        style={{ width: 48, padding: '5px 6px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: accent, fontWeight: 700, fontSize: 12, textAlign: 'center', outline: 'none', fontFamily: 'inherit', flexShrink: 0 }} />
+        style={{ width: 48, padding: '6px 6px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: accent, fontWeight: 700, fontSize: 12, textAlign: 'center', outline: 'none', fontFamily: 'inherit', flexShrink: 0 }} />
       {/* Name */}
       <input value={l.name} onChange={e => updateLine(subject, l.n, { name: e.target.value })}
-        style={{ flex: 1, minWidth: 0, padding: '5px 8px', borderRadius: 8, border: '1px solid transparent', background: 'transparent', color: 'var(--color-text)', fontSize: 13, outline: 'none', fontFamily: 'inherit' }}
+        style={{ flex: 1, minWidth: 0, padding: '6px 8px', borderRadius: 8, border: '1px solid transparent', background: 'transparent', color: 'var(--color-text)', fontSize: 13, outline: 'none', fontFamily: 'inherit' }}
         onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-border-medium)'; e.currentTarget.style.background = 'var(--color-bg-2)' }}
         onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent' }} />
       {/* Part toggle */}
       <div style={{ display: 'flex', borderRadius: 8, background: 'var(--color-bg-3)', padding: 2, flexShrink: 0 }}>
         {([1, 2] as const).map(p => (
           <button key={p} onClick={() => updateLine(subject, l.n, { part: p })}
-            style={{ padding: '3px 9px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', outline: 'none',
+            style={{ padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', outline: 'none',
               background: l.part === p ? accentBg : 'transparent', color: l.part === p ? accent : 'var(--color-text-3)' }}>
             {t('Ч')}{p}
           </button>
@@ -224,9 +224,9 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
     }}>
       {/* Header */}
       <div onClick={() => setOpen(o => !o)} {...del.bind}
-        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', cursor: 'pointer' }}>
         <GripVertical size={16} style={{ color: 'var(--color-text-5)', flexShrink: 0 }} />
-        <motion.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.18 }} style={{ display: 'flex', color: 'var(--color-text-3)', flexShrink: 0 }}>
+        <motion.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.15 }} style={{ display: 'flex', color: 'var(--color-text-3)', flexShrink: 0 }}>
           <ChevronDown size={16} />
         </motion.span>
         <InlineText value={section} onCommit={v => renameSection(subject, section, v)}
@@ -234,10 +234,10 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
         {/* Spacer fills the empty middle and stays clickable to toggle */}
         <div style={{ flex: 1, alignSelf: 'stretch', minWidth: 0 }} />
         <span style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 999, background: accentBg, color: accent, fontSize: 11, fontWeight: 700 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: accentBg, color: accent, fontSize: 11, fontWeight: 700 }}>
             <Hash size={12} /> {totalLines}
           </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: 11, fontWeight: 700 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: 11, fontWeight: 700 }}>
             <BookOpen size={12} /> {topics.length}
           </span>
         </span>
@@ -249,7 +249,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
 
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} style={{ overflow: 'hidden' }}>
             <div style={{ padding: '4px 16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Topics */}
               <div>
@@ -276,7 +276,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
                 </div>
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                   <button onClick={() => addLine(subject, section, partFilter === 2 ? 2 : 1)}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                     <Plus size={14} strokeWidth={2.5} /> {t('Добавить линию')}
                   </button>
                 </div>
@@ -322,7 +322,7 @@ export default function CurriculumManager() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 960, margin: '0 auto' }}>
       {/* Intro / controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 38, height: 38, borderRadius: 12, background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent }}>
             <Database size={20} />
           </div>
@@ -335,17 +335,17 @@ export default function CurriculumManager() {
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* Save status */}
           {saveState === 'saving' && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>
               <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }} style={{ display: 'flex' }}><Loader2 size={14} /></motion.span> {t('Сохранение…')}
             </span>
           )}
           {saveState === 'saved' && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)' }}>
               <Cloud size={14} /> {t('Сохранено в БД')}
             </span>
           )}
           {saveState === 'error' && (
-            <span title={t('Войдите как преподаватель, чтобы сохранять изменения')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: 'var(--color-red-text)' }}>
+            <span title={t('Войдите как преподаватель, чтобы сохранять изменения')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-red-text)' }}>
               <CloudOff size={14} /> {t('Не сохранено — нужен вход')}
             </span>
           )}
@@ -360,7 +360,7 @@ export default function CurriculumManager() {
           </div>
           <button onClick={() => { void confirmDialog({ title: t('Вернуть стандартную структуру ЕГЭ?'), message: t('Ваши правки структуры этого предмета будут потеряны.'), confirmLabel: t('Вернуть'), tone: 'danger' }).then(ok => { if (ok) resetSubject(subject) }) }}
             title={t('Сбросить к стандарту ЕГЭ')}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
             <RotateCcw size={14} /> {t('Сбросить')}
           </button>
         </div>
@@ -371,7 +371,7 @@ export default function CurriculumManager() {
         <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
           {data.sections.length} {t('разделов')} · {totalTopics} {t('тем')} · {totalLines} {t('линий')}
         </span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, padding: 3, borderRadius: 999, background: 'var(--color-bg-3)' }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, padding: 4, borderRadius: 999, background: 'var(--color-bg-3)' }}>
           {([[0, t('Все')], [1, t('Часть 1')], [2, t('Часть 2')]] as [0 | 1 | 2, string][]).map(([p, l]) => (
             <button key={p} onClick={() => setPartFilter(p)}
               style={{ padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',

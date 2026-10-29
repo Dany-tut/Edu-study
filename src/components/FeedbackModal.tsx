@@ -193,7 +193,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
                 </button>
               )}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 7 }}>{t('Можно вставить из буфера через Ctrl + V')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 8 }}>{t('Можно вставить из буфера через Ctrl + V')}</div>
             <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={e => { void addFiles(e.target.files); e.target.value = '' }} />
           </div>
 

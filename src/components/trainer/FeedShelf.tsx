@@ -114,7 +114,7 @@ export function FeedList({ items, lang, accent, subjectId, onRefresh }: {
           {/* Дата — единственный разделитель в ленте, как в мессенджере. */}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <span style={{
-              padding: '3px 12px', borderRadius: 999,
+              padding: '4px 12px', borderRadius: 999,
               background: 'var(--color-bg-3)', color: 'var(--color-muted)',
               fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
             }}>
@@ -239,7 +239,7 @@ export function FeedTabs({ chips, value, onChange, accent }: {
           display: 'flex', alignItems: 'center', gap: compact ? 2 : 0,
           flex: compact ? '0 1 auto' : '1 1 auto', minWidth: 0,
           overflowX: 'auto', overscrollBehaviorX: 'contain',
-          padding: 3, borderRadius: 999,
+          padding: 4, borderRadius: 999,
           background: 'rgba(var(--glass-rgb), 0.88)',
           border: '1px solid var(--color-border)',
           boxShadow: 'var(--shadow-1)',

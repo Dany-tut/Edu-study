@@ -39,13 +39,13 @@ export function GlassPill({
   const inner: CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 7,
+    gap: 8,
     // Высота — общая для всех шапок (MOBILE_PILL_H), а не производная от
     // кегля: иначе таблетки соседних экранов стоят на разной высоте, и на
     // свайпе видно, как кнопка прыгает по вертикали.
     height: MOBILE_PILL_H,
     boxSizing: 'border-box',
-    padding: '0 15px',
+    padding: '0 16px',
     borderRadius: 999,
     fontSize: 13,
     fontWeight: 700,
@@ -61,7 +61,7 @@ export function GlassPill({
       type="button"
       data-swipe-morph={morph}
       whileTap={{ scale: TAP_SCALE }}
-      transition={{ duration: 0.16, ease: JELLY_EASE }}
+      transition={{ duration: 0.15, ease: JELLY_EASE }}
       onClick={() => { tactile(); onClick() }}
       style={{ ...inner, cursor: 'pointer' }}
     >
@@ -97,7 +97,7 @@ export function GlassIconButton({
       type="button"
       aria-label={ariaLabel}
       whileTap={{ scale: 0.9 }}
-      transition={{ duration: 0.16, ease: JELLY_EASE }}
+      transition={{ duration: 0.15, ease: JELLY_EASE }}
       onClick={() => { if (onClick) { tactile(); onClick() } }}
       style={{
         position: 'relative',

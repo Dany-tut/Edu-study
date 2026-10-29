@@ -190,7 +190,7 @@ export function SoundTrack({ state, accent, soft }: {
       style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
         background: soft, overflow: 'hidden',
-        opacity: state.done ? 0 : 1, transition: 'opacity 240ms linear',
+        opacity: state.done ? 0 : 1, transition: 'opacity 0.22s linear',
       }}
     >
       {state.live && (

@@ -87,18 +87,18 @@ export default function ScrollFade({
       <div style={{
         position: 'absolute', top: -8, left: 0, right: 0, height: fadeHeight + 8, pointerEvents: 'none',
         background: `linear-gradient(to bottom, ${bg}, transparent)`,
-        opacity: edges.top ? 1 : 0, transition: 'opacity 0.18s ease',
+        opacity: edges.top ? 1 : 0, transition: 'opacity 0.15s ease',
       }} />
       <div style={{
         position: 'absolute', bottom: -8, left: 0, right: 0, height: fadeHeight + 8, pointerEvents: 'none',
         background: `linear-gradient(to top, ${bg}, transparent)`,
-        opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.18s ease',
+        opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.15s ease',
       }} />
       {overlayScrollbar && overflowing && (
         <div style={{
           position: 'absolute', top: thumbTop, right: 2, width: 5, height: thumbH,
           borderRadius: 999, background: 'var(--scroll-thumb)', pointerEvents: 'none',
-          transition: 'opacity 0.3s ease', opacity: thumbVisible ? 1 : 0,
+          transition: 'opacity 0.38s ease', opacity: thumbVisible ? 1 : 0,
         }} />
       )}
     </div>

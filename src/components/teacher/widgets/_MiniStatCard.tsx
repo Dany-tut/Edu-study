@@ -52,7 +52,7 @@ export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, 
         <div style={{
           fontSize: 11, fontWeight: 600, color: dimmed ? 'var(--color-text-3)' : accentColor,
           background: dimmed ? 'var(--color-bg-4)' : accentBg,
-          borderRadius: 8, padding: '3px 8px', alignSelf: 'flex-start',
+          borderRadius: 8, padding: '4px 8px', alignSelf: 'flex-start',
         }}>
           {sub}
         </div>

@@ -73,7 +73,7 @@ function TabPanel({ config }: { config: TabConfig }) {
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
               boxShadow: isActive ? '0 3px 10px rgba(99,84,207,0.28)' : '0 1px 4px rgba(0,0,0,0.06)',
               backdropFilter: isActive ? 'none' : 'blur(14px)',
-              transition: 'background 0.18s, color 0.18s, box-shadow 0.18s',
+              transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
             }}
           >
             <span style={{ transition: 'opacity 0.15s', opacity: hasPlus && isActive && isHovered ? 0 : 1 }}>
@@ -89,7 +89,7 @@ function TabPanel({ config }: { config: TabConfig }) {
                     initial={{ opacity: 0, scale: 0.7 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.7 }}
-                    transition={{ duration: 0.12 }}
+                    transition={{ duration: 0.15 }}
                     style={{
                       position: 'absolute', inset: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -186,7 +186,7 @@ function GroupMiniCard({
         boxShadow: isActive ? `0 0 0 3px ${group.color}33, 0 4px 20px rgba(0,0,0,0.06)` : 'var(--shadow-sm-page)',
         cursor: 'pointer', userSelect: 'none',
         padding: '18px 20px',
-        transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
+        transition: 'background 0.15s, border 0.15s, box-shadow 0.15s',
         overflow: 'hidden', position: 'relative',
       }}
     >
@@ -196,7 +196,7 @@ function GroupMiniCard({
           <motion.button
             key="add"
             initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
-            transition={{ duration: 0.14 }}
+            transition={{ duration: 0.15 }}
             onClick={e => { e.stopPropagation(); onAddToGroup() }}
             title={t('Добавить ученика в группу')}
             style={{
@@ -228,7 +228,7 @@ function GroupMiniCard({
           {t('с')} {group.startDate}
         </div>
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Прогресс')}</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.lessonsCompleted}/{group.totalLessons}</span>
           </div>
@@ -279,14 +279,14 @@ function IndividualCard({
         borderRadius: 22,
         boxShadow: isActive ? `0 0 0 3px ${group.color}33, 0 4px 20px rgba(0,0,0,0.06)` : 'var(--shadow-sm-page)',
         cursor: 'pointer', userSelect: 'none',
-        padding: '15px 16px',
-        transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
+        padding: '16px 16px',
+        transition: 'background 0.15s, border 0.15s, box-shadow 0.15s',
         overflow: 'hidden',
         position: 'relative',
       }}
     >
       {/* 1:1 + level badges */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 11 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
         <span style={cardChip(group.color)}>
           1:1
         </span>
@@ -311,14 +311,14 @@ function IndividualCard({
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {group.name}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {group.icon}{ICON_GAP}{[group.subject, ...(group.tracks ?? []).map(t => t.subject).filter(Boolean)].join(' · ')}
           </div>
         </div>
       </div>
 
       {/* Status footer: live metrics from the student record */}
-      <div style={{ display: 'flex', gap: 6, marginTop: 11, paddingTop: 10, borderTop: '1px solid var(--color-border-soft)' }}>
+      <div style={{ display: 'flex', gap: 6, marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--color-border-soft)' }}>
         <MetricCell label={t('Посещ.')} value={stu ? `${stu.attendance}%` : '—'} color={stu ? attColor(stu.attendance) : 'var(--color-text-4)'} />
         <MetricCell label={t('ДЗ')} value={stu ? `${stu.hwScore}` : '—'} color={stu ? hwColor(stu.hwScore) : 'var(--color-text-4)'} divider />
         <MetricCell label={t('Цель')} value={stu?.desiredScore ? `${stu.desiredScore}` : '—'} color="var(--color-accent)" divider />
@@ -337,7 +337,7 @@ const CHIP_AREA_W = CARD_W - 32 // card width minus horizontal padding
 const chipBase: CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 4, boxSizing: 'border-box',
   fontSize: 11, fontWeight: 600, lineHeight: '13px',
-  borderRadius: 8, padding: '3px 9px', maxWidth: '100%', flexShrink: 0,
+  borderRadius: 8, padding: '4px 10px', maxWidth: '100%', flexShrink: 0,
 }
 
 /** Estimated rendered width of a chip (11px semibold + icon + padding + border).
@@ -391,8 +391,8 @@ function PersonCard({
         borderRadius: 22,
         boxShadow: isActive ? `0 0 0 3px ${person.color}33, 0 4px 20px rgba(0,0,0,0.06)` : 'var(--shadow-sm-page)',
         cursor: 'pointer', userSelect: 'none',
-        padding: '15px 16px',
-        transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
+        padding: '16px 16px',
+        transition: 'background 0.15s, border 0.15s, box-shadow 0.15s',
         overflow: 'hidden', position: 'relative',
       }}
     >
@@ -419,7 +419,7 @@ function PersonCard({
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {tn(person.name)}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3 }}>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 4 }}>
             {person.subjects.length} {pluralSubjects(person.subjects.length)}
           </div>
         </div>

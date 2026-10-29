@@ -40,7 +40,7 @@ export default function TeacherModules() {
   }
 
   const pill = (bg: string, color: string, text: string) => (
-    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: bg, color, flexShrink: 0 }}>{text}</span>
+    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: bg, color, flexShrink: 0 }}>{text}</span>
   )
 
   return (
@@ -78,7 +78,7 @@ export default function TeacherModules() {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {[t('ДЗ → «Из Тестли»'), t('Уроки курса'), t('Конструктор → Тесты')].map(s => (
                   <span key={s} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px 5px 10px', borderRadius: 999,
+                    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px 6px 10px', borderRadius: 999,
                     background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600,
                   }}><Check size={12} strokeWidth={2.4} /> {s}</span>
                 ))}
@@ -86,7 +86,7 @@ export default function TeacherModules() {
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <a href={`${TESTLY_SITE}/app`} target="_blank" rel="noopener noreferrer" style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 10,
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10,
                 border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
                 color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, textDecoration: 'none',
               }}><ExternalLink size={13} /> {t('Открыть Тестли')}</a>

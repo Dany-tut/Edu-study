@@ -87,7 +87,7 @@ export default function Modal({
           {title != null && (
             // Шапка прижата к верху: крестик стоит против заголовка, а не против
             // середины двухстрочного подзаголовка.
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: `${padding - 4}px ${padding}px 12px`, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: `${padding - 4}px ${padding}px 12px`, flexShrink: 0 }}>
               {icon}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>{title}</div>

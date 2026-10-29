@@ -509,11 +509,11 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
               // Раскрытая — сверху: под фразой заметка и пример, и значок
               // уехал бы в середину простыни.
               display: 'flex', alignItems: on ? 'flex-start' : 'center', gap: 12, borderRadius: 14,
-              padding: '11px 14px',
+              padding: '12px 14px',
               background: 'var(--color-bg-2)',
               border: `1px solid ${sp ? accent : on ? `${accent}55` : 'var(--color-border-soft)'}`,
               cursor: 'pointer',
-              transition: 'border-color 0.2s ease',
+              transition: 'border-color 0.22s ease',
             }}
           >
             {/* Звук ведёт строку слева: справа за ним пришлось бы тянуться
@@ -543,7 +543,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                   fontSize: on ? 28 : 15, fontWeight: 600, color: 'var(--color-text)',
                   lineHeight: 1.3, letterSpacing: on ? 0.2 : 0,
                   display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
-                  transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), letter-spacing 0.24s ease',
+                  transition: 'font-size 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), letter-spacing 0.22s ease',
                 }}
               >
                 {on
@@ -553,7 +553,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
               {view.reading && p.reading && (
                 <div style={{
                   fontSize: on ? 14 : 12, color: 'var(--color-text-3)', marginTop: on ? 4 : 2,
-                  transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), margin-top 0.24s ease',
+                  transition: 'font-size 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), margin-top 0.22s ease',
                 }}>
                   {p.reading}
                 </div>
@@ -562,7 +562,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                   клику: по нему человек понимает, дошёл ли он до этого места,
                   и стоит ли учить слово сейчас. */}
               {p.ep && (
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 3, letterSpacing: 0.2 }}>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4, letterSpacing: 0.2 }}>
                   {p.ep}
                 </div>
               )}
@@ -606,7 +606,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
                   {view.reading && p.ex.reading && (
                     <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{p.ex.reading}</div>
                   )}
-                  <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 4, lineHeight: 1.45 }}>
                     {p.ex.ru}
                   </div>
                 </div>
@@ -687,7 +687,7 @@ export function TakeWholeTheme({ phrases, owner, subjectId, accent, onAdded }: {
       disabled={busy || done}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
-        padding: '9px 12px', borderRadius: 12, cursor: busy || done ? 'default' : 'pointer',
+        padding: '10px 12px', borderRadius: 12, cursor: busy || done ? 'default' : 'pointer',
         fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
         border: `1px solid ${done ? 'var(--color-border-soft)' : `${accent}66`}`,
         background: 'transparent', color: done ? 'var(--color-muted)' : accent,

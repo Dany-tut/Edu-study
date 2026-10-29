@@ -112,7 +112,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
               onClick={e => { e.preventDefault(); open() }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, minWidth: 0,
-                padding: '6px 9px', borderRadius: 11, textDecoration: 'none',
+                padding: '6px 10px', borderRadius: 11, textDecoration: 'none',
                 background: fresh ? `${palette.accent}16` : 'transparent',
               }}
             >

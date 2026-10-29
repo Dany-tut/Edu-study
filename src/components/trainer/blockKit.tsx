@@ -127,7 +127,7 @@ const BTN_H = 42
 
 const btnBase: React.CSSProperties = {
   height: BTN_H, boxSizing: 'border-box', borderRadius: 999, cursor: 'pointer',
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   fontFamily: 'inherit', fontSize: 14, fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap',
 }
 

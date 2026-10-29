@@ -44,15 +44,15 @@ function CardActionBar({ actions, visible, accentColor }: { actions: CardActions
       style={{
         width: 26, height: 26, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
         border: '1px solid var(--color-border-soft)', background: 'var(--color-surface)', cursor: 'pointer',
-        color: danger ? '#c0303a' : accentColor, padding: 0, transition: 'all 0.12s',
+        color: danger ? '#c0303a' : accentColor, padding: 0, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
       }}
     >{children}</button>
   )
   return (
     <div style={{
-      position: 'absolute', top: 10, right: 10, display: 'flex', gap: 5, zIndex: 6,
+      position: 'absolute', top: 10, right: 10, display: 'flex', gap: 6, zIndex: 6,
       opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-3px)',
-      pointerEvents: visible ? 'auto' : 'none', transition: 'opacity 0.14s, transform 0.14s',
+      pointerEvents: visible ? 'auto' : 'none', transition: 'opacity 0.15s, transform 0.15s',
     }}>
       {actions.onEdit && btn(actions.onEdit, t('Редактировать'), false, <Pencil size={14} strokeWidth={2} />)}
       {actions.onDuplicate && btn(actions.onDuplicate, t('Дублировать'), false, <Copy size={14} strokeWidth={2} />)}
@@ -102,7 +102,7 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
         // Не 'all': transform ведёт framer (наведение, морф), CSS-переход поверх
         // него запаздывает и плитка вздрагивает.
         display: 'flex', flexDirection: 'column', gap: 10, height: '100%',
-        transition: 'background 0.18s, border-color 0.18s, box-shadow 0.18s',
+        transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
       }}
     >
       {actions && <CardActionBar actions={actions} visible={hovered} accentColor={accentColor} />}
@@ -110,10 +110,10 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
         {/* Выбранная плитка залита оттенком акцента — серый квадрат иконки на ней
             выпадал пятном, поэтому он тоже подмешивает акцент. color-mix, а не
             accent+'22': accentColor бывает CSS-переменной. */}
-        <motion.div layout={pos} style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? (isSelected ? `color-mix(in srgb, ${accentColor} 20%, var(--color-bg-5))` : 'var(--color-bg-5)'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.18s' }}>
+        <motion.div layout={pos} style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? (isSelected ? `color-mix(in srgb, ${accentColor} 20%, var(--color-bg-5))` : 'var(--color-bg-5)'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s' }}>
           {icon}
         </motion.div>
-        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'flex-start', gap: 4, opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.14s' }}>{badge}</motion.div>
+        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'flex-start', gap: 4, opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.15s' }}>{badge}</motion.div>
       </motion.div>
       <motion.div layout={pos} style={{ flex: 1, minHeight: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, minHeight: '2.6em', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' }}>{title}</div>
@@ -127,7 +127,7 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
           обрезанное слово вплотную упиралось в правую подпись — «2 вопрСвязка». */}
       {/* Линия подвала тянется вместе с фоном (layout), подписи — переезжают. */}
       <motion.div layout={morph || undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
-        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--color-muted)', fontSize: 12, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{footerLeft}</motion.div>
+        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-muted)', fontSize: 12, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{footerLeft}</motion.div>
         <motion.div layout={pos} style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-3)', fontSize: 11, flexShrink: 0, whiteSpace: 'nowrap' }}>{footerRight}</motion.div>
       </motion.div>
     </motion.div>
@@ -149,10 +149,10 @@ export function CardSkeleton() {
         <Skeleton w={36} h={36} radius={12} />
         <Skeleton w={64} h={18} radius={7} />
       </div>
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Skeleton w="85%" h={13} />
         <Skeleton w="55%" h={13} />
-        <Skeleton w="70%" h={10} style={{ marginTop: 3 }} />
+        <Skeleton w="70%" h={10} style={{ marginTop: 4 }} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
         <Skeleton w={78} h={11} />

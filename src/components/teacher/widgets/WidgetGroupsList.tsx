@@ -39,7 +39,7 @@ export default function WidgetGroupsList() {
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Группы')}</span>
           <span style={{
             fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
-            background: 'var(--color-purple-soft)', borderRadius: 20, padding: '1px 7px',
+            background: 'var(--color-purple-soft)', borderRadius: 20, padding: '1px 8px',
           }}>
             {groups.length}
           </span>
@@ -106,7 +106,7 @@ export default function WidgetGroupsList() {
                 fontSize: 12, fontWeight: 700,
                 color: g.color ?? 'var(--color-accent)',
                 background: `${g.color}18`,
-                borderRadius: 8, padding: '3px 9px', flexShrink: 0,
+                borderRadius: 8, padding: '4px 10px', flexShrink: 0,
               }}>
                 <Users size={12} strokeWidth={2} />
                 {g.studentCount}

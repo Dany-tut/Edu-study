@@ -143,7 +143,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
       controls.start({
         scaleX: [1, 1.03, 0.982, 1.012, 1],
         scaleY: [1, 0.97, 1.018, 0.988, 1],
-        transition: { duration: 0.4, ease: 'easeOut' },
+        transition: { duration: 0.38, ease: 'easeOut' },
       })
     }
     onChange(v)
@@ -188,7 +188,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
           position: 'absolute', left: 0, height: 6, borderRadius: 999,
           width: `${(value / (EMOJI_STEPS.length - 1)) * 100}%`,
           background: 'var(--grad-purple-bar)',
-          transition: 'width 0.16s ease',
+          transition: 'width 0.15s ease',
         }} />
         {EMOJI_STEPS.map((_, i) => (
           <div key={i} style={{
@@ -198,7 +198,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
             width: i === value ? 0 : 7, height: i === value ? 0 : 7,
             borderRadius: '50%',
             background: i <= value ? 'var(--color-purple)' : 'var(--color-text-4)',
-            transition: 'all 0.14s ease',
+            transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
             pointerEvents: 'none',
           }} />
         ))}
@@ -215,7 +215,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
           background: 'var(--grad-purple)',
           border: '3px solid var(--color-bg)',
           boxShadow: '0 2px 12px rgba(var(--accent-rgb), 0.45)',
-          transition: 'left 0.16s ease',
+          transition: 'left 0.15s ease',
           pointerEvents: 'none',
         }} />
       </div>
@@ -226,7 +226,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
           <button key={i} onClick={() => handleChange(i)} style={{
             fontSize: i === value ? 20 : 15,
             background: 'none', border: 'none', cursor: 'pointer',
-            transition: 'all 0.14s ease',
+            transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
             transform: i === value ? 'translateY(-3px)' : 'none',
             opacity: Math.abs(i - value) > 1 ? 0.3 : 1,
             padding: '2px 4px',
@@ -497,7 +497,7 @@ function ResultModal({
           {/* Та же полоса порога, что и в плашке итогов: ученик видит одну и ту
               же картину и в модалке сразу после сдачи, и на странице под ней. */}
           {context === 'basic' && score !== undefined && recommendationScore !== undefined && (
-            <div className="flex flex-col" style={{ gap: 7, width: '100%' }}>
+            <div className="flex flex-col" style={{ gap: 8, width: '100%' }}>
               <div style={{
                 position: 'relative', height: 8, borderRadius: 999,
                 background: 'rgba(var(--spoiler-dot-rgb), 0.12)',
@@ -554,7 +554,7 @@ function ResultModal({
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onContinue(emojiValue, false)}
                 style={{
-                  flex: 1, padding: '15px 16px',
+                  flex: 1, padding: '16px 16px',
                   borderRadius: 18, border: '1px solid var(--color-border-medium)',
                   background: 'var(--color-bg-3)',
                   color: 'var(--color-text)', fontSize: 14, fontWeight: 700,
@@ -568,7 +568,7 @@ function ResultModal({
                 whileTap={{ scale: 0.98 }}
                 onClick={() => { playUnlock(); vibrate([12, 40, 18]); onContinue(emojiValue, true) }}
                 style={{
-                  flex: 2, padding: '15px 20px 15px 10px',
+                  flex: 2, padding: '16px 20px 16px 10px',
                   borderRadius: 18, border: 'none',
                   background: PURPLE.gradient,
                   color: '#fff', fontSize: 15, fontWeight: 700,
@@ -590,7 +590,7 @@ function ResultModal({
               whileTap={{ scale: 0.98 }}
               onClick={() => onContinue(emojiValue)}
               style={{
-                width: '100%', padding: '15px 20px',
+                width: '100%', padding: '16px 20px',
                 borderRadius: 18, border: 'none',
                 background: PURPLE.gradient,
                 color: '#fff', fontSize: 15, fontWeight: 700,
@@ -1212,7 +1212,7 @@ function QuestionPrompt({ prompt }: { prompt: string }) {
     <h4 style={bodyStyle}>
       <span style={{
         display: 'block', fontSize: 13, fontWeight: 600, lineHeight: 1.4,
-        color: 'var(--color-text-2)', marginBottom: 3, ...balancedWrap,
+        color: 'var(--color-text-2)', marginBottom: 4, ...balancedWrap,
       }}>
         {bindShortWords(parts.lead)}
       </span>
@@ -1269,7 +1269,7 @@ function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
             <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{pos + 1}</span>
             <span style={{ flex: 1, fontSize: 14, lineHeight: 1.4, color: 'var(--color-text)' }}>{items[itemIdx]}</span>
             {!disabled && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <button onClick={() => move(pos, -1)} disabled={pos === 0} style={arrowBtn(pos === 0)}><ChevronUp size={14} /></button>
                 <button onClick={() => move(pos, 1)} disabled={pos === order.length - 1} style={arrowBtn(pos === order.length - 1)}><ChevronDown size={14} /></button>
               </div>
@@ -1327,7 +1327,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
     // строка в тон остальным полям ответа и ссылка вернуться к записи.
     return (
       <div className="flex items-center" style={{
-        gap: 9, padding: '10px 12px', borderRadius: 14,
+        gap: 10, padding: '10px 12px', borderRadius: 14,
         background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)',
       }}>
         <MicOff size={16} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
@@ -1359,7 +1359,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
       onClick={() => speak(want, { lang })}
       className="flex items-center cursor-pointer"
       style={{
-        gap: 7, padding: '7px 14px', borderRadius: 999,
+        gap: 8, padding: '8px 14px', borderRadius: 999,
         border: '1px solid var(--color-border)', background: 'transparent',
         color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
       }}
@@ -1407,7 +1407,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
             onClick={retry}
             className="flex items-center cursor-pointer"
             style={{
-              gap: 7, padding: '7px 14px', borderRadius: 999, border: 'none',
+              gap: 8, padding: '8px 14px', borderRadius: 999, border: 'none',
               background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
             }}
@@ -1426,7 +1426,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
             onClick={() => onChange(NO_VOICE)}
             className="flex items-center cursor-pointer"
             style={{
-              gap: 7, padding: '7px 14px', borderRadius: 999,
+              gap: 8, padding: '8px 14px', borderRadius: 999,
               border: '1px solid var(--color-border)', background: 'transparent',
               color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
             }}
@@ -1530,7 +1530,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
               <div className={stacked ? 'flex flex-col' : 'flex items-center'} style={{ gap: stacked ? 6 : 10 }}>
                 <div className="flex items-center" style={{ gap: 10, flexShrink: 0, maxWidth: '100%' }}>
                   <span style={{
-                    minWidth: stacked ? 0 : 78, padding: '7px 12px', borderRadius: 12,
+                    minWidth: stacked ? 0 : 78, padding: '8px 12px', borderRadius: 12,
                     background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
                     fontSize: 14, fontWeight: 700, color: 'var(--color-text)',
                     textAlign: stacked ? 'left' : 'center', lineHeight: 1.3,
@@ -1584,7 +1584,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
               </div>
               {/* Открытая строка: эталон с переводом и цена подсказки. */}
               {shown && !showVerdict && (
-                <div className="flex items-start" style={{ gap: 7, paddingLeft: bodyIndent, paddingRight: 44 }}>
+                <div className="flex items-start" style={{ gap: 8, paddingLeft: bodyIndent, paddingRight: 44 }}>
                   <Eye size={14} style={{ color: 'var(--color-yellow-text)', flexShrink: 0, marginTop: 2 }} />
                   <span style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-text-2)' }}>
                     <b style={{ color: 'var(--color-text)' }}>{item.answer}</b>
@@ -2970,7 +2970,7 @@ export default function HomeworkFlow({
       onClick={() => setShowTheory(true)}
       className="flex items-center justify-center cursor-pointer flex-shrink-0"
       style={{
-        gap: 6, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999,
+        gap: 6, padding: isMobile ? 10 : '10px 16px 10px 12px', borderRadius: 999,
         ...(docked ? dockGlass : { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)' }),
         color: palette.text, fontSize: 14, fontWeight: 600,
         ...(docked ? { pointerEvents: 'auto' as const } : {}),
@@ -2991,7 +2991,7 @@ export default function HomeworkFlow({
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: compact ? '2px 8px 4px' : '3px 10px 5px',
+        padding: compact ? '2px 8px 4px' : '4px 10px 6px',
         borderRadius: 999,
         border: `1px solid ${palette.accent}`,
         background: palette.soft,
@@ -3064,7 +3064,7 @@ export default function HomeworkFlow({
         className="flex items-center"
         style={{ gap: 16 }}
         animate={{ opacity: docked ? 0 : 1 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
       >
         <motion.button
           whileHover={{ scale: 1.03 }}
@@ -3139,7 +3139,7 @@ export default function HomeworkFlow({
                 <motion.span
                   initial={false}
                   animate={{ maxWidth: topBarCompact ? 200 : 0, opacity: topBarCompact ? 1 : 0 }}
-                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
                   {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
@@ -3150,7 +3150,7 @@ export default function HomeworkFlow({
                 <motion.span
                   initial={false}
                   animate={{ maxWidth: topBarCompact ? 20 : 0, opacity: topBarCompact ? 1 : 0 }}
-                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
                   {extraTitle ? '' : '»'}
@@ -3270,7 +3270,7 @@ export default function HomeworkFlow({
               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Как это работает')}</p>
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 700, color: 'var(--color-text)' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--color-text)' }}>
                 <Clock size={14} />
                 {t('Обычно занимает')} {selectedEstimatedTime}.
               </span>{' '}
@@ -3296,7 +3296,7 @@ export default function HomeworkFlow({
                   <span
                     key={item}
                     style={{
-                      padding: '5px 10px',
+                      padding: '6px 10px',
                       borderRadius: 999,
                       background: 'rgba(var(--glass-rgb), 0.82)',
                       color: 'var(--color-accent)',
@@ -3357,7 +3357,7 @@ export default function HomeworkFlow({
                       onClick={() => { void submitBasic() }}
                       className="cursor-pointer"
                       style={{
-                        padding: '13px 22px', borderRadius: 16, border: 'none',
+                        padding: '12px 22px', borderRadius: 16, border: 'none',
                         background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 700,
                         boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
                         display: 'flex', alignItems: 'center', gap: 8,
@@ -3400,7 +3400,7 @@ export default function HomeworkFlow({
                           </p>
                           {!basicPassed && showHard && (
                             <span style={{
-                              padding: '2px 9px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                              padding: '2px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700,
                               background: 'var(--color-amber-soft)', color: 'var(--color-amber)',
                             }}>
                               {t('до порога')} {basicGapToHard}
@@ -3442,7 +3442,7 @@ export default function HomeworkFlow({
 
                   {/* Полоса порога: «сколько до харда» вместо абстрактной оценки. */}
                   {showHard && (
-                    <div className="flex flex-col" style={{ gap: 7 }}>
+                    <div className="flex flex-col" style={{ gap: 8 }}>
                       <div style={{
                         position: 'relative', height: 8, borderRadius: 999,
                         background: 'var(--color-bg-3)',
@@ -3561,7 +3561,7 @@ export default function HomeworkFlow({
                   }}
                   className="flex items-center cursor-pointer"
                   style={{
-                    gap: 10, padding: '13px 18px', borderRadius: 18, textAlign: 'left',
+                    gap: 10, padding: '12px 18px', borderRadius: 18, textAlign: 'left',
                     border: `1px solid ${palette.accent}`, background: palette.soft,
                     color: palette.text, fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
                   }}
@@ -3776,7 +3776,7 @@ export default function HomeworkFlow({
                         <div
                           className="flex items-start"
                           style={{
-                            gap: 8, padding: '9px 12px', borderRadius: 14,
+                            gap: 8, padding: '10px 12px', borderRadius: 14,
                             background: 'var(--color-amber-soft)', color: 'var(--color-amber)',
                             fontSize: 13, fontWeight: 700, maxWidth: 220, lineHeight: 1.4,
                             flexShrink: 0,
@@ -3799,7 +3799,7 @@ export default function HomeworkFlow({
                           className="flex items-start"
                           style={{
                             gap: 8,
-                            padding: '9px 12px',
+                            padding: '10px 12px',
                             borderRadius: 14,
                             background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                             color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)',
@@ -3896,7 +3896,7 @@ export default function HomeworkFlow({
                               fontSize: 14,
                               lineHeight: 1.45,
                               fontWeight: 600,
-                              transition: 'all 0.18s ease',
+                              transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
                               opacity: answered && !correctSelected && !wrongSelected && !active ? 0.84 : 1,
                               position: 'relative',
                               ...proseWrap,
@@ -4346,7 +4346,7 @@ export default function HomeworkFlow({
                           не вспоминать. Пустое поле без скелета — уже ступень 6. */}
                       {qType(question) === 'fill' && !!question.answerSkeleton && (
                         <div className="flex items-center" style={{
-                          gap: 10, padding: '9px 14px', borderRadius: 14, alignSelf: 'flex-start',
+                          gap: 10, padding: '10px 14px', borderRadius: 14, alignSelf: 'flex-start',
                           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
                         }}>
                           <span style={{
@@ -4422,7 +4422,7 @@ export default function HomeworkFlow({
                     {/* Подсказка — ответ здесь же, не в словаре наверху. */}
                     {hinted && !!hintText && (
                       <div className="flex items-center" style={{
-                        gap: 10, padding: '11px 14px', borderRadius: 16,
+                        gap: 10, padding: '12px 14px', borderRadius: 16,
                         background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
                       }}>
                         <Eye size={16} style={{ color: 'var(--color-amber)', flexShrink: 0 }} />
@@ -4462,7 +4462,7 @@ export default function HomeworkFlow({
                             onClick={() => revealHint(question.id)}
                             className="flex items-center cursor-pointer"
                             style={{
-                              gap: 7, padding: '9px 15px', borderRadius: 999,
+                              gap: 8, padding: '10px 16px', borderRadius: 999,
                               border: '1px solid var(--color-border)', background: 'transparent',
                               color: 'var(--color-muted)', fontFamily: 'inherit',
                               fontSize: 13, fontWeight: 700,
@@ -4575,7 +4575,7 @@ export default function HomeworkFlow({
                       className="flex items-center justify-center cursor-pointer"
                       style={{
                         flex: '1 1 200px', minWidth: 0,
-                        gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
+                        gap: 8, padding: '12px 22px', borderRadius: 16, border: 'none',
                         background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
                         fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
                       }}
@@ -4592,7 +4592,7 @@ export default function HomeworkFlow({
                       className="flex items-center justify-center cursor-pointer"
                       style={{
                         flex: '1 1 200px', minWidth: 0,
-                        gap: 8, padding: '13px 20px', borderRadius: 16,
+                        gap: 8, padding: '12px 20px', borderRadius: 16,
                         border: `1px solid ${confirmSubmitAsIs ? 'var(--color-amber)' : 'var(--color-border-medium)'}`,
                         background: confirmSubmitAsIs ? 'var(--color-amber-soft)' : 'var(--color-bg-input)',
                         color: confirmSubmitAsIs ? 'var(--color-amber)' : 'var(--color-text)',
@@ -4661,7 +4661,7 @@ export default function HomeworkFlow({
                 animate={isMobile
                   ? { bottom: navCollapsed ? 92 : 104, scale: navCollapsed ? 0.94 : 1 }
                   : { bottom: 24, scale: 1 }}
-                transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+                transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
                 style={{
                   position: 'fixed',
                   display: flowMode && !flowFinished ? 'none' : undefined,
@@ -4874,7 +4874,7 @@ function ProgressStrip({
       </div>
 
       {/* bar + circle track */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3, height: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, height: 28 }}>
         {Array.from({ length: total }).map((_, index) => {
           const question = questions[index]
           const answer = question ? answers[question.id] : undefined
@@ -4913,7 +4913,7 @@ function ProgressStrip({
               style={{
                 flex: 1, height: index < active ? 8 : 5,
                 borderRadius: 4, background: bg,
-                minWidth: 3, transition: 'height 0.2s ease',
+                minWidth: 3, transition: 'height 0.22s ease',
               }}
             />
           )
@@ -4926,7 +4926,7 @@ function ProgressStrip({
           {correctCount > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)',
-              background: 'var(--color-green-soft)', padding: '3px 8px', borderRadius: 999,
+              background: 'var(--color-green-soft)', padding: '4px 8px', borderRadius: 999,
             }}>
               ✓ {correctCount} {t('верно')}
             </span>
@@ -4934,7 +4934,7 @@ function ProgressStrip({
           {(gradedCount - correctCount) > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)',
-              background: 'var(--color-red-soft)', padding: '3px 8px', borderRadius: 999,
+              background: 'var(--color-red-soft)', padding: '4px 8px', borderRadius: 999,
             }}>
               ✗ {gradedCount - correctCount} {t('нет')}
             </span>
@@ -5158,7 +5158,7 @@ function BottomProgressBar({
                 <span style={{
                   width: '100%', height: isHovered ? 10 : last < active ? 6 : 4,
                   borderRadius: 3, background: state,
-                  transition: 'height 0.2s ease',
+                  transition: 'height 0.22s ease',
                 }} />
               </button>
             )
@@ -5203,7 +5203,7 @@ function BottomProgressBar({
               <span
                 className="flex items-center"
                 style={{
-                  gap: 7, fontSize: 12, fontWeight: 800,
+                  gap: 8, fontSize: 12, fontWeight: 800,
                   color: score >= recommendationScore ? 'var(--color-accent)' : '#9A6000',
                 }}
               >
@@ -5213,7 +5213,7 @@ function BottomProgressBar({
             ) : basicCompleted ? (
               <span
                 className="flex items-center"
-                style={{ gap: 7, color: 'var(--color-accent)', fontSize: 13, fontWeight: 700 }}
+                style={{ gap: 8, color: 'var(--color-accent)', fontSize: 13, fontWeight: 700 }}
               >
                 <Send size={14} />
                 {t('Сдать домашку')}

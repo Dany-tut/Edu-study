@@ -65,7 +65,7 @@ const PILL_MIN = 200
 // Последняя ступень тесноты: вкладки остаются со словами, но с меньшими полями.
 const NAV_PAD = 16
 const NAV_PAD_TIGHT = 10
-const transition = { duration: 0.32, ease: EASE }
+const transition = { duration: 0.38, ease: EASE }
 
 type QuickAction = { type?: 'action'; icon: LucideIcon; label: string; sub: string; color: string; bg: string; page?: TeacherPage; action?: string }
 type QuickSeparator = { type: 'separator' }
@@ -419,7 +419,7 @@ export default function TeacherTopBar() {
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
                 background: 'transparent',
-                transition: 'color 0.18s, font-weight 0.18s, padding 0.3s ease',
+                transition: 'color 0.15s, font-weight 0.15s, padding 0.38s ease',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -437,14 +437,14 @@ export default function TeacherTopBar() {
               <span style={{
                 position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', overflow: 'hidden',
                 maxWidth: collapsed ? 22 : 0, opacity: collapsed ? 1 : 0,
-                transition: 'max-width 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease',
+                transition: 'max-width 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease',
               }}>
                 <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
               </span>
               <span style={{
                 position: 'relative', zIndex: 1, display: 'block', overflow: 'hidden', whiteSpace: 'nowrap',
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
-                transition: 'max-width 0.5s cubic-bezier(0.42,0,0.58,1), opacity 0.28s ease-in-out',
+                transition: 'max-width 0.38s cubic-bezier(0.42,0,0.58,1), opacity 0.22s ease-in-out',
               }}>
                 {t(item.label)}
               </span>
@@ -497,7 +497,7 @@ export default function TeacherTopBar() {
         ref={profileBtnRef}
         onClick={() => setProfileOpen(o => !o)}
         whileTap={{ scale: 0.97 }}
-        style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '0 7px', height: 44, cursor: 'pointer', borderRadius: 14, userSelect: 'none' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '0 8px', height: 44, cursor: 'pointer', borderRadius: 14, userSelect: 'none' }}
       >
         <motion.div
           whileHover={{ scale: 1.10, boxShadow: '0 0 0 3px rgba(120,106,215,0.35), 0 4px 16px rgba(106,90,230,0.55)' }}
@@ -511,7 +511,7 @@ export default function TeacherTopBar() {
           overflow: 'hidden', whiteSpace: 'nowrap',
           maxWidth: (isHome && teacherName && squeeze < 2) ? 208 : 0,
           opacity: (isHome && teacherName && squeeze < 2) ? 1 : 0,
-          transition: 'max-width 0.5s cubic-bezier(0.42,0,0.58,1), opacity 0.28s ease-in-out',
+          transition: 'max-width 0.38s cubic-bezier(0.42,0,0.58,1), opacity 0.22s ease-in-out',
         }}>
           <div style={{ paddingLeft: 8, width: 'max-content' }}>
             {/* Имя меряется всегда (для расчёта тесноты); при сжатии вынуто из потока */}
@@ -537,7 +537,7 @@ export default function TeacherTopBar() {
       <AnimatePresence>
         {addOpen && addAnchor && (
           <div ref={dropRef} style={{ position: 'fixed', top: addAnchor.top, left: addAnchor.left, zIndex: 1000, transform: 'translateX(-50%)' }}>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle }}>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle }}>
             {visibleQuick.map((item, i) => {
               if (item.type === 'separator') return <div key={`sep-${i}`} style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
               const action = item as QuickAction
@@ -553,7 +553,7 @@ export default function TeacherTopBar() {
                   }}
                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
                 >
                   <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: action.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
@@ -577,7 +577,7 @@ export default function TeacherTopBar() {
       <AnimatePresence>
         {profileOpen && profileAnchor && (
           <div ref={profileDropRef} style={{ position: 'fixed', top: profileAnchor.top, left: profileAnchor.left, zIndex: 1000, transform: 'translateX(-50%)' }}>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle, width: 252, minWidth: 252 }}>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle, width: 252, minWidth: 252 }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px 10px' }}>
               <div style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}>
@@ -593,9 +593,9 @@ export default function TeacherTopBar() {
             {/* Тариф: название + ползунок учеников + число дней до конца */}
             <button
               onClick={() => { setActivePage('payment'); setProfileOpen(false) }}
-              style={{ display: 'block', width: 'calc(100% - 16px)', margin: '2px 8px 8px', padding: '9px 11px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', background: 'var(--color-purple-soft)', border: '1px solid var(--color-border)' }}
+              style={{ display: 'block', width: 'calc(100% - 16px)', margin: '2px 8px 8px', padding: '10px 12px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', background: 'var(--color-purple-soft)', border: '1px solid var(--color-border)' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: planPct != null ? 7 : 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: planPct != null ? 8 : 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                   <Zap size={14} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(planTier.name)}</span>
@@ -637,7 +637,7 @@ export default function TeacherTopBar() {
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
               >
                 <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <item.icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
@@ -656,7 +656,7 @@ export default function TeacherTopBar() {
               aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
             >
               <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Globe size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
@@ -672,7 +672,7 @@ export default function TeacherTopBar() {
               onClick={() => { void trackNow('logout', { role: 'teacher' }); supabase.auth.signOut(); setProfileOpen(false) }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
             >
               <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <LogOut size={16} strokeWidth={2} style={{ color: 'var(--color-red-text)' }} />

@@ -93,7 +93,7 @@ function StorageTile({ icon: Icon, label, value, pct: value_pct }: { icon: React
         <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>· {value_pct}%</span>
       </div>
       <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
-        <div style={{ width: `${value_pct}%`, height: '100%', borderRadius: 2, background: color, transition: 'width 0.4s ease' }} />
+        <div style={{ width: `${value_pct}%`, height: '100%', borderRadius: 2, background: color, transition: 'width 0.38s ease' }} />
       </div>
     </div>
   )
@@ -210,7 +210,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                 {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} />}
                 {copied ? t('Скопировано!') : t('Скопировать ссылку')}
               </button>
-              <button onClick={onClose} style={{ padding: '11px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('Готово')}</button>
+              <button onClick={onClose} style={{ padding: '12px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('Готово')}</button>
             </div>
           </div>
         ) : (
@@ -328,7 +328,7 @@ function AiSwitches() {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <Sparkles size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} />
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {t('Расход на ИИ')}
@@ -354,12 +354,12 @@ function AiSwitches() {
                 <div style={{ fontSize: 14, fontWeight: isMaster ? 700 : 600, color: 'var(--color-text)' }}>
                   {isMaster ? t('Обращения к модели разрешены') : (head(r.about) || r.key)}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 3, lineHeight: 1.45 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4, lineHeight: 1.45 }}>
                   {isMaster
                     ? t('Пока выключено, ни одна задача ниже не работает — даже поднятая.')
                     : tail(r.about)}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', opacity: 0.7, marginTop: 3 }}>{r.key}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', opacity: 0.7, marginTop: 4 }}>{r.key}</div>
               </div>
               <Switch
                 checked={r.enabled}
@@ -546,7 +546,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Уже у учителя')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {current.map(r => (
-              <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 9px' }}>
+              <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 10px' }}>
                 {r.kind === 'course' ? <BookOpen size={12} strokeWidth={2} /> : <Users size={12} strokeWidth={2} />}
                 {tc(r.title)}
                 <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}>
@@ -629,7 +629,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
               title={t('Скопировать')}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                padding: '7px 12px', borderRadius: 10,
+                padding: '8px 12px', borderRadius: 10,
                 background: 'var(--color-purple-soft)', border: '1px solid rgba(155,109,255,0.3)',
               }}
             >
@@ -767,7 +767,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                   onChange={v => reassign(row, v)}
                   options={teachers.map(o => ({ value: o.id, label: `${tn(o.name)}${o.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
                   triggerStyle={{
-                    padding: '7px 10px', borderRadius: 9, fontWeight: 600,
+                    padding: '8px 10px', borderRadius: 9, fontWeight: 600,
                     background: 'var(--color-bg-3)',
                     border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : 'var(--color-peach-text)'}`,
                   }}
@@ -898,7 +898,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                         onChange={v => reassign(row, v)}
                         options={teachers.map(o => ({ value: o.id, label: `${tn(o.name)}${o.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
                         triggerStyle={{
-                          padding: '7px 10px', borderRadius: 9, fontWeight: 600,
+                          padding: '8px 10px', borderRadius: 9, fontWeight: 600,
                           background: 'var(--color-bg-3)',
                           border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : 'var(--color-peach-text)'}`,
                         }}
@@ -1127,12 +1127,12 @@ export default function TeacherAdminPage() {
                           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>admin</span>
                         )}
                         {isTeacher && restrictCount > 0 && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <Lock size={12} strokeWidth={2.5} />{restrictCount}
                           </span>
                         )}
                         {isTeacher && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-green-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }} title={t('Учитель зарегистрирован')}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-green-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('Учитель зарегистрирован')}>
                             <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#1F9B6B' }} />{t('активен')}
                           </span>
                         )}
@@ -1150,11 +1150,11 @@ export default function TeacherAdminPage() {
                         title={t('Настроить доступы')}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-                          padding: '7px 12px', borderRadius: 10, cursor: 'pointer',
+                          padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
                           border: '1px solid var(--color-border-medium)',
                           background: expanded ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                           color: expanded ? 'var(--color-purple)' : 'var(--color-text-3)',
-                          fontSize: 12, fontWeight: 600, transition: 'all 0.12s',
+                          fontSize: 12, fontWeight: 600, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                         }}
                       >
                         <SlidersHorizontal size={14} strokeWidth={2} />
@@ -1204,7 +1204,7 @@ export default function TeacherAdminPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
                         {inv.email || t('Без email')}
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C77700' }} />{t('не активировано')}
                         </span>
                       </div>
@@ -1216,14 +1216,14 @@ export default function TeacherAdminPage() {
                     <button
                       onClick={() => { void copyToClipboard(link) }}
                       title={t('Скопировать ссылку')}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '7px 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '8px 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
                     >
                       <Copy size={14} strokeWidth={2} />{t('Ссылка')}
                     </button>
                     <button
                       onClick={() => revokeInvite(inv.token)}
                       title={t('Отозвать приглашение')}
-                      style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '7px 9px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)' }}
+                      style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)' }}
                     >
                       <Trash2 size={14} strokeWidth={2} />
                     </button>

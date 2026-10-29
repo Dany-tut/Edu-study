@@ -83,7 +83,7 @@ export default function WordBankSolver({
   const removeAt = (i: number) => { if (!disabled) emit(prev => prev.filter((_, idx) => idx !== i)) }
 
   const tileStyle = (accent: boolean, ok: boolean | null = null): React.CSSProperties => ({
-    padding: '8px 13px', borderRadius: 10, cursor: disabled ? 'default' : 'pointer', fontFamily: 'inherit',
+    padding: '8px 12px', borderRadius: 10, cursor: disabled ? 'default' : 'pointer', fontFamily: 'inherit',
     fontSize: 14, fontWeight: 600, lineHeight: 1.2,
     border: `1.5px solid ${
       ok === null ? (accent ? 'var(--color-accent)' : 'var(--color-border-soft)') : ok ? 'var(--color-green-border)' : 'var(--color-red-border)'
