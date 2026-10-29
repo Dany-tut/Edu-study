@@ -216,7 +216,9 @@ export function useGroups() {
         person_id: personId,
       }).select('id, invite_token').single()
       if (studentError) { firstError = firstError ?? studentError; continue }
-      if (i === 0) {
+      // Первая УСПЕШНАЯ карточка, а не карточка №0: упала первая, прошла вторая —
+      // учитель всё равно должен получить ссылку и шаг настройки.
+      if (!firstStudentId) {
         firstInvite = studentData?.invite_token as string | null
         firstStudentId = studentData?.id as string | null
         firstGroupId = groupData.id as string
@@ -588,8 +590,12 @@ export function useStudents(groupId: string | null) {
       if (colMap[k]) row[colMap[k]] = v
     }
     if (Object.keys(row).length === 0) return { error: null }
+    const before = students.find(s => s.id === id)
     setStudents(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s))
     const { error } = await supabase.from('students').update(row).eq('id', id)
+    // Не записалось — откатываем экран к базе: иначе правка «держалась» бы до F5,
+    // а повторное сохранение решало бы, что менять нечего.
+    if (error && before) setStudents(prev => prev.map(s => s.id === id ? before : s))
     return { error }
   }
 
@@ -760,13 +766,26 @@ export function useAttendance(groupId: string | null) {
       const { data: studs } = await supabase.from('students').select('id, group_id').in('id', ids)
       for (const s of studs ?? []) if (s.group_id) groupByStudent.set(s.id, s.group_id)
     }
+    // Оценку не передали (телефонный журнал отмечает только присутствие) —
+    // значит, её не меняли: берём уже стоящую. Раньше `grade ?? null` стирал
+    // оценки, выставленные с компьютера, при любой правке посещаемости.
+    const keepGrade = new Map<string, number | null>()
+    const untouched = entries.filter(e => e.grade === undefined).map(e => e.studentId)
+    if (untouched.length > 0) {
+      const { data: prev, error: prevErr } = await supabase
+        .from('lesson_attendance').select('student_id, grade')
+        .eq('lesson_date', lessonDate).in('student_id', untouched)
+      // Не прочитали старые оценки — не пишем, иначе затёрли бы их пустотой.
+      if (prevErr) throw prevErr
+      for (const r of prev ?? []) keepGrade.set(r.student_id as string, (r.grade as number | null) ?? null)
+    }
     const rows = entries.map(e => ({
       group_id: groupId ?? groupByStudent.get(e.studentId) ?? null,
       student_id: e.studentId,
       lesson_date: lessonDate,
       present: e.present,
       // Absent students keep no grade; present students store whatever was set.
-      grade: e.present ? (e.grade ?? null) : null,
+      grade: e.present ? (e.grade === undefined ? (keepGrade.get(e.studentId) ?? null) : e.grade) : null,
       lesson_title: lessonTitle,
     }))
     const { error: upsertError } = await supabase
