@@ -18,6 +18,7 @@ export const EN: Record<string, string> = {
   "Google Диск": "Google Drive",
   "Яндекс Диск": "Yandex Disk",
   "Облако Mail": "Mail Cloud",
+  "открыть": "open",
   // — Фото профиля (components/AvatarPhoto.tsx) —
   "Загрузить фото": "Upload photo",
   "Сменить фото": "Change photo",

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Play, ListVideo, NotebookPen, FileText,
-  FolderOpen, GraduationCap, Download, ChevronDown, Calendar,
+  FolderOpen, GraduationCap, Download, ExternalLink, ChevronDown, Calendar,
   ChevronRight, Clock, Lock, CheckCircle2, RotateCcw, Star, ALargeSmall,
 } from 'lucide-react'
 import ScrollFade from '../components/ScrollFade'
@@ -316,7 +316,7 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
           letterSpacing: '0.04em', color: '#fff',
         }}
       >
-        {fileChipLabel(file.name)}
+        {file.url ? 'URL' : fileChipLabel(file.name)}
       </div>
       <span className="min-w-0" style={{ flex: 1 }}>
         <span style={{ display: 'block', fontSize: 13.5, fontWeight: 550, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
@@ -326,7 +326,9 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
           </span>
         )}
       </span>
-      <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+      {file.url
+        ? <ExternalLink size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+        : <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
     </button>
   )
 }
@@ -371,10 +373,13 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
           {!active ? t('файл не прикреплён')
             : err ? t('не удалось скачать')
             : busy ? t('загружаем…')
+            : file!.url ? `${file!.name} · ${t('открыть')}`
             : [fileChipLabel(file!.name), formatFileSize(file!.size), t('скачать')].filter(Boolean).join(' · ')}
         </p>
       </div>
-      {active && <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+      {active && (file!.url
+        ? <ExternalLink size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+        : <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />)}
     </motion.button>
   )
 }

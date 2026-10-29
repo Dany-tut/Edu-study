@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
+import { LessonLinkAttach } from '../../components/teacher/LessonLinkAttach'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
@@ -2155,6 +2156,13 @@ function CenterLesson({
                       </div>
                     ))}
                   </div>
+                )}
+
+                {(multiple || !has) && !busy && (
+                  <LessonLinkAttach compact onAdd={file => {
+                    setSlotErr(e => ({ ...e, [slot]: undefined }))
+                    onUpdate({ ...lesson, files: withSlotFiles(lesson.files, slot, [file]) })
+                  }} />
                 )}
 
                 {has && !multiple && (

@@ -7,6 +7,7 @@ import {
   GraduationCap, Upload, Calendar, Clock, Search,
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
+import { LessonLinkAttach } from '../../components/teacher/LessonLinkAttach'
 import { useTeacher } from '../../store/teacherStore'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
@@ -248,6 +249,13 @@ function UploadTile({
     }
   }
 
+  function addLink(file: LessonFile) {
+    setErr(null)
+    onChange(multiple
+      ? { ...files, materials: [...(files.materials ?? []), file] }
+      : { ...files, [slot]: file })
+  }
+
   // Убираем файл только из урока: объект в бакете оставляем, иначе закрытая без
   // сохранения правка оставила бы ученику плитку, которая не скачивается.
   function remove(path: string) {
@@ -313,7 +321,7 @@ function UploadTile({
                 background: 'var(--grad-green)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 7, fontWeight: 800, color: '#fff',
-              }}>{fileExt(f.name)}</div>
+              }}>{f.url ? 'URL' : fileExt(f.name)}</div>
               <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
               <span style={{ flexShrink: 0, fontSize: 10, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
               <button
@@ -326,6 +334,7 @@ function UploadTile({
           ))}
         </div>
       )}
+      {(multiple || !has) && !busy && <LessonLinkAttach onAdd={addLink} />}
     </div>
   )
 }
