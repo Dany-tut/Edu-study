@@ -157,6 +157,57 @@ export const scheduleShift = (id: string, notify = true) =>
 export const scheduleCancel = (id: string, notify = true) =>
   call('schedule_cancel', { p_id: id, p_notify: notify })
 
+/** Разовое занятие «+» на выбранный день (0122_schedule_add.sql). */
+export const scheduleAdd = (groupId: string | null, studentId: string | null, title: string, date: string, time: string, notify = true) =>
+  call('schedule_add', { p_group: groupId, p_student: studentId, p_title: title, p_date: date, p_time: time, p_notify: notify })
+
+/**
+ * Будущие занятия группы на ~6 недель вперёд — список для «+»: какой урок уже
+ * стоит в расписании и на какой день. Групповое занятие бывает строкой группы и
+ * двойниками учеников (0117) — берём одно, строку группы предпочитаем.
+ */
+export async function fetchGroupUpcoming(groupId: string): Promise<SchedItem[]> {
+  const today = todayMsk()
+  const { data } = await supabase
+    .from('schedule_lessons')
+    .select('id, date, time_start, time_end, lesson_title, lesson_number, group_id, student_id, status, node_type, lesson_id')
+    .eq('group_id', groupId)
+    .gte('date', today)
+    .lte('date', addDays(today, 42))
+    .neq('status', 'cancelled')
+    .order('date')
+    .order('time_start')
+  type Row = {
+    id: string; date: string; time_start: string | null; time_end: string | null
+    lesson_title: string | null; lesson_number: number | null
+    group_id: string | null; student_id: string | null
+    status: string | null; node_type: string | null; lesson_id: string | null
+  }
+  const seen = new Set<string>()
+  const out: SchedItem[] = []
+  for (const r of (data ?? []) as Row[]) {
+    const key = `${r.date}|${(r.time_start ?? '').padStart(5, '0')}|${r.lesson_title ?? ''}|${r.node_type ?? ''}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push({
+      id: r.id,
+      date: String(r.date).slice(0, 10),
+      time: (r.time_start ?? '').padStart(5, '0').slice(0, 5),
+      endTime: (r.time_end ?? '').slice(0, 5),
+      title: r.lesson_title ?? '',
+      number: r.lesson_number,
+      groupId: r.group_id,
+      studentId: r.student_id,
+      who: '',
+      color: 'var(--color-purple)',
+      cancelled: false,
+      rec: r.node_type === 'rec',
+      fromCourse: !!r.lesson_id,
+    })
+  }
+  return out
+}
+
 export async function scheduleUndo(undo: SchedUndo) {
   const { error } = await supabase.rpc('schedule_undo', { p_undo: undo })
   if (error) throw new Error(error.message)

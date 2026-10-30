@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck } from 'lucide-react'
+import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from 'lucide-react'
 import Modal from '../../Modal'
 import MobileSheet from '../../MobileSheet'
 import DateTimeField from '../../DateTimeField'
+import QuickAddLesson from './QuickAddLesson'
 import { RadioMark } from '../../Radio'
 import { CheckboxMark } from '../../Checkbox'
 import { MODAL_BACKDROP } from '../../Modal'
@@ -14,7 +15,7 @@ import { Z } from '../../../lib/layers'
 import { useT } from '../../../lib/i18n'
 import {
   useTeacherWeek, todayMsk, addDays, weekStart, scheduleMove, scheduleShift, scheduleCancel,
-  scheduleUndo, scheduleError, type SchedItem, type SchedUndo,
+  scheduleUndo, scheduleAdd, scheduleError, type SchedItem, type SchedUndo,
 } from '../../../lib/teacherSchedule'
 
 /*
@@ -76,6 +77,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
 
   const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect } | null>(null)
   const [sheet, setSheet] = useState<SchedItem | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
   const [toast, setToast] = useState<Toast | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -178,6 +180,13 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
       {/* Шапка: месяц, «Сегодня», недели стрелками — на ПК свайпа нет */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px' }}>
         <div style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
+        {!mobile && (
+          <button
+            aria-label={t('Добавить занятие')}
+            onClick={() => setAddOpen(true)}
+            style={btn('S', 'primary', { width: 32, padding: 0 })}
+          ><Plus size={17} /></button>
+        )}
         {weekStart(today) !== start && (
           <button onClick={() => go(today)} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
         )}
@@ -327,6 +336,15 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
         onClose={() => setSheet(null)}
         onDone={(fn, text) => { setSheet(null); void run(fn, text) }}
       />
+
+      {addOpen && !mobile && (
+        <QuickAddLesson
+          day={day}
+          onClose={() => setAddOpen(false)}
+          onMove={(id, date, time, notify) => { setAddOpen(false); go(date); void run(() => scheduleMove(id, date, time, notify), `${shortLabel(date)}, ${time}`) }}
+          onAdd={(gid, title, date, time, notify) => { setAddOpen(false); go(date); void run(() => scheduleAdd(gid, null, title, date, time, notify), `${title} · ${shortLabel(date)}, ${time}`) }}
+        />
+      )}
 
       {createPortal(
         <AnimatePresence>
