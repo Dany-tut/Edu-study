@@ -1739,6 +1739,11 @@ function CenterRecording({
         <div>
           <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Добавьте запись урока')}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('После созвона — вставьте ссылку RuTube, YouTube или на диск')}</div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 6, color: 'var(--color-muted)', opacity: 0.55 }}>
+            {(['googledrive', 'yandexdisk', 'dropbox', 'onedrive', 'mailru', 'mega'] as const).map(p => (
+              <DiskLogo key={p} provider={p} size={16} />
+            ))}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => setLinkMode(true)}
@@ -6269,7 +6274,10 @@ export default function TeacherCourseEditorPage() {
     // for its lesson schedule and/or its recording schedule.
     const scheduledLessons = c.lessons.filter(l =>
       (l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
-    if (c.groupIds.length === 0 && c.studentIds.length === 0) return true
+    if (c.groupIds.length === 0 && c.studentIds.length === 0) {
+      baselineStamp.current = await readCourseStamp(shortId)
+      return true
+    }
 
     // Fetch course row + lessons from DB to get UUIDs
     const { data: courseRow } = await supabase
@@ -6277,7 +6285,10 @@ export default function TeacherCourseEditorPage() {
       .select('id, lessons(id, lesson_number, title)')
       .eq('short_id', shortId)
       .single()
-    if (!courseRow) return true
+    if (!courseRow) {
+      baselineStamp.current = await readCourseStamp(shortId)
+      return true
+    }
 
     const dbLessons = (courseRow.lessons ?? []) as Array<{ id: string; lesson_number: number; title: string }>
 
