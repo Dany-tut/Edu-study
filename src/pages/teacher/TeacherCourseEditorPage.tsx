@@ -140,6 +140,7 @@ export interface CELesson {
   hwTitle?: string
   hwTarget?: string
   hwDate?: string
+  hwTime?: string   // HH:MM — auto-filled as lesson start + 1.5h
   /** true once the teacher edits the homework due date by hand — stops it mirroring the lesson date. */
   hwDateManual?: boolean
   hwTasks?: HWTask[]
@@ -147,6 +148,7 @@ export interface CELesson {
   recHwTitle?: string
   recHwTarget?: string
   recHwDate?: string
+  recHwTime?: string
   recHwDateManual?: boolean
   recHwTasks?: HWTask[]
   /** Доп. домашки урока («Доп», «Доп 1», «Доп 2»…) — см. lib/extraHomework. */
@@ -206,6 +208,16 @@ export interface CourseEdData {
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
+
+function addMinutes(date: string, time: string, mins: number): { date: string; time: string } {
+  const [d, mo, y] = date.split('.').map(Number)
+  const [h, m] = time.split(':').map(Number)
+  const dt = new Date(y, mo - 1, d, h, m + mins)
+  return {
+    date: `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')}.${dt.getFullYear()}`,
+    time: `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`,
+  }
+}
 // Модули необязательны. Уроки «без модуля» живут в модуле с пустым названием:
 // в базе урок обязан висеть на модуле (ученик читает уроки через course_modules),
 // а в редакторе и у ученика у такого модуля нет заголовка.
@@ -1228,25 +1240,35 @@ function ScheduleCard({
   const duration = isRec ? lesson.recDuration : lesson.scheduledDuration
   const mirrors = !lesson.lessonSchedManual // recording → lesson mirror is active
 
+  function mirrorHw(next: CELesson) {
+    if (lesson.hwDateManual) return
+    const d = next.scheduledDate
+    const t = next.scheduledTime
+    if (d && t) {
+      const hw = addMinutes(d, t, 90)
+      next.hwDate = hw.date; next.hwTime = hw.time
+    } else {
+      next.hwDate = d; next.hwTime = undefined
+    }
+  }
+
   function setDate(v: string) {
     const next: CELesson = { ...lesson }
     if (isRec) {
       next.recDate = v || undefined
       if (mirrors) {
         next.scheduledDate = v || undefined
-        if (!lesson.hwDateManual) next.hwDate = v || undefined
+        mirrorHw(next)
       }
     } else {
       next.scheduledDate = v || undefined
-      // Editing the lesson date by hand detaches it from the recording date;
-      // clearing it re-attaches (resumes mirroring the recording date).
       next.lessonSchedManual = !!v
       if (!v) {
         next.scheduledDate = lesson.recDate
         next.scheduledTime = lesson.recTime
         next.scheduledDuration = lesson.recDuration
       }
-      if (!lesson.hwDateManual) next.hwDate = next.scheduledDate
+      mirrorHw(next)
     }
     onUpdate(next)
   }
@@ -1254,10 +1276,14 @@ function ScheduleCard({
     const next: CELesson = { ...lesson }
     if (isRec) {
       next.recTime = v || undefined
-      if (mirrors) next.scheduledTime = v || undefined
+      if (mirrors) {
+        next.scheduledTime = v || undefined
+        mirrorHw(next)
+      }
     } else {
       next.scheduledTime = v || undefined
       if (v) next.lessonSchedManual = true
+      mirrorHw(next)
     }
     onUpdate(next)
   }
@@ -1277,13 +1303,10 @@ function ScheduleCard({
       const next: CELesson = { ...lesson, recDate: undefined, recTime: undefined, recDuration: undefined }
       if (mirrors) {
         next.scheduledDate = undefined; next.scheduledTime = undefined; next.scheduledDuration = undefined
-        if (!lesson.hwDateManual) next.hwDate = undefined
+        if (!lesson.hwDateManual) { next.hwDate = undefined; next.hwTime = undefined }
       }
       onUpdate(next)
     } else {
-      // Top × = fully clear this lesson's schedule to empty. When the lesson is
-      // mirroring the recording, the recording IS the source, so wipe it too —
-      // otherwise the field would just re-mirror back and never go to zero.
       const next: CELesson = {
         ...lesson, lessonSchedManual: false,
         scheduledDate: undefined, scheduledTime: undefined, scheduledDuration: undefined,
@@ -1291,7 +1314,7 @@ function ScheduleCard({
       if (mirrors) {
         next.recDate = undefined; next.recTime = undefined; next.recDuration = undefined
       }
-      if (!lesson.hwDateManual) next.hwDate = undefined
+      if (!lesson.hwDateManual) { next.hwDate = undefined; next.hwTime = undefined }
       onUpdate(next)
     }
   }
@@ -3720,22 +3743,24 @@ const MAIN_HW = 'main'
 
 /** Открытая домашка. Незнакомый hwTab (доп. удалили, старое 'lesson'/'rec' из
  *  sessionStorage) — основная. */
-function hwSlot(lesson: CELesson, hwTab: string): { tab: string; tasks: HWTask[]; date?: string } {
+function hwSlot(lesson: CELesson, hwTab: string): { tab: string; tasks: HWTask[]; date?: string; time?: string } {
   const x = lesson.extraHw?.find(e => e.id === hwTab)
   return x
     ? { tab: x.id, tasks: x.tasks ?? [], date: x.date }
-    : { tab: MAIN_HW, tasks: lesson.hwTasks ?? [], date: lesson.hwDate }
+    : { tab: MAIN_HW, tasks: lesson.hwTasks ?? [], date: lesson.hwDate, time: lesson.hwTime }
 }
 
-function patchHwSlot(lesson: CELesson, hwTab: string, p: { tasks?: HWTask[]; date?: string }): CELesson {
+function patchHwSlot(lesson: CELesson, hwTab: string, p: { tasks?: HWTask[]; date?: string; time?: string }): CELesson {
   if (lesson.extraHw?.some(e => e.id === hwTab)) {
     return { ...lesson, extraHw: lesson.extraHw.map(e => e.id === hwTab ? { ...e, ...p } : e) }
   }
   const next: CELesson = { ...lesson }
   if (p.tasks) next.hwTasks = p.tasks
-  // Editing the due date by hand detaches it from the lesson date; clearing it
-  // re-attaches so it resumes mirroring that date.
-  if ('date' in p) { next.hwDate = p.date; next.hwDateManual = !!p.date }
+  if ('date' in p || 'time' in p) {
+    if ('date' in p) next.hwDate = p.date
+    if ('time' in p) next.hwTime = p.time
+    next.hwDateManual = !!(p.date || p.time || next.hwDate || next.hwTime)
+  }
   return next
 }
 
@@ -4028,11 +4053,24 @@ function HomeworkLeftPanel({
       <HwSlotSwitch lesson={lesson} onUpdate={onUpdate} hwTab={hwTab} setHwTab={setHwTab}
         hardMode={hardMode} onToggleHard={() => setHardMode(m => !m)} hardCount={hardCount} />
 
-      <div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <CalendarPicker
           value={slot.date ?? ''}
           placeholder={t('Дата сдачи')}
           onChange={v => onUpdate(patchHwSlot(lesson, slot.tab, { date: v || undefined }))}
+        />
+        <PickerSelect
+          value={slot.time ?? ''}
+          onChange={v => onUpdate(patchHwSlot(lesson, slot.tab, { time: v || undefined }))}
+          icon={Clock}
+          placeholder={t('Время сдачи')}
+          allowEmpty
+          options={Array.from({ length: 48 }, (_, i) => {
+            const h = Math.floor(i / 2)
+            const m = i % 2 === 0 ? '00' : '30'
+            const tm = `${String(h).padStart(2, '0')}:${m}`
+            return { value: tm, label: tm }
+          })}
         />
       </div>
 
@@ -5463,6 +5501,7 @@ export default function TeacherCourseEditorPage() {
               hwTitle: l.hwTitle ?? hw.hwTitle ?? undefined,
               hwTarget: l.hwTarget ?? hw.hwTarget ?? undefined,
               hwDate: l.hwDate ?? hw.hwDate ?? undefined,
+              hwTime: l.hwTime ?? hw.hwTime ?? undefined,
               hwDateManual: l.hwDateManual ?? hw.hwDateManual ?? false,
               hwTasks: l.hwTasks ?? (Array.isArray(hw.hwTasks) ? hw.hwTasks : []),
               recHwTitle: l.recHwTitle ?? hw.recHwTitle ?? undefined,
@@ -6022,7 +6061,7 @@ export default function TeacherCourseEditorPage() {
     // Поэтому после любого выхода, где мы успели что-то записать, отпечаток
     // пересчитываем — даже если сохранение вернёт false. ──
     let wrote = false
-    const writeFailed = async () => { if (wrote) baselineStamp.current = await readCourseStamp(shortId); return false }
+    const writeFailed = async () => { if (wrote) baselineStamp.current = writeStamp ?? await readCourseStamp(shortId); return false }
 
     // created_by is REQUIRED: courses RLS `write_own_courses` gates every write
     // with `with_check (created_by = auth.uid())`. A new-course INSERT that omits
@@ -6050,11 +6089,12 @@ export default function TeacherCourseEditorPage() {
         },
         { onConflict: 'short_id' }
       )
-      .select('id')
+      .select('id, updated_at')
       .single()
 
     if (courseErr) console.error('[syncAccessToSupabase] course upsert failed', courseErr)
     const courseDbId = courseUpsert?.id
+    let writeStamp: string | null = (courseUpsert as { updated_at?: string } | null)?.updated_at ?? null
     if (!courseDbId) return false
     // Курс записан — его updated_at уже ушёл вперёд: дальнейшие выходы обязаны
     // пересчитать отпечаток (см. writeFailed выше).
@@ -6171,25 +6211,30 @@ export default function TeacherCourseEditorPage() {
         hwTitle: lesson.hwTitle ?? null,
         hwTarget: lesson.hwTarget ?? null,
         hwDate: lesson.hwDate ?? null,
+        hwTime: lesson.hwTime ?? null,
         hwDateManual: lesson.hwDateManual ?? false,
         hwTasks: lesson.hwTasks ?? [],
         recHwTitle: lesson.recHwTitle ?? null,
         recHwTarget: lesson.recHwTarget ?? null,
         recHwDate: lesson.recHwDate ?? null,
+        recHwTime: lesson.recHwTime ?? null,
         recHwDateManual: lesson.recHwDateManual ?? false,
         recHwTasks: lesson.recHwTasks ?? [],
         extraHw: lesson.extraHw ?? [],
       },
     }))
     if (lessonRows.length > 0) {
-      const { error: lessonsErr } = await supabase
-        .from('lessons').upsert(lessonRows, { onConflict: 'short_id' })
+      const { data: lessonResult, error: lessonsErr } = await supabase
+        .from('lessons').upsert(lessonRows, { onConflict: 'short_id' }).select('updated_at')
       if (lessonsErr) {
         // Курс сохранён, а уроки — нет: на экране «Сохранено», в базе пустой
         // курс. Возвращаем неудачу, чтобы вызывающий показал ошибку и не гасил
         // черновик из sessionStorage: он единственная копия этой работы.
         console.error('[syncAccessToSupabase] lessons upsert failed', lessonsErr)
         return await writeFailed()
+      }
+      for (const r of (lessonResult ?? []) as Array<{ updated_at: string }>) {
+        if (r.updated_at > (writeStamp ?? '')) writeStamp = r.updated_at
       }
       // Adopt the persisted short_id as each lesson's editor id, so a freshly
       // created lesson (uuid id) doesn't get a NEW suffix allocated on the next
@@ -6275,7 +6320,7 @@ export default function TeacherCourseEditorPage() {
     const scheduledLessons = c.lessons.filter(l =>
       (l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
     if (c.groupIds.length === 0 && c.studentIds.length === 0) {
-      baselineStamp.current = await readCourseStamp(shortId)
+      baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
       return true
     }
 
@@ -6286,7 +6331,7 @@ export default function TeacherCourseEditorPage() {
       .eq('short_id', shortId)
       .single()
     if (!courseRow) {
-      baselineStamp.current = await readCourseStamp(shortId)
+      baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
       return true
     }
 
@@ -6366,10 +6411,10 @@ export default function TeacherCourseEditorPage() {
         .from('schedule_lessons').delete().in('id', oldScheduleIds)
       if (delErr) { console.error('schedule_lessons delete failed:', delErr); return await writeFailed() }
     }
-    // Записали мы — значит теперь свежая версия наша. Без этого следующее же
-    // сохранение упёрлось бы в собственный след и решило, что курс изменили со
-    // стороны.
-    baselineStamp.current = await readCourseStamp(shortId)
+    // Записали мы — значит теперь свежая версия наша. Штамп берём из ответов
+    // записи (primary), а не отдельным SELECT, который может уехать на реплику
+    // и вернуть устаревшее значение → ложный конфликт при следующем автосейве.
+    baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
     return true
   }
 
@@ -6861,9 +6906,9 @@ export default function TeacherCourseEditorPage() {
                 transition={{ duration: 0.15 }}
                 style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}
               >
-                {(lessonMode === 'recording' || lessonMode === 'lesson') && (
+                {lessonMode === 'lesson' && (
                   <ScheduleCard
-                    scope={lessonMode === 'recording' ? 'rec' : 'lesson'}
+                    scope="lesson"
                     lesson={selectedLesson}
                     onUpdate={updateLesson}
                   />
