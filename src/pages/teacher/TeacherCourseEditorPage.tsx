@@ -11,11 +11,11 @@ import {
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
-  ListVideo, Play, ListPlus, RotateCcw, Loader2,
+  ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
-import { LessonLinkAttach } from '../../components/teacher/LessonLinkAttach'
+import { LessonLinkPanel } from '../../components/teacher/LessonLinkAttach'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
@@ -51,6 +51,7 @@ import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { restoreSeedTheory } from '../../data/seedTheory'
 import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
+import ConflictDialog, { type CourseConflict } from '../../components/teacher/ConflictDialog'
 import {
   theoryToParagraphs, paragraphsToTheory, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
   cutTheoryAtFigures, joinTheoryAtFigures, setFigureCaption, moveTheoryFigure,
@@ -61,7 +62,7 @@ import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../../components/LessonVideoPlayer'
 import { parseVideoSource } from '../../lib/videoSource'
 import {
-  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize,
+  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { emptyWatch } from '../../lib/videoProgress'
@@ -1716,6 +1717,17 @@ const FILE_CARDS: Array<{ slot: FileSlot; Icon: React.ElementType; label: string
   { slot: 'materials', Icon: FolderOpen,  label: 'Материалы', multiple: true },
 ]
 
+/** Чип действия под карточкой файла («Файл» / «Ссылка»). active — поле ссылки открыто. */
+function chipSt(active: boolean): React.CSSProperties {
+  return {
+    display: 'inline-flex', alignItems: 'center', gap: 3,
+    padding: '3px 9px', borderRadius: 8, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+    fontSize: 10.5, fontWeight: 600,
+    background: active ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
+    color: active ? 'var(--color-green-text)' : 'var(--color-text-3)',
+  }
+}
+
 /** Файлы слота: у «Материалов» их сколько угодно, у остальных — один. */
 function slotFiles(files: LessonFiles | undefined, slot: FileSlot): LessonFile[] {
   if (!files) return []
@@ -2037,6 +2049,10 @@ function CenterLesson({
   // выборе файла — к моменту «Сохранить» в уроке уже лежат пути объектов.
   const [busySlot, setBusySlot] = useState<FileSlot | null>(null)
   const [slotErr, setSlotErr] = useState<Partial<Record<FileSlot, string>>>({})
+  // Какому слоту сейчас вводят ссылку (широкое поле под строкой карточек) и над
+  // какой карточкой держат файл при перетаскивании — ради подсветки дропзоны.
+  const [linkSlot, setLinkSlot] = useState<FileSlot | null>(null)
+  const [dragSlot, setDragSlot] = useState<FileSlot | null>(null)
 
   async function applyFiles(slot: FileSlot, picked: File[]) {
     if (picked.length === 0 || busySlot) return
@@ -2092,14 +2108,30 @@ function CenterLesson({
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, alignItems: 'start' }}>
           {FILE_CARDS.map(({ slot, Icon, label, multiple }) => {
             const files = slotFiles(lesson.files, slot)
             const has = files.length > 0
             const busy = busySlot === slot
             const err = slotErr[slot]
+            const dragOver = dragSlot === slot
+            // Чипы «Файл / Ссылка» нужны, пока в слот можно что-то добавить:
+            // у одиночных — пока пусто, у «Материалов» — всегда.
+            const canAdd = (multiple || !has) && !busy
+            const link = has && !multiple && isLinkFile(files[0])
+
             return (
-              <div key={slot} style={{ position: 'relative' }}>
+              <div
+                key={slot}
+                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; if (!busy) setDragSlot(slot) }}
+                onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragSlot(s => (s === slot ? null : s)) }}
+                onDrop={e => {
+                  e.preventDefault(); setDragSlot(null)
+                  const dropped = Array.from(e.dataTransfer.files ?? [])
+                  if (dropped.length) { setLinkSlot(s => (s === slot ? null : s)); void applyFiles(slot, multiple ? dropped : [dropped[0]]) }
+                }}
+                style={{ position: 'relative' }}
+              >
                 <input
                   ref={inputRefs[slot]}
                   type="file"
@@ -2113,42 +2145,58 @@ function CenterLesson({
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                     padding: '16px 12px', borderRadius: 16, width: '100%',
                     border: err ? '1.5px solid var(--color-red-text)'
-                      : has ? '1.5px solid var(--color-green-text)'
+                      : (has || dragOver) ? '1.5px solid var(--color-green-text)'
                       : '1.5px dashed var(--color-border-medium)',
-                    background: has ? 'var(--color-green-soft)' : 'transparent',
+                    background: (has || dragOver) ? 'var(--color-green-soft)' : 'transparent',
+                    boxShadow: dragOver ? '0 0 0 3px rgba(74,222,128,0.18)' : 'none',
                     cursor: busy ? 'progress' : 'pointer', fontFamily: 'inherit',
-                    opacity: busy ? 0.7 : 1,
+                    opacity: busy ? 0.7 : 1, transition: 'border-color .12s, background .12s, box-shadow .12s',
                   }}
                 >
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ position: 'relative', width: 40, height: 40, borderRadius: 12, background: has ? 'var(--color-bg)' : 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={18} style={{ color: 'var(--color-green-text)' }} />
+                    {link && (
+                      <span style={{
+                        position: 'absolute', right: -3, bottom: -3, width: 16, height: 16, borderRadius: '50%',
+                        background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Link2 size={9} style={{ color: '#fff' }} />
+                      </span>
+                    )}
                   </div>
                   <div style={{ textAlign: 'center', width: '100%', minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: has ? 'var(--color-green-text)' : 'var(--color-text-2)' }}>{t(label)}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: (has || dragOver) ? 'var(--color-green-text)' : 'var(--color-text-2)' }}>
+                      {t(label)}{has && multiple ? ` · ${files.length}` : ''}
+                    </div>
                     <div style={{
-                      fontSize: 10, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      color: err ? 'var(--color-red-text)' : has ? 'var(--color-green-text)' : 'var(--color-muted)',
+                      fontSize: 10, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+                      overflow: 'hidden', color: err ? 'var(--color-red-text)' : (has || dragOver) ? 'var(--color-green-text)' : 'var(--color-muted)',
                     }}>
-                      {busy ? t('Загружаем…')
-                        : err ? err
-                        : !has ? (multiple ? t('Загрузить файлы') : t('Загрузить файл'))
-                        : multiple && files.length > 1 ? `${files.length} ${t('файлов')}`
-                        : `${files[0].name} · ${formatFileSize(files[0].size)}`}
+                      {busy ? <span>{t('Загружаем…')}</span>
+                        : err ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err}</span>
+                        : dragOver ? <span>{t('Отпустите сюда')}</span>
+                        : !has ? <span>{multiple ? t('Перетащите файлы') : t('Перетащите файл')}</span>
+                        : multiple ? <span>{files.length === 1 ? t('1 файл') : `${files.length} ${t('файлов')}`}</span>
+                        : link ? <><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{files[0].name}</span><ExternalLink size={10} style={{ flexShrink: 0 }} /></>
+                        : <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{files[0].name} · {formatFileSize(files[0].size)}</span>}
                     </div>
                   </div>
                 </button>
 
-                {/* Список файлов «Материалов»: имя, размер, крестик. У одиночных
-                    слотов крестик стоит прямо на карточке — списка не нужно. */}
+                {/* Список файлов «Материалов»: имя/размер (или адрес ссылки), крестик.
+                    У одиночных слотов крестик стоит прямо на карточке — списка не нужно. */}
                 {has && multiple && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
                     {files.map(f => (
                       <div key={f.path} style={{
-                        display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px', borderRadius: 8,
+                        display: 'flex', alignItems: 'center', gap: 5, padding: '4px 7px', borderRadius: 8,
                         background: 'var(--color-bg-2)', fontSize: 10, color: 'var(--color-text-3)',
                       }}>
+                        {isLinkFile(f)
+                          ? <Link2 size={11} style={{ flexShrink: 0, color: 'var(--color-green-text)' }} />
+                          : <FileText size={11} style={{ flexShrink: 0, color: 'var(--color-muted)' }} />}
                         <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                        <span style={{ flexShrink: 0, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
+                        {!isLinkFile(f) && <span style={{ flexShrink: 0, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>}
                         <button
                           onClick={() => removeFile(slot, f)}
                           style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, display: 'flex', flexShrink: 0 }}
@@ -2160,11 +2208,22 @@ function CenterLesson({
                   </div>
                 )}
 
-                {(multiple || !has) && !busy && (
-                  <LessonLinkAttach compact onAdd={file => {
-                    setSlotErr(e => ({ ...e, [slot]: undefined }))
-                    onUpdate({ ...lesson, files: withSlotFiles(lesson.files, slot, [file]) })
-                  }} />
+                {/* Одинаковый ряд действий у всех слотов: загрузить файл или дать ссылку. */}
+                {canAdd && (
+                  <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 7 }}>
+                    <button
+                      onClick={() => inputRefs[slot].current?.click()}
+                      style={chipSt(false)}
+                    >
+                      <Upload size={12} /> {t('Файл')}
+                    </button>
+                    <button
+                      onClick={() => { setLinkSlot(s => (s === slot ? null : slot)) }}
+                      style={chipSt(linkSlot === slot)}
+                    >
+                      <Link2 size={12} /> {t('Ссылка')}
+                    </button>
+                  </div>
                 )}
 
                 {has && !multiple && (
@@ -2185,6 +2244,18 @@ function CenterLesson({
             )
           })}
         </div>
+
+        {/* Широкое поле ссылки на всю строку — ниже карточек, не в тесной колонке. */}
+        {linkSlot && (
+          <LessonLinkPanel
+            slotLabel={t(FILE_CARDS.find(c => c.slot === linkSlot)!.label)}
+            onAdd={file => {
+              setSlotErr(e => ({ ...e, [linkSlot]: undefined }))
+              onUpdate({ ...lesson, files: withSlotFiles(lesson.files, linkSlot, [file]) })
+            }}
+            onCancel={() => setLinkSlot(null)}
+          />
+        )}
 
         <div>
           <Label>{t('Описание урока')}</Label>
@@ -5573,7 +5644,9 @@ export default function TeacherCourseEditorPage() {
   // Отпечаток серверной версии, с которой открыли курс. Сравнивается перед
   // каждой записью — см. syncAccessToSupabase.
   const baselineStamp = useRef<string | null>(null)
-  const [staleConflict, setStaleConflict] = useState(false)
+  // Конфликт версий: не булев флаг, а что именно разошлось — окно показывает
+  // список и даёт выбрать, чью версию оставить (см. ConflictDialog).
+  const [conflict, setConflict] = useState<CourseConflict | null>(null)
 
   // ── Autosave ──────────────────────────────────────────────────────────────
   // Persist edits ~900ms after the teacher stops changing things, so they never
@@ -5760,6 +5833,54 @@ export default function TeacherCourseEditorPage() {
     return lessonStamp > courseStamp ? lessonStamp : courseStamp
   }
 
+  // Собрать картину расхождения для окна конфликта: что в базе есть, а у нас нет
+  // (сохранение это удалит), что переименовали, что мы добавили сами, и правки
+  // полей курса. Читается только при конфликте — редкая ветка, лишний запрос
+  // здесь не в счёт.
+  async function buildConflict(shortId: string, c: CourseEdData, stamp: string): Promise<CourseConflict> {
+    const nameless = t('Без названия')
+    const { data } = await supabase
+      .from('courses')
+      .select('title, status, group_ids, student_ids, lessons(short_id, title, lesson_number)')
+      .eq('short_id', shortId).maybeSingle()
+
+    const srvLessons = ((data?.lessons ?? []) as Array<{ short_id: string; title: string | null; lesson_number: number | null }>)
+      .slice().sort((a, b) => (a.lesson_number ?? 0) - (b.lesson_number ?? 0))
+    const shortById = lessonShortIdMap(shortId, c.lessons)
+    const localByShort = new Map(c.lessons.map(l => [shortById[l.id] ?? l.id, l.title]))
+    const srvShortIds = new Set(srvLessons.map(l => l.short_id))
+
+    const added: string[] = []
+    const renamed: { from: string; to: string }[] = []
+    for (const l of srvLessons) {
+      if (!localByShort.has(l.short_id)) { added.push(l.title || nameless); continue }
+      const localTitle = localByShort.get(l.short_id) ?? ''
+      if ((l.title ?? '') !== localTitle) renamed.push({ from: l.title || nameless, to: localTitle || nameless })
+    }
+    const localNew: string[] = []
+    for (const l of c.lessons) {
+      if (!srvShortIds.has(shortById[l.id] ?? l.id)) localNew.push(l.title || nameless)
+    }
+
+    const srvTitle = (data?.title as string | undefined) ?? null
+    const srvStatus = (data?.status as 'draft' | 'published' | undefined) ?? null
+    const sameSet = (a: string[], b: string[]) =>
+      a.length === b.length && [...a].sort().join('\u0000') === [...b].sort().join('\u0000')
+
+    return {
+      stamp,
+      added,
+      renamed,
+      localNew,
+      titleChange: data && (srvTitle ?? '') !== c.title ? { from: srvTitle || nameless, to: c.title || nameless } : null,
+      statusChange: srvStatus && srvStatus !== c.status ? { from: srvStatus, to: c.status } : null,
+      audienceChanged: !!data && (
+        !sameSet(((data?.group_ids as string[]) ?? []), c.groupIds) ||
+        !sameSet(((data?.student_ids as string[]) ?? []), c.studentIds)
+      ),
+    }
+  }
+
   // ── Записи курса идут строго по одной ─────────────────────────────────────
   //
   // Сохранение длится секунду-другую (курс, модули, уроки, календарь), а
@@ -5801,10 +5922,21 @@ export default function TeacherCourseEditorPage() {
     if (baselineStamp.current) {
       const current = await readCourseStamp(shortId)
       if (current && current > baselineStamp.current) {
-        setStaleConflict(true)
+        setConflict(await buildConflict(shortId, c, current))
         return false
       }
     }
+
+    // ── Любая запись ниже двигает updated_at в базе (триггеры set_updated_at на
+    // courses и lessons, миграция 0001). baselineStamp же раньше сдвигался ТОЛЬКО
+    // в самом конце успешного сохранения — и оборванный на полпути сейв (ошибка
+    // на уроках или расписании) оставлял базу впереди отпечатка. Следующий же
+    // автосейв через 900 мс читал current > baseline и принимал СВОЙ недописанный
+    // след за чужую правку: ложное «Курс изменили в другом месте» в одной вкладке.
+    // Поэтому после любого выхода, где мы успели что-то записать, отпечаток
+    // пересчитываем — даже если сохранение вернёт false. ──
+    let wrote = false
+    const writeFailed = async () => { if (wrote) baselineStamp.current = await readCourseStamp(shortId); return false }
 
     // created_by is REQUIRED: courses RLS `write_own_courses` gates every write
     // with `with_check (created_by = auth.uid())`. A new-course INSERT that omits
@@ -5838,6 +5970,9 @@ export default function TeacherCourseEditorPage() {
     if (courseErr) console.error('[syncAccessToSupabase] course upsert failed', courseErr)
     const courseDbId = courseUpsert?.id
     if (!courseDbId) return false
+    // Курс записан — его updated_at уже ушёл вперёд: дальнейшие выходы обязаны
+    // пересчитать отпечаток (см. writeFailed выше).
+    wrote = true
 
     // КУРС ТЕПЕРЬ В БАЗЕ — ЗАПОМИНАЕМ ЭТО. Курс, открытый из плитки готового,
     // приходит без dbCourseId: в базе его ещё нет. После этой записи есть, но
@@ -5968,7 +6103,7 @@ export default function TeacherCourseEditorPage() {
         // курс. Возвращаем неудачу, чтобы вызывающий показал ошибку и не гасил
         // черновик из sessionStorage: он единственная копия этой работы.
         console.error('[syncAccessToSupabase] lessons upsert failed', lessonsErr)
-        return false
+        return await writeFailed()
       }
       // Adopt the persisted short_id as each lesson's editor id, so a freshly
       // created lesson (uuid id) doesn't get a NEW suffix allocated on the next
@@ -6125,19 +6260,19 @@ export default function TeacherCourseEditorPage() {
     if (allLessonIds.length > 0) {
       const { data: oldRows, error: readErr } = await supabase
         .from('schedule_lessons').select('id').in('lesson_id', allLessonIds)
-      if (readErr) { console.error('schedule_lessons read failed:', readErr); return false }
+      if (readErr) { console.error('schedule_lessons read failed:', readErr); return await writeFailed() }
       oldScheduleIds = (oldRows ?? []).map(r => (r as { id: string }).id)
     }
     if (rows.length > 0) {
       const { error: insErr } = await supabase
         .from('schedule_lessons')
         .insert(rows)
-      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return false }
+      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return await writeFailed() }
     }
     if (oldScheduleIds.length > 0) {
       const { error: delErr } = await supabase
         .from('schedule_lessons').delete().in('id', oldScheduleIds)
-      if (delErr) { console.error('schedule_lessons delete failed:', delErr); return false }
+      if (delErr) { console.error('schedule_lessons delete failed:', delErr); return await writeFailed() }
     }
     // Записали мы — значит теперь свежая версия наша. Без этого следующее же
     // сохранение упёрлось бы в собственный след и решило, что курс изменили со
@@ -6445,6 +6580,25 @@ export default function TeacherCourseEditorPage() {
       </motion.div>
 
       {/* ── Сверка с готовым курсом ── */}
+      {conflict && (
+        <ConflictDialog
+          info={conflict}
+          onClose={() => setConflict(null)}
+          // «Взять из базы» — перезагрузка: несохранённые правки этой вкладки
+          // пропадут, зато версия станет ровно серверной. Черновик гасим, иначе
+          // F5-восстановление вернёт ту же устаревшую копию.
+          onReload={() => { clearDrafts(draftNs); window.location.reload() }}
+          // «Оставить моё» — усыновляем серверный отпечаток (сторож теперь
+          // пропустит) и перезаписываем курс целиком своей версией.
+          onOverwrite={() => {
+            const stamp = conflict.stamp
+            setConflict(null)
+            baselineStamp.current = stamp
+            void runAutosave(latestCourse.current)
+          }}
+        />
+      )}
+
       {seedSyncOpen && (
         <SeedSyncDialog
           diff={seedDiff}
@@ -6554,21 +6708,14 @@ export default function TeacherCourseEditorPage() {
 
       {/* ── Алерты редактора — одной карточкой (см. components/Alert.tsx) ── */}
       {/* Конфликт версий — не ошибка сети, а развилка: сохранить отсюда —
-          значит откатить чужую работу. Поэтому не «попробуйте ещё раз», а
-          «перезагрузите» с предупреждением о потере несохранённого. Пока он
-          висит, красное «Не удалось сохранить» — лишь его следствие: та же
+          значит откатить чужую работу. Поэтому не плашка, а окно ConflictDialog
+          со списком расхождений и выбором «Оставить моё / Взять из базы». Пока
+          оно открыто, красное «Не удалось сохранить» — лишь его следствие: та же
           отменённая запись, — второй строкой его не показываем. */}
       <AlertStack
         style={{ flexShrink: 0, margin: '0 24px 8px' }}
         items={[
-          staleConflict && {
-            id: 'stale-conflict', tone: 'warning',
-            title: t('Курс изменили в другом месте.'),
-            text: t('Сохранение отсюда откатило бы те правки, поэтому запись отменена. Перезагрузите страницу — правки, сделанные в этой вкладке и не сохранённые, при этом пропадут.'),
-            action: { label: t('Перезагрузить'), onClick: () => { clearDrafts(draftNs); window.location.reload() } },
-            onClose: () => setStaleConflict(false),
-          },
-          !!publishErr && !staleConflict && {
+          !!publishErr && !conflict && {
             id: 'publish-err', tone: 'danger', text: publishErr,
             onClose: () => setPublishErr(null),
           },
