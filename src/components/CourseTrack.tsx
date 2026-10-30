@@ -27,6 +27,8 @@ const GLOW_PAD = 24
 // Трек подтягивается под строку курса: кружки встают в 12 px от неё, свечение
 // уходит в воздух над строкой (строка поверх — zIndex 2).
 const TRACK_PULL_UP = 12 - GLOW_PAD
+const ROW_SHADOW_TOP = 10
+const ROW_SHADOW_BOTTOM = 12
 
 // Format a lesson's scheduled date as "18 июня" to match the schedule calendar.
 // The DB stores dates as "DD.MM.YYYY" text; also tolerate ISO "YYYY-MM-DD".
@@ -215,8 +217,12 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
       {/* ── Курс ▾ | модули кружками — одна строка (см. CourseModuleBar).
            Модулей больше, чем влезает, — цепочка уезжает под фейд; текущий
            подматывается в поле зрения. Курс без модулей — цепочки нет. ── */}
-      <div ref={moduleRowRef} style={{ flexShrink: 0, position: 'relative', zIndex: 2 }}>
-      <HScrollFade padX={32} padTop={0} padBottom={0} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
+      {/* Поля сверху и снизу — под тень таблеток: ряд прокручивается вбок, а
+          overflow-x: auto режет и по вертикали всё, что за его коробкой. Те же
+          поля сняты отрицательным отступом, чтобы строка не стала выше. Снизу
+          не больше 12 — дальше уже кружки трека, и поле перехватывало бы клик. */}
+      <div ref={moduleRowRef} style={{ flexShrink: 0, position: 'relative', zIndex: 2, margin: `-${ROW_SHADOW_TOP}px 0 -${ROW_SHADOW_BOTTOM}px` }}>
+      <HScrollFade padX={32} padTop={ROW_SHADOW_TOP} padBottom={ROW_SHADOW_BOTTOM} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
         {courseSlot}
         {!(subject.modules.length === 1 && subject.modules[0].loose) && (
           <>

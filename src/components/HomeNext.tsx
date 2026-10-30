@@ -55,7 +55,9 @@ const CARD: CSSProperties = {
   boxShadow: 'var(--shadow-2)',
   border: '1px solid var(--color-border-glass)',
 }
-const TEXT_LIFT: CSSProperties = { position: 'relative', top: '-0.12em' }
+// Подъём подписи кнопки — −0.04em, не −0.12em: полный перебирал на 1 px вверх
+// (замер центра заглавных против центра кнопки и иконки, см. CourseModuleBar).
+const TEXT_LIFT: CSSProperties = { position: 'relative', top: '-0.04em' }
 const NUM: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
 
 function flatLessons(s: Subject): Lesson[] {

@@ -39,8 +39,10 @@ const ACTIVE_PILL: CSSProperties = {
   boxShadow: 'var(--shadow-xs)',
 }
 
-// Подпись в кнопке с иконкой — к оптическому центру (SF сидит на 0.12em ниже).
-const TEXT_LIFT: CSSProperties = { position: 'relative', top: '-0.12em' }
+// Подпись в таблетке — к оптическому центру. Полный подъём −0.12em перебирал:
+// замер (центр заглавных против центра таблетки) давал 1,1–1,25 px выше
+// середины, как у кнопки в алерте. −0.04em ставит их в центр с точностью 0,2 px.
+const TEXT_LIFT: CSSProperties = { position: 'relative', top: '-0.04em' }
 
 export function coursePct(s: Subject): number {
   const lessons = s.modules.flatMap(m => m.lessons)
