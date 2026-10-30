@@ -2272,7 +2272,7 @@ export default function HomeworkFlow({
     setHardBusy(true)
     try {
       const ref = `${lessonId}-hard`
-      const { data } = await supabase
+      const { data, error: loadError } = await supabase
         .from('lesson_progress')
         // comment/review/status нужны, чтобы при первой пере-отправке мигрировать
         // legacy одиночное решение в первый раунд (не потерять прошлый ответ).
@@ -2280,6 +2280,7 @@ export default function HomeworkFlow({
         .eq('student_id', ownerStudentIdFor(subject))
         .eq('lesson_ref', ref)
         .maybeSingle()
+      if (loadError) throw loadError
       const prevTasks: HardTaskStudentBlock[] = isNewHard(data?.attachments)
         ? (data!.attachments as HardAttachmentsNew).tasks
         : (data ? legacyHardToBlocks(data as LegacyHardRow).taskBlocks : [])

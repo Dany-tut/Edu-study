@@ -14,6 +14,7 @@ import { useT, useTc } from '../../../lib/i18n'
 import { alertDialog } from '../../ConfirmHost'
 import { Alert } from '../../Alert'
 import AnswerBody from '../AnswerBody'
+import Modal from '../../Modal'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -40,6 +41,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [board, setBoard] = useState<string | null>(null)
   const [showBoard, setShowBoard] = useState(false)
+  const [zoomPhoto, setZoomPhoto] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const initials = sub.studentName.trim().slice(0, 2).toUpperCase() || '—'
   const photoCount = sub.attachments.photos.length
@@ -77,7 +79,10 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, flexShrink: 0 }}>{t('сложное')}</span>
       </div>
 
-      {(photoCount > 0 || sub.attachments.board) && <AnswerBody photos={sub.attachments.photos} board={sub.attachments.board} photosClickable={false} />}
+      {(photoCount > 0 || sub.attachments.board) && <AnswerBody photos={sub.attachments.photos} board={sub.attachments.board} onZoomPhoto={setZoomPhoto} />}
+      {zoomPhoto && <Modal title={t('Фото')} width={760} onClose={() => setZoomPhoto(null)}>
+        <img src={zoomPhoto} alt={t('Фото')} style={{ width: '100%', display: 'block', objectFit: 'contain' }} />
+      </Modal>}
       {photoCount === 0 && sub.comment && (
         /<\/?[a-z][\s\S]*>/i.test(sub.comment) ? (
           <div className="rich-answer" style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-4)', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(sub.comment) }} />
