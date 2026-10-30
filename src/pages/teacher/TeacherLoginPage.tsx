@@ -141,7 +141,10 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           <div style={{ position: 'relative' }}>
             <input
               className="auth-input"
-              type={showPassword ? 'text' : 'password'}
+              // type=text + маскировка через -webkit-text-security (data-mask):
+              // у настоящего type=password iOS WKWebView не рисует плейсхолдер.
+              type="text"
+              data-mask={!showPassword}
               placeholder={mode === 'newpassword' ? t('Новый пароль') : t('Пароль')}
               value={password}
               onChange={e => setPassword(e.target.value)}

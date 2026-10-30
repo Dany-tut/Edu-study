@@ -133,11 +133,13 @@ function AppRoutes() {
     return () => { subscription.unsubscribe(); document.removeEventListener('visibilitychange', onFocus) }
   }, [])
 
+  // Приложение (Capacitor) — кабинет преподавателя: пустой адрес всегда уводит
+  // на #/teacher, где и вход учителя («Платформа учителя»), и сам кабинет.
+  // Студенческий вход в приложении не показываем (у ученика своя PWA/веб).
   useEffect(() => {
-    if (!IS_NATIVE || !session || getStudentSession()) return
-    if (session.user?.user_metadata?.role === 'student') return
+    if (!IS_NATIVE || getStudentSession()) return
     if (hash === '' || hash === '#' || hash === '#/') window.location.replace('#/teacher')
-  }, [session, hash])
+  }, [hash])
 
   // Load real Supabase data whenever a student session exists
   useEffect(() => {
@@ -250,9 +252,9 @@ function AppRoutes() {
     // получал бы обратно материал вместо лендинга.
     const guestLink = parseTrainerLink(hash)
     if (guestLink) return <Chunk><GuestTrainerPage link={guestLink} /></Chunk>
-    // Вход общий: учителя StudentLoginPage сам уводит в #/teacher.
-    // Учитель с живой сессией — пустой кадр, пока эффект выше уводит в кабинет.
-    if (IS_NATIVE) return session === undefined || (session && session.user?.user_metadata?.role !== 'student') ? null : <StudentLoginPage />
+    // В приложении пустой адрес уже уводится на #/teacher (эффект выше) —
+    // здесь только пустой кадр, чтобы не мигнуть лендингом/студвходом.
+    if (IS_NATIVE) return null
     return <LandingPage />
   }
   // 152-ФЗ consent gate: overlay ON TOP of the cabinet (dashboard stays mounted
