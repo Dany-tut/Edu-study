@@ -8,6 +8,22 @@ import OfflineBanner from './components/OfflineBanner'
 import { recoverFromChunkError } from './lib/chunkError'
 import { guardStylesheet } from './lib/cssGuard'
 import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
+import { Capacitor } from '@capacitor/core'
+
+// В приложении (Capacitor) service worker не нужен: ассеты и так в бандле, а
+// автообновляемый SW только вредит — он держит предзагруженную оболочку и после
+// переустановки отдавал ДРЕВНИЙ app-shell (чанк, которого в новой сборке уже
+// нет) мимо свежего бандла: экран входа застревал на старой версии. Снимаем
+// любые зарегистрированные SW и чистим их кеши; vite-plugin-pwa (injectRegister
+// auto) иначе зарегистрирует новый, поэтому делаем это и на load.
+if (Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
+  const killSW = () => {
+    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {})
+    if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(() => {})
+  }
+  killSW()
+  window.addEventListener('load', killSW)
+}
 
 // ── Адрес без решётки ────────────────────────────────────────────────────────
 //

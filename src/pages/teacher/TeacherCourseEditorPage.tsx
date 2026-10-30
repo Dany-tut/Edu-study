@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
-import { Alert, AlertStack } from '../../components/Alert'
+import { AlertStack } from '../../components/Alert'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -1628,6 +1628,25 @@ function CenterRecording({
           </button>
         </div>
 
+        {disk && source?.kind === 'iframe' ? (
+          // Диск, который не встраивается в iframe (Яндекс, Dropbox, OneDrive,
+          // Облако Mail.ru, MEGA): плеера и таймкодов нет — ученик открывает
+          // запись по ссылке. Google Диск сюда не попадает (kind 'gdrive').
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, textAlign: 'center', maxWidth: 380 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+                <DiskLogo provider={disk.id} size={30} />
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
+                {t('Запись на диске не встраивается в плеер — ученик откроет её в новой вкладке. Таймкоды здесь недоступны.')}
+              </div>
+              <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer"
+                style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
+                <ExternalLink size={14} /> {t('Открыть запись')}
+              </a>
+            </div>
+          </div>
+        ) : (
         <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 }}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {source ? (
@@ -1682,6 +1701,7 @@ function CenterRecording({
             onSeek={source ? s => playerRef.current?.playFrom(s) : undefined}
           />
         </div>
+        )}
       </div>
     )
   }
@@ -3913,33 +3933,25 @@ function TestlyButton({ onPick, addedIds }: { onPick: (x: TestlyTest) => void; a
 }
 
 /**
- * «Из Тестли», когда модуль ещё НЕ подключён. Показываем, что тесты сюда можно
- * ставить, но только после подключения — учитель иначе про Тестли не узнает,
- * потому что рабочая кнопка «Из Тестли» появляется лишь у подключённых. Клик
- * раскрывает подсказку, где подключить (Профиль → Модули).
+ * «Из Тестли», когда модуль ещё НЕ подключён. Статичный блок (не кнопка):
+ * показываем, что тесты сюда можно ставить, но сначала нужно подключить модуль —
+ * иначе учитель про Тестли не узнает, рабочая кнопка «Из Тестли» есть лишь у
+ * подключённых. Замок + подпись «Нужно подключить» объясняют статус без клика.
  */
 function TestlyLockedButton() {
   const t = useT()
-  const [open, setOpen] = useState(false)
   return (
-    <div>
-      <button onClick={() => setOpen(o => !o)} style={{
-        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-        padding: '10px 12px', borderRadius: 13, border: '1.5px dashed var(--color-border)',
-        background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
-      }}>
-        <span style={{ opacity: 0.4, flexShrink: 0, display: 'flex' }}><TestlyTile size={14} /></span>
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)' }}>{t('Из Тестли')}</span>
-          <span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Нужно подключить')}</span>
-        </span>
-        <Lock size={13} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-      </button>
-      {open && (
-        <div style={{ marginTop: 6 }}>
-          <Alert tone="info" text={t('Тесты из Тестли добавляются в домашку после подключения модуля: Профиль → Модули.')} />
-        </div>
-      )}
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+      padding: '10px 12px', borderRadius: 13, border: '1.5px dashed var(--color-border)',
+      background: 'transparent',
+    }}>
+      <span style={{ opacity: 0.4, flexShrink: 0, display: 'flex' }}><TestlyTile size={14} /></span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)' }}>{t('Из Тестли')}</span>
+        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Нужно подключить')}</span>
+      </span>
+      <Lock size={13} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
     </div>
   )
 }

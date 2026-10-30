@@ -4786,7 +4786,6 @@ export const EN: Record<string, string> = {
   "Из Тестли": "From Testly",
   "Скрыть Тестли": "Hide Testly",
   "Нужно подключить": "Needs connecting",
-  "Тесты из Тестли добавляются в домашку после подключения модуля: Профиль → Модули.": "Tests from Testly can be added to homework once the module is connected: Profile → Modules.",
   "Тесты из вашего Тестли появляются здесь сами": "Tests from your Testly appear here automatically",
   "сдал тест в Тестли": "submitted the test in Testly",
   "Код не подошёл или истёк. Возьмите новый в Тестли: Профиль → «Подключить к Искре».": "The code is wrong or expired. Get a new one in Testly: Profile → “Connect to Iskra”.",
