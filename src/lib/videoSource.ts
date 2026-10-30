@@ -11,6 +11,7 @@ export type VideoSource =
   | { kind: 'youtube'; id: string }
   | { kind: 'file'; url: string }   // raw media → native <video>
   | { kind: 'audio'; url: string }  // raw audio → native <audio controls>
+  | { kind: 'gdrive'; id: string }  // Google Drive file → /preview в iframe
   | { kind: 'iframe'; url: string } // own page (teachstream /watch, …) → iframe
 
 const FILE_RE = /\.(webm|mp4|m4v|mov|ogg|ogv|m3u8)(\?.*)?$/i
@@ -37,6 +38,14 @@ export function parseVideoSource(raw?: string | null): VideoSource | undefined {
     /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i,
   )
   if (yt) return { kind: 'youtube', id: yt[1] }
+
+  // Google Drive: file/d/<id>/view, open?id=<id>, uc?id=<id>. Встраивать
+  // нужно страницу /preview — у неё только проигрыватель файла, без шапки
+  // Диска, бокового меню и собственной полосы прокрутки. Голый /view, который
+  // вставляли раньше, тянул весь интерфейс Диска вместе с его «Нет доступа».
+  const gd = url.match(/drive\.google\.com\/(?:file\/d\/|uc\?[^#]*id=|open\?[^#]*id=)([\w-]{20,})/i)
+    || url.match(/drive\.google\.com\/.*[?&]id=([\w-]{20,})/i)
+  if (gd) return { kind: 'gdrive', id: gd[1] }
 
   // Direct audio file → native <audio controls>.
   if (AUDIO_RE.test(url)) return { kind: 'audio', url }
@@ -72,6 +81,9 @@ export function videoEmbedSrc(src: VideoSource, startSeconds = 0): string {
       if (typeof window !== 'undefined') params.set('origin', window.location.origin)
       return `https://www.youtube.com/embed/${src.id}?${params.toString()}`
     }
+    // У Диска нет внешнего API — смещение старта он не принимает, открывается
+    // с нуля. Нам важна только чистая страница проигрывателя.
+    case 'gdrive': return `https://drive.google.com/file/d/${src.id}/preview`
     default: return src.url
   }
 }

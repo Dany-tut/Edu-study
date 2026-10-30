@@ -220,13 +220,12 @@ function UploadTile({
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+  const [dragOver, setDragOver] = useState(false)
   const multiple = slot === 'materials'
   const mine = slotFiles(files, slot)
   const has = mine.length > 0
 
-  async function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
-    const picked = Array.from(e.target.files ?? [])
-    e.target.value = '' // чтобы тот же файл можно было выбрать повторно
+  async function upload(picked: File[]) {
     if (picked.length === 0 || busy) return
     setBusy(true); setErr(null)
     const uploaded: LessonFile[] = []
@@ -244,6 +243,12 @@ function UploadTile({
     } finally {
       setBusy(false)
     }
+  }
+
+  function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = Array.from(e.target.files ?? [])
+    e.target.value = '' // чтобы тот же файл можно было выбрать повторно
+    void upload(picked)
   }
 
   function addLink(file: LessonFile) {
@@ -269,7 +274,16 @@ function UploadTile({
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div
+      style={{ position: 'relative' }}
+      onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; if (!busy) setDragOver(true) }}
+      onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(false) }}
+      onDrop={e => {
+        e.preventDefault(); setDragOver(false)
+        const dropped = Array.from(e.dataTransfer.files ?? [])
+        if (dropped.length) void upload(multiple ? dropped : [dropped[0]])
+      }}
+    >
       <input
         ref={inputRef}
         type="file"
@@ -280,7 +294,10 @@ function UploadTile({
       <motion.button
         whileHover={busy ? undefined : { y: -2 }} whileTap={busy ? undefined : { scale: 0.99 }}
         onClick={() => !busy && inputRef.current?.click()}
-        style={{ ...tileBase(has), cursor: busy ? 'progress' : 'pointer', opacity: busy ? 0.7 : 1 }}
+        style={{
+          ...tileBase(has || dragOver), cursor: busy ? 'progress' : 'pointer', opacity: busy ? 0.7 : 1,
+          boxShadow: dragOver ? '0 0 0 3px rgba(74,222,128,0.18)' : tileBase(has || dragOver).boxShadow,
+        }}
       >
         <div style={{
           width: 40, height: 40, borderRadius: 12, flexShrink: 0,
@@ -298,8 +315,9 @@ function UploadTile({
           }}>
             {busy ? t('Загружаем…')
               : err ? err
+              : dragOver ? t('Отпустите сюда')
               : has ? `${mine.length} ${mine.length === 1 ? t('файл') : t('файлов')}`
-              : multiple ? t('Загрузить файлы') : t('Загрузить файл')}
+              : multiple ? t('Перетащите файлы') : t('Перетащите файл')}
           </p>
         </div>
         {!has && <Upload size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}

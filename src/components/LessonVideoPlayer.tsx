@@ -200,8 +200,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const touch = useCoarsePointer()
 
   // Своих кнопок у чужой страницы быть не может — там нет API, чтобы они
-  // работали. Такой источник показываем как раньше, голым iframe.
-  const custom = source.kind !== 'iframe'
+  // работали. Такой источник показываем как раньше, голым iframe. Google Диск
+  // (/preview) из той же породы: своего проигрывателя у него нет, управление —
+  // средствами самого Диска.
+  const custom = source.kind !== 'iframe' && source.kind !== 'gdrive'
   const canRate = source.kind !== 'rutube'   // у RuTube скорость не выставляется извне
   /** До какой ступени ускорение играет движком (со звуком), а не скольжением. */
   const engineMaxRate = source.kind === 'file' ? FILE_MAX_RATE : ENGINE_MAX_RATE
@@ -933,7 +935,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         </div>
       )}
 
-      {started && (source.kind === 'rutube' || source.kind === 'iframe') && (
+      {started && (source.kind === 'rutube' || source.kind === 'iframe' || source.kind === 'gdrive') && (
         <iframe
           ref={iframeRef}
           src={videoEmbedSrc(source, startAt)}

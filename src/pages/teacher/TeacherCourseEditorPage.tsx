@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
-import { AlertStack } from '../../components/Alert'
+import { Alert, AlertStack } from '../../components/Alert'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -11,11 +11,12 @@ import {
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
-  ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink,
+  ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import { LessonLinkPanel } from '../../components/teacher/LessonLinkAttach'
+import { detectDisk, DiskLogo } from '../../components/teacher/DiskLink'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
@@ -1592,6 +1593,8 @@ function CenterRecording({
   // пишется — плееру нужен только неизменный стартовый объект (иначе он на
   // каждый ре-рендер сбрасывал бы своё состояние).
   const source = useMemo(() => parseVideoSource(lesson.videoUrl), [lesson.videoUrl])
+  // Ссылка на облачный диск — показываем бренд-логотип и название (приписку).
+  const disk = useMemo(() => detectDisk(lesson.videoUrl), [lesson.videoUrl])
   const playerRef = useRef<LessonVideoHandle>(null)
   const startWatch = useRef(emptyWatch()).current
   const [at, setAt] = useState(0)
@@ -1603,12 +1606,22 @@ function CenterRecording({
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 24px 22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Video size={14} style={{ color: 'var(--color-green-text)' }} />
+          <div style={{ width: 30, height: 30, borderRadius: 9, background: disk ? 'var(--color-bg-3)' : 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
+            {disk
+              ? <DiskLogo provider={disk.id} size={16} />
+              : <Video size={14} style={{ color: 'var(--color-green-text)' }} />}
           </div>
-          <span style={{ fontSize: 13, color: 'var(--color-text-3)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {lesson.videoUrl}
-          </span>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {lesson.videoUrl}
+            </span>
+            {disk && (
+              <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 9px 2px 7px', borderRadius: 999, background: 'var(--color-bg-3)', color: 'var(--color-text-3)' }}>
+                <DiskLogo provider={disk.id} size={11} />
+                <span style={{ fontSize: 11, fontWeight: 700 }}>{disk.name}</span>
+              </span>
+            )}
+          </div>
           <button onClick={() => { setVideoUrl(lesson.videoUrl ?? ''); setLinkMode(true) }}
             style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
             {t('Изменить')}
@@ -1616,18 +1629,39 @@ function CenterRecording({
         </div>
 
         <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 }}>
-          <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {source ? (
-              <LessonVideoPlayer
-                key={lesson.videoUrl}
-                ref={playerRef}
-                source={source}
-                title={tc(lesson.title)}
-                timecodes={codes}
-                initialWatch={startWatch}
-                onPersist={() => {}}
-                onTime={(s, d) => { setAt(s); setTotal(d) }}
-              />
+              <>
+                <LessonVideoPlayer
+                  key={lesson.videoUrl}
+                  ref={playerRef}
+                  source={source}
+                  title={tc(lesson.title)}
+                  timecodes={codes}
+                  initialWatch={startWatch}
+                  onPersist={() => {}}
+                  onTime={(s, d) => { setAt(s); setTotal(d) }}
+                />
+                {/* У Диска нет внешнего API: если файл не расшарен, его страница
+                    /preview сама покажет «Нет доступа» внутри iframe, и перехватить
+                    это снаружи нельзя (другой домен). Поэтому не ловим ошибку, а
+                    заранее подсказываем учителю единственную её причину — так ему
+                    не нужно гадать по чужой заглушке. */}
+                {source.kind === 'gdrive' && (
+                  <div style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 8, padding: '9px 12px',
+                    borderRadius: 12, background: 'var(--color-bg-2)',
+                    border: '1px solid var(--color-border-soft)',
+                    fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)',
+                  }}>
+                    <Info size={14} style={{ flexShrink: 0, marginTop: 1, color: 'var(--color-text-3)' }} />
+                    <span>
+                      {t('Если вместо записи — «Нет доступа», откройте файл на Google Диске и поставьте доступ ')}
+                      <b style={{ color: 'var(--color-text-2)' }}>{t('«Все, у кого есть ссылка»')}</b>.
+                    </span>
+                  </div>
+                )}
+              </>
             ) : (
               <div style={{
                 flex: 1, borderRadius: 24, border: '1.5px dashed var(--color-border-medium)',
@@ -1660,7 +1694,7 @@ function CenterRecording({
           <input
             value={videoUrl}
             onChange={e => setVideoUrl(e.target.value)}
-            placeholder={t('Вставьте ссылку RuTube / YouTube')}
+            placeholder={t('Вставьте ссылку RuTube / YouTube / Google Диск')}
             style={{ ...inputSt, fontSize: 14, padding: '12px 16px' }}
             autoFocus
           />
@@ -1684,7 +1718,7 @@ function CenterRecording({
         </div>
         <div>
           <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Добавьте запись урока')}</div>
-          <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('После созвона — вставьте ссылку RuTube / YouTube')}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('После созвона — вставьте ссылку RuTube, YouTube или на диск')}</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => setLinkMode(true)}
@@ -3878,6 +3912,38 @@ function TestlyButton({ onPick, addedIds }: { onPick: (x: TestlyTest) => void; a
   )
 }
 
+/**
+ * «Из Тестли», когда модуль ещё НЕ подключён. Показываем, что тесты сюда можно
+ * ставить, но только после подключения — учитель иначе про Тестли не узнает,
+ * потому что рабочая кнопка «Из Тестли» появляется лишь у подключённых. Клик
+ * раскрывает подсказку, где подключить (Профиль → Модули).
+ */
+function TestlyLockedButton() {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  return (
+    <div>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+        padding: '10px 12px', borderRadius: 13, border: '1.5px dashed var(--color-border)',
+        background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+      }}>
+        <span style={{ opacity: 0.4, flexShrink: 0, display: 'flex' }}><TestlyTile size={14} /></span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)' }}>{t('Из Тестли')}</span>
+          <span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Нужно подключить')}</span>
+        </span>
+        <Lock size={13} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+      </button>
+      {open && (
+        <div style={{ marginTop: 6 }}>
+          <Alert tone="info" text={t('Тесты из Тестли добавляются в домашку после подключения модуля: Профиль → Модули.')} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── LEFT: Homework meta + task-type picker ──────────────────────────────────
 
 function HomeworkLeftPanel({
@@ -3912,6 +3978,7 @@ function HomeworkLeftPanel({
 
   // Тест из Тестли — кнопкой под «Из тренажёра», когда модуль подключён.
   const testlyOn = useTestlyModule(s => s.connected)
+  const testlyLoaded = useTestlyModule(s => s.loaded)
   const loadTestly = useTestlyModule(s => s.load)
   useEffect(() => { void loadTestly() }, [loadTestly])
   const testlyIds = new Set(tasks.flatMap(x => (x.type === 'testly' && x.testly ? [x.testly.id] : [])))
@@ -3960,7 +4027,9 @@ function HomeworkLeftPanel({
           <TaskTypeRow key={tt.type} type={tt.type} onClick={() => addTask(tt.type, false)} />
         ))}
         <BankPicker onPick={bt => addFromBank(bt, false)} />
-        {testlyOn && <TestlyButton addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />}
+        {testlyOn
+          ? <TestlyButton addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />
+          : testlyLoaded && <TestlyLockedButton />}
       </PaletteSection>
       ) : (
       <PaletteSection title={t('СЛОЖНОЕ ЗАДАНИЕ')} count={hardCount} accent="#D97706">

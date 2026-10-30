@@ -1058,7 +1058,13 @@ input::-webkit-textfield-decoration-container {
    задаём цвет текста и плейсхолдера. */
 .auth-input::placeholder {
   color: var(--color-muted);
+  -webkit-text-fill-color: var(--color-muted);
   opacity: 1;
+}
+/* Маскировка пароля без type=password: у secure-поля iOS WKWebView не рисует
+   плейсхолдер. Поле остаётся type=text, а точки даёт text-security. */
+.auth-input[data-mask="true"] {
+  -webkit-text-security: disc;
 }
 .auth-input:-webkit-autofill,
 .auth-input:-webkit-autofill:hover,

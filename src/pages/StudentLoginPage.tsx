@@ -125,7 +125,13 @@ export default function StudentLoginPage() {
           />
           <div style={{ position: 'relative' }}>
             <input className="auth-input"
-              type={showPassword ? 'text' : 'password'}
+              // Поле всегда type=text, маскировка — через -webkit-text-security
+              // (data-mask). На iOS WKWebView у настоящего type=password
+              // плейсхолдер не рисуется вовсе (secure-поле его глушит): «Пароль»
+              // пропадал, поле выглядело пустым. С type=text плейсхолдер рисуется
+              // как у Email, а точки даёт text-security.
+              type="text"
+              data-mask={!showPassword}
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
