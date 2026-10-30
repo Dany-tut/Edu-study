@@ -1043,7 +1043,7 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
     telegramLink: s.telegram_link ?? '',
     parentContact: s.parent_contact ?? '',
     startedAt: s.started_at ?? '',
-    lastVisit: s.last_visit ?? '',
+    lastVisit: s.last_visit ? new Date(s.last_visit).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—',
     hwScore: s.hw_score ?? 0,
     testScore: s.test_score ?? 0,
     trialScore: s.trial_score ?? null,

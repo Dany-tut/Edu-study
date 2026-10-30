@@ -143,7 +143,7 @@ export function StudentSheet({ student: initialStudent, group: initialGroup, ope
   const { groups } = useGroups()
   const student = liveStudents.find(s => s.id === initialStudent?.id) ?? initialStudent
   const group = groups.find(g => g.id === student?.groupId) ?? initialGroup
-  const active = !!student && (Boolean(student.lastVisit && student.lastVisit !== '—') || student.hwScore > 0 || student.testScore > 0 || student.attendance > 0)
+  const active = !!student && (student.hwScore > 0 || student.testScore > 0 || student.attendance > 0)
   return (
     <MobileSheet open={open} onClose={onClose} title={student ? tn(student.name) : group.name}>
       {!student && (

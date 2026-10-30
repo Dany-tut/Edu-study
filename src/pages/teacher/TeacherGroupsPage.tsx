@@ -456,6 +456,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               {t('Группа (необязательно)')}
               <TeacherSelect
                 value={selectedGroup}
+                placeholder={t('Пока без занятий')}
                 onChange={setSelectedGroup}
                 options={[{ value: '', label: t('Пока без занятий') }, ...groups.map(g => ({ value: g.id, label: `${g.icon}${ICON_GAP}${g.name}` }))]}
                 clearable={false}
@@ -1249,6 +1250,7 @@ function attentionScore(s: Student): number {
   let score = 0
   const debt = s.debt ?? 0
   if (debt > 0) score += 4 + Math.min(3, debt / 2000)
+  if (!hasStudentActivity(s)) return score
   if (s.attendance < 70) score += 3
   else if (s.attendance < 85) score += 1
   if (s.hwScore === 0) score += 3
@@ -1260,13 +1262,13 @@ function attentionScore(s: Student): number {
 }
 
 function hasStudentActivity(s: Student): boolean {
-  return Boolean(s.lastVisit && s.lastVisit !== '—') || s.hwScore > 0 || s.testScore > 0 || s.trialScore != null || s.attendance > 0
+  return s.hwScore > 0 || s.testScore > 0 || s.trialScore != null || s.attendance > 0
 }
 
 const filterPredicate: Record<RosterFilter, (s: Student) => boolean> = {
   all: () => true,
   debtors: s => (s.debt ?? 0) > 0,
-  fading: s => hasStudentActivity(s) && (daysSinceVisit(s.lastVisit) > 7 || s.attendance < 70),
+  fading: s => (Boolean(s.lastVisit && s.lastVisit !== '—') && daysSinceVisit(s.lastVisit) > 7) || (s.attendance > 0 && s.attendance < 70),
   nohw: s => hasStudentActivity(s) && s.hwScore === 0,
 }
 

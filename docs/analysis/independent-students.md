@@ -97,3 +97,8 @@ IDs and invitation tokens.
 The production migration was applied transactionally with before/after data guards
 and registered in migration history. It left 58 students and 26 groups, with zero
 missing owners. Frontend release is isolated from parallel icon/native changes.
+
+Final browser follow-up: after authenticating a new student, normalize last-visit
+dates to the roster format and treat missing academic activity as unknown rather
+than a zero grade or missing homework. A new login no longer marks the pupil as
+missing or overdue. The optional group picker explicitly shows “Пока без занятий”.
