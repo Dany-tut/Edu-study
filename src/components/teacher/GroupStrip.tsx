@@ -38,13 +38,16 @@ const scrollMask = (rightFade: number) =>
 // ─── Tab panel ───────────────────────────────────────────────────────────────
 function TabPanel({ config, compact = false }: { config: TabConfig; compact?: boolean }) {
   const t = useT()
+  const tabHeight = compact ? 50 : BTN_H
+  const plusSize = 34
+  const plusInset = (tabHeight - plusSize) / 2 - 1
   return (
     <div style={{ width: compact ? 'auto' : CARD_W, height: compact ? 50 : CARD_H, display: 'flex', flexDirection: compact ? 'row' : 'column', gap: BTN_GAP }}>
       {config.tabs.map(tab => {
         const isActive = config.activeTab === tab.id
         return (
           <div key={tab.id} style={{
-            width: compact ? CARD_W : undefined, height: compact ? 50 : BTN_H, display: 'flex', alignItems: 'center', borderRadius: 16,
+            width: compact ? CARD_W : undefined, height: tabHeight, boxSizing: 'border-box', display: 'flex', alignItems: 'center', borderRadius: 16,
             background: isActive ? 'var(--grad-purple)' : 'rgba(var(--glass-rgb), 0.96)',
             border: '1px solid var(--color-border-glass)',
             boxShadow: isActive ? '0 3px 10px rgba(99,84,207,0.28)' : 'var(--shadow-2)',
@@ -57,7 +60,7 @@ function TabPanel({ config, compact = false }: { config: TabConfig; compact?: bo
             {config.onTabPlusClick && <button type="button"
               aria-label={`${t('Добавить')}: ${tab.label}`} title={`${t('Добавить')}: ${tab.label}`}
               onClick={() => config.onTabPlusClick?.(tab.id)}
-              style={{ width: 34, height: 34, marginRight: 12, flexShrink: 0, borderRadius: 10, border: 'none', background: isActive ? 'rgba(255,255,255,0.18)' : 'var(--color-bg-4)', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: plusSize, height: plusSize, marginRight: plusInset, flexShrink: 0, borderRadius: 10, border: 'none', background: isActive ? 'rgba(255,255,255,0.18)' : 'var(--color-bg-4)', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Plus size={17} strokeWidth={2.5} />
             </button>}
           </div>
