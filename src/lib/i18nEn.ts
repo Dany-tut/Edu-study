@@ -4933,4 +4933,8 @@ export const EN: Record<string, string> = {
   'Когда': 'When',
   'Дата и время': 'Date and time',
   'Это занятие уедет сюда со своего дня, дубля не будет.': 'This lesson will move here from its current date without creating a duplicate.',
+  'Фото удалено через 7 дней': 'Photo deleted after 7 days',
+  'Фото не загрузилось': 'Photo could not be loaded',
+  'Оценка и комментарии сохранены': 'Your grade and comments are saved',
+  'Фото не отправлены — проверьте связь и повторите. Черновик сохранён.': 'Photos were not uploaded. Check your connection and try again. Your draft is saved.',
 }

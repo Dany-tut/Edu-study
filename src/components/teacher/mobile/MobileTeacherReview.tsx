@@ -13,6 +13,7 @@ import { DEMO_HARD_SUBS, DEMO_HW, isDemoId } from '../../../data/teacherDevDemo'
 import { useT, useTc } from '../../../lib/i18n'
 import { alertDialog } from '../../ConfirmHost'
 import { Alert } from '../../Alert'
+import AnswerBody from '../AnswerBody'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -76,15 +77,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, flexShrink: 0 }}>{t('сложное')}</span>
       </div>
 
-      {photoCount > 0 && (
-        <div style={{ display: 'flex', gap: 8, overflowX: 'auto' }} className="no-scrollbar">
-          {sub.attachments.photos.map((url, i) => (
-            <a key={i} href={url} target="_blank" rel="noreferrer" style={{ flexShrink: 0 }}>
-              <img src={url} alt={`${t('решение')} ${i + 1}`} style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--color-border-soft)' }} />
-            </a>
-          ))}
-        </div>
-      )}
+      {(photoCount > 0 || sub.attachments.board) && <AnswerBody photos={sub.attachments.photos} board={sub.attachments.board} photosClickable={false} />}
       {photoCount === 0 && sub.comment && (
         /<\/?[a-z][\s\S]*>/i.test(sub.comment) ? (
           <div className="rich-answer" style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-4)', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(sub.comment) }} />

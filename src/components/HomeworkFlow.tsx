@@ -21,6 +21,7 @@ import type {
 } from '../lib/useHomework'
 import { isNewHard, hardId, studentSolutions, legacyHardToBlocks, LEGACY_HARD_KEY } from '../lib/useHomework'
 import { optimizePhoto } from '../lib/imageOptim'
+import { storeSolutionImages } from '../lib/homeworkPhotos'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import {
@@ -1723,6 +1724,7 @@ export default function HomeworkFlow({
   // у ученика сразу, а история раундов не терялась.
   const [hardRow, setHardRow] = useState<LegacyHardRow | null>(null)
   const [hardBusy, setHardBusy] = useState(false)
+  const hardSubmittingRef = useRef(false)
   const [hardActiveKey, setHardActiveKey] = useState('')
   const reloadHardRow = React.useCallback(async () => {
     const session = getStudentSession()
@@ -2265,58 +2267,82 @@ export default function HomeworkFlow({
   async function submitTabSolution(key: string, payload: { answer: string; photos: string[]; board: string | null; voice: string | null }) {
     const session = getStudentSession()
     if (!session?.id) return
+    if (hardSubmittingRef.current) return
+    hardSubmittingRef.current = true
     setHardBusy(true)
-    const ref = `${lessonId}-hard`
-    const { data } = await supabase
-      .from('lesson_progress')
-      // comment/review/status нужны, чтобы при первой пере-отправке мигрировать
-      // legacy одиночное решение в первый раунд (не потерять прошлый ответ).
-      .select('comment, attachments, review_attachments, status, updated_at')
-      .eq('student_id', ownerStudentIdFor(subject))
-      .eq('lesson_ref', ref)
-      .maybeSingle()
-    const prevTasks: HardTaskStudentBlock[] = isNewHard(data?.attachments)
-      ? (data!.attachments as HardAttachmentsNew).tasks
-      : (data ? legacyHardToBlocks(data as LegacyHardRow).taskBlocks : [])
-    const prevByKey = new Map(prevTasks.map(t => [t.key, t]))
-    const round: HardSolution = { id: hardId('sol'), at: new Date().toISOString(), ...payload }
-    const tasks: HardTaskStudentBlock[] = effectiveDefs.map(d => {
-      const sols = studentSolutions(prevByKey.get(d.key))
-      return { key: d.key, statement: d.statement, solutions: d.key === key ? [...sols, round] : sols }
-    })
-    const summary = tasks
-      .map(t => (studentSolutions(t).slice(-1)[0]?.answer || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim())
-      .filter(Boolean).join('\n\n')
-    // score / review_attachments не трогаем — сохраняем накопленную оценку учителя.
-    const { error } = await supabase.from('lesson_progress').upsert({
-      student_id: ownerStudentIdFor(subject),
-      lesson_ref: ref,
-      subject,
-      status: 'submitted',
-      comment: summary,
-      attachments: { v: 2, tasks },
-    }, { onConflict: 'student_id,lesson_ref' })
-    if (error) {
-      // Круг переписки не дошёл до базы: вкладку НЕ помечаем сданной, иначе
-      // ученик закроет урок, а решения этого раунда не существует.
-      console.error('[hard submit]', error)
-      trackEvent('homework_submit_failed', {
-        lesson_ref: ref, kind: 'hard',
-        code: error.code ?? '', msg: String(error.message ?? '').slice(0, 120),
+    try {
+      const ref = `${lessonId}-hard`
+      const { data } = await supabase
+        .from('lesson_progress')
+        // comment/review/status нужны, чтобы при первой пере-отправке мигрировать
+        // legacy одиночное решение в первый раунд (не потерять прошлый ответ).
+        .select('comment, attachments, review_attachments, status, updated_at')
+        .eq('student_id', ownerStudentIdFor(subject))
+        .eq('lesson_ref', ref)
+        .maybeSingle()
+      const prevTasks: HardTaskStudentBlock[] = isNewHard(data?.attachments)
+        ? (data!.attachments as HardAttachmentsNew).tasks
+        : (data ? legacyHardToBlocks(data as LegacyHardRow).taskBlocks : [])
+      const prevByKey = new Map(prevTasks.map(t => [t.key, t]))
+      let stored: typeof payload
+      try {
+        stored = await storeSolutionImages(payload, ownerStudentIdFor(subject))
+      } catch (error) {
+        console.error('[hard photo upload]', error)
+        setSubmitFailed({
+          text: tStatic('Фото не отправлены — проверьте связь и повторите. Черновик сохранён.'),
+          retry: () => { void submitTabSolution(key, payload) },
+        })
+        setHardBusy(false)
+        return
+      }
+      const round: HardSolution = { id: hardId('sol'), at: new Date().toISOString(), ...stored }
+      const tasks: HardTaskStudentBlock[] = effectiveDefs.map(d => {
+        const sols = studentSolutions(prevByKey.get(d.key))
+        return { key: d.key, statement: d.statement, solutions: d.key === key ? [...sols, round] : sols }
       })
+      const summary = tasks
+        .map(t => (studentSolutions(t).slice(-1)[0]?.answer || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim())
+        .filter(Boolean).join('\n\n')
+      // score / review_attachments не трогаем — сохраняем накопленную оценку учителя.
+      const { error } = await supabase.from('lesson_progress').upsert({
+        student_id: ownerStudentIdFor(subject),
+        lesson_ref: ref,
+        subject,
+        status: 'submitted',
+        comment: summary,
+        attachments: { v: 2, tasks },
+      }, { onConflict: 'student_id,lesson_ref' })
+      if (error) {
+        // Круг переписки не дошёл до базы: вкладку НЕ помечаем сданной, иначе
+        // ученик закроет урок, а решения этого раунда не существует.
+        console.error('[hard submit]', error)
+        trackEvent('homework_submit_failed', {
+          lesson_ref: ref, kind: 'hard',
+          code: error.code ?? '', msg: String(error.message ?? '').slice(0, 120),
+        })
+        setSubmitFailed({
+          text: tStatic('Решение не отправлено — проверьте связь и повторите.'),
+          retry: () => { void submitTabSolution(key, payload) },
+        })
+        setHardBusy(false)
+        return
+      }
+      setSubmitFailed(null)
+      setState(current => ({ ...current, hardSubmitted: true, submittedAt: new Date().toISOString() }))
+      setHardCompleted(lessonId)
+      await reloadHardRow()
+      useStudentData.getState().load()
+    } catch (error) {
+      console.error('[hard submit]', error)
       setSubmitFailed({
         text: tStatic('Решение не отправлено — проверьте связь и повторите.'),
         retry: () => { void submitTabSolution(key, payload) },
       })
+    } finally {
+      hardSubmittingRef.current = false
       setHardBusy(false)
-      return
     }
-    setSubmitFailed(null)
-    setState(current => ({ ...current, hardSubmitted: true, submittedAt: new Date().toISOString() }))
-    setHardCompleted(lessonId)
-    await reloadHardRow()
-    useStudentData.getState().load()
-    setHardBusy(false)
   }
 
 

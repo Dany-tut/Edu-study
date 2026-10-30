@@ -21,8 +21,9 @@
 //
 // verify_jwt выключен: сторож ходит без пользовательского токена.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { createClient } from 'jsr:@supabase/supabase-js@2.118.0'
 import { SCHEMA, SYSTEM, buildPrompt, score, type Work, type WorkImage, type WorkTask } from './grader.ts'
+import { loadHomeworkImage } from '../_shared/homeworkImage.ts'
 
 const FLAGS = ['ai_enabled', 'ai_hw_grade']
 // Мак взял работу и пропал — через столько она снова в очереди.
@@ -58,19 +59,6 @@ type Solution = { at?: string; answer?: string; photos?: string[]; board?: strin
 type StudentBlock = { key: string; statement?: string; solutions?: Solution[]; answer?: string; photos?: string[]; board?: string | null }
 type ReviewBlock = { key: string; comments?: { at?: string }[] }
 
-const DATA_URL = /^data:(image\/(?:png|jpeg|jpg|webp|gif));base64,/
-// Больше этого картинку не отдаём: data URL в базе обычно 50–300 КБ.
-const IMAGE_CAP = 5 * 1024 * 1024
-
-/** data URL → картинка рабочей папки; не картинка или слишком большая — null. */
-function image(dataUrl: unknown, name: string): WorkImage | null {
-  const m = typeof dataUrl === 'string' ? DATA_URL.exec(dataUrl) : null
-  if (!m || (dataUrl as string).length > IMAGE_CAP) return null
-  const mediaType = m[1] === 'image/jpg' ? 'image/jpeg' : m[1]
-  const ext = mediaType.split('/')[1].replace('jpeg', 'jpg')
-  return { name: `${name}.${ext}`, mediaType, data: (dataUrl as string).slice(m[0].length) }
-}
-
 type Loaded = { work: Work | null; images: WorkImage[]; why?: string }
 
 /** Работа без имени ученика: условия, эталоны, ответы, фото. work null — проверять нечего. */
@@ -79,12 +67,20 @@ async function loadWork(gradeId: string): Promise<Loaded> {
     .select('progress_id, homework_id, kind, subject, exam').eq('id', gradeId).maybeSingle()
   if (!g) return { work: null, images: [], why: 'предоценки нет' }
   const [{ data: lp }, { data: hw }] = await Promise.all([
-    admin.from('lesson_progress').select('comment, attachments, review_attachments').eq('id', g.progress_id).maybeSingle(),
+    admin.from('lesson_progress').select('student_id, comment, attachments, review_attachments').eq('id', g.progress_id).maybeSingle(),
     g.homework_id
       ? admin.from('homework').select('title, basic_tasks, hard_tasks').eq('id', g.homework_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ])
   const images: WorkImage[] = []
+  const { data: student } = lp?.student_id
+    ? await admin.from('students').select('auth_user_id').eq('id', lp.student_id).maybeSingle()
+    : { data: null }
+  const ownerPrefix = student?.auth_user_id ? `${student.auth_user_id}/${lp!.student_id}/` : null
+  const image = (value: unknown, name: string) => loadHomeworkImage(value, name, {
+    ownerPrefix,
+    download: path => admin.storage.from('homework-photos').download(path),
+  })
   let tasks: WorkTask[]
 
   if (g.kind === 'hard') {
@@ -97,17 +93,21 @@ async function loadWork(gradeId: string): Promise<Loaded> {
     const defs = new Map((Array.isArray(hw?.hard_tasks) ? hw!.hard_tasks as Record<string, unknown>[] : [])
       .map(d => [String(d.key), d]))
     tasks = []
-    blocks.forEach((b, i) => {
+    for (const [i, b] of blocks.entries()) {
       const sols = b.solutions?.length ? b.solutions : [{ answer: b.answer, photos: b.photos, board: b.board }]
       const last = sols[sols.length - 1]
-      if (last.at && (reviewed.get(b.key) ?? '') > last.at) return
+      if (last.at && (reviewed.get(b.key) ?? '') > last.at) continue
       const n = i + 1
-      const pics = [
-        ...(last.photos ?? []).map((p, k) => image(p, `t${n}-photo${k + 1}`)),
-        image(last.board, `t${n}-board`),
-      ].filter((x): x is WorkImage => !!x)
+      const refs = [...(last.photos ?? []), last.board].filter((p): p is string => !!p)
+      const loaded = await Promise.all(refs.map((p, k) => image(p, `t${n}-image${k + 1}`)))
+      // A missing stored photo is missing evidence. Never grade the remaining
+      // text as if that photo had not been submitted.
+      if (refs.some((p, k) => p.startsWith('hwp:') && !loaded[k])) {
+        return { work: null, images: [], why: 'Фото решения недоступно — требуется проверка учителем' }
+      }
+      const pics = loaded.filter((x): x is WorkImage => !!x)
       images.push(...pics)
-      if (!String(last.answer ?? '').trim() && !pics.length) return
+      if (!String(last.answer ?? '').trim() && !pics.length) continue
       const def = defs.get(b.key)
       tasks.push({
         n, key: b.key, type: 'развёрнутый ответ',
@@ -117,7 +117,7 @@ async function loadWork(gradeId: string): Promise<Loaded> {
         machine: 'review',
         ...(pics.length ? { images: pics.map(p => p.name) } : {}),
       })
-    })
+    }
   } else {
     const att = lp?.attachments as { v?: string; rows?: Row[] } | null
     const rows = att?.v === 'basic-1' && Array.isArray(att.rows) ? att.rows : []
@@ -125,13 +125,13 @@ async function loadWork(gradeId: string): Promise<Loaded> {
     // Снимок ответа хранит условие обрезанным до 220 знаков; полное — в basic_tasks,
     // если домашка сохранена целиком (0107) и порядок заданий тот же.
     const full = defs.length === rows.length
-    tasks = rows
+    tasks = await Promise.all(rows
       .filter(r => !SKIP_TYPES.has(r.type))
-      .map(r => {
+      .map(async r => {
         const def = full ? defs[r.n - 1] : undefined
         const choices = Array.isArray(def?.choices) ? (def!.choices as unknown[]).map(plain) : undefined
         // Доска в базовом уровне — ответ картинкой.
-        const pic = image(r.answer, `t${r.n}-board`)
+        const pic = await image(r.answer, `t${r.n}-board`)
         if (pic) images.push(pic)
         const answer = pic ? '(ответ на доске — см. картинку)'
           : r.voice
@@ -147,7 +147,10 @@ async function loadWork(gradeId: string): Promise<Loaded> {
           machine: r.verdict,
           ...(pic ? { images: [pic.name] } : {}),
         }
-      })
+      }))
+    if (rows.some(r => r.answer?.startsWith('hwp:') && !images.some(p => p.name.startsWith(`t${r.n}-board.`)))) {
+      return { work: null, images: [], why: 'Фото решения недоступно — требуется проверка учителем' }
+    }
   }
 
   const note = plain(lp?.comment).slice(0, ANSWER_CAP)
