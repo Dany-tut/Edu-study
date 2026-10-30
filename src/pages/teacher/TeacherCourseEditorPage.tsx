@@ -6665,7 +6665,9 @@ export default function TeacherCourseEditorPage() {
              «доке» больше нечем и незачем — «Назад» и «Опубликовать» под рукой. ── */}
       <motion.div
         ref={headRef}
-        style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
+        // Та же строка 40 px на той же высоте, что вкладки Конструктора.
+        // Верхний padding и высота по тексту кнопок сдвигали её при входе в курс.
+        style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '0 24px 14px' }}
       >
         <div ref={headLeftRef} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <BackCircle onClick={handleBack} label="Назад" />
@@ -6677,7 +6679,7 @@ export default function TeacherCourseEditorPage() {
                 transition={{ duration: 0.15 }}
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
                 onClick={() => setSelectedLessonId(null)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '10px 16px 10px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: '0 16px 0 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <ChevronLeft size={16} strokeWidth={2} /> {t('Курс')}
               </motion.button>
             )}
@@ -6686,7 +6688,7 @@ export default function TeacherCourseEditorPage() {
         {/* Название всегда ровно по центру страницы: абсолют + симметричные
             отступы по ширине большей группы кнопок. Длинное название не уезжает
             под кнопки — оно обрезается многоточием. */}
-        <div style={{ position: 'absolute', left: headSideW + 12, right: headSideW + 12, top: 10, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', left: headSideW + 12, right: headSideW + 12, top: 0, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <span ref={headTitleRef} className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
         <div ref={headRightRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -6707,7 +6709,7 @@ export default function TeacherCourseEditorPage() {
           {seedDiff.changes.length > 0 && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
               title={`${t('Из сида')} · ${seedDiff.changes.length} — ${t('Показать, что изменилось в готовом курсе с момента добавления')}`}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: seedCompact ? '10px 12px' : '10px 16px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: 'var(--shadow-2)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: seedCompact ? '0 12px' : '0 16px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: 'var(--shadow-2)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               <RefreshCw size={14} strokeWidth={2} />
               {!seedCompact && <span ref={seedLabelRef}>{t('Из сида')} · {seedDiff.changes.length}</span>}
             </motion.button>
@@ -6715,7 +6717,7 @@ export default function TeacherCourseEditorPage() {
           {course.dbCourseId && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={openHandout}
               title={t('Скопировать курс для другой группы со своим стартом дат')}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: '0 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
             </motion.button>
           )}

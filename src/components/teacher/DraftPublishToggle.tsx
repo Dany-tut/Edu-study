@@ -23,7 +23,7 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
     // flex: 1 — при заданной ширине (редактор курса ровняет по колонке уроков)
     // половины делят её поровну; без ширины переключатель по-прежнему по тексту.
     flex: 1, justifyContent: 'center',
-    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 999, border: 'none',
+    display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px', borderRadius: 999, border: 'none',
     background: active ? activeBg : 'transparent',
     color: active ? activeColor : 'var(--color-text-3)',
     fontSize: 14, fontWeight: active ? 700 : 500, fontFamily: 'inherit', whiteSpace: 'nowrap',
@@ -42,7 +42,7 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
 
   return (
     <div role="radiogroup" style={{
-      display: 'flex', gap: 2, padding: 4, borderRadius: 999, flexShrink: 0,
+      display: 'flex', gap: 2, height: 40, boxSizing: 'border-box', padding: 4, borderRadius: 999, flexShrink: 0,
       border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
       boxShadow: 'var(--shadow-2)', ...style,
     }}>

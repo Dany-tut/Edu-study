@@ -6,8 +6,8 @@ import DateTimeField from '../../DateTimeField'
 import { CheckboxMark } from '../../Checkbox'
 import { btn } from '../../../lib/pillStyles'
 import { useGroups } from '../../../lib/useGroups'
-import { useT } from '../../../lib/i18n'
-import { fetchGroupUpcoming, todayMsk, addDays, type SchedItem } from '../../../lib/teacherSchedule'
+import { useLang, useT, type Lang } from '../../../lib/i18n'
+import { fetchGroupUpcoming, type SchedItem } from '../../../lib/teacherSchedule'
 
 /*
  * «+» в расписании (ПК): быстро поставить занятие на выбранный день, не уходя в
@@ -16,10 +16,9 @@ import { fetchGroupUpcoming, todayMsk, addDays, type SchedItem } from '../../../
  * Мобильный UI рисуем отдельно.
  */
 
-const WEEKDAYS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
-const MONTHS_GEN = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
-const weekdayIdx = (d: string) => (new Date(`${d}T12:00:00`).getDay() + 6) % 7
-const dayShort = (d: string) => `${WEEKDAYS[weekdayIdx(d)]} ${Number(d.slice(8, 10))} ${MONTHS_GEN[Number(d.slice(5, 7)) - 1]}`
+const formatDay = (day: string, lang: Lang) => new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
+  weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC',
+}).format(new Date(`${day}T12:00:00Z`))
 
 const toIso = (day: string, time: string) => {
   const [h, m] = (time || '12:00').split(':').map(Number)
@@ -38,6 +37,8 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
   onAdd: (groupId: string, title: string, date: string, time: string, notify: boolean) => void
 }) {
   const t = useT()
+  const lang = useLang(s => s.lang)
+  const dayShort = (date: string) => formatDay(date, lang)
   const { groups } = useGroups()
   const [groupId, setGroupId] = useState<string | null>(null)
   const [upcoming, setUpcoming] = useState<SchedItem[] | null>(null)
