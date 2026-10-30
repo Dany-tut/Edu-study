@@ -18,11 +18,10 @@ const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 // Mirrors the student MobileBottomNav glass-dock language.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type MTab = 'home' | 'schedule' | 'students' | 'review' | 'gradebook' | 'profile'
+export type MTab = 'home' | 'students' | 'review' | 'gradebook' | 'profile'
 
 const items: { id: MTab; label: string; icon: typeof Home }[] = [
   { id: 'home',      label: 'Главная',  icon: Home },
-  { id: 'schedule',  label: 'Неделя',   icon: CalendarDays },
   { id: 'students',  label: 'Ученики',  icon: Users },
   { id: 'review',    label: 'Проверка', icon: ClipboardCheck },
   { id: 'gradebook', label: 'Журнал',   icon: CheckSquare },

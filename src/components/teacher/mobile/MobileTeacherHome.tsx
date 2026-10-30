@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import TeacherSchedule from '../schedule/TeacherSchedule'
 import { motion } from 'framer-motion'
 import {
   ClipboardCheck, Users, ChevronRight, BookOpen, Link2, Copy, Check,
@@ -428,20 +429,12 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
           onOpen={() => onNavigate('students')}
         />
 
-        {/* 3 — schedule */}
-        {model.schedule.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <SectionLabel>{t('Сегодня')}</SectionLabel>
-            {nextLesson && <NextLessonCard item={nextLesson} onOpen={() => onNavigate('gradebook')} />}
-            {restSchedule.length > 0 && (
-              <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', padding: '2px 12px' }}>
-                {restSchedule.map((s, i) => (
-                  <ScheduleRow key={s.id} item={s} last={i === restSchedule.length - 1} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {/* 3 — расписание: та же живая лента, что была отдельной вкладкой «Неделя».
+             Зажал занятие и тащишь на день / зажал и отпустил — меню переноса. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <SectionLabel>{t('Расписание')}</SectionLabel>
+          <TeacherSchedule mobile onAttendance={() => onNavigate('gradebook')} />
+        </div>
 
         {/* журнал не заполнен */}
         {model.journalPending > 0 && (

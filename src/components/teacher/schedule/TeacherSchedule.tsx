@@ -57,8 +57,10 @@ const fromIso = (iso: string) => {
 
 type Toast = { text: string; undo?: SchedUndo; tone?: 'danger' }
 
-export default function TeacherSchedule({ mobile = false, onOpen, onAttendance }: {
+export default function TeacherSchedule({ mobile = false, embedded = false, onOpen, onAttendance }: {
   mobile?: boolean
+  /** На Главной: своя рамка снаружи, лента скроллится внутри фиксированной высоты. */
+  embedded?: boolean
   /** Нет — тап по занятию открывает меню (на телефоне редактора урока нет). */
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
@@ -172,10 +174,10 @@ export default function TeacherSchedule({ mobile = false, onOpen, onAttendance }
   })()
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, userSelect: drag ? 'none' : undefined }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: embedded ? 10 : 12, height: embedded ? '100%' : undefined, minHeight: 0, userSelect: drag ? 'none' : undefined }}>
       {/* Шапка: месяц, «Сегодня», недели стрелками — на ПК свайпа нет */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px' }}>
-        <div style={{ fontSize: mobile ? 24 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
+        <div style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
         {weekStart(today) !== start && (
           <button onClick={() => go(today)} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
         )}
@@ -235,7 +237,16 @@ export default function TeacherSchedule({ mobile = false, onOpen, onAttendance }
       </div>
 
       {/* Лента дня */}
-      <div onTouchStart={onFeedTouchStart} onTouchEnd={onFeedTouchEnd} style={{ minHeight: 280, position: 'relative' }}>
+      <div
+        onTouchStart={onFeedTouchStart}
+        onTouchEnd={onFeedTouchEnd}
+        className={embedded ? 'no-scrollbar' : undefined}
+        style={embedded
+          ? { flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', position: 'relative', paddingRight: 4,
+              maskImage: 'linear-gradient(to bottom, black calc(100% - 16px), transparent)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black calc(100% - 16px), transparent)' }
+          : { minHeight: mobile ? 150 : 280, position: 'relative' }}
+      >
         <AnimatePresence mode="popLayout" initial={false} custom={dir}>
           <motion.div
             key={day}
@@ -247,7 +258,7 @@ export default function TeacherSchedule({ mobile = false, onOpen, onAttendance }
             style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
           >
             {items === null ? null : list.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '56px 0', fontSize: 14, color: 'var(--color-text-4)' }}>{t('Занятий нет')}</div>
+              <div style={{ textAlign: 'center', padding: mobile ? '36px 0' : '56px 0', fontSize: 14, color: 'var(--color-text-4)' }}>{t('Занятий нет')}</div>
             ) : list.map(item => (
               <Card
                 key={item.id}
