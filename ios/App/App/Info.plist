@@ -52,5 +52,27 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- iOS 26+ требует адаптации под UIScene: без этого манифеста приложение
+	     падало на старте (EXC_BREAKPOINT в NoSceneLifecycleAdoption) на iOS 27,
+	     чёрный экран и вылет. Окно создаёт сама сцена из Main.storyboard
+	     (UISceneStoryboardFile) — отдельный SceneDelegate не нужен, инициализация
+	     Capacitor остаётся в AppDelegate. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 </dict>
 </plist>
