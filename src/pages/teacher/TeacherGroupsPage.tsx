@@ -331,6 +331,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   const [parent, setParent] = usePersistentState('groups.addStudent.parent', '')
   const [desiredScore, setDesiredScore] = usePersistentState('groups.addStudent.desiredScore', 0)
   const [paymentAmount, setPaymentAmount] = usePersistentState('groups.addStudent.paymentAmount', 0)
+  const [showDetails, setShowDetails] = useState(() => Boolean(phone || telegram || parent || desiredScore || paymentAmount))
   const [saving, setSaving] = useState(false)
   // Ошибка записи — текстом в окне. Раньше окно молча закрывалось, а форма стиралась.
   const [saveErr, setSaveErr] = useState<string | null>(null)
@@ -465,10 +466,19 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             </label>
           )}
 
-          <details><summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--color-muted)' }}>{t('Контакты и дополнительные данные')}</summary><div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+          <div style={{ border: '1px solid var(--color-border-soft)', borderRadius: 14, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+            <button type="button" aria-expanded={showDetails} onClick={() => setShowDetails(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 14px', border: 'none', background: 'transparent', color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
+              <Phone size={15} strokeWidth={1.8} aria-hidden="true" />
+              <span style={{ flex: 1 }}>{t('Дополнительно')}</span>
+              <Plus size={16} strokeWidth={1.8} aria-hidden="true" style={{ transform: showDetails ? 'rotate(45deg)' : 'rotate(0)', transition: 'transform 160ms ease' }} />
+            </button>
+            {showDetails && <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 14px 14px' }}>
+              <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Контакты')}</div>
           <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={t('Телефон')} style={inputStyle} />
           <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder={t('Telegram или VK (@ник или ссылка)')} style={inputStyle} />
           <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={inputStyle} />
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, paddingTop: 4 }}>{t('Цель и оплата')}</div>
           <input
             type="number"
             value={desiredScore === 0 ? '' : desiredScore}
@@ -487,17 +497,19 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             min={0}
             style={inputStyle}
           />
-          </div></details>
+            </div>}
+          </div>
         </div>
 
         {saveErr && (
           <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
         )}
+        <div style={{ position: 'sticky', bottom: 0, paddingTop: 16, paddingBottom: 28, marginBottom: -28, background: 'var(--color-bg-input)', zIndex: 1 }}>
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}
           style={{ height: 48,
-            marginTop: 22, width: '100%', padding: '0 22px',
+            marginTop: 0, width: '100%', padding: '0 22px',
             background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
@@ -505,6 +517,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         >
           {saving ? t('Сохранение...') : t('Добавить ученика')}
         </button>
+        </div>
           </>
         )}
         </div>
