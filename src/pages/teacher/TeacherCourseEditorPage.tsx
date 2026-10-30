@@ -22,6 +22,7 @@ import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
 import { courseSubjectOptionsFor, isLanguageSubject } from '../../lib/subjects'
+import { useTeacherTz, isMsk, tzOffsetMs } from '../../lib/teacherTz'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import AudioStimulusEditor from '../../components/teacher/AudioStimulusEditor'
@@ -1220,6 +1221,16 @@ function CenterCourseAccess({
 
 // ─── CENTER: Recording tab ────────────────────────────────────────────────────
 
+function mskTimeToLocal(hhmm: string, tz: string): string | null {
+  const m = /^(\d{2}):(\d{2})$/.exec(hhmm)
+  if (!m) return null
+  const mskOff = 3 * 3600_000
+  const utc = Date.UTC(2026, 0, 1, +m[1], +m[2]) - mskOff
+  const localOff = tzOffsetMs(tz, new Date(utc))
+  const local = new Date(utc + localOff)
+  return `${String(local.getUTCHours()).padStart(2, '0')}:${String(local.getUTCMinutes()).padStart(2, '0')}`
+}
+
 // ─── Reusable "Дата и время" glass card ──────────────────────────────────────
 // Used on BOTH the «Запись» and «Урок» tabs. scope='rec' edits the recording
 // (live-session) schedule; scope='lesson' edits the lesson schedule. Setting the
@@ -1319,6 +1330,9 @@ function ScheduleCard({
     }
   }
 
+  const teacherTz = useTeacherTz(s => s.tz)
+  const notMsk = !isMsk(teacherTz)
+
   const accent = 'var(--color-green-text)'
   const footerText = isRec
     ? (mirrors
@@ -1327,6 +1341,8 @@ function ScheduleCard({
     : (lesson.lessonSchedManual
         ? `${t('Отдельный узел «Урок»')} ${date} ${t('в')} ${time}`
         : t('Зеркалит «Запись» — пока даты совпадают, это один узел'))
+
+  const localHint = notMsk && time ? mskTimeToLocal(time, teacherTz) : null
 
   return (
     <div style={{
@@ -1382,6 +1398,11 @@ function ScheduleCard({
         <div style={{ marginTop: 12, fontSize: 11, color: accent, display: 'flex', alignItems: 'flex-start', gap: 6, lineHeight: 1.4 }}>
           <Check size={12} style={{ flexShrink: 0, marginTop: 1 }} />
           <span>{footerText}</span>
+        </div>
+      )}
+      {localHint && (
+        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-4)', paddingLeft: 2 }}>
+          {`= ${localHint} ${t('у вас')} · ${time} ${t('МСК')}`}
         </div>
       )}
     </div>
@@ -1762,7 +1783,7 @@ function CenterRecording({
         <div>
           <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Добавьте запись урока')}</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('После созвона — вставьте ссылку RuTube, YouTube или на диск')}</div>
-          <div style={{ display: 'flex', gap: 10, marginTop: 6, color: 'var(--color-muted)', opacity: 0.55 }}>
+          <div style={{ display: 'flex', gap: 10, marginTop: 6, color: 'var(--color-muted)', opacity: 0.55, justifyContent: 'center' }}>
             {(['googledrive', 'yandexdisk', 'dropbox', 'onedrive', 'mailru', 'mega'] as const).map(p => (
               <DiskLogo key={p} provider={p} size={16} />
             ))}

@@ -32,6 +32,7 @@ import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore
 import { useDeskStore } from '../../store/deskStore'
 import { useDeskLayouts } from '../../lib/useDeskLayouts'
 import { useTeacherAccess, TEACHER_TABS } from '../../lib/teacherAccess'
+import { useTeacherTz } from '../../lib/teacherTz'
 import { useT } from '../../lib/i18n'
 import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
 import { getOwnerId } from '../../lib/owner'
@@ -67,6 +68,7 @@ export default function TeacherDashboardPage() {
   const canPage = useTeacherAccess(s => s.canPage)
   const canTab = useTeacherAccess(s => s.canTab)
   useEffect(() => { useTeacherAccess.getState().load() }, [])
+  useEffect(() => { useTeacherTz.getState().load() }, [])
 
   // Hydrate the teacher's own "Мои задачи" from the DB (per-owner, RLS-scoped).
   useEffect(() => { useTeacher.getState().loadTasks() }, [])
@@ -195,9 +197,12 @@ export default function TeacherDashboardPage() {
           unmounted and stacked in normal flow above the new one — «Назад» из
           курса показывал редактор и список одновременно до F5. Plain keyed div
           → the old page is gone the moment activePage changes. */}
-      <div
+      <motion.div
         key={activePage}
         className="teacher-scroll-root"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.12, ease: 'easeOut' }}
         // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
         // paddingTop:100 — the progressive-blur recipe) must not be clipped
         // by this wrapper, so their overflow stays visible.
@@ -230,7 +235,7 @@ export default function TeacherDashboardPage() {
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}
-      </div>
+      </motion.div>
 
     </div>
 
