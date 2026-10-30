@@ -36,71 +36,31 @@ const scrollMask = (rightFade: number) =>
   `#000 ${CARD_W + 34}px, #000 calc(100% - ${rightFade}px), transparent 100%)`
 
 // ─── Tab panel ───────────────────────────────────────────────────────────────
-function TabPanel({ config }: { config: TabConfig }) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
-  const hasPlus = !!config.onTabPlusClick
-
+function TabPanel({ config, compact = false }: { config: TabConfig; compact?: boolean }) {
+  const t = useT()
   return (
-    <div style={{ width: CARD_W, height: CARD_H, display: 'flex', flexDirection: 'column', gap: BTN_GAP }}>
+    <div style={{ width: compact ? 'auto' : CARD_W, height: compact ? 50 : CARD_H, display: 'flex', flexDirection: compact ? 'row' : 'column', gap: BTN_GAP }}>
       {config.tabs.map(tab => {
         const isActive = config.activeTab === tab.id
-        const isHovered = hoveredId === tab.id
         return (
-          <motion.button
-            key={tab.id}
-            type="button"
-            whileTap={{ scale: 0.97 }}
-            onHoverStart={() => setHoveredId(tab.id)}
-            onHoverEnd={() => setHoveredId(null)}
-            onClick={() => {
-              if (hasPlus && isActive) {
-                config.onTabPlusClick!(tab.id)
-              } else {
-                config.onTabChange(tab.id)
-              }
-            }}
-            style={{
-              position: 'relative', overflow: 'hidden',
-              width: '100%', height: BTN_H, boxSizing: 'border-box',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: isActive
-                ? 'var(--grad-purple)'
-                : 'rgba(var(--glass-rgb), 0.96)',
-              border: isActive ? 'none' : '1px solid var(--color-border-glass)',
-              borderRadius: 16, cursor: 'pointer',
-              color: isActive ? '#fff' : 'var(--color-muted)',
-              fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
-              boxShadow: isActive ? '0 3px 10px rgba(99,84,207,0.28)' : '0 1px 4px rgba(0,0,0,0.06)',
-              backdropFilter: isActive ? 'none' : 'blur(14px)',
-              transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
-            }}
-          >
-            <span style={{ transition: 'opacity 0.15s', opacity: hasPlus && isActive && isHovered ? 0 : 1 }}>
+          <div key={tab.id} style={{
+            width: compact ? CARD_W : undefined, height: compact ? 50 : BTN_H, display: 'flex', alignItems: 'center', borderRadius: 16,
+            background: isActive ? 'var(--grad-purple)' : 'rgba(var(--glass-rgb), 0.96)',
+            border: '1px solid var(--color-border-glass)',
+            boxShadow: isActive ? '0 3px 10px rgba(99,84,207,0.28)' : 'var(--shadow-2)',
+            color: isActive ? '#fff' : 'var(--color-muted)',
+          }}>
+            <button type="button" aria-pressed={isActive} onClick={() => config.onTabChange(tab.id)}
+              style={{ flex: 1, alignSelf: 'stretch', border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 16 }}>
               {tab.label}
-            </span>
-
-            {/* Plus overlay — only on the active tab */}
-            {hasPlus && isActive && (
-              <AnimatePresence>
-                {isHovered && (
-                  <motion.div
-                    key="plus"
-                    initial={{ opacity: 0, scale: 0.7 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.7 }}
-                    transition={{ duration: 0.15 }}
-                    style={{
-                      position: 'absolute', inset: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    <Plus size={20} strokeWidth={2.5} style={{ color: '#fff' }} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            )}
-          </motion.button>
+            </button>
+            {config.onTabPlusClick && <button type="button"
+              aria-label={`${t('Добавить')}: ${tab.label}`} title={`${t('Добавить')}: ${tab.label}`}
+              onClick={() => config.onTabPlusClick?.(tab.id)}
+              style={{ width: 34, height: 34, marginRight: 12, flexShrink: 0, borderRadius: 10, border: 'none', background: isActive ? 'rgba(255,255,255,0.18)' : 'var(--color-bg-4)', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Plus size={17} strokeWidth={2.5} />
+            </button>}
+          </div>
         )
       })}
     </div>
@@ -534,6 +494,7 @@ export default function GroupStrip({
   function handleMouseUp() { dragState.current = null }
 
   const hasIndividual = individualGroups.length > 0
+  if (tabConfig && !groups.length && !hasIndividual) return <div style={{ padding: '20px 0 4px' }}><TabPanel config={tabConfig} compact /></div>
 
   return (
     <div style={{ position: 'relative', height: CARD_H + PAD_TOP + PAD_BOTTOM }}>

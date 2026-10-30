@@ -59,7 +59,7 @@ export default function StudentLoginPage() {
       const srow = srows?.[0]
       if (srow) {
         setLoading(false)
-        setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id })
+        setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id ?? '' })
         void trackNow('login', { role: 'student', method: 'auth' })
         window.location.reload()
         return

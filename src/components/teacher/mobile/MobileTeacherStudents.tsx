@@ -8,11 +8,18 @@ import MobileSheet from '../../MobileSheet'
 import Skeleton from '../../Skeleton'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
-import { useGroups, useStudents, useAllStudents } from '../../../lib/useGroups'
+import { useGroups, useStudents, useAllStudents, personKey } from '../../../lib/useGroups'
 import { useSwipeBack } from '../../../lib/useSwipeBack'
 import { useHomework } from '../../../lib/useHomework'
 import { contactLabel } from '../../../lib/contactLink'
 import { useT, useTc } from '../../../lib/i18n'
+import TeacherSelect from '../TeacherSelect'
+import { FIELD } from '../../../lib/fieldStyle'
+import { btn } from '../../../lib/pillStyles'
+import { Alert } from '../../Alert'
+import { copyToClipboard } from '../../../lib/clipboard'
+import { mySubjectNames } from '../../../lib/subjects'
+import { useTeacherAccess } from '../../../lib/teacherAccess'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP, demoStudentsFor } from '../../../data/teacherDevDemo'
 import BackCircle from '../../../components/BackCircle'
@@ -66,7 +73,7 @@ function PersonRow({ student, subject, onClick }: { student: Student; subject?: 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(student.name)}</div>
         <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {subject ? `${tc(subject)} · ` : ''}{t('ДЗ')} {student.hwScore}% · {t('посещ.')} {student.attendance}%
+          {subject ? tc(subject) : !student.groupId ? t('Пока без занятий') : `${t('ДЗ')} ${student.hwScore}% · ${t('посещ.')} ${student.attendance}%`}
         </div>
       </div>
       {signal && <SignalChip signal={signal} />}
@@ -129,9 +136,14 @@ function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; labe
   )
 }
 
-export function StudentSheet({ student, group, open, loading, onClose }: { student: Student | null; group: Group; open: boolean; loading?: boolean; onClose: () => void }) {
+export function StudentSheet({ student: initialStudent, group: initialGroup, open, loading, onClose }: { student: Student | null; group: Group; open: boolean; loading?: boolean; onClose: () => void }) {
   const t = useT()
   const { tc, tn } = useTc()
+  const liveStudents = useAllStudents()
+  const { groups } = useGroups()
+  const student = liveStudents.find(s => s.id === initialStudent?.id) ?? initialStudent
+  const group = groups.find(g => g.id === student?.groupId) ?? initialGroup
+  const active = !!student && (Boolean(student.lastVisit && student.lastVisit !== '—') || student.hwScore > 0 || student.testScore > 0 || student.attendance > 0)
   return (
     <MobileSheet open={open} onClose={onClose} title={student ? tn(student.name) : group.name}>
       {!student && (
@@ -147,19 +159,20 @@ export function StudentSheet({ student, group, open, loading, onClose }: { stude
         <div style={{ display: 'flex', flexDirection: 'column', paddingBottom: 8 }}>
           <div style={{ display: 'flex', gap: 8, padding: '4px 0 14px' }}>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.success.bg, textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.success.text }}>{student.hwScore}%</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.success.text }}>{active ? `${student.hwScore}%` : '—'}</div>
               <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.success.text, opacity: 0.85 }}>{t('ДЗ')}</div>
             </div>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.info.bg, textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.info.text }}>{student.testScore}%</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.info.text }}>{active ? `${student.testScore}%` : '—'}</div>
               <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.info.text, opacity: 0.85 }}>{t('тесты')}</div>
             </div>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.review.bg, textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.review.text }}>{student.attendance}%</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: PAIR.review.text }}>{active ? `${student.attendance}%` : '—'}</div>
               <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.review.text, opacity: 0.85 }}>{t('посещ.')}</div>
             </div>
           </div>
-          <MetricRow icon={<span style={{ fontSize: 15 }}>{group.icon}</span>} label={t('Предмет')} value={`${tc(group.subject)} · ${group.name}`} />
+          <MetricRow icon={<span style={{ fontSize: 15 }}>{group.icon}</span>} label={t('Предмет')} value={group.id ? `${tc(group.subject)} · ${group.name}` : t('Пока без занятий')} />
+          <StudentAssignments student={student} />
           {student.phone && <MetricRow icon={<Phone size={16} />} label={t('Телефон')} value={student.phone} />}
           {student.telegramLink && <MetricRow icon={<Send size={16} />} label={contactLabel(student.telegramLink) === 'VK' ? 'VK' : 'Telegram'} value={contactLabel(student.telegramLink)} />}
           <MetricRow icon={<CalendarCheck size={16} />} label={t('Последний визит')} value={student.lastVisit} />
@@ -168,6 +181,40 @@ export function StudentSheet({ student, group, open, loading, onClose }: { stude
       )}
     </MobileSheet>
   )
+}
+
+
+function StudentAssignments({ student }: { student: Student }) {
+  const t = useT()
+  const { groups, addExistingStudentToGroup, addIndividualCard } = useGroups()
+  const all = useAllStudents()
+  const current = all.find(s => s.id === student.id) ?? student
+  const memberships = all.filter(s => personKey(s) === personKey(current))
+  const [groupId, setGroupId] = useState('')
+  const [subject, setSubject] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  async function assign(individual: boolean) {
+    if (busy) return
+    setBusy(true); setError('')
+    try {
+      const result = individual
+        ? await addIndividualCard({ student: current, subject: subject as Group['subject'], level: '' })
+        : await addExistingStudentToGroup(groupId, current)
+      if (result.error) throw result.error
+      setGroupId(''); setSubject('')
+    } catch (e) { setError((e as { message?: string }).message || t('Не удалось назначить занятия')) }
+    finally { setBusy(false) }
+  }
+  return <section style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 0' }}>
+    <strong>{t('Занятия')}</strong>
+    <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{memberships.map(s => groups.find(g => g.id === s.groupId)).filter((g): g is Group => !!g).map(g => g.isIndividual ? `1:1 · ${g.subject}` : g.name).join(' · ') || t('Пока без занятий')}</span>
+    <TeacherSelect value={groupId} onChange={setGroupId} placeholder={t('Выберите группу')} options={groups.filter(g => !g.isIndividual && !memberships.some(s => s.groupId === g.id)).map(g => ({value:g.id,label:g.name}))} />
+    <button style={btn('M', 'secondary')} disabled={!groupId || busy} onClick={() => void assign(false)}>{t('Добавить в группу')}</button>
+    <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет для занятий 1:1')} options={mySubjectNames(useTeacherAccess.getState().subjects).map(s => ({value:s,label:t(s)}))} />
+    <button style={btn('M', 'secondary')} disabled={!subject || busy} onClick={() => void assign(true)}>{t('Назначить занятия 1:1')}</button>
+    {error && <Alert tone="danger" text={error} />}
+  </section>
 }
 
 function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
@@ -216,7 +263,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function MobileTeacherStudents() {
   const t = useT()
-  const { groups: realGroups } = useGroups()
+  const { groups: realGroups, addUnassignedStudent } = useGroups()
   const realStudents = useAllStudents()
   const { homework } = useHomework()
   // DEV-only: no logged-in teacher locally → show demo content instead of empty.
@@ -232,7 +279,7 @@ export default function MobileTeacherStudents() {
   const [filter, setFilter] = useState<StudentsFilter>('all')
 
   const openStudent = (student: Student) => {
-    const group = groups.find(g => g.id === student.groupId)
+    const group = groups.find(g => g.id === student.groupId) ?? { id: '', name: t('Пока без занятий'), subject: '' as Group['subject'], icon: '', level: '', color: '#9B6DFF', colorSoft: '#EFE0FF', startDate: '', studentCount: 0, totalLessons: 0, lessonsCompleted: 0 }
     if (group) { setSel({ student, group }); setSheetOpen(true) }
   }
 
@@ -252,15 +299,34 @@ export default function MobileTeacherStudents() {
     const totals = {
       debtors: allStudents.filter(s => (s.debt ?? 0) > 0).length,
       pending: [...pendingByGroup.values()].reduce((a, b) => a + b, 0),
-      students: allStudents.length,
+      students: new Set(allStudents.map(personKey)).size,
     }
     return { aggFor, totals }
   }, [groups, allStudents, homework])
 
   const groupList = groups.filter(g => !g.isIndividual)
-  const individuals = allStudents.filter(s => s.isIndividual)
+  const individuals = [...new Map(allStudents.filter(s => filter === 'individual' ? s.isIndividual : true).map(s => [personKey(s), s])).values()]
   const showGroups = filter === 'all' || filter === 'groups'
   const showIndividuals = filter === 'all' || filter === 'individual'
+
+  const [addOpen, setAddOpen] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [savingNew, setSavingNew] = useState(false)
+  const [createError, setCreateError] = useState('')
+  const [invite, setInvite] = useState('')
+  const [copiedInvite, setCopiedInvite] = useState(false)
+  async function createStudent() {
+    if (!newName.trim() || savingNew) return
+    setSavingNew(true); setCreateError('')
+    try {
+      const result = await addUnassignedStudent({ name: newName.trim() })
+      if (result.error) throw result.error
+      setNewName('')
+      setInvite(result.inviteToken ? `${location.origin}${location.pathname}#/join?token=${result.inviteToken}` : '')
+      if (!result.inviteToken) setAddOpen(false)
+    } catch (e) { setCreateError((e as { message?: string }).message || t('Не удалось добавить ученика')) }
+    finally { setSavingNew(false) }
+  }
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -274,6 +340,21 @@ export default function MobileTeacherStudents() {
         <GroupRoster group={openGroup} onBack={() => setOpenGroup(null)} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button style={btn('M', 'primary')} onClick={() => { setInvite(''); setCreateError(''); setCopiedInvite(false); setAddOpen(true) }}>{t('Добавить ученика')}</button>
+          <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {invite ? <>
+                <p>{t('Отправьте ссылку ученику, чтобы он создал свой аккаунт.')}</p>
+                <button style={btn('M', 'primary')} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</button>
+                <button style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}>{t('Готово')}</button>
+              </> : <>
+                <label>{t('Имя ученика')}<input style={{ ...FIELD, marginTop: 8 }} value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('Как зовут ученика?')} onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void createStudent() }} /></label>
+                <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13 }}>{t('Группу или занятия 1:1 можно назначить позже.')}</p>
+                {createError && <Alert tone="danger" text={createError} />}
+                <button style={btn('M', 'primary')} disabled={!newName.trim() || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
+              </>}
+            </div>
+          </MobileSheet>
           <div style={{ display: 'flex', gap: 6, padding: 4, borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
             {FILTERS.map(f => {
               const active = filter === f.key
@@ -314,7 +395,7 @@ export default function MobileTeacherStudents() {
 
           {showIndividuals && individuals.length > 0 && (
             <>
-              {filter === 'all' && <SectionLabel>{t('Индивидуальные')}</SectionLabel>}
+              {filter === 'all' && <SectionLabel>{t('Все ученики')}</SectionLabel>}
               {individuals.map(s => (
                 <PersonRow key={s.id} student={s} subject={s.subject} onClick={() => openStudent(s)} />
               ))}
@@ -326,8 +407,8 @@ export default function MobileTeacherStudents() {
             (groupList.length === 0 && individuals.length === 0)) && (
             <EmptyState
               icon={Users}
-              title={groups.length === 0 ? t('Групп пока нет') : filter === 'individual' ? t('Нет индивидуальных учеников') : t('Нет групп')}
-              text={groups.length === 0 ? t('Создайте их на компьютере.') : undefined}
+              title={filter === 'all' ? t('Учеников пока нет') : groups.length === 0 ? t('Групп пока нет') : filter === 'individual' ? t('Нет индивидуальных учеников') : t('Нет групп')}
+              text={filter === 'all' ? t('Добавьте первого — достаточно имени.') : undefined}
               style={{ marginTop: 8 }}
             />
           )}
