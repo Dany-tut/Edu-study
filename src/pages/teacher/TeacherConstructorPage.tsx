@@ -8655,70 +8655,17 @@ export default function TeacherConstructorPage() {
     setCourseEdited(null)
   }, [courseEditedJson])
 
-  async function goToCourseEditor(course: Course) {
-    let groupIds: string[] = []
-    let studentIds: string[] = []
-    let modules: Array<{ id: string; label: string; expanded: boolean; lessonIds: string[] }> = []
-    let lessons: Array<Record<string, unknown>> = []
-
-    if (course.dbCourseId) {
-      const { data: dbCourse } = await supabase
-        .from('courses')
-        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual)')
-        .eq('short_id', course.dbCourseId)
-        .single()
-      if (dbCourse) {
-        groupIds = (dbCourse as any).group_ids ?? []
-        studentIds = (dbCourse as any).student_ids ?? []
-        const dbModules = [...((dbCourse as any).course_modules ?? [])].sort((a, b) => a.position - b.position)
-        const dbLessons = [...((dbCourse as any).lessons ?? [])].sort((a, b) => (a.lesson_number ?? a.position ?? 0) - (b.lesson_number ?? b.position ?? 0))
-        lessons = dbLessons.map((l: any, i: number) => ({
-          id: l.short_id,
-          title: l.title,
-          number: (l.lesson_number ?? i) + 1,
-          kind: l.kind === 'test' ? 'test' : 'lesson',
-          testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : [],
-          videoUrl: l.youtube_url ?? undefined,
-          timecodes: Array.isArray(l.timecodes) ? l.timecodes : [],
-          description: l.description ?? undefined,
-          scheduledDate: l.scheduled_date ?? undefined,
-          scheduledTime: l.scheduled_time ?? undefined,
-          scheduledDuration: l.scheduled_duration ?? undefined,
-          recDate: l.rec_date ?? undefined,
-          recTime: l.rec_time ?? undefined,
-          recDuration: l.rec_duration ?? undefined,
-          lessonSchedManual: l.lesson_sched_manual ?? false,
-          // Конспект, домашки и файлы сюда НЕ едут: это мегабайты, из-за
-          // которых открытие курса ждало секундами. Их досыпает редактор
-          // вторым запросом (loadHeavyLessons), а до его прихода курс помечен
-          // heavyPending и сохранение заблокировано — иначе запись затёрла бы
-          // недоехавшее пустотой.
-        }))
-        if (dbModules.length > 0) {
-          modules = dbModules.map((m: any) => ({
-            id: m.id, label: m.label, expanded: true,
-            lessonIds: dbLessons.filter((l: any) => l.module_id === m.id).map((l: any) => l.short_id),
-          }))
-          const grouped = new Set(modules.flatMap(m => m.lessonIds))
-          const ungrouped = dbLessons.filter((l: any) => !grouped.has(l.short_id)).map((l: any) => l.short_id)
-          if (ungrouped.length) modules[0].lessonIds.push(...ungrouped)
-        }
-      }
-    }
-
-    // Fallbacks when the course isn't persisted to the DB yet.
-    if (lessons.length === 0) {
-      lessons = course.lessons.map((l, i) => ({ id: l.id, title: l.title, number: i + 1 }))
-    }
-    if (modules.length === 0) {
-      modules = [{ id: uid(), label: '', expanded: true, lessonIds: lessons.map(l => l.id as string) }]
-    }
-
+  function goToCourseEditor(course: Course) {
+    // Navigate before fetching: a slow request must not trap the teacher on
+    // the shelf. The editor loads authoritative metadata before enabling edits.
+    const lessons = course.lessons.map((l, i) => ({ id: l.id, title: l.title, number: i + 1 }))
+    const modules = [{ id: uid(), label: '', expanded: true, lessonIds: lessons.map(l => l.id) }]
     const edData = {
       id: course.id, title: course.title, subject: course.subject, level: course.level,
       status: course.status, color: course.color, bg: course.bg,
       description: course.description ?? '', dbCourseId: course.dbCourseId,
-      groupIds, studentIds, modules, lessons,
+      groupIds: [], studentIds: [], modules, lessons,
+      metadataPending: !!course.dbCourseId,
       heavyPending: !!course.dbCourseId,
       // Отпечаток едет в редактор вместе с курсом: там он и сравнивается со
       // свежим сидом, и переписывается применением «Из сида». Без него первое

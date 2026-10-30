@@ -1,3 +1,4 @@
+import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
@@ -206,6 +207,8 @@ export interface CourseEdData {
    * недоехавшее пустотой.
    */
   heavyPending?: boolean
+  /** Shelf snapshot: load authoritative modules, lessons and audience before editing. */
+  metadataPending?: boolean
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
@@ -5447,7 +5450,9 @@ const railInnerSt: React.CSSProperties = {
 
 export default function TeacherCourseEditorPage() {
   const t = useT()
-  const { setActivePage, editingCourseJson, setCourseEdited } = useTeacher()
+  const setActivePage = useTeacher(s => s.setActivePage)
+  const editingCourseJson = useTeacher(s => s.editingCourseJson)
+  const setCourseEdited = useTeacher(s => s.setCourseEdited)
   const { groups, addIndividualCard } = useGroups()
   const allStudents = useAllStudents()
 
@@ -5462,8 +5467,8 @@ export default function TeacherCourseEditorPage() {
           lessons: [],
         }
     // Unsaved edits win over the snapshot the editor was opened with: the
-    // constructor (goToCourseEditor) fetches the course from Supabase before
-    // opening the editor, and that fetched data must NOT clobber a draft the
+    // editor loads the course from Supabase after navigation; that fetched
+    // data must NOT clobber a draft the
     // teacher never got to save. The draft is cleared on successful save, so
     // when no draft exists we fall through to the fresh DB snapshot.
     const draft = readDraft<CourseEdData>(`coursed.${base.dbCourseId ?? base.id}.course`)
@@ -5471,6 +5476,17 @@ export default function TeacherCourseEditorPage() {
   })
 
   const [heavyErr, setHeavyErr] = useState(false)
+  useEffect(() => {
+    if (!course.metadataPending || !course.dbCourseId) return
+    const controller = new AbortController()
+    loadCourseEditorMetadata(course.dbCourseId, controller.signal).then(metadata => {
+      if (controller.signal.aborted) return
+      setCourse(c => c.metadataPending ? { ...c, ...metadata, metadataPending: false } : c)
+    }).catch(() => {
+      if (!controller.signal.aborted) setHeavyErr(true)
+    })
+    return () => controller.abort()
+  }, [course.metadataPending, course.dbCourseId])
 
   // ── Тяжёлая половина уроков ───────────────────────────────────────────────
   //
@@ -5483,7 +5499,7 @@ export default function TeacherCourseEditorPage() {
   // которых в состоянии ещё нет. Если он успел что-то написать в пустом
   // конспекте, останется написанное.
   useEffect(() => {
-    if (!course.heavyPending || !course.dbCourseId) return
+    if (course.metadataPending || !course.heavyPending || !course.dbCourseId) return
     let alive = true
     ;(async () => {
       const { data, error } = await supabase
@@ -5540,7 +5556,7 @@ export default function TeacherCourseEditorPage() {
     // Один заход на курс: дальше флаг снят, а по dbCourseId редактор не
     // переоткрывается — курс меняют через выход в конструктор.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [course.heavyPending, course.dbCourseId])
+  }, [course.metadataPending, course.heavyPending, course.dbCourseId])
 
   // Конспект, потерянный при сохранении, добираем из сида — иначе редактор
   // показывает пустое поле и следующее «Сохранить» закрепляет пустоту в БД
@@ -5584,7 +5600,7 @@ export default function TeacherCourseEditorPage() {
     // Skip the initial render: merely opening a course must not create a draft
     // that would later shadow fresh DB data.
     if (draftSeq.current === 1) return
-    writeDraft(draftKey, course)
+    if (!course.metadataPending) writeDraft(draftKey, course)
   }, [course, draftKey])
 
   function clearCourseDraftAfterSync(seqAtSave: number, synced: boolean) {
@@ -5948,7 +5964,7 @@ export default function TeacherCourseEditorPage() {
   }
 
   function handleBack() {
-    setCourseEdited(JSON.stringify(course))
+    if (!course.metadataPending) setCourseEdited(JSON.stringify(course))
     setActivePage('constructor')
   }
 
@@ -6646,7 +6662,7 @@ export default function TeacherCourseEditorPage() {
     const ro = new ResizeObserver(measure)
     ro.observe(l); ro.observe(r); ro.observe(h)
     return () => ro.disconnect()
-  }, [courseTitle, seedDiff.changes.length])
+  }, [courseTitle, seedDiff.changes.length, course.metadataPending])
 
   const railFx = useRef(false)
   useEffect(() => { railFx.current = true }, [])
@@ -6657,6 +6673,22 @@ export default function TeacherCourseEditorPage() {
   // уезжала вся вёрстка вместе с центром, а центр, наоборот, не скроллился
   // совсем: он растягивал страницу, и его собственному скроллеру было нечего
   // прокручивать.
+  // Keep Back usable while the network is slow. No editable fields or save
+  // controls may see the shelf snapshot: it lacks audience and lesson metadata.
+  if (course.metadataPending) return (
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '0 24px 14px' }}>
+        <BackCircle onClick={handleBack} label="Назад" />
+        <span style={{ fontWeight: 700 }}>{course.title}</span>
+      </div>
+      <div role="status" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flex: 1, color: 'var(--color-muted)' }}>
+        {heavyErr
+          ? t('Не удалось догрузить уроки — перезагрузите страницу')
+          : <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> {t('Догружаем уроки…')}</>}
+      </div>
+    </div>
+  )
+
   return (
     <div
       style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginTop: -100, paddingTop: 100 }}
