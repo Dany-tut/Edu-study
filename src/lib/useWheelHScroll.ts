@@ -16,6 +16,14 @@ export function useWheelHScroll(ref: RefObject<HTMLElement | null>) {
     if (!el) return
     const onWheel = (e: WheelEvent) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
+      // A lesson list inside a day owns vertical wheel gestures, including at
+      // its ends (overscroll-behavior: contain). Do not turn them into date changes.
+      let target = e.target instanceof Element ? e.target : null
+      while (target && target !== el) {
+        if (target.scrollHeight > target.clientHeight + 1
+          && /^(auto|scroll)$/.test(getComputedStyle(target).overflowY)) return
+        target = target.parentElement
+      }
       const max = el.scrollWidth - el.clientWidth
       if (max <= 1) return
       // deltaMode: 0 — пиксели, 1 — строки, 2 — экраны. Мыши часто шлют строки.

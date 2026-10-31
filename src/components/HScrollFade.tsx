@@ -32,6 +32,7 @@ export default function HScrollFade({
   padTop = HSCROLL_PAD_TOP,
   padBottom = 7,
   fadeWidth = 40,
+  fadeMode = 'overlay',
   style,
   scrollStyle,
 }: {
@@ -43,6 +44,8 @@ export default function HScrollFade({
   padTop?: number
   padBottom?: number
   fadeWidth?: number
+  /** Alpha fades preserve coloured backdrops without painting an edge surface. */
+  fadeMode?: 'overlay' | 'mask'
   /** Merged into the outer (relative) wrapper. */
   style?: React.CSSProperties
   /** Merged into the inner scrollable element. */
@@ -78,8 +81,12 @@ export default function HScrollFade({
     return () => observer.disconnect()
   })
 
+  const mask = fadeMode === 'mask'
+    ? `linear-gradient(to right, ${edges.left ? `transparent, #000 ${fadeWidth}px` : '#000 0'}, ${edges.right ? `#000 calc(100% - ${fadeWidth}px), transparent` : '#000 100%'})`
+    : undefined
+
   return (
-    <div style={{ position: 'relative', ...style }}>
+    <div style={{ maskImage: mask, WebkitMaskImage: mask, position: 'relative', ...style }}>
       <div
         ref={ref}
         className="no-scrollbar"
@@ -101,20 +108,22 @@ export default function HScrollFade({
       {/* zIndex обязателен: вкладки внутри ряда сидят на zIndex 1–3 (пилюля,
           активная кнопка), и фейд без своего слоя уезжает ПОД текст — градиент
           есть, а на экране его не видно. */}
-      <div
-        style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none', zIndex: 5,
-          background: `linear-gradient(to right, ${fade}, transparent)`,
-          opacity: edges.left ? 1 : 0, transition: 'opacity 0.15s ease',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute', right: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none', zIndex: 5,
-          background: `linear-gradient(to left, ${fade}, transparent)`,
-          opacity: edges.right ? 1 : 0, transition: 'opacity 0.15s ease',
-        }}
-      />
+      {fadeMode === 'overlay' && <>
+        <div
+          style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none', zIndex: 5,
+            background: `linear-gradient(to right, ${fade}, transparent)`,
+            opacity: edges.left ? 1 : 0, transition: 'opacity 0.15s ease',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute', right: 0, top: 0, bottom: 0, width: fadeWidth, pointerEvents: 'none', zIndex: 5,
+            background: `linear-gradient(to left, ${fade}, transparent)`,
+            opacity: edges.right ? 1 : 0, transition: 'opacity 0.15s ease',
+          }}
+        />
+      </>}
     </div>
   )
 }

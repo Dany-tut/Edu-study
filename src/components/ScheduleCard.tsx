@@ -230,13 +230,15 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             )}
               </div>
             )
+            // The selected outline extends 4px; hover lifts a row another 2px.
+            // Keep 8px of scroll padding so both fit without being clipped.
             // The available height, rather than the lesson count, decides when
             // scrolling is needed: the compact seasonal card cannot fit two rows.
             return (
                 <ScrollFade
-                  maxHeight="100%" fadeHeight={22} bg="rgba(var(--glass-rgb), 0.85)" scrollClassName="no-scrollbar"
-                  style={{ flex: 1, minHeight: 0, marginInline: -8, marginBlock: -4 }}
-                  scrollStyle={{ height: '100%', paddingInline: 8, paddingBlock: 4 }}
+                  maxHeight="100%" fadeMode="mask" fadeHeight={22} scrollClassName="no-scrollbar"
+                  style={{ flex: 1, minHeight: 0, marginInline: -8, marginBlock: -8 }}
+                  scrollStyle={{ height: '100%', paddingInline: 8, paddingBlock: 8 }}
                 >
                   {lessonsList}
                 </ScrollFade>
@@ -257,7 +259,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
           {dateHeader(11, 8)}
           <div className="flex flex-col gap-2" style={{ minHeight: 0 }}>
             {day.lessons.length > 0 ? (
-              <ScrollFade maxHeight="100%" fadeHeight={18} bg="rgba(var(--glass-rgb), 0.80)" scrollClassName="no-scrollbar" style={{ maxHeight: 146 }} scrollStyle={{ paddingBottom: 4 }}>
+              <ScrollFade maxHeight="100%" fadeMode="mask" fadeHeight={18} scrollClassName="no-scrollbar" style={{ maxHeight: 146 }} scrollStyle={{ paddingBottom: 4 }}>
               <div className="flex flex-col gap-2">
               {day.lessons.slice(0, 2).map(lesson => (
                 <div key={lesson.id}>

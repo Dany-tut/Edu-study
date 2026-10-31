@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 /**
  * Wraps a scrollable list with top/bottom gradient fades that appear only
@@ -18,6 +18,7 @@ export default function ScrollFade({
   maxHeight,
   bg = 'var(--color-bg)',
   fadeHeight = 24,
+  fadeMode = 'overlay',
   scrollClassName,
   style,
   scrollStyle,
@@ -28,6 +29,8 @@ export default function ScrollFade({
   maxHeight: number | string
   bg?: string
   fadeHeight?: number
+  /** Fade content alpha instead of covering a translucent surface with colour. */
+  fadeMode?: 'overlay' | 'mask'
   scrollClassName?: string
   /** Merged into the outer (relative) wrapper. */
   style?: React.CSSProperties
@@ -36,6 +39,7 @@ export default function ScrollFade({
   /** Float a thin thumb over the content instead of reserving a native gutter. */
   overlayScrollbar?: boolean
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ top: false, bottom: false })
   const [metrics, setMetrics] = useState({ scrollTop: 0, scrollHeight: 0, clientHeight: 0 })
   const [thumbVisible, setThumbVisible] = useState(false)
@@ -53,6 +57,17 @@ export default function ScrollFade({
       ))
     }
   }
+
+  // Recheck after layout/viewport changes, not just after the first scroll.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    update(el)
+    const observer = new ResizeObserver(() => update(el))
+    observer.observe(el)
+    for (const child of Array.from(el.children)) observer.observe(child)
+    return () => observer.disconnect()
+  })
 
   function onScroll(el: HTMLElement) {
     update(el)
@@ -74,26 +89,32 @@ export default function ScrollFade({
     ? ['no-scrollbar', scrollClassName].filter(Boolean).join(' ')
     : scrollClassName
 
+  const mask = fadeMode === 'mask'
+    ? `linear-gradient(to bottom, ${edges.top ? `transparent, #000 ${fadeHeight}px` : '#000 0'}, ${edges.bottom ? `#000 calc(100% - ${fadeHeight}px), transparent` : '#000 100%'})`
+    : undefined
+
   return (
-    <div style={{ position: 'relative', ...style }}>
+    <div style={{ maskImage: mask, WebkitMaskImage: mask, position: 'relative', ...style }}>
       <div
         className={innerClass}
-        ref={el => { if (el) update(el) }}
+        ref={scrollRef}
         onScroll={e => onScroll(e.currentTarget)}
         style={{ maxHeight, overflowY: 'auto', overscrollBehavior: 'contain', ...scrollStyle }}
       >
         {children}
       </div>
-      <div style={{
-        position: 'absolute', top: -8, left: 0, right: 0, height: fadeHeight + 8, pointerEvents: 'none',
-        background: `linear-gradient(to bottom, ${bg}, transparent)`,
-        opacity: edges.top ? 1 : 0, transition: 'opacity 0.15s ease',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: -8, left: 0, right: 0, height: fadeHeight + 8, pointerEvents: 'none',
-        background: `linear-gradient(to top, ${bg}, transparent)`,
-        opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.15s ease',
-      }} />
+      {fadeMode === 'overlay' && <>
+        <div style={{
+          position: 'absolute', top: -8, left: 0, right: 0, height: fadeHeight + 8, pointerEvents: 'none',
+          background: `linear-gradient(to bottom, ${bg}, transparent)`,
+          opacity: edges.top ? 1 : 0, transition: 'opacity 0.15s ease',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: -8, left: 0, right: 0, height: fadeHeight + 8, pointerEvents: 'none',
+          background: `linear-gradient(to top, ${bg}, transparent)`,
+          opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.15s ease',
+        }} />
+      </>}
       {overlayScrollbar && overflowing && (
         <div style={{
           position: 'absolute', top: thumbTop, right: 2, width: 5, height: thumbH,
