@@ -15,6 +15,7 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
 import { useT, t, useTc } from '../../lib/i18n'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
+import type { BasicAnswerRow, BasicAnswersPayload } from '../../lib/basicAnswers'
 import AiGradeCard from '../../components/teacher/AiGradeCard'
 import { useAiGrades, confirmAiGrade } from '../../lib/useAiGrades'
 import { alertDialog } from '../../components/ConfirmHost'
@@ -444,6 +445,30 @@ export default function TeacherHomeworkReviewPage() {
 
   const student = submitters[idx]
   const currentSubmission = subByStudent.get(student?.id)
+  // Older submissions may not contain the Testly reference in their answer
+  // snapshot. The current assignment still has the test IDs, so query Testly
+  // by student identity and show those attempts alongside any saved answers.
+  const currentAnswers: BasicAnswersPayload | null = (() => {
+    const saved = currentSubmission?.answers ?? null
+    const savedTestIds = new Set(saved?.rows.flatMap(row => row.testly ? [row.testly.testId] : []) ?? [])
+    const addedRows: BasicAnswerRow[] = (hw?.basicTasks ?? []).flatMap((raw, index) => {
+      if (!raw || typeof raw !== 'object') return []
+      const task = raw as { type?: string; question?: string; testly?: { id?: string; title?: string } }
+      const testId = task.type === 'testly' ? task.testly?.id : undefined
+      if (!testId || savedTestIds.has(testId)) return []
+      savedTestIds.add(testId)
+      return [{
+        n: (saved?.rows.length ?? 0) + index + 1,
+        prompt: task.question?.trim() || task.testly?.title || 'Тест из Тестли',
+        type: 'testly', answer: '', verdict: 'empty', testly: { testId },
+      }]
+    })
+    if (!saved && addedRows.length === 0) return null
+    return {
+      v: 'basic-1', gradable: saved?.gradable ?? 0, correct: saved?.correct ?? 0,
+      rows: [...(saved?.rows ?? []), ...addedRows],
+    }
+  })()
   const reviewed = currentSubmission?.verdict === 'accepted' || currentSubmission?.verdict === 'returned'
   const aiGrade = currentSubmission ? aiByProgress.get(currentSubmission.id) : undefined
   const draftKey = `hwReview:${hw.id}:${student.id}`
@@ -681,8 +706,8 @@ export default function TeacherHomeworkReviewPage() {
                   {/* Ответы базового уровня. У сдач, сделанных до появления
                       снимка, их нет — там честно говорим, что показать нечего,
                       вместо прежних выдуманных «solution.pdf». */}
-                  {currentSubmission?.answers
-                    ? <BasicAnswersList payload={currentSubmission.answers} studentId={student.id} />
+                  {currentAnswers
+                    ? <BasicAnswersList payload={currentAnswers} studentId={student.id} />
                     : !currentSubmission?.comment && (
                       <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)' }}>
                         {t('Ответы этой сдачи не сохранились — она сделана до того, как работа начала доезжать до преподавателя.')}

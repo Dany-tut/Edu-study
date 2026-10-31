@@ -23,6 +23,7 @@ import { useTeacherAccess } from '../../../lib/teacherAccess'
 import { subjectNamesFromStored } from '../../../lib/subjects'
 import TeacherSubjectsField from '../TeacherSubjectsField'
 import { Alert } from '../../Alert'
+import TeacherLoginMethods from '../TeacherLoginMethods'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -172,6 +173,8 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
         <StatTile icon={<ClipboardCheck size={18} />} value={m.pending} label={m.pending > 0 ? t('Ждут проверки') : t('Всё проверено')} bg="var(--color-yellow-soft)" fg="var(--color-yellow-text)" />
 
         {onOpenJournal && <button type="button" onClick={() => { tactile(); onOpenJournal() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ClipboardCheck size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Журнал')}</span><ChevronRight size={18} /></button>}
+
+        <div style={{ gridColumn: 'span 2' }}><TeacherLoginMethods /></div>
 
         {/* Settings — span 2, grouped icon-list (C-style) */}
         <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>

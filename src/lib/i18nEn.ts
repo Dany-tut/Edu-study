@@ -10,6 +10,28 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Пока недоступно": "Currently unavailable",
+  "Подключено": "Connected",
+  "Почта": "Email",
+  "Способы входа": "Sign-in methods",
+  "Способ входа подключён к вашему аккаунту.": "The sign-in method is connected to your account.",
+  "Подключите Google или Apple, чтобы входить в этот же аккаунт. Ученики, курсы и расписание сохранятся.": "Connect Google or Apple to sign in to this account. Your students, courses and schedule will be kept.",
+  "Вход по почте доступен на экране входа.": "Email sign-in is available on the sign-in screen.",
+  "Войдите в аккаунт ещё раз перед подключением.": "Sign in again before connecting.",
+  "Подключение способов входа пока недоступно. Обратитесь в поддержку.": "Connecting sign-in methods is currently unavailable. Contact support.",
+  "Не удалось подключить способ входа. Попробуйте ещё раз.": "Could not connect the sign-in method. Try again.",
+  "Время подключения истекло. Попробуйте ещё раз из профиля.": "The connection expired. Try again from your profile.",
+  "Подключение вернуло другой аккаунт. Войдите по почте в исходный профиль.": "A different account was returned. Sign in to your original profile by email.",
+  "Не удалось открыть страницу подключения": "Could not open the connection page",
+  "Apple или Google не вернули данные входа": "Apple or Google did not return sign-in data",
+  "Войти по коду из письма": "Sign in with an email code",
+  "Введите код из письма:": "Enter the code sent to:",
+  "Код из письма": "Email code",
+  "Отправить код": "Send code",
+  "Отправить повторно через": "Resend in",
+  "Отправить код ещё раз": "Resend code",
+  "Изменить почту": "Change email",
+
   // — Файл урока ссылкой (components/teacher/LessonLinkAttach.tsx) —
   "или ссылкой на Диск": "or link from Drive",
   "Это не похоже на ссылку": "This doesn't look like a link",

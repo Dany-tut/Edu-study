@@ -26,9 +26,9 @@ import { btn } from '../../lib/pillStyles'
 import { fetchTestlyResults, plural, testlyPoints, testlyResultsUrl, type TestlyAttempt } from '../../lib/testlyModule'
 
 /** Балл теста из Тестли: свежий из Тестли, если спросили, иначе — на момент сдачи. */
-type TestlyLive = Pick<TestlyAttempt, 'got' | 'max' | 'pending' | 'submittedAt'>
+type TestlyLive = Pick<TestlyAttempt, 'got' | 'max' | 'pending' | 'submittedAt'> & { state?: TestlyAttempt['state'] }
 const testlyOf = (row: BasicAnswerRow, live?: TestlyLive): TestlyLive | null =>
-  live?.max != null ? live : row.testly?.max != null ? row.testly : null
+  live?.state === 'submitted' || live?.max != null ? live : row.testly?.max != null ? row.testly : null
 
 /** Цвета вердикта — те же три состояния, что и у ученика в разборе. */
 function verdictStyle(v: BasicAnswerVerdict): { bg: string; fg: string; Icon: typeof CheckCircle2 } {
@@ -107,7 +107,8 @@ function AnswerCard({ row, live }: { row: BasicAnswerRow; live?: TestlyLive }) {
               ? t('Вторая часть ждёт вашей проверки в Тестли')
               : tl?.submittedAt
                 ? `${t('Сдан')} ${new Date(tl.submittedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`
-                : row.answer ? t('Балл в Тестли скрыт от ученика') : t('Тест ещё не сдан')}
+                : tl?.state === 'submitted' ? t('Тест сдан')
+                  : row.answer ? t('Балл в Тестли скрыт от ученика') : t('Тест ещё не сдан')}
           </span>
           <a href={testlyResultsUrl(row.testly.testId)} target="_blank" rel="noopener noreferrer" style={{
             ...btn('S', tl?.pending ? 'primary' : 'secondary'), display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none',
@@ -160,22 +161,47 @@ export default function BasicAnswersList({ payload, studentId }: { payload: Basi
   const [showPassed, setShowPassed] = useState(false)
   // Тесты из Тестли: балл переспрашиваем — у теста с ручной частью итог
   // приходит после проверки в Тестли, уже после сдачи домашки.
-  const [live, setLive] = useState<Record<string, TestlyLive>>({})
-  const testlyIds = payload.rows.map(r => r.testly?.testId).filter((x): x is string => !!x)
+  const [liveState, setLive] = useState<{ key: string; items: Record<string, TestlyLive> }>({ key: '', items: {} })
+  const testlyIds = [...new Set(payload.rows.map(r => r.testly?.testId).filter((x): x is string => !!x))]
   const testlyKey = testlyIds.join(',')
+  const contextKey = `${studentId ?? ''}:${testlyKey}`
+  const live = liveState.key === contextKey ? liveState.items : {}
+  const allTestlySubmitted = testlyIds.length > 0 && testlyIds.every(id => live[id]?.state === 'submitted')
   useEffect(() => {
-    if (!studentId || !testlyKey) return
+    if (!studentId || !testlyKey || allTestlySubmitted) return
     let alive = true
-    fetchTestlyResults(testlyKey.split(',').map(testId => ({ testId, studentId })))
-      .then(items => {
+    let busy = false
+    const refresh = async () => {
+      if (busy) return
+      busy = true
+      try {
+        const items = await fetchTestlyResults(testlyKey.split(',').map(testId => ({ testId, studentId })))
         if (!alive) return
         const m: Record<string, TestlyLive> = {}
-        for (const x of items) if (x.state === 'submitted') m[x.testId] = { got: x.got, max: x.max, pending: x.pending, submittedAt: x.submittedAt }
-        setLive(m)
-      })
-      .catch(() => { /* Тестли не ответил — остаётся балл на момент сдачи */ })
-    return () => { alive = false }
-  }, [studentId, testlyKey])
+        for (const x of items) m[x.testId] = {
+          state: x.state, got: x.got, max: x.max, pending: x.pending, submittedAt: x.submittedAt,
+        }
+        setLive({ key: contextKey, items: m })
+      } catch {
+        // Тестли не ответил — остаётся балл на момент сдачи; повторим позже.
+      } finally {
+        busy = false
+      }
+    }
+    void refresh()
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void refresh()
+    }, 20_000)
+    const onFocus = () => { if (document.visibilityState === 'visible') void refresh() }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onFocus)
+    return () => {
+      alive = false
+      window.clearInterval(interval)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onFocus)
+    }
+  }, [studentId, testlyKey, contextKey, allTestlySubmitted])
   const testlyRows = payload.rows.filter(r => r.testly)
   // В «Автопроверке» тест из Тестли не считаем — у него своя плашка с баллом.
   const testlyCredit = testlyRows.reduce((s, r) => {

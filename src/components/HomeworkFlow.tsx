@@ -4,7 +4,7 @@ import { EMOJI_STEPS } from './homeworkSteps'
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
-  CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
+  CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap, BookOpen,
   Lock, Send, Trophy, Image as ImageIcon, PenLine, X,
   ChevronUp, ChevronDown, Eye, Mic, MicOff, Library, RotateCcw, ArrowRight, Volume2,
 } from './icons/appIcons'

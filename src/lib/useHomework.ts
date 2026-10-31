@@ -312,6 +312,7 @@ function mapRow(h: any, counts?: { submitted: number; reviewed: number }): HwAss
     reviewedCount,
     status: h.status ?? 'active',
     lessonId: h.lesson_id ?? null,
+    basicTasks: Array.isArray(h.basic_tasks) ? h.basic_tasks : [],
     hardTaskIds: Array.isArray(h.hard_task_ids) ? h.hard_task_ids : [],
     hardTotal: h.hard_total ?? (Array.isArray(h.hard_task_ids) ? h.hard_task_ids.length : 0),
     isIndividual: h.groups?.is_individual ?? false,

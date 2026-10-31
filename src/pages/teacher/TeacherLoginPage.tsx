@@ -7,6 +7,7 @@ import { authErrorRu } from '../../lib/authErrors'
 import { AlertStack } from '../../components/Alert'
 import IskraMark from '../../components/landing/IskraMark'
 import SocialLoginButtons from '../../components/SocialLoginButtons'
+import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogin'
 import { Capacitor } from '@capacitor/core'
 
 export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
@@ -234,6 +235,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         </form>
 
         {mode === 'login' && <SocialLoginButtons role="teacher" />}
+        {mode === 'login' && <TeacherEmailCodeLogin onLogin={onLogin} />}
 
         {mode !== 'newpassword' && (
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>

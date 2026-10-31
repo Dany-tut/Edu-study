@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Apple } from 'lucide-react'
 import { startSocialLogin, type LoginRole } from '../lib/socialAuth'
 import { useT } from '../lib/i18n'
 import { Alert } from './Alert'
@@ -56,7 +55,7 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
             opacity: busy && busy !== id ? 0.55 : 1,
           }}
         >
-          {id === 'apple' ? <Apple size={19} fill="currentColor" /> : <GoogleMark />}
+          {id === 'apple' ? <AppleMark /> : <GoogleMark />}
           {busy === id ? t('Открываем…') : `${t('Продолжить с')} ${label}`}
         </button>
       ))}
@@ -65,7 +64,15 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
   )
 }
 
-function GoogleMark() {
+export function AppleMark() {
+  return (
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12.15 6.9c-.95 0-2.42-1.08-3.96-1.05-2.04.03-3.91 1.18-4.96 3.01-2.12 3.67-.54 9.09 1.52 12.07 1.01 1.45 2.21 3.08 3.8 3.02 1.52-.06 2.1-.98 3.95-.98 1.83 0 2.36.98 3.95.95 1.64-.03 2.68-1.49 3.68-2.95 1.16-1.69 1.64-3.33 1.67-3.41-.04-.01-3.19-1.23-3.23-4.87-.03-3.05 2.49-4.51 2.6-4.57-1.42-2.08-3.63-2.31-4.4-2.36-2-.16-3.68 1.13-4.62 1.13Zm3.3-3.92c.83-1 1.39-2.38 1.23-3.76-1.34-.07-2.96.89-3.92 2.04-.85 1.01-1.6 2.41-1.4 3.76 1.49.11 3.02-.76 4.09-2.04Z" transform="translate(-.4 1.2) scale(.96)" />
+    </svg>
+  )
+}
+
+export function GoogleMark() {
   return (
     <svg aria-hidden="true" width="19" height="19" viewBox="0 0 48 48">
       <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.1v5.1h6.6c3.9-3.6 6.1-8.8 6.1-14.9Z" />

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { useSeason, seasonImg, type SeasonVariant } from '../../lib/season'
 import { useT } from '../../lib/i18n'
 import './season.css'
@@ -86,11 +87,12 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
         </div>
       )}
       {s.variant !== 'candy' || compact ? <img aria-hidden src={seasonImg(c.img)} alt="" className="season-hero__img season-float" /> : null}
-      {pictureOnly && s.variant === 'candy' && (
-        <>
+      {pictureOnly && s.variant === 'candy' && createPortal(
+        <div aria-hidden className="season-corner-decor">
           <img aria-hidden src={seasonImg('spider-web')} alt="" className="season-hero__spider" />
           <img aria-hidden src={seasonImg('skeleton')} alt="" className="season-hero__skeleton" />
-        </>
+        </div>,
+        document.body,
       )}
     </div>
   )

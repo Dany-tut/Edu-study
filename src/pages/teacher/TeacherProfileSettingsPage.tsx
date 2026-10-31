@@ -20,6 +20,7 @@ import { useTeacherTz, browserTz, tzShortLabel, TZ_OPTIONS } from '../../lib/tea
 import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
 import { Alert } from '../../components/Alert'
 import TeacherModules from '../../components/teacher/TeacherModules'
+import TeacherLoginMethods from '../../components/teacher/TeacherLoginMethods'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
@@ -378,6 +379,7 @@ export default function TeacherProfileSettingsPage() {
         </div>
 
         {/* Модули — подключаемые продукты (Тестли): кнопки «Из Тестли» в ДЗ и уроках. */}
+        <div style={{ marginTop: 20 }}><TeacherLoginMethods /></div>
         <TeacherModules />
 
         {/* Цвета предметов — сохраняются сразу по выбору, отдельно от имени:

@@ -102,6 +102,8 @@ export type HomeworkItem = {
   tasks?: HwTask[]
   // Linked course lesson (lessons.id) — lets the teacher reopen it to re-review.
   lessonId?: string | null
+  /** Current authored tasks, used to query live Testly attempts for older submissions. */
+  basicTasks?: unknown[]
   // Bank task ids that make up the optional "Сложное задание" (hard layer).
   hardTaskIds?: number[]
   // Total hard tasks (bank + custom) — drives the "Сложное" segment even when

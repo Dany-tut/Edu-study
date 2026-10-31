@@ -35,7 +35,7 @@ import type { Session } from '@supabase/supabase-js'
 import { Capacitor } from '@capacitor/core'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
-import { finishSocialLogin, initializeNativeOAuth } from './lib/socialAuth'
+import { finishSocialLogin, initializeNativeOAuth, hasPendingSocialAuth } from './lib/socialAuth'
 import {
   bootTrainerLink, parseTrainerLink, queueTrainerLink, stashTrainerLink, takeStashedTrainerLink,
   trainerHash,
@@ -156,20 +156,20 @@ function AppRoutes() {
     void initializeNativeOAuth(notifyError).then(cleanup => { dispose = cleanup })
 
     const finishWebOAuth = async () => {
-      if (IS_NATIVE || completed || !localStorage.getItem('iskra:oauth-role')) return
+      if (IS_NATIVE || completed || !hasPendingSocialAuth()) return
       completed = true
-      try { await finishSocialLogin() }
+      try { completed = await finishSocialLogin() }
       catch (error) {
         completed = false
         notifyError(error instanceof Error ? error.message : 'Не удалось завершить вход')
       }
     }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_IN') window.setTimeout(() => { void finishWebOAuth() }, 0)
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') window.setTimeout(() => { void finishWebOAuth() }, 0)
     })
     if (!IS_NATIVE) {
       void supabase.auth.getSession().then(({ data }) => {
-        if (data.session && localStorage.getItem('iskra:oauth-role')) void finishWebOAuth()
+        if (data.session && hasPendingSocialAuth()) void finishWebOAuth()
       })
     }
     return () => { subscription.unsubscribe(); dispose?.() }
