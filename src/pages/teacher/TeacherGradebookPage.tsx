@@ -4,17 +4,20 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Check } from '../../components/icons/appIcons'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
-import type { Group } from '../../data/teacherMockData'
+import type { Group, Student } from '../../data/teacherMockData'
 import { expandToPerson } from '../../lib/personGroups'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { Alert, AlertStack } from '../../components/Alert'
-import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster, useJournalPending } from '../../lib/useGroups'
+import { useGroups, useAllStudents, reloadAllStudents, useAttendance, useGroupLessons, useLessonRoster, useJournalPending } from '../../lib/useGroups'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
 import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 import { btn } from '../../lib/pillStyles'
+import { supabase } from '../../lib/supabase'
+import { average, studentJournalStats, journalLessonRef, journalWorkKind, journalResult, type JournalAttendance, type JournalProgress, type JournalLesson } from '../../lib/gradebookStats'
+import type { AttendanceRecord } from '../../lib/useGroups'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -97,11 +100,18 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 }
 
 // ─── Attendance tab ────────────────────────────────────────────────────────────
-function AttendanceTab({ groupId }: { groupId: string | null }) {
+function StudentName({ student }: { student: Student }) {
   const t = useT()
   const { tn } = useTc()
-  const { students: groupStudents } = useStudents(groupId)
-  const { records } = useAttendance(groupId)
+  const open = useTeacher(s => s.openStudentDashboard)
+  return <button type="button" onClick={() => open(student.id, student.groupId)} style={{ border: 0, background: 'transparent', color: 'var(--color-accent)', font: 'inherit', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
+    {tn(student.name) || student.email || t('Без имени')}
+  </button>
+}
+
+function AttendanceTab({ students: groupStudents, records }: { students: Student[]; records: AttendanceRecord[] }) {
+  const t = useT()
+  const { tn } = useTc()
 
   // Derive sorted unique dates from real records
   const dates = Array.from(new Set(records.map(r => r.lessonDate))).sort()
@@ -152,7 +162,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                 const initials = tn(student.name).split(' ').map(p => p[0]).join('').slice(0, 2)
                 const studentRecords = records.filter(r => r.studentId === student.id)
                 const presentCount = studentRecords.filter(r => r.present).length
-                const pct = dates.length ? Math.round((presentCount / dates.length) * 100) : null
+                const pct = studentRecords.length ? Math.round((presentCount / studentRecords.length) * 100) : null
 
                 return (
                   <tr
@@ -174,7 +184,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                           <AvatarPhotoFill path={student.avatarPath} />
                         </div>
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                          {tn(student.name)}
+                          <StudentName student={student} />
                         </span>
                       </div>
                     </td>
@@ -227,113 +237,83 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
 }
 
 // ─── Scores tab ────────────────────────────────────────────────────────────────
-function ScoresTab({ groupId }: { groupId: string | null }) {
+function CourseHistory({ students, progress, lessons }: { students: Student[]; progress: JournalProgress[]; lessons: JournalLesson[] }) {
   const t = useT()
   const { tn } = useTc()
-  const { students: groupStudents } = useStudents(groupId)
-
-  const avgHw = Math.round(groupStudents.reduce((a, s) => a + s.hwScore, 0) / groupStudents.length)
-  const avgTest = Math.round(groupStudents.reduce((a, s) => a + s.testScore, 0) / groupStudents.length)
-  const trials = groupStudents.filter(s => s.trialScore !== null)
-  const avgTrial = trials.length ? Math.round(trials.reduce((a, s) => a + (s.trialScore ?? 0), 0) / trials.length) : null
-
-  return (
-    <Card>
-      <ScrollFadeTable>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: 'var(--color-bg-2)' }}>
-              <th style={{
-                padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
-                color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
-                position: 'sticky', left: 0, background: 'var(--color-bg-2)', zIndex: 1,
-              }}>
-                {t('Студент')}
-              </th>
-              {['ДЗ', 'Тесты', 'Пробник', 'Цель', 'Посещ.'].map(col => (
-                <th key={col} style={{
-                  padding: '10px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700,
-                  color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
-                }}>
-                  {t(col)}
-                </th>
-              ))}
+  const metadata = new Map(lessons.map(l => [l.short_id, l]))
+  const statusLabels: Record<string, string> = { completed: 'Принято', submitted: 'Сдано', returned: 'На доработке', current: 'В процессе', locked: 'Не начат', unviewed: 'Не просмотрен' }
+  const kindLabels = { course: 'Урок курса', homework: 'ДЗ', hard: 'Сложная часть', video: 'Запись урока' }
+  return <section style={{ padding: 16, borderTop: '1px solid var(--color-border-soft)' }}>
+    <h3 style={{ margin: '0 0 12px', fontSize: 14 }}>{t('Прогресс по урокам курса')}</h3>
+    {students.map(student => {
+      const records = progress.filter(r => r.student_id === student.id && !r.lesson_ref.startsWith('hw-') && journalWorkKind(r.lesson_ref))
+        .sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? '') || a.lesson_ref.localeCompare(b.lesson_ref))
+      return <details key={student.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--color-border-soft)' }}>
+        <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>{tn(student.name) || student.email || t('Без имени')} · {records.length ? t('История прогресса') : t('Пока нет прогресса по курсу')}</summary>
+        {records.length > 0 && <ScrollFadeTable><table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: 12, textAlign: 'left' }}>
+          <thead><tr>{['Урок', 'Тип работы', 'Статус', 'Результат', 'Обновлено'].map(label => <th key={label} style={{ padding: 8, color: 'var(--color-text-3)' }}>{t(label)}</th>)}</tr></thead>
+          <tbody>{records.map(row => {
+            const kind = journalWorkKind(row.lesson_ref)!
+            const lesson = metadata.get(journalLessonRef(row.lesson_ref))
+            const result = journalResult(row)
+            const videoDone = result.videoCompleted
+            const label = kind === 'video' ? (videoDone ? 'Просмотрено' : 'Нет отметки о просмотре') : row.status === 'returned' ? 'На доработке' : result.pending ? 'На проверке' : statusLabels[row.status] ?? row.status
+            const date = row.updated_at ? new Date(row.updated_at) : null
+            return <tr key={row.lesson_ref} style={{ borderTop: '1px solid var(--color-border-soft)' }}>
+              <td style={{ padding: 8 }}>{lesson?.title || journalLessonRef(row.lesson_ref)}</td>
+              <td style={{ padding: 8 }}>{t(kind === 'course' && row.lesson_ref.endsWith('~rec') ? 'ДЗ к записи' : kind === 'course' && lesson?.kind === 'test' ? 'Тест курса' : kindLabels[kind])}{row.lesson_ref.includes('~') && !row.lesson_ref.includes('~rec') ? ` · ${t('Дополнительное ДЗ')}` : ''}</td>
+              <td style={{ padding: 8 }}>{t(label)}</td>
+              <td style={{ padding: 8 }}>
+                {kind === 'video' ? '—' : kind === 'hard' ? row.status === 'completed' && row.score !== null ? `${row.score} ${t('баллов')}` : '—'
+                  : result.percent === null ? '—' : <span>{result.percent}%{result.pending ? ` · ${t('Предварительный результат')}` : ''}</span>}
+                {result.points.map((score, i) => <div key={i} style={{ marginTop: 4, color: 'var(--color-text-3)' }}>{t('Тестли')}: {score.got} / {score.max}{score.pending ? ` · ${t('На проверке')}` : ''}</div>)}
+              </td>
+              <td style={{ padding: 8, whiteSpace: 'nowrap' }}>{date && Number.isFinite(date.getTime()) ? date.toLocaleString() : '—'}</td>
             </tr>
-          </thead>
-          <tbody>
-            {groupStudents.map((student) => {
-              const initials = tn(student.name).split(' ').map(p => p[0]).join('').slice(0, 2)
-              return (
-                <tr
-                  key={student.id}
-                  style={{ borderBottom: '1px solid var(--color-border-soft)' }}
-                >
-                  <td style={{
-                    padding: '10px 16px', position: 'sticky', left: 0,
-                    background: 'rgba(var(--glass-rgb), 0.95)', zIndex: 1,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{
-                        position: 'relative', width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                        background: 'var(--grad-purple)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 10, fontWeight: 700, color: '#fff',
-                      }}>
-                        {initials}
-                        <AvatarPhotoFill path={student.avatarPath} />
-                      </div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                        {tn(student.name)}
-                      </span>
-                    </div>
-                  </td>
-                  <td style={{ padding: '10px 16px', textAlign: 'center' }}><ScorePill value={student.hwScore} /></td>
-                  <td style={{ padding: '10px 16px', textAlign: 'center' }}><ScorePill value={student.testScore} /></td>
-                  <td style={{ padding: '10px 16px', textAlign: 'center' }}><ScorePill value={student.trialScore} /></td>
-                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
-                  </td>
-                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                    <span style={{
-                      fontSize: 13, fontWeight: 700,
-                      color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)',
-                    }}>
-                      {student.attendance}%
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
-            {/* Averages row */}
-            <tr style={{ background: 'var(--color-purple-soft)', borderTop: '2px solid var(--color-border-soft)' }}>
-              <td style={{
-                padding: '10px 16px', position: 'sticky', left: 0,
-                background: 'var(--color-purple-soft)', zIndex: 1,
-                fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
-              }}>
-                {t('Среднее')}
-              </td>
-              <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                <ScorePill value={avgHw} />
-              </td>
-              <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                <ScorePill value={avgTest} />
-              </td>
-              <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                <ScorePill value={avgTrial} />
-              </td>
-              <td style={{ padding: '10px 16px', textAlign: 'center' }}>—</td>
-              <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>
-                  {Math.round(groupStudents.reduce((a, s) => a + s.attendance, 0) / groupStudents.length)}%
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </ScrollFadeTable>
-    </Card>
-  )
+          })}</tbody>
+        </table></ScrollFadeTable>}
+      </details>
+    })}
+  </section>
+}
+
+function ScoresTab({ students, attendance, progress, lessons }: { students: Student[]; attendance: JournalAttendance[]; progress: JournalProgress[]; lessons: JournalLesson[] }) {
+  const t = useT()
+  const { groups } = useGroups()
+  const rows = students.map(student => ({ student, stats: studentJournalStats(student.id, attendance, progress) }))
+  const columns = ['Ученик', 'Группа', 'ДЗ, %', 'Результат курса, %', 'Сдано в курсе', 'Сложная часть', 'Принято', 'Сдано', 'На доработке', 'Тесты', 'Пробник', 'Цель', 'Посещ.', 'Занятий', 'Оценка за урок']
+  const cell: React.CSSProperties = { padding: '10px 16px', textAlign: 'center', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border-soft)' }
+  return <Card><ScrollFadeTable><table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <thead><tr style={{ background: 'var(--color-bg-2)' }}>{columns.map((label, i) => <th key={label} style={{ ...cell, fontSize: 11, color: 'var(--color-text-3)', ...(i === 0 ? { position: 'sticky', left: 0, zIndex: 1, background: 'var(--color-surface)', textAlign: 'left' } : {}) }}>{t(label)}</th>)}</tr></thead>
+    <tbody>{rows.map(({ student, stats }) => <tr key={student.id}>
+      <td style={{ ...cell, position: 'sticky', left: 0, zIndex: 1, background: 'var(--color-surface)', textAlign: 'left' }}><StudentName student={student} /></td>
+      <td style={cell}>{groups.find(g => g.id === student.groupId)?.name || t('Без группы')}</td>
+      <td style={cell}><ScorePill value={stats.hwScore} /></td>
+      <td style={cell}><ScorePill value={stats.courseScore} /></td>
+      <td style={cell}>{stats.courseSubmitted}</td>
+      <td style={cell}>{stats.hardTotal ? `${stats.hardCompleted} / ${stats.hardTotal}` : '—'}</td>
+      <td style={cell}>{stats.completed}</td><td style={cell}>{stats.pending}</td><td style={cell}>{stats.returned}</td>
+      <td style={cell}><ScorePill value={student.testScore} /></td>
+      <td style={cell}><ScorePill value={student.trialScore} /></td>
+      <td style={cell}>{student.desiredScore || '—'}</td>
+      <td style={cell}>{stats.attendance === null ? '—' : `${stats.attendance}%`}</td>
+      <td style={cell}>{stats.lessons}</td><td style={cell}>{stats.grade ?? '—'}</td>
+    </tr>)}</tbody>
+    {rows.length > 0 && <tfoot><tr style={{ background: 'var(--color-purple-soft)' }}>
+      <td style={cell}>{t('Среднее')}</td><td style={cell}>—</td>
+      <td style={cell}><ScorePill value={average(rows.map(r => r.stats.hwScore))} /></td>
+      <td style={cell}><ScorePill value={average(rows.map(r => r.stats.courseScore))} /></td>
+      <td colSpan={2} style={cell}>—</td>
+      <td colSpan={3} style={cell}>—</td>
+      <td style={cell}><ScorePill value={average(students.map(s => s.testScore))} /></td>
+      <td style={cell}><ScorePill value={average(students.map(s => s.trialScore))} /></td>
+      <td style={cell}>—</td><td style={cell}>{average(rows.map(r => r.stats.attendance)) === null ? '—' : `${average(rows.map(r => r.stats.attendance))}%`}</td>
+      <td style={cell}>—</td><td style={cell}>{average(rows.map(r => r.stats.grade)) ?? '—'}</td>
+    </tr></tfoot>}
+  </table></ScrollFadeTable>
+    <p style={{ padding: '0 16px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Результат курса — средний процент по сданным и принятым работам. Ожидающие ручной проверки и возвращённые работы не входят в среднее. Счётчики статусов включают ДЗ и работы курса.')}</p>
+    <CourseHistory students={students} progress={progress} lessons={lessons} />
+  </Card>
 }
 
 // ─── Lesson grading modal ──────────────────────────────────────────────────────
@@ -691,6 +671,52 @@ export default function TeacherGradebookPage() {
   const [gradeLessonId, setGradeLessonId] = useState<string | undefined>(undefined)
   const [journalReloadKey, setJournalReloadKey] = useState(0)
   const { groups } = useGroups()
+  const allStudents = useAllStudents()
+  const students = activeGroupId ? allStudents.filter(s => s.groupId === activeGroupId) : allStudents
+  const studentIds = JSON.stringify(students.map(s => s.id).sort())
+  const [journal, setJournal] = useState<{ attendance: JournalAttendance[]; progress: JournalProgress[]; lessons: JournalLesson[] } | null>(null)
+  const [dataError, setDataError] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    setJournal(null)
+    setDataError(false)
+    const ids: string[] = JSON.parse(studentIds)
+    async function readAll(table: string, columns: string) {
+      const rows: any[] = []
+      // Page and chunk explicitly: PostgREST otherwise silently truncates at 1000 rows.
+      for (let start = 0; start < ids.length; start += 100) {
+        for (let offset = 0; ; offset += 500) {
+          const { data, error } = await supabase.from(table).select(columns).in('student_id', ids.slice(start, start + 100)).order('student_id').order(table === 'lesson_attendance' ? 'lesson_date' : 'lesson_ref').range(offset, offset + 499)
+          if (error) throw error
+          rows.push(...(data ?? []))
+          if (!data || data.length < 500) break
+        }
+      }
+      return rows
+    }
+    Promise.all([
+      readAll('lesson_attendance', 'student_id, lesson_date, present, grade'),
+      readAll('lesson_progress', 'student_id, lesson_ref, status, score, attachments, updated_at'),
+    ]).then(async ([attendance, progress]) => {
+      if (cancelled) return
+      const refs = [...new Set((progress as JournalProgress[]).filter(r => journalWorkKind(r.lesson_ref) && !r.lesson_ref.startsWith('hw-')).map(r => journalLessonRef(r.lesson_ref)))]
+      const lessons: JournalLesson[] = []
+      for (let start = 0; start < refs.length; start += 100) {
+        if (cancelled) return
+        const { data, error } = await supabase.from('lessons').select('short_id, title, kind').in('short_id', refs.slice(start, start + 100))
+        if (error) throw error
+        lessons.push(...(data ?? []))
+      }
+      if (!cancelled) setJournal({ attendance, progress, lessons })
+    })
+      .catch(() => { if (!cancelled) setDataError(true) })
+    return () => { cancelled = true }
+  }, [studentIds, journalReloadKey])
+  useEffect(() => {
+    const refresh = () => { void reloadAllStudents(); setJournalReloadKey(k => k + 1) }
+    window.addEventListener('focus', refresh)
+    return () => window.removeEventListener('focus', refresh)
+  }, [])
   const regularGroups = groups.filter(g => !g.isIndividual)
   const individualGroups = groups.filter(g => g.isIndividual)
   const pendingJournals = useJournalPending(activeGroupId, journalReloadKey)
@@ -723,7 +749,7 @@ export default function TeacherGradebookPage() {
   const tabConfig: TabConfig = {
     tabs: [
       { id: 'attendance', label: t('Посещаемость') },
-      { id: 'scores', label: t('Оценки') },
+      { id: 'scores', label: t('Статистика') },
     ],
     activeTab,
     onTabChange: (id) => setActiveTab(id as 'attendance' | 'scores'),
@@ -786,9 +812,16 @@ export default function TeacherGradebookPage() {
         </motion.div>
       )}
 
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button type="button" aria-pressed={!activeGroupId} onClick={() => setActiveGroupId(null)} style={btn('S', activeGroupId ? 'secondary' : 'primary')}>{t('Все ученики')}</button>
+        <span style={{ color: 'var(--color-text-3)', fontSize: 13 }}>{t('Учеников')}: {students.length}</span>
+      </div>
       {/* Export row */}
       <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ flex: 1 }} />
+        <button type="button" disabled={!journal && !dataError} onClick={() => { void reloadAllStudents(); setJournalReloadKey(k => k + 1) }} style={btn('S', 'secondary')}>
+          {t('Обновить')}
+        </button>
         <motion.button
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
           style={btn('S', 'secondary')}
@@ -805,10 +838,13 @@ export default function TeacherGradebookPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.22, ease: 'easeOut' }}
       >
-        {activeTab === 'attendance'
-          ? <AttendanceTab groupId={activeGroupId} />
-          : <ScoresTab groupId={activeGroupId} />
-        }
+        {dataError ? <div role="alert">{t('Не удалось загрузить статистику')} <button type="button" onClick={() => setJournalReloadKey(k => k + 1)}>{t('Повторить')}</button></div>
+          : !journal ? <div role="status">{t('Загрузка…')}</div>
+          : students.length === 0 ? <Card><div style={{ padding: 24 }}>{t('Нет учеников')}</div></Card>
+          : activeTab === 'attendance'
+            ? <AttendanceTab students={students} records={journal.attendance.map(r => ({ studentId: r.student_id, lessonDate: r.lesson_date, present: r.present, grade: r.grade, lessonTitle: '' }))} />
+            : <ScoresTab students={students} attendance={journal.attendance} progress={journal.progress} lessons={journal.lessons} />}
+
       </motion.div>
 
       {/* Lesson grading modal */}
