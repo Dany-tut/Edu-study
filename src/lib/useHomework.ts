@@ -626,3 +626,33 @@ export async function reviewHomework(
   if (error) { console.error('[reviewHomework]', error); return false }
   return true
 }
+
+// Testly homework embedded in a course has no standalone `homework` row.
+// Read the actual submission, including independent students with no group.
+const courseTestlyQuery = createSharedQuery<Array<{
+  id: string; studentId: string; studentName: string; lessonRef: string;
+  score: number; payload: BasicAnswersPayload
+}>>(async () => {
+  const uid = await getOwnerId()
+  const { data, error } = await supabase.from('lesson_progress')
+    .select('id, student_id, lesson_ref, score, attachments, students!inner(name, created_by)')
+    .eq('students.created_by', uid).not('lesson_ref', 'like', 'hw-%')
+    .contains('attachments', { v: 'basic-1' }).in('status', ['submitted', 'returned', 'completed'])
+    .order('updated_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []).flatMap(row => {
+    const payload = parseBasicAnswers(row.attachments)
+    if (!payload?.rows.some(r => r.testly)) return []
+    return [{ id: row.id, studentId: row.student_id, studentName: (row.students as unknown as { name: string })?.name ?? '',
+      lessonRef: row.lesson_ref, score: row.score ?? 0, payload }]
+  })
+}, [], {
+  watch: reload => {
+    const channel = supabase.channel(`course-testly-${hardChannelSeq++}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => reload()).subscribe()
+    return () => { supabase.removeChannel(channel) }
+  },
+})
+export function useCourseTestlySubmissions() {
+  return useSharedQuery(courseTestlyQuery)
+}

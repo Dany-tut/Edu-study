@@ -1,3 +1,5 @@
+import BasicAnswersList from '../../components/teacher/BasicAnswersList'
+import { useCourseTestlySubmissions } from '../../lib/useHomework'
 import { LoopInlineIcon } from '../../components/icons/LoopIcon'
 import { ChevronDown as LoopInlineChevronDown } from '../../components/icons/appIcons'
 import { useState, useEffect } from 'react'
@@ -648,6 +650,7 @@ export default function TeacherHomeworkPage() {
   const individualGroups = groups.filter(g => g.isIndividual)
   const { homework, loading: hwLoading } = useHomework()
   const { submissions: hardSubs } = useHardSubmissions()
+  const { value: courseTestlySubs } = useCourseTestlySubmissions()
 
   // Selecting a merged 1:1 person card expands to the union of that person's
   // subject-groups, so the list shows химия + биология together.
@@ -747,6 +750,22 @@ export default function TeacherHomeworkPage() {
             onAction={openHomeworkCreate}
           />
         </motion.div>
+
+        {courseTestlySubs.length > 0 && (
+          <section style={{ display: 'grid', gap: 10 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('Тестли')} · {t('Домашки')}</h2>
+            {courseTestlySubs.map(sub => (
+              <Card key={sub.id}>
+                <details style={{ padding: 18 }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+                    {sub.studentName} · {sub.payload.rows.filter(r => r.testly).map(r => r.prompt).join(', ')} · {sub.score} / 100
+                  </summary>
+                  <div style={{ marginTop: 14 }}><BasicAnswersList payload={sub.payload} studentId={sub.studentId} /></div>
+                </details>
+              </Card>
+            ))}
+          </section>
+        )}
 
         {/* Нужно проверить — unified queue (basic + hard), urgent-first */}
         {queue.length > 0 && (
