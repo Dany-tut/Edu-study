@@ -192,7 +192,9 @@ html[data-season-variant="candy"] .stat-card--season-stars {
    и чуть выглядывает за верх. */
 html[data-season-variant="candy"] .stats-grid:not([data-triple]) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.75fr) !important; }
 html[data-season-variant="candy"] .stat-card--season-stars .season-stat-img {
-  position: absolute; right: -22px; bottom: 22px; height: 90% !important; max-height: clamp(90px, 24cqw, 150px);
+  /* The carousel clips its stage; keep the bucket within that stage on
+     narrower desktop windows while preserving the peek above the card. */
+  position: absolute; right: -8px; bottom: 22px; height: 90% !important; max-height: clamp(90px, 24cqw, 150px);
   filter: drop-shadow(0 12px 18px rgba(154, 58, 0, 0.3));
 }
 html[data-season-variant="candy"] .stat-card--season-stars .stat-value,
@@ -201,6 +203,19 @@ html[data-season-variant="candy"] .stat-card--season-stars .stat-label { color: 
 html[data-season-variant="candy"] .stat-card--season-stars .stat-value { position: static !important; }
 html[data-season-variant="candy"] .stat-card--season-stars .stat-value > span,
 html[data-season-variant="candy"] .stat-card--season-stars .stat-label { position: relative; z-index: 1; }
+
+/* At short desktop viewport heights, the fixed dashboard used to hide the
+   bottom of the track and seasonal corner art. Let the page itself scroll. */
+@media (min-width: 1024px) and (max-height: 760px) {
+  html[data-season] .dashboard-root--home {
+    height: 100vh;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    justify-content: flex-start;
+    padding-bottom: 32px;
+  }
+}
 /* Подписи в одну строку: плитки в теме уже, и «Средний балл» иначе ломался на две
    строки — подписи соседних плиток переставали стоять на одной линии. */
 html[data-season] .stat-label { white-space: nowrap; }

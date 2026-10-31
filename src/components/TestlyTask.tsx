@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, Clock, ExternalLink, ListChecks, Loader2, Play } from './icons/appIcons'
+import { Check, Clock, ExternalLink, ListChecks, Loader2, Play, RotateCcw } from './icons/appIcons'
 import { TESTLY_DONE_PREFIX, testlyAnswer, testlyDoneAt, testlyScoreOf, type TestlyRef, type TestlyScore } from '../data/taskTypes'
 import {
   fetchTestlyStatus, plural, startTestlyTest, testlyPoints, testlyReviewUrl, type TestlyAttempt,
@@ -7,13 +7,14 @@ import {
 import { playPop, vibrate } from '../lib/sound'
 import { useT, useLang } from '../lib/i18n'
 import { TestlyTile } from './TestlyMark'
+import { testlyPresentation } from '../lib/testlyPresentation'
 
 /*
  * Тест из Тестли в домашке ученика. Личная ссылка Тестли открывается внутри
  * карточки Искры, с сохранением ответов на стороне Тестли, — а сюда сам
  * приходит статус: начат («Продолжить тест»), сдан и балл «14 / 19» с разбором,
  * или часть ждёт проверки учителя. Статус спрашиваем при открытии, при
- * возвращении на вкладку и раз в 20 секунд, пока тест открыт у ученика.
+ * возвращении на вкладку и раз в пять секунд, пока тест открыт у ученика.
  *
  * Если Тестли недоступен (учитель отключил модуль, сеть) — запасной путь шага 1:
  * общая ссылка на тест и отметка «Я сдал тест».
@@ -43,13 +44,16 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
   })() : null
 
   // Свежие value/onChange без перезапуска опроса: колбэки домашки новые на каждый рендер.
+  const requestSeq = useRef(0)
   const live = useRef({ value, onChange, disabled, onReopen })
   live.current = { value, onChange, disabled, onReopen }
 
   const refresh = useCallback(async () => {
     if (!test?.id) return
+    const request = ++requestSeq.current
     try {
       const a = await fetchTestlyStatus(test.id, test.owner)
+      if (request !== requestSeq.current) return
       setAttempt(a); setOffline(false)
       const { value: v, onChange: change } = live.current
       if (a.state === 'started' && (testlyDoneAt(v) !== null || live.current.disabled)) {
@@ -58,16 +62,17 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
         return
       }
       if (a.state === 'submitted') {
+        setEmbedUrl(null)
         const fetchedScore: TestlyScore | null = a.got != null && a.max != null
           ? { got: a.got, max: a.max, pending: !!a.pending, ...(a.review ? { review: a.review } : {}) }
           : null
         // Ответы Testly могут на короткое время прийти без итоговых баллов
         // (например, пока пересчитывается оценка). Не затираем уже сохранённый балл.
-        const next = testlyAnswer(a.submittedAt ?? testlyDoneAt(v) ?? new Date().toISOString(), fetchedScore ?? testlyScoreOf(v))
+        const next = testlyAnswer(a.submittedAt ?? testlyDoneAt(v) ?? new Date().toISOString(), fetchedScore ?? (testlyScoreOf(v) ? { ...testlyScoreOf(v)!, pending: !!a.pending } : null))
         if (next !== v) change(next)
       }
     } catch {
-      setOffline(true)
+      if (request === requestSeq.current) setOffline(true)
     }
   }, [test?.id, test?.owner])
 
@@ -76,7 +81,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     const onFocus = () => { if (document.visibilityState === 'visible') void refresh() }
     window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onFocus)
-    return () => { window.removeEventListener('focus', onFocus); document.removeEventListener('visibilitychange', onFocus) }
+    return () => { requestSeq.current++; window.removeEventListener('focus', onFocus); document.removeEventListener('visibilitychange', onFocus) }
   }, [refresh])
 
   // Пока тест начат (или итог ждёт проверки учителя) — переспрашиваем сами.
@@ -118,19 +123,10 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     onChange(TESTLY_DONE_PREFIX + new Date().toISOString())
   }
 
-  const doneAt = attempt?.state === 'started' ? null : attempt?.state === 'submitted' ? (attempt.submittedAt ?? '') : testlyDoneAt(value)
-  const score: TestlyScore | null = attempt?.state === 'submitted'
-    ? (attempt.got != null && attempt.max != null ? { got: attempt.got, max: attempt.max, pending: !!attempt.pending, review: attempt.review } : null)
-    : attempt?.state === 'started' ? null : testlyScoreOf(value)
-  const started = doneAt === null && attempt?.state === 'started'
-  // Заполненность и оценка — разные величины. Прогресс показываем только
-  // по фактическому числу ответов, которое вернул Тестли.
-  const progressTotal = attempt?.total
-  const progressAnswered = attempt?.answered
-  const hasProgress = (started || doneAt !== null)
-    && typeof progressTotal === 'number' && Number.isFinite(progressTotal) && progressTotal > 0
-    && typeof progressAnswered === 'number' && Number.isFinite(progressAnswered)
-  const answered = hasProgress ? Math.max(0, Math.min(progressTotal!, progressAnswered!)) : 0
+  const { doneAt, score, started, pending, progress, percent } = testlyPresentation(attempt, value)
+  const statusLabel = offline ? t('Нет связи')
+    : doneAt !== null ? pending ? t('На проверке') : t('Тест сдан')
+    : started ? t('В процессе') : t('Не начат')
 
   const btn = (bg: string, fg: string) => ({
     display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
@@ -140,98 +136,77 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>{text}</span>
   )
 
-  let body
-  if (doneAt !== null) {
-    const pending = !!score?.pending
-    body = (
-      <div className="flex items-center" style={{ gap: 12, flexWrap: 'wrap' }}>
-        <span style={{
-          ...btn(pending ? 'var(--color-yellow-soft)' : 'var(--color-green-soft)', pending ? 'var(--color-yellow-text)' : 'var(--color-green-text)'),
-          cursor: 'default', fontVariantNumeric: 'tabular-nums',
-        }}>
-          {!pending && <Check size={14} />}
-          {score
-            ? pending
-              ? `${testlyPoints(score.got, score.max)} · ${t('автопроверка')}`
-              : `${testlyPoints(score.got, score.max)} ${t(plural(Math.round(score.max), 'балл', 'балла', 'баллов'))}`
-            : t('Тест сдан')}
-        </span>
-        {pending
-          ? side(t('Вторую часть проверяет преподаватель'))
-          : doneAt ? side(`${t('Сдан')} ${fmt(doneAt)}`) : null}
-        {score?.review && !pending && (
-          <a href={testlyReviewUrl(score.review)} target="_blank" rel="noopener noreferrer" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 12,
-            border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)',
-            color: 'var(--color-accent)', fontSize: 14, fontWeight: 600, textDecoration: 'none',
-          }}>
-            {t('Открыть разбор')} <ExternalLink size={13} />
-          </a>
-        )}
-      </div>
-    )
-  } else {
-    body = (
-      <>
-        {!started && (
-          <span style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
-            {t('Пройдите тест здесь, в Искре. Ответы сохраняются в Тестли на каждом шаге.')}
-          </span>
-        )}
-        <div className="flex items-center" style={{ gap: 12, flexWrap: 'wrap' }}>
-          {!disabled && !embedUrl && <button onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
-            {opening ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={14} />}
-            {started || opened ? t('Продолжить тест') : t('Начать тест')}
-          </button>}
-          {started && !offline && attempt?.startedAt && side(
-            `${t('Начат в')} ${fmt(attempt.startedAt, false)}${attempt.total ? ` · ${t('ответов')} ${attempt.answered ?? 0} ${t('из')} ${attempt.total}` : ''}`,
-          )}
-          {/* Запасной путь: Тестли не ответил — сдачу отмечает сам ученик, как на шаге 1. */}
-          {offline && opened && !embedUrl && (
-            <button onClick={mark} disabled={disabled} style={btn('var(--btn-green-bg)', '#fff')}>
-              <Check size={14} /> {t('Я сдал тест')}
-            </button>
-          )}
-        </div>
-      </>
-    )
-  }
-
-  const note = doneAt !== null
-    ? score?.pending
-      ? t('Итоговый балл придёт сам, когда преподаватель проверит вторую часть в Тестли.')
-      : score ? (score.review ? t('Баллы и разбор — из Тестли.') : t('Баллы — из Тестли.')) : t('Результат покажет преподаватель.')
-      : offline
-      ? t('Не удалось обновить статус теста. Искра проверит его ещё раз автоматически.')
-      : t('Балл придёт сюда сам, как только вы сдадите тест в Тестли.')
+  const note = offline
+    ? t('Не удалось обновить статус. Последние полученные данные сохранены; Искра проверит статус ещё раз автоматически.')
+    : doneAt !== null
+      ? pending
+        ? t('Итоговый балл придёт сам, когда преподаватель проверит вторую часть в Тестли.')
+        : score ? t('Баллы и результат — из Тестли.') : t('Результат покажет преподаватель.')
+      : t('Ответы сохраняются в Тестли на каждом шаге. Балл появится здесь после сдачи.')
 
   return (
     <div className="flex flex-col" style={{ gap: 10 }}>
       <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-input)' }}>
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, padding: '12px 16px',
           borderBottom: '1px solid var(--color-border-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
         }}>
-          <TestlyTile size={16} /> {t('Тестли')}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><TestlyTile size={18} /> {t('Тестли')}</span>
+          <span role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--color-text-2)' }}>
+            {doneAt !== null && !pending && !offline ? <Check size={14} /> : <Clock size={14} />} {statusLabel}
+          </span>
         </div>
         <div style={{ padding: '18px 14px', display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
-          <div style={{ display: 'flex', gap: 16, fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ListChecks size={14} style={{ color: 'var(--color-text-3)' }} /> {test.questions} {t(plural(test.questions, 'вопрос', 'вопроса', 'вопросов'))}</span>
             {test.minutes ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Clock size={14} style={{ color: 'var(--color-text-3)' }} /> {test.minutes} {t('мин')}</span> : null}
           </div>
-          {hasProgress && (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-2)' }}>
-                <span>{t('Ответов')} {answered} {t('из')} {progressTotal}</span>
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{Math.round(answered / progressTotal! * 100)}%</span>
+          {doneAt !== null && score && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16, width: '100%' }}>
+              <div>
+                <p style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{pending ? t('Баллы автопроверки') : t('Набрано баллов')}</p>
+                <p style={{ color: 'var(--color-text)', fontSize: 'clamp(22px, 5vw, 30px)', overflowWrap: 'anywhere', fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.3 }}>
+                  {testlyPoints(score.got, score.max)}
+                </p>
               </div>
-              <div role="progressbar" aria-label={t('Ответы в тесте')} aria-valuemin={0} aria-valuemax={progressTotal} aria-valuenow={answered}
-                style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
-                <div style={{ width: `${answered / progressTotal! * 100}%`, height: '100%', borderRadius: 'inherit', background: 'var(--color-accent)' }} />
+              <div>
+                <p style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{pending ? t('Предварительный результат') : t('Результат')}</p>
+                <p style={{ color: 'var(--color-text)', fontSize: 'clamp(22px, 5vw, 30px)', overflowWrap: 'anywhere', fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.3 }}>{percent}%</p>
               </div>
             </div>
           )}
-          {body}
+          {doneAt !== null && pending && <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('Вторую часть проверяет преподаватель')}</p>}
+          {progress && (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-2)' }}>
+                <span>{t('Ответов')} {progress.answered} {t('из')} {progress.total}</span>
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{t('Заполнено')} {progress.percent}%</span>
+              </div>
+              <div role="progressbar" aria-label={t('Ответы в тесте')} aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.answered}
+                style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
+                <div style={{ width: `${progress.percent}%`, height: '100%', borderRadius: 'inherit', background: 'var(--color-accent)' }} />
+              </div>
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {doneAt === null && !disabled && !embedUrl && (
+              <button type="button" onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
+                {opening ? <Loader2 size={14} /> : <Play size={14} />}
+                {opening ? t('Открываем тест…') : started || opened ? t('Продолжить тест') : t('Начать тест')}
+              </button>
+            )}
+            {doneAt !== null && score?.review && !pending && (
+              <a href={testlyReviewUrl(score.review)} target="_blank" rel="noopener noreferrer" style={{
+                ...btn('var(--color-purple-soft)', 'var(--color-purple-text)'), textDecoration: 'none', cursor: 'pointer',
+              }}>{t('Открыть разбор')} <ExternalLink size={14} /></a>
+            )}
+            {offline && <button type="button" onClick={() => void refresh()} style={{ ...btn('var(--color-bg-3)', 'var(--color-text)'), cursor: 'pointer' }}><RotateCcw size={14} />{t('Обновить статус')}</button>}
+            {started && attempt?.startedAt && side(`${t('Начат в')} ${fmt(attempt.startedAt, false)}`)}
+            {doneAt && side(`${t('Сдан')} ${fmt(doneAt)}`)}
+            {offline && opened && !embedUrl && doneAt === null && (
+              <button type="button" onClick={mark} disabled={disabled} style={btn('var(--btn-green-bg)', '#fff')}><Check size={14} /> {t('Я сдал тест')}</button>
+            )}
+          </div>
         </div>
       </div>
       {embedUrl && (

@@ -1,3 +1,4 @@
+import { fetchScheduleDays } from './lib/db'
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
@@ -225,7 +226,22 @@ function AppRoutes() {
       loadStudentData()
     }
     document.addEventListener('visibilitychange', onVisible)
+    // Teacher-only sessions cannot be subscribed to by students. Refresh just
+    // the calendar while visible so late attendance marks reach an open page.
+    let syncingAttendance = false
+    let disposed = false
+    const attendanceTimer = window.setInterval(async () => {
+      if (document.visibilityState !== 'visible' || syncingAttendance) return
+      syncingAttendance = true
+      try {
+        const scheduleDays = await fetchScheduleDays(sess.groupId, sess.id)
+        if (!disposed && scheduleDays.length && getStudentSession()?.id === sess.id) useStudentData.setState({ scheduleDays })
+      } catch (error) { console.error('[attendance sync]', error) }
+      finally { syncingAttendance = false }
+    }, 30_000)
     return () => {
+      disposed = true
+      window.clearInterval(attendanceTimer)
       supabase.removeChannel(channel)
       document.removeEventListener('visibilitychange', onVisible)
     }

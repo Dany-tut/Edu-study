@@ -17,6 +17,7 @@ import { useTheme } from '../../../store/themeStore'
 import { useT, useTc } from '../../../lib/i18n'
 import { Alert } from '../../Alert'
 import BackCircle from '../../BackCircle'
+import { useEventAttendance } from '../../../lib/useEventAttendance'
 
 // MOBILE ONLY journal: pick group → pick lesson → mark present/absent with a
 // "все присутствовали" shortcut, then save (useAttendance.saveLesson).
@@ -26,8 +27,8 @@ function fmtDate(d: string) {
   return `${day}.${m}`
 }
 
-function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
-  lesson: GroupLesson | null; groupId: string | null; onClose: () => void; onSaved: () => void
+function AttendanceSheet({ lesson, groupId, legacyUnambiguous, onClose, onSaved }: {
+  lesson: GroupLesson | null; groupId: string | null; legacyUnambiguous: boolean; onClose: () => void; onSaved: () => void
 }) {
   const t = useT()
   const { tc, tn } = useTc()
@@ -36,25 +37,27 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
   const roster = import.meta.env.DEV && realRoster.length === 0 && isDemoId(lesson?.id)
     ? demoRosterFor(lesson)
     : realRoster
-  const { saveLesson, records } = useAttendance(groupId)
-  const [present, setPresent] = useState<Record<string, boolean>>({})
+  const { saveLesson, records, loading: journalLoading } = useAttendance(groupId)
+  const [present, setPresent] = useState<Record<string, boolean | null>>({})
+  const eventAttendance = useEventAttendance(lesson?.id)
+  const attendanceLoading = eventAttendance.loading || journalLoading
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
 
   // Seed from already-saved attendance for this date (so reopening a graded
-  // lesson doesn't silently reset absences); default to present otherwise.
+  // lesson doesn't silently reset absences); unknown pupils stay unmarked.
   useEffect(() => {
-    if (!lesson) return
+    if (!lesson || attendanceLoading) return
     const saved = new Map(
-      records.filter(r => r.lessonDate === lesson.date).map(r => [r.studentId, r.present]),
+      records.filter(r => legacyUnambiguous && r.lessonDate === lesson.date && r.lessonTitle === lesson.title).map(r => [r.studentId, r.present]),
     )
-    setPresent(Object.fromEntries(roster.map(r => [r.id, saved.get(r.id) ?? true])))
-  }, [lesson?.id, roster.length, records.length])
+    setPresent({ ...Object.fromEntries(roster.map(r => [r.id, saved.get(r.id) ?? null])), ...eventAttendance.marks })
+  }, [lesson?.id, legacyUnambiguous, roster.length, records, attendanceLoading, eventAttendance.marks])
 
   const allPresent = roster.length > 0 && roster.every(r => present[r.id])
 
   const save = async () => {
-    if (!lesson || saving) return
+    if (!lesson || saving || attendanceLoading || eventAttendance.error) return
     tactile(); setSaving(true); setSaveError(false)
     // Demo lesson → don't write fake ids to Supabase; just close.
     if (isDemoId(lesson.id)) { setSaving(false); onSaved(); onClose(); return }
@@ -62,8 +65,9 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
       await saveLesson(
         lesson.groupId,
         lesson.date,
-        roster.map(r => ({ studentId: r.id, present: !!present[r.id] })),
+        roster.map(r => ({ studentId: r.id, present: present[r.id] ?? null })),
         lesson.title,
+        lesson.id,
       )
       onSaved(); onClose()
     } catch {
@@ -86,7 +90,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={save}
-            disabled={saving || roster.length === 0}
+            disabled={saving || roster.length === 0 || attendanceLoading || eventAttendance.error}
             className="cursor-pointer"
             style={{ height: 48, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 22px', borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, opacity: roster.length === 0 ? 0.5 : 1 }}
           >
@@ -97,7 +101,10 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
     >
       {lesson && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
+          {eventAttendance.error && <Alert tone="danger" text={t('Не удалось загрузить посещаемость. Откройте журнал ещё раз.')} />}
+          <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Без отметки — не значит пропуск. Можно заполнить позже.')}</p>
           <button
+            disabled={attendanceLoading || eventAttendance.error}
             onClick={() => { tactile(); setPresent(Object.fromEntries(roster.map(r => [r.id, true]))) }}
             className="cursor-pointer"
             style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 999, background: allPresent ? PAIR.success.bg : 'var(--color-bg-4)', color: allPresent ? PAIR.success.text : 'var(--color-text-2)', border: '1px solid transparent' }}
@@ -106,24 +113,29 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
           </button>
 
           {roster.map(r => {
-            const isPresent = !!present[r.id]
+            const isPresent = present[r.id] === true
+            const isAbsent = present[r.id] === false
             return (
               <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 4px' }}>
                 <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{tn(r.name)}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => { tactile(); setPresent(p => ({ ...p, [r.id]: true })) }}
+                    onClick={() => { tactile(); setPresent(p => ({ ...p, [r.id]: p[r.id] === true ? null : true })) }}
                     className="cursor-pointer"
-                    aria-label={t('присутствовал')}
+                    disabled={saving || attendanceLoading || eventAttendance.error}
+                    aria-pressed={isPresent}
+                    aria-label={`${tn(r.name)}: ${t('присутствовал')}`}
                     style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isPresent ? PAIR.success.bg : 'var(--color-bg-4)', color: isPresent ? PAIR.success.text : 'var(--color-text-4)', border: '1px solid transparent' }}
                   ><Check size={18} /></motion.button>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => { tactile(); setPresent(p => ({ ...p, [r.id]: false })) }}
+                    onClick={() => { tactile(); setPresent(p => ({ ...p, [r.id]: p[r.id] === false ? null : false })) }}
                     className="cursor-pointer"
-                    aria-label={t('отсутствовал')}
-                    style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: !isPresent ? PAIR.error.bg : 'var(--color-bg-4)', color: !isPresent ? PAIR.error.text : 'var(--color-text-4)', border: '1px solid transparent' }}
+                    disabled={saving || attendanceLoading || eventAttendance.error}
+                    aria-pressed={isAbsent}
+                    aria-label={`${tn(r.name)}: ${t('отсутствовал')}`}
+                    style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isAbsent ? PAIR.error.bg : 'var(--color-bg-4)', color: isAbsent ? PAIR.error.text : 'var(--color-text-4)', border: '1px solid transparent' }}
                   ><X size={18} /></motion.button>
                 </div>
               </div>
@@ -250,6 +262,7 @@ export default function MobileTeacherGradebook({ onBack }: { onBack?: () => void
       </div>
 
       <AttendanceSheet
+        legacyUnambiguous={new Set(lessons.filter(l => l.date === openLesson?.date && l.title === openLesson?.title && l.groupId === openLesson?.groupId && l.studentId === openLesson?.studentId).map(l => l.timeStart)).size === 1}
         lesson={openLesson}
         groupId={groupId}
         onClose={() => setOpenLesson(null)}

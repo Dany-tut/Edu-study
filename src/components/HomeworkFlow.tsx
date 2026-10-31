@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
   CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap, BookOpen,
   Lock, Send, Trophy, Image as ImageIcon, PenLine, X,
-  ChevronUp, ChevronDown, Eye, Mic, MicOff, Library, RotateCcw, ArrowRight, Volume2,
+  ChevronUp, ChevronDown, Eye, Mic, MicOff, ArrowRight, Volume2,
 } from './icons/appIcons'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import type { PatternItem } from '../data/taskTypes'
@@ -80,6 +80,8 @@ import { reviewSlots, buildReviewTasks, gradeFor, type ReviewTask } from '../lib
 import VocabIntro from './VocabIntro'
 import LessonReview from './LessonReview'
 import HomeworkFlowBar from './HomeworkFlowBar'
+import HomeworkResultActions from './HomeworkResultActions'
+import { testlyReviewUrl } from '../lib/testlyModule'
 import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
 import { getSubject, isLanguageSubject } from '../lib/subjects'
@@ -1679,6 +1681,7 @@ export default function HomeworkFlow({
   const questionSectionRefs = useRef<Record<string, HTMLElement | null>>({})
   // Итоги сдачи — цель прокрутки из нижней полосы («Сдано ✓»).
   const summaryRef = useRef<HTMLElement | null>(null)
+  const [resultActionsHeight, setResultActionsHeight] = useState(64)
   // Same scroll-dock logic as the lesson page: when the pane scrolls, the
   // Back/title row docks onto the topbar line (a fixed twin), the topbar
   // auto-compacts, and the rest-state row fades out.
@@ -1834,6 +1837,9 @@ export default function HomeworkFlow({
   }, [docked, topBarBox, state.selectedLevel])
 
   const basicQuestions = basicLevel?.questions ?? []
+  // У подключённого теста свой результат и разбор. Не дублируем его общей
+  // оценкой и не считаем целый тест одним неверным ответом.
+  const onlyTestly = basicQuestions.length > 0 && basicQuestions.every(q => qType(q) === 'testly')
   // Словарь урока — это сами flashcard-задания домашки, показанные лицом и
   // оборотом до начала решения (см. VocabIntro). Отдельного списка слов у урока
   // нет, и заводить его значило бы держать одно слово в двух местах.
@@ -1912,7 +1918,7 @@ export default function HomeworkFlow({
   const basicWrong = useMemo(
     () => basicQuestions
       .map((q, i) => ({ q, number: i + 1 }))
-      .filter(({ q }) => questionAutoGradable(q)
+      .filter(({ q }) => qType(q) !== 'testly' && questionAutoGradable(q)
         && (!!state.basicHints[q.id] || !questionCorrect(q, state.basicAnswers[q.id]))),
     [basicQuestions, state.basicAnswers, state.basicHints],
   )
@@ -2937,61 +2943,12 @@ export default function HomeworkFlow({
     questionSectionRefs.current[questionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  /**
-   * «Что дальше» — один и тот же набор действий в итогах наверху и в карточке
-   * под последним заданием. Ученик, дочитавший разбор до конца, оказывается
-   * именно там, и подниматься за кнопкой обратно наверх ему незачем.
-   */
-  const nextStepButtons = () => (
-    // Кнопки делят строку поровну и, когда не помещаются, переносятся во всю
-    // ширину блока: ряд из «полторы кнопки и дырка справа» читался как обрезок.
-    <div className="flex flex-wrap items-stretch" style={{ gap: 10 }}>
-      {basicWrong.length > 0 && (
-        <motion.button
-          whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-          onClick={() => jumpToQuestion(basicWrong[0].q.id)}
-          className="flex items-center justify-center cursor-pointer"
-          style={{ ...btn('M', 'secondary'), flex: '1 1 190px', minWidth: 0 }}
-        >
-          <RotateCcw size={16} />
-          {t('Разобрать ошибки')}
-        </motion.button>
-      )}
-      {showHard && hardUnlocked && (
-        <motion.button
-          whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}
-          onClick={() => { setState(current => ({ ...current, selectedLevel: 'hard' })); clearHomeworkWidgetFeedback() }}
-          className="flex items-center justify-center cursor-pointer"
-          style={{
-            flex: '1 1 190px', minWidth: 0, gap: 8, padding: '12px 18px', borderRadius: 16, border: 'none',
-            background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
-            fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.2)',
-          }}
-        >
-          {t('Открыть хард')}
-          <ArrowRight size={16} />
-        </motion.button>
-      )}
-      <motion.button
-        whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-        onClick={onBack}
-        className="flex items-center justify-center cursor-pointer"
-        style={{ ...btn('M', 'secondary'), flex: '1 1 190px', minWidth: 0 }}
-      >
-        <ChevronLeft size={16} />
-        {t('Вернуться к уроку')}
-      </motion.button>
-      <motion.button
-        whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-        onClick={() => { clearHomeworkWidgetFeedback(); openCourses(currentLessonId ?? undefined) }}
-        className="flex items-center justify-center cursor-pointer"
-        style={{ ...btn('M', 'secondary'), flex: '1 1 190px', minWidth: 0 }}
-      >
-        <Library size={16} />
-        {t('К урокам')}
-      </motion.button>
-    </div>
-  )
+  const jumpToSummary = () => {
+    if (onlyTestly) jumpToQuestion(basicQuestions[0].id)
+    else summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  const testlyReview = basicQuestions.length === 1 && onlyTestly
+    ? testlyScoreOf(state.basicAnswers[basicQuestions[0].id]) : null
 
   const levelLabel = t(selectedLevel === 'basic' ? basicLevel.title : hardLevel.title)
 
@@ -3338,7 +3295,7 @@ export default function HomeworkFlow({
             кнопка во всю ширину), поэтому и запас под ней больше. */}
         <main
           className="flex flex-col"
-          style={{ gap: 16, paddingBottom: flowMode && !flowFinished ? 210 : 100 }}
+          style={{ gap: 16, paddingBottom: state.basicSubmitted ? `calc(${resultActionsHeight + (isMobile ? 136 : 48)}px + env(safe-area-inset-bottom, 0px))` : (flowMode && !flowFinished) ? 210 : 100 }}
         >
           {selectedLevel === 'basic' ? (
             <div className="flex flex-col" style={{ gap: 18 }}>
@@ -3399,7 +3356,7 @@ export default function HomeworkFlow({
               {/* Итоги сдачи. До этого сданная домашка оставляла ученика в том же
                   списке заданий: балл был, а «сколько ошибок, каких именно и что
                   делать дальше» — нет, и он просто закрывал вкладку. */}
-              {state.basicSubmitted && (
+              {state.basicSubmitted && !onlyTestly && (
                 <section
                   ref={summaryRef}
                   className="flex flex-col"
@@ -3498,7 +3455,7 @@ export default function HomeworkFlow({
                   )}
 
                   <div className="flex flex-wrap" style={{ gap: 10 }}>
-                    <MetricPill label={t('Верно')} value={`${basicQuestions.filter(q => questionScored(q) && !state.basicHints[q.id] && questionCorrect(q, state.basicAnswers[q.id])).length}`} />
+                    <MetricPill label={t('Верно')} value={`${basicQuestions.filter(q => qType(q) !== 'testly' && questionScored(q) && !state.basicHints[q.id] && questionCorrect(q, state.basicAnswers[q.id])).length}`} />
                     <MetricPill
                       label={t('Ошибок')}
                       value={`${basicWrong.length}`}
@@ -3532,13 +3489,9 @@ export default function HomeworkFlow({
                           {number}
                         </button>
                       ))}
-                      <span style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.45 }}>
-                        · {t('слова из ошибок уже в колоде повторения')}
-                      </span>
                     </div>
                   )}
 
-                  {nextStepButtons()}
                 </section>
               )}
 
@@ -4041,6 +3994,7 @@ export default function HomeworkFlow({
                     /* Тест из Тестли: проходится на его сайте, сюда — отметка сдачи. */
                     ) : qType(question) === 'testly' ? (
                     <TestlyTask
+                      key={question.testly?.id ?? question.id}
                       test={question.testly}
                       value={selectedAnswer}
                       disabled={locked}
@@ -4629,31 +4583,6 @@ export default function HomeworkFlow({
                 </section>
               )}
 
-              {/* Конец разбора — тупик, если не сказать, куда идти дальше. */}
-              {state.basicSubmitted && (
-                <section
-                  className="flex flex-col"
-                  style={{
-                    gap: 14, padding: 20, borderRadius: 24,
-                    background: 'rgba(var(--glass-rgb), 0.96)',
-                    border: '1px solid var(--color-border-soft)',
-                  }}
-                >
-                  <div>
-                    <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
-                      {t('Что дальше')}
-                    </p>
-                    <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap }}>
-                      {bindShortWords(basicWrong.length > 0
-                        ? `${t('Ошибок:')} ${basicWrong.length}. ${t('Их слова уже в колоде повторения — вернуться к ним можно в тренажёре.')}`
-                        : t('Ошибок нет. Домашка закрыта — результат уже у преподавателя.'))
-                      }
-                    </p>
-                  </div>
-                  {nextStepButtons()}
-                </section>
-              )}
-
               {/* Одна полоса на экран. В режиме одного задания это лента с
                   единственной кнопкой, в списке — точки прогресса с переходами:
                   вместе они спорили бы за один и тот же низ экрана. */}
@@ -4672,7 +4601,21 @@ export default function HomeworkFlow({
                 />
               )}
 
-              <motion.div
+              {state.basicSubmitted ? (
+                <HomeworkResultActions
+                  isMobile={isMobile}
+                  navCollapsed={navCollapsed}
+                  onSummary={jumpToSummary}
+                  onBack={onBack}
+                  onReview={basicWrong.length > 0 ? () => jumpToQuestion(basicWrong[0].q.id) : undefined}
+                  reviewUrl={testlyReview?.review && !testlyReview.pending ? testlyReviewUrl(testlyReview.review) : undefined}
+                  onHard={showHard && hardUnlocked ? () => {
+                    setState(current => ({ ...current, selectedLevel: 'hard' }))
+                    clearHomeworkWidgetFeedback()
+                  } : undefined}
+                  onHeightChange={setResultActionsHeight}
+                />
+              ) : <motion.div
                 initial={false}
                 animate={isMobile
                   ? { bottom: navCollapsed ? 92 : 104, scale: navCollapsed ? 0.94 : 1 }
@@ -4702,7 +4645,7 @@ export default function HomeworkFlow({
                   onShowSummary={() => summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                   onJump={jumpToQuestion}
                 />
-              </motion.div>
+              </motion.div>}
             </div>
           ) : (
             <div className="flex flex-col" style={{ gap: 18 }}>

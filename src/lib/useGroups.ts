@@ -795,8 +795,9 @@ export function useAttendance(groupId: string | null) {
   async function saveLesson(
     groupId: string | null,
     lessonDate: string,
-    entries: { studentId: string; present: boolean; grade?: number | null }[],
-    lessonTitle = ''
+    entries: { studentId: string; present: boolean | null; grade?: number | null }[],
+    lessonTitle = '',
+    scheduleId?: string
   ) {
     // A personal lesson given to a group member (student-scoped schedule row,
     // groupId null) still belongs to that student's GROUP journal — just as a
@@ -814,7 +815,7 @@ export function useAttendance(groupId: string | null) {
     // значит, её не меняли: берём уже стоящую. Раньше `grade ?? null` стирал
     // оценки, выставленные с компьютера, при любой правке посещаемости.
     const keepGrade = new Map<string, number | null>()
-    const untouched = entries.filter(e => e.grade === undefined).map(e => e.studentId)
+    const untouched = scheduleId ? [] : entries.filter(e => e.grade === undefined).map(e => e.studentId)
     if (untouched.length > 0) {
       const { data: prev, error: prevErr } = await supabase
         .from('lesson_attendance').select('student_id, grade')
@@ -823,7 +824,15 @@ export function useAttendance(groupId: string | null) {
       if (prevErr) throw prevErr
       for (const r of prev ?? []) keepGrade.set(r.student_id as string, (r.grade as number | null) ?? null)
     }
-    const rows = entries.map(e => ({
+    // Exact event marks survive multiple lessons on the same date and may be
+    // saved after the lesson. null remains explicitly unmarked.
+    if (scheduleId) {
+      const { error } = await supabase.rpc('teacher_journal_save', {
+        p_schedule: scheduleId, p_entries: entries,
+      })
+      if (error) throw error
+    }
+    const rows = entries.filter(e => e.present !== null).map(e => ({
       group_id: groupId ?? groupByStudent.get(e.studentId) ?? null,
       student_id: e.studentId,
       lesson_date: lessonDate,
@@ -832,9 +841,9 @@ export function useAttendance(groupId: string | null) {
       grade: e.present ? (e.grade === undefined ? (keepGrade.get(e.studentId) ?? null) : e.grade) : null,
       lesson_title: lessonTitle,
     }))
-    const { error: upsertError } = await supabase
+    const { error: upsertError } = !scheduleId && rows.length ? await supabase
       .from('lesson_attendance')
-      .upsert(rows, { onConflict: 'student_id,lesson_date' })
+      .upsert(rows, { onConflict: 'student_id,lesson_date' }) : { error: null }
     if (upsertError) {
       console.error('saveLesson: lesson_attendance upsert failed', upsertError, rows)
       throw upsertError
@@ -849,7 +858,7 @@ export function useAttendance(groupId: string | null) {
         .from('lesson_attendance')
         .select('student_id, present')
         .in('student_id', affected)
-      const tally = new Map<string, { present: number; total: number }>()
+      const tally = new Map<string, { present: number; total: number }>((att ? affected : []).map(id => [id, { present: 0, total: 0 }]))
       for (const r of att ?? []) {
         const cur = tally.get(r.student_id) ?? { present: 0, total: 0 }
         cur.total++; if (r.present) cur.present++
@@ -937,12 +946,14 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
       const { data } = await query.order('date', { ascending: false }).order('time_start', { ascending: false })
       if (cancelled || !data) return
 
-      const { data: att } = await supabase
-        .from('lesson_attendance')
-        .select('group_id, student_id, lesson_date')
-        .gte('lesson_date', fromStr)
-      const filledByGroupDate = new Set((att ?? []).map((a: any) => `${a.group_id}|${a.lesson_date}`))
-      const filledByStudentDate = new Set((att ?? []).map((a: any) => `${a.student_id}|${a.lesson_date}`))
+      const [legacy, sessions, people] = await Promise.all([
+        supabase.from('lesson_attendance').select('student_id, lesson_date, lesson_title, present').gte('lesson_date', fromStr),
+        supabase.from('teacher_lesson_sessions').select('schedule_id, attendance'),
+        supabase.from('students').select('id, group_id'),
+      ])
+      if (cancelled || legacy.error || sessions.error || people.error) return
+      const byEvent = new Map((sessions.data ?? []).map(s => [s.schedule_id, s.attendance as Record<string, boolean | null>]))
+      const legacyMarks = new Map((legacy.data ?? []).map(a => [`${a.student_id}|${a.lesson_date}|${a.lesson_title ?? ''}`, a.present]))
 
       const seen = new Set<string>()
       const out: PendingJournal[] = []
@@ -952,15 +963,19 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
         if (Number.isFinite(start) && start + JOURNAL_GRACE_HOURS * 3_600_000 > now) continue
 
         const gid: string | null = r.group_id ?? r.students?.group_id ?? null
-        const filled = r.group_id
-          ? filledByGroupDate.has(`${r.group_id}|${r.date}`)
-          : r.student_id
-            ? filledByStudentDate.has(`${r.student_id}|${r.date}`)
-            : false
+        const roster = r.group_id ? (people.data ?? []).filter(p => p.group_id === r.group_id).map(p => p.id) : r.student_id ? [r.student_id] : []
+        const marks = byEvent.get(r.id)
+        // Legacy marks are ambiguous when the same title occurs twice that day.
+        const matchingTimes = new Set(data.filter(other => other.date === r.date && other.lesson_title === r.lesson_title
+          && other.group_id === r.group_id && other.student_id === r.student_id).map(other => other.time_start))
+        const filled = roster.length > 0 && roster.every(id => {
+          if (marks && Object.prototype.hasOwnProperty.call(marks, id)) return typeof marks[id] === 'boolean'
+          return matchingTimes.size === 1 && typeof legacyMarks.get(`${id}|${r.date}|${r.lesson_title ?? ''}`) === 'boolean'
+        })
         if (filled) continue
 
-        // One entry per lesson event (group+date or student+date).
-        const key = `${r.group_id ?? r.student_id}|${r.date}`
+        // Each event gets its own reminder, including consecutive lessons.
+        const key = `${r.group_id ?? r.student_id}|${r.date}|${r.time_start}|${r.lesson_title}`
         if (seen.has(key)) continue
         seen.add(key)
         out.push({

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { CalendarX2 } from './icons/appIcons'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
 import { resolveScheduleLesson } from '../lib/db'
-import { scheduleRowStatus } from '../lib/lessonStatus'
+import { scheduleRowStatus } from '../lib/scheduleAttendance'
 import { useStudentData } from '../store/studentDataStore'
 import { IconMissedLesson } from './icons'
 import { useDashboard } from '../store/dashboardStore'
@@ -142,13 +142,10 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 const st = states.find(s => s.id === lesson.id)!
                 const isUpcoming = lesson.id === upcomingId
                 const isPassed = st.passed
-                // Single source of truth for "did the student engage vs miss it",
-                // shared with the track so the two can't disagree (see
-                // scheduleRowStatus). The card still owns the cross-row "soonest
-                // upcoming" highlight above.
-                const isMissed = scheduleRowStatus(
+                const attendanceStatus = scheduleRowStatus(
                   lesson, { dayDate: day.date, isToday: day.isToday }, subjects, now,
-                ) === 'missed'
+                )
+                const isMissed = attendanceStatus === 'missed'
                 const pal = isMissed
                   ? missedPalette
                   : lesson.subject === 'Биология'
@@ -187,6 +184,11 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       {isMissed && (
                         <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 8px', borderRadius: 999 }}>
                           {t('Пропущен')}
+                        </span>
+                      )}
+                      {(attendanceStatus === 'unmarked' || attendanceStatus === 'present') && (
+                        <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-4)', padding: '2px 8px', borderRadius: 999 }}>
+                          {t(attendanceStatus === 'present' ? 'Присутствовал' : 'Без отметки')}
                         </span>
                       )}
                       {!isPassed && st.secondsUntil > 0 && st.secondsUntil <= 3600 && (

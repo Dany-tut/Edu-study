@@ -129,6 +129,8 @@ export interface Subject {
 }
 
 export type ScheduleLesson = {
+  /** Only a teacher's explicit mark; homework progress is independent. */
+  attendance?: boolean | null
   id: string
   subject: string
   lessonTitle: string

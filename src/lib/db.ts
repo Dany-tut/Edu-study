@@ -90,6 +90,17 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
   if (error) reportDbError('fetchScheduleDays', error)
   if (error || !data) return []
 
+  // The RPC projects only this student's attendance; private teacher state
+  // never reaches the browser. If unavailable, leave every mark neutral.
+  const attendance = new Map<string, boolean | null>()
+  if (studentId && data.length) {
+    const result = await supabase.rpc('student_schedule_attendance', {
+      p_student: studentId, p_schedules: data.map(row => row.id),
+    })
+    if (result.error) reportDbError('student_schedule_attendance', result.error)
+    else for (const mark of result.data ?? []) attendance.set(mark.schedule_id, mark.present)
+  }
+
   // Build ScheduleDay[] grouped by date. A student targeted via both their
   // group and a direct assignment gets two rows for one lesson — dedup them.
   const byDate = new Map<string, DbScheduleLesson[]>()
@@ -126,6 +137,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
       const upcoming = minutesUntil >= 0 && minutesUntil <= 60
       return {
         id: row.id,
+        attendance: attendance.get(row.id) ?? null,
         subject: row.subject,
         lessonTitle: row.lesson_title,
         lessonNumber: row.lesson_number,

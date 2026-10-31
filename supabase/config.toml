@@ -4,6 +4,10 @@ project_id = "igsdwvwiqnozgwczzycx"
 enable_manual_linking = true
 additional_redirect_urls = ["https://edu-study-app.vercel.app/**", "iskra://auth/callback"]
 
+[auth.email.template.magic_link]
+subject = "Код для входа в Искру"
+content_path = "./supabase/templates/magic-link.html"
+
 [functions.iskra-mcp]
 # MCP OAuth discovery must be reachable before a user token exists. The Edge
 # Function verifies the OAuth-issued bearer token itself with @supabase/server.
