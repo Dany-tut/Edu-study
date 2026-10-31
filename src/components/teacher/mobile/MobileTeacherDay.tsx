@@ -62,6 +62,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
   const { tn, tc } = useTc()
   const { lang } = useLang()
   const locale = lang === 'en' ? 'en-GB' : 'ru-RU'
+  const today = todayMsk()
   const [day, setDay] = useState(todayMsk)
   const start = weekStart(day)
   const { items, reload, error: scheduleError } = useTeacherWeek(start)
@@ -221,7 +222,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
             <button type="button" aria-label={t('Следующая неделя')} style={btn('M', 'quiet')} onClick={() => setDay(addDays(day, 7))}><ChevronRight size={20} /></button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 5 }}>
-            {week.map(d => <button type="button" key={d} aria-pressed={d === day} aria-label={dateLabel(d)} onClick={() => { tactile(); setDay(d) }} style={{ border: 'none', borderRadius: 20, minHeight: 64, padding: '8px 0', background: d === day ? PAIR.focus.bg : 'var(--color-surface)', color: d === day ? PAIR.focus.text : 'var(--color-text)' }}>
+            {week.map(d => <button type="button" key={d} aria-pressed={d === day} aria-current={d === today ? 'date' : undefined} aria-label={dateLabel(d)} onClick={() => { tactile(); setDay(d) }} style={{ border: 'none', borderRadius: 20, minHeight: 64, padding: '8px 0', background: d === day ? PAIR.focus.bg : 'var(--color-surface)', color: d === day ? PAIR.focus.text : 'var(--color-text)', boxShadow: d === today && d !== day ? 'inset 0 0 0 2px var(--color-purple)' : undefined }}>
               <span style={{ display: 'block', fontSize: 11, color: 'var(--color-muted)' }}>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(`${d}T12:00:00`))}</span><strong style={{ fontSize: 21 }}>{Number(d.slice(-2))}</strong>
             </button>)}
           </div>
