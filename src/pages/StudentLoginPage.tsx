@@ -8,6 +8,7 @@ import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
 import { Alert } from '../components/Alert'
 import SocialLoginButtons from '../components/SocialLoginButtons'
+import { Capacitor } from '@capacitor/core'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
@@ -186,6 +187,11 @@ export default function StudentLoginPage() {
         <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
           {t('Если забыли пароль — обратитесь к учителю')}
         </div>
+        {Capacitor.isNativePlatform() && (
+          <button type="button" onClick={() => { window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
+            {t('← Выбрать роль')}
+          </button>
+        )}
       </motion.div>
     </div>
   )

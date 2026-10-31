@@ -7,6 +7,7 @@ import { authErrorRu } from '../../lib/authErrors'
 import { AlertStack } from '../../components/Alert'
 import IskraMark from '../../components/landing/IskraMark'
 import SocialLoginButtons from '../../components/SocialLoginButtons'
+import { Capacitor } from '@capacitor/core'
 
 export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
   const t = useT()
@@ -237,6 +238,11 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               t('Аккаунт создаётся по ссылке-приглашению от\u00a0администратора.')
             )}
           </p>
+        )}
+        {Capacitor.isNativePlatform() && mode === 'login' && (
+          <button type="button" onClick={() => { window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
+            {t('← Выбрать роль')}
+          </button>
         )}
       </div>
     </div>

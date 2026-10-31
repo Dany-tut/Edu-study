@@ -3,6 +3,7 @@ import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
 import DashboardPage from './pages/DashboardPage'
 import StudentLoginPage from './pages/StudentLoginPage'
+import NativeEntryPage from './pages/NativeEntryPage'
 import LandingPage from './pages/LandingPage'
 
 // ── Кабинет учителя и разовые экраны — отдельными чанками ────────────────────
@@ -34,6 +35,7 @@ import type { Session } from '@supabase/supabase-js'
 import { Capacitor } from '@capacitor/core'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
+import { finishSocialLogin, initializeNativeOAuth } from './lib/socialAuth'
 import {
   bootTrainerLink, parseTrainerLink, queueTrainerLink, stashTrainerLink, takeStashedTrainerLink,
   trainerHash,
@@ -142,8 +144,36 @@ function AppRoutes() {
   // Студенческий вход в приложении не показываем (у ученика своя PWA/веб).
   useEffect(() => {
     if (!IS_NATIVE || window.location.pathname === '/oauth/consent' || getStudentSession()) return
-    if (hash === '' || hash === '#' || hash === '#/') window.location.replace('#/teacher')
+    if (hash === '' || hash === '#' || hash === '#/') window.location.replace('#/entry')
   }, [hash])
+
+  // Social sign-in returns to the iOS app through iskra://auth/callback. The
+  // PKCE exchange restores the same Supabase session used by the web client.
+  useEffect(() => {
+    let completed = false
+    const notifyError = (message: string) => window.dispatchEvent(new CustomEvent('iskra:auth-error', { detail: message }))
+    let dispose: (() => void) | undefined
+    void initializeNativeOAuth(notifyError).then(cleanup => { dispose = cleanup })
+
+    const finishWebOAuth = async () => {
+      if (IS_NATIVE || completed || !localStorage.getItem('iskra:oauth-role')) return
+      completed = true
+      try { await finishSocialLogin() }
+      catch (error) {
+        completed = false
+        notifyError(error instanceof Error ? error.message : 'Не удалось завершить вход')
+      }
+    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_IN') window.setTimeout(() => { void finishWebOAuth() }, 0)
+    })
+    if (!IS_NATIVE) {
+      void supabase.auth.getSession().then(({ data }) => {
+        if (data.session && localStorage.getItem('iskra:oauth-role')) void finishWebOAuth()
+      })
+    }
+    return () => { subscription.unsubscribe(); dispose?.() }
+  }, [])
 
   // Load real Supabase data whenever a student session exists
   useEffect(() => {
@@ -207,6 +237,10 @@ function AppRoutes() {
     return <Chunk><OAuthConsentPage /></Chunk>
   }
 
+  if (IS_NATIVE && (hash.startsWith('#/entry') || hash === '' || hash === '#' || hash === '#/')) {
+    return <NativeEntryPage />
+  }
+
   // Лендинг доступен по явному адресу даже при активном входе (для просмотра)
   if (hash.startsWith('#/landing')) return <LandingPage />
   if (hash.startsWith('#/join-teacher')) return <Chunk><JoinTeacherPage /></Chunk>
@@ -238,7 +272,8 @@ function AppRoutes() {
     if (session === undefined && !import.meta.env.DEV) return null
     // A student's Supabase session must not unlock the teacher cabinet.
     const isStudentAccount = session?.user?.user_metadata?.role === 'student'
-    if ((!session || isStudentAccount) && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
+    if (isStudentAccount && !import.meta.env.DEV) return <StudentLoginPage />
+    if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (
       <>
         <Chunk><TeacherDashboardPage /></Chunk>
