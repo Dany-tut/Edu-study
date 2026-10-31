@@ -91,8 +91,10 @@ export default class ErrorBoundary extends Component<Props, State> {
           <button
             onClick={() => {
               // Перезагрузка на сломанном адресе возвращает тот же крах.
-              // «На главную» — единственный выход из такой петли.
-              window.location.hash = '#/'
+              // «На главную» — единственный выход из такой петли. Оставляем
+              // пользователя в его кабинете: общий маршрут #/ открывает ученика.
+              const isTeacherRoute = window.location.hash.startsWith('#/teacher')
+              window.location.hash = isTeacherRoute ? '#/teacher' : '#/'
               window.location.reload()
             }}
             style={{ ...btn('M', 'secondary'), lineHeight: 1.2 }}
@@ -111,7 +113,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         </div>
         {this.state.reporting && (
           <FeedbackModal
-            role={getStudentSession() ? 'student' : 'teacher'}
+            role={window.location.hash.startsWith('#/teacher') ? 'teacher' : getStudentSession() ? 'student' : 'teacher'}
             defaultSection="Ошибка на странице"
             defaultMessage={this.crashDetails()}
             onSent={() => this.setState({ reported: true })}
