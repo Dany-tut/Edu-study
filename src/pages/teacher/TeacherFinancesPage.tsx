@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Wallet, Plus, X, Check, ChevronDown, ChevronUp,
   TrendingUp, AlertCircle, Clock, CheckCircle2, Trash2,
-} from 'lucide-react'
+} from '../../components/icons/appIcons'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
 import { useT, useTc } from '../../lib/i18n'

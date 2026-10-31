@@ -19,7 +19,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Pencil, Copy, Trash2 } from 'lucide-react'
+import { Pencil, Copy, Trash2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import Skeleton from '../Skeleton'
 

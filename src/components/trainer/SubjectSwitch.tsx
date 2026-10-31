@@ -23,7 +23,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react'
-import { Check, ChevronDown } from 'lucide-react'
+import { Check, ChevronDown } from '../icons/appIcons'
 import { MOBILE_PILL_H } from '../../lib/mobileTokens'
 import { useT } from '../../lib/i18n'
 import { useTheme } from '../../store/themeStore'

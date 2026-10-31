@@ -10,7 +10,8 @@ import { useT } from '../../../lib/i18n'
 // приложении не рисуется: этот компонент только передаёт пункты, выбор и бейдж
 // в нативный бар и слушает нажатия.
 
-// Иконки — SF Symbols, системные пары к lucide-иконкам веб-дока.
+// NativeGlass resolves these stable identifiers to bundled Loop images.
+// The native UITabBar retains its system glass, gestures and accessibility.
 const SYMBOL: Record<string, string> = {
   home: 'house',
   schedule: 'calendar',

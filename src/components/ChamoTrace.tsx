@@ -43,7 +43,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw } from './icons/appIcons'
 import { CHAMO, strokePath, type Point, type Stroke } from '../data/hangul'
 import { KANA } from '../data/kana'
 import { playPop, vibrate } from '../lib/sound'

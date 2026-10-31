@@ -30,7 +30,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react'
-import { Camera, Link2, Loader2, Sparkles, X } from 'lucide-react'
+import { Camera, Link2, Loader2, Sparkles, X } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import Checkbox from './Checkbox'
 import {

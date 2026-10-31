@@ -7,7 +7,7 @@
 // загрузки — карточки уже загружены занятием.
 
 import { useEffect, useRef, useState } from 'react'
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw } from './icons/appIcons'
 import type { ReviewTask } from '../lib/lessonDebt'
 import { answerFace } from '../lib/lessonDebt'
 import { okChime, missBlip, haptic } from '../lib/feedback'

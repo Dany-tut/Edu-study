@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronDown, Mic } from 'lucide-react'
+import { Check, ChevronDown, Mic } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import type { VoiceRole } from '../../lib/speech'
 import {

@@ -18,7 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { Check, ListChecks, MessagesSquare, Mic, Repeat, SlidersHorizontal, Volume2 } from 'lucide-react'
+import { Check, ListChecks, MessagesSquare, Mic, Repeat, SlidersHorizontal, Volume2 } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import VoiceRecorder from '../../VoiceRecorder'
 import Shadowing, { type ShadowLine } from '../Shadowing'

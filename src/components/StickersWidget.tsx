@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, X } from 'lucide-react'
+import { Sparkles, X } from './icons/appIcons'
 import StickerBadge from './StickerBadge'
 import Skeleton from './Skeleton'
 import HoloSticker from './HoloSticker'

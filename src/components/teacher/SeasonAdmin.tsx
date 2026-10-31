@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Ghost } from 'lucide-react'
+import { Ghost } from '../icons/appIcons'
 import Switch from '../Switch'
 import Checkbox from '../Checkbox'
 import TeacherSaveButton from './TeacherSaveButton'

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Check, X, Plus } from 'lucide-react'
+import { ChevronDown, Check, X, Plus } from './icons/appIcons'
 import ScrollFade from './ScrollFade'
 import { useT } from '../lib/i18n'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../lib/dropdownStyle'

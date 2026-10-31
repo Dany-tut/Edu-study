@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ClipboardCheck, Layers, BookOpen, Bell, Banknote, Clock,
   AlertCircle, ChevronRight, CheckCircle2,
-} from 'lucide-react'
+} from '../../icons/appIcons'
 import type { Reminder } from '../../../data/teacherMockData'
 import { useTheme } from '../../../store/themeStore'
 import { useHomeData, useOverlayThumb } from '../../../lib/useHomeData'

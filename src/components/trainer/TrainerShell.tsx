@@ -47,7 +47,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle, X } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, Check, SlidersHorizontal, Filter, Layers, Link2, Share2, HelpCircle, X } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { subjectFill } from '../../lib/subjects'
 import { copyToClipboard } from '../../lib/clipboard'

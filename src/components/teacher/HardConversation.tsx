@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
   Send, Image as ImageIcon, PenLine, X, Check, RotateCcw, Star, MessageSquare,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import RichConditionEditor from './RichConditionEditor'
 import WhiteboardCanvas from './WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from './AnnotationLayer'

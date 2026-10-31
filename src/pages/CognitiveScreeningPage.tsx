@@ -1,7 +1,9 @@
+import { LoopTextIcon } from '../components/icons/LoopIcon'
+import { Check as LoopMarkCheck, X as LoopMarkX } from '../components/icons/appIcons'
 import { useState, useEffect, useRef } from 'react'
 import { MODAL_BACKDROP, MODAL_CARD } from '../components/Modal'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Brain, ChevronRight, Lightbulb, Info, X } from 'lucide-react'
+import { Brain, ChevronRight, Lightbulb, Info, X } from '../components/icons/appIcons'
 import { appendAnonResult } from '../data/diagnosticData'
 import {
   loadScreeningConfig, fetchScreeningConfig, activeDomains,
@@ -588,7 +590,7 @@ function SpeedSection({ cfg, step, labels, onComplete }: SectionProps<SpeedConfi
           <Row cells={trial.right} />
         </div>
         <div style={{ minHeight: 22, marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {flash !== null && <span style={{ fontSize: 15, fontWeight: 700, color: flash ? OK_TXT : NO_TXT }}>{flash ? '✓' : '✗'}</span>}
+          {flash !== null && <span style={{ fontSize: 15, fontWeight: 700, color: flash ? OK_TXT : NO_TXT }}><LoopTextIcon icon={flash ? LoopMarkCheck : LoopMarkX}>{flash ? '✓' : '✗'}</LoopTextIcon></span>}
         </div>
       </Card>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -855,7 +857,7 @@ function MatchingSection({ cfg, step, labels, onComplete }: SectionProps<Matchin
               const bg = conn ? (conn.correct ? OK_BG : NO_BG) : isSel ? `${ACC}22` : 'var(--color-bg-3)'
               return (
                 <div key={i} onClick={() => clickLeft(i)} style={{ padding: '10px 12px', borderRadius: 12, border: `2px solid ${border}`, background: bg, cursor: usedLeft.has(i) ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {conn && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: conn.correct ? OK_TXT : NO_TXT }}>{conn.correct ? '✓' : '✗'}</span>}
+                  {conn && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: conn.correct ? OK_TXT : NO_TXT }}><LoopTextIcon icon={conn.correct ? LoopMarkCheck : LoopMarkX}>{conn.correct ? '✓' : '✗'}</LoopTextIcon></span>}
                   {left}
                 </div>
               )

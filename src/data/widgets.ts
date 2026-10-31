@@ -1,4 +1,4 @@
-import { BarChart3, FlaskConical, Atom, Timer, Laugh, Sparkles, CircleHelp, TrendingUp, Award, Sunrise, Rows3, type LucideIcon } from 'lucide-react'
+import { BarChart3, FlaskConical, Atom, Timer, Laugh, Sparkles, CircleHelp, TrendingUp, Award, Sunrise, Rows3, type LucideIcon } from '../components/icons/appIcons'
 
 // Single source of truth for the carousel widgets. The numeric `id` is the
 // widget's stable identity used by the carousel (renderWidget) and by the

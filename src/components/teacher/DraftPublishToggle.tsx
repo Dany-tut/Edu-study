@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Loader2, Pencil, Send } from 'lucide-react'
+import { Loader2, Pencil, Send } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 
 // Состояние урока/курса одной деталью вместо пары кнопок «Черновик» +

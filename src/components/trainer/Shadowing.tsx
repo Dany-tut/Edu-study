@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Mic, Square, Play, Volume2, Repeat, Trash2, ChevronRight } from 'lucide-react'
+import { Mic, Square, Play, Volume2, Repeat, Trash2, ChevronRight } from '../icons/appIcons'
 import { speak, stopSpeech, preferredVoice, type SpeechHandle } from '../../lib/speech'
 import { isAsrAvailable, listen, type AsrSession } from '../../lib/asr'
 import SpeechHeard from '../SpeechHeard'

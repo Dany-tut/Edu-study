@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Plus, Volume2 } from 'lucide-react'
+import { Check, Plus, Volume2 } from './icons/appIcons'
 import { buildLexicon, wordReading, type Segment } from '../lib/lexicon'
 import { useGloss } from '../lib/useGloss'
 import { transcribe } from '../lib/translit'

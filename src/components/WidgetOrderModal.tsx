@@ -2,7 +2,7 @@ import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion
 import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { GripVertical, Plus, Minus, X, RotateCcw } from 'lucide-react'
+import { GripVertical, Plus, Minus, X, RotateCcw } from './icons/appIcons'
 import { useDashboard } from '../store/dashboardStore'
 import { WIDGET_META, DEFAULT_WIDGET_ORDER } from '../data/widgets'
 import { useWidgetRelevance } from '../lib/widgetVisibility'

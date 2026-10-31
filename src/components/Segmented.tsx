@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import type { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from './icons/appIcons'
 import Tooltip from './Tooltip'
 
 /**

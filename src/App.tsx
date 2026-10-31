@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
+import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
 import DashboardPage from './pages/DashboardPage'
 import StudentLoginPage from './pages/StudentLoginPage'
@@ -94,13 +95,15 @@ function useHashRoute() {
 }
 
 export default function App() {
+  const hash = useHashRoute()
+  const cabinet = !hash.startsWith('#/landing') && (Boolean(getStudentSession()) || !['', '#', '#/'].includes(hash))
   // Хост подтверждений — один на всё приложение, выше любого роута: спросить
   // могут и из кабинета, и из лендинга, и во время редиректа.
   return (
-    <>
+    <LoopIconProvider enabled={cabinet}>
       <AppRoutes />
       <ConfirmHost />
-    </>
+    </LoopIconProvider>
   )
 }
 

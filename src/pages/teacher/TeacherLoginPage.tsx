@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from '../../components/icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useT } from '../../lib/i18n'

@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react'
+import { Clock } from '../../icons/appIcons'
 import MiniStatCard from './_MiniStatCard'
 import { useHomeData } from '../../../lib/useHomeData'
 import { mskToVietnam } from '../../../lib/utils'

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { MOBILE_DOCK_EDGE } from '../../../lib/mobileTokens'
 import CountBadge from '../../CountBadge'
-import { Home, CalendarDays, Users, ClipboardCheck, CheckSquare, User } from 'lucide-react'
+import { TaskliIcon, type TaskliIconName } from '../../icons/TaskliIcon'
 import { tactile } from '../../../lib/feedback'
 import { useNavCollapse } from '../../../lib/useNavCollapse'
 import { useKeyboardOpen } from '../../../lib/useKeyboardInset'
@@ -20,12 +20,12 @@ const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 
 export type MTab = 'home' | 'students' | 'review' | 'gradebook' | 'profile'
 
-const items: { id: MTab; label: string; icon: typeof Home }[] = [
-  { id: 'home',      label: 'Главная',  icon: Home },
-  { id: 'students',  label: 'Ученики',  icon: Users },
-  { id: 'review',    label: 'Проверка', icon: ClipboardCheck },
-  { id: 'gradebook', label: 'Журнал',   icon: CheckSquare },
-  { id: 'profile',   label: 'Профиль',  icon: User },
+const items: { id: MTab; label: string; icon: TaskliIconName }[] = [
+  { id: 'home',      label: 'Главная',  icon: 'home' },
+  { id: 'students',  label: 'Ученики',  icon: 'students' },
+  { id: 'review',    label: 'Проверка', icon: 'review' },
+  { id: 'gradebook', label: 'Журнал',   icon: 'gradebook' },
+  { id: 'profile',   label: 'Профиль',  icon: 'profile' },
 ]
 
 export default function MobileTeacherNav({
@@ -87,7 +87,6 @@ export default function MobileTeacherNav({
         }}
       >
         {visibleItems.map(item => {
-          const Icon = item.icon
           const isActive = active === item.id
           return (
             <motion.button
@@ -101,10 +100,11 @@ export default function MobileTeacherNav({
               aria-label={t(item.label)}
             >
               <div style={{ position: 'relative' }}>
-                <Icon
+                <TaskliIcon
+                  name={item.icon}
                   size={20}
-                  strokeWidth={isActive ? 2.5 : 1.8}
-                  style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }}
+                  strokeWidth={isActive ? 2 : 1.8}
+                  tone={isActive ? 'accent' : 'neutral'}
                 />
                 {item.id === 'review' && <CountBadge count={reviewBadge} tone="danger" style={{ position: 'absolute', top: -5, right: -9 }} />}
               </div>

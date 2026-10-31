@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Reorder, useDragControls, motion } from 'framer-motion'
-import { GripVertical } from 'lucide-react'
+import { GripVertical } from './icons/appIcons'
 import MobileSheet from './MobileSheet'
 import Switch from './Switch'
 import {

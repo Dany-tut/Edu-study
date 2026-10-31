@@ -65,13 +65,13 @@ Deno.serve(async (req) => {
 
   const { data: student, error: sErr } = await admin
     .from('students')
-    .select('id, auth_user_id, group_id, groups!inner(created_by)')
+    .select('id, auth_user_id, created_by')
     .eq('id', studentId)
     .single()
   if (sErr || !student) return json({ error: 'Ученик не найден' }, 404)
 
   // 3) Authorize: only the owning teacher (or an admin) may reset.
-  const ownerId = (student as { groups?: { created_by?: string } }).groups?.created_by
+  const ownerId = student.created_by
   const isOwner = ownerId && ownerId === callerId
   const isAdmin = callerRole === 'admin'
   if (!isOwner && !isAdmin) return json({ error: 'Нет доступа к этому ученику' }, 403)

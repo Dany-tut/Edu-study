@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Star, ClipboardList } from 'lucide-react'
+import { Star, ClipboardList } from '../../components/icons/appIcons'
 import { useTeacher } from '../../store/teacherStore'
 import {
   useHardSubmissions, type Annotation as HardAnnotation,

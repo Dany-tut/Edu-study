@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronDown, Search } from 'lucide-react'
+import { Check, ChevronDown, Search } from './icons/appIcons'
 import type { Subject } from '../data/mockData'
 import Tooltip from './Tooltip'
 import ScrollFade from './ScrollFade'

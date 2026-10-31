@@ -20,7 +20,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from '../../components/icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { useTeacher, setLeaveGuard, whenMayLeave } from '../../store/teacherStore'
 import { useAllStudents } from '../../lib/useGroups'

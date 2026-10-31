@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { Minus, Plus } from 'lucide-react'
+import { Minus, Plus } from './icons/appIcons'
 import { renderAvatarBlob, useAvatarUrl } from '../lib/avatarPhoto'
 import { useT } from '../lib/i18n'
 import { Alert } from './Alert'

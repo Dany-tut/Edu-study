@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from '../icons/appIcons'
 import { WIDGET_META } from '../../data/widgets'
 import { fetchTeacherCourses, configureNewStudent, type TeacherCourseOption } from '../../lib/useGroups'
 import TeacherSelect from './TeacherSelect'

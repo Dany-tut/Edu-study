@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react'
-import { ChevronDown, ChevronUp, Layers, Loader2, RotateCcw } from 'lucide-react'
+import { ChevronDown, ChevronUp, Layers, Loader2, RotateCcw } from '../../icons/appIcons'
 import { addCards, deckOwner } from '../../../data/reviewDeck'
 import { useT } from '../../../lib/i18n'
 import MockGroupView from './MockQuestions'

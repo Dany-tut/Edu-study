@@ -22,7 +22,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Clock, Headphones, LogOut, Mic, Square, Volume2, Pause, Play, Highlighter } from 'lucide-react'
+import { Clock, Headphones, LogOut, Mic, Square, Volume2, Pause, Play, Highlighter } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import GrowTextarea, { growMinHeight } from '../../GrowTextarea'
 import MockGroupView from './MockQuestions'

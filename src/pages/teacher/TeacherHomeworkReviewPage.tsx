@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight, Check, RotateCcw, Send,
   ClipboardCheck, TrendingUp, Clock, Award, FileText,
   CheckCircle2, Star, Image as ImageIcon, PenLine, X,
-} from 'lucide-react'
+} from '../../components/icons/appIcons'
 import type { Student, Group, HomeworkItem, HwTask } from '../../data/teacherMockData'
 import { useHomework, useHomeworkSubmissions, reviewHomework } from '../../lib/useHomework'
 import { useGroups, useStudents } from '../../lib/useGroups'

@@ -3,7 +3,7 @@
 // (см. LessonFile.url в lib/lessonFiles).
 
 import { useState } from 'react'
-import { Link2, Globe, Info, X } from 'lucide-react'
+import { Link2, Globe, Info, X } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { makeLinkFile, type LessonFile } from '../../lib/lessonFiles'
 

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
 import type { FeedItem } from '../../data/feed'

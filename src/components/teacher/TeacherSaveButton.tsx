@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Loader2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 
 /**

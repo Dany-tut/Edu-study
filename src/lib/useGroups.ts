@@ -149,6 +149,30 @@ export function useGroups() {
     return { data, error }
   }
 
+  async function addUnassignedStudent(s: Partial<Student>) {
+    const { data, error } = await supabase.from('students').insert({
+      name: s.name?.trim(), created_by: await getOwnerId(), group_id: null,
+      phone: s.phone ?? '', telegram_link: s.telegramLink ?? '', parent_contact: s.parentContact ?? '',
+      desired_score: s.desiredScore ?? 0, payment_amount: s.paymentAmount ?? 0,
+    }).select('id, invite_token').single()
+    await load()
+    return { studentId: data?.id ?? null, inviteToken: data?.invite_token ?? null, error: friendlyStudentError(error) }
+  }
+
+  // First assignment preserves the original student ID and invitation.
+  async function attachUnassigned(personId: string | undefined, groupId: string) {
+    if (!personId) return null
+    const { data: candidate, error: lookupError } = await supabase.from('students').select('id')
+      .eq('person_id', personId).eq('created_by', await getOwnerId()).is('group_id', null)
+      .order('created_at').limit(1).maybeSingle()
+    if (lookupError) throw lookupError
+    if (!candidate) return null
+    const { data, error } = await supabase.from('students').update({ group_id: groupId })
+      .eq('id', candidate.id).is('group_id', null).select('id, invite_token').maybeSingle()
+    if (error) throw error
+    return data
+  }
+
   async function addIndividualStudent(s: {
     name: string
     subject: Group['subject']
@@ -295,6 +319,14 @@ export function useGroups() {
     }).select('id').single()
     if (gErr || !g) return { error: gErr }
 
+    let attached
+    try { attached = await attachUnassigned(opts.student.personId, g.id) }
+    catch (error) { await supabase.from('groups').delete().eq('id', g.id); return { error } }
+    if (attached) {
+      await supabase.rpc('seed_student_progress', { p_student_id: attached.id, p_group_id: g.id })
+      await load()
+      return { studentId: attached.id, inviteToken: attached.invite_token, groupId: g.id, error: null }
+    }
     const { data: srow, error: sErr } = await supabase.from('students').insert({
       group_id: g.id,
       name: opts.student.name,
@@ -309,6 +341,7 @@ export function useGroups() {
       // Link to the SAME person — omit only if unknown (DB default mints a new one).
       ...(opts.student.personId ? { person_id: opts.student.personId } : {}),
     }).select('id, invite_token').single()
+    if (sErr) await supabase.from('groups').delete().eq('id', g.id)
     // Already-registered student → seed their progress for this new card too.
     if (!sErr && srow?.id && opts.student.authUserId) {
       await supabase.rpc('seed_student_progress', { p_student_id: srow.id, p_group_id: g.id })
@@ -334,6 +367,14 @@ export function useGroups() {
     targetGroupId: string,
     student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'>,
   ) {
+    try {
+      const attached = await attachUnassigned(student.personId, targetGroupId)
+      if (attached) {
+        await supabase.rpc('seed_student_progress', { p_student_id: attached.id, p_group_id: targetGroupId })
+        await load()
+        return { studentId: attached.id, error: null }
+      }
+    } catch (error) { return { studentId: null, error } }
     const { data, error } = await supabase.from('students').insert({
       group_id: targetGroupId,
       name: student.name,
@@ -362,7 +403,7 @@ export function useGroups() {
     return { error }
   }
 
-  return { groups, loading, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup, updateGroupTracks, reload: load }
+  return { groups, loading, addUnassignedStudent, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup, updateGroupTracks, reload: load }
 }
 
 export type TeacherCourseOption = { id: string; title: string; subject: string; level: string }
@@ -403,7 +444,7 @@ export async function fetchSharedCourseIds(uid: string | null): Promise<string[]
 async function resolveSiblingStudentIds(studentId: string): Promise<string[]> {
   const { data: self } = await supabase
     .from('students')
-    .select('id, name, person_id, groups!inner(is_individual, created_by)')
+    .select('id, name, person_id, groups(is_individual, created_by)')
     .eq('id', studentId)
     .single()
   const g = (self as any)?.groups
@@ -519,7 +560,7 @@ export function useStudents(groupId: string | null) {
     if (data) {
       setStudents(data.map((s: any) => ({
         id: s.id,
-        groupId: s.group_id,
+        groupId: s.group_id ?? '',
         name: s.name,
         phone: s.phone ?? '',
         telegramLink: s.telegram_link ?? '',
@@ -574,6 +615,7 @@ export function useStudents(groupId: string | null) {
   async function deleteStudent(id: string) {
     await supabase.from('students').delete().eq('id', id)
     await load()
+    await reloadAllStudents()
   }
 
   // Patch arbitrary student fields (camelCase keys → snake_case columns).
@@ -596,6 +638,7 @@ export function useStudents(groupId: string | null) {
     // Не записалось — откатываем экран к базе: иначе правка «держалась» бы до F5,
     // а повторное сохранение решало бы, что менять нечего.
     if (error && before) setStudents(prev => prev.map(s => s.id === id ? before : s))
+    if (!error) await reloadAllStudents()
     return { error }
   }
 
@@ -984,12 +1027,12 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
   const uid = await getOwnerId()
   const { data } = await supabase
     .from('students')
-    .select('*, groups!inner(created_by, subject, is_individual)')
-    .eq('groups.created_by', uid)
+    .select('*, groups(subject, is_individual)')
+    .eq('created_by', uid)
     .order('name')
   return (data ?? []).map((s: any) => ({
     id: s.id,
-    groupId: s.group_id,
+    groupId: s.group_id ?? '',
     subject: s.groups?.subject ?? '',
     isIndividual: s.groups?.is_individual ?? false,
     authUserId: s.auth_user_id ?? undefined,
@@ -1000,7 +1043,7 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
     telegramLink: s.telegram_link ?? '',
     parentContact: s.parent_contact ?? '',
     startedAt: s.started_at ?? '',
-    lastVisit: s.last_visit ?? '',
+    lastVisit: s.last_visit ? new Date(s.last_visit).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—',
     hwScore: s.hw_score ?? 0,
     testScore: s.test_score ?? 0,
     trialScore: s.trial_score ?? null,

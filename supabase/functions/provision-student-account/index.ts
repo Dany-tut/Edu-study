@@ -109,14 +109,14 @@ Deno.serve(async (req) => {
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
 
-  // 2) Кого заводим. Всегда только СВОИХ: выборка идёт через groups.created_by,
+  // 2) Кого заводим. Всегда только СВОИХ: выборка идёт через students.created_by,
   //    поэтому даже с `all: true` чужие ученики сюда не попадают.
   let q = admin
     .from('students')
-    .select('id, name, email, temp_password, person_id, group_id, auth_user_id, groups!inner(created_by)')
+    .select('id, name, email, temp_password, person_id, group_id, auth_user_id, created_by')
     .is('auth_user_id', null)
   if (studentId) q = q.eq('id', studentId)
-  if (!isAdmin) q = q.eq('groups.created_by', callerId)
+  if (!isAdmin) q = q.eq('created_by', callerId)
 
   const { data: rows, error: listErr } = await q
   if (listErr) return json({ error: 'Не удалось прочитать учеников: ' + listErr.message }, 500)

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Skeleton from '../Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, ImageIcon, RefreshCw, ChevronDown } from 'lucide-react'
+import { Database, HardDrive, ImageIcon, RefreshCw, ChevronDown } from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { useT, t } from '../../lib/i18n'
 import { Alert } from '../Alert'

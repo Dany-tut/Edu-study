@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, ChevronLeft, ChevronRight, Pause, Trophy } from 'lucide-react'
+import { Clock, ChevronLeft, ChevronRight, Pause, Trophy } from './icons/appIcons'
 import { quizTimeLimit, type QuizAnswer } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'

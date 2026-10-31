@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AlertCircle, AlertTriangle, CheckCircle2, ChevronDown, Info, X } from 'lucide-react'
+import { AlertCircle, AlertTriangle, CheckCircle2, ChevronDown, Info, X } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 
 /**

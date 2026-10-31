@@ -17,7 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo } from 'react'
-import { AudioLines, Blocks, Eye, Hash, Layers, Puzzle, SlidersHorizontal } from 'lucide-react'
+import { AudioLines, Blocks, Eye, Hash, Layers, Puzzle, SlidersHorizontal } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { usePersistentState } from '../../../lib/useDraft'
 import { bindShortWords, proseWrap } from '../../../lib/typography'

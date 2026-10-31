@@ -29,7 +29,7 @@
 
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Delete } from 'lucide-react'
+import { Delete } from './icons/appIcons'
 import { INITIALS, VOWELS, composeKeys } from '../data/hangul'
 import { playPop, vibrate } from '../lib/sound'
 import { useOwnString } from '../lib/useOwnAnswer'

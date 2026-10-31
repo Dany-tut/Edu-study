@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Play, Pause, RotateCcw } from 'lucide-react'
+import { Play, Pause, RotateCcw } from './icons/appIcons'
 import { useDashboard, POMO_DURATIONS, type PomoMode } from '../store/dashboardStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
 import { useT } from '../lib/i18n'

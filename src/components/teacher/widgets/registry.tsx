@@ -1,6 +1,6 @@
 import { lazy, type ComponentType } from 'react'
-import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from '../../icons/appIcons'
+import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
 
 const WidgetFinanceKpi        = lazy(() => retryImport(() => import('./WidgetFinanceKpi')))

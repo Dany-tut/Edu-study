@@ -19,6 +19,9 @@
 // же сердцем, что стояло в строке действий.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { Heart, MessageCircle, Languages, Volume2 } from '../icons/appIcons'
+import { useLoopIcons } from '../icons/LoopIcon'
+
 const SIZE = 19
 
 export function Glyph({ children, filled, accent, size = SIZE }: {
@@ -43,6 +46,8 @@ export function Glyph({ children, filled, accent, size = SIZE }: {
 
 /** Сердце: одна замкнутая кривая — потому и заливается ровно. */
 export function HeartGlyph({ filled, accent, size }: { filled: boolean; accent: string; size?: number }) {
+  const loop = useLoopIcons()
+  if (loop) return <Heart size={size ?? SIZE} style={{ display: 'block', color: filled ? accent : undefined, '--loop-soft': filled ? accent : 'transparent' } as React.CSSProperties} />
   return (
     <Glyph filled={filled} accent={accent} size={size}>
       <path d="M12 20.1c-.42 0-.82-.15-1.13-.42C6.28 15.85 3.6 13.28 3.6 10.15A4.55 4.55 0 0 1 8.1 5.55c1.6 0 2.95.83 3.9 2.15.95-1.32 2.3-2.15 3.9-2.15a4.55 4.55 0 0 1 4.5 4.6c0 3.13-2.68 5.7-7.27 9.53-.31.27-.71.42-1.13.42Z" />
@@ -52,6 +57,8 @@ export function HeartGlyph({ filled, accent, size }: { filled: boolean; accent: 
 
 /** Облако реплики с хвостом влево-вниз — как в мессенджере, а не кружок. */
 export function ReplyGlyph({ filled, accent, size }: { filled: boolean; accent: string; size?: number }) {
+  const loop = useLoopIcons()
+  if (loop) return <MessageCircle size={size ?? SIZE} style={{ display: 'block', color: filled ? accent : undefined, '--loop-soft': filled ? accent : 'transparent' } as React.CSSProperties} />
   return (
     <Glyph filled={filled} accent={accent} size={size}>
       <path d="M12 4.9c4.42 0 8 2.94 8 6.57s-3.58 6.57-8 6.57c-.87 0-1.71-.11-2.5-.32l-3.83 1.6a.4.4 0 0 1-.54-.48l.83-2.83C4.68 14.85 4 13.28 4 11.47 4 7.84 7.58 4.9 12 4.9Z" />
@@ -68,6 +75,8 @@ export function ReplyGlyph({ filled, accent, size }: { filled: boolean; accent: 
  * перевод с одного письма на другое.
  */
 export function TranslateGlyph({ size }: { size?: number } = {}) {
+  const loop = useLoopIcons()
+  if (loop) return <Languages size={size ?? SIZE} style={{ display: 'block' }} />
   return (
     <Glyph size={size}>
       {/* A */}
@@ -87,6 +96,8 @@ export function TranslateGlyph({ size }: { size?: number } = {}) {
  * сердца: значок стоит в одном ряду с ним и обязан весить столько же.
  */
 export function SpeakGlyph({ size }: { size?: number } = {}) {
+  const loop = useLoopIcons()
+  if (loop) return <Volume2 size={size ?? SIZE} style={{ display: 'block' }} />
   return (
     <Glyph size={size}>
       <path d="M4 9.6h3.1L11.4 6v12l-4.3-3.6H4a.9.9 0 0 1-.9-.9v-3a.9.9 0 0 1 .9-.9Z" />

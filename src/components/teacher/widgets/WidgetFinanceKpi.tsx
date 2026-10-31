@@ -1,4 +1,4 @@
-import { TrendingUp, Clock, AlertCircle, Sparkles } from 'lucide-react'
+import { TrendingUp, Clock, AlertCircle, Sparkles } from '../../icons/appIcons'
 import { useFinanceSummary } from '../../../lib/useFinances'
 import { useT } from '../../../lib/i18n'
 

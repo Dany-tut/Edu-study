@@ -1,3 +1,5 @@
+import { LoopTextIcon } from './icons/LoopIcon'
+import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { EMOJI_STEPS } from './homeworkSteps'
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
@@ -5,7 +7,7 @@ import {
   BookOpen, CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
   Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
   ChevronUp, ChevronDown, Eye, Mic, MicOff, Library, RotateCcw, ArrowRight, Volume2,
-} from 'lucide-react'
+} from './icons/appIcons'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import type { PatternItem } from '../data/taskTypes'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
@@ -4943,7 +4945,7 @@ function ProgressStrip({
               fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)',
               background: 'var(--color-green-soft)', padding: '4px 8px', borderRadius: 999,
             }}>
-              ✓ {correctCount} {t('верно')}
+              <LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{correctCount} {t('верно')}
             </span>
           )}
           {(gradedCount - correctCount) > 0 && (
@@ -4951,7 +4953,7 @@ function ProgressStrip({
               fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)',
               background: 'var(--color-red-soft)', padding: '4px 8px', borderRadius: 999,
             }}>
-              ✗ {gradedCount - correctCount} {t('нет')}
+              <LoopTextIcon icon={LoopMarkX}>{'✗ '}</LoopTextIcon>{gradedCount - correctCount} {t('нет')}
             </span>
           )}
         </div>

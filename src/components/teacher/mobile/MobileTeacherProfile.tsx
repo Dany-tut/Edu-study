@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages } from 'lucide-react'
+import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import FeedbackModal from '../../FeedbackModal'
 import TariffModal from '../TariffModal'

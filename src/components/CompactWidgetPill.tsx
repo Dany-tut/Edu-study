@@ -1,10 +1,12 @@
+import { LoopTextIcon } from './icons/LoopIcon'
+import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import {
   Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Timer, Watch, TrendingUp,
   X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen, CalendarClock, CalendarX,
   Bell, Clock, BookOpen, ClipboardList,
-} from 'lucide-react'
+} from './icons/appIcons'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
 import { getContrastColor } from '../lib/utils'
 import {
@@ -108,7 +110,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             position: 'relative', overflow: 'visible',
           }}
         >
-          {lastCorrect ? '✓' : '✗'}
+          <LoopTextIcon icon={lastCorrect ? LoopMarkCheck : LoopMarkX}>{lastCorrect ? '✓' : '✗'}</LoopTextIcon>
           {/* question number */}
           <div style={{
             position: 'absolute', bottom: -3, right: -3,

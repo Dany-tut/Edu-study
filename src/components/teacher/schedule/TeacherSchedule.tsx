@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from 'lucide-react'
+import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
 import Modal from '../../Modal'
 import MobileSheet from '../../MobileSheet'
 import DateTimeField from '../../DateTimeField'

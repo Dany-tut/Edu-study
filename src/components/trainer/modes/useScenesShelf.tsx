@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { Eye, SlidersHorizontal } from 'lucide-react'
+import { Eye, SlidersHorizontal } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { usePersistentState } from '../../../lib/useDraft'
 import Skeleton from '../../Skeleton'

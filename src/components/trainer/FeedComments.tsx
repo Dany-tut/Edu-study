@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CornerDownRight, Trash2, Send } from 'lucide-react'
+import { CornerDownRight, Trash2, Send } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
 import { useFeedComments, whenLabel, type FeedComment } from '../../lib/feedComments'

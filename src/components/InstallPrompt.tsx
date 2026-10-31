@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Share, X, Plus, Sparkles, WifiOff, Rocket } from 'lucide-react'
+import { Share, X, Plus, Sparkles, WifiOff, Rocket } from './icons/appIcons'
 import { subscribeInstall, subscribeShowInstall, hasInstallPrompt, promptInstall, isStandalone, getPlatform } from '../lib/pwaInstall'
 import { useT } from '../lib/i18n'
 

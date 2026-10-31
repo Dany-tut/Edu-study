@@ -19,7 +19,7 @@
  */
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles, Check, PenLine, ChevronDown, Loader2 } from 'lucide-react'
+import { Sparkles, Check, PenLine, ChevronDown, Loader2 } from '../icons/appIcons'
 import type { AiGrade, AiGradeElement, AiGradeTask } from '../../lib/useAiGrades'
 import { useT } from '../../lib/i18n'
 

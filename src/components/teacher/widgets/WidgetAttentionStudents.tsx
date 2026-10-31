@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronRight, Clock } from 'lucide-react'
+import { AlertCircle, ChevronRight, Clock } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
 import { t, useT, useTc } from '../../../lib/i18n'

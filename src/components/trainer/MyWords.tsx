@@ -20,7 +20,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useMemo } from 'react'
-import { BookMarked } from 'lucide-react'
+import { BookMarked } from '../icons/appIcons'
 import type { Phrase } from '../../data/survivalPhrases'
 import type { CardState, ReviewCard } from '../../data/reviewDeck'
 import { isDue } from '../../data/reviewDeck'

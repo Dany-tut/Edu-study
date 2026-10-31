@@ -16,7 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react'
-import { CheckCircle2, ChevronDown, ChevronRight, CircleAlert, ExternalLink, Eye, MicOff, Minus, Send } from 'lucide-react'
+import { CheckCircle2, ChevronDown, ChevronRight, CircleAlert, ExternalLink, Eye, MicOff, Minus, Send } from '../icons/appIcons'
 import type { BasicAnswerRow, BasicAnswersPayload, BasicAnswerVerdict } from '../../lib/basicAnswers'
 import { verdictLabel } from '../../lib/basicAnswers'
 import { useT } from '../../lib/i18n'

@@ -1,3 +1,6 @@
+import { LoopInlineIcon } from '../icons/LoopIcon'
+import { Check as LoopInlineCheck } from '../icons/appIcons'
+import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
 import { useState, useRef, useMemo, useEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { createPortal } from 'react-dom'
@@ -6,7 +9,7 @@ import {
   Plus, X, Check, Image as ImageIcon, Key, ListChecks, Eye, EyeOff,
   ChevronDown, Search, Shuffle, AlertCircle, Trash2, Save,
   LayoutGrid, List, ArrowUpDown, Pencil, Zap, Clock, Database,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import TeacherSelect from './TeacherSelect'
 import { ViewSwitch, ShelfSearch } from './ShelfFilters'
 import { plural } from '../trainer/TrainerShell'
@@ -75,9 +78,9 @@ function CopyableIdBadge({ id }: { id: number }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               boxShadow: '0 2px 6px rgba(42,125,79,0.35)',
             }}>
-              <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+              <LoopInlineIcon icon={LoopInlineCheck} color="#fff"><svg width="9" height="9" viewBox="0 0 9 9" fill="none">
                 <path d="M1.5 4.5l2.2 2.2 3.3-3.7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              </svg></LoopInlineIcon>
             </span>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)', letterSpacing: 0.1 }}>{t('Скопировано')}</span>
           </motion.span>
@@ -127,9 +130,9 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               boxShadow: '0 2px 6px rgba(42,125,79,0.35)',
             }}>
-              <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+              <LoopInlineIcon icon={LoopInlineCheck} color="#fff"><svg width="9" height="9" viewBox="0 0 9 9" fill="none">
                 <path d="M1.5 4.5l2.2 2.2 3.3-3.7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              </svg></LoopInlineIcon>
             </span>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)', letterSpacing: 0.1 }}>{t('Скопировано')}</span>
           </motion.span>
@@ -606,9 +609,9 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
       >
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ minWidth: 88, textAlign: 'left' }}>{t(label)}</span>
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+        <LoopInlineIcon icon={LoopInlineChevronDown}><svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        </svg></LoopInlineIcon>
       </button>
       {open && (
         <motion.div
@@ -638,7 +641,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
               onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(99,84,207,0.07)' : 'transparent' }}
             >
               {t(lbl)}
-              {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              {value === val && <LoopInlineIcon icon={LoopInlineCheck}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></LoopInlineIcon>}
             </button>
           ))}
         </motion.div>

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import Checkbox from '../../Checkbox'
 import { motion } from 'framer-motion'
-import { CheckCircle2, X as XIcon } from 'lucide-react'
+import { CheckCircle2, X as XIcon } from '../../icons/appIcons'
 import { useTeacher } from '../../../store/teacherStore'
 import type { TeacherTask } from '../../../store/teacherStore'
 import CreateTaskModal from '../CreateTaskModal'

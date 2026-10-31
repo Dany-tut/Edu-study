@@ -16,7 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { BookMarked } from 'lucide-react'
+import { BookMarked } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { usePersistentState } from '../../../lib/useDraft'
 import Skeleton from '../../Skeleton'

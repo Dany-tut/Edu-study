@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Check, Plus, Trash2, X } from 'lucide-react'
+import { ChevronDown, Check, Plus, Trash2, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import { useT, tc } from '../../lib/i18n'
 import { GLASS, glassMenu } from '../../lib/nativeGlass'

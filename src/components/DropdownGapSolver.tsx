@@ -17,7 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown } from './icons/appIcons'
 import { answerMap, gapTextParts, type GapChoice } from '../data/taskTypes'
 import { playPop, vibrate } from '../lib/sound'
 import { useOwnString } from '../lib/useOwnAnswer'

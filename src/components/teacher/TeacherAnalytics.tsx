@@ -7,7 +7,7 @@ import {
   Activity, Users, CalendarClock, Layers, TrendingUp,
   AlertTriangle, MousePointerClick, Clock, BookOpen, ChevronDown, ChevronUp, Copy, Check,
   Sparkles, RefreshCw, CheckCircle2, RotateCcw,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { useT, t as tGlobal } from '../../lib/i18n'
 import { tzToCountry } from '../../lib/tzCountry'

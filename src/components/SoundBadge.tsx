@@ -29,7 +29,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useT } from '../lib/i18n'
-import { Volume2 } from 'lucide-react'
+import { Volume2 } from './icons/appIcons'
 import { speak, speechMs, speechTarget, stopSpeech } from '../lib/speech'
 
 /**

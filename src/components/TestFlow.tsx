@@ -3,7 +3,7 @@ import { CheckboxMark } from './Checkbox'
 import BackCircle from './BackCircle'
 import { usePersistentState, clearDraft } from '../lib/useDraft'
 import { motion } from 'framer-motion'
-import { ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
+import { ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from './icons/appIcons'
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
 import {

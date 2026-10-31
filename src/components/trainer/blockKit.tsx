@@ -1,4 +1,4 @@
-import { Volume2 } from 'lucide-react'
+import { Volume2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { subjectFill } from '../../lib/subjects'
 import { speak, speechText } from '../../lib/speech'

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
-import { Check, Sparkles } from 'lucide-react'
+import { Check, Sparkles } from './icons/appIcons'
 import { useStudentData } from '../store/studentDataStore'
 import { useT, tc } from '../lib/i18n'
 

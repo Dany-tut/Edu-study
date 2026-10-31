@@ -10,7 +10,7 @@ import {
   Search, Bell, LayoutGrid, Users, ClipboardCheck, BookOpen, BarChart3,
   Pencil, Circle, MessageSquare, Check, X, Flame, Play, Lock,
   CalendarDays, Clock, Undo2, Sparkles, ArrowRight,
-} from 'lucide-react'
+} from '../icons/appIcons'
 
 const ACCENT = '#786AD7'
 const ACCENT_2 = '#6F3FBF'

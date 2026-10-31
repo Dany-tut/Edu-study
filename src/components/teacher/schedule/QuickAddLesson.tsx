@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Pencil } from 'lucide-react'
+import { Pencil } from '../../icons/appIcons'
 import Modal from '../../Modal'
 import DateTimeField from '../../DateTimeField'
 import { CheckboxMark } from '../../Checkbox'

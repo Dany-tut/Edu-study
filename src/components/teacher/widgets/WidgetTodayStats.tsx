@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Users, ClipboardCheck, Clock, TrendingUp } from 'lucide-react'
+import { Users, ClipboardCheck, Clock, TrendingUp } from '../../icons/appIcons'
 import { useHomeData } from '../../../lib/useHomeData'
 import { mskToVietnam } from '../../../lib/utils'
 import { useT } from '../../../lib/i18n'

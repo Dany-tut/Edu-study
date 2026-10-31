@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import Tooltip from '../Tooltip'
-import { Pencil, Eraser, Undo2, Trash2, Highlighter } from 'lucide-react'
+import { Pencil, Eraser, Undo2, Trash2, Highlighter } from '../icons/appIcons'
 import { optimizeCanvas, ImageTooLargeError } from '../../lib/imageOptim'
 import { useT } from '../../lib/i18n'
 import { alertDialog } from '../ConfirmHost'

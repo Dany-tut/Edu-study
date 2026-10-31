@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { WifiOff } from 'lucide-react'
+import { WifiOff } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 
 // Маленький файл без кеша service worker'а: если он скачался, сеть есть.

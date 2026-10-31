@@ -17,7 +17,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { LogOut, Mic, RotateCcw, Trophy } from 'lucide-react'
+import { LogOut, Mic, RotateCcw, Trophy } from '../../icons/appIcons'
 import { useLang, useT } from '../../../lib/i18n'
 import { isAsrAvailable, listenLong, type AsrSession } from '../../../lib/asr'
 import { wordCount } from '../../../lib/ieltsScore'

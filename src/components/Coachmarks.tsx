@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
+import { X } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 
 // Онбординг по интерфейсу: затемняем экран, вырезаем в затемнении окно вокруг

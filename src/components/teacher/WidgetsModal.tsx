@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, Reorder } from 'framer-motion'
-import { X, GripVertical, Minus, Plus, BarChart2, CalendarDays, ClipboardCheck, Bell, CreditCard, Users, BookOpen, type LucideIcon } from 'lucide-react'
+import { X, GripVertical, Minus, Plus, BarChart2, CalendarDays, ClipboardCheck, Bell, CreditCard, Users, BookOpen, type LucideIcon } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 
 type Widget = {

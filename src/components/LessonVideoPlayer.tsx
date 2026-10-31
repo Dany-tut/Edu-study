@@ -27,7 +27,7 @@ import {
   Play, Pause, RotateCcw, RotateCw, Volume2, Volume1, VolumeX,
   Maximize, Minimize, Subtitles, Gauge, Check, Repeat,
   ChevronLeft, ChevronRight, Lock, LockOpen,
-} from 'lucide-react'
+} from './icons/appIcons'
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'

@@ -20,7 +20,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useMemo, useRef, useState } from 'react'
-import { Check, Youtube } from 'lucide-react'
+import { Check, Youtube } from './icons/appIcons'
 import LessonVideoPlayer from './LessonVideoPlayer'
 import { parseVideoSource } from '../lib/videoSource'
 import { formatClock, watchedSeconds, type VideoWatch } from '../lib/videoProgress'

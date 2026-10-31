@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Play, ClipboardList, CalendarDays, Check, Flame, CheckCircle2, TrendingUp, Zap, BookOpen } from 'lucide-react'
+import { Play, ClipboardList, CalendarDays, Check, Flame, CheckCircle2, TrendingUp, Zap, BookOpen } from './icons/appIcons'
 import type { Lesson, Subject, ScheduleLesson } from '../data/mockData'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'

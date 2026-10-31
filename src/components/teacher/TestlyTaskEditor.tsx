@@ -2,7 +2,7 @@
 // Править тут нечего: вопросы живут в Тестли. Можно открыть тест там или
 // поменять на другой из своего списка.
 import { useState } from 'react'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { testlyEditUrl, testlyMeta } from '../../lib/testlyModule'
 import type { TestlyRef } from '../../data/taskTypes'

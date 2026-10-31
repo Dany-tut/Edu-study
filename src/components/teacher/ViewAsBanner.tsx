@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { Eye, X } from 'lucide-react'
+import { Eye, X } from '../icons/appIcons'
 import { getViewAs, setViewAs } from '../../lib/owner'
 import { useT, useTc } from '../../lib/i18n'
 import { btn } from '../../lib/pillStyles'

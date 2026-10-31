@@ -10,7 +10,7 @@
 // Стили полей нарочно свои, а не пришедшие пропсами: редактор должен выглядеть
 // одинаково на обеих страницах, а не подстраиваться под каждую.
 
-import { Check, Plus, X } from 'lucide-react'
+import { Check, Plus, X } from '../icons/appIcons'
 import GrowTextarea from '../GrowTextarea'
 import { alertDialog } from '../ConfirmHost'
 import {

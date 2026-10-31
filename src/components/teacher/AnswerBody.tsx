@@ -1,5 +1,5 @@
 import WhiteboardCanvas from './WhiteboardCanvas'
-import { Image as ImageIcon, PenLine, Clock } from 'lucide-react'
+import { Image as ImageIcon, PenLine, Clock } from '../icons/appIcons'
 import { sanitizeHtml } from '../../lib/sanitizeHtml'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'

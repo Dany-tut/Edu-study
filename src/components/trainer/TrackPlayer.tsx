@@ -35,7 +35,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Play, Pause } from 'lucide-react'
+import { Play, Pause } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { speak, stopSpeech, speechUnits, speechMs } from '../../lib/speech'
 import { getMediaUrl } from '../../lib/mediaStorage'

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Segmented from '../Segmented'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Inbox, GraduationCap, User, X, RefreshCw, MessageCircle } from 'lucide-react'
+import { Inbox, GraduationCap, User, X, RefreshCw, MessageCircle } from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import type { FeedbackRequest, FeedbackStatus } from '../../lib/feedbackRequests'
 import { useT } from '../../lib/i18n'

@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Play, Square, Volume2 } from 'lucide-react'
+import { Play, Square, Volume2 } from './icons/appIcons'
 import { GAP_MARK, type DialogLine } from '../data/taskTypes'
 import { speak, stopSpeech, voiceOptions, type SpeechHandle } from '../lib/speech'
 import { playPop, vibrate } from '../lib/sound'

@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { createPortal } from 'react-dom'
-import { Home, BookOpen, Dumbbell, User, ClipboardList } from 'lucide-react'
+import { TaskliIcon, type TaskliIconName } from './icons/TaskliIcon'
 import { useState, useEffect } from 'react'
 import { playTransitionDrop } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
@@ -20,16 +20,32 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 
 const items = [
-  { id: 'home',     label: 'Главная',  icon: Home },
-  { id: 'courses',  label: 'Курсы',    icon: BookOpen },
-  { id: 'trainer',  label: 'Тренажёр', icon: Dumbbell },
-  { id: 'homeworkList', label: 'ДЗ',   icon: ClipboardList },
-  { id: 'profile',  label: 'Профиль',  icon: User },
+  { id: 'home',     label: 'Главная',  icon: 'home' },
+  { id: 'courses',  label: 'Курсы',    icon: 'courses' },
+  { id: 'trainer',  label: 'Тренажёр', icon: 'trainer' },
+  { id: 'homeworkList', label: 'ДЗ',   icon: 'review' },
+  { id: 'profile',  label: 'Профиль',  icon: 'profile' },
 ]
+
+// A small, distinct gesture for each glyph keeps the tap playful without
+// moving the dock or its labels: home pops, courses open like a book, the
+// trainer lifts, homework checks, and profile gives a quick nod.
+function clickIconMotion(icon: string) {
+  const gestures: Record<string, { y: number[]; scale: number[]; rotate: number[] }> = {
+    home:     { y: [0, -4, 0], scale: [1, 1.12, 1], rotate: [0, -5, 0] },
+    courses:  { y: [0, -2, 0], scale: [1, 1.08, 1], rotate: [0, -9, 0] },
+    trainer:  { y: [0, -5, 0], scale: [1, 1.1, 1], rotate: [0, 7, 0] },
+    review:   { y: [0, -2, 0], scale: [1, 1.15, 1], rotate: [0, -8, 0] },
+    profile:  { y: [0, -3, 0], scale: [1, 1.1, 1], rotate: [0, 5, 0] },
+  }
+  return gestures[icon] ?? { y: [0, -3, 0], scale: [1, 1.1, 1], rotate: [0, 0, 0] }
+}
 
 export default function MobileBottomNav() {
   const t = useT()
   const [active, setActive] = useState('home')
+  const [iconClicks, setIconClicks] = useState<Record<string, number>>({})
+  const reduceMotion = useReducedMotion()
   const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
   const subjects = useStudentData(s => s.subjects)
   const setScheduleIndex = useDashboard(state => state.setScheduleIndex)
@@ -59,6 +75,7 @@ export default function MobileBottomNav() {
   useEffect(() => { setActive(activePage) }, [activePage])
 
   const handleClick = (id: string) => {
+    setIconClicks(previous => ({ ...previous, [id]: (previous[id] ?? 0) + 1 }))
     // ПОВТОРНЫЙ ТАП ПО СВОЕЙ ВКЛАДКЕ = НАВЕРХ. Уйдя далеко в ленту, вернуться
     // к началу главной больше нечем: своей кнопки «вверх» на телефоне нет, а
     // соседняя вкладка теперь возвращает на то же место, откуда ушёл.
@@ -140,7 +157,6 @@ export default function MobileBottomNav() {
         }}
       >
         {items.map(item => {
-          const Icon = item.icon
           const isActive = active === item.id
           return (
             <motion.button
@@ -153,11 +169,20 @@ export default function MobileBottomNav() {
               style={{ flex: '1 1 0', minWidth: 0, minHeight: 44, position: 'relative' }}
               aria-label={t(item.label)}
             >
-              <Icon
-                size={20}
-                strokeWidth={isActive ? 2.5 : 1.8}
-                style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }}
-              />
+              <motion.span
+                key={`${item.id}-${iconClicks[item.id] ?? 0}`}
+                initial={reduceMotion || !iconClicks[item.id] ? false : { y: 0, scale: 1, rotate: 0 }}
+                animate={reduceMotion ? undefined : clickIconMotion(item.icon)}
+                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                style={{ display: 'block', transformOrigin: 'center' }}
+              >
+                <TaskliIcon
+                  name={item.icon as TaskliIconName}
+                  size={20}
+                  strokeWidth={isActive ? 2 : 1.8}
+                  tone={isActive ? 'accent' : 'neutral'}
+                />
+              </motion.span>
               {item.id === 'trainer' && feedBadge > 0 && (
                 <span style={{
                   position: 'absolute', top: 0, left: '50%', transform: 'translateX(2px)',

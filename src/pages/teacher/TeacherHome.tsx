@@ -6,7 +6,7 @@ import {
   Users, ClipboardCheck, BookOpen, TrendingUp,
   Clock, CheckCircle2, Plus, Send, Download, UserPlus,
   AlertCircle, Layers, Bell, Banknote, ChevronRight, X as XIcon,
-} from 'lucide-react'
+} from '../../components/icons/appIcons'
 import type { ScheduleItem, Reminder, Group, Student } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'

@@ -1,4 +1,4 @@
-import { Layers } from 'lucide-react'
+import { Layers } from '../../icons/appIcons'
 import MiniStatCard from './_MiniStatCard'
 import { useGroups } from '../../../lib/useGroups'
 import { useT } from '../../../lib/i18n'

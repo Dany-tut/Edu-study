@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2, PenLine,
   X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen, CalendarClock, CalendarX,
   Bell, Clock, RotateCcw, Trophy,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import { useTeacher } from '../../store/teacherStore'
 import { useDashboard } from '../../store/dashboardStore'
 import { useHomework } from '../../lib/useHomework'

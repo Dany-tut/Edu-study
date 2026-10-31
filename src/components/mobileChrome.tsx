@@ -6,7 +6,7 @@ import { TAP_SCALE, JELLY_EASE, MOBILE_PILL_H } from '../lib/mobileTokens'
 // ─────────────────────────────────────────────────────────────────────────────
 // Floating glass chrome (MOBILE ONLY). Shared top-bar building blocks so every
 // screen (Home / Course / Trainer / Lesson) uses the same floating-pill language.
-// Icons are lucide only — never emoji. Desktop never imports these.
+// Icons use Loop through appIcons — never emoji. Desktop never imports these.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const glassBase: CSSProperties = {

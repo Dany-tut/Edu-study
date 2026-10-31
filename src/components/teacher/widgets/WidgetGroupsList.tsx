@@ -1,4 +1,4 @@
-import { Users, ChevronRight } from 'lucide-react'
+import { Users, ChevronRight } from '../../icons/appIcons'
 import { useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
 import { useT, useTc } from '../../../lib/i18n'

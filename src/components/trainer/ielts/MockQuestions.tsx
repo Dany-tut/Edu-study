@@ -11,7 +11,7 @@
 // экзамена, где узнаёшь только итоговую цифру.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Check, X } from 'lucide-react'
+import { Check, X } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import GrowTextarea from '../../GrowTextarea'
 import { isCorrect } from '../../../lib/ieltsScore'

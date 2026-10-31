@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronDown, Plus, Trash2, X, Check, RotateCcw, Database, Hash, BookOpen, GripVertical,
   Cloud, CloudOff, Loader2,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import { useCurriculum } from '../../store/curriculumStore'
 import { getContrastColor } from '../../lib/utils'
 import type { Subject } from '../../data/taskBankData'

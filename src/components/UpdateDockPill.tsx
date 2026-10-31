@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ArrowDownToLine } from 'lucide-react'
+import { ArrowDownToLine } from './icons/appIcons'
 import { useSmoothCollapse, glassBase } from './MobileDock'
 import ProgressFill from './ProgressFill'
 import { useAppUpdate } from '../lib/appUpdate'

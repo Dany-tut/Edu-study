@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from '../components/icons/appIcons'
 import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'

@@ -8,7 +8,7 @@
 // кнопками-иконками (поиск, ToolButton), подпись живёт в aria-label и подсказке.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 
 export default function BackCircle({ onClick, label = 'Назад', style }: {

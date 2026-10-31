@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar, Clock, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Calendar, Clock, MessageSquare, ChevronLeft, ChevronRight } from '../icons/appIcons'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import TeacherSaveButton from './TeacherSaveButton'

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Mic, Square, Trash2, Loader2, AlertCircle } from 'lucide-react'
+import { Mic, Square, Trash2, Loader2, AlertCircle } from './icons/appIcons'
 import { uploadMedia, MediaTooLargeError } from '../lib/mediaStorage'
 import { isAsrAvailable, listen, type AsrSession } from '../lib/asr'
 import { micProblem } from '../lib/micAccess'

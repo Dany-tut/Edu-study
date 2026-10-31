@@ -17,7 +17,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Menu, Volume2 } from 'lucide-react'
+import { Menu, Volume2 } from '../icons/appIcons'
 import { useSmoothCollapse } from '../MobileDock'
 
 /** Самая большая точка бегунка (под пальцем). Её половина — поля полосы. */

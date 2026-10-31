@@ -26,7 +26,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { LogIn, Sparkles } from 'lucide-react'
+import { LogIn, Sparkles } from '../components/icons/appIcons'
 import LanguageTrainer from '../components/LanguageTrainer'
 import { LeadModal } from './LandingPage'
 import { getSubject } from '../lib/subjects'

@@ -1,4 +1,4 @@
-import { ClipboardCheck } from 'lucide-react'
+import { ClipboardCheck } from '../../icons/appIcons'
 import MiniStatCard from './_MiniStatCard'
 import { useHomeData } from '../../../lib/useHomeData'
 import { useT } from '../../../lib/i18n'

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ICON_GAP } from '../lib/subjects'
-import { ChevronDown, Check } from 'lucide-react'
+import { ChevronDown, Check } from './icons/appIcons'
 import ScrollFade from './ScrollFade'
 import { supabase } from '../lib/supabase'
 import { getStudentSession, setStudentSession } from '../lib/studentSession'

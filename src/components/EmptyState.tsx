@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import type { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from './icons/appIcons'
 
 /**
  * ПУСТОЙ ЭКРАН — один на всё приложение (дизайн-система, круг 2).

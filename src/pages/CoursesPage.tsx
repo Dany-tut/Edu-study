@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
-import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react'
+import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from '../components/icons/appIcons'
 import { glassCircle, MOBILE_DOCK_EDGE, MOBILE_PILL_H, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'

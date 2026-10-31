@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertCircle, Clock, Check } from 'lucide-react'
+import { AlertCircle, Clock, Check } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
 import { addPayment } from '../../../lib/useFinances'

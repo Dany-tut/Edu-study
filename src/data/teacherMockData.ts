@@ -33,6 +33,7 @@ export type Student = {
   authUserId?: string
   /** First-class person identity — same human shares one person_id across all their cards/groups. */
   personId?: string
+  /** Empty string represents an unassigned student (SQL group_id IS NULL). */
   groupId: string
   subject?: string
   isIndividual?: boolean

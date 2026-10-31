@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link2, Loader2, Check } from 'lucide-react'
+import { X, Link2, Loader2, Check } from '../icons/appIcons'
 import { isGoogleFormUrl, importGoogleForm, type ImportedForm, type ImportedQuestion } from '../../lib/googleFormsImport'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { useT } from '../../lib/i18n'

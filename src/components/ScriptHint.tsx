@@ -24,7 +24,7 @@
 // вариант и НЕ выбирает его.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Volume2 } from 'lucide-react'
+import { Volume2 } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import { transcribe } from '../lib/translit'
 import { speak, stopSpeech, hasVoiceFor } from '../lib/speech'

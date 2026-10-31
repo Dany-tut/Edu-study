@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from './icons/appIcons'
 import { useTheme } from '../store/themeStore'
 import { useT } from '../lib/i18n'
 

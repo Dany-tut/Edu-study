@@ -6,9 +6,9 @@ import {
   Award, Target, XCircle, CheckCircle2, Layers, BookOpen, Dumbbell,
   Star, Calendar, BarChart3, Download, CreditCard, MessageSquare,
   CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain, ChevronDown, Lightbulb,
-} from 'lucide-react'
+} from '../../components/icons/appIcons'
 import { useTeacher } from '../../store/teacherStore'
-import { useGroups, useStudents } from '../../lib/useGroups'
+import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { contactHref, contactLabel } from '../../lib/contactLink'
 import type { Student, Group } from '../../data/teacherMockData'
 import { loadAnonResults, type AnonDiagResult } from '../../data/diagnosticData'
@@ -311,9 +311,9 @@ export default function TeacherStudentDashboardPage() {
   const studentTrainerStats = useTeacher(s => s.studentTrainerStats)
 
   const { groups } = useGroups()
-  const { students } = useStudents(selectedGroupId)
+  const students = useAllStudents()
 
-  const group = groups.find(g => g.id === selectedGroupId) ?? null
+  const group = groups.find(g => g.id === selectedGroupId) ?? { id: '', name: t('Пока без занятий'), subject: '' as Group['subject'], icon: '', level: '', color: '#9B6DFF', colorSoft: '#EFE0FF', startDate: '', studentCount: 0, lessonsCompleted: 0, totalLessons: 0 }
   const student = students.find(s => s.id === selectedStudentId) ?? null
 
   const [docked, setDocked] = useState(false)

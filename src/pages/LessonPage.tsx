@@ -4,7 +4,7 @@ import {
   ChevronLeft, Play, ListVideo, NotebookPen, FileText,
   FolderOpen, GraduationCap, Download, ExternalLink, ChevronDown, Calendar,
   ChevronRight, Clock, Lock, CheckCircle2, RotateCcw, Star, ALargeSmall,
-} from 'lucide-react'
+} from '../components/icons/appIcons'
 import ScrollFade from '../components/ScrollFade'
 import { useDashboard } from '../store/dashboardStore'
 import { activeTimecodeIndex, findLessonById, getExtraHomeworks, getLessonDetail, type LessonHomework } from '../data/lessonContent'

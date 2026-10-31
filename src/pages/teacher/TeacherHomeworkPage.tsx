@@ -1,3 +1,5 @@
+import { LoopInlineIcon } from '../../components/icons/LoopIcon'
+import { ChevronDown as LoopInlineChevronDown } from '../../components/icons/appIcons'
 import { useState, useEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -5,7 +7,7 @@ import {
   Plus, X, ClipboardCheck, Clock, CheckCircle2,
   Circle, Users, AlertCircle, Send, ClipboardList, Check, RotateCcw, Star,
   BookOpen,
-} from 'lucide-react'
+} from '../../components/icons/appIcons'
 import {
   type HomeworkItem, type Group,
 } from '../../data/teacherMockData'
@@ -858,7 +860,7 @@ export default function TeacherHomeworkPage() {
                   transition={{ duration: 0.22 }}
                   style={{ display: 'flex', color: 'var(--color-muted)' }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <LoopInlineIcon icon={LoopInlineChevronDown}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></LoopInlineIcon>
                 </motion.div>
               </div>
 
@@ -904,7 +906,7 @@ export default function TeacherHomeworkPage() {
                             transition={{ duration: 0.15 }}
                             style={{ display: 'flex', color: 'var(--color-muted)' }}
                           >
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <LoopInlineIcon icon={LoopInlineChevronDown}><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></LoopInlineIcon>
                           </motion.div>
                           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)' }}>
                             {t('Принято')} · {acceptedHardSubs.length}

@@ -1,3 +1,6 @@
+import { Circle, CircleDot } from './icons/appIcons'
+import { useLoopIcons } from './icons/LoopIcon'
+
 /**
  * Кастомная радиокнопка — единственная разрешённая в проекте.
  *
@@ -72,6 +75,11 @@ export function RadioMark({ checked, size = 18, accent = 'var(--color-control-ac
   accent?: string
   style?: React.CSSProperties
 }) {
+  const loop = useLoopIcons()
+  if (loop) {
+    const Icon = checked ? CircleDot : Circle
+    return <Icon aria-hidden size={size} style={{ color: checked ? accent : 'var(--color-muted)', flexShrink: 0, ...style }} />
+  }
   return (
     <span
       aria-hidden

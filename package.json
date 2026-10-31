@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "icons:generate": "node scripts/buildLoopIcons.mjs",
+    "icons:check": "node scripts/buildLoopIcons.mjs --check && node scripts/checkLoopIcons.mjs",
     "dev": "vite",
     "build": "vite build",
     "stamp": "node scripts/stampVersion.mjs",

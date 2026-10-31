@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useMemo, useState, useRef, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X } from '../icons/appIcons'
 import { type Desk, type LayoutItem } from '../../lib/useDeskLayouts'
 import { getWidgetDef } from './widgets/registry'
 import WidgetBoundary from './WidgetBoundary'

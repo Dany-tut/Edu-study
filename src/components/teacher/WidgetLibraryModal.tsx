@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X } from 'lucide-react'
+import { X } from '../icons/appIcons'
 import { WIDGET_REGISTRY, type WidgetDef } from './widgets/registry'
 import type { LayoutItem } from '../../lib/useDeskLayouts'
 import { useT } from '../../lib/i18n'

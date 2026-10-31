@@ -1,4 +1,4 @@
-import { Users } from 'lucide-react'
+import { Users } from '../../icons/appIcons'
 import MiniStatCard from './_MiniStatCard'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useT } from '../../../lib/i18n'

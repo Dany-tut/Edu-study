@@ -1,4 +1,4 @@
-import { TrendingUp } from 'lucide-react'
+import { TrendingUp } from '../../icons/appIcons'
 import MiniStatCard from './_MiniStatCard'
 import { useFinanceSummary } from '../../../lib/useFinances'
 import { useT } from '../../../lib/i18n'

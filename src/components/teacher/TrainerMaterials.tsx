@@ -36,7 +36,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, FileCode2, Layers, LayoutGrid, List, Search, Trash2, X, Zap,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { usePersistentState, clearDraft } from '../../lib/useDraft'

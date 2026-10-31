@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CheckboxMark } from '../Checkbox'
-import { Lock, BookOpen, Users, LayoutGrid, Copy, Share2, Check } from 'lucide-react'
+import { Lock, BookOpen, Users, LayoutGrid, Copy, Share2, Check } from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { SUBJECTS, ICON_GAP } from '../../lib/subjects'

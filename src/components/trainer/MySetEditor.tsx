@@ -18,7 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { saveCardGroup, applyCardSaveIds, type CardGroup, type CardSet, type SetCard } from '../../lib/cardGroups'
 import GrowTextarea from '../GrowTextarea'

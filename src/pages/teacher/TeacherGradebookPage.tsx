@@ -1,6 +1,8 @@
+import { LoopTextIcon } from '../../components/icons/LoopIcon'
+import { Check as LoopMarkCheck, X as LoopMarkX } from '../../components/icons/appIcons'
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Download, X, Check } from 'lucide-react'
+import { Download, X, Check } from '../../components/icons/appIcons'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
 import type { Group } from '../../data/teacherMockData'
 import { expandToPerson } from '../../lib/personGroups'
@@ -189,14 +191,14 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                               background: 'var(--color-green-soft)',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: 12,
-                            }}>✓</div>
+                            }}><LoopTextIcon icon={LoopMarkCheck}>✓</LoopTextIcon></div>
                           ) : (
                             <div style={{
                               width: 22, height: 22, borderRadius: 7, margin: '0 auto',
                               background: 'var(--color-red-soft)',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: 11, color: 'var(--color-red-text)',
-                            }}>✗</div>
+                            }}><LoopTextIcon icon={LoopMarkX}>✗</LoopTextIcon></div>
                           )}
                         </td>
                       )

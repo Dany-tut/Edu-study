@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Segmented from '../Segmented'
 import { createPortal } from 'react-dom'
-import { Users, GraduationCap, Clock, RefreshCw, Eye, Trash2, ShieldAlert } from 'lucide-react'
+import { Users, GraduationCap, Clock, RefreshCw, Eye, Trash2, ShieldAlert } from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import {
   fetchUserActivity, fetchTeacherUsage,

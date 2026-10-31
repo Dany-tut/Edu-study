@@ -12,7 +12,7 @@
 // пускаем). Оба вида заканчиваются одной и той же отметкой.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Check, ExternalLink } from 'lucide-react'
+import { Check, ExternalLink } from './icons/appIcons'
 import { EMBED_DONE } from '../data/taskTypes'
 import { parseEmbed } from '../lib/embed'
 import { playPop, vibrate } from '../lib/sound'

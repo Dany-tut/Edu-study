@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, X, RotateCcw, BookOpenCheck } from 'lucide-react'
+import { Check, X, RotateCcw, BookOpenCheck } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { useSwipeBack } from '../../lib/useSwipeBack'
 import { proseWrap } from '../../lib/typography'

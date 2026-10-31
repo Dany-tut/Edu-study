@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Check, X, Sparkle, AlertTriangle, ArrowRight, GraduationCap } from 'lucide-react'
+import { Check, X, Sparkle, AlertTriangle, ArrowRight, GraduationCap } from '../icons/appIcons'
 import { Tile, TileGrid, TileChip, TileMeter, Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'

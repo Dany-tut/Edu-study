@@ -9,7 +9,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { findLessonById } from '../data/lessonContent'
 import { baseLessonRef } from '../lib/extraHomework'
 import { t, useT } from '../lib/i18n'
-import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen, CalendarClock, CalendarX, BellOff } from 'lucide-react'
+import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen, CalendarClock, CalendarX, BellOff } from './icons/appIcons'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
   homework_assigned:    <ClipboardList size={16} />,

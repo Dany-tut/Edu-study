@@ -1,4 +1,4 @@
-import { createLucideIcon } from 'lucide-react'
+import { createLucideIcon } from '../components/icons/appIcons'
 
 // Аватар учителя: человек над раскрытой книгой. В lucide такого нет —
 // рисуем в его сетке 24×24, чтобы толщина линий совпадала с соседями.

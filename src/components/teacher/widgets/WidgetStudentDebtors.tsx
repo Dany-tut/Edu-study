@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle } from '../../icons/appIcons'
 import MiniStatCard from './_MiniStatCard'
 import { useAllStudents } from '../../../lib/useGroups'
 import { useT } from '../../../lib/i18n'

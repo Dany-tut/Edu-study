@@ -7,7 +7,7 @@ import {
   Video, Link2, ListVideo, NotebookPen, FileText, FolderOpen,
   GraduationCap, Upload, Calendar, Clock, Search,
   ChevronLeft, ChevronRight,
-} from 'lucide-react'
+} from '../../components/icons/appIcons'
 import { LessonLinkAttach } from '../../components/teacher/LessonLinkAttach'
 import { useTeacher, setLeaveGuard } from '../../store/teacherStore'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'

@@ -2,7 +2,7 @@
 // Подключение — кодом из Тестли (меню профиля → «Подключить к Искре»):
 // код меняет на ключ сервер (testly-bridge), в браузер ключ не попадает.
 import { useEffect, useState } from 'react'
-import { Check, ClipboardPaste, ExternalLink, Loader2 } from 'lucide-react'
+import { Check, ClipboardPaste, ExternalLink, Loader2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { connectTestly, disconnectTestly, plural, useTestlyModule, TESTLY_SITE } from '../../lib/testlyModule'
 import { confirmDialog } from '../ConfirmHost'

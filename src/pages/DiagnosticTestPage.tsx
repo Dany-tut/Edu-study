@@ -3,7 +3,7 @@ import BackCircle from '../components/BackCircle'
 import { createPortal } from 'react-dom'
 import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, CheckCircle, Circle, ChevronRight, Maximize2, Target, X } from 'lucide-react'
+import { Check, CheckCircle, Circle, ChevronRight, Maximize2, Target, X } from '../components/icons/appIcons'
 import {
   fetchPublicDiagQuestions, saveDiagProgress, logDiagConfidence,
   loadDiagProgress, discardDiagProgress, type DiagProgress, type DiagSaveResult,

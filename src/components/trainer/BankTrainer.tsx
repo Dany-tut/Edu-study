@@ -1,3 +1,10 @@
+import { LoopActionLabel } from '../icons/LoopIcon'
+import { ArrowRight as LoopActionArrow } from '../icons/appIcons'
+import { LoopTextIcon } from '../icons/LoopIcon'
+import { Check as LoopMarkCheck, X as LoopMarkX } from '../icons/appIcons'
+import { LoopInlineIcon } from '../icons/LoopIcon'
+import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
+import { Check as LoopInlineCheck } from '../icons/appIcons'
 import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
 import CountBadge from '../CountBadge'
 import ScrollFade from '../ScrollFade'
@@ -8,7 +15,7 @@ import {
   Search, BookOpen, CheckCircle2, XCircle,
   Star, Share2, AlertTriangle, Eye, EyeOff, Sparkles, Target, Filter,
   LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, Bell, Database, ZoomIn, ZoomOut, Layers,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import {
   Task, Subject,
   BIOLOGY_SECTION_LINE_MAP, BIOLOGY_DIAGNOSTIC_SAMPLE_LINES, BIOLOGY_ROUTE,
@@ -163,9 +170,9 @@ function FilterField({ label, options, value, onChange, accent }: {
           <button aria-label={t('Очистить')} onMouseDown={e => { e.preventDefault(); onChange('') }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: 0 }}><X size={14} strokeWidth={2.5} /></button>
         ) : (
-          <svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease', pointerEvents: 'none' }}>
+          <LoopInlineIcon icon={LoopInlineChevronDown}><svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease', pointerEvents: 'none' }}>
             <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          </svg></LoopInlineIcon>
         )}
       </div>
 
@@ -265,9 +272,9 @@ function NumberBadge({ id, onCopied, icon }: { id: number; onCopied: () => void;
               flexShrink: 0,
               boxShadow: '0 2px 6px rgba(42,125,79,0.35)',
             }}>
-              <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+              <LoopInlineIcon icon={LoopInlineCheck} color="#fff"><svg width="9" height="9" viewBox="0 0 9 9" fill="none">
                 <path d="M1.5 4.5l2.2 2.2 3.3-3.7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              </svg></LoopInlineIcon>
             </span>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)', letterSpacing: 0.1 }}>{t('Скопировано')}</span>
           </motion.span>
@@ -759,7 +766,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           background: inputVal.trim() ? palette.accent : 'var(--color-bg-5)',
           color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
           cursor: inputVal.trim() ? 'pointer' : 'default', flexShrink: 0,
-        }}>✓</button>
+        }}><LoopTextIcon icon={LoopMarkCheck}>✓</LoopTextIcon></button>
         {/* Тот же глазок, что и в большой карточке: работает и до ответа,
             подсмотренное задание уходит в нейтральные. */}
         <button onClick={peek} aria-label={t('Показать ответ')} style={{
@@ -1089,14 +1096,14 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                 </div>
                 <button onClick={onOpenModal}
                   style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: `${palette.accent}20`, color: palette.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                  {t('Детали →')}
+                  <LoopActionLabel icon={LoopActionArrow} label={t('Детали →')} />
                 </button>
               </>)}
 
               {active === 'today' && (<>
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Сегодня:')}</span>
-                {todayCorrect > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} {t('верно')}</span>}
-                {todayWrong   > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} {t('ошибок')}</span>}
+                {todayCorrect > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}><LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{todayCorrect} {t('верно')}</span>}
+                {todayWrong   > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}><LoopTextIcon icon={LoopMarkX}>{'✗ '}</LoopTextIcon>{todayWrong} {t('ошибок')}</span>}
                 {todayCorrect === 0 && todayWrong === 0 && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ещё не решал сегодня')}</span>}
               </>)}
 
@@ -1221,8 +1228,8 @@ function ProgressModal({
             <div>
               <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>{t('Сегодня')}</div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {todayCorrect > 0 && <span style={{ padding: '6px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} {t('верно')}</span>}
-                {todayWrong   > 0 && <span style={{ padding: '6px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} {t('ошибок')}</span>}
+                {todayCorrect > 0 && <span style={{ padding: '6px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}><LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{todayCorrect} {t('верно')}</span>}
+                {todayWrong   > 0 && <span style={{ padding: '6px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}><LoopTextIcon icon={LoopMarkX}>{'✗ '}</LoopTextIcon>{todayWrong} {t('ошибок')}</span>}
               </div>
             </div>
           )}
@@ -1258,7 +1265,7 @@ function ProgressModal({
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Ошибки')} ({wrongTasks.length})</div>
                 <button onClick={onRetryMistakes} style={{ padding: '4px 12px', borderRadius: 999, border: 'none', background: `${palette.accent}22`, color: palette.text, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                  {t('Повторить все →')}
+                  <LoopActionLabel icon={LoopActionArrow} label={t('Повторить все →')} />
                 </button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -2116,9 +2123,9 @@ export default function BankTrainer({ subjectState }: {
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               boxShadow: '0 3px 10px rgba(42,125,79,0.35)',
             }}>
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <LoopInlineIcon icon={LoopInlineCheck} color="#fff"><svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                 <path d="M2 5l2.5 2.5 3.5-4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              </svg></LoopInlineIcon>
             </span>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>{t('Сохранено в буфере')}</span>
           </motion.div>

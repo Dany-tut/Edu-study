@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CheckCircle2 } from '../icons/appIcons'
 import { useMemo } from 'react'
 import { useTeacher } from '../../store/teacherStore'
 import { useHomework, useHomeworkSubmissions } from '../../lib/useHomework'

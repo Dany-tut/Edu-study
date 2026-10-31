@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { Compass, Library } from 'lucide-react'
+import { Compass, Library } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { usePersistentState } from '../../../lib/useDraft'
 import { bindShortWords, proseWrap } from '../../../lib/typography'

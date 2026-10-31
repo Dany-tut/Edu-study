@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell, RotateCcw, Banknote, NotebookPen, CalendarClock, CalendarX } from 'lucide-react'
+import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell, RotateCcw, Banknote, NotebookPen, CalendarClock, CalendarX } from './icons/appIcons'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
 import { getContrastColor } from '../lib/utils'
 import { useT } from '../lib/i18n'

@@ -1,4 +1,4 @@
-import { CheckCircle2, Wallet } from 'lucide-react'
+import { CheckCircle2, Wallet } from '../../icons/appIcons'
 import { usePayments } from '../../../lib/useFinances'
 import { useAllStudents } from '../../../lib/useGroups'
 import Skeleton from '../../Skeleton'

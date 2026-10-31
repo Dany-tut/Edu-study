@@ -19,7 +19,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, BookOpen, Check } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check } from '../icons/appIcons'
 import type { StoryChapter, LanguageStory } from '../../data/languageStory'
 import { useT } from '../../lib/i18n'
 import { proseWrap, bindShortWords } from '../../lib/typography'

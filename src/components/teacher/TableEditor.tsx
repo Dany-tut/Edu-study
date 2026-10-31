@@ -1,5 +1,5 @@
 import { useState, useRef, useLayoutEffect } from 'react'
-import { Plus, Camera, X } from 'lucide-react'
+import { Plus, Camera, X } from '../icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { alertDialog } from '../ConfirmHost'
 

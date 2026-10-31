@@ -1,6 +1,32 @@
 import Capacitor
 import UIKit
 
+// App-owned bar/header glyphs use the same Loop artwork as the mobile web UI.
+// Public assets are copied by Capacitor; system controls keep their own symbols.
+private enum LoopNativeIcons {
+    private static let names = [
+        "house": "Home", "calendar": "CalendarCheck", "person.2": "Users",
+        "checkmark.rectangle.stack": "CheckCircle2", "checklist": "NotebookPen",
+        "person.crop.circle": "UserCircle",
+    ]
+    private static var assets: [String: UIImageAsset] = [:]
+
+    static func image(_ symbol: String, traits: UITraitCollection = .current) -> UIImage? {
+        guard let name = names[symbol] else { return UIImage(systemName: symbol) }
+        if let asset = assets[name] { return asset.image(with: traits).withRenderingMode(.alwaysOriginal) }
+        let asset = UIImageAsset()
+        for (theme, style) in [("light", UIUserInterfaceStyle.light), ("dark", .dark)] {
+            guard let url = Bundle.main.url(forResource: "\(name)-\(theme)@3x", withExtension: "png", subdirectory: "public/icons/loop"),
+                  let data = try? Data(contentsOf: url), let image = UIImage(data: data, scale: 3) else {
+                return UIImage(systemName: symbol)
+            }
+            asset.register(image.withRenderingMode(.alwaysOriginal), with: UITraitCollection(userInterfaceStyle: style))
+        }
+        assets[name] = asset
+        return asset.image(with: traits).withRenderingMode(.alwaysOriginal)
+    }
+}
+
 // Системные контролы iOS поверх WebView: в приложении алерты, подтверждения,
 // выпадающие списки и нижняя навигация рисуются самой системой — с её стеклом
 // (Liquid Glass на iOS 26), шрифтом, хаптикой и анимациями. Веб-версия этих же
@@ -36,6 +62,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
 
     private var tabBar: UITabBar?
     private var tabIds: [String] = []
+    private var tabSymbols: [String] = []
     private var anchor: UIButton?
     private var menuCall: CAPPluginCall?
     private var menuPicked = false
@@ -124,6 +151,16 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         let dark = call.getBool("dark") ?? false
         DispatchQueue.main.async {
             self.host?.view.window?.overrideUserInterfaceStyle = dark ? .dark : .light
+            // Refresh app-owned images explicitly; the bar may retain its items
+            // while the cabinet switches theme without changing the tab list.
+            let traits = UITraitCollection(userInterfaceStyle: dark ? .dark : .light)
+            for (index, item) in (self.tabBar?.items ?? []).enumerated() where index < self.tabSymbols.count {
+                let image = LoopNativeIcons.image(self.tabSymbols[index], traits: traits)
+                item.image = image
+                item.selectedImage = image
+            }
+            self.leadingPill?.refreshIcon(traits: traits)
+            self.trailingPill?.refreshIcon(traits: traits)
             call.resolve()
         }
     }
@@ -173,7 +210,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
                 var attrs: UIMenuElement.Attributes = []
                 if it["destructive"] as? Bool == true { attrs.insert(.destructive) }
                 if it["disabled"] as? Bool == true { attrs.insert(.disabled) }
-                let image = (it["symbol"] as? String).flatMap { UIImage(systemName: $0) }
+                let image = (it["symbol"] as? String).flatMap { LoopNativeIcons.image($0, traits: host.traitCollection) }
                 let action = UIAction(title: it["label"] as? String ?? "", image: image, attributes: attrs) { [weak self] _ in
                     self?.menuPicked = true
                     self?.finishMenu(index: i)
@@ -242,9 +279,12 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             if let tint = call.getString("tint") { bar.tintColor = UIColor(hex: tint) }
 
             let ids = items.map { $0["id"] as? String ?? "" }
+            self.tabSymbols = items.map { $0["symbol"] as? String ?? "circle" }
             let tabItems: [UITabBarItem] = items.enumerated().map { (i, it) in
                 let symbol = it["symbol"] as? String ?? "circle"
-                let item = UITabBarItem(title: it["title"] as? String, image: UIImage(systemName: symbol), tag: i)
+                let image = LoopNativeIcons.image(symbol, traits: host.traitCollection)
+                let item = UITabBarItem(title: it["title"] as? String, image: image, selectedImage: image)
+                item.tag = i
                 if let badge = it["badge"] as? Int, badge > 0 { item.badgeValue = badge > 99 ? "99+" : String(badge) }
                 return item
             }
@@ -283,6 +323,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             self.tabBar?.removeFromSuperview()
             self.tabBar = nil
             self.tabIds = []
+            self.tabSymbols = []
             call.resolve()
         }
     }
@@ -310,6 +351,7 @@ private final class GlassPillView: UIView {
     private let effect = UIVisualEffectView()
     private let label = UILabel()
     private let icon = UIImageView()
+    private var loopSymbol: String?
     private var lastAxis: Axis?
 
     enum Axis { case leading, trailing, center }
@@ -357,11 +399,16 @@ private final class GlassPillView: UIView {
 
     func setText(_ text: String, symbol: String?, accentIcon: Bool) {
         label.text = text
+        loopSymbol = symbol
         label.textColor = .label
         icon.tintColor = accentIcon
             ? UIColor(red: 0x78/255, green: 0x6A/255, blue: 0xD7/255, alpha: 1) // акцент кабинета
             : .label
-        if let symbol, let img = UIImage(systemName: symbol) {
+        refreshIcon(traits: traitCollection)
+    }
+
+    func refreshIcon(traits: UITraitCollection) {
+        if let symbol = loopSymbol, let img = LoopNativeIcons.image(symbol, traits: traits) {
             icon.image = img
             icon.isHidden = false
         } else {

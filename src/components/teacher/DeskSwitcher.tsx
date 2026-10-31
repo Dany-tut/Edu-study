@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Pencil, Plus, RotateCcw, Check } from 'lucide-react'
+import { Pencil, Plus, RotateCcw, Check } from '../icons/appIcons'
 import { useDeskStore } from '../../store/deskStore'
 import type { DeskConfig } from '../../lib/useDeskLayouts'
 import { useT } from '../../lib/i18n'

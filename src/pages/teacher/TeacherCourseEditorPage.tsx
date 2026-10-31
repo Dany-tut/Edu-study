@@ -1,3 +1,5 @@
+import { LoopTextIcon } from '../../components/icons/LoopIcon'
+import { X as LoopMarkX } from '../../components/icons/appIcons'
 import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
@@ -13,7 +15,7 @@ import {
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
   ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock,
-} from 'lucide-react'
+} from '../../components/icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import { LessonLinkPanel } from '../../components/teacher/LessonLinkAttach'
@@ -3242,8 +3244,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                             color: 'var(--color-muted)', fontFamily: 'inherit',
                           }}
                         >
-                          ×
-                        </button>
+                          <LoopTextIcon icon={LoopMarkX}>×</LoopTextIcon></button>
                       </div>
                     )
                   })}

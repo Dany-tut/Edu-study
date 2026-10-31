@@ -1,4 +1,4 @@
-import { Users, Layers, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Users, Layers, CheckCircle2, AlertCircle } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useT } from '../../../lib/i18n'
 

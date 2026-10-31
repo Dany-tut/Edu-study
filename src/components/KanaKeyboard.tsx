@@ -27,7 +27,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Delete } from 'lucide-react'
+import { Delete } from './icons/appIcons'
 import { playPop, vibrate } from '../lib/sound'
 import { useOwnString } from '../lib/useOwnAnswer'
 import { useT } from '../lib/i18n'

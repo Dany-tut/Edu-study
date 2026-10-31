@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell } from 'lucide-react'
+import { Bell } from './icons/appIcons'
 import { useNotificationsStore } from '../store/notificationsStore'
 import { playDing } from '../lib/playDing'
 import { useT } from '../lib/i18n'

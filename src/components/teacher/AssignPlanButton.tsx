@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronDown, ChevronLeft, Loader2 } from 'lucide-react'
+import { Check, ChevronDown, ChevronLeft, Loader2 } from '../icons/appIcons'
 import { PLAN_TIERS, adminSetTeacherPlan, planPrice } from '../../lib/plan'
 import { dropdownSurface } from '../../lib/dropdownStyle'
 import { useT, useLang } from '../../lib/i18n'

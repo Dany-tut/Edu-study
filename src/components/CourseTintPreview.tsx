@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Play, ClipboardList, Dumbbell, BookOpen, Home, Flame, CheckCircle2, Star, Trophy, Sparkles } from 'lucide-react'
+import { Play, ClipboardList, Dumbbell, BookOpen, Home, Flame, CheckCircle2, Star, Trophy, Sparkles } from './icons/appIcons'
 import { previewVars, type TintLevel } from '../lib/courseTint'
 import { useTheme } from '../store/themeStore'
 import { useT } from '../lib/i18n'

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Upload, X, Volume2, Loader2 } from 'lucide-react'
+import { Upload, X, Volume2, Loader2 } from '../icons/appIcons'
 import { uploadMedia, MediaTooLargeError } from '../../lib/mediaStorage'
 import AudioPlayer from '../AudioPlayer'
 import Checkbox from '../Checkbox'

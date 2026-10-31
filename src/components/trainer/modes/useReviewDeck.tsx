@@ -18,7 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { Layers } from 'lucide-react'
+import { Layers } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { RailCard, RailStat } from '../TrainerShell'
 import CardDeck, { DECK_CTA } from '../../CardDeck'

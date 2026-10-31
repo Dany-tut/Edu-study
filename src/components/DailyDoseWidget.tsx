@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sunrise, ArrowRight, Layers, Check, Flame } from 'lucide-react'
+import { Sunrise, ArrowRight, Layers, Check, Flame } from './icons/appIcons'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useTheme } from '../store/themeStore'

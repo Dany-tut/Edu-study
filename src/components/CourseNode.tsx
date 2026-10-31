@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CheckCircle2, Lock, Play, Upload, Star, RotateCcw } from 'lucide-react'
+import { CheckCircle2, Lock, Play, Upload, Star, RotateCcw } from './icons/appIcons'
 import { useEffect, useRef } from 'react'
 import type { ElementType, ReactElement } from 'react'
 import { IconMissedLesson, IconReturned, IconLessonRecording, IconTest } from './icons'

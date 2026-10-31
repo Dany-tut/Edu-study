@@ -119,6 +119,9 @@
   /* Accent = the lighter purple («стало»); in light theme kept a touch darker
      than --color-purple (#9C8CF0) so accent TEXT stays readable on white. */
   --color-accent: #7E6EE6;
+  --loop-ink: #5C47BD;
+  --loop-detail: #F4A55A;
+  --loop-soft: #ECE5FF;
   --color-green-accent: #1a7a3f;
 
   /* ── Accent gradients (vivid; shared across themes) ───────── */
@@ -312,6 +315,9 @@
   --color-avatar-bg: #6B5FC0;
   /* Dark-theme accent = --color-purple («стало»). */
   --color-accent: #B3A6F7;
+  --loop-ink: #C6B7FF;
+  --loop-detail: #FFBA78;
+  --loop-soft: #382F55;
   /* В тёмной теме цветной ореол вокруг карточки читается грязным пятном —
      остаётся обычная тень. */
   --glow-accent: 0 12px 28px rgba(0,0,0,0.45);
@@ -1044,8 +1050,7 @@ input[type="password"]::-ms-clear {
   display: none !important;
 }
 input::-webkit-credentials-auto-fill-button,
-input::-webkit-contacts-auto-fill-button,
-input::-webkit-textfield-decoration-container {
+input::-webkit-contacts-auto-fill-button {
   visibility: hidden !important;
   display: none !important;
   pointer-events: none !important;

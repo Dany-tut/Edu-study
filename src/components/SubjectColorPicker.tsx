@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, RotateCcw } from 'lucide-react'
+import { Check, RotateCcw } from './icons/appIcons'
 import { TINT_SWATCHES } from '../lib/courseTint'
 import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'

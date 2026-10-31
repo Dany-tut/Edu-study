@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import BackCircle from '../../components/BackCircle'
 import { motion } from 'framer-motion'
-import { Check, Zap, CreditCard, Send } from 'lucide-react'
+import { Check, Zap, CreditCard, Send } from '../../components/icons/appIcons'
 import { useTeacher } from '../../store/teacherStore'
 import { useT, useLang } from '../../lib/i18n'
 import { PLAN_TIERS, fetchMyPlan, planPrice, type MyPlan, type PlanTier } from '../../lib/plan'

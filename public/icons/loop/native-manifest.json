@@ -1,0 +1,30 @@
+{
+  "pointSize": 24,
+  "scale": 3,
+  "symbols": {
+    "house": {
+      "name": "Home",
+      "sourceSha256": "070d1a6bf2572142a4347a96006549bab4629dea056d2c64f0afbbd4da9e246d"
+    },
+    "calendar": {
+      "name": "CalendarCheck",
+      "sourceSha256": "053ef928fd1bb27b42c23db7293968d328d6964a00ba74892a84ef5695156c40"
+    },
+    "person.2": {
+      "name": "Users",
+      "sourceSha256": "13c40a2743bc716e6485a106fd4605216c1579aa66b35ad7a85966ff35e15bf9"
+    },
+    "checkmark.rectangle.stack": {
+      "name": "CheckCircle2",
+      "sourceSha256": "9f82f1823e895746ce8f1d3dbb17763dea9a9aafe11e30062a14a7b3086186cb"
+    },
+    "checklist": {
+      "name": "NotebookPen",
+      "sourceSha256": "c4290e43f471a465573f578001e8bafa80143abfd1412fecd154c24e986f8d8d"
+    },
+    "person.crop.circle": {
+      "name": "UserCircle",
+      "sourceSha256": "e082e2bc70d4a921671ff52ecb79e661ef14ef587780070a6981da7442224059"
+    }
+  }
+}

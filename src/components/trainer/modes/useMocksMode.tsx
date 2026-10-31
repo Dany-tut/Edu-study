@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ClipboardCheck, Headphones, BookOpen, PenLine, Mic, Play, Trash2, Shuffle, Target, CalendarDays,
   ChevronLeft, ChevronRight, Check, Flame, Minus, Plus,
-} from 'lucide-react'
+} from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import MockRunner, { newDraft } from '../ielts/MockRunner'
 import SpeakOrDie from '../ielts/SpeakOrDie'

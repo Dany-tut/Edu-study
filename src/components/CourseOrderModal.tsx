@@ -2,7 +2,7 @@ import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion
 import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { GripVertical, X } from 'lucide-react'
+import { GripVertical, X } from './icons/appIcons'
 import { useStudentData } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'

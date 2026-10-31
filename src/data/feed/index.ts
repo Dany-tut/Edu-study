@@ -51,7 +51,7 @@
 // загрузки), а сами материалы едут чанком на язык.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Cpu, FlaskConical, HeartPulse, LayoutGrid, Leaf, Newspaper, Palette, Play, type LucideIcon } from 'lucide-react'
+import { Cpu, FlaskConical, HeartPulse, LayoutGrid, Leaf, Newspaper, Palette, Play, type LucideIcon } from '../../components/icons/appIcons'
 import type { ReadingText } from '../readingLibrary'
 import type { Age } from '../scenes'
 

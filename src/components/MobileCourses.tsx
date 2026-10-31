@@ -5,7 +5,7 @@ import { XP_PER_LEVEL } from '../lib/xp'
 import {
   Star, Lock, ChevronRight, Zap,
   CheckCircle2, Play, RotateCcw, Clock, Video, LayoutList,
-} from 'lucide-react'
+} from './icons/appIcons'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import MobileDock, { DockSegment, DockCircle } from './MobileDock'
@@ -25,6 +25,8 @@ import { stripCommonPrefix } from '../lib/courseLabels'
 import type { SubjectPalette } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
 import type { Lesson, LessonStatus } from '../data/mockData'
+import { TaskliIcon, type TaskliIconName, type TaskliIconTone } from './icons/TaskliIcon'
+import { SubjectMark } from './icons/SubjectMark'
 
 // MOBILE ONLY course (v2) — premium lesson cards (плашки) + level/XP layer.
 // Desktop CoursesPage untouched. Concept: each lesson is a rich card with a
@@ -32,15 +34,15 @@ import type { Lesson, LessonStatus } from '../data/mockData'
 
 const ALL = 'all' as const
 
-type StatusVisual = { icon: typeof CheckCircle2; tintBg: string; tint: string; label: string }
+type StatusVisual = { icon: TaskliIconName; tone: TaskliIconTone; tintBg: string; tint: string; label: string }
 const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {
-  completed: { icon: CheckCircle2, tintBg: 'var(--color-green-soft)',  tint: 'var(--color-green-text)',  label: 'Выполнено' },
+  completed: { icon: 'done', tone: 'success', tintBg: 'var(--color-green-soft)',  tint: 'var(--color-green-text)',  label: 'Выполнено' },
   // Та же плита, что в десктопной сетке: цвет курса с уровня «Акцент».
-  current:   { icon: Play,         tintBg: 'var(--color-accent-soft)', tint: 'var(--color-purple-text)', label: 'Сейчас' },
-  returned:  { icon: RotateCcw,    tintBg: 'var(--color-yellow-soft)', tint: 'var(--color-yellow-text)', label: 'Возврат' },
-  submitted: { icon: Clock,        tintBg: 'var(--color-peach-soft)',  tint: 'var(--color-peach-text)',  label: 'Проверка' },
-  unviewed:  { icon: Video,        tintBg: 'var(--color-red-soft)',    tint: 'var(--color-red-text)',    label: 'Запись' },
-  locked:    { icon: Lock,         tintBg: 'var(--color-bg-3)',        tint: 'var(--color-muted)',       label: 'Закрыт' },
+  current:   { icon: 'now', tone: 'now', tintBg: 'var(--status-now-soft)', tint: 'var(--status-now-text)', label: 'Сейчас' },
+  returned:  { icon: 'returned', tone: 'returned', tintBg: 'var(--color-yellow-soft)', tint: 'var(--color-yellow-text)', label: 'Возврат' },
+  submitted: { icon: 'reviewStatus', tone: 'review', tintBg: 'var(--color-peach-soft)',  tint: 'var(--color-peach-text)',  label: 'Проверка' },
+  unviewed:  { icon: 'recording', tone: 'attention', tintBg: 'var(--color-red-soft)', tint: 'var(--color-red-text)', label: 'Запись' },
+  locked:    { icon: 'closed', tone: 'closed', tintBg: 'var(--color-bg-3)',        tint: 'var(--color-muted)',       label: 'Закрыт' },
 }
 
 export default function MobileCourses() {
@@ -122,7 +124,7 @@ export default function MobileCourses() {
       {/* Название курса ужимается многоточием: «Немецкий с нуля — A1 → B1,
           живой» иначе выдавливал уровень и колокольчик за край экрана. */}
       <GlassPill morph="lead" style={{ minWidth: 0, overflow: 'hidden' }}>
-        <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>{subject ? subjectIcon(subject.subject) : '📚'}</span>
+        <SubjectMark subject={subject?.subject} size={18} />
         <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{subject ? tc(subject.name) : t('Курс')}</span>
       </GlassPill>
       <div className="flex items-center" style={{ gap: 8 }}>
@@ -329,7 +331,6 @@ function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: L
   const t = useT()
   const { tc } = useTc()
   const v: StatusVisual = status === 'current' ? { ...STATUS_VISUAL.current, tintBg: pal.soft, tint: pal.text } : STATUS_VISUAL[status]
-  const Icon = v.icon
   const isLocked = status === 'locked'
   const isCurrent = status === 'current'
 
@@ -349,7 +350,7 @@ function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: L
     >
       {/* thumbnail */}
       <div className="flex items-center justify-center flex-shrink-0" style={{ width: 52, height: 52, borderRadius: 14, background: v.tintBg }}>
-        <Icon size={22} style={{ color: v.tint }} {...(isCurrent ? { fill: v.tint } : {})} />
+        <TaskliIcon name={v.icon} size={22} tone={isCurrent ? 'now' : v.tone} style={{ color: v.tint }} />
       </div>
       {/* body */}
       <div className="flex-1 min-w-0">

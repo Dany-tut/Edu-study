@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import Tooltip from '../Tooltip'
 import { createPortal } from 'react-dom'
-import { Pencil, Eraser, Undo2, Trash2, MousePointer2, BoxSelect, GripHorizontal } from 'lucide-react'
+import { Pencil, Eraser, Undo2, Trash2, MousePointer2, BoxSelect, GripHorizontal } from '../icons/appIcons'
 import { optimizeCanvas, ImageTooLargeError } from '../../lib/imageOptim'
 import { useT } from '../../lib/i18n'
 import { Alert } from '../Alert'

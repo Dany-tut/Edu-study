@@ -35,7 +35,7 @@
 import Tooltip from '../Tooltip'
 import { FIELD } from '../../lib/fieldStyle'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, Trash2, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, Layers, Copy, Users, Pencil, FolderInput, X, Globe } from '../icons/appIcons'
 import { useT, useTc } from '../../lib/i18n'
 import { plural } from '../trainer/TrainerShell'
 import { getOwnerId } from '../../lib/owner'

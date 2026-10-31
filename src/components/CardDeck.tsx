@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
-import { RotateCcw, Undo2, Layers, HelpCircle, Check, X } from 'lucide-react'
+import { RotateCcw, Undo2, Layers, HelpCircle, Check, X } from './icons/appIcons'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'

@@ -1,3 +1,5 @@
+import { LoopTextIcon } from '../../components/icons/LoopIcon'
+import { Check as LoopMarkCheck, X as LoopMarkX } from '../../components/icons/appIcons'
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import Skeleton from '../../components/Skeleton'
@@ -5,7 +7,7 @@ import { ContentCard, CardSkeleton, type CardActions } from '../../components/te
 import { SortDropdown, FacetDropdown, SubjectFacet, useShelfSubjects, PickSubjectHint, canonSubject, SegmentFilter, ShelfSearch, ViewSwitch, normSearch, PILL_GLASS } from '../../components/teacher/ShelfFilters'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BookOpen, Zap, Layers, Plus, Clock, GraduationCap, Brain, FileText, X, Check, Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown, CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh, Image as ImageIcon, Key, Maximize2, ListChecks, Eye, EyeOff, CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon, AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp, CheckCircle, Circle, Globe, Copy, Search, LayoutGrid, Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette, ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette, Calculator, Star, Lightbulb, Microscope, Music, Sigma, Lock, Loader2, Library, AlertTriangle, ExternalLink as ExternalLinkIcon } from 'lucide-react'
+import { BookOpen, Zap, Layers, Plus, Clock, GraduationCap, Brain, FileText, X, Check, Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown, CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh, Image as ImageIcon, Key, Maximize2, ListChecks, Eye, EyeOff, CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon, AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp, CheckCircle, Circle, Globe, Copy, Search, LayoutGrid, Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette, ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette, Calculator, Star, Lightbulb, Microscope, Music, Sigma, Lock, Loader2, Library, AlertTriangle, ExternalLink as ExternalLinkIcon } from '../../components/icons/appIcons'
 import * as LucideIcons from 'lucide-react'
 import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
@@ -4455,7 +4457,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{q.text}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>
-                      ✓ {q.options[q.correct]}
+                      <LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{q.options[q.correct]}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
@@ -5272,7 +5274,7 @@ function DiagResultStudentPanel({
                             {hasAnswer ? (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11, lineHeight: 1.3 }}>
                                 <div style={{ color: col, fontWeight: 600 }}>
-                                  {ok ? '✓ ' : '✗ '}{diagAnswerLabel(q, chosen!) || t('— нет ответа')}
+                                  <LoopTextIcon icon={ok ? LoopMarkCheck : LoopMarkX}>{ok ? '✓ ' : '✗ '}</LoopTextIcon>{diagAnswerLabel(q, chosen!) || t('— нет ответа')}
                                 </div>
                                 {!ok && (
                                   <div>
@@ -7773,7 +7775,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
                             <div style={{ width: 18, height: 18, borderRadius: 5, background: 'var(--color-bg-3)', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, flexShrink: 0, marginTop: 2 }}>{i + 1}</div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 12, color: 'var(--color-text)', fontWeight: 600, marginBottom: 2, lineHeight: 1.3 }}>{q.text}</div>
-                              <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
+                              <div style={{ fontSize: 11, color: 'var(--color-muted)' }}><LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{q.options[q.correct]}</div>
                             </div>
                           </div>
                         ))}
@@ -7901,7 +7903,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                   <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{q.text}</div>
-                    <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-muted)' }}><LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{q.options[q.correct]}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                     <button onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{t('Ред.')}</button>
@@ -9324,7 +9326,14 @@ export default function TeacherConstructorPage() {
                   marginBottom: -12, paddingBottom: 12,
                 } : null),
               } as React.CSSProperties}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                // Keep the constructor tabs on one stable baseline at every
+                // viewport width. On narrower screens the row scrolls instead
+                // of wrapping and pushing the filters/cards down a line.
+                flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden',
+                scrollbarWidth: 'none', position: 'relative',
+              }}>
                 {/* Edit-mode toggle — square button.
                     Стоит в ряду ВСЕГДА: иначе на «Разметке» и «Материалах»
                     строка вкладок прыгала бы влево на ширину кнопки.

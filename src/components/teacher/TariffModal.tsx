@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Modal from '../Modal'
 import { AlertIcon } from '../Alert'
-import { X, Check, Sparkles } from 'lucide-react'
+import { X, Check, Sparkles } from '../icons/appIcons'
 import { PLAN_TIERS, planPrice, type PlanTier } from '../../lib/plan'
 import { tactile } from '../../lib/feedback'
 import { submitFeedback } from '../../lib/feedbackRequests'

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import BackCircle from '../BackCircle'
-import { Send, MessageCircle, RefreshCw } from 'lucide-react'
+import { Send, MessageCircle, RefreshCw } from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { useT } from '../../lib/i18n'
 import {

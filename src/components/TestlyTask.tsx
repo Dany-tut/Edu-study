@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, Clock, ExternalLink, ListChecks, Loader2, Play } from 'lucide-react'
+import { Check, Clock, ExternalLink, ListChecks, Loader2, Play } from './icons/appIcons'
 import { TESTLY_DONE_PREFIX, testlyAnswer, testlyDoneAt, testlyScoreOf, type TestlyRef, type TestlyScore } from '../data/taskTypes'
 import {
   fetchTestlyStatus, plural, startTestlyTest, testlyPlayUrl, testlyPoints, testlyReviewUrl, type TestlyAttempt,

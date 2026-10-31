@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react'
-import { Layers, Search } from 'lucide-react'
+import { Layers, Search } from '../icons/appIcons'
 import CardDeck, { type DeckSource } from '../CardDeck'
 import { Tile, TileGrid, TileChip, TileMeter, plural } from './TrainerShell'
 import { fetchCardGroups, setCards as allSetCards, isShelf, type CardGroup, type CardSet } from '../../lib/cardGroups'

@@ -15,7 +15,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { AlertTriangle, Check, Plus, RefreshCw, Trash2, X } from 'lucide-react'
+import { AlertTriangle, Check, Plus, RefreshCw, Trash2, X } from '../icons/appIcons'
 import type { SeedChange, SeedDiff } from '../../lib/seedSync'
 import { useT, useTc } from '../../lib/i18n'
 import Checkbox from '../Checkbox'

@@ -1,7 +1,7 @@
 import { useEffect, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { X } from 'lucide-react'
+import { X } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import { OverlayScrollArea } from './teacher/OverlayScroll'
 import { useNativeOverlay } from '../lib/nativeGlass'

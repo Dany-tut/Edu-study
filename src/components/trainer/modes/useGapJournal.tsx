@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Check, MessageCircleQuestion, Sparkles, Trash2 } from 'lucide-react'
+import { Check, MessageCircleQuestion, Sparkles, Trash2 } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../../lib/typography'
 import GrowTextarea from '../../GrowTextarea'

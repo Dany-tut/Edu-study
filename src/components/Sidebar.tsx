@@ -5,7 +5,7 @@ import {
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, Camera, X,
   Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered, Ghost,
   type LucideIcon,
-} from 'lucide-react'
+} from './icons/appIcons'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'

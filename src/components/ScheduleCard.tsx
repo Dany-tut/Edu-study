@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { CalendarX2 } from 'lucide-react'
+import { CalendarX2 } from './icons/appIcons'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
 import { resolveScheduleLesson } from '../lib/db'
 import { scheduleRowStatus } from '../lib/lessonStatus'

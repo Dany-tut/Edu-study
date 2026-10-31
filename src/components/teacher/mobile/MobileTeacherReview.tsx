@@ -1,6 +1,7 @@
+import { LoopActionLabel } from '../../icons/LoopIcon'
 import { useRef, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
-import { Check, RotateCcw, Image as ImageIcon, ClipboardCheck, Loader2, PenLine, X } from 'lucide-react'
+import { Check, RotateCcw, Image as ImageIcon, ClipboardCheck, Loader2, PenLine, X } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
@@ -15,6 +16,7 @@ import { alertDialog } from '../../ConfirmHost'
 import { Alert } from '../../Alert'
 import AnswerBody from '../AnswerBody'
 import Modal from '../../Modal'
+import { TaskliIcon } from '../../icons/TaskliIcon'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -108,7 +110,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
             <ImageIcon size={14} /> {photos.length > 0 ? `${t('Фото')} · ${photos.length}` : t('Фото')}
           </button>
           <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={attachBtn(showBoard || !!board)}>
-            <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
+            <PenLine size={14} /> {board ? <LoopActionLabel icon={Check} label={t('Доска ✓')} /> : t('Доска')}
           </button>
         </div>
         {photoError && <Alert tone="danger" text={photoError} style={{ marginTop: 8 }} />}
@@ -133,7 +135,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
           className="cursor-pointer"
           style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.error.bg, color: PAIR.error.text, border: '1px solid transparent', fontSize: 14, fontWeight: 600 }}
         >
-          {busy === 'returned' ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />} {t('Вернуть')}
+          {busy === 'returned' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="returned" size={16} tone="returned" />} {t('Вернуть')}
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.97 }}
@@ -142,7 +144,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
           className="cursor-pointer"
           style={{ flex: 1.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.success.bg, color: PAIR.success.text, border: '1px solid transparent', fontSize: 14, fontWeight: 700 }}
         >
-          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} />} {t('Принять')}
+          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="done" size={18} tone="success" />} {t('Принять')}
         </motion.button>
       </div>
     </div>
@@ -174,7 +176,7 @@ export default function MobileTeacherReview() {
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <GlassPill><ClipboardCheck size={16} /> {t('Проверка')}</GlassPill>
+      <GlassPill><TaskliIcon name="review" size={16} /> {t('Проверка')}</GlassPill>
     </div>
   )
 

@@ -1,5 +1,7 @@
+import { LoopTextIcon } from './icons/LoopIcon'
+import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp } from 'lucide-react'
+import { TrendingUp } from './icons/appIcons'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { useT } from '../lib/i18n'
 
@@ -93,10 +95,10 @@ export default function TrainerProgressPill() {
           >
             <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Сегодня')}</span>
             {todayCorrect > 0 && (
-              <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 10, fontWeight: 700 }}>✓ {todayCorrect}</span>
+              <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 10, fontWeight: 700 }}><LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{todayCorrect}</span>
             )}
             {todayWrong > 0 && (
-              <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700 }}>✗ {todayWrong}</span>
+              <span style={{ padding: '1px 8px', borderRadius: 999, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700 }}><LoopTextIcon icon={LoopMarkX}>{'✗ '}</LoopTextIcon>{todayWrong}</span>
             )}
           </motion.div>
         )}

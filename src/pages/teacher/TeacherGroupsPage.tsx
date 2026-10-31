@@ -13,7 +13,7 @@ import {
   ChevronsUpDown, ExternalLink, Copy, Check,
   BarChart2, Target, BookOpen, XCircle, CheckCircle2, Layers,
   Search, Plus,
-} from 'lucide-react'
+} from '../../components/icons/appIcons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
@@ -96,7 +96,7 @@ function AddGroupModal({ onClose, onSave }: {
       level,
       color: c.color,
       colorSoft: c.soft,
-      startDate: new Date().toLocaleDateString('ru-RU'),
+      startDate: new Date().toLocaleDateString('sv-SE'),
       totalLessons: effectiveTotal,
     }, selectedCourse ? selectedCourse.id : null)
     setSaving(false)
@@ -251,6 +251,22 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <button
+            onClick={onPickIndividual}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+              background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
+              borderRadius: 16, cursor: 'pointer', textAlign: 'left',
+            }}
+          >
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <User size={18} color="var(--color-green-text)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить ученика')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{t('Карточку можно добавить в группу позже')}</div>
+            </div>
+          </button>
+          <button
             onClick={groups.length > 0 ? onPickGroup : undefined}
             disabled={groups.length === 0}
             style={{
@@ -267,29 +283,10 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
               <Users size={18} color="var(--color-accent)" />
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('В группу')}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Сразу в группу')}</div>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>
                 {groups.length === 0 ? t('Сначала создайте группу') : `${groups.length} ${groups.length === 1 ? t('группа') : t('групп')}`}
               </div>
-            </div>
-          </button>
-          <button
-            onClick={onPickIndividual}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-              background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
-              borderRadius: 16, cursor: 'pointer', textAlign: 'left',
-            }}
-          >
-            <div style={{
-              width: 40, height: 40, borderRadius: 12,
-              background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <User size={18} color="var(--color-green-text)" />
-            </div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('1:1 занятие')}</div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{t('Индивидуальный ученик')}</div>
             </div>
           </button>
           {hasPeople && (
@@ -327,13 +324,14 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
 }) {
   const t = useT()
   // Draft-backed: survives a page reload; cleared on save or explicit close.
-  const [selectedGroup, setSelectedGroup] = usePersistentState<string>('groups.addStudent.group', initialGroupId ?? groups[0]?.id ?? '')
+  const [selectedGroup, setSelectedGroup] = usePersistentState<string>('groups.addStudent.v2.group', initialGroupId ?? '')
   const [name, setName] = usePersistentState('groups.addStudent.name', '')
   const [phone, setPhone] = usePersistentState('groups.addStudent.phone', '')
   const [telegram, setTelegram] = usePersistentState('groups.addStudent.telegram', '')
   const [parent, setParent] = usePersistentState('groups.addStudent.parent', '')
   const [desiredScore, setDesiredScore] = usePersistentState('groups.addStudent.desiredScore', 0)
   const [paymentAmount, setPaymentAmount] = usePersistentState('groups.addStudent.paymentAmount', 0)
+  const [showDetails, setShowDetails] = useState(() => Boolean(phone || telegram || parent || desiredScore || paymentAmount))
   const [saving, setSaving] = useState(false)
   // Ошибка записи — текстом в окне. Раньше окно молча закрывалось, а форма стиралась.
   const [saveErr, setSaveErr] = useState<string | null>(null)
@@ -345,7 +343,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   const [newStudentId, setNewStudentId] = useState<string | null>(null)
 
   async function handleSave() {
-    if (!name.trim() || !selectedGroup) return
+    if (!name.trim() || saving) return
     setSaving(true)
     setSaveErr(null)
     const { inviteToken, studentId, error } = await onSave(selectedGroup, { name: name.trim(), phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount })
@@ -358,7 +356,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
     }
     if (studentId) {
       setNewStudentId(studentId)
-      setStep('config')
+      setStep(selectedGroup ? 'config' : 'link')
     } else if (!inviteToken) {
       onClose()
     } else {
@@ -447,22 +445,40 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         ) : (
           <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <label style={labelStyle}>
+            {t('Имя ученика')}
+            <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder={t('Как зовут ученика?')}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); void handleSave() } }}
+              style={inputStyle} />
+          </label>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)' }}>{t('Достаточно имени. Группу или занятия 1:1 можно назначить позже.')}</p>
           {groups.length > 0 && (
             <label style={labelStyle}>
-              {t('Группа *')}
+              {t('Группа (необязательно)')}
               <TeacherSelect
                 value={selectedGroup}
+                placeholder={t('Пока без занятий')}
                 onChange={setSelectedGroup}
-                options={groups.map(g => ({ value: g.id, label: `${g.icon}${ICON_GAP}${g.name}` }))}
+                options={[{ value: '', label: t('Пока без занятий') }, ...groups.map(g => ({ value: g.id, label: `${g.icon}${ICON_GAP}${g.name}` }))]}
                 clearable={false}
                 triggerStyle={selectTriggerStyle}
               />
             </label>
           )}
-          <input value={name} onChange={e => setName(e.target.value)} placeholder={t('Имя *')} style={inputStyle} />
+
+          <div style={{ border: '1px solid var(--color-border-soft)', borderRadius: 14, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+            <button type="button" aria-expanded={showDetails} onClick={() => setShowDetails(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 14px', border: 'none', background: 'transparent', color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
+              <Phone size={15} strokeWidth={1.8} aria-hidden="true" />
+              <span style={{ flex: 1 }}>{t('Дополнительно')}</span>
+              <Plus size={16} strokeWidth={1.8} aria-hidden="true" style={{ transform: showDetails ? 'rotate(45deg)' : 'rotate(0)', transition: 'transform 160ms ease' }} />
+            </button>
+            {showDetails && <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 14px 14px' }}>
+              <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Контакты')}</div>
           <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={t('Телефон')} style={inputStyle} />
           <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder={t('Telegram или VK (@ник или ссылка)')} style={inputStyle} />
           <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={inputStyle} />
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, paddingTop: 4 }}>{t('Цель и оплата')}</div>
           <input
             type="number"
             value={desiredScore === 0 ? '' : desiredScore}
@@ -481,23 +497,27 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             min={0}
             style={inputStyle}
           />
+            </div>}
+          </div>
         </div>
 
         {saveErr && (
           <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
         )}
+        <div style={{ position: 'sticky', bottom: 0, paddingTop: 16, paddingBottom: 28, marginBottom: -28, background: 'var(--color-bg-input)', zIndex: 1 }}>
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}
           style={{ height: 48,
-            marginTop: 22, width: '100%', padding: '0 22px',
-            background: 'var(--grad-purple)', opacity: (name.trim() && selectedGroup) ? 1 : 0.45,
+            marginTop: 0, width: '100%', padding: '0 22px',
+            background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
             color: '#fff', fontWeight: 700, fontSize: 15,
-            border: 'none', borderRadius: 14, cursor: (name.trim() && selectedGroup) ? 'pointer' : 'not-allowed',
+            border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
           }}
         >
           {saving ? t('Сохранение...') : t('Добавить ученика')}
         </button>
+        </div>
           </>
         )}
         </div>
@@ -708,7 +728,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             : { overflowY: 'auto' }),
         }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexShrink: 0 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик 1:1')}</span>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик')}</span>
           <ModalClose onClose={onClose} />
         </div>
 
@@ -750,6 +770,9 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <input value={name} onChange={e => setName(e.target.value)} placeholder={t('Имя *')} style={inputStyle} />
+              <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)', marginTop: -6 }}>
+                {t('Предмет и уровень можно указать сейчас или настроить позже.')}
+              </div>
               <TrackFields
                 subject={subject} level={level} onSubject={setSubject} onLevel={setLevel}
                 tracks={tracks} onTracksChange={setTracks}
@@ -991,7 +1014,7 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
             {t('Ещё без своего аккаунта')} · {issuableCount}
           </div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
-            {t('Пока ученик не завёл аккаунт, его домашка видна всем, у кого есть адрес сайта')}
+            {t('Отправьте ученикам приглашения, чтобы они могли войти в свой кабинет')}
           </div>
         </div>
         <button
@@ -1240,6 +1263,7 @@ function attentionScore(s: Student): number {
   let score = 0
   const debt = s.debt ?? 0
   if (debt > 0) score += 4 + Math.min(3, debt / 2000)
+  if (!hasStudentActivity(s)) return score
   if (s.attendance < 70) score += 3
   else if (s.attendance < 85) score += 1
   if (s.hwScore === 0) score += 3
@@ -1250,11 +1274,15 @@ function attentionScore(s: Student): number {
   return score
 }
 
+function hasStudentActivity(s: Student): boolean {
+  return s.hwScore > 0 || s.testScore > 0 || s.trialScore != null || s.attendance > 0
+}
+
 const filterPredicate: Record<RosterFilter, (s: Student) => boolean> = {
   all: () => true,
   debtors: s => (s.debt ?? 0) > 0,
-  fading: s => daysSinceVisit(s.lastVisit) > 7 || s.attendance < 70,
-  nohw: s => s.hwScore === 0,
+  fading: s => (Boolean(s.lastVisit && s.lastVisit !== '—') && daysSinceVisit(s.lastVisit) > 7) || (s.attendance > 0 && s.attendance < 70),
+  nohw: s => hasStudentActivity(s) && s.hwScore === 0,
 }
 
 function sortStudents(list: Student[], key: SortKey, dir: SortDir) {
@@ -1519,7 +1547,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.subject ? <>{group.icon}{ICON_GAP}{tc(group.subject)}</> : null}</span>
                 </div>
               </div>
             </div>
@@ -1550,7 +1578,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                   <section>
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('Контакты')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />
+                      {student.phone && <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />}
                       {student.telegramLink && <ContactRow icon={Send} label={contactLabel(student.telegramLink)} href={contactHref(student.telegramLink)} />}
                       {student.parentContact && <ContactRow icon={User} label={`${t('Родитель:')} ${student.parentContact}`} href={`tel:${student.parentContact}`} />}
                     </div>
@@ -1575,8 +1603,8 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                           <Clock size={14} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
                           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>
-                          {student.attendance}%
+                        <span style={{ fontSize: 13, fontWeight: 700, color: !hasStudentActivity(student) ? 'var(--color-text-3)' : student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>
+                          {hasStudentActivity(student) ? `${student.attendance}%` : '—'}
                         </span>
                       </div>
                     </div>
@@ -1745,6 +1773,7 @@ function TracksSection({
   const [subject, setSubject] = useState('')
   const [level, setLevel] = useState('')
   const [busy, setBusy] = useState(false)
+  const [addError, setAddError] = useState('')
   // Reset the inline add-form when switching to another student.
   useEffect(() => { setAdding(false); setSubject(''); setLevel(''); setBusy(false) }, [group.id])
 
@@ -1752,9 +1781,10 @@ function TracksSection({
     if (!subject.trim()) return
     setBusy(true)
     try {
+      setAddError('')
       await onAddCard(subject, level)
       setAdding(false); setSubject(''); setLevel('')
-    } finally { setBusy(false) }
+    } catch (error) { setAddError((error as { message?: string }).message ?? t('Не удалось назначить занятия')) } finally { setBusy(false) }
   }
 
   const chip = (icon: string, subj: string, lvl: string, color: string): React.CSSProperties => ({
@@ -1775,9 +1805,9 @@ function TracksSection({
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <div style={{ ...chip(group.icon, group.subject, group.level, group.color), flex: 1 }}>
             <span>{group.icon}</span>
-            <span>{tc(group.subject)}{group.level ? ` · ${t(group.level)}` : ''}</span>
+            <span>{group.id ? tc(group.subject) : t('Пока без занятий')}{group.level ? ` · ${t(group.level)}` : ''}</span>
           </div>
-          {siblings.length > 0 && (
+          {individual && (
             <Tooltip label={t('Удалить карточку')}><button
               type="button"
               onClick={async () => {
@@ -1815,6 +1845,7 @@ function TracksSection({
           </div>
         ))}
 
+        {addError && <Alert tone="danger" text={addError} />}
         {/* Инлайн-форма нового направления */}
         {adding ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1843,7 +1874,7 @@ function TracksSection({
                 // буквы на них тонут. Неактивность — прозрачностью, не бледнотой.
                 style={{ height: 32, flex: 1, padding: '0 12px', borderRadius: 10, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: 'var(--grad-purple)', opacity: (!subject.trim() || busy) ? 0.45 : 1, color: '#fff', fontSize: 12, fontWeight: 700}}
               >
-                {busy ? t('Создаём…') : t('Создать карточку')}
+                {busy ? t('Сохраняем…') : t('Назначить занятия')}
               </button>
               <button
                 type="button" onClick={() => { setAdding(false); setSubject(''); setLevel('') }}
@@ -1858,7 +1889,7 @@ function TracksSection({
             type="button" onClick={() => setAdding(true)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
           >
-            <Plus size={14} /> {individual ? t('Ещё направление') : t('Направление 1:1')}
+            <Plus size={14} /> {individual ? t('Ещё предмет 1:1') : t('Назначить занятия 1:1')}
           </button>
         )}
       </div>
@@ -1932,7 +1963,7 @@ function StudentPanel({
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.subject ? <>{group.icon}{ICON_GAP}{tc(group.subject)}</> : null}</span>
               </div>
             </div>
           </div>
@@ -2004,7 +2035,7 @@ function StudentPanel({
             {t('Контакты')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />
+            {student.phone && <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />}
             {student.telegramLink && (
               <ContactRow icon={Send} label={contactLabel(student.telegramLink)} href={contactHref(student.telegramLink)} />
             )}
@@ -2035,9 +2066,9 @@ function StudentPanel({
               </div>
               <span style={{
                 fontSize: 13, fontWeight: 700,
-                color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)',
+                color: !hasStudentActivity(student) ? 'var(--color-text-3)' : student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)',
               }}>
-                {student.attendance}%
+                {hasStudentActivity(student) ? `${student.attendance}%` : '—'}
               </span>
             </div>
           </div>
@@ -2264,7 +2295,7 @@ export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
-  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup } = useGroups()
+  const { groups, loading: groupsLoading, addGroup, addUnassignedStudent, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup } = useGroups()
   const { students, deleteStudent, updateStudent } = useStudents(selectedGroupId)
   const allStudents = useAllStudents()
   // Persisted so an open modal (and its draft) re-opens after a page reload —
@@ -2274,7 +2305,7 @@ export default function TeacherGroupsPage() {
   const [showAddStudent, setShowAddStudent] = usePersistentState('groups.show.addStudent', false)
   const [showAddIndividual, setShowAddIndividual] = usePersistentState('groups.show.addIndividual', false)
   const [showExistingIndiv, setShowExistingIndiv] = useState(false)  // existing person → new 1:1 card
-  const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('groups')
+  const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('students')
   const [sortKey, setSortKey] = useState<SortKey>('attention')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
@@ -2283,15 +2314,15 @@ export default function TeacherGroupsPage() {
   const tableRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!selectedGroupId && groups.length > 0 && !groupsLoading) {
+    if (activeStripTab === 'groups' && !selectedGroupId && groups.length > 0 && !groupsLoading) {
       setSelectedGroupId(groups[0].id)
     }
-  }, [groups, groupsLoading])
+  }, [groups, groupsLoading, activeStripTab, selectedGroupId, setSelectedGroupId])
 
   const openAddGroupModal = useCallback(() => setShowAddGroup(true), [])
 
   useEffect(() => {
-    const onAddStudent = () => setShowAddStudentPicker(true)
+    const onAddStudent = () => setShowAddStudent(true)
     window.addEventListener('teacher:open-add-group', openAddGroupModal)
     window.addEventListener('teacher:open-add-student', onAddStudent)
     return () => {
@@ -2317,14 +2348,17 @@ export default function TeacherGroupsPage() {
     },
     onTabPlusClick: (id) => {
       if (id === 'groups') setShowAddGroup(true)
-      else setShowAddStudentPicker(true)
+      else setShowAddStudent(true)
     },
   }
 
-  const activeGroup = groups.find(g => g.id === selectedGroupId) ?? null
+  const allRosterView = activeStripTab === 'students'
+  // Presentation only: no synthetic group is stored in the database.
+  const unassignedDisplay: Group = { id: '', name: t('Пока без занятий'), subject: '' as Group['subject'], icon: '', level: '', color: '#9B6DFF', colorSoft: '#EFE0FF', startDate: '', totalLessons: 0, lessonsCompleted: 0, studentCount: 0 }
+  const activeGroup = allRosterView ? { ...unassignedDisplay, name: t('Все ученики') } : groups.find(g => g.id === selectedGroupId) ?? null
   // Full roster of the active group (drives chip counts), then narrowed by the
   // search box + active quick-filter, then sorted for display.
-  const rosterAll = activeGroup ? students.filter(s => s.groupId === activeGroup.id) : []
+  const rosterAll = allRosterView ? [...new Map(allStudents.map(s => [personKey(s), s])).values()] : activeGroup ? students.filter(s => s.groupId === activeGroup.id) : []
   const q = searchQuery.trim().toLowerCase()
   const groupStudents = sortStudents(
     rosterAll
@@ -2338,8 +2372,8 @@ export default function TeacherGroupsPage() {
     fading: rosterAll.filter(filterPredicate.fading).length,
     nohw: rosterAll.filter(filterPredicate.nohw).length,
   }
-  const activeStudent = activeStudentId ? students.find(s => s.id === activeStudentId) ?? null : null
-  const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? null : null
+  const activeStudent = activeStudentId ? allStudents.find(s => s.id === activeStudentId) ?? null : null
+  const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? unassignedDisplay : null
 
   // personKey: person_id — источник правды, authUserId/имя — запасные варианты
   // для незабэкфилленных строк (миграция 0031). Общий с пикером «кому дать курс».
@@ -2381,11 +2415,12 @@ export default function TeacherGroupsPage() {
     if (!activeStudent || !activeStudentGroup) return
     // Цвет — предмета, а не той карточки, из которой добавляли: направления
     // одного человека должны различаться на глаз (реестр предметов).
-    const { studentId, groupId } = await addIndividualCard({
+    const { studentId, groupId, error } = await addIndividualCard({
       student: activeStudent,
       subject: subject as Group['subject'],
       level,
     })
+    if (error) throw error
     if (studentId && groupId) ensureCardFillTask({ studentId, groupId, name: activeStudent.name, subject })
   }
 
@@ -2445,6 +2480,7 @@ export default function TeacherGroupsPage() {
   const [addToGroupTarget, setAddToGroupTarget] = useState<string | null>(null)  // group id → PickStudentModal
   const [addToGroupForStudent, setAddToGroupForStudent] = useState(false)         // student card → PickGroupModal
   const [enrolling, setEnrolling] = useState(false)
+  const [assignmentError, setAssignmentError] = useState('')
   // Меню «+ Ученик» — в портале по координатам кнопки: карточка таблицы с
   // overflow:hidden обрезала его, когда учеников мало или нет совсем.
   const [rosterAddMenu, setRosterAddMenu] = useState<{ top: number; right: number } | null>(null)
@@ -2454,8 +2490,10 @@ export default function TeacherGroupsPage() {
 
   async function enrollExisting(targetGroupId: string, person: PersonLike) {
     setEnrolling(true)
-    await addExistingStudentToGroup(targetGroupId, person)
+    setAssignmentError('')
+    const result = await addExistingStudentToGroup(targetGroupId, person)
     setEnrolling(false)
+    if (result.error) { setAssignmentError((result.error as { message?: string }).message ?? t('Не удалось назначить группу')); return }
     setAddToGroupTarget(null)
     setAddToGroupForStudent(false)
     setSelectedGroupId(targetGroupId)
@@ -2485,7 +2523,7 @@ export default function TeacherGroupsPage() {
           <GroupStrip
             mergePersons
             groups={activeStripTab === 'groups' ? regularGroups : []}
-            individualGroups={activeStripTab === 'students' ? individualGroups : []}
+            individualGroups={[]}
             selectedGroupId={selectedGroupId}
             onSelectGroup={(id) => {
               if (!id) { setSelectedGroupId(null); setActiveStudentId(null) }
@@ -2501,6 +2539,7 @@ export default function TeacherGroupsPage() {
           <PendingAccountsPanel students={allStudents} />
         </motion.div>
 
+        {assignmentError && <Alert tone="danger" text={assignmentError} />}
         {/* Student table */}
         <AnimatePresence>
           {activeGroup && (
@@ -2520,7 +2559,7 @@ export default function TeacherGroupsPage() {
                   borderBottom: '1px solid var(--color-border-soft)',
                 }}>
                   {/* Single header row: name left, pills center, search right */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
                     {/* Left: group name */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto', minWidth: 0 }}>
                       <div style={{
@@ -2539,8 +2578,7 @@ export default function TeacherGroupsPage() {
 
                     {/* Center: filter pills (absolute so they're truly centered) */}
                     <div style={{
-                      position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-                      display: 'flex', alignItems: 'center', gap: 6,
+                      display: 'flex', alignItems: 'center', gap: 6, margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center',
                     }}>
                       {([
                         { id: 'all', label: t('Все') },
@@ -2596,10 +2634,11 @@ export default function TeacherGroupsPage() {
                       </div>
 
                       {/* Add student to this group (new or existing) */}
-                      {!activeGroup.isIndividual && (
+                      {!activeGroup.isIndividual && !allRosterView && (
                         <div style={{ position: 'relative', flex: 'none' }}>
                           <button
                             onClick={e => {
+                              if (allRosterView) { setShowAddStudent(true); return }
                               const r = e.currentTarget.getBoundingClientRect()
                               setRosterAddMenu(v => v ? null : { top: r.bottom + 6, right: window.innerWidth - r.right })
                             }}
@@ -2653,6 +2692,9 @@ export default function TeacherGroupsPage() {
                       </tr>
                     </thead>
                     <tbody>
+                      {groupStudents.length === 0 && <tr><td colSpan={8} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
+                        {searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено') : t('Учеников пока нет. Добавьте первого — достаточно имени.')}
+                      </td></tr>}
                       {groupStudents.map((student, i) => {
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                         const isSelected = student.id === activeStudentId
@@ -2691,19 +2733,25 @@ export default function TeacherGroupsPage() {
                                 </div>
                                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                                   {tn(student.name)}
+                                  {allRosterView && <span style={{ display: 'block', marginTop: 4, fontSize: 11, fontWeight: 400, color: 'var(--color-muted)', whiteSpace: 'normal' }}>
+                                    {[...new Set(allStudents.filter(s => personKey(s) === personKey(student)).map(s => {
+                                      const g = groups.find(g => g.id === s.groupId)
+                                      return g ? (g.isIndividual ? `1:1 · ${g.subject}` : g.name) : ''
+                                    }).filter(Boolean))].join(' · ') || t('Пока без занятий')}
+                                  </span>}
                                 </span>
                               </div>
                             </td>
                             {/* Last visit */}
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap', ...colBg('lastVisit') }}>
-                              {student.lastVisit}
+                              {student.lastVisit || '—'}
                             </td>
                             {/* Scores */}
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('hwScore') }}>
-                              <ScorePill value={student.hwScore} />
+                              <ScorePill value={hasStudentActivity(student) ? student.hwScore : null} />
                             </td>
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('testScore') }}>
-                              <ScorePill value={student.testScore} />
+                              <ScorePill value={hasStudentActivity(student) ? student.testScore : null} />
                             </td>
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('trialScore') }}>
                               <ScorePill value={student.trialScore} />
@@ -2712,9 +2760,9 @@ export default function TeacherGroupsPage() {
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('attendance') }}>
                               <span style={{
                                 fontSize: 12, fontWeight: 700,
-                                color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-text-2)' : 'var(--color-red-text)',
+                                color: !hasStudentActivity(student) ? 'var(--color-text-3)' : student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-text-2)' : 'var(--color-red-text)',
                               }}>
-                                {student.attendance}%
+                                {hasStudentActivity(student) ? `${student.attendance}%` : '—'}
                               </span>
                             </td>
                             {/* Last payment */}
@@ -2764,8 +2812,8 @@ export default function TeacherGroupsPage() {
             }}
           >
             <Users size={36} strokeWidth={1.5} style={{ margin: '0 auto 12px' }} />
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Выберите группу')}</div>
-            <div style={{ fontSize: 12, marginTop: 4 }}>{t('чтобы увидеть список студентов')}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' }}>{groups.length ? t('Выберите группу') : t('Групп пока нет')}</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>{t('Всех учеников можно увидеть во вкладке «Ученики»')}</div>
           </motion.div>
         )}
       </div>
@@ -2789,12 +2837,13 @@ export default function TeacherGroupsPage() {
                 await deleteStudent(activeStudentId)
                 setActiveStudentId(null)
               }}
-              onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudentGroup.id)}
+              onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudent.groupId)}
               onAddHomework={() => openHomeworkCreate(activeStudentId)}
               onSaveComment={async (text) => !(await updateStudent(activeStudentId, { comment: text })).error}
               siblingCards={siblingCards}
               onAddCard={addCardForActive}
               onRemoveCard={async (groupId) => {
+                if (!groups.find(g => g.id === groupId)?.isIndividual) return
                 // Снятие направления, на котором стоим: карточки не станет, так
                 // что уводим панель на соседнее (или закрываем, если его нет).
                 const wasActive = groupId === activeStudentGroup.id
@@ -2836,23 +2885,13 @@ export default function TeacherGroupsPage() {
             }}
           />
         )}
-        {showAddStudentPicker && (
-          <AddStudentTypePicker
-            groups={regularGroups}
-            hasPeople={people.length > 0}
-            onPickGroup={() => { setShowAddStudentPicker(false); setShowAddStudent(true) }}
-            onPickIndividual={() => { setShowAddStudentPicker(false); setShowAddIndividual(true) }}
-            onPickExisting={() => { setShowAddStudentPicker(false); setShowExistingIndiv(true) }}
-            onClose={() => setShowAddStudentPicker(false)}
-          />
-        )}
-        {showAddStudent && (
+        {(showAddStudent || showAddStudentPicker) && (
           <AddStudentModal
             groups={regularGroups}
-            initialGroupId={selectedGroupId}
-            onClose={() => { setShowAddStudent(false); clearDrafts('groups.addStudent.') }}
+            initialGroupId={allRosterView ? null : selectedGroupId}
+            onClose={() => { setShowAddStudent(false); setShowAddStudentPicker(false); clearDrafts('groups.addStudent.') }}
             onSave={async (groupId, s) => {
-              const { inviteToken, studentId, error } = await addStudentToGroup(groupId, s)
+              const { inviteToken, studentId, error } = groupId ? await addStudentToGroup(groupId, s) : await addUnassignedStudent(s)
               return { inviteToken: inviteToken ?? null, studentId: studentId ?? null, error: (error as { message?: string } | null)?.message ?? null }
             }}
           />

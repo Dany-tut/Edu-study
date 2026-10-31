@@ -19,7 +19,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Layers, Rows3 } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Layers, Rows3 } from './icons/appIcons'
 import type { HomeworkQuizQuestion } from '../data/lessonContent'
 import { useReadingVisible } from '../store/readingStore'
 import { useT } from '../lib/i18n'

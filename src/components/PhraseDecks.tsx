@@ -39,7 +39,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useMemo, useRef, useState } from 'react'
-import { Layers, Sparkles, Check, RotateCcw, Trash2 } from 'lucide-react'
+import { Layers, Sparkles, Check, RotateCcw, Trash2 } from './icons/appIcons'
 import type { SurvivalThemeCards, SurvivalBook, Phrase } from '../data/survivalPhrases'
 import { addCards, gradePrompt, isDue, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { vocabImage } from '../data/vocabImages'

@@ -5,7 +5,7 @@ import {
   Send, X, GraduationCap, User, Check, Sparkles, ArrowRight,
   BookOpen, ClipboardCheck, BarChart3, Users, Bell, PencilRuler,
   UserPlus, LayoutGrid, LineChart,
-} from 'lucide-react'
+} from '../components/icons/appIcons'
 import { PLAN_TIERS, planPrice } from '../lib/plan'
 import { submitLead } from '../lib/leads'
 import { useLang, useT } from '../lib/i18n'

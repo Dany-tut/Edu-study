@@ -20,7 +20,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertTriangle, Info } from 'lucide-react'
+import { AlertTriangle, Info } from './icons/appIcons'
 import { t } from '../lib/i18n'
 import { btn } from '../lib/pillStyles'
 import { GLASS, glassAlert, glassConfirm } from '../lib/nativeGlass'

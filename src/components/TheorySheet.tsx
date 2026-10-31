@@ -19,7 +19,7 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion'
-import { BookOpen, X } from 'lucide-react'
+import { BookOpen, X } from './icons/appIcons'
 import type { LessonParagraph } from '../data/lessonContent'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'

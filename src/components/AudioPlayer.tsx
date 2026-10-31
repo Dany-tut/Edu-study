@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, Pause, Turtle } from 'lucide-react'
+import { Play, Pause, Turtle } from './icons/appIcons'
 import { getMediaUrl } from '../lib/mediaStorage'
 import { useT } from '../lib/i18n'
 import { speak, stopSpeech } from '../lib/speech'

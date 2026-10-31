@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Skeleton from './Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock } from 'lucide-react'
+import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock } from './icons/appIcons'
 import { IconLessonRecording } from './icons'
 import { type Subject, type Lesson, type LessonStatus } from '../data/mockData'
 import { lessonHasHardLevel } from '../data/lessonContent'

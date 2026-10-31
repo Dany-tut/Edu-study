@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import {
   ClipboardCheck, Users, ChevronRight, BookOpen, Link2, Copy, Check,
   Wallet, Play, PartyPopper, Send, ArrowRight, CircleCheck, Clock,
-} from 'lucide-react'
+} from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import { GlassPill } from '../../mobileChrome'
@@ -26,6 +26,7 @@ import { useT, t, useTc } from '../../../lib/i18n'
 import { isMySubject } from '../../../lib/subjects'
 import { useTeacherAccess } from '../../../lib/teacherAccess'
 import { Alert } from '../../Alert'
+import { TaskliIcon } from '../../icons/TaskliIcon'
 
 const BASE_URL = window.location.origin + window.location.pathname
 // subject — предмет реестра для «Моих предметов»; у «Мышления» его нет, она общая.
@@ -98,7 +99,7 @@ function SectionLabel({ children, action, onAction }: {
       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{children}</span>
       {action && (
         <button onClick={() => { tactile(); onAction?.() }} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>
-          {action}
+          {action} <TaskliIcon name="continue" size={13} style={{ display: 'inline-block', verticalAlign: '-0.12em' }} />
         </button>
       )}
     </div>
@@ -169,7 +170,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
     <div style={{ borderRadius: 20, background: pair.bg, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <ClipboardCheck size={20} style={{ color: pair.text }} />
+          <TaskliIcon name="review" size={20} tone={danger ? 'attention' : 'accent'} style={{ color: pair.text }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: pair.text, lineHeight: 1.3 }}>{review} {t(ru(review, 'работа ждёт проверки', 'работы ждут проверки', 'работ ждут проверки'))}</div>
@@ -182,7 +183,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
         className="cursor-pointer"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', marginTop: 12, padding: '12px', borderRadius: 12, background: pair.text, color: '#fff', fontSize: 14, fontWeight: 700 }}
       >
-        <ArrowRight size={16} /> {t('Проверить сейчас')}
+        <TaskliIcon name="continue" size={16} style={{ color: '#fff' }} /> {t('Проверить сейчас')}
       </motion.button>
     </div>
   )
@@ -247,7 +248,7 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
           не делает. В мобильном кабинете экрана материалов нет; убрана. */}
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
         <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ height: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 16px', borderRadius: 12, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700}}>
-          <Play size={14} /> {t('Открыть')}
+          <TaskliIcon name="open" size={14} style={{ color: '#fff' }} /> {t('Открыть')}
         </motion.button>
       </div>
     </div>
@@ -267,8 +268,8 @@ function ScheduleRow({ item, last }: { item: ScheduleItem; last: boolean }) {
         </div>
       </div>
       {done
-        ? <CircleCheck size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
-        : <Clock size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
+        ? <TaskliIcon name="done" size={16} tone="success" />
+        : <TaskliIcon name={item.status === 'live' ? 'now' : 'schedule'} size={16} tone={item.status === 'live' ? 'now' : 'neutral'} />}
     </div>
   )
 }
@@ -286,12 +287,15 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
       <button onClick={() => { tactile(); onOpen() }} className="cursor-pointer text-left" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
           {tn(item.name)}
-          <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: c.bg, color: c.text }}>{item.tag}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: c.bg, color: c.text, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <TaskliIcon name="attention" size={12} tone={item.tagKind === 'danger' ? 'attention' : 'returned'} />
+            {item.tag}
+          </span>
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>{item.sub}</div>
       </button>
       <button onClick={() => { tactile(); onRemind() }} aria-label={t('Напомнить в Telegram')} className="cursor-pointer flex-shrink-0" style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--color-bg-3)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--color-border-soft)' }}>
-        <Send size={14} />
+        <TaskliIcon name="message" size={16} tone="accent" />
       </button>
     </div>
   )
@@ -449,7 +453,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
         {/* 4 — attention */}
         {model.attention.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <SectionLabel action={t('все ›')} onAction={() => onNavigate('students')}>{t('Требуют внимания')}</SectionLabel>
+            <SectionLabel action={t('все')} onAction={() => onNavigate('students')}>{t('Требуют внимания')}</SectionLabel>
             <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', padding: '4px 12px' }}>
               {model.attention.map((a, i) => (
                 <AttentionRow

@@ -27,7 +27,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { PAGE_WIDTH } from '../lib/pageWidth'

@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import { useTeacherTz, tzOffsetMs, isMsk, tzShortLabel, formatTimeInMsk } from '../lib/teacherTz'
 

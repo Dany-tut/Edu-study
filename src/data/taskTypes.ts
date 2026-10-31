@@ -24,7 +24,7 @@ import {
   AlignLeft, ArrowUpDown, CheckSquare, ChevronDown, Columns3, ExternalLink, Image as ImageIcon,
   Images, Keyboard, Layers, LayoutGrid, ListChecks, Grid3x3, ListOrdered, MessagesSquare, Mic,
   PenLine, Play, Puzzle, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
-} from 'lucide-react'
+} from '../components/icons/appIcons'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
 import { heardCovers } from '../lib/asr'

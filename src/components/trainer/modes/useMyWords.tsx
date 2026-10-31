@@ -17,7 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { BookMarked } from 'lucide-react'
+import { BookMarked } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../../lib/typography'
 import Skeleton from '../../Skeleton'

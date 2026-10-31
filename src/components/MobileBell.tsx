@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Bell } from 'lucide-react'
+import { Bell } from './icons/appIcons'
 import NotificationPopup from './NotificationPopup'
 import { GlassIconButton } from './mobileChrome'
 import { useNotificationsStore } from '../store/notificationsStore'

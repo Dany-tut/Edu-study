@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from '../../icons/appIcons'
 import MiniStatCard from './_MiniStatCard'
 import { useAllStudents } from '../../../lib/useGroups'
 import { useT } from '../../../lib/i18n'

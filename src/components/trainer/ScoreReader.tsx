@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import {
   Play, Pause, Square, Languages, Type, Volume2, PanelRight, PanelBottom,
   Rows3, GalleryVerticalEnd, ChevronLeft, ChevronRight, Eye,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import GlossedText from '../GlossedText'
 import MobileSheet from '../MobileSheet'
 import VoicePicker from './VoicePicker'

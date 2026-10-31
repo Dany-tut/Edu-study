@@ -336,9 +336,9 @@ const homeworkQuery = createSharedQuery<HwAssignment[]>(async () => {
   if (refs.length > 0) {
     const { data: progress } = await supabase
       .from('lesson_progress')
-      .select('lesson_ref, status, students!inner(groups!inner(created_by))')
+      .select('lesson_ref, status, students!inner(created_by)')
       .in('lesson_ref', refs)
-      .eq('students.groups.created_by', uid)
+      .eq('students.created_by', uid)
       .in('status', ['submitted', 'returned', 'completed'])
     for (const p of (progress ?? []) as any[]) {
       const hwId = (p.lesson_ref as string).slice(3) // strip 'hw-'
@@ -434,8 +434,8 @@ const hardQuery = createSharedQuery<HardSub[]>(async () => {
   const uid = await getOwnerId()
   const { data: rows } = await supabase
     .from('lesson_progress')
-    .select('*, students!inner(name, groups!inner(created_by))')
-    .eq('students.groups.created_by', uid)
+    .select('*, students!inner(name, created_by)')
+    .eq('students.created_by', uid)
     .or('lesson_ref.like.%-hard,and(comment.neq.,lesson_ref.not.like.%-hard)')
     .in('status', ['submitted', 'returned', 'completed'])
     .order('updated_at', { ascending: false })
@@ -576,9 +576,9 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
     const refs = lessonId ? [`hw-${hwId}`, lessonId] : [`hw-${hwId}`]
     const { data } = await supabase
       .from('lesson_progress')
-      .select('id, student_id, status, score, comment, attachments, review_comment, review_attachments, updated_at, students!inner(name, groups!inner(created_by))')
+      .select('id, student_id, status, score, comment, attachments, review_comment, review_attachments, updated_at, students!inner(name, created_by)')
       .in('lesson_ref', refs)
-      .eq('students.groups.created_by', uid)
+      .eq('students.created_by', uid)
       .in('status', ['submitted', 'returned', 'completed'])
       .order('updated_at', { ascending: false })
     setSubmissions((data ?? []).map((s: any) => ({

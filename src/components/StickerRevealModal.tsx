@@ -2,7 +2,7 @@
 // Открывается один раз на стикер: после закрытия id уходит в «просмотрено».
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronRight } from 'lucide-react'
+import { X, ChevronRight } from './icons/appIcons'
 import HoloSticker from './HoloSticker'
 import { tierOf } from '../lib/holo/presets'
 import { stickerLabel, type EarnedSticker } from '../lib/stickers'

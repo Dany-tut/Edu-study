@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
+import { SubjectMark } from './icons/SubjectMark'
 import { useState, useMemo } from 'react'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks, Camera, X } from 'lucide-react'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks, Camera, X } from './icons/appIcons'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import HScrollFade from './HScrollFade'
@@ -25,7 +26,7 @@ import { PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { requestShowInstall, isStandalone } from '../lib/pwaInstall'
 import AppVersionRow from './AppVersionRow'
-import type { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from './icons/appIcons'
 import type { Subject } from '../data/mockData'
 import { XP_PER_LEVEL } from '../lib/xp'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
@@ -226,7 +227,7 @@ export default function MobileProfilePage() {
               <HScrollFade gap={8} fade="var(--color-bg)" padBottom={2}>
                 <CourseCard
                   title={t('Все курсы')}
-                  icon="✨"
+                  icon={<Star size={20} />}
                   active={statScope === 'all'}
                   onClick={() => setStatScope('all')}
                   caption={`${subjects.length} ${plural(subjects.length, ['курс', 'курса', 'курсов'], ['course', 'courses'], lang)}`}
@@ -235,7 +236,7 @@ export default function MobileProfilePage() {
                   <CourseCard
                     key={s.id}
                     title={tc(s.name)}
-                    icon={subjectIcon(s.subject)}
+                    icon={<SubjectMark subject={s.subject} size={20} />}
                     pair={CHIP_PALETTE[i % CHIP_PALETTE.length]}
                     progress={s.progress}
                     active={statScope === s.id}
@@ -552,7 +553,7 @@ function ScoreChart({ data, empty }: { data: number[]; empty: string }) {
 // Карточка курса в горизонтальной строке. Активная = выбранный скоуп статистики.
 function CourseCard({ title, icon, caption, progress, pair, active, onClick }: {
   title: string
-  icon: string
+  icon: React.ReactNode
   caption?: string
   progress?: number
   pair?: { bg: string; text: string }

@@ -16,7 +16,7 @@
 
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Info } from 'lucide-react'
+import { Info } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { TASK_TYPES, type TaskTypeId } from '../../data/taskTypes'
 

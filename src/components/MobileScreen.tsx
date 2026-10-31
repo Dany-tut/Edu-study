@@ -36,6 +36,7 @@ export default function MobileScreen({
   topPad = DEFAULT_TOP_PAD,
   topRaise = 0,
   bottomDock,
+  bottomDockRaise = 0,
   children,
   scrollKey,
   restoreKey,
@@ -52,6 +53,8 @@ export default function MobileScreen({
   topRaise?: number
   /** Bottom dock: page controls + nav. Rendered fixed, 44px off edge + safe-area. */
   bottomDock?: ReactNode
+  /** Lift page actions above a separate bottom navigation bar. */
+  bottomDockRaise?: number
   children: ReactNode
   /** Change to reset scroll state when the page swaps. */
   scrollKey?: string | number
@@ -187,7 +190,7 @@ export default function MobileScreen({
           paddingLeft: 16,
           paddingRight: 16,
           // Bottom: home-indicator safe-area + dock/nav clearance.
-          paddingBottom: `calc(${SAFE_BOTTOM} + ${MOBILE_EDGE + 92}px)`,
+          paddingBottom: `calc(${SAFE_BOTTOM} + ${MOBILE_EDGE + 92 + bottomDockRaise}px)`,
         }}
       >
         {children}
@@ -200,7 +203,7 @@ export default function MobileScreen({
             position: 'absolute',
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: bottomDockRaise ? `calc(${SAFE_BOTTOM} + ${bottomDockRaise}px)` : 0,
             zIndex: 70,
             paddingBottom: `${MOBILE_EDGE - 16}px`,
             paddingLeft: 16,

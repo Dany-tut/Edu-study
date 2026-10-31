@@ -1,4 +1,4 @@
-import { BookOpen, Tv, Clapperboard, Quote, ExternalLink, AlertTriangle, Lock, Check, Captions, Ear, Lightbulb, PlayCircle } from 'lucide-react'
+import { BookOpen, Tv, Clapperboard, Quote, ExternalLink, AlertTriangle, Lock, Check, Captions, Ear, Lightbulb, PlayCircle } from '../icons/appIcons'
 import { Tile, TileGrid, TileChip, TileMeter, Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'

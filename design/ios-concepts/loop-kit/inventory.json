@@ -1,0 +1,1242 @@
+[
+  {
+    "name": "ArrowDown",
+    "uses": 4,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowDownToLine",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowLeft",
+    "uses": 3,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowLeftRight",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowRight",
+    "uses": 14,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowRightLeft",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowRightToLine",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowUp",
+    "uses": 5,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowUpDown",
+    "uses": 9,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ArrowUpRight",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "BoxSelect",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Check",
+    "uses": 70,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "CheckCheck",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "CheckCircle",
+    "uses": 2,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "CheckCircle2",
+    "uses": 33,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "CheckSquare",
+    "uses": 5,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ChevronDown",
+    "uses": 35,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ChevronLeft",
+    "uses": 26,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ChevronRight",
+    "uses": 41,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ChevronsLeft",
+    "uses": 0,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ChevronsRight",
+    "uses": 0,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ChevronsUpDown",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ChevronUp",
+    "uses": 10,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Circle",
+    "uses": 4,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "CircleDot",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "CornerDownRight",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "CornerUpLeft",
+    "uses": 0,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "CornerUpRight",
+    "uses": 0,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Delete",
+    "uses": 2,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "GripHorizontal",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "GripVertical",
+    "uses": 7,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Loader2",
+    "uses": 17,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Maximize",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Maximize2",
+    "uses": 2,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Menu",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Minimize",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Minus",
+    "uses": 5,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "MousePointer2",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "MousePointerClick",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Plus",
+    "uses": 28,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "PlusCircle",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "RefreshCw",
+    "uses": 10,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Repeat",
+    "uses": 5,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "RotateCcw",
+    "uses": 36,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "RotateCw",
+    "uses": 2,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Shuffle",
+    "uses": 6,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Square",
+    "uses": 5,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Undo2",
+    "uses": 4,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "X",
+    "uses": 73,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "XCircle",
+    "uses": 4,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ZoomIn",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "ZoomOut",
+    "uses": 1,
+    "category": "01 · Управление"
+  },
+  {
+    "name": "Cloud",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "CloudOff",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Eye",
+    "uses": 19,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "EyeOff",
+    "uses": 9,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Filter",
+    "uses": 2,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Globe",
+    "uses": 5,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Home",
+    "uses": 3,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Key",
+    "uses": 2,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Keyboard",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "KeyRound",
+    "uses": 2,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "LayoutDashboard",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "LayoutGrid",
+    "uses": 11,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "LayoutList",
+    "uses": 2,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Lock",
+    "uses": 13,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "LockOpen",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "LogIn",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "LogOut",
+    "uses": 6,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Mail",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "MessageCircle",
+    "uses": 4,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "MessageCircleQuestion",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "MessageSquare",
+    "uses": 4,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "MessageSquarePlus",
+    "uses": 3,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "MessagesSquare",
+    "uses": 3,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "PanelBottom",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "PanelLeft",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "PanelRight",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Phone",
+    "uses": 3,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Search",
+    "uses": 17,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Send",
+    "uses": 16,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Settings",
+    "uses": 2,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Share",
+    "uses": 2,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Share2",
+    "uses": 3,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Shield",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "ShieldAlert",
+    "uses": 3,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "ShieldCheck",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "SlidersHorizontal",
+    "uses": 8,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Unlock",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "User",
+    "uses": 9,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "UserCheck",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "UserCircle",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "UserPlus",
+    "uses": 9,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Users",
+    "uses": 27,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "UsersRound",
+    "uses": 1,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "WifiOff",
+    "uses": 2,
+    "category": "02 · Навигация и связь"
+  },
+  {
+    "name": "Bell",
+    "uses": 15,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "BellOff",
+    "uses": 1,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "Calendar",
+    "uses": 9,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "CalendarCheck",
+    "uses": 3,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "CalendarClock",
+    "uses": 6,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "CalendarDays",
+    "uses": 5,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "CalendarX",
+    "uses": 5,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "CalendarX2",
+    "uses": 2,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "Clock",
+    "uses": 37,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "Inbox",
+    "uses": 2,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "Timer",
+    "uses": 3,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "Watch",
+    "uses": 1,
+    "category": "03 · Время и уведомления"
+  },
+  {
+    "name": "AudioLines",
+    "uses": 2,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Camera",
+    "uses": 6,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Captions",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Clapperboard",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Ear",
+    "uses": 3,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Headphones",
+    "uses": 4,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Image",
+    "uses": 9,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "ImageIcon",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "ImagePlus",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Images",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "ListVideo",
+    "uses": 3,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Mic",
+    "uses": 11,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "MicOff",
+    "uses": 2,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Microscope",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Music",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Pause",
+    "uses": 8,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Play",
+    "uses": 24,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "PlayCircle",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Subtitles",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Tv",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Video",
+    "uses": 3,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Volume1",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Volume2",
+    "uses": 17,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "VolumeX",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "Youtube",
+    "uses": 1,
+    "category": "04 · Медиа"
+  },
+  {
+    "name": "ALargeSmall",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "AlignLeft",
+    "uses": 5,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Blocks",
+    "uses": 5,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "ClipboardCheck",
+    "uses": 18,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "ClipboardCopy",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "ClipboardList",
+    "uses": 11,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "ClipboardPaste",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Columns3",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Copy",
+    "uses": 11,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Database",
+    "uses": 7,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Download",
+    "uses": 7,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Eraser",
+    "uses": 2,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "FileCode2",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "FileText",
+    "uses": 9,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "FolderInput",
+    "uses": 2,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "FolderOpen",
+    "uses": 3,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Grid3x3",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "HardDrive",
+    "uses": 3,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Hash",
+    "uses": 3,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Highlighter",
+    "uses": 2,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Layers",
+    "uses": 29,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Link2",
+    "uses": 9,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "List",
+    "uses": 3,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "ListChecks",
+    "uses": 8,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "ListOrdered",
+    "uses": 2,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "ListPlus",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Newspaper",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Pencil",
+    "uses": 12,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "PencilRuler",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "PenLine",
+    "uses": 13,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Quote",
+    "uses": 2,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Rows3",
+    "uses": 5,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Save",
+    "uses": 3,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "ScrollText",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "SpellCheck",
+    "uses": 1,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Table",
+    "uses": 4,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Trash2",
+    "uses": 24,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Type",
+    "uses": 5,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Upload",
+    "uses": 5,
+    "category": "05 · Редактор и файлы"
+  },
+  {
+    "name": "Activity",
+    "uses": 1,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "Banknote",
+    "uses": 6,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "BarChart2",
+    "uses": 3,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "BarChart3",
+    "uses": 5,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "CreditCard",
+    "uses": 5,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "Gauge",
+    "uses": 1,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "Gift",
+    "uses": 1,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "LineChart",
+    "uses": 1,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "Percent",
+    "uses": 1,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "ShoppingBag",
+    "uses": 1,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "TrendingDown",
+    "uses": 1,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "TrendingUp",
+    "uses": 20,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "Wallet",
+    "uses": 7,
+    "category": "06 · Финансы и аналитика"
+  },
+  {
+    "name": "AlertCircle",
+    "uses": 16,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "AlertTriangle",
+    "uses": 11,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Award",
+    "uses": 4,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "CircleAlert",
+    "uses": 2,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "CircleCheck",
+    "uses": 1,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "CircleHelp",
+    "uses": 2,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Compass",
+    "uses": 2,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Flame",
+    "uses": 7,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "HeartPulse",
+    "uses": 1,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "HelpCircle",
+    "uses": 4,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Info",
+    "uses": 6,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Lightbulb",
+    "uses": 4,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Moon",
+    "uses": 5,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "PartyPopper",
+    "uses": 1,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Rocket",
+    "uses": 4,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Sparkle",
+    "uses": 3,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Sparkles",
+    "uses": 23,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Star",
+    "uses": 20,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Sun",
+    "uses": 5,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Sunrise",
+    "uses": 2,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Target",
+    "uses": 6,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Trophy",
+    "uses": 7,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Zap",
+    "uses": 9,
+    "category": "07 · Обратная связь"
+  },
+  {
+    "name": "Atom",
+    "uses": 4,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Bird",
+    "uses": 3,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "BookMarked",
+    "uses": 4,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "BookOpen",
+    "uses": 35,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "BookOpenCheck",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Brain",
+    "uses": 7,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Bug",
+    "uses": 3,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Calculator",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Cat",
+    "uses": 3,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "CircleDashed",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "CircleMinus",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "CirclePlus",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "CircleX",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Cpu",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Dna",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Dumbbell",
+    "uses": 4,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "ExternalLink",
+    "uses": 15,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Fish",
+    "uses": 3,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "FlaskConical",
+    "uses": 4,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Flower2",
+    "uses": 3,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "GalleryVerticalEnd",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Ghost",
+    "uses": 2,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "GraduationCap",
+    "uses": 11,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Languages",
+    "uses": 4,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Laugh",
+    "uses": 2,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Leaf",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Library",
+    "uses": 4,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Monitor",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "MoreHorizontal",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "MoreVertical",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "NotebookPen",
+    "uses": 7,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Palette",
+    "uses": 3,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Pipette",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Puzzle",
+    "uses": 3,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Rabbit",
+    "uses": 3,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Radio",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Sigma",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "ToggleLeft",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "ToggleRight",
+    "uses": 0,
+    "category": "08 · Учебные предметы"
+  },
+  {
+    "name": "Turtle",
+    "uses": 1,
+    "category": "08 · Учебные предметы"
+  }
+]

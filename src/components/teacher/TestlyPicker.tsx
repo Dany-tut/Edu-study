@@ -3,7 +3,7 @@
 // тренажёра» в уроке курса и «Другой тест» в карточке задания (compact).
 // Тесты живут в Тестли; сюда приходит только карточка (testly-bridge).
 import { useEffect, useMemo, useState } from 'react'
-import { Check, Clock, ExternalLink, ListChecks, Loader2, Plus, Search } from 'lucide-react'
+import { Check, Clock, ExternalLink, ListChecks, Loader2, Plus, Search } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { fetchTestlyTests, testlyMeta, testlyNewUrl, useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import type { TestlyRef } from '../../data/taskTypes'

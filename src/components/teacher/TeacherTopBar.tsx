@@ -8,7 +8,7 @@ import {
   CreditCard, UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe, Zap,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
   CalendarDays, type LucideIcon,
-} from 'lucide-react'
+} from '../icons/appIcons'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'

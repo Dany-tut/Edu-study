@@ -1,7 +1,7 @@
 import { useRef, useState, useMemo, useEffect } from 'react'
 import CountBadge from './CountBadge'
 import { motion } from 'framer-motion'
-import { Flame, Zap, Bell, SlidersHorizontal, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp, Layers } from 'lucide-react'
+import { Flame, Zap, Bell, SlidersHorizontal, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp, Layers } from './icons/appIcons'
 import NotificationPopup from './NotificationPopup'
 import { useNotificationsStore } from '../store/notificationsStore'
 import MobileScreen from './MobileScreen'
@@ -34,9 +34,10 @@ import { resolveSubjectPalette, getSubject } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
 import { useTint } from '../store/tintStore'
 import { useT, useTc, t as tt, useLang } from '../lib/i18n'
-import type { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from './icons/appIcons'
 import type { Lesson } from '../data/mockData'
 import { SeasonHero } from './season/Season'
+import { TaskliIcon } from './icons/TaskliIcon'
 
 // MOBILE ONLY home (v2). Desktop layout in DashboardPage is untouched.
 // Concept: not a dashboard — a "today + continue" screen.
@@ -301,7 +302,7 @@ export default function MobileHome() {
           <DynamicIsland>
         {nextToday ? (
           <>
-            <Calendar size={16} style={{ color: 'var(--color-accent)' }} />
+            <TaskliIcon name="schedule" size={16} tone="accent" />
             <span>{t('Урок')} {fmtUntil(nextToday.st.minutesUntil)}</span>
           </>
         ) : !loaded ? (
@@ -349,7 +350,7 @@ export default function MobileHome() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'none' : 'auto' }}
         >
-          <GlassIconButton icon={<Bell size={18} />} dot={notifUnread > 0} dotTone="alert" ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
+          <GlassIconButton icon={<TaskliIcon name="notification" size={18} />} dot={notifUnread > 0} dotTone="alert" ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
         </motion.div>
         <motion.div
           initial={{ opacity: barOnFeed ? 1 : 0, scale: barOnFeed ? 1 : 0.88 }}
@@ -358,7 +359,7 @@ export default function MobileHome() {
           style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: barOnFeed ? 'auto' : 'none' }}
         >
           <GlassIconButton
-            icon={<SlidersHorizontal size={18} />}
+            icon={<TaskliIcon name="filter" size={18} />}
             // Точка — не «новое», а «лента показана не целиком»: по ней видно,
             // что пустоватая лента это ваш же отбор, а не поломка.
             dot={prefsTouched(prefs)}

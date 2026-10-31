@@ -1,3 +1,6 @@
+import { LoopInlineIcon } from '../icons/LoopIcon'
+import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
+import { Check as LoopInlineCheck } from '../icons/appIcons'
 // ─────────────────────────────────────────────────────────────────────────────
 // Строка фильтров витрины Конструктора
 //
@@ -25,7 +28,7 @@
 
 import { useState, useRef, type ReactNode, type CSSProperties, type ComponentType } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowUpDown, BookOpen, ChevronUp, Search, X } from 'lucide-react'
+import { ArrowUpDown, BookOpen, ChevronUp, Search, X } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { SUBJECTS, getSubject, isMySubject, ICON_GAP } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
@@ -108,16 +111,16 @@ const rowStyle = (on: boolean, soft: string): CSSProperties => ({
 })
 
 const Caret = ({ open }: { open: boolean }) => (
-  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+  <LoopInlineIcon icon={LoopInlineChevronDown}><svg width="10" height="10" viewBox="0 0 10 10" fill="none"
     style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
     <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
+  </svg></LoopInlineIcon>
 )
 
 const Tick = ({ accent }: { accent: string }) => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+  <LoopInlineIcon icon={LoopInlineCheck} color={accent}><svg width="12" height="12" viewBox="0 0 12 12" fill="none">
     <path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
+  </svg></LoopInlineIcon>
 )
 
 /**

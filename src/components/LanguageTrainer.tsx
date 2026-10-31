@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines, ClipboardCheck } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines, ClipboardCheck } from './icons/appIcons'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { hasFeed, dayLabel, type FeedItem } from '../data/feed'
 import { outletById } from '../data/feed/outlets'

@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from '../../icons/appIcons'
 import Skeleton from '../../Skeleton'
 
 type Props = {

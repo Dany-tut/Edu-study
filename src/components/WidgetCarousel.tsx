@@ -1,7 +1,7 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react'
 import { retryImport } from '../lib/chunkError'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from './icons/appIcons'
 // ── Виджеты — по одному чанку на виджет ─────────────────────────────────────
 //
 // ЗАЧЕМ. Одиннадцать виджетов ехали во входном чанке разом, а на экране их

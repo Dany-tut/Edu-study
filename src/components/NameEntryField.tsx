@@ -1,4 +1,4 @@
-import { ArrowRight, User } from 'lucide-react'
+import { ArrowRight, User } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 
 // Вход в тест без аккаунта: одно поле «Имя и фамилия» с кнопкой «дальше» внутри.

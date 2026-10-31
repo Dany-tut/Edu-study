@@ -1,3 +1,6 @@
+import { CheckSquare, Square } from './icons/appIcons'
+import { useLoopIcons } from './icons/LoopIcon'
+
 /**
  * Кастомный чекбокс — единственный разрешённый в проекте.
  *
@@ -92,6 +95,11 @@ export function CheckboxMark({ checked, size = 18, accent = 'var(--color-control
   size?: number
   accent?: string
 }) {
+  const loop = useLoopIcons()
+  if (loop) {
+    const Icon = checked ? CheckSquare : Square
+    return <Icon aria-hidden size={size} style={{ color: checked ? accent : 'var(--color-muted)', flexShrink: 0 }} />
+  }
   return (
   <span
     aria-hidden

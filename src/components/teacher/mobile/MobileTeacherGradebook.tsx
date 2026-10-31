@@ -1,9 +1,10 @@
+import { SubjectMark } from '../../icons/SubjectMark'
 import { useEffect, useState } from 'react'
 import EmptyState from '../../EmptyState'
 import MobileHScroll from '../../MobileHScroll'
 import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
-import { CheckSquare, Check, X, CalendarCheck, Loader2, CalendarX2 } from 'lucide-react'
+import { CheckSquare, Check, X, CalendarCheck, Loader2, CalendarX2 } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import MobilePill from '../../MobilePill'
@@ -170,7 +171,7 @@ export default function MobileTeacherGradebook() {
         <MobileHScroll padX={0}>
           {groups.map(g => (
             <MobilePill key={g.id} active={g.id === groupId} onClick={() => setGroupId(g.id)} size="sm">
-              {g.icon}{ICON_GAP}{g.name}
+              <SubjectMark subject={g.subject} fallback={g.icon} size={16} />{ICON_GAP}{g.name}
             </MobilePill>
           ))}
         </MobileHScroll>

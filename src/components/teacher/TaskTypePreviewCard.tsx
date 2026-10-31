@@ -9,7 +9,7 @@
 // ни этот файл не лежат в чанке редактора.
 
 import { Fragment } from 'react'
-import { CheckCircle2, ExternalLink, Eye, Mic, Play, PenLine, Volume2 } from 'lucide-react'
+import { CheckCircle2, ExternalLink, Eye, Mic, Play, PenLine, Volume2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { TASK_TYPES, type TaskTypeId } from '../../data/taskTypes'
 import {
