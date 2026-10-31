@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Clock, ExternalLink, ListChecks, Loader2, Play, RotateCcw } from './icons/appIcons'
 import { TESTLY_DONE_PREFIX, testlyAnswer, testlyDoneAt, testlyScoreOf, type TestlyRef, type TestlyScore } from '../data/taskTypes'
 import {
-  fetchTestlyStatus, plural, startTestlyTest, testlyPoints, testlyReviewUrl, type TestlyAttempt,
+  fetchTestlyStatus, needsStudentLogin, plural, startTestlyTest, testlyPoints, testlyReviewUrl, type TestlyAttempt,
 } from '../lib/testlyModule'
 import { playPop, vibrate } from '../lib/sound'
 import { useT, useLang } from '../lib/i18n'
@@ -34,6 +34,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
   const lang = useLang(s => s.lang)
   const [attempt, setAttempt] = useState<TestlyAttempt | null>(null)
   const [offline, setOffline] = useState(false)
+  const [sessionError, setSessionError] = useState('')
   const [opening, setOpening] = useState(false)
   const [opened, setOpened] = useState(false)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
@@ -54,7 +55,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     try {
       const a = await fetchTestlyStatus(test.id, test.owner)
       if (request !== requestSeq.current) return
-      setAttempt(a); setOffline(false)
+      setAttempt(a); setOffline(false); setSessionError('')
       const { value: v, onChange: change } = live.current
       if (a.state === 'started' && (testlyDoneAt(v) !== null || live.current.disabled)) {
         setEmbedUrl(null); setOpened(false)
@@ -71,8 +72,11 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
         const next = testlyAnswer(a.submittedAt ?? testlyDoneAt(v) ?? new Date().toISOString(), fetchedScore ?? (testlyScoreOf(v) ? { ...testlyScoreOf(v)!, pending: !!a.pending } : null))
         if (next !== v) change(next)
       }
-    } catch {
-      if (request === requestSeq.current) setOffline(true)
+    } catch (error) {
+      if (request === requestSeq.current) {
+        setSessionError(needsStudentLogin(error) ? (error as Error).message : '')
+        setOffline(true)
+      }
     }
   }, [test?.id, test?.owner])
 
@@ -87,10 +91,10 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
   // Пока тест начат (или итог ждёт проверки учителя) — переспрашиваем сами.
   const waiting = !!test?.id
   useEffect(() => {
-    if (!waiting) return
+    if (!waiting || sessionError) return
     const id = window.setInterval(() => { if (document.visibilityState === 'visible') void refresh() }, POLL_MS)
     return () => window.clearInterval(id)
-  }, [waiting, refresh])
+  }, [waiting, refresh, sessionError])
 
   if (!test?.id) {
     return (
@@ -110,7 +114,9 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
       const url = await startTestlyTest(test.id, test.owner)
       setEmbedUrl(url)
       setOpened(true)
-    } catch {
+      setOffline(false); setSessionError('')
+    } catch (error) {
+      setSessionError(needsStudentLogin(error) ? (error as Error).message : '')
       setOffline(true)
     } finally {
       setOpening(false)
@@ -124,7 +130,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
   }
 
   const { doneAt, score, started, pending, progress, percent } = testlyPresentation(attempt, value)
-  const statusLabel = offline ? t('Нет связи')
+  const statusLabel = sessionError ? t('Требуется вход') : offline ? t('Нет связи')
     : doneAt !== null ? pending ? t('На проверке') : t('Тест сдан')
     : started ? t('В процессе') : t('Не начат')
 
@@ -136,13 +142,13 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>{text}</span>
   )
 
-  const note = offline
+  const note = sessionError || (offline
     ? t('Не удалось обновить статус. Последние полученные данные сохранены; Искра проверит статус ещё раз автоматически.')
     : doneAt !== null
       ? pending
         ? t('Итоговый балл придёт сам, когда преподаватель проверит вторую часть в Тестли.')
         : score ? t('Баллы и результат — из Тестли.') : t('Результат покажет преподаватель.')
-      : t('Ответы сохраняются в Тестли на каждом шаге. Балл появится здесь после сдачи.')
+      : t('Ответы сохраняются в Тестли на каждом шаге. Балл появится здесь после сдачи.'))
 
   return (
     <div className="flex flex-col" style={{ gap: 10 }}>
@@ -192,7 +198,8 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
             <p style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Заполненность пока недоступна.')}</p>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            {doneAt === null && !disabled && !embedUrl && (
+            {sessionError && <a href={`#/login?next=${encodeURIComponent(window.location.hash)}`} style={{ ...btn('var(--color-purple-soft)', 'var(--color-purple-text)'), textDecoration: 'none' }}>{t('Войти учеником')}</a>}
+            {doneAt === null && !disabled && !embedUrl && !sessionError && (
               <button type="button" onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
                 {opening ? <Loader2 size={14} /> : <Play size={14} />}
                 {opening ? t('Открываем тест…') : started || opened ? t('Продолжить тест') : t('Начать тест')}

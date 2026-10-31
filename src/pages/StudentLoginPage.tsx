@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from '../components/icons/appIcons'
 import { supabase } from '../lib/supabase'
-import { setStudentSession } from '../lib/studentSession'
+import { clearStudentSession, setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
@@ -65,6 +65,8 @@ export default function StudentLoginPage() {
         setLoading(false)
         setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id ?? '' })
         void trackNow('login', { role: 'student', method: 'auth' })
+        const next = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('next')
+        window.location.hash = next && /^#\/(homework|lesson)\//.test(next) ? next : '#/'
         window.location.reload()
         return
       }
@@ -74,6 +76,7 @@ export default function StudentLoginPage() {
       // root URL, e.g. inside the installed PWA), and a teacher who signs in here
       // lands in their cabinet rather than seeing a false "wrong password".
       setLoading(false)
+      clearStudentSession()
       void trackNow('login', { role: 'teacher', method: 'auth' })
       window.location.hash = '#/teacher'
       window.location.reload()

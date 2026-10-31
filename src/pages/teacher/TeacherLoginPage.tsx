@@ -1,3 +1,4 @@
+import { clearStudentSession } from '../../lib/studentSession'
 import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from '../../components/icons/appIcons'
 import { supabase } from '../../lib/supabase'
@@ -51,6 +52,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
         if (error) throw error
         void trackNow('login', { role: 'teacher', method: 'auth' })
+        clearStudentSession()
         onLogin()
       } else if (mode === 'reset') {
         // Без #/teacher: Supabase дописывает токен решёткой, и второй «#» в
@@ -64,6 +66,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         const { error } = await supabase.auth.updateUser({ password })
         if (error) throw error
         setNotice(t('Пароль обновлён. Входим…'))
+        clearStudentSession()
         onLogin()
       }
     } catch (err: any) {
@@ -235,7 +238,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         </form>
 
         {mode === 'login' && <SocialLoginButtons role="teacher" />}
-        {mode === 'login' && <TeacherEmailCodeLogin onLogin={onLogin} />}
+        {mode === 'login' && <TeacherEmailCodeLogin onLogin={() => { clearStudentSession(); onLogin() }} />}
 
         {mode !== 'newpassword' && (
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>

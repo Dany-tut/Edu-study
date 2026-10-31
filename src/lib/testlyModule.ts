@@ -61,8 +61,16 @@ const ERRORS: Record<string, string> = {
   not_connected: 'Тестли не подключён. Подключите его в Профиль → Модули.',
   revoked: 'Доступ к Тестли отозван. Подключите модуль заново в Профиль → Модули.',
   not_configured: 'Модуль Тестли ещё не включён на сервере.',
-  not_student: 'Тест доступен только ученикам преподавателя.',
+  not_student: 'Сейчас выполнен вход в другой аккаунт. Войдите учеником, которому назначена домашка.',
+  auth: 'Сессия истекла. Войдите учеником ещё раз, чтобы продолжить тест.',
 }
+
+export class TestlyBridgeError extends Error {
+  constructor(readonly code: string, message: string) { super(message); this.name = 'TestlyBridgeError' }
+}
+
+export const needsStudentLogin = (error: unknown) => error instanceof TestlyBridgeError
+  && (error.code === 'auth' || error.code === 'not_student')
 
 /** Вызов testly-bridge. Ошибку функции отдаём человеческим текстом. */
 async function bridge<T>(body: Record<string, unknown>): Promise<T> {
@@ -73,7 +81,8 @@ async function bridge<T>(body: Record<string, unknown>): Promise<T> {
     const code = context instanceof Response
       ? await context.clone().json().then(b => b?.error as string | undefined).catch(() => undefined)
       : undefined
-    throw new Error(t(ERRORS[code ?? ''] ?? 'Не удалось связаться с Тестли. Попробуйте ещё раз.'))
+    const reason = context instanceof Response && context.status === 401 ? 'auth' : code ?? 'network'
+    throw new TestlyBridgeError(reason, t(ERRORS[reason] ?? 'Не удалось связаться с Тестли. Попробуйте ещё раз.'))
   }
   return data as T
 }

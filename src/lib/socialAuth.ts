@@ -3,7 +3,7 @@ import { Browser } from '@capacitor/browser'
 import { Capacitor } from '@capacitor/core'
 import type { Provider } from '@supabase/supabase-js'
 import { supabase } from './supabase'
-import { setStudentSession } from './studentSession'
+import { clearStudentSession, setStudentSession } from './studentSession'
 import { trackNow } from './analytics'
 
 export type LoginRole = 'teacher' | 'student'
@@ -140,6 +140,7 @@ export async function finishSocialLogin() {
   const accountRole = user.app_metadata?.role || profile?.role
   if (accountRole === 'teacher' || accountRole === 'admin') {
     localStorage.removeItem(OAUTH_ROLE_KEY)
+    clearStudentSession()
     void trackNow('login', { role: 'teacher', method: 'oauth' })
     window.location.hash = '#/teacher'
     window.location.reload()

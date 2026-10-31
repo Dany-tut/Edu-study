@@ -298,10 +298,12 @@ function AppRoutes() {
     )
   }
 
+  // Explicit reauthentication must be reachable even with a stale student card.
+  if (hash.startsWith('#/login')) return <StudentLoginPage />
+
   // Public landing (главная для гостя) + student routes
   const studentSession = getStudentSession()
   if (!studentSession) {
-    if (hash.startsWith('#/login')) return <StudentLoginPage />
     // Гость с присланной ссылкой идёт в тренажёр, а не на лендинг: материал
     // языка общий, и держать его за турникетом значит, что ссылка работает
     // только между теми, у кого кабинет уже есть (см. GuestTrainerPage).
