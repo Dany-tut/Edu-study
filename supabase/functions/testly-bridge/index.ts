@@ -73,11 +73,17 @@ Deno.serve(async (req) => {
 
   /** Учителя ученика с подключённым Тестли: владелец задания первым, если он среди них. */
   const ownersOfStudent = async (owner: unknown) => {
-    const { data: rows } = await admin.from('students').select('name, group_id').eq('auth_user_id', teacher)
+    // Ученик может быть независимым от группы: у таких записей group_id = null,
+    // а владелец хранится прямо в students.created_by.
+    const { data: rows } = await admin.from('students').select('name, group_id, created_by').eq('auth_user_id', teacher)
     const groups = [...new Set((rows ?? []).map(r => r.group_id).filter(Boolean))]
-    if (!groups.length) return { name: '', owners: [] as string[] }
-    const { data: gs } = await admin.from('groups').select('created_by').in('id', groups)
-    const all = [...new Set((gs ?? []).map(g => g.created_by as string).filter(Boolean))]
+    const { data: gs } = groups.length
+      ? await admin.from('groups').select('created_by').in('id', groups)
+      : { data: [] as { created_by: string | null }[] }
+    const all = [...new Set([
+      ...(rows ?? []).map(r => r.created_by as string | null),
+      ...(gs ?? []).map(g => g.created_by as string | null),
+    ].filter((id): id is string => !!id))]
     const owners = typeof owner === 'string' && all.includes(owner) ? [owner] : all
     return { name: String(rows?.[0]?.name ?? ''), owners }
   }
