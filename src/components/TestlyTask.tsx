@@ -18,7 +18,9 @@ import { TestlyTile } from './TestlyMark'
  * Если Тестли недоступен (учитель отключил модуль, сеть) — запасной путь шага 1:
  * общая ссылка на тест и отметка «Я сдал тест».
  */
-const POLL_MS = 20_000
+// Статус нужен сразу после отправки внутри iframe. Частый лёгкий опрос
+// устраняет длинное окно, в котором Искра ещё считает тест начатым.
+const POLL_MS = 5_000
 
 export default function TestlyTask({ test, value, disabled, onChange }: {
   test: TestlyRef | undefined
@@ -158,11 +160,11 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
           </span>
         )}
         <div className="flex items-center" style={{ gap: 12, flexWrap: 'wrap' }}>
-          {!disabled && <button onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
+          {!disabled && !embedUrl && <button onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
             {opening ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={14} />}
             {started || opened ? t('Продолжить тест') : t('Начать тест')}
           </button>}
-          {started && attempt?.startedAt && side(
+          {started && !offline && attempt?.startedAt && side(
             `${t('Начат в')} ${fmt(attempt.startedAt, false)}${attempt.total ? ` · ${t('ответов')} ${attempt.answered ?? 0} ${t('из')} ${attempt.total}` : ''}`,
           )}
           {/* Запасной путь: Тестли не ответил — сдачу отмечает сам ученик, как на шаге 1. */}
@@ -180,8 +182,8 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
     ? score?.pending
       ? t('Итоговый балл придёт сам, когда преподаватель проверит вторую часть в Тестли.')
       : score ? (score.review ? t('Баллы и разбор — из Тестли.') : t('Баллы — из Тестли.')) : t('Результат покажет преподаватель.')
-    : offline
-      ? t('Тестли сейчас не отвечает. Когда сдадите тест, вернитесь сюда и отметьте сдачу.')
+      : offline
+      ? t('Не удалось обновить статус теста. Искра проверит его ещё раз автоматически.')
       : t('Балл придёт сюда сам, как только вы сдадите тест в Тестли.')
 
   return (
@@ -205,7 +207,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
         <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 18, border: '1px solid var(--color-border-medium)', background: '#fff' }}>
           <button
             type="button"
-            onClick={() => setEmbedUrl(null)}
+            onClick={() => { setEmbedUrl(null); void refresh() }}
             aria-label={t('Закрыть тест')}
             title={t('Закрыть тест')}
             style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 36, height: 36, border: 0, borderRadius: 18, background: 'rgba(255,255,255,.94)', color: '#333', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,.14)' }}

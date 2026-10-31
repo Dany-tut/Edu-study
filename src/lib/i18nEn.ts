@@ -2134,6 +2134,7 @@ export const EN: Record<string, string> = {
   "К заданию": "Go to task",
   "Вернуться к заданию": "Return to task",
   "Осталось одно задание": "One task remains",
+  "Не удалось обновить статус теста. Искра проверит его ещё раз автоматически.": "Could not refresh the test status. Iskra will check again automatically.",
   "Сдать как есть": "Submit as is",
   "Точно сдать?": "Submit anyway?",
   "без ответа": "unanswered",
