@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
 import { useGroups, useAllStudents } from './useGroups'
+import { todayMsk } from './teacherSchedule'
 
 export interface ScheduleTodayItem {
   id: string
   time: string
+  endTime?: string
   groupName: string
   groupId: string
   topic?: string
@@ -20,7 +22,7 @@ export function useScheduleToday(): { schedule: ScheduleTodayItem[] } {
   const [schedule, setSchedule] = useState<ScheduleTodayItem[]>([])
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = todayMsk()
     supabase
       .from('schedule_lessons')
       .select('*, groups(name, icon, color, color_soft, students(count))')
@@ -44,6 +46,7 @@ export function useScheduleToday(): { schedule: ScheduleTodayItem[] } {
             groupId: s.group_id ?? '',
             groupName: s.groups?.name ?? stu?.name ?? '',
             time: (s.time_start ?? '').slice(0, 5),
+            endTime: (s.time_end ?? '').slice(0, 5),
             topic: s.lesson_title ?? '',
             lessonNumber: s.lesson_number ?? 0,
             status,

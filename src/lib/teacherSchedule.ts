@@ -50,6 +50,20 @@ export function todayMsk(): string {
   }
 }
 
+/** True once the scheduled end has passed on the school's Moscow clock. */
+export function scheduleHasEnded(date: string, startTime: string, endTime?: string | null, now = new Date()): boolean {
+  const parts: Record<string, string> = {}
+  for (const p of new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(now)) parts[p.type] = p.value
+  const day = `${parts.year}-${parts.month}-${parts.day}`
+  const hour = parts.hour === '24' ? '00' : parts.hour
+  const clock = `${hour}:${parts.minute}`
+  const scheduledEnd = (endTime || startTime).slice(0, 5)
+  return date < day || (date === day && scheduledEnd <= clock)
+}
+
 /** YYYY-MM-DD ± дни, без часовых поясов (полдень — чтобы перевод часов не съел день). */
 export function addDays(day: string, n: number): string {
   const d = new Date(`${day}T12:00:00`)

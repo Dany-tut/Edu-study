@@ -9,6 +9,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useDashboard } from '../../store/dashboardStore'
 import { useHomework } from '../../lib/useHomework'
 import { useScheduleToday } from '../../lib/useScheduleToday'
+import { scheduleHasEnded, todayMsk } from '../../lib/teacherSchedule'
 import { useJournalPending } from '../../lib/useGroups'
 import { tactile } from '../../lib/feedback'
 import { mskToVietnam, getContrastColor } from '../../lib/utils'
@@ -170,13 +171,13 @@ function StatBadge({ label, value, color, bg }: { label: string; value: string; 
 function SchedulePreview({ expanded }: { expanded: boolean }) {
   const t = useT()
   const { schedule: todaySchedule } = useScheduleToday()
-  const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
-  const upcoming = todaySchedule.filter(s => {
-    const [h, m] = s.time.split(':').map(Number)
-    return h * 60 + m >= nowMin
-  })
-  const next = upcoming[0] ?? todaySchedule[0]
+  const [clock, setClock] = useState(() => Date.now())
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(Date.now()), 30_000)
+    return () => window.clearInterval(timer)
+  }, [])
+  const now = new Date(clock)
+  const next = todaySchedule.find(s => s.status === 'upcoming' && !scheduleHasEnded(todayMsk(), s.time, s.endTime, now))
 
   return (
     <PillContent

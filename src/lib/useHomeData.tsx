@@ -5,6 +5,7 @@ import { useGroups, useAllStudents, useJournalPending } from './useGroups'
 import { useHomework, useHardSubmissions } from './useHomework'
 import { supabase } from './supabase'
 import { t, useT } from './i18n'
+import { scheduleHasEnded, todayMsk } from './teacherSchedule'
 
 function diffDays(isoA: string, isoB: string) {
   return Math.round((new Date(isoA).getTime() - new Date(isoB).getTime()) / 86400000)
@@ -70,8 +71,13 @@ export function useHomeData() {
   const allStudents = useAllStudents()
 
   const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([])
+  const [scheduleClock, setScheduleClock] = useState(() => Date.now())
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]
+    const timer = window.setInterval(() => setScheduleClock(Date.now()), 30_000)
+    return () => window.clearInterval(timer)
+  }, [])
+  useEffect(() => {
+    const today = todayMsk()
     supabase
       .from('schedule_lessons')
       .select('*, groups(name, icon, color, color_soft, students(count))')
@@ -168,8 +174,10 @@ export function useHomeData() {
 
   const schedThumb = useOverlayThumb()
 
-  const nextLesson = todaySchedule.find(s => s.status === 'upcoming')
-  const firstUpcomingIdx = todaySchedule.findIndex(s => s.status === 'upcoming')
+  const now = new Date(scheduleClock)
+  const isStillUpcoming = (s: ScheduleItem) => s.status === 'upcoming' && !scheduleHasEnded(todayMsk(), s.time, s.endTime, now)
+  const nextLesson = todaySchedule.find(isStillUpcoming)
+  const firstUpcomingIdx = todaySchedule.findIndex(isStillUpcoming)
   const hasLive = todaySchedule.some(s => s.status === 'live')
   const nowMarkerIndex = !hasLive && firstUpcomingIdx > 0 ? firstUpcomingIdx : -1
 

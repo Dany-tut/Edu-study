@@ -18,6 +18,7 @@ import { getOwnerId } from '../../lib/owner'
 import { mskToVietnam } from '../../lib/utils'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import { useLang, useT, t, useTc } from '../../lib/i18n'
+import { scheduleHasEnded, todayMsk } from '../../lib/teacherSchedule'
 
 const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
 const fadeUp = (delay = 0) => ({
@@ -939,8 +940,13 @@ export default function TeacherHome() {
   const allStudents = useAllStudents()
 
   const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([])
+  const [scheduleClock, setScheduleClock] = useState(() => Date.now())
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]
+    const timer = window.setInterval(() => setScheduleClock(Date.now()), 30_000)
+    return () => window.clearInterval(timer)
+  }, [])
+  useEffect(() => {
+    const today = todayMsk()
     supabase
       .from('schedule_lessons')
       .select('*, groups(name, icon, color, color_soft, students(count))')
@@ -1042,11 +1048,13 @@ export default function TeacherHome() {
 
   const schedThumb = useOverlayThumb()
 
-  const nextLesson = todaySchedule.find(s => s.status === 'upcoming')
+  const now = new Date(scheduleClock)
+  const isStillUpcoming = (s: ScheduleItem) => s.status === 'upcoming' && !scheduleHasEnded(todayMsk(), s.time, s.endTime, now)
+  const nextLesson = todaySchedule.find(isStillUpcoming)
   const doneCount = todaySchedule.filter(s => s.status === 'completed').length
   // "Сейчас" sits before the first upcoming lesson — but only when something has already
   // finished and nothing is live (a live row already signals the present moment).
-  const firstUpcomingIdx = todaySchedule.findIndex(s => s.status === 'upcoming')
+  const firstUpcomingIdx = todaySchedule.findIndex(isStillUpcoming)
   const hasLive = todaySchedule.some(s => s.status === 'live')
   const nowMarkerIndex = !hasLive && firstUpcomingIdx > 0 ? firstUpcomingIdx : -1
 

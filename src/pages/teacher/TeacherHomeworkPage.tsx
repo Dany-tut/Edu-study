@@ -652,7 +652,11 @@ export default function TeacherHomeworkPage() {
   // Selecting a merged 1:1 person card expands to the union of that person's
   // subject-groups, so the list shows химия + биология together.
   const filterIds = expandToPerson(individualGroups, filterGroup)
-  const filtered = filterGroup
+  // selectedGroupId is shared with the student and group screens. It can point
+  // at a group that was deleted (or is still loading on a fresh visit); applying
+  // that stale id here silently hides every assignment, including issued HW.
+  const hasSelectedGroup = !!filterGroup && groups.some(g => g.id === filterGroup)
+  const filtered = hasSelectedGroup
     ? homework.filter(hw => filterIds.includes(hw.groupId))
     : homework
 
