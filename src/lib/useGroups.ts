@@ -561,7 +561,8 @@ export function useStudents(groupId: string | null) {
       setStudents(data.map((s: any) => ({
         id: s.id,
         groupId: s.group_id ?? '',
-        name: s.name,
+        // Imported/legacy rows can be missing a name; keep roster renderers safe.
+        name: typeof s.name === 'string' ? s.name : '',
         phone: s.phone ?? '',
         telegramLink: s.telegram_link ?? '',
         parentContact: s.parent_contact ?? '',
@@ -1038,7 +1039,8 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
     authUserId: s.auth_user_id ?? undefined,
     personId: s.person_id ?? undefined,
     avatarPath: s.avatar_path ?? null,
-    name: s.name,
+    // Keep the roster contract stable for old/imported rows with a missing name.
+    name: typeof s.name === 'string' ? s.name : '',
     phone: s.phone ?? '',
     telegramLink: s.telegram_link ?? '',
     parentContact: s.parent_contact ?? '',
