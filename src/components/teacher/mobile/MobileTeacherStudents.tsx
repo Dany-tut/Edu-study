@@ -335,12 +335,19 @@ export default function MobileTeacherStudents() {
   )
 
   return (
-    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}>
+    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}
+      bottomDockRaise={80}
+      bottomDock={!openGroup && !addOpen && !sheetOpen ? (
+        <button style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }}
+          onClick={() => { setInvite(''); setCreateError(''); setCopiedInvite(false); setAddOpen(true) }}>
+          {t('Добавить ученика')}
+        </button>
+      ) : undefined}>
+
       {openGroup ? (
         <GroupRoster group={openGroup} onBack={() => setOpenGroup(null)} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button style={btn('M', 'primary')} onClick={() => { setInvite(''); setCreateError(''); setCopiedInvite(false); setAddOpen(true) }}>{t('Добавить ученика')}</button>
           <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {invite ? <>
