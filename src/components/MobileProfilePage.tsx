@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { SubjectMark } from './icons/SubjectMark'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks, Camera, X } from './icons/appIcons'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
@@ -32,6 +32,8 @@ import { XP_PER_LEVEL } from '../lib/xp'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
 import { useSeason, openSeasonPicker, VARIANTS } from '../lib/season'
+import { useStudentTz } from '../lib/studentTz'
+import { TZ_OPTIONS, browserTz, tzShortLabel } from '../lib/teacherTz'
 
 // MOBILE ONLY profile. Desktop has no profile screen. Floating glass chrome
 // (Dynamic Island streak/XP) + identity + level/XP hero + stats + settings.
@@ -90,6 +92,12 @@ export default function MobileProfilePage() {
   const tintColor = useCurrentTintColor()
   // Stats scope: 'all' = account-wide totals, or a single subject's own numbers.
   const [statScope, setStatScope] = useState<'all' | string>('all')
+  const studentTz = useStudentTz(s => s.tz)
+  const studentTzMode = useStudentTz(s => s.mode)
+  const loadStudentTz = useStudentTz(s => s.load)
+  const setStudentTz = useStudentTz(s => s.setTz)
+  const setStudentTzMode = useStudentTz(s => s.setMode)
+  useEffect(() => { void loadStudentTz() }, [loadStudentTz])
 
   // Show the "install app" row only when not already running as an installed PWA.
   const canInstall = !isStandalone()
@@ -392,6 +400,20 @@ export default function MobileProfilePage() {
                   <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
                 </span>
               </motion.button>
+
+              {/* Язык — весь ряд кликабелен, один тап меняет язык */}
+              <div style={{ padding: '12px 16px', borderTop: '1px solid var(--color-border-soft)' }}>
+                <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)', marginBottom: 8 }}>{t('Часовой пояс')}</div>
+                <select value={studentTzMode} onChange={e => void setStudentTzMode(e.target.value as 'auto' | 'manual')} style={{ width: '100%', height: 40, borderRadius: 10, padding: '0 10px', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-5)', color: 'var(--color-text)', font: 'inherit', marginBottom: 8 }}>
+                  <option value="auto">{t('Автоматически')} · {tzShortLabel(browserTz())}</option>
+                  <option value="manual">{t('Выбрать вручную')}</option>
+                </select>
+                <select value={studentTz} disabled={studentTzMode === 'auto'} onChange={e => void setStudentTz(e.target.value)} style={{ width: '100%', height: 40, borderRadius: 10, padding: '0 10px', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-5)', color: 'var(--color-text)', font: 'inherit', opacity: studentTzMode === 'auto' ? 0.6 : 1 }}>
+                  {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {!TZ_OPTIONS.some(o => o.value === studentTz) && <option value={studentTz}>{tzShortLabel(studentTz)}</option>}
+                </select>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Время урока показывается по этому поясу')}</div>
+              </div>
 
               {/* Язык — весь ряд кликабелен, один тап меняет язык */}
               <button

@@ -60,8 +60,27 @@ export function formatTimeInTz(iso: string, tz: string): string {
   return `${String(t.getUTCHours()).padStart(2, '0')}:${String(t.getUTCMinutes()).padStart(2, '0')}`
 }
 
+export function wallDateTimeInTz(iso: string, tz: string): { day: string; time: string } {
+  const d = new Date(iso)
+  const parts: Record<string, string> = {}
+  for (const p of new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d)) parts[p.type] = p.value
+  return { day: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour === '24' ? '00' : parts.hour}:${parts.minute}` }
+}
+
 export function formatTimeInMsk(iso: string): string {
   return formatTimeInTz(iso, MSK_TZ)
+}
+
+/** Convert a date/time stored as a wall clock in `fromTz` to another zone. */
+export function convertWallTime(day: string, time: string, fromTz: string, toTz: string): { day: string; time: string } {
+  const [y, mo, d] = day.split('-').map(Number)
+  const [h, mi] = time.split(':').map(Number)
+  const guess = Date.UTC(y, mo - 1, d, h, mi)
+  const instant = new Date(guess - tzOffsetMs(fromTz, new Date(guess)))
+  const parts: Record<string, string> = {}
+  for (const p of new Intl.DateTimeFormat('en-CA', { timeZone: toTz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(instant)) parts[p.type] = p.value
+  const hour = parts.hour === '24' ? '00' : parts.hour
+  return { day: `${parts.year}-${parts.month}-${parts.day}`, time: `${hour}:${parts.minute}` }
 }
 
 export function tzShortLabel(tz: string): string {
@@ -81,25 +100,38 @@ export function isMsk(tz: string): boolean {
 
 type TzStore = {
   tz: string
+  mode: 'auto' | 'manual'
   loaded: boolean
   load: () => Promise<void>
   setTz: (tz: string) => Promise<boolean>
+  setMode: (mode: 'auto' | 'manual') => Promise<boolean>
 }
 
 export const useTeacherTz = create<TzStore>((set, get) => ({
   tz: 'Europe/Moscow',
+  mode: 'auto',
   loaded: false,
 
   async load() {
     if (get().loaded) return
     const u = await getAuthUser()
+    const mode = u?.user_metadata?.timezone_mode as 'auto' | 'manual' | undefined
     const saved = u?.user_metadata?.timezone as string | undefined
-    set({ tz: saved || browserTz(), loaded: true })
+    const resolvedMode = mode ?? (saved ? 'manual' : 'auto')
+    const tz = resolvedMode === 'manual' && saved ? saved : browserTz()
+    set({ mode: resolvedMode, tz, loaded: true })
+    if (u && !mode && !saved) void supabase.auth.updateUser({ data: { timezone: tz, timezone_mode: 'auto' } })
   },
 
   async setTz(tz: string) {
-    set({ tz })
-    const { error } = await supabase.auth.updateUser({ data: { timezone: tz } })
+    set({ tz, mode: 'manual' })
+    const { error } = await supabase.auth.updateUser({ data: { timezone: tz, timezone_mode: 'manual' } })
+    return !error
+  },
+  async setMode(mode) {
+    const tz = mode === 'auto' ? browserTz() : get().tz
+    set({ mode, tz })
+    const { error } = await supabase.auth.updateUser({ data: { timezone: tz, timezone_mode: mode } })
     return !error
   },
 }))

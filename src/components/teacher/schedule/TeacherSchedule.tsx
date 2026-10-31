@@ -5,6 +5,7 @@ import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, Che
 import Modal from '../../Modal'
 import MobileSheet from '../../MobileSheet'
 import DateTimeField from '../../DateTimeField'
+import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import QuickAddLesson from './QuickAddLesson'
 import { RadioMark } from '../../Radio'
 import { CheckboxMark } from '../../Checkbox'
@@ -51,10 +52,7 @@ const toIso = (day: string, time: string) => {
   const [y, mo, d] = day.split('-').map(Number)
   return new Date(Date.UTC(y, mo - 1, d, h, m) - 3 * 3600_000).toISOString()
 }
-const fromIso = (iso: string) => {
-  const t = new Date(Date.parse(iso) + 3 * 3600_000).toISOString()
-  return { day: t.slice(0, 10), time: t.slice(11, 16) }
-}
+const fromIso = (iso: string) => wallDateTimeInTz(iso, 'Europe/Moscow')
 
 type Toast = { text: string; undo?: SchedUndo; tone?: 'danger' }
 

@@ -11,6 +11,8 @@ import { parseLessonFiles } from './lessonFiles'
 import { t } from './i18n'
 import type { HardTaskStudentBlock, HardTaskReviewBlock, HardTaskDef } from './useHomework'
 import { getSessionUser } from './owner'
+import { useStudentTz } from './studentTz'
+import { convertWallTime } from './teacherTz'
 
 /**
  * Report a real Supabase error (RLS denial, 5xx, timeout) to console + analytics
@@ -59,6 +61,8 @@ interface DbScheduleLesson {
 }
 
 export async function fetchScheduleDays(groupId: string, studentId?: string): Promise<ScheduleDay[]> {
+  await useStudentTz.getState().load()
+  const viewerTz = useStudentTz.getState().tz
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const from = new Date(today); from.setDate(from.getDate() - 3)
@@ -90,7 +94,11 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
   // group and a direct assignment gets two rows for one lesson — dedup them.
   const byDate = new Map<string, DbScheduleLesson[]>()
   const seen = new Set<string>()
-  for (const row of data as DbScheduleLesson[]) {
+  const localRows = (data as DbScheduleLesson[]).map(row => {
+    const local = convertWallTime(row.date, row.time_start, 'Europe/Moscow', viewerTz)
+    return { ...row, date: local.day, time_start: local.time }
+  })
+  for (const row of localRows) {
     // Отменённое учителем занятие (0121) в календарь ученика не ставим: об отмене
     // ему уже пришло уведомление, а «пустой» урок в ленте сбивал бы с толку.
     if ((row as { status?: string }).status === 'cancelled') continue

@@ -122,11 +122,19 @@ export default function TeacherProfileSettingsPage() {
 
   // ── Часовой пояс ────────────────────────────────────────────────────────────
   const teacherTz = useTeacherTz(s => s.tz)
+  const teacherTzMode = useTeacherTz(s => s.mode)
   const setTeacherTz = useTeacherTz(s => s.setTz)
+  const setTeacherTzMode = useTeacherTz(s => s.setMode)
   const [tzNote, setTzNote] = useState<'saved' | 'error' | null>(null)
 
   async function changeTz(next: string) {
     const ok = await setTeacherTz(next)
+    setTzNote(ok ? 'saved' : 'error')
+    if (ok) setTimeout(() => setTzNote(n => (n === 'saved' ? null : n)), 2000)
+  }
+
+  async function changeTzMode(next: 'auto' | 'manual') {
+    const ok = await setTeacherTzMode(next)
     setTzNote(ok ? 'saved' : 'error')
     if (ok) setTimeout(() => setTzNote(n => (n === 'saved' ? null : n)), 2000)
   }
@@ -312,9 +320,14 @@ export default function TeacherProfileSettingsPage() {
 
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 6 }}>{t('Часовой пояс')}</div>
+            <select value={teacherTzMode} onChange={e => changeTzMode(e.target.value as 'auto' | 'manual')} style={{ ...inputStyle, cursor: 'pointer', marginBottom: 8 }}>
+              <option value="auto">{t('Автоматически')} · {tzShortLabel(browserTz())}</option>
+              <option value="manual">{t('Выбрать вручную')}</option>
+            </select>
             <select
               value={teacherTz}
               onChange={e => changeTz(e.target.value)}
+              disabled={teacherTzMode === 'auto'}
               style={{
                 ...inputStyle, cursor: 'pointer', appearance: 'none',
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
@@ -322,6 +335,7 @@ export default function TeacherProfileSettingsPage() {
                 paddingRight: 36,
               }}
             >
+              {!TZ_OPTIONS.some(o => o.value === teacherTz) && <option value={teacherTz}>{tzShortLabel(teacherTz)}</option>}
               {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
             <div style={{ fontSize: 11, marginTop: 6, color: tzNote === 'error' ? 'var(--color-red-text)' : tzNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
@@ -329,7 +343,7 @@ export default function TeacherProfileSettingsPage() {
                 ? t('Не удалось сохранить. Попробуйте ещё раз.')
                 : tzNote === 'saved'
                   ? t('Сохранено')
-                  : t('Все даты и часы в кабинете покажутся по этому поясу')}
+              : teacherTzMode === 'auto' ? t('Пояс определяется по устройству; для проверки выберите вручную') : t('Все даты и часы в кабинете покажутся по этому поясу')}
             </div>
           </div>
 

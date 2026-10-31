@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion'
 import { Pencil } from '../../icons/appIcons'
 import Modal from '../../Modal'
 import DateTimeField from '../../DateTimeField'
+import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { CheckboxMark } from '../../Checkbox'
 import { btn } from '../../../lib/pillStyles'
 import { useGroups } from '../../../lib/useGroups'
@@ -25,10 +26,7 @@ const toIso = (day: string, time: string) => {
   const [y, mo, d] = day.split('-').map(Number)
   return new Date(Date.UTC(y, mo - 1, d, h, m) - 3 * 3600_000).toISOString()
 }
-const fromIso = (iso: string) => {
-  const t = new Date(Date.parse(iso) + 3 * 3600_000).toISOString()
-  return { day: t.slice(0, 10), time: t.slice(11, 16) }
-}
+const fromIso = (iso: string) => wallDateTimeInTz(iso, 'Europe/Moscow')
 
 export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
   day: string
