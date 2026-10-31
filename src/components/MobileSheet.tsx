@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'
+import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
+import { useKeyboardState } from '../lib/useKeyboardInset'
 import { createPortal } from 'react-dom'
 import { useNativeOverlay } from '../lib/nativeGlass'
 import { motion, AnimatePresence, useMotionValue, useDragControls, animate } from 'framer-motion'
@@ -53,7 +55,8 @@ export default function MobileSheet({
 }) {
   const y = useMotionValue(0)
   const dragControls = useDragControls()
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const { ref: scrollRef, fade, onScroll } = useOverlayScroll()
+  const keyboard = useKeyboardState()
   const sheetRef = useRef<HTMLDivElement>(null)
   // onClose внутри слушателей — через ref: переподписывать touch-события на
   // каждый новый колбэк родителя нельзя, посреди жеста это его обрывает.
@@ -205,7 +208,7 @@ export default function MobileSheet({
             transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
             style={{
               y,
-              position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 81,
+              position: 'fixed', left: 0, right: 0, bottom: keyboard.inset, zIndex: 81,
               background: 'rgba(var(--glass-rgb), 0.98)',
               backdropFilter: 'var(--blur-solid)',
               WebkitBackdropFilter: 'var(--blur-solid)',
@@ -214,7 +217,7 @@ export default function MobileSheet({
               // Низа у шторки нет: контент уходит под край экрана, как на
               // главной и в курсах. Отступ под safe-area живёт внутри —
               // в прокрутке (или в подвале), а не мёртвой полосой под ними.
-              maxHeight: '85dvh',
+              maxHeight: keyboard.open ? `calc(100dvh - ${keyboard.inset + 12}px)` : '85dvh',
               display: 'flex', flexDirection: 'column',
             }}
             onPointerDown={startDrag}
@@ -251,6 +254,7 @@ export default function MobileSheet({
             </div>
             <div
               ref={scrollRef}
+              onScroll={onScroll}
               className="no-scrollbar"
               style={{
                 overflowY: 'auto',
@@ -262,18 +266,14 @@ export default function MobileSheet({
                 // the top edge fades out as rows scroll up to it, and the bottom
                 // edge fades under the pinned footer. paddingTop/Bottom keep the
                 // first/last row at full opacity while at rest.
-                maskImage: footer
-                  ? 'linear-gradient(to bottom, transparent 0, black 12px, black calc(100% - 20px), transparent 100%)'
-                  : 'linear-gradient(to bottom, transparent 0, black 12px)',
-                WebkitMaskImage: footer
-                  ? 'linear-gradient(to bottom, transparent 0, black 12px, black calc(100% - 20px), transparent 100%)'
-                  : 'linear-gradient(to bottom, transparent 0, black 12px)',
+                minHeight: 0,
+                ...fadeMask(fade, 20),
               }}
             >
               {children}
             </div>
             {footer && (
-              <div style={{ flexShrink: 0, padding: '8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
+              <div style={{ flexShrink: 0, padding: keyboard.open ? '8px 20px 16px' : '8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
                 {footer}
               </div>
             )}

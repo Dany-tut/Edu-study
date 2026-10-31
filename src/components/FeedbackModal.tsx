@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useFileDrop, dropOverStyle } from '../lib/useFileDrop'
 import { FIELD } from '../lib/fieldStyle'
 import Modal from './Modal'
+import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { AlertIcon } from './Alert'
 import { X, ImagePlus } from 'lucide-react'
 import TeacherSaveButton from './teacher/TeacherSaveButton'
@@ -42,7 +43,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
   const fileRef = useRef<HTMLInputElement>(null)
   // Фото можно бросить мышью на «Добавить», не только выбрать кликом.
   const drop = useFileDrop(files => { void addFiles(files) }, f => f.type.startsWith('image/'))
-  const taRef = useRef<HTMLTextAreaElement>(null)
+  const { ref: taRef, fade: taFade, onScroll: onTextScroll } = useOverlayScroll<HTMLTextAreaElement>()
 
   // Автовысота текстового поля: старт 4 строки, тянется по тексту до 10, дальше
   // прокрутка с фейдами сверху/снизу (без ручного растягивания угла).
@@ -112,6 +113,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
   return (
     <Modal
       onClose={onClose} onPaste={onPaste}
+      footer={!done ? <TeacherSaveButton label={t('Отправить')} savedLabel={t('Отправлено')} savingLabel={t('Отправляю…')} onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} /> : undefined}
       title={t('Обратная связь')}
       subtitle={t('Опишите ошибку или пожелание — заявка уйдёт администратору')}
     >
@@ -150,6 +152,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
             <label style={labelStyle}>{t('Что случилось?')}</label>
             <textarea
               ref={taRef}
+              onScroll={onTextScroll}
               value={message} onChange={e => setMessage(e.target.value)}
               placeholder={t('Опишите проблему как можно подробнее…')}
               rows={4}
@@ -157,12 +160,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
                 ...fieldStyle, resize: 'none', display: 'block',
                 lineHeight: `${TA_LINE}px`, minHeight: TA_MIN, maxHeight: TA_MAX,
                 overflowY: taOverflow ? 'auto' : 'hidden',
-                WebkitMaskImage: taOverflow
-                  ? 'linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%)'
-                  : undefined,
-                maskImage: taOverflow
-                  ? 'linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%)'
-                  : undefined,
+                ...fadeMask(taFade, 18),
               }}
             />
           </div>
@@ -199,9 +197,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
 
           {error && <Alert tone="danger" text={error} style={{ marginBottom: 12 }} />}
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <TeacherSaveButton label={t('Отправить')} savedLabel={t('Отправлено')} savingLabel={t('Отправляю…')} onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} />
-          </div>
+
         </>
       )}
     </Modal>

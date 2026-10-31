@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useT } from '../lib/i18n'
 import { OverlayScrollArea } from './teacher/OverlayScroll'
+import { useKeyboardState } from '../lib/useKeyboardInset'
 import { useNativeOverlay } from '../lib/nativeGlass'
 
 /**
@@ -59,6 +60,7 @@ export default function Modal({
   cardStyle?: CSSProperties
 }) {
   const t = useT()
+  const keyboard = useKeyboardState()
   // Нативный таб-бар приложения лежит над WebView — пока окно открыто, он уезжает.
   useNativeOverlay(true)
 
@@ -75,7 +77,7 @@ export default function Modal({
         onClick={onClose}
         style={{ ...MODAL_BACKDROP, zIndex }}
       />
-      <div style={{ position: 'fixed', inset: 0, zIndex: zIndex + 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: keyboard.inset, zIndex: zIndex + 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
         <motion.div
           role="dialog" aria-modal="true"
           initial={{ scale: 0.94, opacity: 0, y: 14 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.94, opacity: 0, y: 14 }}
@@ -83,7 +85,7 @@ export default function Modal({
           onPaste={onPaste}
           style={{
             ...MODAL_CARD,
-            pointerEvents: 'auto', width, maxWidth: '100%', maxHeight: '90dvh',
+            pointerEvents: 'auto', width, maxWidth: '100%', maxHeight: keyboard.open ? `calc(100dvh - ${keyboard.inset + 32}px)` : '90dvh',
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
             ...cardStyle,
           }}

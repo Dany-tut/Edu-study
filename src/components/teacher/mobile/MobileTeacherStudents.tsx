@@ -145,7 +145,7 @@ export function StudentSheet({ student: initialStudent, group: initialGroup, ope
   const group = groups.find(g => g.id === student?.groupId) ?? initialGroup
   const active = !!student && (student.hwScore > 0 || student.testScore > 0 || student.attendance > 0)
   return (
-    <MobileSheet open={open} onClose={onClose} title={student ? tn(student.name) : group.name}>
+    <MobileSheet open={open} onClose={onClose} title={student ? tn(student.name) : group.name} footer={student ? <StudentAssignments student={student} /> : undefined}>
       {!student && (
         loading ? (
           <div style={{ padding: '20px 0' }} aria-busy="true"><Skeleton.List rows={3} /></div>
@@ -172,7 +172,6 @@ export function StudentSheet({ student: initialStudent, group: initialGroup, ope
             </div>
           </div>
           <MetricRow icon={<span style={{ fontSize: 15 }}>{group.icon}</span>} label={t('Предмет')} value={group.id ? `${tc(group.subject)} · ${group.name}` : t('Пока без занятий')} />
-          <StudentAssignments student={student} />
           {student.phone && <MetricRow icon={<Phone size={16} />} label={t('Телефон')} value={student.phone} />}
           {student.telegramLink && <MetricRow icon={<Send size={16} />} label={contactLabel(student.telegramLink) === 'VK' ? 'VK' : 'Telegram'} value={contactLabel(student.telegramLink)} />}
           <MetricRow icon={<CalendarCheck size={16} />} label={t('Последний визит')} value={student.lastVisit} />
@@ -190,6 +189,7 @@ function StudentAssignments({ student }: { student: Student }) {
   const all = useAllStudents()
   const current = all.find(s => s.id === student.id) ?? student
   const memberships = all.filter(s => personKey(s) === personKey(current))
+  const [mode, setMode] = useState<'group' | 'individual'>('group')
   const [groupId, setGroupId] = useState('')
   const [subject, setSubject] = useState('')
   const [busy, setBusy] = useState(false)
@@ -206,13 +206,15 @@ function StudentAssignments({ student }: { student: Student }) {
     } catch (e) { setError((e as { message?: string }).message || t('Не удалось назначить занятия')) }
     finally { setBusy(false) }
   }
-  return <section style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 0' }}>
-    <strong>{t('Занятия')}</strong>
-    <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{memberships.map(s => groups.find(g => g.id === s.groupId)).filter((g): g is Group => !!g).map(g => g.isIndividual ? `1:1 · ${g.subject}` : g.name).join(' · ') || t('Пока без занятий')}</span>
-    <TeacherSelect value={groupId} onChange={setGroupId} placeholder={t('Выберите группу')} options={groups.filter(g => !g.isIndividual && !memberships.some(s => s.groupId === g.id)).map(g => ({value:g.id,label:g.name}))} />
-    <button style={btn('M', 'secondary')} disabled={!groupId || busy} onClick={() => void assign(false)}>{t('Добавить в группу')}</button>
-    <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет для занятий 1:1')} options={mySubjectNames(useTeacherAccess.getState().subjects).map(s => ({value:s,label:t(s)}))} />
-    <button style={btn('M', 'secondary')} disabled={!subject || busy} onClick={() => void assign(true)}>{t('Назначить занятия 1:1')}</button>
+  return <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', gap: 8 }}>
+      <button style={{ ...btn('S', mode === 'group' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'group'} onClick={() => setMode('group')}>{t('В группу')}</button>
+      <button style={{ ...btn('S', mode === 'individual' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'individual'} onClick={() => setMode('individual')}>{t('Занятия 1:1')}</button>
+    </div>
+    {mode === 'group'
+      ? <TeacherSelect value={groupId} onChange={setGroupId} placeholder={t('Выберите группу')} options={groups.filter(g => !g.isIndividual && !memberships.some(s => s.groupId === g.id)).map(g => ({value:g.id,label:g.name}))} />
+      : <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет для занятий 1:1')} options={mySubjectNames(useTeacherAccess.getState().subjects).map(s => ({value:s,label:t(s)}))} />}
+    <button style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }} disabled={busy || !(mode === 'group' ? groupId : subject)} onClick={() => void assign(mode === 'individual')}>{busy ? t('Сохранение...') : mode === 'group' ? t('Добавить в группу') : t('Назначить занятия 1:1')}</button>
     {error && <Alert tone="danger" text={error} />}
   </section>
 }
@@ -348,17 +350,23 @@ export default function MobileTeacherStudents() {
         <GroupRoster group={openGroup} onBack={() => setOpenGroup(null)} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')}>
+          <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')} footer={<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {invite ? <>
+                <button style={btn('M', 'primary')} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</button>
+                <button style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}>{t('Готово')}</button>
+              </> : <>
+                <button style={btn('M', 'primary')} disabled={!newName.trim() || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
+              </>}
+            </div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {invite ? <>
                 <p>{t('Отправьте ссылку ученику, чтобы он создал свой аккаунт.')}</p>
-                <button style={btn('M', 'primary')} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</button>
-                <button style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}>{t('Готово')}</button>
+
               </> : <>
                 <label>{t('Имя ученика')}<input style={{ ...FIELD, marginTop: 8 }} value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('Как зовут ученика?')} onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void createStudent() }} /></label>
                 <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13 }}>{t('Группу или занятия 1:1 можно назначить позже.')}</p>
                 {createError && <Alert tone="danger" text={createError} />}
-                <button style={btn('M', 'primary')} disabled={!newName.trim() || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
+
               </>}
             </div>
           </MobileSheet>

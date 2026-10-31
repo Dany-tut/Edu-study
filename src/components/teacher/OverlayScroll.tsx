@@ -25,8 +25,8 @@ const FADE_PX = 30
  *
  * Uses ResizeObserver + a per-render sync (Claude Preview never fires rAF).
  */
-export function useOverlayScroll() {
-  const ref = useRef<HTMLDivElement>(null)
+export function useOverlayScroll<T extends HTMLElement = HTMLDivElement>() {
+  const ref = useRef<T>(null)
   // 0…1 — насколько растворён край (не булево: за первые FADE_PX прокрутки фейд
   // нарастает плавно, иначе он «щёлкал» бы целиком на первом же пикселе).
   const [fade, setFade] = useState({ top: 0, bottom: 0 })
@@ -54,9 +54,12 @@ export function useOverlayScroll() {
     if (!el) return
     const ro = new ResizeObserver(measure)
     ro.observe(el)
-    return () => ro.disconnect()
+    for (const child of el.children) ro.observe(child)
+    el.addEventListener('load', measure, true)
+    return () => { ro.disconnect(); el.removeEventListener('load', measure, true) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  })
+  useEffect(() => () => { if (hide.current) clearTimeout(hide.current) }, [])
   const onScroll = () => {
     measure()
     setThumb(p => p.show ? p : { ...p, show: true })
@@ -71,11 +74,11 @@ export function useOverlayScroll() {
  * который он уходит. Цвет подложки не участвует — поэтому одинаково честно
  * работает и на стекле, и на плоском фоне, и под блюр-шапкой.
  */
-export function fadeMask(fade: { top: number; bottom: number }, size = FADE_PX): CSSProperties {
+export function fadeMask(fade: { top: number; bottom: number }, size = FADE_PX, bottomSize = size): CSSProperties {
   if (fade.top <= 0 && fade.bottom <= 0) return {}
   const img =
     `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0, ` +
-    `#000 ${size}px, #000 calc(100% - ${size}px), ` +
+    `#000 ${size}px, #000 calc(100% - ${bottomSize}px), ` +
     `rgba(0,0,0,${1 - fade.bottom}) 100%)`
   return { maskImage: img, WebkitMaskImage: img }
 }

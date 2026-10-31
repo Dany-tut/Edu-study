@@ -29,7 +29,7 @@ import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type Pers
 import { supabase } from '../../lib/supabase'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import { copyToClipboard } from '../../lib/clipboard'
-import { OverlayScrollArea } from '../../components/teacher/OverlayScroll'
+import { OverlayScrollArea, useOverlayScroll } from '../../components/teacher/OverlayScroll'
 import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLink'
 import { useTeacher } from '../../store/teacherStore'
 import { useT, useTc } from '../../lib/i18n'
@@ -323,6 +323,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   initialGroupId: string | null
 }) {
   const t = useT()
+  const { ref: formScroll, onScroll: onFormScroll, maskStyle: formMask } = useOverlayScroll()
   // Draft-backed: survives a page reload; cleared on save or explicit close.
   const [selectedGroup, setSelectedGroup] = usePersistentState<string>('groups.addStudent.v2.group', initialGroupId ?? '')
   const [name, setName] = usePersistentState('groups.addStudent.name', '')
@@ -395,7 +396,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             so the shell must clip instead of scrolling as a whole. */}
         <div style={{
           padding: 28, minHeight: 0,
-          ...(step === 'config'
+          ...(step !== 'link'
             ? { overflow: 'hidden', display: 'flex', flexDirection: 'column' }
             : { overflowY: 'auto' }),
         }}>
@@ -444,6 +445,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
           </div>
         ) : (
           <>
+        <div ref={formScroll} onScroll={onFormScroll} className="no-scrollbar" style={{ minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', paddingBottom: 12, ...formMask }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label style={labelStyle}>
             {t('Имя ученика')}
@@ -504,7 +506,8 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         {saveErr && (
           <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
         )}
-        <div style={{ position: 'sticky', bottom: 0, paddingTop: 16, paddingBottom: 28, marginBottom: -28, background: 'var(--color-bg-input)', zIndex: 1 }}>
+        </div>
+        <div style={{ flexShrink: 0, paddingTop: 16 }}>
         <button
           onClick={handleSave}
           disabled={!name.trim() || saving}

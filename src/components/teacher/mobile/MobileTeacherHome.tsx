@@ -407,7 +407,21 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
   )
 
   return (
-    <MobileScreen topZone={topZone} glassHeader={{ leading: model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя'), trailingText: String(model.studentTotal), trailingSymbol: 'person.2' }} topPad={72} scrollKey="t-home">
+    <MobileScreen topZone={topZone} glassHeader={{ leading: model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя'), trailingText: String(model.studentTotal), trailingSymbol: 'person.2' }} topPad={72} scrollKey="t-home" bottomDockRaise={80} bottomDock={!linksOpen ? (model.totalReview > 0 ? <button
+        onClick={() => { tactile(); onNavigate('review') }}
+        style={{ width: '100%', minHeight: 48, borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}
+      >{t('Проверить сейчас')}</button> : <button
+          onClick={() => { tactile(); setLinksOpen(true) }}
+          className="flex items-center cursor-pointer text-left"
+          style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 16, background: PAIR.success.bg }}
+        >
+          <Link2 size={18} style={{ color: PAIR.success.text, flexShrink: 0 }} />
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: PAIR.success.text }}>{t('Ссылки на тесты')}</span>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: PAIR.success.text, opacity: 0.82, marginTop: 2 }}>{t('скопировать ученикам — диагностики и назначения')}</span>
+          </span>
+          <ChevronRight size={18} style={{ color: PAIR.success.text, opacity: 0.7, flexShrink: 0 }} />
+        </button>) : undefined}>
       <style>{`@keyframes mth-confetti-fall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(240px) rotate(560deg);opacity:0}}`}</style>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
@@ -468,8 +482,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
           </div>
         )}
 
-        {/* quick action — test links */}
-        <button
+        {model.totalReview > 0 && (<button
           onClick={() => { tactile(); setLinksOpen(true) }}
           className="flex items-center cursor-pointer text-left"
           style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 16, background: PAIR.success.bg }}
@@ -480,7 +493,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
             <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: PAIR.success.text, opacity: 0.82, marginTop: 2 }}>{t('скопировать ученикам — диагностики и назначения')}</span>
           </span>
           <ChevronRight size={18} style={{ color: PAIR.success.text, opacity: 0.7, flexShrink: 0 }} />
-        </button>
+        </button>)}
 
         {/* desktop-only hint */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
