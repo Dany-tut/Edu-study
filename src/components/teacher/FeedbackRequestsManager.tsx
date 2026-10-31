@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Segmented from '../Segmented'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Inbox, GraduationCap, User, X, RefreshCw, MessageCircle } from 'lucide-react'
+import PhotoGallery from '../PhotoGallery'
+import { Inbox, GraduationCap, User, RefreshCw, MessageCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { FeedbackRequest, FeedbackStatus } from '../../lib/feedbackRequests'
 import { useT } from '../../lib/i18n'
@@ -31,7 +31,7 @@ export default function FeedbackRequestsManager() {
   const [rows, setRows] = useState<FeedbackRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FeedbackStatus | 'all'>('all')
-  const [lightbox, setLightbox] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<{ photos: string[]; index: number } | null>(null)
   // Учителя с тарифом и почтой: по ним заявка с лендинга находит аккаунт
   // (у неё нет author_id, только contact), а кнопка тарифа знает текущий.
   const [teachers, setTeachers] = useState<TeacherUsageRow[]>([])
@@ -134,7 +134,7 @@ export default function FeedbackRequestsManager() {
               {r.attachments.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
                   {r.attachments.map((src, i) => (
-                    <button key={i} onClick={() => setLightbox(src)} style={{ width: 64, height: 64, borderRadius: 9, overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', padding: 0, background: 'none' }}>
+                    <button key={i} aria-label={`${t('Открыть фото')} ${i + 1}`} onClick={() => setLightbox({ photos: r.attachments, index: i })} style={{ width: 64, height: 64, borderRadius: 9, overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', padding: 0, background: 'none' }}>
                       <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </button>
                   ))}
@@ -174,21 +174,7 @@ export default function FeedbackRequestsManager() {
         })}
       </div>
 
-      {/* Lightbox */}
-      <AnimatePresence>
-        {lightbox && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setLightbox(null)}
-            style={{ position: 'fixed', inset: 0, zIndex: 1300, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-          >
-            <button onClick={() => setLightbox(null)} style={{ position: 'absolute', top: 20, right: 20, width: 40, height: 40, borderRadius: 12, border: 'none', background: 'rgba(255,255,255,0.14)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <X size={20} />
-            </button>
-            <img src={lightbox} alt="" style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12, objectFit: 'contain' }} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {lightbox && <PhotoGallery photos={lightbox.photos} initialIndex={lightbox.index} onClose={() => setLightbox(null)} />}
       </>
       )}
     </div>

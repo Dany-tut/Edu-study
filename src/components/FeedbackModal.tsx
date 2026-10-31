@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useFileDrop, dropOverStyle } from '../lib/useFileDrop'
 import { FIELD } from '../lib/fieldStyle'
 import Modal from './Modal'
+import PhotoGallery from './PhotoGallery'
 import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { AlertIcon } from './Alert'
 import { X, ImagePlus } from 'lucide-react'
@@ -37,6 +38,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
   const [customSection, setCustomSection] = useState(defaultSection && !knownSection ? defaultSection : '')
   const [message, setMessage] = useState(defaultMessage ?? '')
   const [photos, setPhotos] = useState<string[]>([])
+  const [photoIndex, setPhotoIndex] = useState<number | null>(null)
   const [addingPhotos, setAddingPhotos] = useState(false)
   const addingRef = useRef(false)
   const [saving, setSaving] = useState(false)
@@ -124,6 +126,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
   const fieldStyle: React.CSSProperties = { ...FIELD }
 
   return (
+    <>
     <Modal
       onClose={onClose} onPaste={onPaste}
       footer={!done ? <TeacherSaveButton label={t('Отправить')} savedLabel={t('Отправлено')} savingLabel={t('Отправляю…')} onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} /> : undefined}
@@ -190,7 +193,9 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
             {photos.length > 0 && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: 8, marginBottom: 10 }}>
               {photos.map((src, i) => (
                 <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: 'var(--color-bg-3)' }}>
-                  <img src={src} alt={`${t('Фото')} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button type="button" aria-label={`${t('Открыть фото')} ${i + 1}`} onClick={() => setPhotoIndex(i)} style={{ width: '100%', height: '100%', padding: 0, border: 'none', background: 'none', cursor: 'zoom-in', display: 'block' }}>
+                    <img src={src} alt={`${t('Фото')} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </button>
                   <button type="button" disabled={saving || addingPhotos}
                     aria-label={`${t('Удалить фото')} ${i + 1}`}
                     onClick={() => setPhotos(p => p.filter((_, j) => j !== i))}
@@ -217,5 +222,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
         </>
       )}
     </Modal>
+    {photoIndex !== null && <PhotoGallery photos={photos} initialIndex={photoIndex} onClose={() => setPhotoIndex(null)} />}
+    </>
   )
 }
