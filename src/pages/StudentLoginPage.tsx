@@ -40,7 +40,9 @@ export default function StudentLoginPage() {
     // leave stray spaces around a hand-typed password, which then mismatch
     // credentials that log in fine from the browser (where Keychain autofills).
     const emailNorm = email.trim().toLowerCase()
-    const passwordNorm = password.trim()
+    // Passwords are opaque credentials: unlike email, whitespace can be part
+    // of a password and must be sent exactly as entered/autofilled.
+    const passwordNorm = password
 
     // 1) Preferred path — Supabase Auth (students carry auth_user_id).
     const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
@@ -108,9 +110,13 @@ export default function StudentLoginPage() {
           <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{t('Введите email и пароль')}</div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form
+          onSubmit={e => { e.preventDefault(); void handleLogin() }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+        >
           <input className="auth-input"
             type="email"
+            name="username"
             inputMode="email"
             autoCapitalize="none"
             autoCorrect="off"
@@ -125,13 +131,10 @@ export default function StudentLoginPage() {
           />
           <div style={{ position: 'relative' }}>
             <input className="auth-input"
-              // Поле всегда type=text, маскировка — через -webkit-text-security
-              // (data-mask). На iOS WKWebView у настоящего type=password
-              // плейсхолдер не рисуется вовсе (secure-поле его глушит): «Пароль»
-              // пропадал, поле выглядело пустым. С type=text плейсхолдер рисуется
-              // как у Email, а точки даёт text-security.
-              type="text"
-              data-mask={!showPassword}
+              // Keep a real password input so Safari Password AutoFill can fill
+              // the saved credential into this form.
+              type={showPassword ? 'text' : 'password'}
+              name="password"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
@@ -141,7 +144,6 @@ export default function StudentLoginPage() {
               placeholder={t('Пароль')}
               aria-label={t('Пароль')}
               style={{ ...inputStyle, paddingRight: 44 }}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
             />
             <button
               type="button"
@@ -159,25 +161,24 @@ export default function StudentLoginPage() {
               {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
             </button>
           </div>
-        </div>
+          <button
+            type="submit"
+            disabled={!email.trim() || !password || loading}
+            style={{ height: 48,
+              marginTop: 8, width: '100%', padding: '0 22px',
+              background: 'var(--grad-purple)', opacity: email.trim() && password ? 1 : 0.45,
+              color: '#fff', fontWeight: 700, fontSize: 15,
+              border: 'none', borderRadius: 14,
+              cursor: email.trim() && password ? 'pointer' : 'not-allowed',
+            }}
+          >
+            {loading ? t('Вход...') : t('Войти')}
+          </button>
+        </form>
 
         {error && (
           <Alert tone="danger" text={error} style={{ marginTop: 12 }} />
         )}
-
-        <button
-          onClick={handleLogin}
-          disabled={!email.trim() || !password || loading}
-          style={{ height: 48,
-            marginTop: 22, width: '100%', padding: '0 22px',
-            background: 'var(--grad-purple)', opacity: email.trim() && password ? 1 : 0.45,
-            color: '#fff', fontWeight: 700, fontSize: 15,
-            border: 'none', borderRadius: 14,
-            cursor: email.trim() && password ? 'pointer' : 'not-allowed',
-          }}
-        >
-          {loading ? t('Вход...') : t('Войти')}
-        </button>
 
         <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
           {t('Если забыли пароль — обратитесь к учителю')}
