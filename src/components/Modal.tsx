@@ -109,6 +109,7 @@ export default function Modal({
               есть текст. Разделительных линий у шапки и подвала нет: край
               читается фейдом, а без прокрутки окно — один чистый лист. */}
           <OverlayScrollArea
+            showScrollbar={false}
             style={{ flex: 1 }}
             padding={`${title != null ? 4 : padding}px ${padding}px ${footer ? 12 : padding}px`}
           >
