@@ -59,6 +59,13 @@ html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top:
   html[data-season] .dashboard-root:has(.season-hero) .stat-value { font-size: 52px; }
   html[data-season] .dashboard-root:has(.season-hero) .season-stat-img { height: 58px; }
   html[data-season] .dashboard-root:has(.season-hero) .dashboard-main { gap: 16px; padding-top: 14px; padding-bottom: 12px; }
+
+  /* Поднимаем расписание и статистику, оставляя трек на прежнем уровне —
+     свободное место между статистикой и выбором курса становится заметнее. */
+  html[data-season] .dashboard-root--home:has(.season-hero) > .dashboard-schedule,
+  html[data-season] .dashboard-root--home:has(.season-hero) > .dashboard-main > section:first-child {
+    transform: translateY(-32px);
+  }
 }
 @media (min-width: 1024px) and (max-height: 860px) {
   .season-hero:not(.season-hero--compact) { min-height: 58px; }
