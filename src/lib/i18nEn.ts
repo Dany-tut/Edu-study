@@ -3853,6 +3853,7 @@ export const EN: Record<string, string> = {
   'Все вкладки': 'All tabs',
   'Искра — кабинет учителя': 'Iskra — teacher workspace',
   'Искра — кабинет ученика': 'Iskra — student workspace',
+  'Вход для преподавателя': 'Teacher sign in',
   'Поиск ученика': 'Find a student',
   'живое демо — переключайте вкладки, проверяйте работы, правьте журнал':
     'a live demo — switch tabs, review papers, edit the gradebook',
@@ -5125,4 +5126,12 @@ export const EN: Record<string, string> = {
   'Курсы, задания и прогресс': 'Courses, assignments, and progress',
   'Я препод': 'I’m a teacher',
   'Повторить знакомство': 'See the introduction again',
+  'Выберите кабинет': 'Choose your space',
+  'Откроем нужное пространство для вашей роли.': 'We’ll open the right space for your role.',
+  'ПРИМЕР · МОЙ ДЕНЬ': 'EXAMPLE · MY DAY',
+  'ПРИМЕР · МОЙ КУРС': 'EXAMPLE · MY COURSE',
+  'Электролиз': 'Electrolysis',
+  'Химия · Электрохимия': 'Chemistry · Electrochemistry',
+  'Войти или создать аккаунт можно после выбора роли.': 'You can sign in or create an account after choosing your role.',
+  'Выберите роль, чтобы продолжить.': 'Choose a role to continue.',
 }

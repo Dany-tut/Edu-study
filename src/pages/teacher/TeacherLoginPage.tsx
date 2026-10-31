@@ -93,22 +93,25 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
       padding: 24,
     }}>
       <div style={{
-        background: 'rgba(var(--glass-rgb), 0.92)',
-        backdropFilter: 'var(--blur-solid)',
-        borderRadius: 24,
-        padding: '40px 36px',
+        background: 'var(--color-surface)',
+        borderRadius: 28,
+        padding: '28px clamp(22px, 6vw, 32px)',
         width: '100%',
-        maxWidth: 400,
-        boxShadow: 'var(--shadow-4)',
+        maxWidth: 402,
+        boxShadow: 'var(--shadow-2)',
         border: '1px solid var(--color-border-glass)',
+        boxSizing: 'border-box',
       }}>
         {/* Знак Искры вместо эмодзи 👩‍🏫: вход учителя — такой же экран бренда,
             как лендинг, а эмодзи-«учительница» говорит за всех, кто входит. */}
-        <div style={{ marginBottom: 12 }}><IskraMark size={44} /></div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', margin: '0 0 4px' }}>
-          {t('Платформа учителя')}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
+          <IskraMark size={36} />
+          <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
+        </div>
+        <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-.03em', fontWeight: 740, color: 'var(--color-text)', margin: '0 0 6px' }}>
+          {t('Вход для преподавателя')}
         </h1>
-        <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 28px' }}>
+        <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 22px' }}>
           {titles[mode]}
         </p>
 
@@ -128,10 +131,10 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               readOnly={mode === 'newpassword'}
               required
               style={{
-                minHeight: 50,
+                minHeight: 54,
                 lineHeight: '22px',
                 padding: '12px 16px',
-                borderRadius: 14,
+                borderRadius: 16,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,
                 outline: 'none',
@@ -159,10 +162,10 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                minHeight: 50,
+                minHeight: 54,
                 lineHeight: '22px',
                 padding: '12px 44px 12px 16px',
-                borderRadius: 14,
+                borderRadius: 16,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,
                 outline: 'none',
@@ -214,13 +217,13 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           <button
             type="submit"
             disabled={loading}
-            style={{ height: 40,
+            style={{ height: 48,
               padding: '0 16px',
-              borderRadius: 12,
+              borderRadius: 16,
               background: 'var(--grad-purple)', opacity: loading ? 0.6 : 1,
               color: '#fff',
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: 15,
               border: 'none',
               cursor: loading ? 'not-allowed' : 'pointer',
               marginTop: 4,
