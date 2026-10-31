@@ -3482,7 +3482,7 @@ export default function HomeworkFlow({
                   )}
 
                   <div className="flex flex-wrap" style={{ gap: 10 }}>
-                    <MetricPill label={t('Верно')} value={`${basicCorrectCount}`} />
+                    <MetricPill label={t('Верно')} value={`${basicQuestions.filter(q => questionScored(q) && !state.basicHints[q.id] && questionCorrect(q, state.basicAnswers[q.id])).length}`} />
                     <MetricPill
                       label={t('Ошибок')}
                       value={`${basicWrong.length}`}
