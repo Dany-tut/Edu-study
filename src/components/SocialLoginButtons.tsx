@@ -60,6 +60,11 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
         </button>
       ))}
       {error && <Alert tone="danger" text={error} style={{ marginTop: 2 }} />}
+      <p style={{ margin: '2px 0 0', textAlign: 'center', fontSize: 11, lineHeight: 1.5, color: 'var(--color-muted)' }}>
+        <a href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
+        {' · '}
+        <a href="https://edu-study-app.vercel.app/terms.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Условия использования</a>
+      </p>
     </div>
   )
 }

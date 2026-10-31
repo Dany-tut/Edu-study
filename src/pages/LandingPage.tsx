@@ -387,6 +387,8 @@ export default function LandingPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 700, color: 'var(--color-text-2)' }}>
           <img src="/icon.svg?v=3" alt="" width={22} height={22} style={{ borderRadius: 6 }} /> Искра
         </div>
+        <a href="/privacy.html" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
+        <a href="/terms.html" style={{ color: 'inherit' }}>Условия использования</a>
         <span style={{ marginLeft: 'auto' }}>© Искра · {t('Платформа для преподавателей')}</span>
       </footer>
 
