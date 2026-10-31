@@ -1005,7 +1005,9 @@ export default function TeacherLessonEditorPage() {
           time: (data.time_start ?? '').slice(0, 5),
           endTime: (data.time_end ?? '').slice(0, 5),
           topic: data.lesson_title ?? '',
-          lessonNumber: data.lesson_number ?? 0,
+          // schedule_lessons uses the same zero-based index as course lessons;
+          // this editor asks teachers for the human-facing number (1, 2, 3…).
+          lessonNumber: data.lesson_number == null ? 0 : data.lesson_number + 1,
           subject: data.subject ?? data.groups?.subject ?? '',
           status: 'upcoming' as const,
           studentCount: 0,
@@ -1164,7 +1166,9 @@ export default function TeacherLessonEditorPage() {
     // вставлялся вовсе — строка расписания умеет быть и на ученика (0003).
     const scheduleBase = {
       lesson_title: meta.title,
-      lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
+      // The calendar renders schedule lesson numbers as number + 1, matching
+      // the zero-based lesson_number convention used by course lessons.
+      lesson_number: meta.lessonNumber ? Math.max(0, Number(meta.lessonNumber) - 1) : null,
       date: isoDate,
       time_start: meta.startTime || null,
       time_end: meta.endTime || null,
@@ -1246,7 +1250,8 @@ export default function TeacherLessonEditorPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            <DraftPublishToggle published={published} onPublish={handlePublish} />
+            <DraftPublishToggle published={published} onPublish={handlePublish}
+              publishLabel={t('Опубликовать тему')} publishedLabel={t('Опубликовано')} />
           </div>
         </motion.div>
 
@@ -1281,6 +1286,7 @@ export default function TeacherLessonEditorPage() {
               <div style={{ flexGrow: 1, flexBasis: 0 }} />
 
               <DraftPublishToggle published={published} onPublish={handlePublish}
+                publishLabel={t('Опубликовать тему')} publishedLabel={t('Опубликовано')}
                 style={{ ...dockGlass, pointerEvents: 'auto' }} />
             </motion.div>
           )}
