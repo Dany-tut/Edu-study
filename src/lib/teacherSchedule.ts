@@ -32,6 +32,8 @@ export interface SchedItem {
   rec: boolean
   /** Строка родилась из урока курса — перенос пишет дату и в урок. */
   fromCourse: boolean
+  lessonId?: string | null
+  status?: 'upcoming' | 'live' | 'completed' | 'cancelled'
 }
 
 export type SchedUndo = Record<string, unknown>
@@ -65,11 +67,13 @@ export function useTeacherWeek(start: string) {
   const { groups } = useGroups()
   const students = useAllStudents()
   const [items, setItems] = useState<SchedItem[] | null>(null)
+  const [error, setError] = useState(false)
   const [tick, setTick] = useState(0)
   const reload = useCallback(() => setTick(n => n + 1), [])
 
   useEffect(() => {
     let alive = true
+    setError(false)
     // DEV без входа: групп нет (getOwnerId = null) — показываем пример недели,
     // как журнал и проверка (teacherDevDemo). Действия тогда упадут на сервере.
     if (import.meta.env.DEV && groups.length === 0) {
@@ -83,7 +87,7 @@ export function useTeacherWeek(start: string) {
       .lte('date', addDays(start, 6))
       .then(({ data, error }) => {
         if (!alive) return
-        if (error) { console.error('[schedule] week load failed', error); setItems([]); return }
+        if (error) { console.error('[schedule] week load failed', error); setItems([]); setError(true); return }
         const myGroups = new Map(groups.map(g => [g.id, g]))
         const myStudents = new Map(students.map(s => [s.id, s]))
         type Row = {
@@ -116,6 +120,8 @@ export function useTeacherWeek(start: string) {
             cancelled: r.status === 'cancelled',
             rec: r.node_type === 'rec',
             fromCourse: !!r.lesson_id,
+            lessonId: r.lesson_id,
+            status: r.status as SchedItem['status'],
           })
         }
         out.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
@@ -124,7 +130,7 @@ export function useTeacherWeek(start: string) {
     return () => { alive = false }
   }, [start, groups, students, tick])
 
-  return { items, reload }
+  return { items, reload, error }
 }
 
 function devWeek(start: string): SchedItem[] {

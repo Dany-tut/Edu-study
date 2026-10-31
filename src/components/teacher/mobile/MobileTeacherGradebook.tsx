@@ -16,6 +16,7 @@ import { DEMO_GROUPS, demoLessonsFor, demoRosterFor, isDemoId } from '../../../d
 import { useTheme } from '../../../store/themeStore'
 import { useT, useTc } from '../../../lib/i18n'
 import { Alert } from '../../Alert'
+import BackCircle from '../../BackCircle'
 
 // MOBILE ONLY journal: pick group → pick lesson → mark present/absent with a
 // "все присутствовали" shortcut, then save (useAttendance.saveLesson).
@@ -138,7 +139,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
   )
 }
 
-export default function MobileTeacherGradebook() {
+export default function MobileTeacherGradebook({ onBack }: { onBack?: () => void }) {
   const t = useT()
   const { tc } = useTc()
   const { dark } = useTheme()
@@ -159,13 +160,14 @@ export default function MobileTeacherGradebook() {
   }, [groups.length])
 
   const topZone = (
-    <div style={{ display: 'flex', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', position: 'relative', minHeight: 44, alignItems: 'center' }}>
+      {onBack && <BackCircle onClick={onBack} style={{ position: 'absolute', left: 0, width: 44, height: 44 }} />}
       <GlassPill><CheckSquare size={16} /> {t('Журнал')}</GlassPill>
     </div>
   )
 
   return (
-    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Журнал'), leadingSymbol: 'checklist' }} topPad={64} scrollKey={`t-grade-${groupId}-${savedTick}`}>
+    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Журнал'), leadingSymbol: 'checklist', onBack }} topPad={64} scrollKey={`t-grade-${groupId}-${savedTick}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Group selector */}
         <MobileHScroll padX={0}>

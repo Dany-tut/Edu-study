@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
+import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
 import TariffModal from '../TariffModal'
 import { tactile } from '../../../lib/feedback'
@@ -47,7 +48,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
   )
 }
 
-export default function MobileTeacherProfile() {
+export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?: () => void }) {
   const t = useT()
   const { tc, tn } = useTc()
   const { lang, setLang } = useLang()
@@ -115,7 +116,7 @@ export default function MobileTeacherProfile() {
   }
 
   return (
-    <MobileScreen scrollKey="t-profile">
+    <MobileScreen scrollKey="t-profile" topPad={64} glassHeader={{ leading: t('Ещё') }} topZone={<div style={{ display: 'flex', justifyContent: 'center', minHeight: 44, alignItems: 'center' }}><GlassPill>{t('Ещё')}</GlassPill></div>}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
 
         {/* Identity — span 2 */}
@@ -169,6 +170,8 @@ export default function MobileTeacherProfile() {
         />
         <StatTile icon={<Users size={18} />} value={m.studentTotal} label={`${t('Ученики')} · ${m.groupCount} ${t(m.groupCount % 10 === 1 && m.groupCount % 100 !== 11 ? 'группа' : m.groupCount % 10 >= 2 && m.groupCount % 10 <= 4 && (m.groupCount % 100 < 12 || m.groupCount % 100 > 14) ? 'группы' : 'групп')}`} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" />
         <StatTile icon={<ClipboardCheck size={18} />} value={m.pending} label={m.pending > 0 ? t('Ждут проверки') : t('Всё проверено')} bg="var(--color-yellow-soft)" fg="var(--color-yellow-text)" />
+
+        {onOpenJournal && <button type="button" onClick={() => { tactile(); onOpenJournal() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ClipboardCheck size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Журнал')}</span><ChevronRight size={18} /></button>}
 
         {/* Settings — span 2, grouped icon-list (C-style) */}
         <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>

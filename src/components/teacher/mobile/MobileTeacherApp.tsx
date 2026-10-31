@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import MobileTeacherNav, { type MTab } from './MobileTeacherNav'
-import MobileTeacherHome from './MobileTeacherHome'
+import MobileTeacherDay from './MobileTeacherDay'
 import MobileTeacherStudents from './MobileTeacherStudents'
 import MobileTeacherReview from './MobileTeacherReview'
 import MobileTeacherGradebook from './MobileTeacherGradebook'
@@ -28,6 +28,7 @@ const MTAB_TAB: Record<MTab, TeacherTabId | null> = {
 
 export default function MobileTeacherApp() {
   const [tab, setTab] = useState<MTab>('home')
+  const [dayDetailOpen, setDayDetailOpen] = useState(false)
 
   // Admin-configured access — hide revoked tabs (mirrors the desktop gating).
   const canTab = useTeacherAccess(s => s.canTab)
@@ -56,13 +57,13 @@ export default function MobileTeacherApp() {
 
   return (
     <div className="lg:hidden">
-      {tab === 'home'      && <MobileTeacherHome onNavigate={setTab} />}
+      {tab === 'home'      && <MobileTeacherDay onNavigate={setTab} onDetailChange={setDayDetailOpen} />}
       {tab === 'students'  && <MobileTeacherStudents />}
       {tab === 'review'    && <MobileTeacherReview />}
-      {tab === 'gradebook' && <MobileTeacherGradebook />}
-      {tab === 'profile'   && <MobileTeacherProfile />}
+      {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
+      {tab === 'profile'   && <MobileTeacherProfile onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} />}
 
-      <MobileTeacherNav active={tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />
+      {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab === 'gradebook' ? 'profile' : tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />}
     </div>
   )
 }

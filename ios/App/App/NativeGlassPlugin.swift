@@ -69,6 +69,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
     private var headerHost: UIView?
     private var leadingPill: GlassPillView?
     private var trailingPill: GlassPillView?
+    private var headerBackButton: UIButton?
 
     private var host: UIViewController? { bridge?.viewController }
 
@@ -83,6 +84,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         let leadingSymbol = call.getString("leadingSymbol")
         let trailingText = call.getString("trailingText")
         let trailingSymbol = call.getString("trailingSymbol")
+        let showBack = call.getBool("back") ?? false
+        let backLabel = call.getString("backLabel") ?? "Назад"
         DispatchQueue.main.async {
             guard let host = self.host else { call.resolve(); return }
             let container: UIView
@@ -91,7 +94,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             } else {
                 container = UIView()
                 container.translatesAutoresizingMaskIntoConstraints = false
-                container.isUserInteractionEnabled = false
+                container.isUserInteractionEnabled = true
                 host.view.addSubview(container)
                 NSLayoutConstraint.activate([
                     container.leadingAnchor.constraint(equalTo: host.view.leadingAnchor, constant: 16),
@@ -104,13 +107,41 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
 
             let lead = self.leadingPill ?? { let p = GlassPillView(); container.addSubview(p); self.leadingPill = p; return p }()
             lead.setText(leading, symbol: leadingSymbol, accentIcon: false)
+            lead.isAccessibilityElement = true
+            lead.accessibilityLabel = leading
+            lead.accessibilityTraits = .header
+            if self.headerBackButton == nil {
+                let button = UIButton(type: .system)
+                button.translatesAutoresizingMaskIntoConstraints = false
+                if #available(iOS 26.0, *) {
+                    var config = UIButton.Configuration.glass()
+                    config.cornerStyle = .capsule
+                    button.configuration = config
+                } else {
+                    button.backgroundColor = .secondarySystemBackground
+                    button.layer.cornerRadius = 22
+                }
+                button.addTarget(self, action: #selector(self.headerBackTapped), for: .touchUpInside)
+                container.addSubview(button)
+                NSLayoutConstraint.activate([
+                    button.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                    button.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+                    button.widthAnchor.constraint(equalToConstant: 44),
+                    button.heightAnchor.constraint(equalToConstant: 44),
+                    lead.widthAnchor.constraint(lessThanOrEqualTo: container.widthAnchor, constant: -112),
+                ])
+                self.headerBackButton = button
+            }
+            self.headerBackButton?.isHidden = !showBack
+            self.headerBackButton?.accessibilityLabel = backLabel
+            self.headerBackButton?.setImage(LoopNativeIcons.image("chevron.left", traits: host.traitCollection) ?? UIImage(systemName: "chevron.left"), for: .normal)
+            lead.center(in: container, axis: .center)
 
             if let tt = trailingText {
                 let tr = self.trailingPill ?? { let p = GlassPillView(); container.addSubview(p); self.trailingPill = p; return p }()
                 tr.setText(tt, symbol: trailingSymbol, accentIcon: true)
                 tr.isHidden = false
                 // leading слева, trailing справа.
-                lead.center(in: container, axis: .leading)
                 tr.center(in: container, axis: .trailing)
             } else {
                 self.trailingPill?.isHidden = true
@@ -119,6 +150,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             }
             call.resolve()
         }
+    }
+
+    @objc private func headerBackTapped() {
+        UISelectionFeedbackGenerator().selectionChanged()
+        notifyListeners("headerBack", data: [:])
     }
 
     @objc func headerHidden(_ call: CAPPluginCall) {
@@ -138,6 +174,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             self.headerHost?.removeFromSuperview()
             self.headerHost = nil
             self.leadingPill = nil
+            self.headerBackButton = nil
             self.trailingPill = nil
             call.resolve()
         }
@@ -160,6 +197,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
                 item.selectedImage = image
             }
             self.leadingPill?.refreshIcon(traits: traits)
+            self.headerBackButton?.setImage(LoopNativeIcons.image("chevron.left", traits: traits) ?? UIImage(systemName: "chevron.left"), for: .normal)
             self.trailingPill?.refreshIcon(traits: traits)
             call.resolve()
         }
@@ -373,6 +411,9 @@ private final class GlassPillView: UIView {
         icon.contentMode = .scaleAspectFit
         icon.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 15, weight: .bold)
+        label.lineBreakMode = .byTruncatingTail
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.8
         label.translatesAutoresizingMaskIntoConstraints = false
 
         let stack = UIStackView(arrangedSubviews: [icon, label])

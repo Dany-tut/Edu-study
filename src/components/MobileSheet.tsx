@@ -247,7 +247,7 @@ export default function MobileSheet({
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)' }} />
               </div>
               {title && (
-                <div style={{ padding: '4px 20px 10px', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
+                <div style={{ padding: '4px 20px 10px', textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
                   {title}
                 </div>
               )}

@@ -23,7 +23,7 @@ type AlertButton = { label: string; style?: 'default' | 'cancel' | 'destructive'
 export type GlassMenuItem = { label: string; checked?: boolean; destructive?: boolean; disabled?: boolean; symbol?: string }
 export type GlassTab = { id: string; title: string; symbol: string; badge?: number }
 
-export type GlassHeader = { leading: string; leadingSymbol?: string; trailingText?: string; trailingSymbol?: string }
+export type GlassHeader = { leading: string; leadingSymbol?: string; trailingText?: string; trailingSymbol?: string; onBack?: () => void; backLabel?: string }
 
 interface NativeGlassPlugin {
   alert(o: { title?: string; message?: string; buttons: AlertButton[] }): Promise<{ index: number }>
@@ -31,11 +31,12 @@ interface NativeGlassPlugin {
   tabBarSet(o: { items: GlassTab[]; selected?: string; tint?: string }): Promise<void>
   tabBarHidden(o: { hidden: boolean }): Promise<void>
   tabBarRemove(): Promise<void>
-  headerSet(o: GlassHeader): Promise<void>
+  headerSet(o: Omit<GlassHeader, 'onBack'> & { back?: boolean }): Promise<void>
   headerHidden(o: { hidden: boolean }): Promise<void>
   headerRemove(): Promise<void>
   setAppearance(o: { dark: boolean }): Promise<void>
   addListener(e: 'tabSelect', fn: (d: { id: string }) => void): Promise<PluginListenerHandle>
+  addListener(e: 'headerBack', fn: () => void): Promise<PluginListenerHandle>
 }
 
 const NativeGlass = registerPlugin<NativeGlassPlugin>('NativeGlass')
@@ -128,8 +129,14 @@ export function onGlassTab(fn: (id: string) => void): () => void {
 
 export function setGlassHeader(h: GlassHeader) {
   headerShown = true
-  void NativeGlass.headerSet(h).catch(() => {})
+  const { onBack, ...header } = h
+  void NativeGlass.headerSet({ ...header, back: !!onBack }).catch(() => {})
   syncBar()
+}
+
+export function onGlassHeaderBack(fn: () => void): () => void {
+  const h = NativeGlass.addListener('headerBack', fn)
+  return () => { void h.then(x => x.remove()) }
 }
 
 export function removeGlassHeader() {

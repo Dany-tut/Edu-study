@@ -21,11 +21,10 @@ const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 export type MTab = 'home' | 'students' | 'review' | 'gradebook' | 'profile'
 
 const items: { id: MTab; label: string; icon: TaskliIconName }[] = [
-  { id: 'home',      label: 'Главная',  icon: 'home' },
+  { id: 'home',      label: 'Мой день', icon: 'home' },
   { id: 'students',  label: 'Ученики',  icon: 'students' },
   { id: 'review',    label: 'Проверка', icon: 'review' },
-  { id: 'gradebook', label: 'Журнал',   icon: 'gradebook' },
-  { id: 'profile',   label: 'Профиль',  icon: 'profile' },
+  { id: 'profile',   label: 'Ещё',     icon: 'profile' },
 ]
 
 export default function MobileTeacherNav({
