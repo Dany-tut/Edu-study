@@ -27,18 +27,18 @@ const items = [
   { id: 'profile',  label: 'Профиль',  icon: 'profile' },
 ]
 
-// A small, distinct gesture for each glyph keeps the tap playful without
-// moving the dock or its labels: home pops, courses open like a book, the
-// trainer lifts, homework checks, and profile gives a quick nod.
+// Meaning-led tap gestures stay within the icon slot, leaving the dock and
+// labels still: home pops, the book opens, the weight lifts, the check lands,
+// and the profile nods.
 function clickIconMotion(icon: string) {
-  const gestures: Record<string, { y: number[]; scale: number[]; rotate: number[] }> = {
-    home:     { y: [0, -4, 0], scale: [1, 1.12, 1], rotate: [0, -5, 0] },
-    courses:  { y: [0, -2, 0], scale: [1, 1.08, 1], rotate: [0, -9, 0] },
-    trainer:  { y: [0, -5, 0], scale: [1, 1.1, 1], rotate: [0, 7, 0] },
-    review:   { y: [0, -2, 0], scale: [1, 1.15, 1], rotate: [0, -8, 0] },
-    profile:  { y: [0, -3, 0], scale: [1, 1.1, 1], rotate: [0, 5, 0] },
+  const gestures: Record<string, { y: number[]; scale: number[]; rotate?: number[]; rotateY?: number[] }> = {
+    home:     { y: [0, -5, 0], scale: [1, 1.12, 1], rotate: [0, -5, 0] },
+    courses:  { y: [0, 0, 0], scale: [1, 1.04, 1], rotateY: [0, -24, 8, 0] },
+    trainer:  { y: [0, -7, 1, 0], scale: [1, 1.1, 0.98, 1], rotate: [0, 9, -3, 0] },
+    review:   { y: [0, -2, 0], scale: [1, 1.16, 0.96, 1], rotate: [0, -10, 4, 0] },
+    profile:  { y: [0, -4, 1, 0], scale: [1, 1.04, 1, 1], rotate: [0, 7, -3, 0] },
   }
-  return gestures[icon] ?? { y: [0, -3, 0], scale: [1, 1.1, 1], rotate: [0, 0, 0] }
+  return gestures[icon] ?? { y: [0, -3, 0], scale: [1, 1.1, 1] }
 }
 
 export default function MobileBottomNav() {
@@ -173,8 +173,8 @@ export default function MobileBottomNav() {
                 key={`${item.id}-${iconClicks[item.id] ?? 0}`}
                 initial={reduceMotion || !iconClicks[item.id] ? false : { y: 0, scale: 1, rotate: 0 }}
                 animate={reduceMotion ? undefined : clickIconMotion(item.icon)}
-                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-                style={{ display: 'block', transformOrigin: 'center' }}
+                transition={{ duration: item.icon === 'courses' ? 0.5 : 0.48, ease: [0.22, 1, 0.36, 1] }}
+                style={{ display: 'block', transformOrigin: 'center', transformStyle: 'preserve-3d' }}
               >
                 <TaskliIcon
                   name={item.icon as TaskliIconName}

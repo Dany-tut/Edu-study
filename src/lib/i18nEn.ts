@@ -1603,7 +1603,7 @@ export const EN: Record<string, string> = {
   "Забыли пароль?": "Forgot password?",
   "Загрузка...": "Loading...",
   "← Назад ко входу": "← Back to sign in",
-  "Аккаунт создаётся по ссылке-приглашению от администратора.": "An account is created via an invite link from the administrator.",
+  "Аккаунт создаётся по ссылке-приглашению от\u00a0администратора.": "An account is created via an invite link from the administrator.",
   "Попросите учителя отправить новую ссылку.": "Ask your teacher to send a new link.",
   "Добро пожаловать!": "Welcome!",
   "Придумайте логин и пароль для": "Create a login and password for",

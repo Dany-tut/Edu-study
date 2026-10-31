@@ -1,8 +1,8 @@
 # Loop mobile icon system
 
-Original SVG paths from the approved Taskli Loop kit, including crosses,
+Original SVG paths from the approved Iskra Loop kit, including crosses,
 chevrons, selectors and editor/media controls. Source: `design/ios-concepts/loop-kit`.
-Figma review: https://www.figma.com/design/y8qQ23hqFJtufp7gGdZTse/Taskli?node-id=124-101
+Figma review: https://www.figma.com/design/y8qQ23hqFJtufp7gGdZTse/Iskra?node-id=124-101
 
 ## Application boundary
 
@@ -17,7 +17,7 @@ subscription, rather than a resize listener on each icon. The constructor's
 desktop-only full icon picker intentionally keeps its Lucide namespace import;
 its entire catalog must stay in the lazy desktop chunk.
 
-`TaskliIcon` is the semantic wrapper for navigation and lesson states.
+`TaskliIcon` is the legacy technical name of Iskra’s semantic wrapper for navigation and lesson states. It does not identify a separate product. Testly is a separate product connected through its own integration module.
 `LoopInlineIcon` and `LoopTextIcon` replace legacy inline SVG/text controls only
 inside the mobile boundary. Shared Checkbox/Radio marks and feed action glyphs
 also use the boundary, preserving their inputs, keyboard behavior and state.
@@ -67,8 +67,8 @@ to SF Symbols.
 To regenerate the checked-in PNGs without adding a runtime dependency:
 
 ```sh
-npm install --prefix /tmp/taskli-loop-renderer @resvg/resvg-js
-node scripts/buildLoopNativeIcons.mjs --renderer=/tmp/taskli-loop-renderer/node_modules/@resvg/resvg-js
+npm install --prefix /tmp/iskra-loop-renderer @resvg/resvg-js
+node scripts/buildLoopNativeIcons.mjs --renderer=/tmp/iskra-loop-renderer/node_modules/@resvg/resvg-js
 npm run build
 npx cap copy ios
 ```

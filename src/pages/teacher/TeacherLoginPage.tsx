@@ -231,7 +231,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
                 {t('← Назад ко входу')}
               </span>
             ) : (
-              t('Аккаунт создаётся по ссылке-приглашению от администратора.')
+              t('Аккаунт создаётся по ссылке-приглашению от\u00a0администратора.')
             )}
           </p>
         )}

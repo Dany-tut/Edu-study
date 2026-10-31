@@ -22,6 +22,7 @@ const ReviewSession = lazy(() => retryImport(() => import('./components/ReviewSe
 // Гостевой тренажёр тянет за собой весь LanguageTrainer — во входной чанк ему
 // нельзя (см. reference-bundle-weight): гостей единицы, а платят за вес все.
 const GuestTrainerPage = lazy(() => retryImport(() => import('./pages/GuestTrainerPage')))
+const OAuthConsentPage = lazy(() => retryImport(() => import('./pages/teacher/OAuthConsentPage')))
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import { initAnalytics, trackPath } from './lib/analytics'
@@ -140,7 +141,7 @@ function AppRoutes() {
   // на #/teacher, где и вход учителя («Платформа учителя»), и сам кабинет.
   // Студенческий вход в приложении не показываем (у ученика своя PWA/веб).
   useEffect(() => {
-    if (!IS_NATIVE || getStudentSession()) return
+    if (!IS_NATIVE || window.location.pathname === '/oauth/consent' || getStudentSession()) return
     if (hash === '' || hash === '#' || hash === '#/') window.location.replace('#/teacher')
   }, [hash])
 
@@ -199,6 +200,12 @@ function AppRoutes() {
       document.removeEventListener('visibilitychange', onVisible)
     }
   }, [loadStudentData])
+
+  // Supabase Auth redirects MCP clients to the app's consent path (without a
+  // hash fragment). Keep this route independent from the cabinet hash router.
+  if (window.location.pathname === '/oauth/consent') {
+    return <Chunk><OAuthConsentPage /></Chunk>
+  }
 
   // Лендинг доступен по явному адресу даже при активном входе (для просмотра)
   if (hash.startsWith('#/landing')) return <LandingPage />

@@ -1,0 +1,6 @@
+project_id = "igsdwvwiqnozgwczzycx"
+
+[functions.iskra-mcp]
+# MCP OAuth discovery must be reachable before a user token exists. The Edge
+# Function verifies the OAuth-issued bearer token itself with @supabase/server.
+verify_jwt = false

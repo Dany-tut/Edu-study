@@ -94,7 +94,7 @@ export function fadeMask(fade: { top: number; bottom: number }, size = FADE_PX, 
  *   </OverlayScrollArea>
  */
 export function OverlayScrollArea({
-  children, style, scrollStyle, padding, className,
+  children, style, scrollStyle, padding, className, showScrollbar = true,
 }: {
   children: ReactNode
   /** applied to the outer relative frame (put flex/size here) */
@@ -103,11 +103,12 @@ export function OverlayScrollArea({
   scrollStyle?: CSSProperties
   padding?: CSSProperties['padding']
   className?: string
+  showScrollbar?: boolean
 }) {
   const { ref, fade, thumb, onScroll } = useOverlayScroll()
   return (
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', ...style }}>
-      <ScrollOverlays thumb={thumb} />
+      {showScrollbar && <ScrollOverlays thumb={thumb} />}
       <div
         ref={ref}
         onScroll={onScroll}
