@@ -17,6 +17,7 @@ export const TZ_OPTIONS: { value: string; label: string }[] = [
   { value: 'Asia/Omsk',           label: 'Омск (UTC+6)' },
   { value: 'Asia/Krasnoyarsk',    label: 'Красноярск (UTC+7)' },
   { value: 'Asia/Bangkok',        label: 'Бангкок (UTC+7)' },
+  { value: 'Asia/Ho_Chi_Minh',    label: 'Вьетнам (UTC+7)' },
   { value: 'Asia/Irkutsk',        label: 'Иркутск (UTC+8)' },
   { value: 'Asia/Yakutsk',        label: 'Якутск (UTC+9)' },
   { value: 'Asia/Seoul',          label: 'Сеул (UTC+9)' },
@@ -89,6 +90,7 @@ export function tzShortLabel(tz: string): string {
     const city = entry.label.split(' (')[0]
     return city
   }
+  if (tz === 'Asia/Ho_Chi_Minh') return 'Вьетнам'
   return tz.split('/').pop()?.replace(/_/g, ' ') ?? tz
 }
 

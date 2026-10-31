@@ -7,6 +7,7 @@ import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
 import { Alert } from '../components/Alert'
+import SocialLoginButtons from '../components/SocialLoginButtons'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
@@ -175,6 +176,8 @@ export default function StudentLoginPage() {
             {loading ? t('Вход...') : t('Войти')}
           </button>
         </form>
+
+        <SocialLoginButtons role="student" />
 
         {error && (
           <Alert tone="danger" text={error} style={{ marginTop: 12 }} />

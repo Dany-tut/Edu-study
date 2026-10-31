@@ -33,6 +33,8 @@
     "build:diag-defaults": "esbuild scripts/buildDiagDefaults.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/buildDiagDefaults.mjs --log-level=error && node node_modules/.cache/buildDiagDefaults.mjs"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "^8.4.1",

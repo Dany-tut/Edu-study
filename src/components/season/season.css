@@ -51,6 +51,9 @@ html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top:
    по-прежнему помещалась в окно без прокрутки (как в макете: плитки ниже, цифры мельче).
    Только когда шапка на экране: .season-hero-row:has(.season-hero). */
 @media (min-width: 1024px) {
+  /* Поднимаем сезонную главную вместе с расписанием и виджетами: центрирование
+     оставляло слишком много воздуха под навигацией на широких экранах. */
+  html[data-season] .dashboard-root--home:has(.season-hero) { padding-bottom: clamp(0px, 7vh, 90px); }
   html[data-season] .dashboard-root:has(.season-hero) .widget-carousel { height: 164px; }
   html[data-season] .dashboard-root:has(.season-hero) .carousel-nav { top: 82px; }
   html[data-season] .dashboard-root:has(.season-hero) .stat-value { font-size: 52px; }

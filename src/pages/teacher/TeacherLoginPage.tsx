@@ -6,6 +6,7 @@ import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { AlertStack } from '../../components/Alert'
 import IskraMark from '../../components/landing/IskraMark'
+import SocialLoginButtons from '../../components/SocialLoginButtons'
 
 export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
   const t = useT()
@@ -223,6 +224,8 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
             {loading ? t('Загрузка...') : buttonLabels[mode]}
           </button>
         </form>
+
+        {mode === 'login' && <SocialLoginButtons role="teacher" />}
 
         {mode !== 'newpassword' && (
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>

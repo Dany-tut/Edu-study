@@ -141,13 +141,13 @@ export default function TeacherProfileSettingsPage() {
     if (ok) setTimeout(() => setTzNote(n => (n === 'saved' ? null : n)), 2000)
   }
 
-  async function chooseDisplayZone(zone: 'auto' | 'moscow') {
+  async function chooseDisplayZone(zone: 'auto' | 'manual') {
     if (zone === 'auto') await changeTzMode('auto')
-    else await changeTz('Europe/Moscow')
+    else await changeTz(teacherTz)
   }
 
-  async function chooseInputZone(zone: 'local' | 'moscow') {
-    const ok = await setInputTz(zone === 'local' ? 'local' : 'Europe/Moscow')
+  async function chooseInputZone(zone: 'local' | 'manual') {
+    const ok = await setInputTz(zone === 'local' ? 'local' : browserTz())
     setTzNote(ok ? 'saved' : 'error')
     if (ok) setTimeout(() => setTzNote(n => (n === 'saved' ? null : n)), 2000)
   }
@@ -340,21 +340,29 @@ export default function TeacherProfileSettingsPage() {
           </div>
 
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 6 }}>{t('Часовой пояс')}</div>
-            <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Как вижу расписание')}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 6 }}>{t('Время в расписании')}</div>
+            <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для просмотра расписания')}</div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-              <button type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto' || teacherTz === browserTz())}>{t('Авто')} · {tzShortLabel(browserTz())}</button>
-              <button type="button" onClick={() => chooseDisplayZone('moscow')} style={tzChoiceStyle(teacherTzMode === 'manual' && teacherTz === 'Europe/Moscow')}>{t('Москва')}</button>
+              <button type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
+              <button type="button" onClick={() => chooseDisplayZone('manual')} style={tzChoiceStyle(teacherTzMode === 'manual')}>{t('Выбрать город')}</button>
             </div>
+            {teacherTzMode === 'manual' && <select value={teacherTz} onChange={e => changeTz(e.target.value)} style={{ ...inputStyle, cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', paddingRight: 36, marginTop: 4 }}>
+              {!TZ_OPTIONS.some(o => o.value === teacherTz) && <option value={teacherTz}>{tzShortLabel(teacherTz)}</option>}
+              {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>}
             <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 14 }}>{t('Часы в расписании:')} {teacherTzMode === 'auto' ? tzShortLabel(browserTz()) : tzShortLabel(teacherTz)}</div>
 
-            <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Как задаю время урока')}</div>
+            <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для ввода времени урока')}</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" onClick={() => chooseInputZone('local')} style={tzChoiceStyle(inputTz === 'local')}>{t('Местное время')} · {tzShortLabel(browserTz())}</button>
-              <button type="button" onClick={() => chooseInputZone('moscow')} style={tzChoiceStyle(inputTz === 'Europe/Moscow')}>{t('Москва')}</button>
+              <button type="button" onClick={() => chooseInputZone('local')} style={tzChoiceStyle(inputTz === 'local')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
+              <button type="button" onClick={() => chooseInputZone('manual')} style={tzChoiceStyle(inputTz !== 'local')}>{t('Выбрать город')}</button>
             </div>
+            {inputTz !== 'local' && <select value={inputTz} onChange={e => { void setInputTz(e.target.value) }} style={{ ...inputStyle, cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', paddingRight: 36, marginTop: 8 }}>
+              {!TZ_OPTIONS.some(o => o.value === inputTz) && <option value={inputTz}>{tzShortLabel(inputTz)}</option>}
+              {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>}
             <div style={{ fontSize: 11, marginTop: 8, color: tzNote === 'error' ? 'var(--color-red-text)' : tzNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
-              {tzNote === 'error' ? t('Не удалось сохранить. Попробуйте ещё раз.') : tzNote === 'saved' ? t('Сохранено') : t('Можно смотреть по местному времени, а занятия задавать по Москве')}
+              {tzNote === 'error' ? t('Не удалось сохранить. Попробуйте ещё раз.') : tzNote === 'saved' ? t('Сохранено') : t('Можно смотреть расписание по устройству, а время уроков задавать в любом городе')}
             </div>
           </div>
 
