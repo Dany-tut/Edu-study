@@ -52,7 +52,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
       const a = await fetchTestlyStatus(test.id, test.owner)
       setAttempt(a); setOffline(false)
       const { value: v, onChange: change } = live.current
-      if (a.state === 'started' && testlyDoneAt(v) !== null) {
+      if (a.state === 'started' && (testlyDoneAt(v) !== null || live.current.disabled)) {
         setEmbedUrl(null); setOpened(false)
         live.current.onReopen?.()
         return
@@ -123,6 +123,14 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     ? (attempt.got != null && attempt.max != null ? { got: attempt.got, max: attempt.max, pending: !!attempt.pending, review: attempt.review } : null)
     : attempt?.state === 'started' ? null : testlyScoreOf(value)
   const started = doneAt === null && attempt?.state === 'started'
+  // Заполненность и оценка — разные величины. Прогресс показываем только
+  // по фактическому числу ответов, которое вернул Тестли.
+  const progressTotal = attempt?.total
+  const progressAnswered = attempt?.answered
+  const hasProgress = (started || doneAt !== null)
+    && typeof progressTotal === 'number' && Number.isFinite(progressTotal) && progressTotal > 0
+    && typeof progressAnswered === 'number' && Number.isFinite(progressAnswered)
+  const answered = hasProgress ? Math.max(0, Math.min(progressTotal!, progressAnswered!)) : 0
 
   const btn = (bg: string, fg: string) => ({
     display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
@@ -211,6 +219,18 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ListChecks size={14} style={{ color: 'var(--color-text-3)' }} /> {test.questions} {t(plural(test.questions, 'вопрос', 'вопроса', 'вопросов'))}</span>
             {test.minutes ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Clock size={14} style={{ color: 'var(--color-text-3)' }} /> {test.minutes} {t('мин')}</span> : null}
           </div>
+          {hasProgress && (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-2)' }}>
+                <span>{t('Ответов')} {answered} {t('из')} {progressTotal}</span>
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{Math.round(answered / progressTotal! * 100)}%</span>
+              </div>
+              <div role="progressbar" aria-label={t('Ответы в тесте')} aria-valuemin={0} aria-valuemax={progressTotal} aria-valuenow={answered}
+                style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
+                <div style={{ width: `${answered / progressTotal! * 100}%`, height: '100%', borderRadius: 'inherit', background: 'var(--color-accent)' }} />
+              </div>
+            </div>
+          )}
           {body}
         </div>
       </div>
