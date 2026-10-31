@@ -166,7 +166,7 @@ export default function BasicAnswersList({ payload, studentId }: { payload: Basi
   const testlyKey = testlyIds.join(',')
   const contextKey = `${studentId ?? ''}:${testlyKey}`
   const live = liveState.key === contextKey ? liveState.items : {}
-  const allTestlySubmitted = testlyIds.length > 0 && testlyIds.every(id => live[id]?.state === 'submitted')
+  const allTestlySubmitted = testlyIds.length > 0 && testlyIds.every(id => live[id]?.state === 'submitted' && !live[id]?.pending)
   useEffect(() => {
     if (!studentId || !testlyKey || allTestlySubmitted) return
     let alive = true

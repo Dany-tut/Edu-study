@@ -63,7 +63,9 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
   // (значит «Успеваемость 0%» — честный ноль), а оценок ещё нет, и рисовать в
   // баллах нули там нельзя — это читается как «получил ноль».
   const hasLessons = loaded && stats.totalTasks > 0
-  const hasScores = loaded && stats.avgScore > 0
+  const hasScores = loaded && (course
+    ? course.modules.some(m => m.lessons.some(l => l.points != null))
+    : Object.values(progress).some(p => p.status === 'submitted' || p.status === 'completed'))
 
   const statCards = [
     { label: 'Успеваемость', value: hasLessons ? `${stats.performance}%` : null },

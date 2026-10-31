@@ -858,7 +858,7 @@ export function mergeSubjectsWithProgress(catalog: Subject[], progress: Progress
           const status: LessonStatus = autoOpen(lesson) ? 'current' : 'locked'
           return { ...lesson, status, points: undefined, comment: undefined }
         }
-        return { ...lesson, status: p.status, points: p.score > 0 ? p.score : undefined, comment: p.comment || undefined }
+        return { ...lesson, status: p.status, points: p.score > 0 || p.status === 'submitted' || p.status === 'completed' ? p.score : undefined, comment: p.comment || undefined }
       }),
     }))
 
@@ -923,7 +923,7 @@ export function computeStats(progress: ProgressMap): StudentStats {
   // Include submitted lessons in score stats — the student earned the score
   // even before the teacher finalises the review.
   const scored = entries.filter(p => p.status === 'completed' || p.status === 'submitted')
-  const withScore = scored.filter(p => p.score > 0)
+  const withScore = scored.filter(p => p.score != null)
   const totalPoints = scored.reduce((s, p) => s + (p.score ?? 0), 0)
   const avgScore = withScore.length > 0
     ? Math.round(withScore.reduce((s, p) => s + p.score, 0) / withScore.length)
@@ -967,7 +967,7 @@ export function computeSubjectStats(subject: Subject, progress: ProgressMap): St
   const lessons = subject.modules.flatMap(m => m.lessons)
   const completed = lessons.filter(l => l.status === 'completed')
   // Сданное на проверку считаем наравне со зачтённым — балл ученик уже получил.
-  const scored = lessons.filter(l => (l.status === 'completed' || l.status === 'submitted') && (l.points ?? 0) > 0)
+  const scored = lessons.filter(l => (l.status === 'completed' || l.status === 'submitted') && l.points != null)
   const totalPoints = scored.reduce((s, l) => s + (l.points ?? 0), 0)
   const avgScore = scored.length > 0 ? Math.round(totalPoints / scored.length) : 0
   const totalTasks = lessons.length

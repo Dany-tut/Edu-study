@@ -1173,8 +1173,8 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
     }
     // Внешнее упражнение: единственное, что мы знаем, — прошёл или нет.
     if (langTp === 'embed') return ans === EMBED_DONE
-    // Тест из Тестли (шаг 1): балла ещё нет, засчитывается сдача.
-    if (langTp === 'testly') return testlyDoneAt(ans) !== null
+    // Сдача с нулём — отвеченное задание, но не правильное.
+    if (langTp === 'testly') return testlyCredit(ans) === 1
   }
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') {
