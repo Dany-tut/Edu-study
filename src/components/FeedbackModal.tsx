@@ -152,12 +152,14 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
             <label style={labelStyle}>{t('Что случилось?')}</label>
             <textarea
               ref={taRef}
+              aria-label={t('Что случилось?')}
               onScroll={onTextScroll}
               value={message} onChange={e => setMessage(e.target.value)}
               placeholder={t('Опишите проблему как можно подробнее…')}
               rows={4}
               style={{
                 ...fieldStyle, resize: 'none', display: 'block',
+                border: 'none', borderRadius: 0, background: 'transparent', padding: '9px 0',
                 lineHeight: `${TA_LINE}px`, minHeight: TA_MIN, maxHeight: TA_MAX,
                 overflowY: taOverflow ? 'auto' : 'hidden',
                 ...fadeMask(taFade, 18),
