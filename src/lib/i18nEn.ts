@@ -5190,4 +5190,6 @@ export const EN: Record<string, string> = {
   "Не начат": "Not started",
   "Предварительный результат": "Provisional result",
   "Результат курса — средний процент по сданным и принятым работам. Ожидающие ручной проверки и возвращённые работы не входят в среднее. Счётчики статусов включают ДЗ и работы курса.": "The course score averages submitted and accepted work. Work awaiting manual grading or returned for revision is excluded. Status counts include homework and course work.",
+  "Без имени": "Unnamed",
+  "Без группы": "No group",
 }
