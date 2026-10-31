@@ -6,7 +6,6 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
 import ScheduleCard from './ScheduleCard'
 import Skeleton from './Skeleton'
-import { useSeason } from '../lib/season'
 import HScrollFade from './HScrollFade'
 
 // Side card widths by distance from center — must match ScheduleCard.
@@ -15,14 +14,16 @@ const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 
 // Native horizontal scrolling also clips vertically. Reserve paint space for
 // card shadows, then offset the viewport so the dashboard rows do not move.
-// Side cards already fade by distance. Solid edge overlays cannot blend with
-// the seasonal backdrop; fadeWidth=0 preserves its colour and backdrop blur.
+// Fade alpha rather than painting a solid overlay over the seasonal backdrop.
 const SHADOW_PAD = 40
-const SCROLLER_STYLE = { height: `calc(100% + ${SHADOW_PAD * 2}px)`, top: -SHADOW_PAD }
+const EDGE_MASK = 'linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent)'
+const SCROLLER_STYLE = {
+  height: `calc(100% + ${SHADOW_PAD * 2}px)`, top: -SHADOW_PAD,
+  maskImage: EDGE_MASK, WebkitMaskImage: EDGE_MASK,
+}
 
 export default function ScheduleCarousel() {
   const t = useT()
-  const seasonHero = useSeason().on('hero')
   const { scheduleIndex, setScheduleIndex } = useDashboard()
   const scheduleDays = useStudentData(s => s.scheduleDays)
   const loaded = useStudentData(s => s.loaded)
@@ -62,9 +63,9 @@ export default function ScheduleCarousel() {
   // Fixed strip height for every day so switching between a 3+-lesson card
   // (which scrolls internally above the fade) and a 1–2-lesson card never makes
   // the whole strip grow/shrink — keeping the tallest height avoids the jump.
-  // Праздничная тема: шапка над расписанием забирает высоту, и полоса карточек —
-  // компактная, как в макетах (место уходит плиткам статистики).
-  const stripHeight = seasonHero && !mobile ? 160 : 210
+  // Two full lesson rows must fit even on a laptop. Taller windows give the
+  // calendar more room; longer lists scroll inside the card at every size.
+  const stripHeight = mobile ? 210 : 'clamp(210px, 26vh, 260px)'
 
   const offsets = [-3, -2, -1, 0, 1, 2, 3]
   const slots = offsets.map(offset => {

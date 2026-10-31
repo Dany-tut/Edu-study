@@ -147,12 +147,13 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
         <ChevronLeft size={16} />
       </motion.button>
 
-      {/* Stage — `clip` hides the neighbouring slides during a swipe, while
-          `overflow-clip-margin` lets each card's soft shadow paint past the
-          stage bounds instead of being cut off flush at the edges. */}
+      {/* Real padding reserves room for artwork and shadows in Safari too.
+          overflow-clip-margin is not supported consistently across browsers. */}
+      <div className="relative h-full w-full">
+      <div style={{ position: 'absolute', inset: -56, padding: 56, overflow: 'hidden', pointerEvents: 'none' }}>
       <div
         className="relative h-full w-full"
-        style={{ overflow: 'clip', overflowClipMargin: '56px' }}
+        style={{ pointerEvents: 'auto' }}
       >
         <AnimatePresence custom={dir} initial={false}>
           <motion.div
@@ -191,6 +192,8 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
             ))}
           </motion.div>
         </AnimatePresence>
+      </div>
+      </div>
       </div>
 
       {/* Right nav */}

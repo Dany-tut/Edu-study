@@ -230,14 +230,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             )}
               </div>
             )
-            // 3+ lessons: clip into a scrollable list (hidden scrollbar) with edge fades.
-            return day.lessons.length > 2
-              ? (
-                // ~2.3 rows tall: two full lessons + a peek of the third under the
-                // fade, signalling there's more to scroll. Clips cleanly (no overflow).
-                // The negative margin + matching padding give the lesson rows room to
-                // grow on hover (scale 1.01) without being clipped by overflow, while
-                // keeping them aligned with the date header.
+            // The available height, rather than the lesson count, decides when
+            // scrolling is needed: the compact seasonal card cannot fit two rows.
+            return (
                 <ScrollFade
                   maxHeight="100%" fadeHeight={22} bg="rgba(var(--glass-rgb), 0.85)" scrollClassName="no-scrollbar"
                   style={{ flex: 1, minHeight: 0, marginInline: -8, marginBlock: -4 }}
@@ -246,7 +241,6 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   {lessonsList}
                 </ScrollFade>
               )
-              : lessonsList
           })()}
         </div>
       ) : (

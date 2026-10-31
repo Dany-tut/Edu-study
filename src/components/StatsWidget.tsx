@@ -87,7 +87,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
   // вкладкой трека прямо под плитками, а над цифрой она читалась шумом (Даня, 29.10.2026).
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full" style={{ containerType: 'inline-size' }}>
       <div
         className="stats-grid h-full"
         data-testid="stats-grid"

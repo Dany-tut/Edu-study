@@ -53,10 +53,9 @@ html[data-season] .season-hero-row { position: relative; z-index: 2; margin-top:
 @media (min-width: 1024px) {
   /* Поднимаем сезонную главную вместе с расписанием и виджетами: центрирование
      оставляло слишком много воздуха под навигацией на широких экранах. */
-  html[data-season] .dashboard-root--home:has(.season-hero) { padding-bottom: clamp(0px, 7vh, 90px); }
+  html[data-season] .dashboard-root--home:has(.season-hero) { padding-bottom: 16px; }
   html[data-season] .dashboard-root:has(.season-hero) .widget-carousel { height: 164px; }
   html[data-season] .dashboard-root:has(.season-hero) .carousel-nav { top: 82px; }
-  html[data-season] .dashboard-root:has(.season-hero) .stat-value { font-size: 52px; }
   html[data-season] .dashboard-root:has(.season-hero) .season-stat-img { height: 58px; }
   html[data-season] .dashboard-root:has(.season-hero) .dashboard-main { gap: 16px; padding-top: 14px; padding-bottom: 12px; }
 
@@ -188,7 +187,7 @@ html[data-season-variant="candy"] .stat-card--season-stars {
    и чуть выглядывает за верх. */
 html[data-season-variant="candy"] .stats-grid:not([data-triple]) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.75fr) !important; }
 html[data-season-variant="candy"] .stat-card--season-stars .season-stat-img {
-  position: absolute; right: -22px; bottom: 22px; height: 90% !important; max-height: 150px;
+  position: absolute; right: -22px; bottom: 22px; height: 90% !important; max-height: clamp(90px, 24cqw, 150px);
   filter: drop-shadow(0 12px 18px rgba(154, 58, 0, 0.3));
 }
 html[data-season-variant="candy"] .stat-card--season-stars .stat-value,
@@ -200,6 +199,14 @@ html[data-season-variant="candy"] .stat-card--season-stars .stat-label { positio
 /* Подписи в одну строку: плитки в теме уже, и «Средний балл» иначе ломался на две
    строки — подписи соседних плиток переставали стоять на одной линии. */
 html[data-season] .stat-label { white-space: nowrap; }
+/* Размеры зависят от ширины самого виджета: на ноутбуке две колонки
+   оставляют статистике половину экрана. */
+html[data-season] .stats-grid .stat-value { font-size: clamp(28px, 8cqw, 52px); }
+html[data-season] .stats-grid[data-triple] .stat-value { font-size: clamp(24px, 8cqw, 36px); }
+html[data-season] .stats-grid .stat-label { font-size: clamp(10px, 2.3cqw, 13px); }
+@container (max-width: 500px) {
+  .stats-grid .stat-card { padding-inline: 8px; }
+}
 
 /* «Ночь фонарей»: плитки — ночное фиолетовое стекло, как в макете A. */
 html[data-season-variant="lanterns"] .stat-card {
@@ -459,7 +466,7 @@ html[data-season] .season-hero-row:has(.season-hero--picture) { z-index: 0; }
   .season-hero__spider, .season-hero__skeleton { animation: none; }
 }
 @media (min-width: 1024px) and (max-height: 860px) {
-  .season-hero--picture { min-height: 72px; }
+  .season-hero--picture { min-height: clamp(24px, calc((100vh - 650px) * 0.3), 72px); }
   .season-hero__spider { height: 140px; }
   .season-hero__skeleton { height: 190px; }
 }
