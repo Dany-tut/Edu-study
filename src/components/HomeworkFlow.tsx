@@ -4010,7 +4010,16 @@ export default function HomeworkFlow({
                       test={question.testly}
                       value={selectedAnswer}
                       disabled={locked}
-                      onChange={v => setFreeAnswer(question.id, v)}
+                      // Обновление результата из Testly — синхронизация оценки,
+                      // она должна переживать сдачу домашки и блокировку ответов.
+                      onChange={v => {
+                        if (state.basicSubmitted) {
+                          setState(current => ({
+                            ...current,
+                            basicAnswers: { ...current.basicAnswers, [question.id]: v },
+                          }))
+                        } else setFreeAnswer(question.id, v)
+                      }}
                     />
                     ) : qType(question) === 'wordDrop' && dropRows(question).length > 0 ? (
                     <WordDropSolver
@@ -4501,10 +4510,9 @@ export default function HomeworkFlow({
                 )
               })}
 
-              {/* Конец списка, а домашка не доделана — раньше здесь был тупик:
-                  нижняя полоса показывала «18 / 19» и молчала, кнопки сдачи не
-                  было (она приходит только на полном списке), и ученик не знал
-                  ни что осталось, ни как закончить. Теперь и то, и другое. */}
+              {/* В конце списка оставляем только нужные действия: вернуться к
+                  первому пропуску или сдать работу. Номера отдельными чипсами
+                  дублировали основную кнопку и звучали как просьба что-то дописать. */}
               {(!flowMode || flowFinished) && !state.basicSubmitted && !basicCompleted && basicUnanswered.length > 0 && (
                 <section
                   className="flex flex-col"
@@ -4524,35 +4532,13 @@ export default function HomeworkFlow({
                     </div>
                     <div>
                       <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
-                        {t('Остались задания без ответа')}
+                        {basicUnanswered.length === 1 ? t('Осталось одно задание') : t('Остались задания без ответа')}
                       </p>
                       <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
                         {t('Без ответа')}: {basicUnanswered.length} {t('из')} {basicQuestions.length}.{' '}
                         {t('Можно вернуться к ним — или сдать как есть: пропущенные пойдут в ошибки.')}
                       </p>
                     </div>
-                  </div>
-
-                  {/* Номера пропущенных — сразу и список, и навигация. */}
-                  <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
-                      {t('Дописать')}:
-                    </span>
-                    {basicUnanswered.map(({ q, number }) => (
-                      <button
-                        key={q.id}
-                        onClick={() => jumpToQuestion(q.id)}
-                        className="cursor-pointer"
-                        style={{
-                          minWidth: 34, height: 30, padding: '0 10px', borderRadius: 10,
-                          border: '1px solid var(--color-border-strong)', background: 'var(--color-bg-3)',
-                          color: 'var(--color-text)', fontFamily: 'inherit',
-                          fontSize: 13, fontWeight: 700,
-                        }}
-                      >
-                        {number}
-                      </button>
-                    ))}
                   </div>
 
                   <div className="flex flex-wrap items-stretch" style={{ gap: 10 }}>
@@ -4567,7 +4553,7 @@ export default function HomeworkFlow({
                         fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
                       }}
                     >
-                      {t('К заданию')} {basicUnanswered[0].number}
+                      {t('Вернуться к заданию')} {basicUnanswered[0].number}
                       <ArrowRight size={16} />
                     </motion.button>
                     <motion.button

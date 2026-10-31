@@ -24,9 +24,10 @@ interface Props {
   /** Mobile: explicit center-card width measured from the viewport so the
       centre card never exceeds the screen (desktop keeps the fixed 480). */
   centerWidth?: number
+  dataSelected?: boolean
 }
 
-export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth }: Props) {
+export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth, dataSelected = false }: Props) {
   const t = useT()
   // Праздничная тема: пустой день в центральной карточке — привидение-листок
   // вместо «Пока нет данных». В боковых карточках его нет: ряд из пяти
@@ -109,6 +110,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
       whileHover={isCenter ? undefined : { scale: scale * 1.04, opacity: glassFade ? 1 : Math.min(1, opacity + 0.18) }}
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
+      data-schedule-day={dataSelected ? 'selected' : undefined}
       className="flex-shrink-0 cursor-pointer h-full"
       style={{
         // Карточка — кнопка, а не текст: тап не должен подсвечивать надписи.
@@ -123,13 +125,14 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
           className="w-full h-full rounded-[24px]"
           style={{
             padding: '16px',
+            display: 'flex', flexDirection: 'column', minHeight: 0,
             background: 'rgba(var(--glass-rgb), 0.85)',
             backdropFilter: 'var(--blur-solid)',
             WebkitBackdropFilter: 'var(--blur-solid)',
             boxShadow: 'var(--shadow-3)',
           }}
         >
-          {dateHeader(13, 10)}
+          <div style={{ flexShrink: 0 }}>{dateHeader(13, 10)}</div>
           {(() => {
             const lessonsList = (
               <div className="flex flex-col" style={{ gap: 10 }}>
@@ -236,9 +239,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 // grow on hover (scale 1.01) without being clipped by overflow, while
                 // keeping them aligned with the date header.
                 <ScrollFade
-                  maxHeight={154} fadeHeight={22} bg="rgba(var(--glass-rgb), 0.85)" scrollClassName="no-scrollbar"
-                  style={{ marginInline: -8, marginBlock: -4 }}
-                  scrollStyle={{ paddingInline: 8, paddingBlock: 4 }}
+                  maxHeight="100%" fadeHeight={22} bg="rgba(var(--glass-rgb), 0.85)" scrollClassName="no-scrollbar"
+                  style={{ flex: 1, minHeight: 0, marginInline: -8, marginBlock: -4 }}
+                  scrollStyle={{ height: '100%', paddingInline: 8, paddingBlock: 4 }}
                 >
                   {lessonsList}
                 </ScrollFade>
@@ -258,9 +261,11 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
         >
           <div style={glassFade ? { opacity: Math.min(1, opacity + 0.15) } : undefined}>
           {dateHeader(11, 8)}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2" style={{ minHeight: 0 }}>
             {day.lessons.length > 0 ? (
-              day.lessons.slice(0, 2).map(lesson => (
+              <ScrollFade maxHeight="100%" fadeHeight={18} bg="rgba(var(--glass-rgb), 0.80)" scrollClassName="no-scrollbar" style={{ maxHeight: 146 }} scrollStyle={{ paddingBottom: 4 }}>
+              <div className="flex flex-col gap-2">
+              {day.lessons.slice(0, 2).map(lesson => (
                 <div key={lesson.id}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {tc(lesson.subject)}
@@ -270,7 +275,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--color-muted)' }}>{lesson.time}</p>
                 </div>
-              ))
+              ))}
+              </div>
+              </ScrollFade>
             ) : (
               <div style={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center', color: 'var(--color-muted)' }}>
                 <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>

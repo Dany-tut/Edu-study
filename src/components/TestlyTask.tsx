@@ -42,12 +42,14 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
     try {
       const a = await fetchTestlyStatus(test.id, test.owner)
       setAttempt(a); setOffline(false)
-      const { value: v, onChange: change, disabled: off } = live.current
-      if (a.state === 'submitted' && !off) {
-        const score: TestlyScore | null = a.got != null && a.max != null
+      const { value: v, onChange: change } = live.current
+      if (a.state === 'submitted') {
+        const fetchedScore: TestlyScore | null = a.got != null && a.max != null
           ? { got: a.got, max: a.max, pending: !!a.pending, ...(a.review ? { review: a.review } : {}) }
           : null
-        const next = testlyAnswer(a.submittedAt ?? new Date().toISOString(), score)
+        // Ответы Testly могут на короткое время прийти без итоговых баллов
+        // (например, пока пересчитывается оценка). Не затираем уже сохранённый балл.
+        const next = testlyAnswer(a.submittedAt ?? testlyDoneAt(v) ?? new Date().toISOString(), fetchedScore ?? testlyScoreOf(v))
         if (next !== v) change(next)
       }
     } catch {
@@ -156,10 +158,10 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
           </span>
         )}
         <div className="flex items-center" style={{ gap: 12, flexWrap: 'wrap' }}>
-          <button onClick={() => void start()} disabled={disabled || opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
+          {!disabled && <button onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
             {opening ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={14} />}
             {started || opened ? t('Продолжить тест') : t('Начать тест')}
-          </button>
+          </button>}
           {started && attempt?.startedAt && side(
             `${t('Начат в')} ${fmt(attempt.startedAt, false)}${attempt.total ? ` · ${t('ответов')} ${attempt.answered ?? 0} ${t('из')} ${attempt.total}` : ''}`,
           )}

@@ -7,6 +7,7 @@ import { useT } from '../lib/i18n'
 import ScheduleCard from './ScheduleCard'
 import Skeleton from './Skeleton'
 import { useSeason } from '../lib/season'
+import HScrollFade from './HScrollFade'
 
 // Side card widths by distance from center — must match ScheduleCard.
 const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
@@ -33,6 +34,15 @@ export default function ScheduleCarousel() {
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
+
+  // Keep the selected day in the middle while the neighbouring cards travel
+  // underneath the edge fades instead of being cut off by the viewport.
+  useEffect(() => {
+    const viewport = wrapRef.current?.querySelector<HTMLElement>('.no-scrollbar')
+    const selected = viewport?.querySelector<HTMLElement>('[data-schedule-day="selected"]')
+    if (!viewport || !selected) return
+    viewport.scrollLeft = selected.offsetLeft + selected.offsetWidth / 2 - viewport.clientWidth / 2
+  }, [scheduleIndex, total, mobile, wrapW])
 
   const pad = mobile ? 22 : 56
   const slotWidth = mobile ? SLOT_WIDTH_MOBILE : SLOT_WIDTH_DESKTOP
@@ -68,9 +78,8 @@ export default function ScheduleCarousel() {
       // масштаб и приглушение боковых (как в ScheduleCard). Иначе при загрузке
       // карточки прыгали: заглушка была ниже/уже и прижата к низу.
       return (
-        <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Расписание не добавлено')}
-          className="flex items-center gap-3"
-          style={{ height: stripHeight, paddingLeft: pad, paddingRight: pad, justifyContent: 'center', overflowX: 'clip' }}>
+        <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Расписание не добавлено')} className="relative" style={{ height: stripHeight }}>
+          <HScrollFade fade="rgba(var(--glass-rgb), 0.45)" fadeWidth={56} style={{ height: '100%' }} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'center' }}>
           {offsets.map(offset => {
             const d = Math.abs(offset)
             const w = d === 0 ? (centerWidth ?? (mobile ? 300 : 480)) : slotWidth[d]
@@ -82,6 +91,7 @@ export default function ScheduleCarousel() {
               </div>
             )
           })}
+          </HScrollFade>
         </div>
       )
     }
@@ -94,31 +104,18 @@ export default function ScheduleCarousel() {
 
   return (
     <motion.div
-      ref={wrapRef}
       className="relative"
       initial={false}
       animate={{ height: stripHeight }}
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* Cards */}
-      <div
-        className="flex items-center gap-3"
-        style={{
-          paddingLeft: pad,
-          paddingRight: pad,
-          justifyContent: 'center',
-          height: '100%',
-          // Clip side cards horizontally only — `overflow: hidden` would also
-          // clip the center card's vertical shadow. `clip` on one axis leaves
-          // overflow-y visible so the soft drop shadow can breathe.
-          overflowX: 'clip',
-          overflowY: 'visible',
-        }}
-      >
+      <div ref={wrapRef} style={{ height: '100%' }}>
+      <HScrollFade fade="rgba(var(--glass-rgb), 0.45)" fadeWidth={56} style={{ height: '100%' }} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
         {slots.map(slot =>
           slot.day ? (
             <ScheduleCard
               key={slot.day.date}
+              dataSelected={slot.offset === 0}
               day={slot.day}
               isCenter={slot.offset === 0}
               distance={Math.abs(slot.offset)}
@@ -135,6 +132,7 @@ export default function ScheduleCarousel() {
             />
           ),
         )}
+      </HScrollFade>
       </div>
     </motion.div>
   )

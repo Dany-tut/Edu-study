@@ -2132,6 +2132,8 @@ export const EN: Record<string, string> = {
   "Можно вернуться к ним — или сдать как есть: пропущенные пойдут в ошибки.": "You can go back to them — or submit as is: skipped ones count as mistakes.",
   "Дописать": "Finish",
   "К заданию": "Go to task",
+  "Вернуться к заданию": "Return to task",
+  "Осталось одно задание": "One task remains",
   "Сдать как есть": "Submit as is",
   "Точно сдать?": "Submit anyway?",
   "без ответа": "unanswered",

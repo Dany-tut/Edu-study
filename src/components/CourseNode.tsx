@@ -125,7 +125,10 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const isActive = isSelected || displayStatus === 'current'
   // Праздничная тема: текущий урок — фонарь, конфета или шарик зелья поверх кружка.
   // Кружок прячем, но кнопка остаётся на месте: по ней кликают.
-  const seasonNode = useSeason().on('track') && seasonMark && displayStatus === 'current' && !isDiamond
+  // A scheduled lesson changes from `current` to `unviewed` after its start
+  // time passes. It is still today's open lesson on the track, so keep its
+  // seasonal marker visible for both states.
+  const seasonNode = useSeason().on('track') && seasonMark && (displayStatus === 'current' || displayStatus === 'unviewed') && !isDiamond
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
@@ -184,7 +187,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           scale: { type: 'spring', stiffness: 320, damping: 22 },
           opacity: { duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.04 },
         }}
-        className={cn('season-node absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done', displayStatus === 'locked' && 'season-node-locked')}
+        className={cn('season-node absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done', displayStatus === 'current' && 'season-node-current', displayStatus === 'unviewed' && 'season-node-unviewed', displayStatus === 'locked' && 'season-node-locked')}
         style={{
           background: `linear-gradient(${style.bg}, ${style.bg}), var(--color-bg-3)`,
           border: `2px solid ${style.border}`,
