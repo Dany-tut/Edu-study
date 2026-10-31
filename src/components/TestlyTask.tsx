@@ -223,12 +223,13 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
         <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 18, border: '1px solid var(--color-border-medium)', background: '#fff' }}>
           <iframe
             title={t('Тест Тестли')}
+            className="testly-task-frame"
             src={embedSrc ?? undefined}
             scrolling="no"
             allow="fullscreen; clipboard-read; clipboard-write"
             allowFullScreen
             referrerPolicy="strict-origin-when-cross-origin"
-            style={{ display: 'block', width: '100%', height: 760, border: 0, background: '#fff' }}
+            style={{ display: 'block', width: '100%', border: 0, background: '#fff' }}
           />
         </section>
       )}

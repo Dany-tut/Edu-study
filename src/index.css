@@ -1146,3 +1146,9 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   width: 18px; height: 18px; border: none; border-radius: 50%;
   background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--color-border-medium);
 }
+
+/* Keep the embedded test above the mobile homework controls and bottom navigation. */
+.testly-task-frame { height: 760px; }
+@media (max-width: 767px) {
+  .testly-task-frame { height: min(760px, calc(100svh - 176px)); }
+}
