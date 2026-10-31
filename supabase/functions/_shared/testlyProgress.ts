@@ -3,7 +3,6 @@ export function applyTestlyResult(attachments: any, testId: string, result: any,
   if (attachments?.v !== 'basic-1' || !Array.isArray(attachments.rows) || !['submitted', 'started'].includes(result.state)) return null
   let changed = false
   let returned = false
-  let correct = Number(attachments.correct) || 0
   const credit = (x: any) => x?.max > 0 ? Math.max(0, Math.min(1, x.got / x.max)) : 0
   const rows = attachments.rows.map((row: any) => {
     if (row.type !== 'testly' || row.testly?.testId !== testId) return row
@@ -19,11 +18,15 @@ export function applyTestlyResult(attachments: any, testId: string, result: any,
     const testly = { ...row.testly, ...(row.testly.returned ? { returned: false } : {}), got: result.got, max: result.max, pending: !!result.pending, submittedAt: result.submittedAt }
     const next = { ...row, answer: 'сдал тест в Тестли', testly, verdict: result.pending ? 'review' : credit(testly) === 1 ? 'correct' : 'wrong' }
     if (JSON.stringify(next) === JSON.stringify(row)) return row
-    correct += credit(testly) - credit(row.testly)
     changed = true
     return next
   })
   if (!changed) return null
+  // The browser rounds snapshot.correct to two decimals. Recompute the Testly
+  // contribution rather than accumulating that rounding error across returns.
+  const priorTestly = attachments.rows.reduce((sum: number, row: any) => sum + (row.type === 'testly' ? credit(row.testly) : 0), 0)
+  const autoCorrect = Math.max(0, Math.round(((Number(attachments.correct) || 0) - priorTestly) * 100) / 100)
+  const correct = autoCorrect + rows.reduce((sum: number, row: any) => sum + (row.type === 'testly' ? credit(row.testly) : 0), 0)
   const next = { ...attachments, rows, correct: Math.round(correct * 10000) / 10000 }
   const stillReturned = returned || rows.some((row: any) => row.testly?.returned)
   return { attachments: next, score: next.gradable > 0 ? Math.round(100 * correct / next.gradable) : 0,

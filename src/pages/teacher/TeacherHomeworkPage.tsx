@@ -651,7 +651,7 @@ export default function TeacherHomeworkPage() {
   const individualGroups = groups.filter(g => g.isIndividual)
   const { homework, loading: hwLoading } = useHomework()
   const { submissions: hardSubs } = useHardSubmissions()
-  const { value: courseTestlySubs } = useCourseTestlySubmissions()
+  const { value: courseTestlySubs, reload: reloadCourseTestly } = useCourseTestlySubmissions()
   const [returningTestly, setReturningTestly] = useState<string | null>(null)
   const [testlyReturnError, setTestlyReturnError] = useState('')
   const [testlyComments, setTestlyComments] = useState<Record<string, string>>({})
@@ -772,7 +772,7 @@ export default function TeacherHomeworkPage() {
                         style={{ ...FIELD, minHeight: 64 }} />
                       <button disabled={returningTestly !== null} style={{ ...btn('S', 'secondary'), justifySelf: 'start' }} onClick={async () => {
                         setReturningTestly(sub.id); setTestlyReturnError('')
-                        try { await returnTestlyHomework(sub.id, testlyComments[sub.id] ?? '') }
+                        try { await returnTestlyHomework(sub.id, testlyComments[sub.id] ?? ''); await reloadCourseTestly() }
                         catch (error) { setTestlyReturnError(error instanceof Error ? error.message : t('Не удалось сохранить изменения')) }
                         finally { setReturningTestly(null) }
                       }}>

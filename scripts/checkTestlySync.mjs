@@ -35,3 +35,7 @@ assert.equal(resubmitted.score, 75)
 assert.equal(resubmitted.attachments.rows[1].testly.returned, false)
 assert.equal(applyTestlyResult(resubmitted.attachments, 'test', { ...result, got: 18, submittedAt: '2026-10-31T16:10:00Z' }, 'submitted'), null)
 console.log('PASS: return, preserved previous grade, stale response, retry, resubmission')
+
+const roundedSnapshot = { v: 'basic-1', gradable: 1, correct: 0.03, rows: [{ type: 'testly', answer: 'done', verdict: 'wrong', testly: { testId: 'test', got: 1, max: 36 } }] }
+assert.equal(applyTestlyResult(roundedSnapshot, 'test', { ...result, got: 3 }).score, 8)
+console.log('PASS: repeated corrections do not accumulate rounded score error')

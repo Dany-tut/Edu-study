@@ -659,9 +659,12 @@ const courseTestlyQuery = createSharedQuery<Array<{
   watch: reload => {
     const channel = supabase.channel(`course-testly-${hardChannelSeq++}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => reload()).subscribe()
-    return () => { supabase.removeChannel(channel) }
+    const refresh = () => { if (document.visibilityState === 'visible') reload() }
+    const interval = window.setInterval(refresh, 20000)
+    window.addEventListener('focus', refresh)
+    return () => { supabase.removeChannel(channel); window.clearInterval(interval); window.removeEventListener('focus', refresh) }
   },
 })
 export function useCourseTestlySubmissions() {
-  return useSharedQuery(courseTestlyQuery)
+  return { ...useSharedQuery(courseTestlyQuery), reload: courseTestlyQuery.reload }
 }
