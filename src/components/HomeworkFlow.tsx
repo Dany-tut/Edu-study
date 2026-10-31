@@ -3584,8 +3584,11 @@ export default function HomeworkFlow({
                 // больше не видно. Балл при этом всё равно потерян (isCorrect
                 // держит `!hinted`), так что подобрать «до зелёной рамки» тут
                 // нечего — как и в дрилле, который так и работал с самого начала.
-                const showVerdict = graded && autoGradable
-                const showReview = graded && !autoGradable
+                // У Тестли собственные баллы и статус: частичный результат
+                // целого теста не является одним «неверным ответом».
+                const integratedTest = qType(question) === 'testly'
+                const showVerdict = graded && autoGradable && !integratedTest
+                const showReview = graded && !autoGradable && !integratedTest
                 // Дрилл — задание из пяти строк, и подсказка по одной из них не
                 // должна закрывать разбор остальных четырёх, поэтому у него одного
                 // «Проверить» остаётся живым и после подсказки.
@@ -3594,7 +3597,7 @@ export default function HomeworkFlow({
                 // машина умеет его сверить, разбор ещё не открыт.
                 // После подсказки проверять нечего — ответ уже открыт; поле при
                 // этом остаётся живым, чтобы слово можно было вписать рукой.
-                const canCheck = autoGradable && answered && !checked
+                const canCheck = autoGradable && !integratedTest && answered && !checked
                   && (!hinted || isDrill) && !state.basicSubmitted
                 const hintText = hintFor(question)
                 // ПОДСКАЗКА ПОЯВЛЯЕТСЯ ТОЛЬКО ПОСЛЕ ОШИБКИ. Кнопка «Подсказка»

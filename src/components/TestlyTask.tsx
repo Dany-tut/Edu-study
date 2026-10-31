@@ -188,6 +188,9 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
               </div>
             </div>
           )}
+          {!progress && (started || doneAt !== null) && (
+            <p style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Заполненность пока недоступна.')}</p>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             {doneAt === null && !disabled && !embedUrl && (
               <button type="button" onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
