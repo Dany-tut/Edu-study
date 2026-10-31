@@ -2979,7 +2979,6 @@ export const EN: Record<string, string> = {
   'Удалить группу': 'Delete group',
   'Нажмите чтобы показать': 'Click to reveal',
   'Показать логин': 'Reveal username',
-  'Показать пароль': 'Reveal password',
   'Скопировать логин': 'Copy username',
   'Скопировать пароль': 'Copy password',
   'Нажмите значок, чтобы скопировать поле': 'Click a copy icon to copy that field',

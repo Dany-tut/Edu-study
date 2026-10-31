@@ -93,7 +93,7 @@ export default function ScheduleCarousel() {
             const opacity = d === 0 ? 1 : d === 1 ? 0.72 : d === 2 ? 0.48 : 0.3
             return (
               <div key={offset} data-schedule-day={offset === 0 ? 'selected' : undefined} className="flex-shrink-0 h-full" style={{ width: w, transform: `scale(${scale})`, opacity }}>
-                <Skeleton w="100%" h={stripHeight} radius={28} />
+                <Skeleton w="100%" style={{ height: stripHeight }} radius={28} />
               </div>
             )
           })}
