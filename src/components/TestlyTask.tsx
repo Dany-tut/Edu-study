@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, Clock, ExternalLink, ListChecks, Loader2, Play, X } from './icons/appIcons'
+import { Check, Clock, ExternalLink, ListChecks, Loader2, Play } from './icons/appIcons'
 import { TESTLY_DONE_PREFIX, testlyAnswer, testlyDoneAt, testlyScoreOf, type TestlyRef, type TestlyScore } from '../data/taskTypes'
 import {
   fetchTestlyStatus, plural, startTestlyTest, testlyPlayUrl, testlyPoints, testlyReviewUrl, type TestlyAttempt,
@@ -35,6 +35,12 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
   const [opening, setOpening] = useState(false)
   const [opened, setOpened] = useState(false)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
+  const embedSrc = embedUrl ? (() => {
+    const url = new URL(embedUrl)
+    url.searchParams.set('embed', 'iskra')
+    return url.href
+  })() : null
+
   // Свежие value/onChange без перезапуска опроса: колбэки домашки новые на каждый рендер.
   const live = useRef({ value, onChange, disabled })
   live.current = { value, onChange, disabled }
@@ -203,22 +209,16 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
           {body}
         </div>
       </div>
-      {embedUrl && doneAt === null && (
+      {embedUrl && (
         <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 18, border: '1px solid var(--color-border-medium)', background: '#fff' }}>
-          <button
-            type="button"
-            onClick={() => { setEmbedUrl(null); void refresh() }}
-            aria-label={t('Закрыть тест')}
-            title={t('Закрыть тест')}
-            style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 36, height: 36, border: 0, borderRadius: 18, background: 'rgba(255,255,255,.94)', color: '#333', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,.14)' }}
-          ><X size={18} /></button>
           <iframe
             title={t('Тест Тестли')}
-            src={embedUrl}
+            src={embedSrc ?? undefined}
+            scrolling="no"
             allow="fullscreen; clipboard-read; clipboard-write"
             allowFullScreen
             referrerPolicy="strict-origin-when-cross-origin"
-            style={{ display: 'block', width: '100%', height: 'min(78vh, 820px)', minHeight: 560, border: 0, background: '#fff' }}
+            style={{ display: 'block', width: '100%', height: 760, border: 0, background: '#fff' }}
           />
         </section>
       )}
