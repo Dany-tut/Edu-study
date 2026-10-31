@@ -1363,7 +1363,9 @@ function ScorePill({ value, max = 100 }: { value: number | null; max?: number })
 function CredentialsSpoiler({ login, password }: { login: string; password: string }) {
   const t = useT()
   const [phase, setPhase] = useState<'hidden' | 'revealed'>('hidden')
+  const [copiedField, setCopiedField] = useState<'login' | 'password' | null>(null)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Auto-hide after 3s of inactivity when revealed
   useEffect(() => {
@@ -1373,19 +1375,24 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
     return () => { if (hideTimer.current) clearTimeout(hideTimer.current) }
   }, [phase])
 
-  function handleClick() {
-    if (phase === 'hidden') {
-      setPhase('revealed')
-    } else {
-      void copyToClipboard(`${t('Логин')}: ${login}\n${t('Пароль')}: ${password}`)
-      setPhase('hidden')
-    }
+  useEffect(() => () => { if (copiedTimer.current) clearTimeout(copiedTimer.current) }, [])
+
+  async function handleCopy(field: 'login' | 'password', value: string) {
+    if (!value || !await copyToClipboard(value)) return
+    setCopiedField(field)
+    if (copiedTimer.current) clearTimeout(copiedTimer.current)
+    copiedTimer.current = setTimeout(() => setCopiedField(null), 1600)
   }
 
   const mono: React.CSSProperties = { fontFamily: 'monospace', fontSize: 13, fontWeight: 600 }
   const rowStyle: React.CSSProperties = {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    display: 'flex', alignItems: 'center',
     gap: 8, padding: '8px 10px', background: 'var(--color-bg)', borderRadius: 10,
+  }
+  const copyButtonStyle: React.CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    width: 26, height: 26, flexShrink: 0, border: 'none', borderRadius: 7,
+    background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)',
   }
   const shimBar: React.CSSProperties = {
     flex: 1, height: 14, borderRadius: 6,
@@ -1394,33 +1401,33 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
   }
 
   return (
-    <div
-      onClick={handleClick}
-      title={phase === 'hidden' ? t('Нажмите чтобы показать') : t('Нажмите чтобы скопировать')}
-      style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={rowStyle}>
         <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>{t('Логин')}</span>
         {phase === 'revealed'
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{login}</span>
           : (
-            <span style={shimBar}>
-            </span>
+            <button type="button" onClick={() => setPhase('revealed')} title={t('Нажмите чтобы показать')} aria-label={t('Показать логин')} style={{ ...shimBar, border: 0, cursor: 'pointer' }} />
           )
         }
+        <button type="button" onClick={() => void handleCopy('login', login)} disabled={!login} title={copiedField === 'login' ? t('Скопировано') : t('Скопировать логин')} aria-label={copiedField === 'login' ? t('Скопировано') : t('Скопировать логин')} style={{ ...copyButtonStyle, opacity: login ? 1 : 0.4, cursor: login ? 'pointer' : 'default' }}>
+          {copiedField === 'login' ? <Check size={14} /> : <Copy size={14} />}
+        </button>
       </div>
       <div style={rowStyle}>
         <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>{t('Пароль')}</span>
         {phase === 'revealed'
-          ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right' }}>{password}</span>
+          ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{password}</span>
           : (
-            <span style={shimBar}>
-            </span>
+            <button type="button" onClick={() => setPhase('revealed')} title={t('Нажмите чтобы показать')} aria-label={t('Показать пароль')} style={{ ...shimBar, border: 0, cursor: 'pointer' }} />
           )
         }
+        <button type="button" onClick={() => void handleCopy('password', password)} disabled={!password} title={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} aria-label={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} style={{ ...copyButtonStyle, opacity: password ? 1 : 0.4, cursor: password ? 'pointer' : 'default' }}>
+          {copiedField === 'password' ? <Check size={14} /> : <Copy size={14} />}
+        </button>
       </div>
       <div style={{ fontSize: 10, color: 'var(--color-text-3)', textAlign: 'center', marginTop: 2 }}>
-        {phase === 'hidden' ? t('● ● ●  нажмите чтобы показать') : t('нажмите ещё раз — скопирует оба поля')}
+        {phase === 'hidden' ? t('● ● ●  нажмите чтобы показать') : t('Нажмите значок, чтобы скопировать поле')}
       </div>
     </div>
   )
