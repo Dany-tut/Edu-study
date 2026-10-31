@@ -94,6 +94,12 @@ export default class ErrorBoundary extends Component<Props, State> {
               // «На главную» — единственный выход из такой петли. Оставляем
               // пользователя в его кабинете: общий маршрут #/ открывает ученика.
               const isTeacherRoute = window.location.hash.startsWith('#/teacher')
+              if (isTeacherRoute) {
+                // The teacher store restores the last page from this per-tab
+                // snapshot before reading the hash. Clear it so #/teacher really
+                // opens the dashboard instead of returning to the broken page.
+                try { window.sessionStorage.removeItem('teacher-nav') } catch { /* storage may be unavailable */ }
+              }
               window.location.hash = isTeacherRoute ? '#/teacher' : '#/'
               window.location.reload()
             }}
