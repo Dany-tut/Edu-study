@@ -1688,6 +1688,7 @@ export default function HomeworkFlow({
   const topBarBox = useDashboard(s => s.topBarBox)
   const dockTitleRef = useRef<HTMLDivElement>(null)
   const [dockTitleMax, setDockTitleMax] = useState<number | undefined>(undefined)
+  const basicProgress = useStudentData(s => s.progress[lessonId])
   const basicLevel = homework.levels.find(level => level.id === 'basic')
   const hardLevel = homework.levels.find(level => level.id === 'hard')
   // Нет реального сложного уровня → не показываем вход в хард (кнопки/CTA/карточка).
@@ -2201,7 +2202,16 @@ export default function HomeworkFlow({
   // Testly-only homework is submitted as soon as all linked tests finish.
   // Later teacher grading also persists a fresh snapshot and refreshes the track.
   const testlySnapshot = basicQuestions.some(q => qType(q) === 'testly') ? JSON.stringify(state.basicAnswers) : ''
-  const syncedTestly = useRef('')
+  const syncedTestly = useRef(testlySnapshot)
+  useEffect(() => {
+    if (basicProgress?.status !== 'returned') return
+    syncedTestly.current = ''
+    setShowResultModal(null)
+    setState(current => ({ ...current, basicSubmitted: false, submittedAt: undefined, basicChecked: {},
+      basicAnswers: Object.fromEntries(Object.entries(current.basicAnswers).map(([id, answer]) =>
+        [id, basicQuestions.some(q => q.id === id && qType(q) === 'testly') ? '' : answer])),
+    }))
+  }, [basicProgress?.status, lessonId])
   useEffect(() => {
     if (!basicQuestions.some(q => qType(q) === 'testly' && testlyDoneAt(state.basicAnswers[q.id]) !== null)) return
     if (!testlySnapshot || (!state.basicSubmitted && !(basicCompleted && basicQuestions.every(q => qType(q) === 'testly')))) return
@@ -3332,6 +3342,12 @@ export default function HomeworkFlow({
         >
           {selectedLevel === 'basic' ? (
             <div className="flex flex-col" style={{ gap: 18 }}>
+              {basicProgress?.status === 'returned' && (
+                <div role="status" style={{ padding: 18, borderRadius: 18, background: 'var(--color-yellow-soft)', color: 'var(--color-text)' }}>
+                  <strong>{t('На доработке')}</strong>
+                  {basicProgress.reviewComment && <p style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>{basicProgress.reviewComment}</p>}
+                </div>
+              )}
 
               {basicCompleted && !state.basicSubmitted && (
                 <div
@@ -4028,6 +4044,15 @@ export default function HomeworkFlow({
                       test={question.testly}
                       value={selectedAnswer}
                       disabled={locked}
+                      onReopen={() => {
+                        syncedTestly.current = ''
+                        setShowResultModal(null)
+                        setState(current => ({ ...current, basicSubmitted: false, submittedAt: undefined,
+                          basicAnswers: { ...current.basicAnswers, [question.id]: '' },
+                          basicChecked: Object.fromEntries(Object.entries(current.basicChecked).filter(([id]) => id !== question.id)),
+                        }))
+                        void useStudentData.getState().load()
+                      }}
                       // Обновление результата из Testly — синхронизация оценки,
                       // она должна переживать сдачу домашки и блокировку ответов.
                       onChange={v => {

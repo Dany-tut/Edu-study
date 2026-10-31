@@ -21,3 +21,17 @@ const full = applyTestlyResult(partial.attachments, 'test', { ...result, got: 36
 assert.equal(full.score, 100)
 assert.equal(full.attachments.rows[1].verdict, 'correct')
 console.log('PASS: zero, mixed homework, partial score, teacher review, repeated delivery, unrelated tests')
+
+const reopened = applyTestlyResult(full.attachments, 'test', { state: 'started', updatedAt: '2026-10-31T16:00:00Z' }, 'submitted')
+assert.equal(reopened.status, 'returned')
+assert.equal(reopened.score, 100) // Keep the previous grade while correcting answers.
+assert.equal(reopened.attachments.rows[1].testly.returned, true)
+assert.equal(reopened.attachments.rows[1].answer, '')
+assert.equal(applyTestlyResult(reopened.attachments, 'test', result, 'returned'), null) // Stale response.
+assert.equal(applyTestlyResult(reopened.attachments, 'test', { state: 'started' }, 'returned'), null) // Retry.
+const resubmitted = applyTestlyResult(reopened.attachments, 'test', { ...result, got: 18, submittedAt: '2026-10-31T16:10:00Z' }, 'returned')
+assert.equal(resubmitted.status, 'submitted')
+assert.equal(resubmitted.score, 75)
+assert.equal(resubmitted.attachments.rows[1].testly.returned, false)
+assert.equal(applyTestlyResult(resubmitted.attachments, 'test', { ...result, got: 18, submittedAt: '2026-10-31T16:10:00Z' }, 'submitted'), null)
+console.log('PASS: return, preserved previous grade, stale response, retry, resubmission')

@@ -6,6 +6,7 @@ import type { HomeworkItem } from '../data/teacherMockData'
 import { parseBasicAnswers, type BasicAnswersPayload } from './basicAnswers'
 import { baseLessonRef, extraHwLabel, hwRef } from './extraHomework'
 import { t } from './i18n'
+import { returnTestlyHomework } from './testlyModule'
 
 export type HardSub = {
   id: string
@@ -613,6 +614,14 @@ export async function reviewHomework(
   comment: string,
   attachments?: { photos: string[]; board: string | null },
 ) {
+  if (verdict === 'returned') {
+    const { data, error } = await supabase.from('lesson_progress').select('attachments').eq('id', progressRowId).maybeSingle()
+    if (error) return false
+    if (parseBasicAnswers(data?.attachments)?.rows.some(row => row.testly)) {
+      try { await returnTestlyHomework(progressRowId, comment) }
+      catch (error) { console.error('[reviewHomework] Testly return', error); return false }
+    }
+  }
   const hasAtt = !!attachments && (!!attachments.photos.length || !!attachments.board)
   // Возвращаем результат: раньше вызывающий после неудачной записи стирал
   // черновик проверки и уезжал к следующему ученику — комментарий учителя
@@ -631,11 +640,11 @@ export async function reviewHomework(
 // Read the actual submission, including independent students with no group.
 const courseTestlyQuery = createSharedQuery<Array<{
   id: string; studentId: string; studentName: string; lessonRef: string;
-  score: number; payload: BasicAnswersPayload
+  score: number; status: string; payload: BasicAnswersPayload
 }>>(async () => {
   const uid = await getOwnerId()
   const { data, error } = await supabase.from('lesson_progress')
-    .select('id, student_id, lesson_ref, score, attachments, students!inner(name, created_by)')
+    .select('id, student_id, lesson_ref, score, status, attachments, students!inner(name, created_by)')
     .eq('students.created_by', uid).not('lesson_ref', 'like', 'hw-%')
     .contains('attachments', { v: 'basic-1' }).in('status', ['submitted', 'returned', 'completed'])
     .order('updated_at', { ascending: false })
@@ -644,7 +653,7 @@ const courseTestlyQuery = createSharedQuery<Array<{
     const payload = parseBasicAnswers(row.attachments)
     if (!payload?.rows.some(r => r.testly)) return []
     return [{ id: row.id, studentId: row.student_id, studentName: (row.students as unknown as { name: string })?.name ?? '',
-      lessonRef: row.lesson_ref, score: row.score ?? 0, payload }]
+      lessonRef: row.lesson_ref, score: row.score ?? 0, status: row.status, payload }]
   })
 }, [], {
   watch: reload => {

@@ -1,3 +1,4 @@
+import { returnTestlyHomework } from '../../lib/testlyModule'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import { useCourseTestlySubmissions } from '../../lib/useHomework'
 import { LoopInlineIcon } from '../../components/icons/LoopIcon'
@@ -651,6 +652,9 @@ export default function TeacherHomeworkPage() {
   const { homework, loading: hwLoading } = useHomework()
   const { submissions: hardSubs } = useHardSubmissions()
   const { value: courseTestlySubs } = useCourseTestlySubmissions()
+  const [returningTestly, setReturningTestly] = useState<string | null>(null)
+  const [testlyReturnError, setTestlyReturnError] = useState('')
+  const [testlyComments, setTestlyComments] = useState<Record<string, string>>({})
 
   // Selecting a merged 1:1 person card expands to the union of that person's
   // subject-groups, so the list shows химия + биология together.
@@ -758,9 +762,25 @@ export default function TeacherHomeworkPage() {
               <Card key={sub.id}>
                 <details style={{ padding: 18 }}>
                   <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
-                    {sub.studentName} · {sub.payload.rows.filter(r => r.testly).map(r => r.prompt).join(', ')} · {sub.score} / 100
+                    {sub.studentName} · {sub.payload.rows.filter(r => r.testly).map(r => r.prompt).join(', ')} · {sub.score} / 100{sub.status === 'returned' ? ` · ${t('На доработке')}` : ''}
                   </summary>
                   <div style={{ marginTop: 14 }}><BasicAnswersList payload={sub.payload} studentId={sub.studentId} /></div>
+                  {sub.status !== 'returned' && (
+                    <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
+                      <GrowTextarea aria-label={t('Комментарий преподавателя')} placeholder={t('Комментарий преподавателя')}
+                        value={testlyComments[sub.id] ?? ''} onChange={value => setTestlyComments(c => ({ ...c, [sub.id]: value }))}
+                        style={{ ...FIELD, minHeight: 64 }} />
+                      <button disabled={returningTestly !== null} style={{ ...btn('S', 'secondary'), justifySelf: 'start' }} onClick={async () => {
+                        setReturningTestly(sub.id); setTestlyReturnError('')
+                        try { await returnTestlyHomework(sub.id, testlyComments[sub.id] ?? '') }
+                        catch (error) { setTestlyReturnError(error instanceof Error ? error.message : t('Не удалось сохранить изменения')) }
+                        finally { setReturningTestly(null) }
+                      }}>
+                        {returningTestly === sub.id ? t('Сохраняем…') : t('На доработку')}
+                      </button>
+                    </div>
+                  )}
+                  {testlyReturnError && <p role="alert" style={{ color: 'var(--color-red-text)', marginTop: 10 }}>{testlyReturnError}</p>}
                 </details>
               </Card>
             ))}

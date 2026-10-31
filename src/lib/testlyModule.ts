@@ -101,6 +101,7 @@ export interface TestlyAttempt {
   answered?: number
   startedAt?: string | null
   submittedAt?: string | null
+  updatedAt?: string | null
   /** балла нет, если Тестли не показывает его ученику (настройка теста) */
   got?: number
   max?: number
@@ -149,4 +150,9 @@ export function testlyMeta(x: { questions: number; points: number; minutes: numb
   ]
   if (x.minutes) parts.push(`${x.minutes} ${t('мин')}`)
   return parts.join(' · ')
+}
+
+/** Teacher: reopen the linked Testly attempts and return this homework together. */
+export function returnTestlyHomework(progressId: string, comment = ''): Promise<{ ok: boolean }> {
+  return bridge({ action: 'return_homework', progressId, comment })
 }

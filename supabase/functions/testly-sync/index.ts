@@ -29,12 +29,12 @@ Deno.serve(async req => {
       })
       if (!res.ok) throw new Error(`Testly status ${res.status}`)
       const result = (await res.json()).items?.[0]
-      if (!result || result.state !== 'submitted') continue
-      const { data: rows, error: readError } = await db.from('lesson_progress').select('id, attachments, updated_at')
+      if (!result || !['submitted', 'started'].includes(result.state)) continue
+      const { data: rows, error: readError } = await db.from('lesson_progress').select('id, attachments, updated_at, status')
         .eq('student_id', student.id).contains('attachments', { v: 'basic-1' })
       if (readError) throw readError
       for (const row of rows ?? []) {
-        const patch = applyTestlyResult(row.attachments, testId, result)
+        const patch = applyTestlyResult(row.attachments, testId, result, row.status)
         if (patch) {
           const { error } = await db.from('lesson_progress').update(patch).eq('id', row.id).eq('updated_at', row.updated_at)
           if (error) throw error

@@ -65,12 +65,12 @@ Deno.serve(async (req) => {
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
 
   const persistResult = async (studentIds: string[], testId: string, result: Record<string, unknown>) => {
-    if (!studentIds.length || result.state !== 'submitted') return
-    const { data: progress, error } = await admin.from('lesson_progress').select('id, attachments, updated_at')
+    if (!studentIds.length || !['submitted', 'started'].includes(String(result.state))) return
+    const { data: progress, error } = await admin.from('lesson_progress').select('id, attachments, updated_at, status')
       .in('student_id', studentIds).contains('attachments', { v: 'basic-1' })
     if (error) throw error
     for (const row of progress ?? []) {
-      const patch = applyTestlyResult(row.attachments, testId, result)
+      const patch = applyTestlyResult(row.attachments, testId, result, row.status)
       if (!patch) continue
       // A concurrently submitted homework must never be overwritten by an older snapshot.
       const { error: saveError } = await admin.from('lesson_progress').update(patch).eq('id', row.id).eq('updated_at', row.updated_at)
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
   const forStudent = (x: Record<string, unknown>) => {
     const show = x.showAfter
     return {
-      state: x.state, total: x.total, answered: x.answered, startedAt: x.startedAt, submittedAt: x.submittedAt,
+      state: x.state, total: x.total, answered: x.answered, startedAt: x.startedAt, submittedAt: x.submittedAt, updatedAt: x.updatedAt,
       ...(x.state === 'submitted' ? { got: x.got, max: x.max, pending: x.pending } : {}),
       ...(show === 'review' && x.state === 'submitted' ? { review: x.review } : {}),
     }
@@ -169,6 +169,35 @@ Deno.serve(async (req) => {
             await persistResult(ids, String(result.testId), result)
           }
         }
+        return json({ ok: true })
+      }
+      case 'return_homework': {
+        const id = String(body.progressId ?? '')
+        if (!/^[0-9a-f-]{36}$/i.test(id)) return json({ error: 'bad_request' }, 400)
+        const { data: progress, error: progressError } = await admin.from('lesson_progress').select('id, student_id, attachments').eq('id', id).maybeSingle()
+        if (progressError) throw progressError
+        if (!progress) return json({ error: 'forbidden' }, 403)
+        const { data: student } = await admin.from('students').select('auth_user_id, created_by, group_id').eq('id', progress.student_id).maybeSingle()
+        let owns = student?.created_by === teacher
+        if (!owns && student?.group_id) {
+          const { data: group } = await admin.from('groups').select('created_by').eq('id', student.group_id).maybeSingle()
+          owns = group?.created_by === teacher
+        }
+        if (!owns || !student?.auth_user_id) return json({ error: 'forbidden' }, 403)
+        const tests = [...new Set<string>(((progress.attachments as any)?.rows ?? [])
+          .filter((row: any) => row.type === 'testly' && row.testly?.testId).map((row: any) => row.testly.testId))]
+        if (!tests.length) return json({ error: 'bad_request' }, 400)
+        const token = await tokenOf()
+        if (!token) return json({ error: 'not_connected' }, 409)
+        for (const testId of tests) {
+          const response = await testly({ action: 'reopen', token, testId, key: `iskra:${student.auth_user_id}` })
+          if (!response.ok) return json({ error: 'testly' }, 502)
+          await persistResult([progress.student_id], testId, response.data)
+        }
+        const { error } = await admin.from('lesson_progress').update({ status: 'returned',
+          review_comment: typeof body.comment === 'string' ? body.comment.slice(0, 10000) : null,
+        }).eq('id', id)
+        if (error) throw error
         return json({ ok: true })
       }
       case 'results': {

@@ -54,7 +54,7 @@ export interface BasicAnswerRow {
    * Тест из Тестли: балл на момент сдачи и чем спросить свежий (у теста с
    * ручной частью итог приходит после проверки в Тестли).
    */
-  testly?: { testId: string; got?: number; max?: number; pending?: boolean; submittedAt?: string }
+  testly?: { testId: string; got?: number; max?: number; pending?: boolean; submittedAt?: string; returned?: boolean; returnedAt?: string }
 }
 
 export interface BasicAnswersPayload {

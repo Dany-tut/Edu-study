@@ -22,11 +22,12 @@ import { TestlyTile } from './TestlyMark'
 // устраняет длинное окно, в котором Искра ещё считает тест начатым.
 const POLL_MS = 5_000
 
-export default function TestlyTask({ test, value, disabled, onChange }: {
+export default function TestlyTask({ test, value, disabled, onChange, onReopen }: {
   test: TestlyRef | undefined
   value: string | undefined
   disabled?: boolean
   onChange: (value: string) => void
+  onReopen?: () => void
 }) {
   const t = useT()
   const lang = useLang(s => s.lang)
@@ -42,8 +43,8 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
   })() : null
 
   // Свежие value/onChange без перезапуска опроса: колбэки домашки новые на каждый рендер.
-  const live = useRef({ value, onChange, disabled })
-  live.current = { value, onChange, disabled }
+  const live = useRef({ value, onChange, disabled, onReopen })
+  live.current = { value, onChange, disabled, onReopen }
 
   const refresh = useCallback(async () => {
     if (!test?.id) return
@@ -51,6 +52,11 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
       const a = await fetchTestlyStatus(test.id, test.owner)
       setAttempt(a); setOffline(false)
       const { value: v, onChange: change } = live.current
+      if (a.state === 'started' && testlyDoneAt(v) !== null) {
+        setEmbedUrl(null); setOpened(false)
+        live.current.onReopen?.()
+        return
+      }
       if (a.state === 'submitted') {
         const fetchedScore: TestlyScore | null = a.got != null && a.max != null
           ? { got: a.got, max: a.max, pending: !!a.pending, ...(a.review ? { review: a.review } : {}) }
@@ -74,7 +80,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
   }, [refresh])
 
   // Пока тест начат (или итог ждёт проверки учителя) — переспрашиваем сами.
-  const waiting = attempt?.state === 'started' || (attempt?.state === 'submitted' && !!attempt.pending) || opened || offline
+  const waiting = !!test?.id
   useEffect(() => {
     if (!waiting) return
     const id = window.setInterval(() => { if (document.visibilityState === 'visible') void refresh() }, POLL_MS)
@@ -112,10 +118,10 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
     onChange(TESTLY_DONE_PREFIX + new Date().toISOString())
   }
 
-  const doneAt = attempt?.state === 'submitted' ? (attempt.submittedAt ?? '') : testlyDoneAt(value)
+  const doneAt = attempt?.state === 'started' ? null : attempt?.state === 'submitted' ? (attempt.submittedAt ?? '') : testlyDoneAt(value)
   const score: TestlyScore | null = attempt?.state === 'submitted'
     ? (attempt.got != null && attempt.max != null ? { got: attempt.got, max: attempt.max, pending: !!attempt.pending, review: attempt.review } : null)
-    : testlyScoreOf(value)
+    : attempt?.state === 'started' ? null : testlyScoreOf(value)
   const started = doneAt === null && attempt?.state === 'started'
 
   const btn = (bg: string, fg: string) => ({
