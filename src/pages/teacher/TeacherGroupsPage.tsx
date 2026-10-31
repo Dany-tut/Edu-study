@@ -24,6 +24,7 @@ import {
   type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
 import { useGroups, useStudents, useAllStudents, reloadAllStudents, listTeacherCourses, bindGroupToCourse, personKey, type GroupCourseOption } from '../../lib/useGroups'
+import { assignedCourseTitles, type StudentCourseAssignment } from '../../lib/studentCourseAssignments'
 import { ensureCardFillTask } from '../../lib/cardFillTask'
 import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
 import { supabase } from '../../lib/supabase'
@@ -1815,7 +1816,7 @@ function TracksSection({
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <div style={{ ...chip(group.icon, group.subject, group.level, group.color), flex: 1 }}>
             <span>{group.icon}</span>
-            <span>{group.id ? tc(group.subject) : t('Пока без занятий')}{group.level ? ` · ${t(group.level)}` : ''}</span>
+            <span>{group.id ? tc(group.subject) : tc(group.name)}{group.level ? ` · ${t(group.level)}` : ''}</span>
           </div>
           {individual && (
             <Tooltip label={t('Удалить карточку')}><button
@@ -2308,6 +2309,41 @@ export default function TeacherGroupsPage() {
   const { groups, loading: groupsLoading, addGroup, addUnassignedStudent, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup } = useGroups()
   const { students, deleteStudent, updateStudent } = useStudents(selectedGroupId)
   const allStudents = useAllStudents()
+  const [assignedCourses, setAssignedCourses] = useState<StudentCourseAssignment[]>([])
+  const [courseAssignmentsStatus, setCourseAssignmentsStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  // One access query for the roster, including direct course/intensive assignments.
+  const assignmentScope = useMemo(() => ({
+    ids: [...new Set(allStudents.map(s => s.id))].sort(),
+    groups: [...new Set(allStudents.map(s => s.groupId).filter(Boolean))].sort(),
+  }), [allStudents])
+  useEffect(() => {
+    let cancelled = false
+    setCourseAssignmentsStatus('loading')
+    if (!assignmentScope.ids.length) {
+      setAssignedCourses([])
+      setCourseAssignmentsStatus('ready')
+      return
+    }
+    const filters = [`student_ids.ov.{${assignmentScope.ids.join(',')}}`]
+    if (assignmentScope.groups.length) filters.push(`group_ids.ov.{${assignmentScope.groups.join(',')}}`)
+    void supabase.from('courses').select('id, title, student_ids, group_ids').or(filters.join(','))
+      .then(({ data, error }) => {
+        if (cancelled) return
+        setAssignedCourses(error ? [] : data ?? [])
+        setCourseAssignmentsStatus(error ? 'error' : 'ready')
+      })
+    return () => { cancelled = true }
+  }, [assignmentScope])
+  function studentAssignmentLabels(student: Student) {
+    const cards = allStudents.filter(s => personKey(s) === personKey(student))
+    const groupLabels = cards.map(s => {
+      const g = groups.find(g => g.id === s.groupId)
+      return g ? (g.isIndividual ? `1:1 · ${g.subject}` : g.name) : ''
+    }).filter(Boolean)
+    return [...new Set([...groupLabels, ...assignedCourseTitles(cards, assignedCourses)])]
+  }
+  const emptyAssignmentLabel = courseAssignmentsStatus === 'loading' ? t('Загрузка…')
+    : courseAssignmentsStatus === 'error' ? t('Не удалось загрузить курсы') : t('Пока без занятий')
   // Persisted so an open modal (and its draft) re-opens after a page reload —
   // the teacher must never lose an in-progress form to a tab switch/reload.
   const [showAddGroup, setShowAddGroup] = usePersistentState('groups.show.addGroup', false)
@@ -2383,7 +2419,10 @@ export default function TeacherGroupsPage() {
     nohw: rosterAll.filter(filterPredicate.nohw).length,
   }
   const activeStudent = activeStudentId ? allStudents.find(s => s.id === activeStudentId) ?? null : null
-  const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? unassignedDisplay : null
+  const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? {
+    ...unassignedDisplay,
+    name: studentAssignmentLabels(activeStudent).join(' · ') || emptyAssignmentLabel,
+  } : null
 
   // personKey: person_id — источник правды, authUserId/имя — запасные варианты
   // для незабэкфилленных строк (миграция 0031). Общий с пикером «кому дать курс».
@@ -2744,10 +2783,7 @@ export default function TeacherGroupsPage() {
                                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                                   {tn(student.name)}
                                   {allRosterView && <span style={{ display: 'block', marginTop: 4, fontSize: 11, fontWeight: 400, color: 'var(--color-muted)', whiteSpace: 'normal' }}>
-                                    {[...new Set(allStudents.filter(s => personKey(s) === personKey(student)).map(s => {
-                                      const g = groups.find(g => g.id === s.groupId)
-                                      return g ? (g.isIndividual ? `1:1 · ${g.subject}` : g.name) : ''
-                                    }).filter(Boolean))].join(' · ') || t('Пока без занятий')}
+                                    {studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel}
                                   </span>}
                                 </span>
                               </div>

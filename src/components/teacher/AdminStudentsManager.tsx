@@ -15,9 +15,9 @@ import { Alert } from '../Alert'
 import { btn } from '../../lib/pillStyles'
 
 // Админский реестр учеников: кто к какому учителю привязан, перевод другому
-// учителю / в другую группу, правка карточки и удаление. Владельца ученик не
-// хранит сам — им владеет группа (groups.created_by), поэтому «переназначить»
-// делает RPC admin_student_reassign (миграция 0053).
+// учителю / в другую группу, правка карточки и удаление. Владелец хранится
+// в students.created_by; для групповых карточек источник — groups.created_by.
+// Переназначение выполняет RPC admin_student_reassign.
 
 type StudentRow = {
   id: string
@@ -103,7 +103,7 @@ export default function AdminStudentsManager() {
     if (!newOwner || newOwner === (row.owner_id ?? '')) return
     const grp = groups.find(g => g.id === row.group_id)
     const simple = row.is_individual && (grp?.students ?? 1) <= 1
-    if (simple) void doReassign(row, newOwner)
+    if (!row.group_id || simple) void doReassign(row, newOwner)
     else void confirmDialog({
       title: t('Передать ученика?'),
       message: `${tn(row.name)} ${t('сейчас в общей группе')} «${row.group_name}». ${t('Он переедет в новую личную группу учителя')} ${teachers.find(x => x.id === newOwner)?.name ?? ''} ${t('— личный прогресс, журнал и расписание переедут вместе с ним, а групповое ДЗ старой группы останется у прежнего учителя.')}`,
@@ -117,7 +117,7 @@ export default function AdminStudentsManager() {
     const teacher = teachers.find(x => x.id === newOwner)?.name ?? ''
     if (error) setNotice({ tone: 'danger', text: error.message })
     else if (data === 'new_group') setNotice({ tone: 'success', text: `${tn(row.name)} → ${teacher}: ${t('создана личная группа, групповое ДЗ старой группы не перенесено')}` })
-    else if (data === 'group_moved') setNotice({ tone: 'success', text: `${tn(row.name)} → ${teacher}` })
+    else if (data === 'group_moved' || data === 'owner_changed') setNotice({ tone: 'success', text: `${tn(row.name)} → ${teacher}` })
     await load()
     setBusyId(null)
   }
@@ -370,7 +370,7 @@ export default function AdminStudentsManager() {
       )}
 
       <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 14, lineHeight: 1.5 }}>
-        {t('Ученик принадлежит учителю через свою группу. Перевод 1:1-ученика переносит его группу целиком (ДЗ, журнал, расписание сохраняются); ученика из общей группы — в новую личную группу нового учителя.')}
+        {t('Преподаватель назначен ученику независимо от наличия группы. Перевод 1:1-ученика переносит его группу целиком (ДЗ, журнал, расписание сохраняются); ученика из общей группы — в новую личную группу нового учителя.')}
       </div>
 
       {editing && (

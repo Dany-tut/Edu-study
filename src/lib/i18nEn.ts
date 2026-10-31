@@ -1183,7 +1183,7 @@ export const EN: Record<string, string> = {
   "уроков в прогрессе": "lessons in progress",
   "ещё карточек:": "other cards:",
   "— без учителя —": "— no teacher —",
-  "Ученик принадлежит учителю через свою группу. Перевод 1:1-ученика переносит его группу целиком (ДЗ, журнал, расписание сохраняются); ученика из общей группы — в новую личную группу нового учителя.": "A student belongs to a teacher through their group. Moving a 1:1 student moves the whole group (homework, journal and schedule are kept); a student from a shared group moves into a new personal group under the new teacher.",
+  "Преподаватель назначен ученику независимо от наличия группы. Перевод 1:1-ученика переносит его группу целиком (ДЗ, журнал, расписание сохраняются); ученика из общей группы — в новую личную группу нового учителя.": "A student has an assigned teacher even without a group. Moving a 1:1 student moves the whole group (homework, journal and schedule are kept); a student from a shared group moves into a new personal group under the new teacher.",
   "Передать ученика?": "Hand the student over?",
   "сейчас в общей группе": "is currently in the shared group",
   "Он переедет в новую личную группу учителя": "They will move to a new personal group under",
