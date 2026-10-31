@@ -13,6 +13,13 @@ import HScrollFade from './HScrollFade'
 const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
 const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 
+// Native horizontal scrolling also clips vertically. Reserve paint space for
+// card shadows, then offset the viewport so the dashboard rows do not move.
+// Side cards already fade by distance. Solid edge overlays cannot blend with
+// the seasonal backdrop; fadeWidth=0 preserves its colour and backdrop blur.
+const SHADOW_PAD = 40
+const SCROLLER_STYLE = { height: `calc(100% + ${SHADOW_PAD * 2}px)`, top: -SHADOW_PAD }
+
 export default function ScheduleCarousel() {
   const t = useT()
   const seasonHero = useSeason().on('hero')
@@ -79,7 +86,7 @@ export default function ScheduleCarousel() {
       // карточки прыгали: заглушка была ниже/уже и прижата к низу.
       return (
         <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Расписание не добавлено')} className="relative" style={{ height: stripHeight }}>
-          <HScrollFade fade="rgba(var(--glass-rgb), 0.45)" fadeWidth={56} style={{ height: '100%' }} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
+          <HScrollFade fadeWidth={0} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
           {offsets.map(offset => {
             const d = Math.abs(offset)
             const w = d === 0 ? (centerWidth ?? (mobile ? 300 : 480)) : slotWidth[d]
@@ -110,7 +117,7 @@ export default function ScheduleCarousel() {
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
     >
       <div ref={wrapRef} style={{ height: '100%' }}>
-      <HScrollFade fade="rgba(var(--glass-rgb), 0.45)" fadeWidth={56} style={{ height: '100%' }} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
+      <HScrollFade fadeWidth={0} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
         {slots.map(slot =>
           slot.day ? (
             <ScheduleCard
