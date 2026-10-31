@@ -15,9 +15,14 @@
   mask-image: linear-gradient(180deg, #000 55%, transparent);
 }
 .season-backdrop__dusk {
-  position: absolute; left: 0; right: 0; top: 0; height: 330px;
+  position: absolute; left: 0; right: 0; top: 0;
+  height: clamp(420px, 65vh, 680px);
   background: linear-gradient(180deg, #24184F, #4A3496 70%, #7A5FC8);
-  border-radius: 0 0 56px 56px; overflow: hidden;
+  overflow: hidden;
+  /* Fade the entire sky, including its glows and stars, into the page.
+     A hard bottom edge remains visible through translucent calendar cards. */
+  -webkit-mask-image: linear-gradient(180deg, #000 42%, rgba(0,0,0,0.6) 65%, rgba(0,0,0,0.15) 85%, transparent);
+  mask-image: linear-gradient(180deg, #000 42%, rgba(0,0,0,0.6) 65%, rgba(0,0,0,0.15) 85%, transparent);
 }
 .season-glow { position: absolute; border-radius: 50%; filter: blur(90px); }
 .season-glow--mint { right: 4%; top: 20px; width: 380px; height: 380px; background: rgba(52, 211, 153, 0.22); }
