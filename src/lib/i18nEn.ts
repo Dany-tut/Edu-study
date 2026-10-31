@@ -5206,4 +5206,5 @@ export const EN: Record<string, string> = {
   "ДЗ к записи": "Recording homework",
   "Без имени": "Unnamed",
   "Без группы": "No group",
+  "Ответы сохраняются в Тестли на каждом шаге. Балл появится здесь после сдачи.": "Answers are saved in Testly at every step. Your score will appear here after submission.",
 }
