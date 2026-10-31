@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.iskra.app',
+  appId: 'com.dany.iskra',
   appName: 'Искра',
   webDir: 'dist'
 };
