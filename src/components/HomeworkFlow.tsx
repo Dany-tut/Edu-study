@@ -4,8 +4,8 @@ import { EMOJI_STEPS } from './homeworkSteps'
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
-  BookOpen, CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
-  Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
+  CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
+  Lock, Send, Trophy, Image as ImageIcon, PenLine, X,
   ChevronUp, ChevronDown, Eye, Mic, MicOff, Library, RotateCcw, ArrowRight, Volume2,
 } from './icons/appIcons'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
@@ -2978,14 +2978,8 @@ export default function HomeworkFlow({
     boxShadow: 'var(--shadow-lg)',
   } as const
 
-  /**
-   * Кнопка «Правило» — вход в конспект, не выходя из заданий.
-   *
-   * Рисуется и в обычной строке шапки, и в приклеенной: ученик спотыкается на
-   * середине списка, когда обычная строка уже уехала вверх, и именно там кнопка
-   * нужнее всего. Нет конспекта — нет и кнопки, пустая шторка бесполезна.
-   */
-  const theoryButton = (docked: boolean) => theoryParagraphs.length > 0 && (
+  // Правило открываем только если преподаватель добавил конспект к уроку.
+  const theoryButton = theoryParagraphs.length > 0 && (
     <motion.button
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.96 }}
@@ -2993,9 +2987,8 @@ export default function HomeworkFlow({
       className="flex items-center justify-center cursor-pointer flex-shrink-0"
       style={{
         gap: 6, padding: isMobile ? 10 : '10px 16px 10px 12px', borderRadius: 999,
-        ...(docked ? dockGlass : { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)' }),
-        color: palette.text, fontSize: 14, fontWeight: 600,
-        ...(docked ? { pointerEvents: 'auto' as const } : {}),
+        border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
+        boxShadow: 'var(--shadow-2)', color: palette.text, fontSize: 14, fontWeight: 600,
       }}
     >
       <BookOpen size={18} />
@@ -3112,7 +3105,8 @@ export default function HomeworkFlow({
           {!isMobile && levelPill(false)}
         </h1>
 
-        {theoryButton(false)}
+        {theoryButton}
+
       </motion.div>
 
       {/* Docked twin — fixed at the topbar line so the Back/title pills sit ON
@@ -3181,7 +3175,6 @@ export default function HomeworkFlow({
               {!isMobile && levelPill(true)}
             </div>
 
-            {theoryButton(true)}
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
           </motion.div>
@@ -3275,29 +3268,6 @@ export default function HomeworkFlow({
             {selectedLevel === 'basic' && basicLevel.peerAverageScore != null && (
               <InfoRow label={t('Средний балл')} value={`${basicLevel.peerAverageScore}`} />
             )}
-          </div>
-
-          <div
-            className="flex flex-col"
-            style={{
-              padding: 16,
-              borderRadius: 16,
-              background: 'rgba(var(--glass-rgb), 0.94)',
-              border: '1px solid var(--color-border-soft)',
-              gap: 12,
-            }}
-          >
-            <div className="flex items-center" style={{ gap: 8 }}>
-              <Sparkles size={16} style={{ color: 'var(--color-accent)' }} />
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Как это работает')}</p>
-            </div>
-            <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--color-text)' }}>
-                <Clock size={14} />
-                {t('Обычно занимает')} {selectedEstimatedTime}.
-              </span>{' '}
-              {t('Базовый уровень обязателен и проверяется сразу. Если набираешь')} {homework.recommendationScore}+ {t('баллов, открывается необязательный хард-уровень с проверкой преподавателем.')}
-            </p>
           </div>
 
           {selectedLevel === 'hard' && hardLevel.teacherTask?.acceptedFormats && (
@@ -4554,7 +4524,7 @@ export default function HomeworkFlow({
                     </div>
                     <div>
                       <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
-                        {t('Список закончился, домашка — нет')}
+                        {t('Остались задания без ответа')}
                       </p>
                       <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
                         {t('Без ответа')}: {basicUnanswered.length} {t('из')} {basicQuestions.length}.{' '}

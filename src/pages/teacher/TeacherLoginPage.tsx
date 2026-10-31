@@ -41,9 +41,13 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     setLoading(true)
     setError('')
     setNotice('')
+    // iOS Keychain/autofill and pasted addresses can include capitalization or
+    // surrounding whitespace. Normalize email exactly as on student sign-in;
+    // passwords stay byte-for-byte as entered.
+    const normalizedEmail = email.trim().toLowerCase()
     try {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
         if (error) throw error
         void trackNow('login', { role: 'teacher', method: 'auth' })
         onLogin()
@@ -52,7 +56,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         // адресе ломал разбор. Форму нового пароля App показывает сам.
         // Адрес должен быть в Auth → URL Configuration → Redirect URLs.
         const redirectTo = `${window.location.origin}${window.location.pathname}`
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+        const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })
         if (error) throw error
         setNotice(t('Письмо отправлено. Откройте ссылку из него — здесь же откроется форма нового пароля.'))
       } else if (mode === 'newpassword') {

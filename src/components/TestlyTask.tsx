@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, Clock, ExternalLink, ListChecks, Loader2, Play } from './icons/appIcons'
+import { Check, Clock, ExternalLink, ListChecks, Loader2, Play, X } from './icons/appIcons'
 import { TESTLY_DONE_PREFIX, testlyAnswer, testlyDoneAt, testlyScoreOf, type TestlyRef, type TestlyScore } from '../data/taskTypes'
 import {
   fetchTestlyStatus, plural, startTestlyTest, testlyPlayUrl, testlyPoints, testlyReviewUrl, type TestlyAttempt,
@@ -9,8 +9,8 @@ import { useT, useLang } from '../lib/i18n'
 import { TestlyTile } from './TestlyMark'
 
 /*
- * Тест из Тестли в домашке ученика. Тест проходится на сайте Тестли по личной
- * ссылке ученика — на весь экран, с сохранением на каждом шаге, — а сюда сам
+ * Тест из Тестли в домашке ученика. Личная ссылка Тестли открывается внутри
+ * карточки Искры, с сохранением ответов на стороне Тестли, — а сюда сам
  * приходит статус: начат («Продолжить тест»), сдан и балл «14 / 19» с разбором,
  * или часть ждёт проверки учителя. Статус спрашиваем при открытии, при
  * возвращении на вкладку и раз в 20 секунд, пока тест открыт у ученика.
@@ -32,6 +32,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
   const [offline, setOffline] = useState(false)
   const [opening, setOpening] = useState(false)
   const [opened, setOpened] = useState(false)
+  const [embedUrl, setEmbedUrl] = useState<string | null>(null)
   // Свежие value/onChange без перезапуска опроса: колбэки домашки новые на каждый рендер.
   const live = useRef({ value, onChange, disabled })
   live.current = { value, onChange, disabled }
@@ -83,16 +84,13 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
 
   const start = async () => {
     if (disabled || opening) return
-    if (offline) { setOpened(true); window.open(testlyPlayUrl(test.id), '_blank', 'noopener'); return }
-    // Окно открываем сразу по клику: после await Safari его заблокирует.
-    const w = window.open('', '_blank')
+    if (offline) { setOpened(true); setEmbedUrl(testlyPlayUrl(test.id)); return }
     setOpening(true)
     try {
       const url = await startTestlyTest(test.id, test.owner)
-      if (w) { w.opener = null; w.location.href = url } else window.location.href = url
+      setEmbedUrl(url)
       setOpened(true)
     } catch {
-      w?.close()
       setOffline(true)
     } finally {
       setOpening(false)
@@ -154,7 +152,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
       <>
         {!started && (
           <span style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
-            {t('Тест откроется на весь экран. Ответы сохраняются на каждом шаге — если закроете, продолжите с того же места.')}
+            {t('Пройдите тест здесь, в Искре. Ответы сохраняются в Тестли на каждом шаге.')}
           </span>
         )}
         <div className="flex items-center" style={{ gap: 12, flexWrap: 'wrap' }}>
@@ -166,7 +164,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
             `${t('Начат в')} ${fmt(attempt.startedAt, false)}${attempt.total ? ` · ${t('ответов')} ${attempt.answered ?? 0} ${t('из')} ${attempt.total}` : ''}`,
           )}
           {/* Запасной путь: Тестли не ответил — сдачу отмечает сам ученик, как на шаге 1. */}
-          {offline && opened && (
+          {offline && opened && !embedUrl && (
             <button onClick={mark} disabled={disabled} style={btn('var(--btn-green-bg)', '#fff')}>
               <Check size={14} /> {t('Я сдал тест')}
             </button>
@@ -201,6 +199,25 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
           {body}
         </div>
       </div>
+      {embedUrl && doneAt === null && (
+        <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 18, border: '1px solid var(--color-border-medium)', background: '#fff' }}>
+          <button
+            type="button"
+            onClick={() => setEmbedUrl(null)}
+            aria-label={t('Закрыть тест')}
+            title={t('Закрыть тест')}
+            style={{ position: 'absolute', top: 10, right: 10, zIndex: 2, width: 36, height: 36, border: 0, borderRadius: 18, background: 'rgba(255,255,255,.94)', color: '#333', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,.14)' }}
+          ><X size={18} /></button>
+          <iframe
+            title={t('Тест Тестли')}
+            src={embedUrl}
+            allow="fullscreen; clipboard-read; clipboard-write"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+            style={{ display: 'block', width: '100%', height: 'min(78vh, 820px)', minHeight: 560, border: 0, background: '#fff' }}
+          />
+        </section>
+      )}
       <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{note}</span>
     </div>
   )

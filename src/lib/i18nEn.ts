@@ -857,6 +857,7 @@ export const EN: Record<string, string> = {
   "Конспект": "Notes",
   "Материалы": "Materials",
   "Описание урока": "Lesson description",
+  "Добавить описание": "Add description",
   "Краткое содержание урока, что разобрали, ключевые моменты...": "Brief lesson summary, what was covered, key points...",
   "Домашнее задание": "Homework",
   "Домашка": "Homework",
