@@ -2,6 +2,7 @@ import { LoopActionLabel } from '../../icons/LoopIcon'
 import { useRef, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { Check, RotateCcw, Image as ImageIcon, ClipboardCheck, Loader2, PenLine, X } from '../../icons/appIcons'
+import MobileSheet from '../../MobileSheet'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
@@ -34,9 +35,11 @@ const attachBtn = (on: boolean): CSSProperties => ({
 // per-task grading is surfaced as a list with a "проверьте на ПК" hint, since
 // that flow is multi-step and desktop-bound.
 
-function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, verdict: 'completed' | 'returned', comment: string, att: ReviewAttachments) => Promise<void> }) {
+function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, verdict: 'completed' | 'returned', comment: string, att: ReviewAttachments) => Promise<boolean> }) {
   const t = useT()
   const { tc, tn } = useTc()
+  const [open, setOpen] = useState(false)
+  const [reviewError, setReviewError] = useState('')
   const [comment, setComment] = useState('')
   const [busy, setBusy] = useState<null | 'completed' | 'returned'>(null)
   const [photos, setPhotos] = useState<string[]>([])
@@ -66,12 +69,15 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
     if (busy) return
     tactile()
     setBusy(verdict)
-    await onReviewed(sub.id, verdict, comment.trim(), { photos, board })
+    setReviewError('')
+    try { if (await onReviewed(sub.id, verdict, comment.trim(), { photos, board })) setOpen(false) }
+    catch { setReviewError(t('Не удалось сохранить — попробуйте ещё раз')) }
+    finally { setBusy(null) }
     // hook reloads → this card drops out of the list
   }
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 14, borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+  return <>
+    <button type="button" onClick={() => setOpen(true)} aria-label={`${tn(sub.studentName)} · ${tc(sub.lessonTitle)}`} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 14, width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -80,6 +86,33 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         </div>
         <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, flexShrink: 0 }}>{t('сложное')}</span>
       </div>
+    </button>
+    <MobileSheet open={open} onClose={() => setOpen(false)} title={`${tn(sub.studentName)} · ${tc(sub.lessonTitle)}`} footer={<>
+      {reviewError && <Alert tone="danger" text={reviewError} style={{ marginBottom: 8 }} />}
+      <div style={{ display: 'flex', gap: 10 }}>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => act('returned')}
+          disabled={!!busy}
+          className="cursor-pointer"
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.error.bg, color: PAIR.error.text, border: '1px solid transparent', fontSize: 14, fontWeight: 600 }}
+        >
+          {busy === 'returned' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="returned" size={16} tone="returned" />} {t('Вернуть')}
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => act('completed')}
+          disabled={!!busy}
+          className="cursor-pointer"
+          style={{ flex: 1.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.success.bg, color: PAIR.success.text, border: '1px solid transparent', fontSize: 14, fontWeight: 700 }}
+        >
+          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="done" size={18} tone="success" />} {t('Принять')}
+        </motion.button>
+      </div>
+
+    </>}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
 
       {(photoCount > 0 || sub.attachments.board) && <AnswerBody photos={sub.attachments.photos} board={sub.attachments.board} onZoomPhoto={setZoomPhoto} />}
       {zoomPhoto && <Modal title={t('Фото')} width={760} onClose={() => setZoomPhoto(null)}>
@@ -127,28 +160,10 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         {showBoard && <div style={{ marginTop: 10 }}><WhiteboardCanvas initialData={board ?? undefined} onSave={setBoard} /></div>}
       </div>
 
-      <div style={{ display: 'flex', gap: 10 }}>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => act('returned')}
-          disabled={!!busy}
-          className="cursor-pointer"
-          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.error.bg, color: PAIR.error.text, border: '1px solid transparent', fontSize: 14, fontWeight: 600 }}
-        >
-          {busy === 'returned' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="returned" size={16} tone="returned" />} {t('Вернуть')}
-        </motion.button>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => act('completed')}
-          disabled={!!busy}
-          className="cursor-pointer"
-          style={{ flex: 1.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.success.bg, color: PAIR.success.text, border: '1px solid transparent', fontSize: 14, fontWeight: 700 }}
-        >
-          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="done" size={18} tone="success" />} {t('Принять')}
-        </motion.button>
+
       </div>
-    </div>
-  )
+    </MobileSheet>
+  </>
 }
 
 export default function MobileTeacherReview() {
@@ -169,9 +184,10 @@ export default function MobileTeacherReview() {
   // Demo submissions have no DB row — swallow the review action instead of
   // firing a Supabase write against a fake id.
   const onReviewed = async (id: string, verdict: 'completed' | 'returned', comment: string, att: ReviewAttachments) => {
-    if (isDemoId(id)) return
+    if (isDemoId(id)) return true
     const ok = await reviewHard(id, verdict, comment, { ...att, annotation: null })
     if (!ok) void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+    return ok
   }
 
   const topZone = (

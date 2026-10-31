@@ -374,7 +374,8 @@ export default function MobileHome() {
 
   return (
     <>
-      <MobileScreen topZone={topZone} topPad={72} restoreKey="home">
+      <MobileScreen topZone={topZone} topPad={72} restoreKey="home" bottomDockRaise={loaded && continueInfo ? 80 : 0}
+        bottomDock={loaded && continueInfo ? <button onClick={() => { tactile(); openLesson(continueInfo.lesson.id) }} style={{ width: '100%', height: 48, borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t(getDisplayLessonStatus(continueInfo.lesson) === 'current' ? 'Продолжить' : 'Начать')}</button> : undefined}>
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
           {/* Шапка праздничной темы (lib/season.ts); без темы не рендерится. */}
@@ -392,7 +393,7 @@ export default function MobileHome() {
 
           {/* Hero — Продолжить */}
           {continueInfo ? (
-            <HeroContinue lesson={continueInfo.lesson} subjectName={tc(continueInfo.subject.name)} progress={continueInfo.subject.progress} onContinue={() => openLesson(continueInfo.lesson.id)} />
+            <HeroContinue lesson={continueInfo.lesson} subjectName={tc(continueInfo.subject.name)} progress={continueInfo.subject.progress} />
           ) : (
             <div className="flex flex-col items-center justify-center text-center" style={{ gap: 6, padding: '14px 16px', borderRadius: 20, background: 'var(--color-bg-3)', minHeight: HERO_MIN_H, boxSizing: 'border-box' }}>
               <Lock size={24} style={{ color: 'var(--color-muted)' }} />
@@ -669,7 +670,7 @@ function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value:
 // одном месте: без общей высоты главная прыгала на каждом переключении.
 const HERO_MIN_H = 142
 
-function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: Lesson; subjectName: string; progress: number; onContinue: () => void }) {
+function HeroContinue({ lesson, subjectName, progress }: { lesson: Lesson; subjectName: string; progress: number }) {
   const t = useT()
   const { tc } = useTc()
   const status = getDisplayLessonStatus(lesson)
@@ -714,20 +715,7 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
       </div>
       <div className="flex items-center justify-between">
         <span style={{ fontSize: 11, opacity: 0.85 }}>{progress}% {t('пройдено')}</span>
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => { tactile(); onContinue() }}
-          className="flex items-center cursor-pointer"
-          // Текст и стрелка на БЕЛОЙ таблетке, поэтому --color-control-accent,
-          // а не --color-purple-text: последний в тёмной теме — светлая сирень
-          // (он для текста на мягкой ЗАЛИВКЕ), и на белом «Продолжить» блёкло
-          // выцветало. control-accent затемнён до читаемого с белым в обеих
-          // темах и так же уходит в цвет открытого курса.
-          style={{ gap: 6, background: '#fff', color: 'var(--color-control-accent)', fontWeight: 800, fontSize: 13, lineHeight: '18px', padding: '8px 16px', borderRadius: 999, border: 'none' }}
-        >
-          <Play size={14} fill="var(--color-control-accent)" />
-          {label}
-        </motion.button>
+
       </div>
     </motion.div>
   )

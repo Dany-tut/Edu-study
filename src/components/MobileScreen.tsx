@@ -1,9 +1,11 @@
-import { type ReactNode, type CSSProperties, useLayoutEffect, useRef } from 'react'
+import { type ReactNode, type CSSProperties, useLayoutEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
 import { GLASS, type GlassHeader } from '../lib/nativeGlass'
+import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
+import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import MobileGlassHeader from './MobileGlassHeader'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,7 +65,8 @@ export default function MobileScreen({
   restoreKey?: string
 }) {
   const TOP_ZONE = topPad
-  const bodyRef = useRef<HTMLDivElement>(null)
+  const { ref: bodyRef, fade, onScroll } = useOverlayScroll()
+  const keyboardOpen = useKeyboardOpen()
   // Вход шапки ждёт первого нарисованного кадра — иначе его съедает сборка
   // экрана (lib/useEnterAfterPaint.ts).
   const entered = useEnterAfterPaint()
@@ -178,6 +181,7 @@ export default function MobileScreen({
       <div
         key={scrollKey}
         ref={bodyRef}
+        onScroll={onScroll}
         {...{ [MOBILE_SCROLL_ATTR]: '' }}
         className="no-scrollbar"
         style={{
@@ -186,6 +190,7 @@ export default function MobileScreen({
           overflowX: 'clip',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
+          ...fadeMask(fade, 24, bottomDock ? bottomDockRaise + 100 : 100),
           paddingTop: topZone != null ? `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)` : `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`,
           paddingLeft: 16,
           paddingRight: 16,
@@ -197,7 +202,7 @@ export default function MobileScreen({
       </div>
 
       {/* BOTTOM — fixed dock: page controls + nav. 44px off edge + safe-area. */}
-      {bottomDock != null && (
+      {bottomDock != null && !keyboardOpen && (
         <div
           style={{
             position: 'absolute',
