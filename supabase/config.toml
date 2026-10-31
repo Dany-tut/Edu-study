@@ -1,5 +1,9 @@
 project_id = "igsdwvwiqnozgwczzycx"
 
+[auth]
+enable_manual_linking = true
+additional_redirect_urls = ["https://edu-study-app.vercel.app/**", "iskra://auth/callback"]
+
 [functions.iskra-mcp]
 # MCP OAuth discovery must be reachable before a user token exists. The Edge
 # Function verifies the OAuth-issued bearer token itself with @supabase/server.

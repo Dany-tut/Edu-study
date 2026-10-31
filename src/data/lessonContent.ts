@@ -294,9 +294,9 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
     ? buildAuthoredHomework(lesson, dateStr)
     : null
 
-  // Priority: DB-authored content (teacher edits in Конструктор) → code default
-  // (AP authored) → generic generator.
-  const ap = (lesson.content && lesson.content.paragraphs?.length ? lesson.content : null) ?? apLessonContent(lesson.id)
+  // Явно сохранённый пустой конспект тоже имеет приоритет над сидом.
+  // Описание урока — отдельное поле, оно никогда не становится конспектом.
+  const ap = lesson.content ?? apLessonContent(lesson.id)
   if (ap) {
     return {
       date: dateStr,
@@ -306,22 +306,17 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
       // Старый чек-лист «что должно остаться в руке» выброшен: блок убран,
       // но в уже сохранённых курсах он лежит абзацем — и без фильтра ученик
       // увидел бы сырую разметку «- [ ] …» (см. lib/theoryChecklist).
-      paragraphs: ap.paragraphs.filter(p => !isChecklistParagraph(p.text)),
+      paragraphs: ap.paragraphs.filter(p => (p.text.trim() || p.image) && !isChecklistParagraph(p.text)),
       homework: authoredHw ?? buildApHomework(lesson, dateStr, ap),
     }
   }
-
-  // Use teacher-authored description if available; otherwise hide the section.
-  const descParagraphs: LessonParagraph[] = lesson.description?.trim()
-    ? [{ id: 'description', text: lesson.description.trim() }]
-    : []
 
   return {
     date: dateStr,
     videoSource,
     timecodes,
     files: lessonFiles(lesson),
-    paragraphs: descParagraphs,
+    paragraphs: [],
     homework: authoredHw ?? undefined,
   }
 }

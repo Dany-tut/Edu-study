@@ -1204,6 +1204,21 @@ export default function LessonPage() {
         </div>
       )}
 
+      {lesson.description?.trim() && (
+        <section style={{
+          padding: 24, borderRadius: 24,
+          background: 'rgba(var(--glass-rgb), 0.96)',
+          border: '1px solid var(--color-border-soft)', boxShadow: 'var(--shadow-2)',
+        }}>
+          <h2 style={{ margin: '0 0 14px', fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+            {t('Описание')}
+          </h2>
+          <div style={{ whiteSpace: 'pre-wrap', color: 'var(--color-text)', lineHeight: 1.6 }}>
+            {lesson.description.trim()}
+          </div>
+        </section>
+      )}
+
       {/* ── Конспект: lesson notes, with reaction paragraphs highlighted on
           arrival from the reactions widget. ── */}
       {detail.paragraphs.length > 0 && (
@@ -1220,7 +1235,7 @@ export default function LessonPage() {
         >
           <div className="flex items-center" style={{ gap: 8 }}>
             <FileText size={18} style={{ color: 'var(--color-accent)' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание')}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Конспект')}</span>
             {/* Кегль конспекта. Кнопка стоит у самого текста, а не в шапке
                 страницы: включают её, уже начав читать и споткнувшись о размер. */}
             <button

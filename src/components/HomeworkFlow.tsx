@@ -1863,7 +1863,7 @@ export default function HomeworkFlow({
     return starts
   }, [basicQuestions])
 
-  // Конспект урока для шторки «Правило». Берётся из того же источника, что и
+  // Конспект урока для шторки «Конспект». Берётся из того же источника, что и
   // страница урока, поэтому второй копии текста не появляется. Урока может не
   // быть в каталоге (назначенное ДЗ вне курса) — тогда кнопки просто нет.
   const theoryParagraphs = useMemo(() => {
@@ -2978,12 +2978,13 @@ export default function HomeworkFlow({
     boxShadow: 'var(--shadow-lg)',
   } as const
 
-  // Правило открываем только если преподаватель добавил конспект к уроку.
+  // Кнопка появляется только при наличии содержимого конспекта.
   const theoryButton = theoryParagraphs.length > 0 && (
     <motion.button
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.96 }}
       onClick={() => setShowTheory(true)}
+      aria-label={t('Конспект')}
       className="flex items-center justify-center cursor-pointer flex-shrink-0"
       style={{
         gap: 6, padding: isMobile ? 10 : '10px 16px 10px 12px', borderRadius: 999,
@@ -2992,7 +2993,7 @@ export default function HomeworkFlow({
       }}
     >
       <BookOpen size={18} />
-      {!isMobile && t('Правило')}
+      {!isMobile && t('Конспект')}
     </motion.button>
   )
 

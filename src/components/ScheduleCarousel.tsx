@@ -79,14 +79,14 @@ export default function ScheduleCarousel() {
       // карточки прыгали: заглушка была ниже/уже и прижата к низу.
       return (
         <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Расписание не добавлено')} className="relative" style={{ height: stripHeight }}>
-          <HScrollFade fade="rgba(var(--glass-rgb), 0.45)" fadeWidth={56} style={{ height: '100%' }} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'center' }}>
+          <HScrollFade fade="rgba(var(--glass-rgb), 0.45)" fadeWidth={56} style={{ height: '100%' }} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
           {offsets.map(offset => {
             const d = Math.abs(offset)
             const w = d === 0 ? (centerWidth ?? (mobile ? 300 : 480)) : slotWidth[d]
             const scale = d === 0 ? 1 : d === 1 ? 0.9 : d === 2 ? 0.82 : 0.74
             const opacity = d === 0 ? 1 : d === 1 ? 0.72 : d === 2 ? 0.48 : 0.3
             return (
-              <div key={offset} className="flex-shrink-0 h-full" style={{ width: w, transform: `scale(${scale})`, opacity }}>
+              <div key={offset} data-schedule-day={offset === 0 ? 'selected' : undefined} className="flex-shrink-0 h-full" style={{ width: w, transform: `scale(${scale})`, opacity }}>
                 <Skeleton w="100%" h={stripHeight} radius={28} />
               </div>
             )
