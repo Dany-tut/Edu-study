@@ -122,6 +122,12 @@ Deno.serve(async (req) => {
           const r = await testly({ action: 'status', token, items: [{ testId: String(body.testId ?? ''), key: studentKey }] })
           if (!r.ok) continue
           const it = (r.data.items as Record<string, unknown>[] | undefined)?.[0]
+          console.log('[testly-bridge] status result', {
+            state: it?.state ?? 'missing',
+            hasScore: it?.got != null && it?.max != null,
+            pending: !!it?.pending,
+            showAfter: it?.showAfter ?? null,
+          })
           if (!it || it.state === 'gone') continue
           return json(forStudent(it))
         }
