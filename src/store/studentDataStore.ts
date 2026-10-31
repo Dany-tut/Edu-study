@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { supabase } from '../lib/supabase'
 import {
   fetchScheduleDays,
   fetchLessonsHeavy,
@@ -119,7 +120,11 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // доступа), см. fetchStudentTrack. Круг до базы стоит 320–400 мс независимо
     // от содержимого, так что два лишних круга — это две трети секунды пустого
     // ожидания.
-    const trackP = fetchStudentTrack({ id: session.id, groupId: session.groupId })
+    const trackP = (async () => {
+      // Reconcile Testly before reading the track, including a missed completion notification.
+      await supabase.functions.invoke('testly-bridge', { body: { action: 'sync' } }).catch(() => undefined)
+      return fetchStudentTrack({ id: session.id, groupId: session.groupId })
+    })()
     const scheduleP = fetchScheduleDays(session.groupId, session.id)
     const quizP = fetchQuizQuestions()
     const factsP = fetchScienceFacts()

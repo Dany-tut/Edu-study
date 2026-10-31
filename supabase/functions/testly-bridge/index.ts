@@ -20,6 +20,8 @@
 // Секреты функции: TESTLY_URL (https://<проект>.supabase.co) и
 // TESTLY_ISKRA_SECRET — тот же, что ISKRA_BRIDGE_SECRET у функции iskra в Тестли.
 
+import { applyTestlyResult } from '../_shared/testlyProgress.ts'
+
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const cors = {
@@ -62,6 +64,19 @@ Deno.serve(async (req) => {
   const iskraEmail = userData.user.email ?? ''
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
 
+  const persistResult = async (studentIds: string[], testId: string, result: Record<string, unknown>) => {
+    if (!studentIds.length || result.state !== 'submitted') return
+    const { data: progress, error } = await admin.from('lesson_progress').select('id, attachments, updated_at')
+      .in('student_id', studentIds).contains('attachments', { v: 'basic-1' })
+    if (error) throw error
+    for (const row of progress ?? []) {
+      const patch = applyTestlyResult(row.attachments, testId, result)
+      if (!patch) continue
+      // A concurrently submitted homework must never be overwritten by an older snapshot.
+      const { error: saveError } = await admin.from('lesson_progress').update(patch).eq('id', row.id).eq('updated_at', row.updated_at)
+      if (saveError) throw saveError
+    }
+  }
   let body: Record<string, unknown>
   try { body = await req.json() } catch { return json({ error: 'bad_request' }, 400) }
 
@@ -97,7 +112,7 @@ Deno.serve(async (req) => {
     const show = x.showAfter
     return {
       state: x.state, total: x.total, answered: x.answered, startedAt: x.startedAt, submittedAt: x.submittedAt,
-      ...(show !== 'none' && x.state === 'submitted' ? { got: x.got, max: x.max, pending: x.pending } : {}),
+      ...(x.state === 'submitted' ? { got: x.got, max: x.max, pending: x.pending } : {}),
       ...(show === 'review' && x.state === 'submitted' ? { review: x.review } : {}),
     }
   }
@@ -129,9 +144,32 @@ Deno.serve(async (req) => {
             showAfter: it?.showAfter ?? null,
           })
           if (!it || it.state === 'gone') continue
+          const { data: students } = await admin.from('students').select('id').eq('auth_user_id', teacher)
+          await persistResult((students ?? []).map(s => s.id), String(body.testId), it)
           return json(forStudent(it))
         }
         return json({ error: 'not_connected' }, 409)
+      }
+      case 'sync': {
+        const { data: students } = await admin.from('students').select('id').eq('auth_user_id', teacher)
+        const ids = (students ?? []).map(s => s.id)
+        if (!ids.length) return json({ ok: true })
+        const { data: progress } = await admin.from('lesson_progress').select('attachments').in('student_id', ids).contains('attachments', { v: 'basic-1' })
+        const tests = new Set<string>()
+        for (const p of progress ?? []) for (const row of (p.attachments as any)?.rows ?? []) {
+          if (row.testly?.testId) tests.add(row.testly.testId)
+        }
+        const { owners } = await ownersOfStudent(null)
+        for (const owner of owners) {
+          const token = await tokenFor(owner)
+          if (!token || !tests.size) continue
+          const response = await testly({ action: 'status', token, items: [...tests].map(testId => ({ testId, key: studentKey })) })
+          if (!response.ok) continue
+          for (const result of (response.data.items ?? []) as Record<string, unknown>[]) {
+            await persistResult(ids, String(result.testId), result)
+          }
+        }
+        return json({ ok: true })
       }
       case 'results': {
         const token = await tokenOf()
@@ -140,9 +178,11 @@ Deno.serve(async (req) => {
         // Только ученики групп этого учителя: чужой балл по id не отдаём.
         const ids = [...new Set(items.map(i => String(i?.studentId ?? '')).filter(x => /^[0-9a-f-]{36}$/i.test(x)))]
         const { data: groups } = await admin.from('groups').select('id').eq('created_by', teacher)
-        const { data: mine } = ids.length && groups?.length
-          ? await admin.from('students').select('id, auth_user_id').in('id', ids).in('group_id', groups.map(g => g.id))
-          : { data: [] as { id: string; auth_user_id: string | null }[] }
+        const { data: candidates } = ids.length
+          ? await admin.from('students').select('id, auth_user_id, created_by, group_id').in('id', ids)
+          : { data: [] }
+        const groupIds = new Set((groups ?? []).map(g => g.id))
+        const mine = (candidates ?? []).filter(s => s.created_by === teacher || groupIds.has(s.group_id))
         const keyOf = new Map((mine ?? []).filter(r => r.auth_user_id).map(r => [r.id as string, `iskra:${r.auth_user_id}`]))
         const asked = items.filter(i => keyOf.has(String(i?.studentId ?? '')))
           .map(i => ({ testId: String(i.testId ?? ''), studentId: String(i.studentId), key: keyOf.get(String(i.studentId))! }))
@@ -151,6 +191,10 @@ Deno.serve(async (req) => {
         if (r.status === 401) return json({ error: 'revoked' }, 409)
         if (!r.ok) return json({ error: 'testly' }, 502)
         const got = (r.data.items ?? []) as Record<string, unknown>[]
+        for (const x of got) {
+          const student = asked.find(a => a.testId === x.testId && a.key === x.key)
+          if (student) await persistResult([student.studentId], student.testId, x)
+        }
         return json({ items: got.map(x => ({ ...x, studentId: asked.find(a => a.testId === x.testId && a.key === x.key)?.studentId })) })
       }
       case 'connect': {

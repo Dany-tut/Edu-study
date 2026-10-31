@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Clock, ExternalLink, ListChecks, Loader2, Play } from './icons/appIcons'
 import { TESTLY_DONE_PREFIX, testlyAnswer, testlyDoneAt, testlyScoreOf, type TestlyRef, type TestlyScore } from '../data/taskTypes'
 import {
-  fetchTestlyStatus, plural, startTestlyTest, testlyPlayUrl, testlyPoints, testlyReviewUrl, type TestlyAttempt,
+  fetchTestlyStatus, plural, startTestlyTest, testlyPoints, testlyReviewUrl, type TestlyAttempt,
 } from '../lib/testlyModule'
 import { playPop, vibrate } from '../lib/sound'
 import { useT, useLang } from '../lib/i18n'
@@ -74,7 +74,7 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
   }, [refresh])
 
   // Пока тест начат (или итог ждёт проверки учителя) — переспрашиваем сами.
-  const waiting = attempt?.state === 'started' || (attempt?.state === 'submitted' && !!attempt.pending) || opened
+  const waiting = attempt?.state === 'started' || (attempt?.state === 'submitted' && !!attempt.pending) || opened || offline
   useEffect(() => {
     if (!waiting) return
     const id = window.setInterval(() => { if (document.visibilityState === 'visible') void refresh() }, POLL_MS)
@@ -94,7 +94,6 @@ export default function TestlyTask({ test, value, disabled, onChange }: {
 
   const start = async () => {
     if (disabled || opening) return
-    if (offline) { setOpened(true); setEmbedUrl(testlyPlayUrl(test.id)); return }
     setOpening(true)
     try {
       const url = await startTestlyTest(test.id, test.owner)

@@ -2198,6 +2198,23 @@ export default function HomeworkFlow({
     }
   }
 
+  // Testly-only homework is submitted as soon as all linked tests finish.
+  // Later teacher grading also persists a fresh snapshot and refreshes the track.
+  const testlySnapshot = basicQuestions.some(q => qType(q) === 'testly') ? JSON.stringify(state.basicAnswers) : ''
+  const syncedTestly = useRef('')
+  useEffect(() => {
+    if (!basicQuestions.some(q => qType(q) === 'testly' && testlyDoneAt(state.basicAnswers[q.id]) !== null)) return
+    if (!testlySnapshot || (!state.basicSubmitted && !(basicCompleted && basicQuestions.every(q => qType(q) === 'testly')))) return
+    if (syncedTestly.current === testlySnapshot) return
+    syncedTestly.current = testlySnapshot
+    void submitToSupabase('basic', basicScore, '', buildBasicSnapshot()).then(ok => {
+      if (ok) {
+        setState(current => ({ ...current, basicSubmitted: true, submittedAt: current.submittedAt ?? new Date().toISOString() }))
+        setLessonAssessment(lessonId, basicScore, state.selfAssessmentValue ?? 0, showHard && basicPassed)
+      } else syncedTestly.current = ''
+    })
+  }, [testlySnapshot, state.basicSubmitted, basicCompleted, basicScore])
+
   /**
    * Сданная домашка → колода интервального повторения.
    *
