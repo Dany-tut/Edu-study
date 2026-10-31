@@ -16,7 +16,7 @@ import { getAuthUser } from '../../lib/owner'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from '../../components/AvatarPhoto'
 import { uploadAvatarPhoto, removeAvatarPhoto, saveTeacherAvatarPath } from '../../lib/avatarPhoto'
 import { useTeacherAccess } from '../../lib/teacherAccess'
-import { useTeacherTz, TZ_OPTIONS, browserTz, tzShortLabel } from '../../lib/teacherTz'
+import { useTeacherTz, browserTz, tzShortLabel } from '../../lib/teacherTz'
 import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
 import { Alert } from '../../components/Alert'
 import TeacherModules from '../../components/teacher/TeacherModules'
@@ -123,8 +123,10 @@ export default function TeacherProfileSettingsPage() {
   // ── Часовой пояс ────────────────────────────────────────────────────────────
   const teacherTz = useTeacherTz(s => s.tz)
   const teacherTzMode = useTeacherTz(s => s.mode)
+  const inputTz = useTeacherTz(s => s.inputTz)
   const setTeacherTz = useTeacherTz(s => s.setTz)
   const setTeacherTzMode = useTeacherTz(s => s.setMode)
+  const setInputTz = useTeacherTz(s => s.setInputTz)
   const [tzNote, setTzNote] = useState<'saved' | 'error' | null>(null)
 
   async function changeTz(next: string) {
@@ -138,6 +140,25 @@ export default function TeacherProfileSettingsPage() {
     setTzNote(ok ? 'saved' : 'error')
     if (ok) setTimeout(() => setTzNote(n => (n === 'saved' ? null : n)), 2000)
   }
+
+  async function chooseDisplayZone(zone: 'auto' | 'moscow') {
+    if (zone === 'auto') await changeTzMode('auto')
+    else await changeTz('Europe/Moscow')
+  }
+
+  async function chooseInputZone(zone: 'local' | 'moscow') {
+    const ok = await setInputTz(zone === 'local' ? 'local' : 'Europe/Moscow')
+    setTzNote(ok ? 'saved' : 'error')
+    if (ok) setTimeout(() => setTzNote(n => (n === 'saved' ? null : n)), 2000)
+  }
+
+  const tzChoiceStyle = (active: boolean): React.CSSProperties => ({
+    flex: 1, minHeight: 42, borderRadius: 12, padding: '8px 10px',
+    border: `1px solid ${active ? 'rgba(var(--accent-rgb), 0.45)' : 'var(--color-border-medium)'}`,
+    background: active ? 'rgba(var(--accent-rgb), 0.12)' : 'var(--color-bg-3)',
+    color: active ? 'var(--color-accent)' : 'var(--color-text-2)',
+    font: 'inherit', fontSize: 13, fontWeight: 650, cursor: 'pointer',
+  })
 
   const selectedAvatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
   const AvatarIcon = selectedAvatar.Icon
@@ -320,30 +341,20 @@ export default function TeacherProfileSettingsPage() {
 
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 6 }}>{t('Часовой пояс')}</div>
-            <select value={teacherTzMode} onChange={e => changeTzMode(e.target.value as 'auto' | 'manual')} style={{ ...inputStyle, cursor: 'pointer', marginBottom: 8 }}>
-              <option value="auto">{t('Автоматически')} · {tzShortLabel(browserTz())}</option>
-              <option value="manual">{t('Выбрать вручную')}</option>
-            </select>
-            <select
-              value={teacherTz}
-              onChange={e => changeTz(e.target.value)}
-              disabled={teacherTzMode === 'auto'}
-              style={{
-                ...inputStyle, cursor: 'pointer', appearance: 'none',
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-                backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center',
-                paddingRight: 36,
-              }}
-            >
-              {!TZ_OPTIONS.some(o => o.value === teacherTz) && <option value={teacherTz}>{tzShortLabel(teacherTz)}</option>}
-              {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-            <div style={{ fontSize: 11, marginTop: 6, color: tzNote === 'error' ? 'var(--color-red-text)' : tzNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
-              {tzNote === 'error'
-                ? t('Не удалось сохранить. Попробуйте ещё раз.')
-                : tzNote === 'saved'
-                  ? t('Сохранено')
-              : teacherTzMode === 'auto' ? t('Пояс определяется по устройству; для проверки выберите вручную') : t('Все даты и часы в кабинете покажутся по этому поясу')}
+            <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Как вижу расписание')}</div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+              <button type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto' || teacherTz === browserTz())}>{t('Авто')} · {tzShortLabel(browserTz())}</button>
+              <button type="button" onClick={() => chooseDisplayZone('moscow')} style={tzChoiceStyle(teacherTzMode === 'manual' && teacherTz === 'Europe/Moscow')}>{t('Москва')}</button>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 14 }}>{t('Часы в расписании:')} {teacherTzMode === 'auto' ? tzShortLabel(browserTz()) : tzShortLabel(teacherTz)}</div>
+
+            <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Как задаю время урока')}</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" onClick={() => chooseInputZone('local')} style={tzChoiceStyle(inputTz === 'local')}>{t('Местное время')} · {tzShortLabel(browserTz())}</button>
+              <button type="button" onClick={() => chooseInputZone('moscow')} style={tzChoiceStyle(inputTz === 'Europe/Moscow')}>{t('Москва')}</button>
+            </div>
+            <div style={{ fontSize: 11, marginTop: 8, color: tzNote === 'error' ? 'var(--color-red-text)' : tzNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
+              {tzNote === 'error' ? t('Не удалось сохранить. Попробуйте ещё раз.') : tzNote === 'saved' ? t('Сохранено') : t('Можно смотреть по местному времени, а занятия задавать по Москве')}
             </div>
           </div>
 

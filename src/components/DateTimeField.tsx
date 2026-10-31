@@ -3,12 +3,12 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, ChevronLeft, ChevronRight } from './icons/appIcons'
 import { useT } from '../lib/i18n'
-import { useTeacherTz, tzOffsetMs, isMsk, tzShortLabel, formatTimeInMsk } from '../lib/teacherTz'
+import { useTeacherTz, browserTz, tzOffsetMs, isMsk, tzShortLabel, formatTimeInMsk } from '../lib/teacherTz'
 
 /*
  * Дата и время одним полем. Время — в часовом поясе учителя (из настроек
- * профиля, по умолчанию определяется из браузера). Если пояс не МСК,
- * под полем серым показывается «= HH:MM МСК». Значение наружу — ISO UTC.
+ * настройки «Как задаю время урока». Если пояс не МСК, под полем серым
+ * показывается «= HH:MM МСК». Значение наружу — ISO UTC.
  */
 
 const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
@@ -66,7 +66,8 @@ export default function DateTimeField({ value, onChange, label }: {
   label?: string
 }) {
   const t = useT()
-  const tz = useTeacherTz(s => s.tz)
+  const selectedInputTz = useTeacherTz(s => s.inputTz)
+  const tz = selectedInputTz === 'local' ? browserTz() : selectedInputTz
   const showMsk = !isMsk(tz)
 
   const cur = toTz(value, tz)

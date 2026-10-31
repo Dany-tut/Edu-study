@@ -5,7 +5,7 @@ import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, Che
 import Modal from '../../Modal'
 import MobileSheet from '../../MobileSheet'
 import DateTimeField from '../../DateTimeField'
-import { wallDateTimeInTz } from '../../../lib/teacherTz'
+import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../../lib/teacherTz'
 import QuickAddLesson from './QuickAddLesson'
 import { RadioMark } from '../../Radio'
 import { CheckboxMark } from '../../Checkbox'
@@ -380,6 +380,11 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
 
 function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean }) {
   const t = useT()
+  const viewTz = useTeacherTz(s => s.tz)
+  const localStart = isMsk(viewTz) ? null : convertWallTime(item.date, item.time, 'Europe/Moscow', viewTz)
+  const localEnd = isMsk(viewTz) || !item.endTime ? null : convertWallTime(item.date, item.endTime, 'Europe/Moscow', viewTz)
+  const startTime = localStart?.time ?? item.time
+  const endTime = localEnd?.time ?? item.endTime
   const sub = [
     item.number != null && item.number >= 0 && item.fromCourse ? `${t('Урок')} ${item.number + 1}` : '',
     item.title,
@@ -391,9 +396,12 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
       boxShadow: lifted ? 'var(--shadow-4)' : 'var(--shadow-1)',
     }}>
       <span style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: item.cancelled ? 'var(--color-border-medium)' : item.color, flexShrink: 0 }} />
-      <span style={{ display: 'flex', flexDirection: 'column', width: 48, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
-        <span style={{ fontSize: 16, fontWeight: 700, color: item.cancelled ? 'var(--color-text-4)' : 'var(--color-text)', textDecoration: item.cancelled ? 'line-through' : undefined }}>{item.time}</span>
-        {item.endTime && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{item.endTime}</span>}
+      <span style={{ display: 'flex', flexDirection: 'column', width: localStart ? 68 : 48, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 16, fontWeight: 700, color: item.cancelled ? 'var(--color-text-4)' : 'var(--color-text)', textDecoration: item.cancelled ? 'line-through' : undefined }}>{startTime}</span>
+        {localStart
+          ? <span style={{ fontSize: 10, lineHeight: 1.3, color: 'var(--color-text-4)', whiteSpace: 'nowrap' }}>{item.time} МСК</span>
+          : item.endTime && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{endTime}</span>}
+        {localStart && item.endTime && <span style={{ fontSize: 10, lineHeight: 1.3, color: 'var(--color-text-4)' }}>до {endTime}</span>}
       </span>
       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>

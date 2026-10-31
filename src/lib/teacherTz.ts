@@ -101,15 +101,18 @@ export function isMsk(tz: string): boolean {
 type TzStore = {
   tz: string
   mode: 'auto' | 'manual'
+  inputTz: string
   loaded: boolean
   load: () => Promise<void>
   setTz: (tz: string) => Promise<boolean>
   setMode: (mode: 'auto' | 'manual') => Promise<boolean>
+  setInputTz: (tz: string) => Promise<boolean>
 }
 
 export const useTeacherTz = create<TzStore>((set, get) => ({
   tz: 'Europe/Moscow',
   mode: 'auto',
+  inputTz: 'local',
   loaded: false,
 
   async load() {
@@ -119,7 +122,8 @@ export const useTeacherTz = create<TzStore>((set, get) => ({
     const saved = u?.user_metadata?.timezone as string | undefined
     const resolvedMode = mode ?? (saved ? 'manual' : 'auto')
     const tz = resolvedMode === 'manual' && saved ? saved : browserTz()
-    set({ mode: resolvedMode, tz, loaded: true })
+    const inputTz = (u?.user_metadata?.timezone_input as string | undefined) || (saved === 'Europe/Moscow' ? 'Europe/Moscow' : 'local')
+    set({ mode: resolvedMode, tz, inputTz, loaded: true })
     if (u && !mode && !saved) void supabase.auth.updateUser({ data: { timezone: tz, timezone_mode: 'auto' } })
   },
 
@@ -132,6 +136,11 @@ export const useTeacherTz = create<TzStore>((set, get) => ({
     const tz = mode === 'auto' ? browserTz() : get().tz
     set({ mode, tz })
     const { error } = await supabase.auth.updateUser({ data: { timezone: tz, timezone_mode: mode } })
+    return !error
+  },
+  async setInputTz(inputTz) {
+    set({ inputTz })
+    const { error } = await supabase.auth.updateUser({ data: { timezone_input: inputTz } })
     return !error
   },
 }))
