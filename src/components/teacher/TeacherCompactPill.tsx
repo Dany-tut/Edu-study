@@ -177,6 +177,14 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
     return () => window.clearInterval(timer)
   }, [])
   const now = new Date(clock)
+  // Расписание хранится по московскому времени; сравниваем с теми же часами,
+  // а не с локальным часовым поясом устройства.
+  const nowParts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(now)
+  const nowHour = Number(nowParts.find(p => p.type === 'hour')?.value ?? 0)
+  const nowMinute = Number(nowParts.find(p => p.type === 'minute')?.value ?? 0)
+  const nowMin = nowHour * 60 + nowMinute
   const next = todaySchedule.find(s => s.status === 'upcoming' && !scheduleHasEnded(todayMsk(), s.time, s.endTime, now))
 
   return (
