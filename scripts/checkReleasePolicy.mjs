@@ -48,13 +48,17 @@ try {
   mkdirSync(join(hosted, 'supabase'))
   writeFileSync(join(hosted, '.vercelignore'), '.env*\nsupabase/\n')
   writeFileSync(join(hosted, '.gitignore'), 'local-only.txt\n')
-  for (const name of ['.env.example', 'supabase/schema.sql', 'app.ts', 'local-only.txt']) writeFileSync(join(hosted, name), 'fixture')
+  for (const name of ['.env.example', 'supabase/schema.sql', 'app.ts', 'local-only.txt', 'vercel.json']) writeFileSync(join(hosted, name), 'fixture')
   git(['add', '-f', '.'], hosted)
   git(['-c', 'core.hooksPath=/dev/null', 'commit', '-m', 'Hosted fixture'], hosted)
   rmSync(join(hosted, '.env.example'))
   rmSync(join(hosted, 'supabase/schema.sql'))
   assert.equal(releaseCheckoutChanges({cwd:hosted}).length, 2); checks++
   assert.deepEqual(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}), []); checks++
+  writeFileSync(join(hosted, 'vercel.json'), '{"services":{}}')
+  assert.ok(releaseCheckoutChanges({cwd:hosted}).some(change => change.endsWith('vercel.json'))); checks++
+  assert.deepEqual(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}), []); checks++
+  git(['checkout', '--', 'vercel.json'], hosted)
   writeFileSync(join(hosted, 'app.ts'), 'changed source')
   assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('app.ts'))); checks++
   git(['checkout', '--', 'app.ts'], hosted)

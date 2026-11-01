@@ -13,8 +13,8 @@ export function git(args, cwd = process.cwd()) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] }).trim()
 }
 
-/** Vercel removes .vercelignore matches after cloning, before running the build.
- * Only those unstaged deletions are expected; modified and staged files still reject the release.
+/** Vercel transforms vercel.json and removes .vercelignore matches before the build.
+ * Allow only that generated config edit and unstaged ignored deletions; all other changes reject release.
  * Local preflight also rejects untracked files. */
 export function releaseCheckoutChanges({ cwd = process.cwd(), allowVercelDeletions = false, includeUntracked = true } = {}) {
   const run = args => execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -22,7 +22,10 @@ export function releaseCheckoutChanges({ cwd = process.cwd(), allowVercelDeletio
   if (!allowVercelDeletions || !changes.length) return changes
   // --exclude-from deliberately does not read .gitignore or global excludes.
   const excluded = new Set(run(['ls-files', '--cached', '--ignored', '--exclude-from=.vercelignore', '-z']).split('\0').filter(Boolean))
-  return changes.filter(change => change.slice(0, 2) !== ' D' || !excluded.has(change.slice(3)))
+  return changes.filter(change => {
+    if (change.slice(0, 2) === ' M' && change.slice(3) === 'vercel.json') return false
+    return change.slice(0, 2) !== ' D' || !excluded.has(change.slice(3))
+  })
 }
 
 export function assertCommit(value) {
