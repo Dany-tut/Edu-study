@@ -145,6 +145,10 @@ const ReminderGroupStack = memo(function ReminderGroupStack({ items, getAction, 
       : reminderAmount(count, ['занятие', 'занятия', 'занятий'], count === 1 ? 'lesson' : 'lessons', lang)
   const summary = front.type === 'check-hw' ? `${quantity} · ${items.length} ${t('ДЗ')}` : quantity
   const transition = { duration: reducedMotion ? 0 : 0.27, ease: SOFT_EASE }
+  // The bottom card leaves first; on return the nearest card tucks under
+  // the cover first. Cap the cascade so large stacks remain responsive.
+  const stagger = reducedMotion ? 0 : Math.min(0.045, 0.18 / Math.max(1, rest.length - 1))
+  const cascadeDelay = stagger * Math.max(0, rest.length - 1)
 
   useLayoutEffect(() => {
     const measure = () => {
@@ -173,11 +177,11 @@ const ReminderGroupStack = memo(function ReminderGroupStack({ items, getAction, 
       className="teacher-reminder-stack" data-reminder-stack={front.type}
       initial={false}
       animate={sizes.front ? { height: expanded ? expandedHeight : collapsedHeight } : undefined}
-      transition={transition}
+      transition={{ ...transition, delay: expanded ? 0 : cascadeDelay }}
       onAnimationComplete={() => { if (!expandedRef.current) setHasRows(false) }}
       style={{ position: 'relative', flexShrink: 0 }}
     >
-      <div ref={frontRef} style={{ position: 'relative', zIndex: 4 }}>
+      <div ref={frontRef} style={{ position: 'relative', zIndex: rest.length + 3 }}>
         <button type="button" onClick={toggle} aria-expanded={expanded} className="teacher-reminder-stack-toggle" style={{ color: accent }}>
           <span>{t(stackTypeLabel[front.type])} · {summary}</span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, color: 'var(--color-text-2)' }}>
@@ -192,7 +196,7 @@ const ReminderGroupStack = memo(function ReminderGroupStack({ items, getAction, 
         </div>
       </div>
       {!hasRows && [0, 1].slice(0, behind).map(i => <div key={i} aria-hidden="true" style={{ position: 'absolute', top: sizes.front - 4 + i * 12, left: i ? 22 : 12, right: i ? 22 : 12, height: 18, zIndex: 2 - i, background: `color-mix(in srgb, ${accent} ${i ? 10 : 14}%, rgba(var(--glass-rgb), 0.55))`, border: `1px solid color-mix(in srgb, ${accent} 20%, transparent)`, borderTop: 0, borderRadius: '0 0 16px 16px' }} />)}
-      {hasRows && rest.map((r, i) => {
+      {rest.map((r, i) => {
         const height = sizes.rows[i] ?? 68
         const y = rowY
         rowY += height + 6
@@ -202,11 +206,12 @@ const ReminderGroupStack = memo(function ReminderGroupStack({ items, getAction, 
           className="teacher-reminder-moving-row"
           initial={{ y: collapsedY, scale: i ? 0.93 : 0.97 }}
           animate={{ y: expanded ? y : collapsedY, scale: expanded ? 1 : i ? 0.93 : 0.97 }}
-          transition={transition}
+          transition={{ ...transition, delay: stagger * (expanded ? rest.length - 1 - i : i) }}
           aria-hidden={!expanded}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3, pointerEvents: expanded ? 'auto' : 'none' }}
+          inert={!expanded}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: rest.length - i, visibility: hasRows ? 'visible' : 'hidden', pointerEvents: expanded ? 'auto' : 'none' }}
         >
-          <ReminderRow item={r} done={isDone(r)} onAction={expanded ? getAction(r) : undefined} style={{ ...(expanded ? {} : { background: 'rgb(var(--glass-rgb))' }), backdropFilter: 'none', WebkitBackdropFilter: 'none' }} />
+          <ReminderRow item={r} done={isDone(r)} onAction={getAction(r)} style={{ ...(expanded ? {} : { background: 'rgb(var(--glass-rgb))' }), backdropFilter: 'none', WebkitBackdropFilter: 'none' }} />
         </motion.div>
       })}
     </motion.div>
