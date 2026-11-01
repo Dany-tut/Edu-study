@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type CSSP
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useIsPresent, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
-import Modal from '../../Modal'
+import Modal, { ModalClose } from '../../Modal'
 import MobileSheet from '../../MobileSheet'
 import FadeText from '../../FadeText'
 import { useLoopIcons } from '../../icons/LoopIcon'
@@ -12,6 +12,8 @@ import QuickAddLesson from './QuickAddLesson'
 import WeekStrip, { type WeekNavigation } from './WeekStrip'
 import { CALENDAR_BACKDROP, CALENDAR_EASE } from './calendarMotion'
 import { isScheduleLive, scheduleLiveWindow } from '../../../lib/scheduleLive'
+import { scheduleDurationMinutes } from '../../../lib/scheduleDuration'
+import '../widgets/calendarWidget.css'
 import { RadioMark } from '../../Radio'
 import { CheckboxMark } from '../../Checkbox'
 import { MODAL_BACKDROP } from '../../Modal'
@@ -375,7 +377,7 @@ function useLiveLesson(item: SchedItem) {
   return live
 }
 
-function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean }) {
+function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; lifted?: boolean; preview?: boolean }) {
   const t = useT()
   const mobile = useLoopIcons()
   const live = useLiveLesson(item)
@@ -384,12 +386,14 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
   const localEnd = isMsk(viewTz) || !item.endTime ? null : convertWallTime(item.date, item.endTime, 'Europe/Moscow', viewTz)
   const startTime = localStart?.time ?? item.time
   const endTime = localEnd?.time ?? item.endTime
+  const duration = scheduleDurationMinutes(item.time, item.endTime)
+  const format = item.isIndividual === undefined ? null : t(item.isIndividual ? 'Индивидуально' : 'Группа')
   const sub = [
     item.number != null && item.number >= 0 && item.fromCourse ? `${t('Урок')} ${item.number + 1}` : '',
     item.title,
   ].filter(Boolean).join(' · ')
   return (
-    <div className="calendar-widget-lesson" data-live={live || undefined} style={{
+    <div className={`calendar-widget-lesson${preview ? ' calendar-widget-lesson-preview' : ''}`} data-live={live || undefined} style={{
       display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 22,
       background: live ? 'var(--color-accent-soft)' : 'var(--color-bg-2)',
       border: `1px solid ${live ? 'var(--color-purple)' : 'var(--color-border)'}`,
@@ -397,23 +401,31 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
       boxShadow: lifted ? 'var(--shadow-4)' : 'var(--shadow-1)',
     }}>
       <span style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: item.cancelled ? 'var(--color-border-medium)' : item.color, flexShrink: 0 }} />
-      <span className="calendar-widget-time" style={{ display: 'flex', flexDirection: 'column', width: localStart ? 68 : 48, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+      <span className="calendar-widget-time" style={{ display: 'flex', flexDirection: 'column', width: preview ? 78 : localStart ? 68 : 48, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: item.cancelled ? 'var(--color-text-4)' : 'var(--color-text)', textDecoration: item.cancelled ? 'line-through' : undefined }}>{startTime}</span>
         {localStart
           ? <span style={{ fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: 'var(--color-text-2)', whiteSpace: 'nowrap' }}>{item.time} МСК</span>
           : item.endTime && <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-2)' }}>{endTime}</span>}
         {localStart && item.endTime && <span style={{ fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: 'var(--color-text-2)' }}>до {endTime}</span>}
       </span>
-      <span className="calendar-widget-details" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span className="calendar-widget-person" style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <FadeText enabled={mobile} style={{
+      <span className="calendar-widget-details" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <span className="calendar-widget-person" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, minWidth: 0 }}>
+          {preview ? <span className="calendar-widget-preview-name">{item.who}</span> : <FadeText enabled={mobile} style={{
             fontSize: 15, fontWeight: 700, color: item.cancelled ? 'var(--color-text-3)' : 'var(--color-text)',
-          }}>{item.who}</FadeText>
+          }}>{item.who}</FadeText>}
           {live && <Chip tone="live">{t('ИДЁТ СЕЙЧАС')}</Chip>}
           {item.rec && <Chip>{t('Запись')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
         </span>
-        {sub && <FadeText enabled={mobile} className="calendar-widget-subtitle" style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{sub}</FadeText>}
+        {sub && (preview
+          ? <span className="calendar-widget-preview-subtitle">{sub}</span>
+          : <FadeText enabled={mobile} className="calendar-widget-subtitle" style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{sub}</FadeText>)}
+        <span className="calendar-widget-metadata">
+          {item.subject && <span className="calendar-widget-subject">{t(item.subject)}</span>}
+          {item.level && <span>{item.level}</span>}
+          {format && <span>{format}</span>}
+          {duration !== null && <span>{duration} {t('мин')}</span>}
+        </span>
       </span>
     </div>
   )
@@ -659,21 +671,29 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
   const isPresent = useIsPresent()
   const reducedMotion = useReducedMotion()
   const transition = { duration: reducedMotion ? 0 : 0.2, ease: CALENDAR_EASE }
-  // Карточка остаётся там, где была; не влезает меню снизу — всё поднимается.
-  const MENU_H = ((onOpen ? 1 : 0) + (item.cancelled ? 2 : 4)) * 46 + (sub ? 4 * 42 : 0)
-  const vh = window.innerHeight
-  const maxMenuHeight = Math.max(46, vh - 32 - rect.height - 10)
-  const top = Math.max(16, Math.min(rect.top, vh - 16 - Math.min(MENU_H, maxMenuHeight) - rect.height - 10))
-  const width = Math.min(rect.width, 420, window.innerWidth - 32)
-  const left = Math.max(16, Math.min(rect.left, window.innerWidth - 16 - width))
+  const panelRef = useRef<HTMLDivElement>(null)
+  // Narrow widgets get a readable preview; wide cards retain their original width.
+  const width = Math.max(612, rect.width + 32)
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const previousFocus = document.activeElement as HTMLElement | null
+    panelRef.current?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true })
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
+      if (e.key !== 'Tab') return
+      const buttons = Array.from(panelRef.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])') ?? [])
+      const first = buttons[0], last = buttons[buttons.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus() }
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true })
+    }
   }, [onClose])
 
-  const row = (label: string, Icon: typeof ArrowUpRight, act: () => void, opts?: { danger?: boolean; sub?: boolean; open?: boolean }) => (
+  const row = (label: string, Icon: typeof ArrowUpRight, act: () => void, opts?: { danger?: boolean; primary?: boolean; sub?: boolean; open?: boolean }) => (
     <button
       onClick={act}
       className="hover-row"
@@ -682,14 +702,14 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
         cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
         height: opts?.sub ? 42 : 46, padding: opts?.sub ? '0 16px 0 28px' : '0 16px',
         fontSize: opts?.sub ? 14 : 15, fontWeight: 600,
-        color: opts?.danger ? 'var(--color-red-text)' : 'var(--color-text)',
+        color: opts?.danger ? 'var(--color-red-text)' : opts?.primary ? 'var(--color-purple-text)' : 'var(--color-text)',
         borderTop: opts?.sub ? 'none' : '1px solid var(--color-border)',
       }}
     >
       <span style={{ flex: 1 }}>{label}</span>
       {opts?.open !== undefined
         ? <motion.span animate={{ rotate: opts.open ? 180 : 0 }} style={{ display: 'flex' }}><ChevronDown size={18} color="var(--color-text-3)" /></motion.span>
-        : <Icon size={18} color={opts?.danger ? 'var(--color-red-text)' : 'var(--color-text-3)'} />}
+        : <Icon size={18} color={opts?.danger ? 'var(--color-red-text)' : opts?.primary ? 'var(--color-purple-text)' : 'var(--color-text-3)'} />}
     </button>
   )
 
@@ -702,22 +722,26 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
         onContextMenu={e => { e.preventDefault(); if (isPresent) onClose() }}
         style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal }}
       />
-      <motion.div
-        initial={{ opacity: 0, y: top + 6, scale: 0.98 }} animate={{ opacity: 1, y: top, scale: 1 }} exit={{ opacity: 0, y: top + 6, scale: 0.98 }}
+      <div className="calendar-context-positioner" style={{ zIndex: Z.modal + 1 }}>
+      <motion.div ref={panelRef}
+        role="dialog" aria-modal="true" aria-label={t('Занятие')}
+        className="calendar-context-panel"
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
         transition={transition}
         onContextMenu={e => e.preventDefault()}
-        style={{ position: 'fixed', top: 0, left, width, zIndex: Z.modal + 1, transformOrigin: 'top center',
-          willChange: 'transform, opacity', pointerEvents: isPresent ? 'auto' : 'none' }}
+        style={{ width, pointerEvents: isPresent ? 'auto' : 'none' }}
       >
-        <div style={{ containerType: 'inline-size', containerName: 'teacher-calendar' }}>
-          <CardBody item={item} lifted />
+        <div className="calendar-context-heading">
+          <span>{item.date === todayMsk() ? `${t('Сегодня')}, ` : ''}{dayLabel(item.date)}</span>
+          <ModalClose onClose={onClose} style={{ background: 'transparent' }} />
         </div>
-        <div style={{
-          marginTop: 10, borderRadius: 18, overflowX: 'hidden', overflowY: 'auto', background: 'var(--color-bg-2)',
-          boxShadow: 'var(--shadow-4)', maxWidth: 300, maxHeight: maxMenuHeight, overscrollBehavior: 'contain',
-        }}>
+        <div className="calendar-context-content no-scrollbar">
+        <div className="calendar-context-preview">
+          <CardBody item={item} preview />
+        </div>
+        <div className="calendar-context-actions">
           <div style={{ marginTop: -1 }}>
-            {onOpen && row(t('Открыть урок'), ArrowUpRight, onOpen)}
+            {onOpen && row(t('Открыть урок'), ArrowUpRight, onOpen, { primary: true })}
             {!item.cancelled && row(t('Перенести'), CalendarClock, () => setSub(s => !s), { open: sub })}
           </div>
           <AnimatePresence initial={false}>
@@ -734,13 +758,15 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
               </motion.div>
             )}
           </AnimatePresence>
-          {!item.cancelled && row(t('Сдвинуть курс на занятие'), ArrowRightToLine, onShift)}
           {row(t('Посещаемость'), UserCheck, onAttendance)}
+          {!item.cancelled && row(t('Сдвинуть курс на занятие'), ArrowRightToLine, onShift)}
           {item.cancelled
             ? row(t('Вернуть занятие'), CalendarCheck, onRestore)
             : row(t('Отменить занятие'), CalendarX, onCancel, { danger: true })}
         </div>
+        </div>
       </motion.div>
+      </div>
     </>,
     document.body,
   )

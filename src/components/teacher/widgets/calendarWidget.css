@@ -5,6 +5,78 @@
   padding: 20px;
 }
 
+.calendar-widget-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  color: var(--color-text-2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.calendar-widget-metadata:empty { display: none; }
+.calendar-widget-metadata > span { display: inline-flex; align-items: baseline; gap: 9px; }
+.calendar-widget-metadata > span + span::before { content: '·'; color: var(--color-text-3); }
+.calendar-widget-subject { font-weight: 600; }
+
+.calendar-context-positioner {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.calendar-context-panel {
+  max-width: 100%;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid var(--color-border);
+  background: rgb(var(--glass-rgb));
+  box-shadow: var(--shadow-4);
+  will-change: transform, opacity;
+}
+
+.calendar-context-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 10px 12px 0 20px;
+  color: var(--color-text-2);
+  font-size: 13px;
+}
+
+.calendar-context-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.calendar-context-preview {
+  padding: 12px 16px 16px;
+  container-type: inline-size;
+  container-name: teacher-calendar;
+}
+
+.calendar-widget-lesson-preview .calendar-widget-time > :first-child { font-size: 23px !important; }
+.calendar-widget-preview-name { font-size: 18px; font-weight: 700; color: var(--color-text); overflow-wrap: anywhere; }
+.calendar-widget-preview-subtitle { font-size: 14px; color: var(--color-text-2); overflow-wrap: anywhere; }
+.calendar-context-actions { padding: 6px; border-top: 1px solid var(--color-border); }
+.calendar-context-actions > div:first-child { margin-top: 0 !important; }
+.calendar-context-actions button { border-top: 0 !important; border-radius: 11px; }
+
+@media (max-width: 480px) {
+  .calendar-context-positioner { padding: 12px; }
+  .calendar-context-panel { max-height: calc(100dvh - 24px); }
+  .calendar-context-preview { padding-inline: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-widget-lesson { transition: none !important; }
+}
+
 @container teacher-calendar (max-width: 380px) {
   .calendar-widget-content {
     padding: 12px;

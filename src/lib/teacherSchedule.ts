@@ -28,6 +28,9 @@ export interface SchedItem {
   studentId: string | null
   who: string
   color: string
+  subject?: string
+  level?: string
+  isIndividual?: boolean
   cancelled: boolean
   rec: boolean
   /** Строка родилась из урока курса — перенос пишет дату и в урок. */
@@ -118,6 +121,7 @@ export function useTeacherWeek(start: string) {
         const out: SchedItem[] = []
         for (const r of rows) {
           const stu = r.student_id ? myStudents.get(r.student_id) : undefined
+          const group = myGroups.get(r.group_id ?? stu?.groupId ?? '')
           // Строка ученика при строке его группы — двойник группового занятия.
           if (!r.group_id && stu?.groupId && groupKeys.has(`${stu.groupId}|${key(r)}`)) continue
           out.push({
@@ -131,6 +135,9 @@ export function useTeacherWeek(start: string) {
             studentId: r.student_id,
             who: r.groups?.name ?? stu?.name ?? '',
             color: r.groups?.color ?? 'var(--color-purple)',
+            subject: group?.subject?.trim() || stu?.subject?.trim() || undefined,
+            level: group?.level?.trim() || undefined,
+            isIndividual: r.group_id ? group?.isIndividual ?? false : true,
             cancelled: r.status === 'cancelled',
             rec: r.node_type === 'rec',
             fromCourse: !!r.lesson_id,
@@ -152,11 +159,11 @@ function devWeek(start: string): SchedItem[] {
   const mk = (d: number, time: string, who: string, title: string, color: string, extra: Partial<SchedItem> = {}): SchedItem =>
     ({ ...base, id: `dev-${d}-${time}`, date: addDays(start, d), time, endTime: time.replace(/^(\d\d)/, h => String(Number(h) + 1).padStart(2, '0')).replace(/:00$/, ':30'), who, title, color, groupId: 'dev', ...extra })
   return [
-    mk(1, '16:00', 'Био ОГЭ 2027', 'Клетка', '#3FCC8A'),
-    mk(3, '12:00', 'Хим ЕГЭ 2027', 'Электролиз', '#786AD7', { number: 6, fromCourse: true }),
-    mk(3, '17:30', 'Аня К.', 'Индивидуально', '#F59E0B', { groupId: null, studentId: 'dev-s' }),
-    mk(4, '16:00', 'Хим ЕГЭ 2027', 'Гидролиз', '#786AD7', { number: 7, fromCourse: true }),
-    mk(5, '12:00', 'Био ЕГЭ 2027', 'Ботаника: ткани', '#3FCC8A', { cancelled: true }),
+    mk(1, '16:00', 'Био ОГЭ 2027', 'Клетка', '#3FCC8A', { subject: 'Биология', level: 'ОГЭ', isIndividual: false }),
+    mk(3, '12:00', 'Хим ЕГЭ 2027', 'Электролиз', '#786AD7', { number: 6, fromCourse: true, subject: 'Химия', level: 'ЕГЭ', isIndividual: false }),
+    mk(3, '17:30', 'Аня К.', 'Индивидуально', '#F59E0B', { groupId: null, studentId: 'dev-s', subject: 'Химия', level: 'ЕГЭ', isIndividual: true }),
+    mk(4, '16:00', 'Хим ЕГЭ 2027', 'Гидролиз', '#786AD7', { number: 7, fromCourse: true, subject: 'Химия', level: 'ЕГЭ', isIndividual: false }),
+    mk(5, '12:00', 'Био ЕГЭ 2027', 'Ботаника: ткани', '#3FCC8A', { cancelled: true, subject: 'Биология', level: 'ЕГЭ', isIndividual: false }),
   ]
 }
 
