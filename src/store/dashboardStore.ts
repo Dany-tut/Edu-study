@@ -209,7 +209,7 @@ interface DashboardState {
   pomoSetTimerMode: (mode: PomoTimerMode) => void
 }
 
-export type WidgetColumns = 1 | 2 | 3
+export type WidgetColumns = 1 | 2 | 3 | 4
 export type PomoMode = 'focus' | 'break'
 export type PomoTimerMode = 'timer' | 'stopwatch'
 export const POMO_DURATIONS: Record<PomoMode, number> = { focus: 25 * 60, break: 5 * 60 }
@@ -480,7 +480,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     return {
       ...current,
       ...p,
-      widgetOrder: [...saved, ...fresh],
+      widgetOrder: [...(fresh.includes(11) ? [11] : []), ...saved, ...fresh.filter(id => id !== 11)],
       knownWidgetIds: DEFAULT_WIDGET_ORDER,
     }
   },

@@ -1,0 +1,66 @@
+{
+  "mode": "built-in image_gen",
+  "concept": "Предметы со стола Искры",
+  "assets": [
+    {
+      "id": "reminders",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-361f98dc-a0b0-4f91-9913-298768981cb2.png",
+      "prompt": null
+    },
+    {
+      "id": "stats",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-b4a43a4d-7d34-4ec9-aead-394a95d1392d.png",
+      "prompt": "Use case: stylized-concept. Production asset for the Iskra education app, collection 'objects from the Iskra desk'. ONE standalone physical miniature object, NOT a flat icon, NOT a vector glyph on an app tile, NOT a badge. Sculpted chunky softly irregular rounded contours, friendly premium 3D product illustration. Materials milky white matte ceramic and translucent lavender acrylic #9D87ED, tiny warm amber detail, no black outline. Three-quarter front view looking slightly down, orthographic camera, soft studio light upper left, gentle ambient occlusion, no hard shadow, no ground plane. Object occupies 76% square canvas, completely visible with generous transparent margin. Genuine transparent alpha background. No text, letters, numerals, watermark or background. Coherent tactile elegant style, visible object thickness and physical details.\nSubject: A sculptural small three-step staircase made from thick rounded frosted lavender glass blocks, a single milky white marble resting on the highest step, a tiny amber inlay in the lowest step. An abstract physical desk sculpture of growth, no chart axes or arrow symbol."
+    },
+    {
+      "id": "trainer",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-1b3864b2-30dc-476e-aecf-bd5070f2612a.png",
+      "prompt": "Use case: stylized-concept. Production asset for the Iskra education app, collection 'objects from the Iskra desk'. ONE standalone physical miniature object, NOT a flat icon, NOT a vector glyph on an app tile, NOT a badge. Sculpted chunky softly irregular rounded contours, friendly premium 3D product illustration. Materials milky white matte ceramic and translucent lavender acrylic #9D87ED, tiny warm amber detail, no black outline. Three-quarter front view looking slightly down, orthographic camera, soft studio light upper left, gentle ambient occlusion, no hard shadow, no ground plane. Object occupies 76% square canvas, completely visible with generous transparent margin. Genuine transparent alpha background. No text, letters, numerals, watermark or background. Coherent tactile elegant style, visible object thickness and physical details.\nSubject: A small physical violet silicone exercise dumbbell with two chunky milky ceramic rounded end weights, a lavender translucent centre grip and one small amber collar. Sculpted playful asymmetrical geometry, clearly a tangible miniature dumbbell, no surrounding tile."
+    },
+    {
+      "id": "quiz",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-667238a4-861d-4494-a254-5dc380418b26.png",
+      "prompt": "Use case: stylized-concept. Production asset for the Iskra education app, collection 'objects from the Iskra desk'. ONE standalone physical miniature object, NOT a flat icon, NOT a vector glyph on an app tile, NOT a badge. Sculpted chunky softly irregular rounded contours, friendly premium 3D product illustration. Materials milky white matte ceramic and translucent lavender acrylic #9D87ED, tiny warm amber detail, no black outline. Three-quarter front view looking slightly down, orthographic camera, soft studio light upper left, gentle ambient occlusion, no hard shadow, no ground plane. Object occupies 76% square canvas, completely visible with generous transparent margin. Genuine transparent alpha background. No text, letters, numerals, watermark or background. Coherent tactile elegant style, visible object thickness and physical details.\nSubject: Two chunky thick jigsaw puzzle pieces, one milky white ceramic and one translucent lavender acrylic, almost fitted together, with a tiny amber connector. Physical rounded puzzle toy, no symbols and no printed details."
+    },
+    {
+      "id": "practice",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-2f329dce-8862-4523-95a6-4f094e0495bd.png",
+      "prompt": "Use case: stylized-concept. Production asset for the Iskra education app, collection 'objects from the Iskra desk'. ONE standalone physical miniature object, NOT a flat icon, NOT a vector glyph on an app tile, NOT a badge. Sculpted chunky softly irregular rounded contours, friendly premium 3D product illustration. Materials milky white matte ceramic and translucent lavender acrylic #9D87ED, tiny warm amber detail, no black outline. Three-quarter front view looking slightly down, orthographic camera, soft studio light upper left, gentle ambient occlusion, no hard shadow, no ground plane. Object occupies 76% square canvas, completely visible with generous transparent margin. Genuine transparent alpha background. No text, letters, numerals, watermark or background. Coherent tactile elegant style, visible object thickness and physical details.\nSubject: One small rounded glowing pear-shaped lavender frosted-glass lightbulb with a milky white ceramic ribbed screw base and a tiny curved amber filament visible inside, laid tilted slightly right. A physical lightbulb sculpture, no rays or symbol on a backing tile."
+    },
+    {
+      "id": "focus",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-56f17fb3-3c23-4255-bb4b-6b5feb237f2d.png",
+      "prompt": null
+    },
+    {
+      "id": "reaction",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-27064774-5a8d-423b-9e21-670e1c95c86b.png",
+      "prompt": null
+    },
+    {
+      "id": "fact",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-1bfc2a1e-5780-4778-8cff-b639432c6f14.png",
+      "prompt": "Use case: stylized-concept. Production asset for the Iskra education app, collection 'objects from the Iskra desk'. ONE standalone physical miniature object, NOT a flat icon, NOT a vector glyph on an app tile, NOT a badge. Sculpted chunky softly irregular rounded contours, friendly premium 3D product illustration. Materials milky white matte ceramic and translucent lavender acrylic #9D87ED, tiny warm amber detail, no black outline. Three-quarter front view looking slightly down, orthographic camera, soft studio light upper left, gentle ambient occlusion, no hard shadow, no ground plane. Object occupies 76% square canvas, completely visible with generous transparent margin. Genuine transparent alpha background. No text, letters, numerals, watermark or background. Coherent tactile elegant style, visible object thickness and physical details.\nSubject: A softly rounded transparent pale lavender ice cube with tiny air bubbles and a milky frosted corner, sitting in one small clear lavender water droplet puddle, a tiny amber caustic highlight. Miniature physical science curiosity, no actual background or ground plane."
+    },
+    {
+      "id": "awards",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-c32b28cf-d3d8-4b32-9b36-5e262160c04b.png",
+      "prompt": "Use case: stylized-concept. Production asset for the Iskra education app, collection 'objects from the Iskra desk'. ONE standalone physical miniature object, NOT a flat icon, NOT a vector glyph on an app tile, NOT a badge. Sculpted chunky softly irregular rounded contours, friendly premium 3D product illustration. Materials milky white matte ceramic and translucent lavender acrylic #9D87ED, tiny warm amber detail, no black outline. Three-quarter front view looking slightly down, orthographic camera, soft studio light upper left, gentle ambient occlusion, no hard shadow, no ground plane. Object occupies 76% square canvas, completely visible with generous transparent margin. Genuine transparent alpha background. No text, letters, numerals, watermark or background. Coherent tactile elegant style, visible object thickness and physical details.\nSubject: One soft sculpted five-point star made from frosted translucent lavender glass, thick pillowy rounded points, backed with a smaller milky ceramic star slightly offset, and two short curled amber ribbon tails. A collectible physical prize, no lettering and no app tile."
+    },
+    {
+      "id": "daily",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-047df814-9926-42f9-abb9-d46ca703e7de.png",
+      "prompt": null
+    },
+    {
+      "id": "feed",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-ac485497-a3fc-47ec-9c4b-85c1e33fc567.png",
+      "prompt": "Use case: stylized-concept. Production asset for the Iskra education app, collection 'objects from the Iskra desk'. ONE standalone physical miniature object, NOT a flat icon, NOT a vector glyph on an app tile, NOT a badge. Sculpted chunky softly irregular rounded contours, friendly premium 3D product illustration. Materials milky white matte ceramic and translucent lavender acrylic #9D87ED, tiny warm amber detail, no black outline. Three-quarter front view looking slightly down, orthographic camera, soft studio light upper left, gentle ambient occlusion, no hard shadow, no ground plane. Object occupies 76% square canvas, completely visible with generous transparent margin. Genuine transparent alpha background. No text, letters, numerals, watermark or background. Coherent tactile elegant style, visible object thickness and physical details.\nSubject: A small rolled and partially open miniature newspaper made from thick milky white curved paper with a translucent lavender edge and clasp. Only simple physical embossed short grooves to suggest columns, absolutely no letters or written words. Tiny amber corner fold. A tangible news object."
+    },
+    {
+      "id": "memes",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-bf137034-b39b-4b1c-ba93-f91531eca825.png",
+      "prompt": "Use case: stylized-concept. Production asset for the Iskra education app, collection 'objects from the Iskra desk'. ONE standalone physical miniature object, NOT a flat icon, NOT a vector glyph on an app tile, NOT a badge. Sculpted chunky softly irregular rounded contours, friendly premium 3D product illustration. Materials milky white matte ceramic and translucent lavender acrylic #9D87ED, tiny warm amber detail, no black outline. Three-quarter front view looking slightly down, orthographic camera, soft studio light upper left, gentle ambient occlusion, no hard shadow, no ground plane. Object occupies 76% square canvas, completely visible with generous transparent margin. Genuine transparent alpha background. No text, letters, numerals, watermark or background. Coherent tactile elegant style, visible object thickness and physical details.\nSubject: A playful slightly squashed lavender translucent gelatin sculpture shaped like a small smiling rounded pebble character, two tiny indented milky eyes, a curved carved smile, a tiny amber ceramic cap tilted atop. Full volumetric physical sculpture, no emoji on a tile and no line icon."
+    }
+  ]
+}

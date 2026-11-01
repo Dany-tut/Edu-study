@@ -37,6 +37,7 @@ export type WidgetMeta = {
 }
 
 export const WIDGET_META: WidgetMeta[] = [
+  { id: 11, label: 'Твои дела', Icon: Rows3, color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
   { id: 6, label: 'Викторина',     Icon: CircleHelp,   color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)', content: 'quiz' },
   { id: 0, label: 'Статистика',    Icon: BarChart3,    color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
   { id: 7, label: 'Прогресс',      Icon: TrendingUp,   color: 'var(--color-green-text)',  soft: 'var(--color-green-soft)'  },

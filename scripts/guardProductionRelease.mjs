@@ -41,6 +41,7 @@ try {
       version: version.version,
     }
     writeFileSync('dist/release.json', JSON.stringify(manifest, null, 2) + '\n')
+    writeFileSync('dist/version.json', JSON.stringify({ ...version, commit: head }, null, 2) + '\n')
   }
 } catch (error) {
   console.error(`Release blocked: ${error.message}`)

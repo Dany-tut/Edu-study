@@ -7,7 +7,7 @@ import { isTintLevel, type TintLevel } from './courseTint'
 
 type SavedPrefs = {
   avatarId?: string
-  widgetColumns?: 1 | 2 | 3
+  widgetColumns?: 1 | 2 | 3 | 4
   widgetOrder?: number[]
   pomoTimerMode?: 'timer' | 'stopwatch'
   pomoFocusDuration?: number
