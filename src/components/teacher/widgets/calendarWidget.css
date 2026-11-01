@@ -26,15 +26,18 @@
 }
 
 .calendar-context-panel {
+  outline: none;
   max-width: 100%;
   max-height: calc(100dvh - 32px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 24px;
-  border: 1px solid var(--color-border);
-  background: rgb(var(--glass-rgb));
-  box-shadow: var(--shadow-4);
+  border-radius: 20px;
+  border: 1px solid rgba(var(--glass-rgb), 0.55);
+  background: rgba(var(--glass-rgb), 0.72);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.18), inset 0 1px 0 rgba(var(--glass-rgb), 0.5);
   will-change: transform, opacity;
 }
 
@@ -59,9 +62,18 @@
 .calendar-widget-lesson-preview .calendar-widget-time > :first-child { font-size: 23px !important; }
 .calendar-widget-preview-name { font-size: 18px; font-weight: 700; color: var(--color-text); overflow-wrap: anywhere; }
 .calendar-widget-preview-subtitle { font-size: 14px; color: var(--color-text-2); overflow-wrap: anywhere; }
-.calendar-context-actions { padding: 6px; border-top: 1px solid var(--color-border); }
+.calendar-context-actions { padding: 4px 0; }
 .calendar-context-actions > div:first-child { margin-top: 0 !important; }
-.calendar-context-actions button { border-top: 0 !important; border-radius: 11px; }
+.calendar-context-actions button { border-top: 0 !important; border-radius: 0; font-weight: 500 !important; }
+.calendar-context-actions button + button,
+.calendar-context-actions > button,
+.calendar-context-actions > div > button + button { border-top: 1px solid rgb(128 128 128 / 0.14) !important; }
+.calendar-context-actions > button:last-child { margin-top: 4px; }
+.calendar-context-lifted { container-type: inline-size; container-name: teacher-calendar; }
+.calendar-context-lifted .calendar-widget-lesson { box-shadow: 0 16px 40px rgb(0 0 0 / 0.22) !important; }
+@supports not (backdrop-filter: blur(1px)) {
+  .calendar-context-panel { background: rgba(var(--glass-rgb), 0.96); }
+}
 
 @media (max-width: 480px) {
 

@@ -293,8 +293,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
                 key={item.id}
                 item={item}
                 ghost={drag?.item.id === item.id}
-                onTap={el => onOpen ? onOpen(item) : overlays.current?.openMenu(item, el.getBoundingClientRect())}
-                onMenu={el => { haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect()) }}
+                onTap={el => onOpen ? onOpen(item) : overlays.current?.openMenu(item, el.getBoundingClientRect(), el)}
+                onMenu={el => { haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect(), el) }}
                 onDragStart={(el, x, y) => { haptic(10); startDrag(item, el, x, y) }}
                 onDragMove={moveDrag}
                 onDragEnd={endDrag}
@@ -562,7 +562,7 @@ function Card({ item, ghost, onTap, onMenu, onDragStart, onDragMove, onDragEnd }
 // Overlay state is deliberately separate: opening a menu must not rerender
 // every animated day and lesson behind it.
 type CalendarOverlayHandle = {
-  openMenu: (item: SchedItem, rect: DOMRect) => void
+  openMenu: (item: SchedItem, rect: DOMRect, source?: HTMLElement) => void
   openAdd: (day: string) => void
 }
 
@@ -574,7 +574,7 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   onSelectDay: (day: string) => void
 }>(function CalendarOverlays({ mobile, onOpen, onAttendance, onAction, onSelectDay }, ref) {
   const t = useT()
-  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect } | null>(null)
+  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect; source?: HTMLElement } | null>(null)
   const pendingMenuAction = useRef<(() => void) | null>(null)
   const dismissMenu = (afterClose?: () => void) => {
     pendingMenuAction.current = afterClose ?? null
@@ -584,7 +584,7 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   const [addDay, setAddDay] = useState<string | null>(null)
 
   useImperativeHandle(ref, () => ({
-    openMenu: (item, rect) => setMenu({ item, rect }),
+    openMenu: (item, rect, source) => setMenu({ item, rect, source }),
     openAdd: day => setAddDay(day),
   }), [])
 
@@ -600,6 +600,7 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
             key="menu"
             item={menu.item}
             rect={menu.rect}
+            source={menu.source}
             onClose={() => dismissMenu()}
             onOpen={onOpen && (() => dismissMenu(() => onOpen(menu.item)))}
             onAttendance={() => dismissMenu(() => onAttendance(menu.item))}
@@ -654,9 +655,10 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
 
 // ── Меню удержания ────────────────────────────────────────────────────────────
 
-function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
+function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
   item: SchedItem
   rect: DOMRect
+  source?: HTMLElement
   onClose: () => void
   onOpen?: () => void
   onAttendance: () => void
@@ -672,6 +674,12 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
   const reducedMotion = useReducedMotion()
   const transition = { duration: reducedMotion ? 0 : 0.2, ease: CALENDAR_EASE }
   const panelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!source) return
+    const visibility = source.style.visibility
+    source.style.visibility = 'hidden'
+    return () => { source.style.visibility = visibility }
+  }, [source])
   const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }))
   useEffect(() => {
     const resize = () => setViewport({ width: window.innerWidth, height: window.innerHeight })
@@ -686,7 +694,7 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
 
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null
-    panelRef.current?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true })
+    panelRef.current?.focus({ preventScroll: true })
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
       if (e.key !== 'Tab') return
@@ -732,9 +740,20 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
         onContextMenu={e => { e.preventDefault(); if (isPresent) onClose() }}
         style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal }}
       />
+      <motion.div
+        aria-hidden="true"
+        className="calendar-context-lifted"
+        initial={{ y: 0, scale: 1, opacity: 1 }}
+        animate={{ y: reducedMotion ? 0 : -4, scale: reducedMotion ? 1 : 1.012, opacity: 1 }}
+        exit={{ y: 0, scale: 1, opacity: 0 }}
+        transition={transition}
+        style={{ position: 'fixed', left: rect.left, top: rect.top, width: rect.width, zIndex: Z.modal + 1, pointerEvents: 'none', transformOrigin: 'center bottom' }}
+      >
+        <CardBody item={item} lifted />
+      </motion.div>
       <div className="calendar-context-positioner" style={{ zIndex: Z.modal + 1, left, top, width, maxHeight: availableHeight }}>
       <motion.div ref={panelRef}
-        role="dialog" aria-modal="true" aria-label={t('Занятие')}
+        role="dialog" aria-modal="true" aria-label={t('Занятие')} tabIndex={-1}
         className="calendar-context-panel"
         initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
         transition={transition}
