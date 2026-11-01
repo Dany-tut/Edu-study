@@ -307,6 +307,7 @@
   filter: brightness(0.96);
 }
 .ds-course-label {
+  overflow-wrap: anywhere;
   display: inline;
   color: var(--ds-muted);
   font-size: 11px;
@@ -632,9 +633,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
   align-items: start;
-}
-.ds-course-board .ds-course-card:last-child:nth-child(odd) {
-  grid-column: 1/-1;
 }
 .ds-course-track {
   display: flex;
@@ -1024,3 +1022,43 @@
   }
 }
 .student-diary .ds-track-step:nth-child(6n+1)::before { display:none; }
+
+/* Sparse collections keep the same card width; empty states span the collection. */
+.ds-course-board > .ds-empty, .ds-course-shelf > .ds-empty { grid-column: 1 / -1; }
+.ds-focus-grid:has(> aside:empty) { grid-template-columns: minmax(0, 1fr); }
+.ds-focus-grid > aside:empty { display: none; }
+.ds-section-head { flex-wrap: wrap; }
+.ds-section-head h2, .ds-course-top h3, .ds-upcoming h3, .ds-recommend h3 { overflow-wrap: anywhere; }
+.ds-recommend > div { min-width: 0; }
+
+.ds-course-track:empty, .ds-course-work:empty { display: none; }
+
+/* Three student views share the same filters, work rows and status palette. */
+.student-diary .ds-view-navigation { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin: 20px 0 26px; }
+.student-diary .ds-view-navigation .ds-tabs { margin: 0; min-width: 0; }
+.student-diary .ds-lesson-catalog { font-size: 12px; padding: 10px 12px; }
+.student-diary .ds-lesson-catalog[aria-pressed='true'] { color: var(--ds-primary); background: var(--color-purple-soft); }
+.student-diary .ds-feed-grid { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; gap: 22px; }
+.student-diary .ds-feed-aside { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.student-diary .ds-feed-planner { min-width: 0; padding: 18px; border-radius: 22px; border: 1px solid var(--ds-line); background: var(--ds-surface); }
+.student-diary .ds-feed-planner h2 { font-size: 16px; }
+.student-diary .ds-feed-planner > p { margin-top: 14px; font-size: 11px; color: var(--ds-muted); }
+.student-diary .ds-feed-all { width: 100%; padding: 8px; margin-bottom: 12px; border: 1px solid var(--ds-line); border-radius: 12px; background: transparent; font-size: 12px; }
+.student-diary .ds-feed-all[aria-pressed='true'], .student-diary .ds-day-picker button[aria-pressed='true'] { background: var(--color-purple-soft); color: var(--ds-primary); border-color: var(--ds-primary); }
+.student-diary .ds-day-picker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.student-diary .ds-day-picker button { min-width: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; height: 62px; padding: 4px 0; border-radius: 12px; border: 1px solid transparent; background: transparent; }
+.student-diary .ds-day-picker span { font-size: 9px; color: var(--ds-muted); }
+.student-diary .ds-day-picker strong { font-size: 14px; }
+.student-diary .ds-day-picker i { width: 4px; height: 4px; border-radius: 50%; background: transparent; }
+.student-diary .ds-day-picker i[data-has-work] { background: var(--ds-primary); }
+.student-diary .ds-feed-timeline { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.student-diary .ds-feed-event { min-width: 0; padding-inline-start: 18px; border-inline-start: 2px solid var(--ds-line); }
+.student-diary .ds-feed-event > .ds-section-head { position: relative; }
+.student-diary .ds-feed-event > .ds-section-head::before { content: ''; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--ds-primary); inset-inline-start: -23px; }
+.student-diary .ds-feed-event h2 { font-size: 17px; }
+@media (max-width: 850px) { .student-diary .ds-feed-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; } }
+@media (max-width: 550px) { .student-diary .ds-view-navigation { gap: 8px; }.student-diary .ds-view-navigation .ds-tabs { flex: 1 1 100%; width: 100%; }.student-diary .ds-lesson-catalog { margin-inline-start: auto; }.student-diary .ds-feed-planner { padding: 16px; }.student-diary .ds-feed-event { padding-inline-start: 13px; }.student-diary .ds-feed-event > .ds-section-head::before { inset-inline-start: -18px; } }
+
+.student-diary .ds-course-links { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; }
+
+.ds-focus-grid > aside > :only-child { grid-column: 1 / -1; }
