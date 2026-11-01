@@ -8,7 +8,7 @@ if (!['--before-build', '--after-build', '--check'].includes(phase)) {
 }
 
 try {
-  const production = process.env.VERCEL_ENV === 'production'
+  const production = phase !== '--check' && process.env.VERCEL_ENV === 'production'
   const version = JSON.parse(readFileSync('public/version.json', 'utf8'))
   let head
   try { head = git(['rev-parse', 'HEAD']) } catch { head = process.env.VERCEL_GIT_COMMIT_SHA || null }
