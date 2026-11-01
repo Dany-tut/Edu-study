@@ -27,9 +27,13 @@ export interface WorkSlot {
   group?: string | null
   types: string[]
   required: boolean
+  topic?: { id: string; title: string }
   lesson?: JournalColumn
 }
 export interface StudentWork {
+  studentId?: string
+  submission?: JournalWork
+  attempts?: CourseJournalData['attempts']
   slot: WorkSlot
   source: WorkSource
   status: string
@@ -73,6 +77,7 @@ export function buildStandIndex(data: CourseJournalData) {
         title: l.title,
         course: course.id,
         module: l.module_id,
+        topic: { id: l.id, title: l.title },
         date: column.date,
         due: column.due,
       }
@@ -121,11 +126,12 @@ export function buildStandIndex(data: CourseJournalData) {
       title: a.title,
       course: l?.course_id ?? OUTSIDE_COURSES,
       module: l?.module_id ?? null,
+      topic: l ? { id: l.id, title: l.title } : undefined,
       group: a.group_id,
       date: journalDate(a.assignedAt) ?? l?.scheduled_date ?? null,
       due: journalDate(a.due_date),
       types: typesOf(a.basicTasks ?? a.basicTask),
-      required: a.status !== 'archived' && (!!a.basicTask || !l),
+      required: a.status !== 'archived' && (!!a.basicTask || (Array.isArray(a.basicTasks) && a.basicTasks.length > 0) || !l),
     })
   }
   for (const row of data.work) {
@@ -144,6 +150,7 @@ export function buildStandIndex(data: CourseJournalData) {
       title: base ? base.title + (extra.extraId ? ' · Доп. ДЗ' : ' · Запись') : 'Домашняя работа · ' + row.lesson_ref,
       course: base?.course ?? OUTSIDE_COURSES,
       module: base?.module ?? null,
+      topic: base?.topic,
       date: base?.date ?? null,
       due: null,
       types: [],
@@ -277,6 +284,9 @@ export function studentWorks(
     )
     return [
       {
+        studentId: owner?.id ?? student.id,
+        submission: row,
+        attempts: attempts.slice().sort((a, b) => a.number - b.number),
         slot,
         source,
         status,

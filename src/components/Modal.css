@@ -1,0 +1,15 @@
+/* CSS completes entrance on the element's visible base style without handing
+   opacity back from a native animation, which can flash the initial value. */
+.iskra-modal-backdrop { animation: iskra-modal-fade .16s ease-out backwards; }
+.iskra-modal-card { animation: iskra-modal-enter .2s cubic-bezier(.2,.8,.2,1) backwards; }
+@keyframes iskra-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes iskra-modal-enter {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iskra-modal-backdrop, .iskra-modal-card { animation: none; }
+}

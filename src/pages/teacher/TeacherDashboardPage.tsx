@@ -37,7 +37,7 @@ import { useT } from '../../lib/i18n'
 import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
 import { getOwnerId } from '../../lib/owner'
 
-export default function TeacherDashboardPage({ standContent }: { standContent?: React.ReactNode } = {}) {
+export default function TeacherDashboardPage({ standContent, standReviewCount }: { standContent?: React.ReactNode; standReviewCount?: number } = {}) {
   const t = useT()
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
   // читают палитру через реестр, поэтому карту достаточно поставить один раз.
@@ -137,7 +137,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
 
       {/* Desk switcher — dots below topbar that expand to named pill on hover;
           only shows on the home page when not in edit mode (edit bar takes over). */}
-      {activePage === 'home' && (
+      {activePage === 'home' && !standContent && (
         <DeskSwitcher
           config={config}
           onSetActive={setActiveDesk}
@@ -164,7 +164,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
 
         {/* Topbar — always in center column */}
         <div style={{ display: 'inline-flex', pointerEvents: 'auto' }}>
-          <TeacherTopBar />
+          <TeacherTopBar standReviewCount={standReviewCount} />
         </div>
 
         {/* Right column — widget appears/disappears independently */}
@@ -208,7 +208,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         // by this wrapper, so their overflow stays visible.
         style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
       >
-        {activePage === 'home' && (
+        {activePage === 'home' && (standContent ? isDesktop && standContent : (
           <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <DeskCanvas
               desk={activeDesk}
@@ -218,9 +218,9 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
               hiddenWidgets={hiddenWidgets}
             />
           </div>
-        )}
+        ))}
         {activePage === 'groups'          && (standContent ? isDesktop && standContent : <TeacherGroupsPage />)}
-        {activePage === 'homework'        && <TeacherHomeworkPage />}
+        {activePage === 'homework'        && (standContent ? isDesktop && standContent : <TeacherHomeworkPage />)}
         {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}
         {activePage === 'homework-review' && <TeacherHomeworkReviewPage />}
         {activePage === 'hard-review'     && <TeacherHardReviewPage />}
@@ -240,7 +240,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     </div>
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    {!isDesktop && (standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
+    {!isDesktop && (standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(standReviewCount === undefined ? ['gradebook', 'groups'] as const : ['home', 'gradebook', 'groups', 'homework'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'homework' ? 'Проверка' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
     </>
   )
 }
