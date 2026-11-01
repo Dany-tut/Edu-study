@@ -73,6 +73,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const today = todayMsk()
   const [day, setDay] = useState(today)
   const [weekNavigation, setWeekNavigation] = useState(0)
+  const [weekStep, setWeekStep] = useState<-1 | 0 | 1>(0)
   const [stripStart, setStripStart] = useState(() => weekStart(today))
   const [visibleDates, setVisibleDates] = useState(() => ({ first: weekStart(today), last: addDays(weekStart(today), 6) }))
   const start = weekStart(day)
@@ -94,12 +95,18 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
     setDir(next > day ? 1 : -1)
     setDay(next)
     if (navigate) {
+      setWeekStep(0)
       setStripStart(weekStart(next))
       setWeekNavigation(key => key + 1)
     }
   }
   const returnToToday = () => {
+    setWeekStep(0)
     setStripStart(weekStart(today))
+    setWeekNavigation(key => key + 1)
+  }
+  const moveVisibleWeek = (direction: -1 | 1) => {
+    setWeekStep(direction)
     setWeekNavigation(key => key + 1)
   }
 
@@ -207,8 +214,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
           )}
           {!mobile && (
             <>
-              <button aria-label={t('Прошлая неделя')} onClick={() => go(addDays(day, -7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
-              <button aria-label={t('Следующая неделя')} onClick={() => go(addDays(day, 7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
+              <button aria-label={t('Прошлая неделя')} onClick={() => moveVisibleWeek(-1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
+              <button aria-label={t('Следующая неделя')} onClick={() => moveVisibleWeek(1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
             </>
           )}
         </div>
@@ -218,6 +225,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
       <WeekStrip
         start={stripStart}
         navigationKey={weekNavigation}
+        weekStep={weekStep}
         label={t('Выбор недели')}
         onVisibleRangeChange={(first, last) => setVisibleDates({ first, last })}
         renderDay={(d, i) => {

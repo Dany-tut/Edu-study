@@ -6,9 +6,10 @@ const BUFFER = 4
 const mask = (edge: number) => `linear-gradient(to right, transparent 0%, black ${edge}%, black ${100 - edge}%, transparent 100%)`
 
 /** A native, unsnapped timeline. Recycle the surrounding weeks after a gesture. */
-export default function WeekStrip({ start, navigationKey, label, onVisibleRangeChange, renderDay }: {
+export default function WeekStrip({ start, navigationKey, weekStep, label, onVisibleRangeChange, renderDay }: {
   start: string
   navigationKey: number
+  weekStep: -1 | 0 | 1
   label: string
   onVisibleRangeChange: (first: string, last: string) => void
   renderDay: (date: string, weekday: number) => ReactNode
@@ -58,13 +59,19 @@ export default function WeekStrip({ start, navigationKey, label, onVisibleRangeC
     reportVisibleRange()
   }, [anchor, reportVisibleRange])
 
-  // Selecting a date preserves the timeline's exact position. Only explicit
-  // navigation (arrows, Today or a feed swipe) aligns the requested week.
+  // Arrows shift the actual viewport by seven days, including its fractional
+  // offset. Today and feed navigation align a week without affecting clicks.
   useLayoutEffect(() => {
     const navigate = navigationKey !== lastNavigation.current
     lastNavigation.current = navigationKey
     if (!navigate) return
     if (timer.current) clearTimeout(timer.current)
+    if (weekStep && viewport.current) {
+      expectedLeft.current = null
+      viewport.current.scrollLeft += weekStep * viewport.current.clientWidth
+      reportVisibleRange()
+      return
+    }
     pendingLeft.current = null
     setScrolling(false)
     if (anchor !== start) setAnchor(start)
@@ -73,7 +80,7 @@ export default function WeekStrip({ start, navigationKey, label, onVisibleRangeC
       viewport.current.scrollLeft = expectedLeft.current
       reportVisibleRange()
     }
-  }, [start, anchor, navigationKey, reportVisibleRange])
+  }, [start, anchor, navigationKey, weekStep, reportVisibleRange])
 
   useEffect(() => {
     const el = viewport.current
