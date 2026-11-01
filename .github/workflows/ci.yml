@@ -92,6 +92,9 @@ jobs:
         continue-on-error: true
         run: npm run check:i18n
 
+      - name: Просмотр кабинета преподавателя (check:teacher-view)
+        run: npm run check:teacher-view
+
       - name: Переводы вопросов (check:questions)
         id: questions
         continue-on-error: true

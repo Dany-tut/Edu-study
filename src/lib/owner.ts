@@ -47,32 +47,41 @@ import type { User } from '@supabase/supabase-js'
 // в чужом кабинете будет отклонена базой. То есть «только просмотр» здесь
 // обеспечивает сервер, а не спрятанная кнопка.
 //
-// Хранится в localStorage, чтобы переживать перезагрузку: админ уходит в чужой
-// кабинет надолго и F5 не должен возвращать его к себе молча.
-
+// Контекст просмотра относится только к этой вкладке, а не ко всем окнам
+// администратора. Его сессия Auth остаётся прежней; сервер по-прежнему
+// проверяет её права и RLS.
 const VIEW_AS_KEY = 'iskra:viewAsTeacher'
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export interface ViewAsTeacher { id: string; name: string }
 
+function clearViewAs() {
+  try { sessionStorage.removeItem(VIEW_AS_KEY) } catch { /* unavailable */ }
+  try { localStorage.removeItem(VIEW_AS_KEY) } catch { /* legacy context */ }
+}
+
 export function getViewAs(): ViewAsTeacher | null {
   try {
-    const raw = localStorage.getItem(VIEW_AS_KEY)
+    const raw = sessionStorage.getItem(VIEW_AS_KEY)
     if (!raw) return null
     const v = JSON.parse(raw) as ViewAsTeacher
-    return v?.id ? v : null
+    return UUID.test(v?.id) && typeof v.name === 'string' ? v : null
   } catch { return null }
 }
 
-/**
- * Переключить кабинет. Страница перезагружается намеренно: владельца успели
- * прочитать десятки хуков и сторов со своими кешами, и выборочно их сбрасывать
- * — значит однажды забыть один и показать смесь двух кабинетов.
- */
+/** Reload all owner-scoped stores on a clean route; never reuse another
+ * teacher's navigation or an open course/cards editor. */
 export function setViewAs(teacher: ViewAsTeacher | null) {
-  try {
-    if (teacher) localStorage.setItem(VIEW_AS_KEY, JSON.stringify(teacher))
-    else localStorage.removeItem(VIEW_AS_KEY)
-  } catch { /* приватный режим — просто не запомним */ }
+  if (teacher && !UUID.test(teacher.id)) throw new Error('Invalid teacher id')
+  if (teacher) sessionStorage.setItem(VIEW_AS_KEY, JSON.stringify(teacher))
+  else clearViewAs()
+  try { localStorage.removeItem(VIEW_AS_KEY) } catch { /* legacy context */ }
+  for (const key of ['teacher-nav', 'ce-session', 'cards-session']) {
+    sessionStorage.removeItem(key)
+  }
+  // Updating the hash alone keeps mounted stores alive. Replace + reload gives
+  // the next document the intended route before teacherStore reads navigation.
+  window.history.replaceState(null, '', teacher ? '#/teacher' : '#/teacher/admin')
   window.location.reload()
 }
 
@@ -100,7 +109,11 @@ export async function getSessionUser(): Promise<User | null> {
  *  Если админ смотрит чужой кабинет — id того преподавателя. */
 export async function getOwnerId(): Promise<string | null> {
   const view = getViewAs()
-  if (view) return view.id
+  if (view) {
+    const user = await getAuthUser()
+    if (user?.app_metadata?.role === 'admin') return view.id
+    clearViewAs()
+  }
   return (await getSessionUser())?.id ?? null
 }
 
@@ -124,6 +137,6 @@ supabase.auth.onAuthStateChange(evt => {
   // Выход из аккаунта снимает и просмотр: иначе следующий вошедший увидел бы
   // чужой кабинет, выбранный не им.
   if (evt === 'SIGNED_OUT') {
-    try { localStorage.removeItem(VIEW_AS_KEY) } catch { /* не важно */ }
+    clearViewAs()
   }
 })

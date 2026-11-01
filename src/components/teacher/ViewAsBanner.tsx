@@ -52,11 +52,11 @@ export default function ViewAsBanner() {
       </div>
       <button
         onClick={() => setViewAs(null)}
-        title={t('Вернуться к себе')}
+        title={t('Вернуться в админку')}
         style={{ ...btn('S', 'secondary'), flexShrink: 0 }}
       >
         <X size={12} strokeWidth={2.5} />
-        {t('К себе')}
+        {t('Вернуться в админку')}
       </button>
     </div>,
     document.body,

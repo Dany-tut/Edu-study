@@ -290,11 +290,11 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
               ) : (
                 <button
                   onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
-                  title={t('Открыть кабинет этого преподавателя')}
+                  title={t('Посмотреть кабинет преподавателя')}
                   style={uiBtn('S', 'secondary')}
                 >
                   <Eye size={12} strokeWidth={2} />
-                  {t('Кабинет')}
+                  {t('Посмотреть кабинет')}
                 </button>
               )}
               <button
