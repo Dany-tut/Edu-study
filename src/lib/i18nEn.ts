@@ -5465,6 +5465,8 @@ export const EN: Record<string, string> = {
   "Об ученике": "About the student",
   "Выбрать ученика в полной проверке": "Select a student in the full review",
   "Ответы и разбор работы": "Answers and feedback",
+  "Оценка, комментарий и предложения ИИ": "Grade, feedback and AI suggestions",
+  "Повторяем…": "Retrying…",
   "Ответы ученика": "Student answers",
   "Ответы этой сдачи не сохранились.": "The answers for this submission were not saved.",
   "Разбор преподавателя": "Teacher feedback",
