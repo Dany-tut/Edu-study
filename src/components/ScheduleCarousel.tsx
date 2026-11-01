@@ -17,7 +17,7 @@ const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 // Native horizontal scrolling also clips vertically. Reserve paint space for
 // card shadows, then offset the viewport so the dashboard rows do not move.
 // Fade alpha rather than painting a solid overlay over the seasonal backdrop.
-const SHADOW_PAD = 40
+const SHADOW_PAD = 96
 const SCROLLER_STYLE = {
   height: `calc(100% + ${SHADOW_PAD * 2}px)`, top: -SHADOW_PAD,
 }

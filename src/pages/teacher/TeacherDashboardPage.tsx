@@ -136,7 +136,7 @@ export default function TeacherDashboardPage({ standContent, standReviewCount }:
 
       {/* Desk switcher — dots below topbar that expand to named pill on hover;
           only shows on the home page when not in edit mode (edit bar takes over). */}
-      {activePage === 'home' && !standContent && (
+      {activePage === 'home' && (
         <DeskSwitcher
           config={config}
           onSetActive={setActiveDesk}
@@ -204,7 +204,7 @@ export default function TeacherDashboardPage({ standContent, standReviewCount }:
         // by this wrapper, so their overflow stays visible.
         style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
       >
-        {activePage === 'home' && (standContent ? isDesktop && standContent : (
+        {activePage === 'home' && (
           <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <DeskCanvas
               desk={activeDesk}
@@ -214,7 +214,7 @@ export default function TeacherDashboardPage({ standContent, standReviewCount }:
               hiddenWidgets={hiddenWidgets}
             />
           </div>
-        ))}
+        )}
         {activePage === 'groups'          && (standContent ? isDesktop && standContent : <TeacherGroupsPage />)}
         {activePage === 'homework'        && (standContent ? isDesktop && standContent : <TeacherHomeworkPage />)}
         {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}
@@ -236,7 +236,7 @@ export default function TeacherDashboardPage({ standContent, standReviewCount }:
     </div>
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    {!isDesktop && (standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(standReviewCount === undefined ? ['gradebook', 'groups'] as const : ['home', 'gradebook', 'groups', 'homework'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'homework' ? 'Проверка' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
+    {!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(standReviewCount === undefined ? ['gradebook', 'groups'] as const : ['home', 'gradebook', 'groups', 'homework'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'homework' ? 'Проверка' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
     </>
   )
 }
