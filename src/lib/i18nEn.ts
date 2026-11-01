@@ -4716,6 +4716,7 @@ export const EN: Record<string, string> = {
   'Посмотреть кабинет': 'View dashboard',
   'Вернуться в админку': 'Back to admin',
   'В режиме просмотра нельзя изменять данные преподавателя.': 'Teacher data cannot be changed in view mode.',
+  'Режим просмотра · изменения отключены': 'View mode · changes disabled',
   'Кабинет': 'Cabinet',
   'К себе': 'Back to mine',
   'Вернуться к себе': 'Back to my own cabinet',

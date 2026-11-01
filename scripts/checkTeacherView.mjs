@@ -69,3 +69,39 @@ assert.equal(teacherReadContext({ id: teacher, user_metadata: { role: 'admin' } 
 assert.equal(teacherReadContext({ id: admin, app_metadata: { role: 'admin' } }, { action: 'tests', viewTeacherId: 'bad' }).status, 400)
 assert.equal(teacherReadContext({ id: teacher }, { action: 'results' }).teacher, teacher)
 console.log('PASS: verified admin can read target Testly context; writes, student actions, forged role and invalid targets are rejected')
+
+const viewBundle = await build({ entryPoints: ['src/lib/teacherView.ts'], bundle: true, platform: 'node', format: 'cjs', write: false })
+const viewModule = { exports: {} }
+const previewStorage = new Map([[key, JSON.stringify({ id: teacher, name: 'Teacher' })]])
+const sent = []
+vm.runInNewContext(viewBundle.outputFiles[0].text, {
+  module: viewModule, exports: viewModule.exports, sessionStorage: storage(previewStorage),
+  Request, Response, URL, fetch: async (...args) => { sent.push(args); return Response.json({ ok: true }) },
+})
+const { teacherViewRequestAllowed: allowed, teacherViewFetch } = viewModule.exports
+for (const table of ['students', 'lesson_progress', 'courses', 'payments', 'profiles']) {
+  for (const method of ['POST', 'PATCH', 'DELETE', 'PUT']) assert.equal(allowed(`/rest/v1/${table}`, method), false)
+  assert.equal(allowed(`/rest/v1/${table}`, 'GET'), true)
+}
+assert.equal(allowed('/rest/v1/rpc/teacher_finance_summary', 'POST'), true)
+assert.equal(allowed('/rest/v1/rpc/teacher_journal_save', 'POST'), false)
+assert.equal(allowed('/rest/v1/rpc/admin_delete_teacher', 'POST'), false)
+assert.equal(allowed('/rest/v1/rpc/start_homework_retake', 'POST'), false)
+assert.equal(allowed('/storage/v1/object/sign/task-media/file.png', 'POST'), true)
+assert.equal(allowed('/storage/v1/object/task-media/file.png', 'POST'), false)
+assert.equal(allowed('/auth/v1/token', 'POST'), true)
+assert.equal(allowed('/auth/v1/logout', 'POST'), true)
+assert.equal(allowed('/auth/v1/user', 'PUT'), false)
+assert.equal(allowed('/auth/v1/user/identities/authorize', 'GET'), false)
+for (const action of ['module', 'tests', 'results']) assert.equal(allowed('/functions/v1/testly-bridge', 'POST', { action }), true)
+for (const action of ['return_homework', 'connect', 'disconnect']) assert.equal(allowed('/functions/v1/testly-bridge', 'POST', { action }), false)
+assert.equal(allowed('/functions/v1/reset-teacher-password', 'POST'), false)
+const blocked = await teacherViewFetch('https://example.invalid/rest/v1/lesson_progress', { method: 'PATCH', body: '{}' })
+assert.equal(blocked.status, 403)
+assert.equal(sent.length, 0, 'A blocked write must never reach the server')
+await teacherViewFetch('https://example.invalid/rest/v1/lesson_progress')
+assert.equal(sent.length, 1)
+previewStorage.delete(key)
+await teacherViewFetch('https://example.invalid/rest/v1/lesson_progress', { method: 'PATCH', body: '{}' })
+assert.equal(sent.length, 2, 'Leaving preview restores normal authenticated writes')
+console.log('PASS: read-only reports/downloads, no grade/student/course/payment/Auth/module mutations, normal writes restored on exit')

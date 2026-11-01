@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { teacherViewFetch } from './teacherView'
 
 // Public client used from the browser. The publishable key is safe to ship —
 // all access is enforced server-side by Row Level Security policies.
@@ -14,7 +15,9 @@ if (!url || !key) {
 }
 
 // OAuth returns a one-time query code, leaving the application's hash router intact.
-export const supabase = createClient(url, key, { auth: { flowType: 'pkce' } })
+export const supabase = createClient(url, key, {
+  auth: { flowType: 'pkce' }, global: { fetch: teacherViewFetch },
+})
 
 // Адрес и ключ отдельно: на выгрузке страницы обычный клиент не годится —
 // его fetch умирает вместе со страницей. Телеметрия досылает последнюю пачку

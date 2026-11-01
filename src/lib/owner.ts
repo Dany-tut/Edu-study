@@ -1,4 +1,6 @@
 import { supabase } from './supabase'
+import { getViewAs, TEACHER_VIEW_KEY as VIEW_AS_KEY, TEACHER_ID as UUID, type ViewAsTeacher } from './teacherView'
+export { getViewAs, type ViewAsTeacher } from './teacherView'
 import type { User } from '@supabase/supabase-js'
 
 // Current teacher/admin ownership context. Every teacher-cabinet data query is
@@ -39,34 +41,17 @@ import type { User } from '@supabase/supabase-js'
 // спрашивает владельца ЗДЕСЬ, подмена одного этого id переключает все экраны
 // разом, без правок в 37 местах вызова.
 //
-// ПОЧЕМУ ЭТО НЕ ДЫРА. Подмена работает только на чтение, и держится она не на
-// честности клиента, а на RLS: политики `groups_read_auth` и
-// `teacher_read_students` содержат `is_admin()` — читать чужое админу
-// разрешено. А запись — `write_own_groups` с условием
-// `created_by = auth.uid()`, БЕЗ исключения для админа: попытка создать что-то
-// в чужом кабинете будет отклонена базой. То есть «только просмотр» здесь
-// обеспечивает сервер, а не спрятанная кнопка.
+// Просмотр не выдаёт сессию преподавателя. Доступ к данным проверяют RLS
+// и серверные функции под настоящей сессией администратора. Дополнительно
+// teacherViewFetch блокирует изменения из этой вкладки: некоторые политики
+// дают админу право записи, поэтому полагаться только на них здесь нельзя.
 //
 // Контекст просмотра относится только к этой вкладке, а не ко всем окнам
 // администратора. Его сессия Auth остаётся прежней; сервер по-прежнему
 // проверяет её права и RLS.
-const VIEW_AS_KEY = 'iskra:viewAsTeacher'
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-export interface ViewAsTeacher { id: string; name: string }
-
 function clearViewAs() {
   try { sessionStorage.removeItem(VIEW_AS_KEY) } catch { /* unavailable */ }
   try { localStorage.removeItem(VIEW_AS_KEY) } catch { /* legacy context */ }
-}
-
-export function getViewAs(): ViewAsTeacher | null {
-  try {
-    const raw = sessionStorage.getItem(VIEW_AS_KEY)
-    if (!raw) return null
-    const v = JSON.parse(raw) as ViewAsTeacher
-    return UUID.test(v?.id) && typeof v.name === 'string' ? v : null
-  } catch { return null }
 }
 
 /** Reload all owner-scoped stores on a clean route; never reuse another
