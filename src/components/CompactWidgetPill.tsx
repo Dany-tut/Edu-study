@@ -836,9 +836,20 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {/* Первая минута ещё не набралась. Показывать «0м» нечестно, но и
                 молчать нельзя: точка отвечает на «а он вообще считает?». */}
             {counting && <ClockDot on color={accent} />}
-            {counting
-              ? t('Считаю время…')
-              : kind === 'lang' ? t('Открой набор фраз — счётчик пойдёт') : t('Начни решать задания')}
+            <span style={{
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              whiteSpace: expanded ? 'normal' : 'nowrap',
+              // В капсуле оставляем одну строку и плавно гасим её у края.
+              // Маска прозрачная, чтобы фейд работал и на стекле, и в тёмной теме.
+              maskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
+              WebkitMaskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
+            }}>
+              {counting
+                ? t('Считаю время…')
+                : kind === 'lang' ? t('Открой набор фраз — счётчик пойдёт') : t('Начни решать задания')}
+            </span>
           </span>
         )}
 
