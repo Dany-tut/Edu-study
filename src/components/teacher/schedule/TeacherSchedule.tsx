@@ -678,10 +678,11 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
     window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)
   }, [])
-  // Stay attached to the lesson, preserving its width. Only move enough to fit the screen.
+  // Keep the original lesson untouched and anchor actions directly below it.
   const width = Math.min(rect.width, viewport.width - 24)
   const left = Math.max(12, Math.min(rect.left, viewport.width - width - 12))
-  const top = Math.max(12, Math.min(rect.top, viewport.height - 440))
+  const top = rect.bottom + 8
+  const availableHeight = Math.max(0, viewport.height - top - 12)
 
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null
@@ -704,6 +705,7 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
   const row = (label: string, Icon: typeof ArrowUpRight, act: () => void, opts?: { danger?: boolean; primary?: boolean; sub?: boolean; open?: boolean }) => (
     <button
       onClick={act}
+      aria-expanded={opts?.open}
       className="hover-row"
       style={{
         display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', background: 'transparent',
@@ -730,23 +732,16 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
         onContextMenu={e => { e.preventDefault(); if (isPresent) onClose() }}
         style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal }}
       />
-      <div className="calendar-context-positioner" style={{ zIndex: Z.modal + 1, left, top, width, maxHeight: viewport.height - top - 12 }}>
+      <div className="calendar-context-positioner" style={{ zIndex: Z.modal + 1, left, top, width, maxHeight: availableHeight }}>
       <motion.div ref={panelRef}
         role="dialog" aria-modal="true" aria-label={t('Занятие')}
         className="calendar-context-panel"
         initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
         transition={transition}
         onContextMenu={e => e.preventDefault()}
-        style={{ width: '100%', maxHeight: viewport.height - top - 12, pointerEvents: isPresent ? 'auto' : 'none' }}
+        style={{ width: '100%', maxHeight: availableHeight, pointerEvents: isPresent ? 'auto' : 'none' }}
       >
-        <div className="calendar-context-heading">
-          <span>{item.date === todayMsk() ? `${t('Сегодня')}, ` : ''}{dayLabel(item.date)}</span>
-          <ModalClose onClose={onClose} style={{ background: 'transparent' }} />
-        </div>
         <div className="calendar-context-content no-scrollbar">
-        <div className="calendar-context-preview">
-          <CardBody item={item} preview />
-        </div>
         <div className="calendar-context-actions">
           <div style={{ marginTop: -1 }}>
             {onOpen && row(t('Открыть урок'), ArrowUpRight, onOpen, { primary: true })}
