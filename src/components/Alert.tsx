@@ -44,6 +44,8 @@ export interface AlertItem {
   title?: ReactNode
   /** Что делать / подробности. */
   text?: ReactNode
+  /** Заголовок и пояснение на отдельных строках. */
+  stacked?: boolean
   action?: AlertAction
   onClose?: () => void
 }
@@ -78,8 +80,8 @@ function AlertRow({ item }: { item: AlertItem }) {
         <Icon size={16} strokeWidth={2.2} />
       </span>
       <span style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.3, color: 'var(--color-muted)' }}>
-        {item.title && <b style={{ color: 'var(--color-text)', fontWeight: 600 }}>{item.title}</b>}
-        {item.title && item.text ? ' ' : null}
+        {item.title && <b style={{ color: 'var(--color-text)', fontWeight: 600, display: item.stacked ? 'block' : undefined, marginBottom: item.stacked && item.text ? 5 : undefined }}>{item.title}</b>}
+        {item.title && item.text && !item.stacked ? ' ' : null}
         {item.text}
       </span>
       {item.action && (

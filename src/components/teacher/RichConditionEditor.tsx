@@ -84,7 +84,7 @@ export function parseSmartPaste(text: string): { question: string; options: stri
 
 export default function RichConditionEditor({
   value, onChange, inputSt, placeholder, autoGrow = false, minHeight = 120, onSmartPaste,
-  fixedHeight, ariaLabel, fontSize: baseFontSize = 16,
+  fixedHeight, ariaLabel, fontSize: baseFontSize = 16, toolbarPlacement = 'overlay',
 }: {
   value: string
   onChange: (html: string) => void
@@ -96,13 +96,14 @@ export default function RichConditionEditor({
   fixedHeight?: React.CSSProperties['height']
   ariaLabel?: string
   fontSize?: number
+  toolbarPlacement?: 'overlay' | 'below'
 }) {
   const t = useT()
   const {ref: editorRef, onScroll: onEditorScroll, maskStyle: editorMask} = useOverlayScroll()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const sizeBtnRef = useRef<HTMLButtonElement>(null)
   const [focused, setFocused] = useState(false)
-  const [fontSize, setFontSize] = useState('16')
+  const [fontSize, setFontSize] = useState(String(baseFontSize))
   const [sizeOpen, setSizeOpen] = useState(false)
   const [sizeDropPos, setSizeDropPos] = useState({ top: 0, left: 0 })
   const sizeDropRef = useRef<HTMLDivElement>(null)
@@ -312,16 +313,20 @@ export default function RichConditionEditor({
   }
 
   const st = inputSt ?? DEFAULT_INPUT_ST
+  const toolbarBelow = toolbarPlacement === 'below'
   const isEmpty = !value || value === '<br>' || value === ''
   const divider = <div style={{ width: 1, height: 20, background: 'var(--color-border-medium)', margin: '0 4px', flexShrink: 0 }} />
 
   return (
     <div>
-      <div style={{ position: 'relative' }}>
+      <div className={toolbarBelow ? 'rce-frame rce-frame-below' : undefined} style={{
+        ...(toolbarBelow ? st : {}), position: 'relative',
+        ...(toolbarBelow ? { padding: 0, overflow: 'hidden' } : {}),
+      }}>
         {isEmpty && !focused && (
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0,
-            padding: '12px 16px', fontSize: 16, lineHeight: 1.6,
+            padding: '12px 16px', fontSize: baseFontSize, lineHeight: 1.6,
             color: 'var(--color-text-4)', pointerEvents: 'none', zIndex: 1,
           }}>
             {placeholder ?? t('Введите текст задания…')}
@@ -344,12 +349,13 @@ export default function RichConditionEditor({
           onPaste={handlePaste}
           style={{
             ...st,
+            ...(toolbarBelow ? { border: 'none', borderRadius: 0, background: 'transparent' } : {}),
             minHeight,
             fontSize: baseFontSize,
             padding: '12px 16px',
             // autoGrow fields reserve the toolbar's space permanently so the
             // box height doesn't jump when the toolbar shows/hides on focus.
-            paddingBottom: autoGrow ? 54 : (focused ? 56 : 12),
+            paddingBottom: toolbarBelow ? 12 : autoGrow ? 54 : (focused ? 56 : 12),
             lineHeight: 1.6,
             // autoGrow → grow with content (height auto, no inner scrollbar);
             // otherwise keep the scroll-and-resize behaviour.
@@ -366,20 +372,22 @@ export default function RichConditionEditor({
         <AnimatePresence>
           {focused && (
             <motion.div
+              className={toolbarBelow ? 'rce-toolbar-below no-scrollbar' : undefined}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
               transition={{ duration: 0.15 }}
               onMouseDown={e => e.preventDefault()}
               style={{
-                position: 'absolute', bottom: 6, left: 6, right: 6,
-                height: 40, display: 'flex', alignItems: 'center', gap: 1,
+                position: toolbarBelow ? 'relative' : 'absolute',
+                ...(toolbarBelow ? { margin: '0 6px 6px' } : { bottom: 6, left: 6, right: 6 }),
+                height: toolbarBelow ? 36 : 40, display: 'flex', alignItems: 'center', gap: 1,
                 background: 'var(--color-bg-2)',
                 borderRadius: 10,
                 border: '1px solid var(--color-border-medium)',
                 padding: '0 6px',
                 zIndex: 20,
-                boxShadow: 'var(--shadow-2)',
+                boxShadow: toolbarBelow ? 'none' : 'var(--shadow-2)',
                 flexWrap: 'nowrap', overflowX: 'auto',
               }}
             >
