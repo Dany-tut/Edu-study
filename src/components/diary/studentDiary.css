@@ -957,14 +957,16 @@
       color 0.15s;
   }
 }
+.student-diary {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 2px 30px;
+}
 /* Fill the dashboard flex column independently of each view’s intrinsic content. */
 .student-diary:not(.ds-dialog) {
   box-sizing: border-box;
   width: 100%;
   flex-shrink: 0;
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 0 2px 30px;
 }
 .student-diary > .ds-page-heading {
   padding-top: 3px;
