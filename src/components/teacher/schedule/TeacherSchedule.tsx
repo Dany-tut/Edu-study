@@ -687,11 +687,18 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
     window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)
   }, [])
-  // Keep the original lesson untouched and anchor actions directly below it.
+  // Keep the lesson in place and anchor actions on the side with usable space.
   const width = Math.min(rect.width, viewport.width - 24)
   const left = Math.max(12, Math.min(rect.left, viewport.width - width - 12))
-  const top = rect.bottom + 8
-  const availableHeight = Math.max(0, viewport.height - top - 12)
+  const below = Math.max(0, viewport.height - rect.bottom - 20)
+  const above = Math.max(0, rect.top - 24)
+  // Choose a side once from the anchor geometry, never from submenu height.
+  // A bottom anchor lets an upward menu grow smoothly away from the lesson.
+  const opensAbove = below < 246 && above > below
+  const availableHeight = opensAbove ? above : below
+  const placement = opensAbove
+    ? { bottom: viewport.height - rect.top + 12 }
+    : { top: rect.bottom + 8 }
 
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null
@@ -752,11 +759,11 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
       >
         <CardBody item={item} lifted={isPresent} />
       </motion.div>
-      <div className="calendar-context-positioner" style={{ zIndex: Z.modal + 1, left, top, width, maxHeight: availableHeight }}>
+      <div className="calendar-context-positioner" data-side={opensAbove ? 'above' : 'below'} style={{ zIndex: Z.modal + 1, left, ...placement, width, maxHeight: availableHeight }}>
       <motion.div ref={panelRef}
         role="dialog" aria-modal="true" aria-label={t('Занятие')} tabIndex={-1}
         className="calendar-context-panel"
-        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: opensAbove ? -8 : 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: opensAbove ? -8 : 8 }}
         transition={transition}
         onContextMenu={e => e.preventDefault()}
         style={{ width: '100%', maxHeight: availableHeight, pointerEvents: isPresent ? 'auto' : 'none' }}
