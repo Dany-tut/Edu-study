@@ -10,6 +10,16 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Фото и доска к проверке": "Photos and whiteboard for review",
+  "Добавить фото к проверке": "Add a photo for review",
+  "Фото к проверке": "Review photos",
+  "Итог ДЗ в процентах": "Homework result as a percentage",
+  "Учебный пример: результат сохранится только на стенде до обновления страницы.": "Learning example: the result is saved only in the stand until the page reloads.",
+  "На проверке в Тестли": "Under review in Testly",
+  "Нет результата": "No result",
+  "Результат теста из Тестли": "Test result from Testly",
+  "Ответ ученика": "Student answer",
+
   'Материалы открыты': 'Materials are available',
   'Нет запланированных занятий': 'No scheduled lessons',
   'Был на занятии': 'Attended the lesson',

@@ -2,11 +2,12 @@ import { useRef, useState, useEffect, useCallback, type CSSProperties } from 're
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Users, User, Plus } from '../icons/appIcons'
+import { Users, User, Plus, Layers } from '../icons/appIcons'
 import type { Group } from '../../data/teacherMockData'
 import { useStudents } from '../../lib/useGroups'
 import { mergeIndividuals, type PersonGroup } from '../../lib/personGroups'
 import { t, useT, tc, tn } from '../../lib/i18n'
+import { useScrollEdges } from './journalStand/useScrollEdges'
 
 export type TabConfig = {
   tabs: { id: string; label: string }[]
@@ -45,19 +46,24 @@ function TabPanel({ config, compact = false }: { config: TabConfig; compact?: bo
     <div style={{ width: compact ? 'auto' : CARD_W, height: compact ? 50 : CARD_H, display: 'flex', flexDirection: compact ? 'row' : 'column', gap: BTN_GAP }}>
       {config.tabs.map(tab => {
         const isActive = config.activeTab === tab.id
+        const collapsed = compact && !isActive
         return (
-          <div key={tab.id} style={{
-            width: compact ? CARD_W : undefined, height: tabHeight, boxSizing: 'border-box', display: 'flex', alignItems: 'center', borderRadius: 16,
-            background: isActive ? 'var(--grad-purple)' : 'rgba(var(--glass-rgb), 0.96)',
+          <div key={tab.id} className={compact ? 'js-roster-tab' : undefined} data-collapsed={collapsed || undefined} data-active={isActive || undefined} style={{
+            width: compact ? collapsed ? tabHeight : 'var(--group-tab-width, 190px)' : undefined, height: tabHeight, boxSizing: 'border-box', display: 'flex', alignItems: 'center', borderRadius: 16,
+            background: !compact && isActive ? 'var(--grad-purple)' : 'rgba(var(--glass-rgb), 0.96)',
             border: '1px solid var(--color-border-glass)',
             boxShadow: isActive ? '0 3px 10px rgba(99,84,207,0.28)' : 'var(--shadow-2)',
             color: isActive ? '#fff' : 'var(--color-muted)',
           }}>
-            <button type="button" aria-pressed={isActive} onClick={() => config.onTabChange(tab.id)}
-              style={{ flex: 1, alignSelf: 'stretch', border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 16 }}>
-              {tab.label}
+            <button type="button" aria-label={tab.label} title={tab.label} aria-pressed={isActive} onClick={() => config.onTabChange(tab.id)}
+              style={{ flex: 1, alignSelf: 'stretch', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 16 }}>
+              {compact ? <>
+                <span className="js-roster-tab-icon" aria-hidden="true">{tab.id === 'groups' ? <Layers size={21} /> : <Users size={21} />}</span>
+                <span className="js-roster-tab-label">{tab.label}</span>
+              </> : tab.label}
             </button>
             {config.onTabPlusClick && <button type="button"
+              className={compact ? 'js-roster-tab-add' : undefined} disabled={collapsed} tabIndex={collapsed ? -1 : undefined} aria-hidden={collapsed || undefined}
               aria-label={`${t('Добавить')}: ${tab.label}`} title={`${t('Добавить')}: ${tab.label}`}
               onClick={() => config.onTabPlusClick?.(tab.id)}
               style={{ width: plusSize, height: plusSize, marginRight: plusInset, flexShrink: 0, borderRadius: 10, border: 'none', background: isActive ? 'rgba(255,255,255,0.18)' : 'var(--color-bg-4)', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -422,6 +428,34 @@ function pluralSubjects(n: number): string {
 }
 
 // ─── Strip ────────────────────────────────────────────────────────────────────
+function CompactRosterStrip({ tabs, groups, selected, select, add }: {
+  tabs: TabConfig; groups: Group[]; selected: string | null
+  select: (id: string | null) => void; add?: (id: string) => void
+}) {
+  const { viewport, scroller } = useScrollEdges()
+  return (
+    <div className="js-compact-rail">
+      <TabPanel compact config={tabs} />
+      <div className="js-group-viewport" ref={viewport}>
+        <div className="js-group-scroll" ref={scroller}>
+          <div className="js-group-track">
+            {groups.map(g => (
+              <div key={g.id} className="js-group-pill" data-current={selected === g.id || undefined}>
+                <button type="button" className="js-group-select" aria-pressed={selected === g.id}
+                  title={g.name} onClick={() => select(selected === g.id ? null : g.id)}>
+                  <span>{g.name}</span><small><Users size={13} />{g.studentCount}</small>
+                </button>
+                {add && <button type="button" className="js-group-add" title={'Добавить ученика в группу: ' + g.name}
+                  aria-label={'Добавить ученика в группу: ' + g.name} onClick={() => add(g.id)}><Plus size={15} /></button>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function GroupStrip({
   groups,
   individualGroups = [],
@@ -435,6 +469,7 @@ export default function GroupStrip({
   onAction,
   onAddToGroup,
   mergePersons = false,
+  compactRoster = false,
 }: {
   groups: Group[]
   individualGroups?: Group[]
@@ -450,6 +485,7 @@ export default function GroupStrip({
   onAddToGroup?: (groupId: string) => void
   /** Merge a person's several 1:1 subject-groups into one card with subject chips. */
   mergePersons?: boolean
+  compactRoster?: boolean
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const dragState = useRef<{ startX: number; scrollLeft: number; moved: boolean } | null>(null)
@@ -497,6 +533,9 @@ export default function GroupStrip({
   function handleMouseUp() { dragState.current = null }
 
   const hasIndividual = individualGroups.length > 0
+  if (compactRoster && tabConfig) return (
+    <CompactRosterStrip tabs={tabConfig} groups={groups} selected={selectedGroupId} select={onSelectGroup} add={onAddToGroup} />
+  )
   if (tabConfig && !groups.length && !hasIndividual) return <div style={{ padding: '20px 0 4px' }}><TabPanel config={tabConfig} compact /></div>
 
   return (

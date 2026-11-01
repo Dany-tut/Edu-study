@@ -14,11 +14,11 @@ export function git(args, cwd = process.cwd()) {
 }
 
 /** Vercel removes .vercelignore matches after cloning, before running the build.
- * Only those unstaged deletions are expected; modified, staged and untracked
- * files still reject the release. Local preflight remains fully strict. */
-export function releaseCheckoutChanges({ cwd = process.cwd(), allowVercelDeletions = false } = {}) {
+ * Only those unstaged deletions are expected; modified and staged files still reject the release.
+ * Local preflight also rejects untracked files. */
+export function releaseCheckoutChanges({ cwd = process.cwd(), allowVercelDeletions = false, includeUntracked = true } = {}) {
   const run = args => execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] })
-  const changes = run(['status', '--porcelain=v1', '-z', '--untracked-files=normal']).split('\0').filter(Boolean)
+  const changes = run(['status', '--porcelain=v1', '-z', includeUntracked ? '--untracked-files=normal' : '--untracked-files=no']).split('\0').filter(Boolean)
   if (!allowVercelDeletions || !changes.length) return changes
   // --exclude-from deliberately does not read .gitignore or global excludes.
   const excluded = new Set(run(['ls-files', '--cached', '--ignored', '--exclude-from=.vercelignore', '-z']).split('\0').filter(Boolean))

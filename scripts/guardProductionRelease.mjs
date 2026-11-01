@@ -17,9 +17,10 @@ try {
     if (production && (process.env.VERCEL_GIT_COMMIT_REF !== RELEASE.branch || process.env.VERCEL_GIT_COMMIT_SHA !== head)) {
       throw new Error('Production must be built by the Git integration from the current main commit.')
     }
-    const changes = releaseCheckoutChanges({ allowVercelDeletions: production && process.env.VERCEL === '1' })
+    // Git-hosted builds may add generated service files; local preflight is strict.
+    const changes = releaseCheckoutChanges({ allowVercelDeletions: production && process.env.VERCEL === '1', includeUntracked: !production })
     if (changes.length) {
-      throw new Error('Release checkout has uncommitted files. Use a clean, isolated worktree. Changes: ' + changes.slice(0, 12).join('; '))
+      throw new Error('Release checkout has uncommitted source files. Use a clean, isolated worktree. Changes: ' + changes.slice(0, 12).join('; '))
     }
     const remote = git(['ls-remote', RELEASE.remote, `refs/heads/${RELEASE.branch}`])
     const main = assertCommit(remote.split(/\s/)[0])

@@ -177,7 +177,11 @@ export default function ExampleGroups() {
             picker={picker}
             selected={s}
             set={change}
-            open={setProfile}
+            groups={data.groups}
+            today={today}
+            example
+            scopeLabel={data.courses.find(c => c.id === s.course)?.title ?? 'Все курсы и работы'}
+            renderReport={(student, panel) => <div><h2>{student.name}</h2>{panel}</div>}
             position={pos}
             groupLabel={s.strip === 'groups' ? data.groups.find((g) => g.id === gid)!.name : 'Все ученики'}
           />

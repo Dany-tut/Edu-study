@@ -34,6 +34,9 @@ try {
     const result = spawnSync(process.execPath, [guard, phase], { cwd: dir, encoding: 'utf8', env: { ...process.env, VERCEL_ENV: 'production', VERCEL_GIT_COMMIT_REF: 'stale', VERCEL_GIT_COMMIT_SHA: stale } })
     assert.equal(result.status, 1); assert.match(result.stderr, /Git integration/); checks++
   }
+  const untracked = spawnSync(process.execPath, [guard, '--check'], { cwd: dir, encoding: 'utf8', env: { ...process.env, VERCEL_ENV: '' } })
+  assert.equal(untracked.status, 1); assert.match(untracked.stderr, /uncommitted/); checks++
+  writeFileSync(join(dir, 'unrelated-feature'), 'modified tracked source')
   const dirty = spawnSync(process.execPath, [guard, '--before-build'], { cwd: dir, encoding: 'utf8', env: { ...process.env, VERCEL_ENV: 'production', VERCEL_GIT_COMMIT_REF: 'main', VERCEL_GIT_COMMIT_SHA: stale } })
   assert.equal(dirty.status, 1); assert.match(dirty.stderr, /uncommitted/); checks++
   // Real Vercel clones drop tracked .vercelignore matches before the guard runs.
