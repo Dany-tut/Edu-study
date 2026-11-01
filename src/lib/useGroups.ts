@@ -1092,8 +1092,12 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
   }))
 }, [])
 
+export function useAllStudentsSnapshot() {
+  return useSharedQuery(allStudentsQuery)
+}
+
 export function useAllStudents() {
-  return useSharedQuery(allStudentsQuery).value
+  return useAllStudentsSnapshot().value
 }
 
 /** Перечитать список учеников во всех местах сразу — после создания, перевода
