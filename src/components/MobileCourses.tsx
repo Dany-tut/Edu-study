@@ -16,7 +16,9 @@ import MobileHScroll from './MobileHScroll'
 import MobilePill from './MobilePill'
 import { GlassPill } from './mobileChrome'
 import MobileBell from './MobileBell'
-import { getDisplayLessonStatus, lessonStatusLabel, type LessonDisplayStatus } from '../lib/lessonStatus'
+import { getDisplayLessonStatus, getLessonScheduleState, lessonStatusLabel, type LessonDisplayStatus } from '../lib/lessonStatus'
+import { useStudentTz } from '../lib/studentTz'
+import type { ScheduleState } from '../lib/scheduleState'
 import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
@@ -64,6 +66,8 @@ export default function MobileCourses() {
   const focusLessonId = useDashboard(s => s.coursesFocusLessonId)
   const openLesson = useDashboard(s => s.openLesson)
   const now = useNow()
+  useStudentTz(s => s.tz)
+  useStudentData(s => s.scheduleDays)
 
   const [moduleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
   const [moduleSheet, setModuleSheet] = useState(false)
@@ -202,7 +206,7 @@ export default function MobileCourses() {
             {lessons.length > 0 ? (
               <div className="flex flex-col" style={{ gap: 10 }}>
                 {lessons.map((lesson, i) => (
-                  <LessonCard key={lesson.id} lesson={lesson} status={getDisplayLessonStatus(lesson, now)} index={i}
+                  <LessonCard key={lesson.id} lesson={lesson} status={getDisplayLessonStatus(lesson, now)} scheduleState={getLessonScheduleState(lesson, now)} index={i}
                     pal={pal} focused={lesson.id === focusLessonId} onOpen={() => openLesson(lesson.id)} />
                 ))}
               </div>
@@ -332,15 +336,16 @@ function ModuleRow({ label, total, done, active, onClick, pal }: { label: string
   )
 }
 
-function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: Lesson; status: LessonDisplayStatus; index: number; focused: boolean; onOpen: () => void; pal: SubjectPalette }) {
+function LessonCard({ lesson, status, scheduleState, index, focused, onOpen, pal }: { lesson: Lesson; status: LessonDisplayStatus; scheduleState: ScheduleState | null; index: number; focused: boolean; onOpen: () => void; pal: SubjectPalette }) {
   const t = useT()
   const { tc } = useTc()
   const v: StatusVisual = status === 'current' ? { ...STATUS_VISUAL.current, tintBg: pal.soft, tint: pal.text } : STATUS_VISUAL[status]
   const isLocked = status === 'locked'
-  const isCurrent = status === 'current'
+  const isCurrent = status === 'current' || !!scheduleState?.isCurrent
 
   return (
     <motion.button
+      data-schedule-state={scheduleState?.phase}
       whileTap={isLocked ? undefined : { scale: 0.985 }}
       onClick={() => { if (!isLocked) { tactile(); onOpen() } }}
       className="flex items-center text-left"

@@ -10,6 +10,10 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Материалы открыты': 'Materials are available',
+  'Нет запланированных занятий': 'No scheduled lessons',
+  'Был на занятии': 'Attended the lesson',
+  'Не был на занятии': 'Did not attend the lesson',
   'Задача добавлена в демопросмотре': 'Task added in the demo',
   'Вне курсов': 'Outside courses',
   'Задача добавлена. Она откроет эту работу из «Моих задач».': 'Task added. Open this submission from My tasks.',
@@ -340,6 +344,9 @@ export const EN: Record<string, string> = {
   'Доступна': 'Available',
   'Ошибка связи': 'Check failed',
   'Выйти из аккаунта': 'Log out',
+  'В кабинет преподавателя': 'Teacher cabinet',
+  'В ученический кабинет': 'Student cabinet',
+  'Переключить роль': 'Switch role',
   'Переключить тему': 'Toggle theme',
   'Все': 'All',
   'дней': 'days',
@@ -2447,7 +2454,7 @@ export const EN: Record<string, string> = {
   // — Ошибки Supabase (lib/authErrors.ts) —
   "Аккаунт с такой почтой уже существует. Войдите или укажите другую почту.": "An account with this email already exists. Sign in or use another email.",
   "Аккаунт с таким телефоном уже существует.": "An account with this phone number already exists.",
-  "Этот способ входа уже привязан к другому аккаунту.": "This sign-in method is already linked to another account.",
+  "Этот Apple ID или Google-аккаунт уже привязан к другой учётной записи Искры. Выйдите из текущего аккаунта и войдите через этот Apple ID или Google — откроется связанный профиль.": "This Apple ID or Google account is already linked to a different Iskra account. Sign out of this account and sign in with that Apple ID or Google account to open its linked profile.",
   "Регистрация сейчас закрыта. Обратитесь к администратору.": "Sign-ups are closed right now. Contact your administrator.",
   "Проверьте адрес почты — он выглядит некорректно.": "Check the email address — it looks invalid.",
   "На этот адрес письма отправлять нельзя. Укажите другую почту.": "Emails can't be sent to this address. Use another one.",
@@ -5312,4 +5319,10 @@ export const EN: Record<string, string> = {
   "Без группы": "No group",
   "Ответы сохраняются в Тестли на каждом шаге. Балл появится здесь после сдачи.": "Answers are saved in Testly at every step. Your score will appear here after submission.",
   "Заполненность пока недоступна.": "Completion data is not available yet.",
+  "Предыдущий день": "Previous day",
+  "Следующий день": "Next day",
+  "Выбор даты": "Choose a date",
+  "Выбрать дату": "Choose date",
+  "Есть занятие": "Lesson scheduled",
+  "Календарь": "Calendar",
 }

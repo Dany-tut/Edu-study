@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { CalendarX2 } from './icons/appIcons'
+import { CalendarX2, BookOpen } from './icons/appIcons'
 import { LoopSvg } from './icons/LoopIcon'
 import { LoopArtworkVideo } from './icons/loopArtwork'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
@@ -9,7 +9,10 @@ import { scheduleRowStatus } from '../lib/scheduleAttendance'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { PURPLE, subjectTheme } from '../lib/theme'
-import { useNow, lessonTimeState } from '../lib/useNow'
+import { useNow } from '../lib/useNow'
+import { getScheduleState, pickScheduleFocus } from '../lib/scheduleState'
+import { getStudentScheduleState } from '../lib/lessonStatus'
+import { useStudentTz } from '../lib/studentTz'
 import ScrollFade from './ScrollFade'
 import { useT, useTc } from '../lib/i18n'
 import { SeasonEmptyDay } from './season/Season'
@@ -27,9 +30,11 @@ interface Props {
       centre card never exceeds the screen (desktop keeps the fixed 480). */
   centerWidth?: number
   dataSelected?: boolean
+  /** Local stand navigation without changing the live dashboard page. */
+  onOpenLesson?: (lesson: ScheduleLesson) => void
 }
 
-export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth, dataSelected = false }: Props) {
+export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth, dataSelected = false, onOpenLesson }: Props) {
   const t = useT()
   // Праздничная тема: пустой день в центральной карточке — привидение-листок
   // вместо «Пока нет данных». В боковых карточках его нет: ряд из пяти
@@ -56,13 +61,12 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   // Карточка обновляется раз в 30 с. Секунды отсчёта тикают в <Countdown> —
   // раньше вся карточка перерисовывалась каждую секунду за час до урока.
   const now = useNow(30_000)
+  const timeZone = useStudentTz(s => s.tz)
 
   // Resolve each lesson's live time state once and pick the soonest future one
   // as the "upcoming" highlight — derived from real time, not stored on data.
-  const states = day.lessons.map(l => ({ id: l.id, ...lessonTimeState(day.date, l.time, now) }))
-  const upcomingId = states
-    .filter(s => !s.passed)
-    .sort((a, b) => a.minutesUntil - b.minutesUntil)[0]?.id
+  const states = day.lessons.map(l => getStudentScheduleState(l, day.date, now, timeZone, subjects))
+  const focusIndex = pickScheduleFocus(states)
 
   // Reset selection whenever this card stops being the centered (active) day,
   // and drop any track highlight we set while selected.
@@ -79,6 +83,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   // Open the scheduled lesson directly on the lesson page. If we can't resolve an
   // exact lesson, fall back to the catalogue scoped to the right subject.
   const openScheduledLesson = (lesson: ScheduleLesson) => {
+    if (onOpenLesson) { onOpenLesson(lesson); return }
     const subjects = useStudentData.getState().subjects
     const { subjectId, lesson: match } = resolveScheduleLesson(lesson, subjects)
     if (match) {
@@ -138,20 +143,22 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             boxShadow: 'var(--schedule-card-edge, inset 0 0 0 0 transparent), var(--shadow-3)',
           }}
         >
-          <div style={{ flexShrink: 0 }}>{dateHeader(13, 10)}</div>
+          <div style={{ flexShrink: 0, paddingInlineStart: 8 }}>{dateHeader(13, 10)}</div>
           {(() => {
             const lessonsList = (
               <div className="flex flex-col" style={{ gap: 10 }}>
             {day.lessons.length > 0 ? (
-              day.lessons.map(lesson => {
+              day.lessons.map((lesson, lessonIndex) => {
                 const isSelected = selectedLessonId === lesson.id
-                const st = states.find(s => s.id === lesson.id)!
-                const isUpcoming = lesson.id === upcomingId
-                const isPassed = st.passed
+                const st = states[lessonIndex]
+                const isUpcoming = lessonIndex === focusIndex && st.phase === 'upcoming'
+                const isCurrent = st.isCurrent
+                const isEmphasized = isUpcoming || isCurrent
+                const isCancelled = st.phase === 'cancelled'
                 const attendanceStatus = scheduleRowStatus(
-                  lesson, { dayDate: day.date, isToday: day.isToday }, subjects, now,
+                  lesson, { dayDate: day.date, isToday: day.isToday, timeZone }, subjects, now,
                 )
-                const isMissed = attendanceStatus === 'missed'
+                const isMissed = st.hasEnded && attendanceStatus === 'missed'
                 const pal = isMissed
                   ? missedPalette
                   : lesson.subject === 'Биология'
@@ -160,48 +167,49 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 return (
                 <motion.div
                   key={lesson.id}
-                  whileHover={{ y: -2 }}
+                  whileHover={isCancelled ? undefined : { y: -2 }}
                   whileTap={{ scale: 0.99 }}
                   onClick={(e) => {
                     e.stopPropagation()
+                    if (isCancelled) return
                     if (isSelected) openScheduledLesson(lesson)
                     else {
                       setSelectedLessonId(lesson.id)
                       previewScheduleLesson(lesson)
                     }
                   }}
-                  className="rounded-2xl flex items-center cursor-pointer"
+                  data-schedule-state={st.phase}
+                  className={`rounded-2xl flex flex-wrap items-center ${isCancelled ? 'cursor-default' : 'cursor-pointer'}`}
                   style={{
                     minHeight: 58,
-                    padding: '10px 12px 10px 14px',
+                    padding: '10px 12px 10px 16px',
                     gap: 14,
-                    background: (isUpcoming || isMissed) ? pal.soft : 'var(--color-schedule-row)',
-                    opacity: isMissed ? 1 : isPassed ? 0.55 : 1,
+                    background: (isEmphasized || isMissed) ? pal.soft : 'var(--color-schedule-row)',
                     outline: isSelected ? `2px solid ${pal.accent}` : '2px solid transparent',
                     outlineOffset: isSelected ? 2 : 0,
                     transition: 'outline-color 0.15s ease, outline-offset 0.15s ease',
                   }}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <div className="flex flex-wrap items-center gap-1.5" style={{ marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: (isEmphasized || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {tc(lesson.subject)}
                       </span>
                       {isMissed && (
                         <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 8px', borderRadius: 999 }}>
-                          {t('Пропущен')}
+                          {t('Не был на занятии')}
                         </span>
                       )}
-                      {(attendanceStatus === 'unmarked' || attendanceStatus === 'present') && (
+                      {st.hasEnded && attendanceStatus === 'present' && (
                         <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-4)', padding: '2px 8px', borderRadius: 999 }}>
-                          {t(attendanceStatus === 'present' ? 'Присутствовал' : 'Без отметки')}
+                          {t('Был на занятии')}
                         </span>
                       )}
-                      {!isPassed && st.secondsUntil > 0 && st.secondsUntil <= 3600 && (
+                      {st.phase === 'upcoming' && st.secondsUntil != null && st.secondsUntil > 0 && st.secondsUntil <= 3600 && (
                         isUpcoming ? (
-                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, height: 18, padding: '0 8px', borderRadius: 999 }} />
+                          <Countdown date={day.date} time={lesson.time} timeZone={timeZone} startsAt={lesson.startsAt} style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, height: 18, padding: '0 8px', borderRadius: 999 }} />
                         ) : (
-                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-5)', height: 16, padding: '0 6px', borderRadius: 999 }} />
+                          <Countdown date={day.date} time={lesson.time} timeZone={timeZone} startsAt={lesson.startsAt} style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-5)', height: 16, padding: '0 6px', borderRadius: 999 }} />
                         )
                       )}
                     </div>
@@ -210,17 +218,18 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
-                    <span style={{ fontSize: 18, fontWeight: 600, color: isMissed ? pal.text : 'var(--color-text)', lineHeight: 1, minWidth: 54, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                      {lesson.time}
-                    </span>
+                    <div style={{ minWidth: 54, textAlign: 'right' }}>
+                      <span style={{ fontSize: 18, fontWeight: 600, color: isMissed ? pal.text : 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums', textDecoration: isCancelled ? 'line-through' : undefined }}>{lesson.time}</span>
+                      {lesson.endTime && <p style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('до')} {lesson.endTime}</p>}
+                    </div>
                     <div aria-hidden="true" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <LoopSvg
+                      {!isCancelled && (st.phase === 'available' ? <BookOpen size={18} color={pal.text} /> : <LoopSvg
                         name="Video"
                         artwork={LoopArtworkVideo}
                         size={18}
-                        color={isMissed || isUpcoming ? pal.text : 'var(--color-muted)'}
+                        color={isMissed || isEmphasized ? pal.text : 'var(--color-muted)'}
                         style={{ '--loop-detail': 'currentColor' } as React.CSSProperties}
-                      />
+                      />)}
                     </div>
                   </div>
                 </motion.div>
@@ -234,8 +243,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 {seasonEmpty ? <SeasonEmptyDay /> : (
                   <>
                     <CalendarX2 size={20} style={{ marginBottom: 8 }} />
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
-                    <p style={{ fontSize: 12, marginTop: 4 }}>{t('Преподаватель еще не проставил уроки')}</p>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t('Нет запланированных занятий')}</p>
                   </>
                 )}
               </div>
@@ -303,10 +311,10 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
 // Отсчёт «через 40:20» — часы, видны только в последний час до урока, поэтому
 // всегда M:SS. Свой секундный таймер у одной таблетки, а не у всей карточки;
 // цифры моноширинные, чтобы таблетка не дёргалась на 10:00 → 9:59.
-function Countdown({ date, time, style }: { date: string; time: string; style: React.CSSProperties }) {
+function Countdown({ date, time, timeZone, startsAt, style }: { date: string; time: string; timeZone: string; startsAt?: string; style: React.CSSProperties }) {
   const t = useT()
   const now = useNow(1000)
-  const s = Math.max(0, lessonTimeState(date, time, now).secondsUntil)
+  const s = Math.max(0, getScheduleState({ date, time, startsAt }, now, timeZone).secondsUntil ?? 0)
   if (s <= 0) return null
   const m = Math.floor(s / 60)
   return (

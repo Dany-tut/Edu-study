@@ -228,6 +228,14 @@ export default function Sidebar() {
   // незачем — она подождёт полторы секунды.
   const feedUnread = useFeedGlance(1500).unread.length
   const session = getStudentSession()
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    let alive = true
+    supabase.auth.getUser().then(({ data }) => {
+      if (alive) setIsAdmin(data.user?.app_metadata?.role === 'admin')
+    })
+    return () => { alive = false }
+  }, [])
   const displayName = session?.name ?? ''
   const AVATARS = buildAvatars(displayName)
   const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
@@ -582,6 +590,13 @@ export default function Sidebar() {
                         Сам решает, показываться ли (скрыт/null при одной карточке, без пустого зазора). */}
                     <SubjectSwitcher style={{ marginTop: 12, padding: '0 8px' }} />
                     <div style={{ height: 1, background: 'var(--color-border)', margin: '12px 8px' }} />
+                    {isAdmin && (
+                      <SettingsRow
+                        icon={GraduationCap}
+                        label={t('В кабинет преподавателя')}
+                        onClick={() => { closePicker(); window.location.hash = '#/teacher' }}
+                      />
+                    )}
                     <SettingsRow
                       icon={Settings}
                       label={t('Настройки')}

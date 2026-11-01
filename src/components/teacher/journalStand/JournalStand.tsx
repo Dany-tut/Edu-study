@@ -1,14 +1,25 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
-import TeacherStudentDashboardPage from '../../../pages/teacher/TeacherStudentDashboardPage'
+import TeacherStudentDashboardPage, { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
 import { useTeacher } from '../../../store/teacherStore'
 import { useCourseJournal } from '../../../lib/useCourseJournal'
 import { OUTSIDE_COURSES, type CourseJournalData } from '../../../lib/courseJournal'
-import type { Student } from '../../../data/teacherMockData'
+import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
+import { useNow } from '../../../lib/useNow'
 import TestlyMark from '../../TestlyMark'
-import { ArrowLeft, BookOpen, ChevronRight, RefreshCw, Search, X } from '../../icons/appIcons'
+import { ArrowLeft, BookOpen, CalendarCheck, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
+import { useScrollEdges } from './useScrollEdges'
+import StudentReportDrawer from './StudentReportDrawer'
+import GroupOverview, { StudentOverviewCard } from './GroupOverview'
+import { studentOverview, type RosterEntry } from './overviewStats'
+import HomeworkList from './HomeworkList'
+import { HomeworkQueue, HomeworkTasks, useHomeworkHub } from './HomeworkHub'
+import { applyStandReview, nativeHomeworkReviewId, type HomeworkEntry, type ReviewDecision } from './homeworkStand'
+import { handoffHomeworkReview } from './homeworkReviewHandoff'
+import { reviewHomework } from '../../../lib/useHomework'
+import { parseBasicAnswers } from '../../../lib/basicAnswers'
 import {
   ALL_COURSES,
   buildStandIndex,
@@ -23,7 +34,7 @@ import {
 import '../courseJournal.css'
 import './journalStand.css'
 
-type StandView = 'Обзор' | 'Посещаемость' | 'Работы' | 'Статистика'
+type StandView = 'Обзор' | 'Работы' | 'Посещаемость'
 export type StandSelection = Scope & {
   student: string
   workRef?: string
@@ -61,7 +72,7 @@ function Badge({ work }: { work: StudentWork }) {
       : ''
   return (
     <span className={'cj-badge cj-' + tone}>
-      {work.score === null
+      {work.score === null || ['На проверке', 'На доработке'].includes(work.status)
         ? work.status
         : work.score +
           '%' +
@@ -153,6 +164,7 @@ export function ProfileWorks({
   onReload,
   onWork,
   refreshing,
+  collapsibleHistory = false,
 }: {
   list: StudentWork[]
   today: string
@@ -160,9 +172,12 @@ export function ProfileWorks({
   onWork?: (work: StudentWork) => void
   onReload?: () => void
   refreshing?: boolean
+  collapsibleHistory?: boolean
 }) {
   const stats = workStats(list, today)
   const history = list.filter((w) => w.slot.required || w.submitted || w.status !== 'Без ДЗ')
+  const History = collapsibleHistory ? 'details' : 'div'
+  const Heading = collapsibleHistory ? 'summary' : 'h3'
   return (
     <section className="course-journal js-profile-panel" aria-label="Общая статистика работ">
       <div className="js-row">
@@ -196,253 +211,342 @@ export function ProfileWorks({
           Для части старых сдач время первой отправки неизвестно. Они не входят в расчёт сроков.
         </p>
       )}
-      <h3>
-        История работ <small>· {history.length}</small>
-      </h3>
-      {history.length ? (
-        <div className="js-history">
-          {history.map((w) => (
-            <div key={w.slot.ref} className="js-work-row">
-              <div>
-                {onWork ? (
-                  <button className="js-work-link" onClick={() => onWork(w)}>
-                    {w.slot.title} <ChevronRight size={12} />
-                  </button>
-                ) : (
-                  <strong>{w.slot.title}</strong>
-                )}
-                <small>
-                  {[w.slot.due && 'до ' + w.slot.due, w.dates[0] && 'первая сдача ' + w.dates[0]]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </small>
+      <History className="js-work-history">
+        <Heading>
+          История работ <small>· {history.length}</small>
+        </Heading>
+        {history.length ? (
+          <div className="js-history">
+            {history.map((w) => (
+              <div key={w.slot.ref} className="js-work-row">
+                <div>
+                  {onWork ? (
+                    <button className="js-work-link" onClick={() => onWork(w)}>
+                      {w.slot.title} <ChevronRight size={12} />
+                    </button>
+                  ) : (
+                    <strong>{w.slot.title}</strong>
+                  )}
+                  <small>
+                    {[w.slot.due && 'до ' + w.slot.due, w.dates[0] && 'первая сдача ' + w.dates[0]]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </small>
+                </div>
+                <Source value={w.source} />
+                <Badge work={w} />
+                {w.points.length > 0 && <small>Тестли · {w.points.join(', ')} б.</small>}
               </div>
-              <Source value={w.source} />
-              <Badge work={w} />
-              {w.points.length > 0 && <small>Тестли · {w.points.join(', ')} б.</small>}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="cj-note">В этом разделе пока нет работ.</p>
-      )}
+            ))}
+          </div>
+        ) : (
+          <p className="cj-note">В этом разделе пока нет работ.</p>
+        )}
+      </History>
     </section>
   )
 }
-type StudentEntry = { student: Student; works: StudentWork[]; stats: ReturnType<typeof workStats> }
 interface MatrixProps {
-  entries: StudentEntry[]
+  onOpenWork?: (studentId: string, workRef: string) => void
+  onOpenAssignment?: (workRef: string) => void
+  groups: Group[]
+  entries: RosterEntry[]
   slots: ReturnType<typeof scopeSlots>
   selected: StandSelection
   picker: React.ReactNode
   groupLabel: string
+  scopeLabel: string
+  example?: boolean
   set: (v: Partial<StandSelection>) => void
-  open: (s: Student) => void
+  today: string
+  renderReport: (s: Student, works: React.ReactNode) => React.ReactNode
+  onReload?: () => void
+  refreshing?: boolean
   position: React.MutableRefObject<{ top: number; left: number }>
 }
-export function Matrix({ entries, slots, selected, picker, groupLabel, set, open, position }: MatrixProps) {
-  const frame = useRef<HTMLDivElement>(null)
-  const detail = selected.workRef ?? ''
-  const [attention, setAttention] = useState(false)
-  const visible = entries.filter(
-    (e) =>
-      e.student.name.toLocaleLowerCase('ru').includes(selected.search.trim().toLocaleLowerCase('ru')) &&
-      (!attention ||
-        e.works.some((w) => ['Просрочено', 'На проверке', 'На доработке', 'Ниже порога'].includes(w.status)))
+const views = [
+  ['Обзор', LayoutGrid], ['Работы', ClipboardList], ['Посещаемость', CalendarCheck],
+] as const
+const dateLabel = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+function shortDate(value: string | null) {
+  const ms = value ? Date.parse(value) : NaN
+  return Number.isFinite(ms) ? dateLabel.format(ms).replace(/\s*г\.$/, '') : 'Без даты'
+}
+function monogram(name: string) {
+  return name.trim().split(/\s+/).slice(0, 2).map(v => v[0]).join('')
+}
+function MatrixTools({ selected, set, picker, attention, toggle }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
+  attention: boolean; toggle: () => void
+}) {
+  const [filters, setFilters] = useState(false)
+  const area = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null)
+  const id = useId()
+  useEffect(() => {
+    if (!filters) return
+    const outside = (e: PointerEvent) => {
+      if (e.target instanceof Node && !area.current?.contains(e.target)) setFilters(false)
+    }
+    document.addEventListener('pointerdown', outside)
+    return () => document.removeEventListener('pointerdown', outside)
+  }, [filters])
+  return (
+    <div className="js-toolbar">
+      <div className="cj-tabs js-tabs" role="group" aria-label="Раздел журнала">
+        {views.map(([tab, Icon]) => (
+          <button type="button" key={tab} aria-label={tab} title={tab}
+            aria-pressed={selected.tab === tab} onClick={() => set(tab === 'Обзор' ? { tab, student: '', workRef: '' } : { tab })}>
+            <Icon size={15} /><span>{tab}</span>
+          </button>
+        ))}
+      </div>
+      <div className="js-filter-area" ref={area} onKeyDown={e => {
+        if (e.key === 'Escape' && filters) { e.stopPropagation(); setFilters(false); trigger.current?.focus() }
+      }} onBlur={e => {
+        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setFilters(false)
+      }}>
+        <button type="button" className="cj-button js-filter-trigger" aria-label="Фильтры журнала" title="Фильтры журнала"
+          ref={trigger} aria-controls={id} aria-expanded={filters} data-filtered={!!selected.module || attention || undefined}
+          onClick={() => setFilters(v => !v)}><SlidersHorizontal size={15}/><span>Фильтры</span></button>
+        <div id={id} className="js-filter-items" data-open={filters || undefined}>
+          {picker}
+          {selected.tab !== 'Обзор' && <button type="button" className="cj-button js-attention" aria-pressed={attention} onClick={toggle}>
+            <CircleAlert size={14} />Требуют внимания
+          </button>}
+        </div>
+      </div>
+      <label className="js-search" data-filtered={!!selected.search || undefined} title="Поиск ученика">
+        <Search size={15} /><input aria-label="Поиск ученика" placeholder="Поиск ученика…" value={selected.search}
+          onChange={e => set({ search: e.target.value, student: '', workRef: '' })} />
+      </label>
+    </div>
   )
-  const entry = visible.find((e) => e.student.id === selected.student)
-  const work = entry?.works.find((w) => w.slot.ref === detail)
+}
+function StudentPill({ entry, work, open, close }: {
+  entry: RosterEntry; work?: StudentWork; open: () => void; close: () => void
+}) {
+  const { student, stats } = entry
+  const summary = [
+    ['Зачтено', fraction(stats.passed, stats.graded), 'Работы с зачётом из проверенных'],
+    ['Ритм', fraction(stats.active, stats.weeks), 'Учебные недели со сдачами'],
+    ['Пересдано', fraction(stats.resubmitted, stats.returned), 'Повторно сдано после замечаний'],
+  ]
+  return (
+    <aside className="js-float" aria-label="Статистика выбранного ученика">
+      <div className="js-pill">
+        <span className="cj-avatar" aria-hidden>{monogram(student.name)}</span>
+        <div className="js-pill-person">
+          <strong title={student.name}>{student.name}</strong>
+          {work && <small title={[work.slot.title, work.source, ...work.points].join(' · ')}>
+            {work.slot.title}{' · '}{work.source}{work.points.length > 0 && ' · ' + work.points.join(', ') + ' б.'}
+          </small>}
+        </div>
+        {work && <span className="js-pill-result"><Badge work={work}/></span>}
+        <dl className="js-pill-metrics">
+          {summary.map(([label, value, hint]) => <div key={label} title={hint}><dt>{label}</dt><dd>{value}</dd></div>)}
+        </dl>
+        <button type="button" className="cj-button cj-primary js-pill-open" aria-label="Обзор ученика" title="Обзор ученика" onClick={open}>
+          <span>Обзор ученика</span><ChevronRight size={15} />
+        </button>
+        <button type="button" className="cj-icon-button js-pill-close" aria-label="Закрыть панель" onClick={close}><X size={14}/></button>
+      </div>
+    </aside>
+  )
+}
+export function Matrix(props: MatrixProps) {
+  const { entries, selected, picker, groupLabel, scopeLabel, groups, set, today, example, renderReport, onReload, refreshing } = props
+  const host = useRef<HTMLElement>(null)
+  const [reportHost, setReportHost] = useState<HTMLElement | null>(null)
+  const [attention, setAttention] = useState(false)
+  const [workView, setWorkView] = useState<'students' | 'assignments'>('students')
+  const overview = selected.tab === 'Обзор'
+  const entry = entries.find(e => e.student.id === selected.student)
+  const drawerOpen = !!(reportHost && entry && overview)
+  function closeDrawer() {
+    setReportHost(null)
+    requestAnimationFrame(() => host.current?.querySelector<HTMLButtonElement>('.jo-profile-link')?.focus({ preventScroll: true }))
+  }
+  function goToWork(w: StudentWork) {
+    setReportHost(null)
+    setAttention(false)
+    set({ tab: 'Работы', workRef: w.slot.ref })
+    if (entry) props.onOpenWork?.(entry.student.id, w.slot.ref)
+    else props.onOpenAssignment?.(w.slot.ref)
+  }
+  return <section className="course-journal js-matrix" ref={host} data-report-open={drawerOpen || undefined}
+    aria-label={'Журнал успеваемости · ' + groupLabel}>
+    <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
+      attention={!overview && attention} toggle={() => setAttention(v => !v)} /></div>
+    {selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views" role="group" aria-label="Представление работ">
+      <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
+      <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
+    </div>}
+    {overview ? <GroupOverview key={[selected.strip, groupLabel, selected.course, selected.module].join(':')}
+      entries={entries} studentId={selected.student} search={selected.search} today={today} scopeLabel={scopeLabel}
+      groupLabel={groupLabel} studentGroupLabel={groups.find(g => g.id === entry?.student.groupId)?.name} example={example} onStudent={student => {setReportHost(null);set({student,workRef:''})}}
+      onWork={goToWork} onProfile={() => setReportHost(host.current?.closest<HTMLElement>('.js-journal-host') ?? null)} /> :
+      selected.tab === 'Работы' && workView === 'assignments' && props.onOpenAssignment && props.onOpenWork
+        ? <HomeworkList key={[selected.course, selected.module, groupLabel].join(':')} entries={entries} slots={props.slots} search={selected.search} attention={attention}
+          onStudent={props.onOpenWork} onAssignment={props.onOpenAssignment}/>
+        : <LessonMatrix {...props} attention={attention}/>}
+    {drawerOpen && <StudentReportDrawer student={entry.student} group={groups.find(g => g.id === entry.student.groupId)}
+      host={reportHost!} onPrint={() => printStudentCard(entry.student.name)} onClose={closeDrawer}>
+      {renderReport(entry.student, <ProfileWorks collapsibleHistory list={entry.works} today={today} scope={picker}
+        onReload={onReload} refreshing={refreshing} onWork={goToWork}/>)}
+    </StudentReportDrawer>}
+  </section>
+}
+
+function LessonMatrix({ entries, slots, selected, set, today, position, attention, onOpenWork, onOpenAssignment }: MatrixProps & {attention: boolean}) {
+  const { viewport, scroller: frame } = useScrollEdges()
+  const detail = selected.workRef ?? ''
+  const visible = entries.filter(e =>
+    e.student.name.toLocaleLowerCase('ru').includes(selected.search.trim().toLocaleLowerCase('ru')) &&
+    (!attention || e.works.some(w => ['Просрочено', 'На проверке', 'На доработке', 'Ниже порога'].includes(w.status)))
+  )
+  const entry = visible.find(e => e.student.id === selected.student)
+  const work = entry?.works.find(w => w.slot.ref === detail)
+  const byStudent = useMemo(
+    () => new Map(entries.map(e => [e.student.id, new Map(e.works.map(w => [w.slot.ref, w]))])), [entries]
+  )
+  const withWork = selected.tab === 'Работы'
+  const columns = useMemo(() => slots.flatMap(col => {
+    if (!withWork && !col.lesson) return []
+    const sources = new Set<WorkSource>()
+    let hasHomework = false
+    let outstanding = false
+    for (const works of byStudent.values()) {
+      const w = works.get(col.ref)
+      if (w) {
+        sources.add(w.source)
+        if (w.status !== 'Без ДЗ') hasHomework = true
+        if (!w.submitted || w.status === 'На доработке' || w.status === 'Пересдача') outstanding = true
+      }
+    }
+    const test = col.lesson?.lesson?.kind === 'test'
+    const date = test && col.date && col.date >= today ? col.date : col.due ?? col.date
+    const upcoming = col.required && outstanding && date && date >= today ? date : null
+    const displayDate = !col.lesson && col.topic ? col.due ?? col.date : col.date
+    return sources.size ? [{ col, displayDate, source: sources.size === 1 ? [...sources][0] : null, hasHomework, upcoming }] : []
+  }).sort((a, b) => (a.displayDate ?? '9999').localeCompare(b.displayDate ?? '9999')), [slots, byStudent, today, withWork])
+  const columnCount = columns.length
+  const trackCount = Math.max(1, columnCount)
+  // A per-student source needs a third line. Reserve it for the whole roster in every view.
+  const showSourceLine = columns.some(({ source }) => source === null)
+  const nearest = withWork ? columns.reduce<string | null>((min, { upcoming }) =>
+    upcoming && (!min || upcoming < min) ? upcoming : min, null) : null
   useLayoutEffect(() => {
     if (frame.current) {
       frame.current.scrollTop = position.current.top
       frame.current.scrollLeft = position.current.left
     }
-  }, [position])
+  }, [frame, position])
   useLayoutEffect(() => {
-    const el = frame.current?.querySelector<HTMLElement>('[data-selected-work="true"]')
-    if (el && frame.current) {
-      const wrap = frame.current,
-        box = wrap.getBoundingClientRect(),
-        cell = el.getBoundingClientRect()
-      const pin = wrap.querySelector('tbody th')?.getBoundingClientRect().width ?? 0
-      const head = wrap.querySelector('thead')?.getBoundingClientRect().height ?? 0
-      if (cell.right > box.right) wrap.scrollLeft += cell.right - box.right + 12
-      else if (cell.left < box.left + pin) wrap.scrollLeft += cell.left - box.left - pin - 12
-      if (cell.bottom > box.bottom) wrap.scrollTop += cell.bottom - box.bottom + 8
-      else if (cell.top < box.top + head) wrap.scrollTop += cell.top - box.top - head - 8
+    const wrap = frame.current
+    const el = wrap?.querySelector<HTMLElement>('[data-selected-work="true"]')
+    if (!el || !wrap) return
+    const box = wrap.getBoundingClientRect(), cell = el.getBoundingClientRect()
+    const pin = wrap.querySelector('tbody th')?.getBoundingClientRect().width ?? 0
+    const head = wrap.querySelector('thead')?.getBoundingClientRect().height ?? 0
+    const pill = viewport.current?.querySelector('.js-float')?.getBoundingClientRect()
+    const bottom = pill && cell.left < pill.right && cell.right > pill.left ? pill.top - 8 : box.bottom
+    if (cell.right > box.right) wrap.scrollLeft += cell.right - box.right + 10
+    else if (cell.left < box.left + pin) wrap.scrollLeft += cell.left - box.left - pin - 10
+    if (cell.bottom > bottom) wrap.scrollTop += cell.bottom - bottom + 6
+    else if (cell.top < box.top + head) wrap.scrollTop += cell.top - box.top - head - 6
+  }, [detail, selected.student, work?.slot.ref, frame, viewport])
+  const jumpToNearest = () => {
+    const wrap = frame.current
+    const next = wrap?.querySelector<HTMLElement>('th[data-upcoming]')
+    if (wrap && next) {
+      const nameWidth = wrap.querySelector('th')!.getBoundingClientRect().width
+      wrap.scrollLeft += next.getBoundingClientRect().left - wrap.getBoundingClientRect().left - nameWidth
     }
-  }, [detail, selected.student, entries])
-  const byStudent = useMemo(
-    () => new Map(entries.map((e) => [e.student.id, new Map(e.works.map((w) => [w.slot.ref, w]))])),
-    [entries]
-  )
-  const applicable = slots.filter((slot) => entries.some((e) => byStudent.get(e.student.id)?.has(slot.ref)))
-  const isStats = selected.tab === 'Статистика'
+  }
+  const close = () => {
+    const target = frame.current?.querySelector<HTMLElement>('[data-selected-work="true"]') ??
+      frame.current?.querySelector<HTMLElement>('.js-name[aria-pressed="true"]')
+    target?.focus({ preventScroll: true })
+    set({ student: '', workRef: '' })
+  }
   return (
-    <section className="course-journal js-matrix" aria-label="Журнал успеваемости">
-      <div className="js-roster-head">
-        <strong>
-          <i />
-          {groupLabel}
-        </strong>
-        <small>{visible.length} учен.</small>
-        {picker}
-        <label className="js-search">
-          <Search size={14} />
-          <input
-            aria-label="Поиск ученика"
-            placeholder="Поиск ученика…"
-            value={selected.search}
-            onChange={(e) => set({ search: e.target.value })}
-          />
-        </label>
-      </div>
-      <div className="js-options">
-        <div className="cj-tabs">
-          {(['Обзор', 'Посещаемость', 'Работы', 'Статистика'] as const).map((tab) => (
-            <button type="button" key={tab} aria-pressed={selected.tab === tab} onClick={() => set({ tab })}>
-              {tab}
-            </button>
-          ))}
-        </div>
-        <button className="cj-button" aria-pressed={attention} onClick={() => setAttention((v) => !v)}>
-          Требуют внимания
-        </button>
-      </div>
-      <div
-        className="js-matrix-scroll"
-        ref={frame}
-        onScroll={(e) => {
+    <div className="js-matrix-viewport" ref={viewport} onKeyDown={e => { if (e.key === 'Escape' && entry) { e.stopPropagation(); close() } }}>
+        <div className="js-matrix-scroll" ref={frame} onScroll={e => {
           position.current = { top: e.currentTarget.scrollTop, left: e.currentTarget.scrollLeft }
-        }}
-      >
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Ученик</th>
-              {isStats
-                ? [
-                    'Средний результат',
-                    'Зачтено / проверено',
-                    'Недели со сдачами',
-                    'Сданы повторно',
-                    'Сданы в срок',
-                  ].map((t) => (
-                    <th scope="col" key={t}>
-                      {t}
-                    </th>
-                  ))
-                : applicable.map((col) => (
-                    <th scope="col" key={col.ref}>
-                      <small>{col.date || 'Без даты'}</small>
-                      {col.title}
-                    </th>
-                  ))}
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map(({ student, stats }) => (
-              <tr key={student.id} className={entry?.student.id === student.id ? 'js-selected' : ''}>
+        }}>
+          <div className="js-grid-content" data-source-line={showSourceLine || undefined}
+            style={{ '--columns': columnCount, '--grid-tracks': trackCount } as CSSProperties}>
+          <table>
+            <colgroup>
+              <col className="js-student-col" />
+              {columnCount > 0 && <col className="js-data-col" span={columnCount} />}
+            </colgroup>
+            <thead><tr>
+              <th scope="col"><div className="js-head-slots"><span className="js-col-student">Ученик <small>{visible.length}</small></span>
+                {nearest && <button className="js-next-link" type="button" onClick={jumpToNearest}>К ближайшей работе <ChevronRight size={11}/></button>}
+              </div></th>
+              {columns.map(({ col, displayDate, source, hasHomework, upcoming }) => (
+                <th scope="col" key={col.ref} data-upcoming={!!nearest && upcoming === nearest || undefined}>
+                  <div className="js-head-slots">
+                  <div className="js-col-meta">
+                    <time dateTime={displayDate ?? undefined}>{shortDate(displayDate)}</time>
+                    {nearest && upcoming === nearest && <span className="js-next-label" title={'Ближайшая работа · ' + shortDate(nearest)}>Ближайшая</span>}
+                  </div>
+                  {withWork && onOpenAssignment ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}>{col.title}</button>
+                    : <span className="js-col-title" title={col.title}>{col.title}</span>}
+                  {withWork && <div className="js-col-source">{hasHomework && (source ? <Source value={source} /> : 'Разные источники')}
+                    {nearest && upcoming === nearest && col.due === nearest && col.due !== displayDate &&
+                      <time dateTime={nearest}>до {shortDate(nearest).replace(/\s\d{4}$/, '')}</time>}
+                  </div>}
+                  </div>
+                </th>
+              ))}
+            </tr></thead>
+            <tbody>{visible.map(({ student }) => (
+              <tr key={student.id}>
                 <th scope="row">
-                  <button
-                    type="button"
-                    className="js-name"
-                    onClick={() => {
-                      set({ student: student.id, workRef: '' })
-                    }}
-                  >
-                    <span className="cj-avatar">
-                      {student.name
-                        .split(' ')
-                        .slice(0, 2)
-                        .map((v) => v[0])
-                        .join('')}
-                    </span>
-                    {student.name}
+                  <button type="button" className="js-name" title={student.name} aria-label={student.name}
+                    aria-pressed={entry?.student.id === student.id} onClick={() => set({ student: student.id, workRef: '' })}>
+                    <span className="cj-avatar" aria-hidden>{monogram(student.name)}</span><span>{student.name}</span>
                   </button>
                 </th>
-                {isStats
-                  ? [
-                      stats.average === null ? '—' : stats.average + '%',
-                      fraction(stats.passed, stats.graded),
-                      fraction(stats.active, stats.weeks),
-                      fraction(stats.resubmitted, stats.returned),
-                      fraction(stats.timely, stats.due),
-                    ].map((v, i) => <td key={i}>{v}</td>)
-                  : applicable.map((col) => {
-                      const w = byStudent.get(student.id)?.get(col.ref)
-                      return (
-                        <td key={col.ref}>
-                          {w ? (
-                            <button
-                              data-selected-work={
-                                (selected.student === student.id && detail === col.ref) || undefined
-                              }
-                              className="js-cell"
-                              aria-label={student.name + ' · ' + col.title}
-                              onClick={() => {
-                                set({ student: student.id, workRef: col.ref })
-                              }}
-                            >
-                              {selected.tab !== 'Работы' && (
-                                <small>
-                                  <Attendance work={w} />
-                                </small>
-                              )}
-                              {selected.tab !== 'Посещаемость' && <Badge work={w} />}
-                              {w.source.includes('Тестли') && selected.tab !== 'Посещаемость' && (
-                                <Source value={w.source} />
-                              )}
-                            </button>
-                          ) : (
-                            '—'
-                          )}
-                        </td>
-                      )
-                    })}
+                {columns.map(({ col, source, upcoming }) => {
+                  const w = byStudent.get(student.id)?.get(col.ref)
+                  const active = selected.student === student.id && detail === col.ref
+                  return <td key={col.ref} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
+                    <button type="button" data-selected-work={active || undefined} aria-pressed={active}
+                      className="js-cell" aria-label={[student.name, col.title,
+                        ...(withWork ? [w.source, w.status === 'На проверке' && onOpenWork ? 'Проверить' : w.score === null ? w.status : w.score + '% · ' + w.status] : []),
+                        ...(selected.tab !== 'Работы' && w.slot.lesson ? [w.present === null ? 'Нет отметки' : w.present ? 'Был' : 'Пропуск', ...(w.watched ? ['Запись изучена'] : [])] : []),
+                      ].join(' · ')}
+                      onClick={() => {set({ student: student.id, workRef: col.ref });if(withWork)onOpenWork?.(student.id, col.ref)}}>
+                      {withWork && (w.status === 'На проверке' && onOpenWork ? <span className="jh-pending-action">Проверить</span> : <Badge work={w} />)}
+                      {selected.tab !== 'Работы' && <small><Attendance work={w}/></small>}
+                      {withWork && !source && <Source value={w.source}/>}
+                    </button>
+                  ) : <span className="js-stat-value" title="Не назначено">—</span>}</td>
+                })}
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {!visible.length && (
-          <p className="js-empty">
-            {selected.search ? 'Никого не найдено' : 'В выбранном составе пока нет учеников.'}
-          </p>
-        )}
-      </div>
-      {entry && (
-        <aside className="js-dock" aria-label="Статистика выбранного ученика">
-          <div className="js-row">
-            <strong>{entry.student.name}</strong>
-            <button className="cj-button cj-primary" onClick={() => open(entry.student)}>
-              Полная статистика <ChevronRight size={14} />
-            </button>
-            <button className="cj-icon-button" aria-label="Закрыть панель" onClick={() => set({ student: '' })}>
-              <X size={14} />
-            </button>
+            ))}</tbody>
+          </table>
+          {!visible.length && <p className="js-empty">{selected.search ? 'Никого не найдено' : attention ? 'Нет учеников, требующих внимания.' : 'В выбранном составе пока нет учеников.'}</p>}
+          {entry && <div aria-hidden className="js-pill-space"/>}
           </div>
-          <Metrics stats={entry.stats} />
-          {work && (
-            <div className="js-facts">
-              <strong>{work.slot.title}</strong>
-              <Source value={work.source} />
-              <Badge work={work} />
-              {work.points.length > 0 && <span>Тестли · {work.points.join(', ')} б.</span>}
-            </div>
-          )}
-        </aside>
-      )}
-    </section>
+        </div>
+        {(['left', 'right', 'top', 'bottom'] as const).map(side =>
+          <i aria-hidden key={side} className={'js-scroll-fade js-fade-' + side} />)}
+        {entry && <StudentPill entry={entry} work={work} open={() => set({tab: 'Обзор', workRef:''})} close={close} />}
+    </div>
   )
 }
 export default function JournalStand({ owner }: { owner: string }) {
-  const { data, loading, error, reload } = useCourseJournal(true)
+  const { data, loading, error, reload, setData } = useCourseJournal(true)
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
   const storageKey = 'iskra:journal-stand:' + owner
   const [selected, setSelected] = useState<StandSelection>(() => {
     try {
-      return { ...initial, ...JSON.parse(sessionStorage.getItem(storageKey) || '{}') }
+      const saved = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
+      return { ...initial, ...saved, tab: views.some(([v]) => v === saved.tab) ? saved.tab : initial.tab }
     } catch {
       return initial
     }
@@ -471,7 +575,29 @@ export default function JournalStand({ owner }: { owner: string }) {
   const module = data?.modules.some((m) => m.id === selected.module && m.course_id === course) ? selected.module : ''
   const scope = { course, module }
   const slots = useMemo(() => (index ? scopeSlots(index, { course, module }) : []), [index, course, module])
-  const today = wallDateTimeInTz(new Date().toISOString(), 'Europe/Moscow').day
+  const today = wallDateTimeInTz(useNow(60_000).toISOString(), 'Europe/Moscow').day
+  const [queueGroup, setQueueGroup] = useState('*')
+  async function saveReview(entry: HomeworkEntry, decision: ReviewDecision) {
+    if (!data || data.demo || !entry.work.submission) throw new Error('Откройте актуальную сдачу в журнале.')
+    applyStandReview(data, entry, decision)
+    const payload = parseBasicAnswers(entry.work.submission.attachments)
+    if (!await reviewHomework(entry.work.submission.id, decision.verdict, decision.score, decision.comment, undefined, payload?.attemptId))
+      throw new Error('Не удалось сохранить проверку. Работа могла измениться; обновите журнал и повторите.')
+    setData(current => current?.work.includes(entry.work.submission!) ? applyStandReview(current, entry, decision) : current)
+    reload()
+  }
+  const homework = useHomeworkHub(data, today, saveReview, entry => {
+    set({course:entry.work.slot.course,module:'',strip:entry.student.groupId ? 'groups' : 'students',student:entry.student.id,workRef:entry.work.slot.ref,tab:'Работы',search:''})
+    useTeacher.getState().setSelectedGroupId(entry.student.groupId || null)
+    useTeacher.getState().setActivePage('gradebook')
+  }, (entry, draft) => {
+    if (!data || data.demo || !entry.work.submission) return false
+    const id = nativeHomeworkReviewId(data, entry)
+    if (!id) return false
+    handoffHomeworkReview(id, entry.student.id, draft)
+    useTeacher.getState().openHomeworkReview(id,entry.student.id,page)
+    return true
+  })
   const entries = useMemo(
     () =>
       !index || !data
@@ -497,21 +623,29 @@ export default function JournalStand({ owner }: { owner: string }) {
     [entries, index, course, slots]
   )
   const groupIds = useMemo(() => new Set(roster.map((e) => e.student.groupId)), [roster])
-  const open = (student: Student) => {
-    set({ student: student.id, origin: page === 'groups' ? 'groups' : 'gradebook' })
-    // The full profile (diagnostics and trainer included) must always open the same enrollment.
-    const profile =
-      data?.students
+  // Both entry points read the trainer and diagnostics from the same enrollment.
+  const canonicalProfile = (student: Student) => data?.students
         .filter((s) => sameLearner(s, student))
         .sort((a, b) => Number(!!b.authUserId) - Number(!!a.authUserId) || a.id.localeCompare(b.id))[0] ?? student
+  const open = (student: Student) => {
+    set({ student: student.id, origin: page === 'groups' ? 'groups' : 'gradebook' })
+    const profile = canonicalProfile(student)
     useTeacher.getState().openStudentDashboard(profile.id, profile.groupId)
   }
   const changeScope = (v: Scope) => {
     position.current = { top: 0, left: 0 }
     set({ ...v, search: '', workRef: '' })
   }
+  const scopeLabel = [data?.courses.find(c=>c.id===course)?.title ?? (course===ALL_COURSES?'Все курсы и работы':'Вне курсов'), data?.modules.find(m=>m.id===module)?.label].filter(Boolean).join(' · ')
   const picker = data && <ScopePicker data={data} value={scope} onChange={changeScope} />
   let content: React.ReactNode
+  if (page === 'home' || page === 'homework') {
+    content = data && !data.demo ? <div className="jh-live-page">{page === 'home'
+      ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {setQueueGroup(group ?? '*');useTeacher.getState().setActivePage('homework')}}/>
+      : <HomeworkQueue queue={homework.queue} groups={data.groups} groupId={queueGroup} onGroup={setQueueGroup}
+          onOpen={entry => homework.openQueue(entry, queueGroup === '*' ? undefined : queueGroup)}/>}</div>
+      : <div className="cj-empty" role="status">{error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}</div>
+  }
   if (['gradebook', 'groups', 'student'].includes(page)) {
     if (error || !data || data.demo)
       content = (
@@ -536,6 +670,8 @@ export default function JournalStand({ owner }: { owner: string }) {
           onBack={back}
           backLabel={selected.origin === 'groups' ? 'Назад к группам' : 'Назад в журнал'}
           workPanel={
+            <><div className="jo-group-report"><StudentOverviewCard student={entry.student} report={studentOverview(entry.works,today)}
+              today={today} scopeLabel={scopeLabel} groupLabel={data.groups.find(g=>g.id===entry.student.groupId)?.name}/></div>
             <ProfileWorks
               list={entry.works}
               today={today}
@@ -556,11 +692,11 @@ export default function JournalStand({ owner }: { owner: string }) {
                   module: '',
                   strip: 'students',
                   search: '',
-                  tab: 'Обзор',
+                  tab: 'Работы',
                 })
                 useTeacher.getState().setActivePage('gradebook')
               }}
-            />
+            /></>
           }
         />
       ) : (
@@ -577,7 +713,7 @@ export default function JournalStand({ owner }: { owner: string }) {
         <TeacherGroupsPage
           key={page}
           initialStripTab={selected.strip}
-          onStripChange={(strip) => set({ strip, search: '' })}
+          onStripChange={(strip) => set({ strip, search: '', student: '', workRef: '' })}
           onOpenStudent={open}
           rosterTools={page === 'groups' ? picker : undefined}
           hasUnsubmittedWork={(student) =>
@@ -598,12 +734,23 @@ export default function JournalStand({ owner }: { owner: string }) {
                   )
                   return (
                     <Matrix
+                      onOpenWork={homework.openStudent}
+                      onOpenAssignment={ref => homework.openAssignment(ref, unique.map(e => e.student.id))}
+                      groups={data.groups}
+                      scopeLabel={scopeLabel}
                       entries={unique}
                       slots={slots}
                       picker={picker}
                       selected={selected}
                       set={set}
-                      open={open}
+                      today={today}
+                      onReload={reload}
+                      refreshing={loading}
+                      renderReport={(student, workPanel) => {
+                        const profile = canonicalProfile(student)
+                        return <StudentDashboardReport key={profile.id} student={profile}
+                          group={data.groups.find(g => g.id === profile.groupId)} inDrawer workPanel={workPanel} />
+                      }}
                       position={position}
                       groupLabel={
                         groupId === null ? 'Все ученики' : data.groups.find((g) => g.id === groupId)?.name ?? 'Группы'
@@ -617,7 +764,7 @@ export default function JournalStand({ owner }: { owner: string }) {
       )
   }
   return (
-    <TeacherDashboardPage
+    <><TeacherDashboardPage standReviewCount={homework.queue.length}
       standContent={
         content && (
           <>
@@ -630,6 +777,6 @@ export default function JournalStand({ owner }: { owner: string }) {
           </>
         )
       }
-    />
+    />{homework.dialog}</>
   )
 }

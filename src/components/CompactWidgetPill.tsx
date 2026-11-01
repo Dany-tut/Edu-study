@@ -25,6 +25,7 @@ import { formatShort, GOAL_MS } from '../lib/trainerDay'
 import { useTextOfDay } from '../lib/useTextOfDay'
 import { tactile } from '../lib/feedback'
 import { t, tc, useT } from '../lib/i18n'
+import PillText from './PillText'
 
 /**
  * The minimalist "pill" the WidgetCarousel morphs into when the user leaves the
@@ -128,29 +129,28 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
 
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }}>
           {/* Kicker */}
-          <span style={{
+          <PillText expanded={expanded} style={{
             fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
             textTransform: 'uppercase', color: 'var(--color-text-3)',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {t('Домашка')} · {lessonTitle}
-          </span>
+          </PillText>
 
           {/* Title row: status + score pill */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{
               fontSize: 13, fontWeight: 700, color: accentColor,
-              whiteSpace: 'nowrap',
+              whiteSpace: 'nowrap', flexShrink: 0,
             }}>
               {lastCorrect ? t('Верно') : t('Пока мимо')}
             </span>
             <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>·</span>
-            <span style={{
+            <PillText expanded={expanded} style={{
+              flex: 1,
               fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
               {t('вопрос')} {lastQuestionIndex + 1} {t('из')} {total}
-            </span>
+            </PillText>
             {/* score pill — only after ≥1 answered */}
             {correct > 0 && (
               <span style={{
@@ -793,14 +793,14 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 2 }}>
         {/* Кикер — предмет, а не общее слово «прогресс»: тренажёр у ученика не один */}
-        <span style={{
+        <PillText expanded={expanded} style={{
           fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
         }}>
           {/* `||`, а не `??`: у предмета из стора пустая строка — это «предмета
               нет», и точка с пустотой после неё выглядела как обрезанный текст. */}
           {t('Тренажёр')} · <span style={{ color: palette.text }}>{t(def?.name || subject || 'прогресс')}</span>
-        </span>
+        </PillText>
 
         {/* Пилюли — плавно перетекают из капсулы в плитку */}
         {started ? (
@@ -836,9 +836,13 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {/* Первая минута ещё не набралась. Показывать «0м» нечестно, но и
                 молчать нельзя: точка отвечает на «а он вообще считает?». */}
             {counting && <ClockDot on color={accent} />}
-            {counting
-              ? t('Считаю время…')
-              : kind === 'lang' ? t('Открой набор фраз — счётчик пойдёт') : t('Начни решать задания')}
+            <PillText expanded={expanded} style={{
+              flex: 1,
+            }}>
+              {counting
+                ? t('Считаю время…')
+                : kind === 'lang' ? t('Открой набор фраз — счётчик пойдёт') : t('Начни решать задания')}
+            </PillText>
           </span>
         )}
 
@@ -939,12 +943,8 @@ function PillContent({
   detail: React.ReactNode
   expanded: boolean
 }) {
-  // INVARIANT layout: avatar size, padding, gap, title clamp — all FIXED.
-  // Nothing inside the content moves when `expanded` flips. The outer
-  // pill's animated height simply clips the lower portion (where the
-  // detail text lives) when collapsed. Detail opacity cross-fades on the
-  // same curve as the outer height. One animation, one timing curve, no
-  // jitter from competing layout changes.
+  // Avatar, padding and gaps stay fixed. Collapsed text fades on one line;
+  // expanded text wraps, and the outer pill grows to its measured height.
   return (
     <div
       style={{
@@ -983,21 +983,18 @@ function PillContent({
           paddingTop: 2,
         }}
       >
-        <span
+        <PillText expanded={expanded}
           style={{
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.3,
             textTransform: 'uppercase',
             color: 'var(--color-text-3)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
           }}
         >
           {kicker}
-        </span>
-        <span
+        </PillText>
+        <PillText expanded={expanded}
           style={{
             fontSize: 14,
             fontWeight: 600,
@@ -1006,17 +1003,10 @@ function PillContent({
             // В заголовке тикает отсчёт помодоро — без моноширинных цифр плашка
             // меняет ширину каждую секунду.
             fontVariantNumeric: 'tabular-nums',
-            display: '-webkit-box',
-            // Collapsed: clamp to one line so the mini pill stays a capsule.
-            // Expanded: drop the clamp so the full question is revealed (the
-            // pill's measured height grows to fit the extra lines).
-            WebkitLineClamp: expanded ? 'unset' : 1,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
           }}
         >
           {title}
-        </span>
+        </PillText>
         {/* Detail text is ALWAYS rendered (so the measured natural height
             of this block is the expanded height); it just fades opacity
             in and out. The outer pill height clips it when collapsed. */}

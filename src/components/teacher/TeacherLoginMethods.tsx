@@ -9,6 +9,7 @@ import { authErrorRu } from '../../lib/authErrors'
 import { useT } from '../../lib/i18n'
 import { Alert } from '../Alert'
 import { AppleMark, GoogleMark } from '../SocialLoginButtons'
+import { Check } from '../icons/appIcons'
 
 export default function TeacherLoginMethods() {
   const t = useT()
@@ -85,23 +86,25 @@ export default function TeacherLoginMethods() {
         {t('Почта')} · {ready ? user?.email || t('Войдите в аккаунт') : t('Загрузка...')}
         {user?.email && <div style={{ marginTop: 4, color: 'var(--color-muted)', fontSize: 12 }}>{t('Вход по почте доступен на экране входа.')}</div>}
       </div>
+      <div>
       {(['google', 'apple'] as const).map(provider => {
         const identity = user?.identities?.find(identity => identity.provider === provider)
         const label = provider === 'google' ? 'Google' : 'Apple'
-        return <div key={provider} style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 48 }}>
-          {provider === 'google' ? <GoogleMark /> : <AppleMark />}
-          <div style={{ flex: 1, minWidth: 0, color: 'var(--color-text)', fontSize: 14 }}>
+        return <div key={provider} style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr) 124px', alignItems: 'center', gap: 10, minHeight: 76, padding: '12px 0', borderTop: '1px solid var(--color-border-soft)' }}>
+          <span style={{ display: 'grid', placeItems: 'center' }}>{provider === 'google' ? <GoogleMark /> : <AppleMark />}</span>
+          <div style={{ minWidth: 0, color: 'var(--color-text)', fontSize: 14 }}>
             <strong>{label}</strong>
-            {identity && <div style={{ color: 'var(--color-muted)', fontSize: 12, overflowWrap: 'anywhere' }}>{identity.identity_data?.email || t('Подключено')}</div>}
+            {identity && <div title={identity.identity_data?.email} style={{ marginTop: 3, color: 'var(--color-muted)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{identity.identity_data?.email || t('Подключено')}</div>}
           </div>
-          {identity ? <span style={{ fontSize: 12, color: 'var(--color-green-text)' }}>{t('Подключено')}</span>
+          {identity ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, width: '100%', boxSizing: 'border-box', borderRadius: 14, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 650, whiteSpace: 'nowrap' }}><Check size={14} strokeWidth={2.2} />{t('Подключено')}</span>
             : <button type="button" onClick={() => void connect(provider)} disabled={!ready || !user || busy !== null || !available?.[provider]}
               aria-label={`${t('Подключить')} ${label}`}
-              style={{ minHeight: 44, padding: '0 14px', borderRadius: 16, border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650, opacity: !ready || !user || busy !== null || !available?.[provider] ? .55 : 1, cursor: 'pointer' }}>
+              style={{ minHeight: 44, width: '100%', boxSizing: 'border-box', padding: '0 10px', borderRadius: 14, border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650, whiteSpace: 'nowrap', opacity: !ready || !user || busy !== null || !available?.[provider] ? .55 : 1, cursor: 'pointer' }}>
               {!available ? t('Загрузка...') : !available[provider] ? t('Пока недоступно') : busy === provider ? t('Открываем…') : t('Подключить')}
             </button>}
         </div>
       })}
+      </div>
       {error && <Alert tone="danger" text={t(error)} />}
       {notice && <Alert tone="info" text={t(notice)} />}
       <a href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-muted)', fontSize: 12 }}>Политика конфиденциальности</a>

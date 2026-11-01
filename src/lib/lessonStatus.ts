@@ -1,10 +1,11 @@
-import { type Lesson, type LessonStatus } from '../data/mockData'
+import { type Lesson, type LessonStatus, type ScheduleLesson, type Subject } from '../data/mockData'
 import { resolveScheduleLesson } from '../lib/db'
 import { useStudentData } from '../store/studentDataStore'
 import { useStudentTz } from './studentTz'
-import { convertWallTime, wallDateTimeInTz } from './teacherTz'
+import { convertWallTime } from './teacherTz'
 import { lessonStudyProgress } from './lessonStudyProgress'
 import { canRetakeHomework, gradedWorkLabel } from './homeworkResult'
+import { getScheduleState, pickScheduleFocus, type ScheduleSlot, type ScheduleState } from './scheduleState'
 
 export type LessonDisplayStatus = LessonStatus | 'test_passed' | 'test_low' | 'submitted_unknown'
 export type TrackLessonStatus = LessonDisplayStatus | 'today'
@@ -45,7 +46,7 @@ export function getDisplayLessonStatus(lesson: Lesson, now: Date = new Date()): 
   return status === 'today' ? 'current' : status
 }
 
-export function getTrackLessonStatus(lesson: Lesson, now: Date = new Date()): TrackLessonStatus {
+export function getTrackLessonStatus(lesson: Lesson, now: Date = new Date(), event = getLessonScheduleState(lesson, now)): TrackLessonStatus {
   if (lesson.status === 'submitted' || lesson.status === 'completed') {
     const result = lesson.result
     if (result?.pending) return 'submitted'
@@ -55,7 +56,7 @@ export function getTrackLessonStatus(lesson: Lesson, now: Date = new Date()): Tr
   }
   // Locked and current lessons both depend on whether the lesson sits on the
   // calendar, so resolve its scheduled slot (any day in the window) once.
-  const status = lesson.status === 'unviewed' && lessonStudyProgress(lesson).completed ? 'current' : lesson.status
+  const status = lesson.status === 'unviewed' && (event?.isCurrent || lessonStudyProgress(lesson).completed) ? 'current' : lesson.status
   if (status !== 'locked' && status !== 'current') return status
 
   // Test nodes don't have recordings to view — a locked test must stay locked
@@ -63,29 +64,47 @@ export function getTrackLessonStatus(lesson: Lesson, now: Date = new Date()): Tr
   // status = 'locked' when prerequisites aren't met; this must not be overridden).
   if (lesson.kind === 'test' && status === 'locked') return 'locked'
 
-  const slot = lessonScheduleSlot(lesson)
-  if (!slot) return status
-
-  const { day: today, time } = wallDateTimeInTz(now.toISOString(), useStudentTz.getState().tz)
-  if (slot.date > today) return status
-
-  // An unknown end time doesn't make a lesson a recording as soon as it starts.
-  const endDate = slot.endDate ?? slot.date
-  const ended = endDate < today || (endDate === today && !!slot.endTime && slot.endTime <= time)
-  if (ended && lesson.kind !== 'test' && lesson.videoUrl?.trim() && !lessonStudyProgress(lesson).completed) return 'unviewed'
-  return slot.date === today ? 'today' : 'current'
+  if (!event || event.phase === 'cancelled' || event.phase === 'unknown') return status
+  if (event.phase === 'upcoming' && !event.isToday) return status
+  // A scheduled end is not a homework grade. An actual recording is required.
+  if ((event.hasEnded || event.phase === 'available') && lesson.kind !== 'test' && lesson.videoUrl?.trim() && !lessonStudyProgress(lesson).completed) return 'unviewed'
+  if (event.isCurrent) return 'today'
+  return event.isToday && !event.hasEnded ? 'today' : 'current'
 }
 
-function lessonScheduleSlot(lesson: Lesson) {
+/** One event state is shared by the calendar, mobile home and track. */
+export function getStudentScheduleState(row: ScheduleLesson, date: string, now: Date, timeZone: string, subjects: Subject[]) {
+  const match = resolveScheduleLesson(row, subjects).lesson
+  const state = getScheduleState({
+    ...row, date,
+    materialOnly: match?.kind === 'test' || match?.nodeType === 'lesson' || (match?.deliveryMode === 'recording' && row.kind !== 'rec'),
+  }, now, timeZone)
+  return { ...state, recordingAvailable: state.hasEnded && !!match?.videoUrl?.trim() }
+}
+
+export function getLessonScheduleState(lesson: Lesson, now: Date = new Date()): ScheduleState | null {
+  const slot = lessonScheduleSlot(lesson, now)
+  if (!slot) return null
+  const state = getScheduleState({
+    ...slot,
+    materialOnly: lesson.kind === 'test' || lesson.nodeType === 'lesson' || (lesson.deliveryMode === 'recording' && lesson.nodeType !== 'rec'),
+  }, now, useStudentTz.getState().tz)
+  return { ...state, recordingAvailable: state.hasEnded && !!lesson.videoUrl?.trim() }
+}
+
+function lessonScheduleSlot(lesson: Lesson, now = new Date()): ScheduleSlot | null {
   const { scheduleDays, subjects } = useStudentData.getState()
-  let slot: { date: string; time: string; endDate?: string; endTime?: string } | null = null
-  for (const day of scheduleDays) {
-    const entry = day.lessons.find(e => resolveScheduleLesson(e, subjects).lesson?.id === lesson.id)
-    if (entry) { slot = { date: day.date, time: entry.time, endDate: entry.endDate, endTime: entry.endTime }; break }
-  }
+  const tz = useStudentTz.getState().tz
+  const candidates = scheduleDays.flatMap(day => day.lessons
+    .filter(entry => resolveScheduleLesson(entry, subjects).lesson?.id === lesson.id)
+    .map(entry => ({ ...entry, date: day.date })))
+  const states = candidates.map(slot => getScheduleState(slot, now, tz))
+  const focus = pickScheduleFocus(states)
+  let slot: ScheduleSlot | null = focus >= 0 ? candidates[focus] : candidates
+    .filter(candidate => candidate.status !== 'cancelled')
+    .sort((a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`))[0] ?? candidates[0] ?? null
 
   // Course dates survive the short calendar window; an old lesson must not re-lock.
-  const tz = useStudentTz.getState().tz
   if (!slot && lesson.scheduledDate) {
     const raw = lesson.scheduledDate
     const dot = raw.match(/^(\d{2})\.(\d{2})\.(\d{4})$/)
@@ -94,7 +113,7 @@ function lessonScheduleSlot(lesson: Lesson) {
       // A date without a time is a calendar day, not midnight in another zone.
       if (!lesson.scheduledTime?.trim()) return { date, time: '', endDate: undefined, endTime: undefined }
       const local = convertWallTime(date, lesson.scheduledTime, 'Europe/Moscow', tz)
-      slot = { date: local.day, time: local.time }
+      slot = { date: local.day, time: local.time, startsAt: `${date}T${lesson.scheduledTime.slice(0, 5)}:00+03:00` }
     }
   }
   return slot

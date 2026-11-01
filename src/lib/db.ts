@@ -13,7 +13,8 @@ import { t } from './i18n'
 import type { HardTaskStudentBlock, HardTaskReviewBlock, HardTaskDef } from './useHomework'
 import { getSessionUser } from './owner'
 import { useStudentTz } from './studentTz'
-import { convertWallTime } from './teacherTz'
+import { convertWallTime, wallDateTimeInTz } from './teacherTz'
+import { getScheduleState, type ScheduleEventStatus } from './scheduleState'
 import type { BasicAnswersPayload } from './basicAnswers'
 import { homeworkResult, homeworkDisplayScore, type HomeworkAttempt, type HomeworkResult } from './homeworkResult'
 
@@ -62,18 +63,28 @@ interface DbScheduleLesson {
   lesson_title: string
   lesson_number: number
   node_type?: 'lesson' | 'rec'
+  status?: ScheduleEventStatus
 }
 
-export async function fetchScheduleDays(groupId: string, studentId?: string): Promise<ScheduleDay[]> {
+export async function fetchScheduleDays(groupId: string, studentId?: string, range?: { from: string; to: string }): Promise<ScheduleDay[]> {
   await useStudentTz.getState().load()
   const viewerTz = useStudentTz.getState().tz
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const from = new Date(today); from.setDate(from.getDate() - 3)
-  const to   = new Date(today); to.setDate(to.getDate() + 7)
+  const now = new Date()
+  const todayDate = wallDateTimeInTz(now.toISOString(), viewerTz).day
+  const today = new Date(`${todayDate}T12:00:00Z`)
+  // Include school dates on either side of the student's visible window.
+  const from = new Date(today); from.setUTCDate(from.getUTCDate() - 4)
+  const to   = new Date(today); to.setUTCDate(to.getUTCDate() + 8)
 
   const pad2 = (n: number) => String(n).padStart(2, '0')
-  const fmt  = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`
+  const fmt  = (d: Date) => `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`
+  const first = range ? new Date(`${range.from}T12:00:00Z`) : new Date(today.getTime() - 3 * 86400000)
+  const last = range ? new Date(`${range.to}T12:00:00Z`) : new Date(today.getTime() + 7 * 86400000)
+  if (!Number.isFinite(first.getTime()) || !Number.isFinite(last.getTime()) || first > last || last.getTime() - first.getTime() > 45 * 86400000) throw new Error('Invalid schedule range')
+  if (range) {
+    from.setTime(first.getTime() - 86400000)
+    to.setTime(last.getTime() + 86400000)
+  }
 
   // A lesson reaches the student either through their group OR a direct
   // (student-scoped) assignment. Match both.
@@ -92,6 +103,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
     .order('time_start', { ascending: true })
 
   if (error) reportDbError('fetchScheduleDays', error)
+  if (error && range) throw error
   if (error || !data) return []
 
   // The RPC projects only this student's attendance; private teacher state
@@ -113,17 +125,18 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
     const local = convertWallTime(row.date, row.time_start, 'Europe/Moscow', viewerTz)
     let endDate = row.date
     if (row.time_end && row.time_end < row.time_start) {
-      const next = new Date(`${row.date}T12:00:00`)
-      next.setDate(next.getDate() + 1)
+      const next = new Date(`${row.date}T12:00:00Z`)
+      next.setUTCDate(next.getUTCDate() + 1)
       endDate = fmt(next)
     }
     const end = row.time_end ? convertWallTime(endDate, row.time_end, 'Europe/Moscow', viewerTz) : null
-    return { ...row, date: local.day, time_start: local.time, time_end: end?.time, endDate: end?.day }
+    return {
+      ...row, date: local.day, time_start: local.time, time_end: end?.time, endDate: end?.day,
+      startsAt: `${row.date}T${row.time_start.slice(0, 5)}:00+03:00`,
+      endsAt: row.time_end ? `${endDate}T${row.time_end.slice(0, 5)}:00+03:00` : undefined,
+    }
   })
   for (const row of localRows) {
-    // Отменённое учителем занятие (0121) в календарь ученика не ставим: об отмене
-    // ему уже пришло уведомление, а «пустой» урок в ленте сбивал бы с толку.
-    if ((row as { status?: string }).status === 'cancelled') continue
     const key = `${row.date}|${row.time_start}|${row.lesson_title}|${row.lesson_number}|${row.subject}`
     if (seen.has(key)) continue
     seen.add(key)
@@ -131,22 +144,16 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
     byDate.get(row.date)!.push(row)
   }
 
-  const formatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' })
+  const formatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', timeZone: 'UTC' })
   const days: ScheduleDay[] = []
 
-  // Span -3..+7 days from today
-  for (let offset = -3; offset <= 7; offset++) {
-    const d = new Date(today); d.setDate(d.getDate() + offset)
+  // Preserve the home window by default; the month picker requests its own range.
+  for (let d = new Date(first); d <= last; d.setUTCDate(d.getUTCDate() + 1)) {
     const dateStr = fmt(d)
     const rows = byDate.get(dateStr) ?? []
     const lessons: ScheduleLesson[] = rows.map(row => {
-      const [hh, mm] = row.time_start.split(':').map(Number)
-      const lessonTime = new Date(d); lessonTime.setHours(hh, mm, 0, 0)
-      const nowMs = Date.now()
-      const passed = lessonTime.getTime() < nowMs
-      const minutesUntil = Math.round((lessonTime.getTime() - nowMs) / 60000)
-      const upcoming = minutesUntil >= 0 && minutesUntil <= 60
-      return {
+      const event = row as DbScheduleLesson & { endDate?: string; startsAt?: string; endsAt?: string }
+      const lesson: ScheduleLesson = {
         id: row.id,
         attendance: attendance.get(row.id) ?? null,
         subject: row.subject,
@@ -154,17 +161,23 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
         lessonNumber: row.lesson_number,
         time: row.time_start,
         endTime: row.time_end ?? undefined,
-        endDate: (row as DbScheduleLesson & { endDate?: string }).endDate,
+        endDate: event.endDate,
+        startsAt: event.startsAt,
+        endsAt: event.endsAt,
+        status: row.status,
         kind: row.node_type === 'rec' ? 'rec' as const : 'lesson' as const,
-        passed: passed && !upcoming,
-        upcoming: upcoming || undefined,
-        minutesUntil: minutesUntil > 0 ? minutesUntil : undefined,
+      }
+      const state = getScheduleState({ ...lesson, date: dateStr }, now, viewerTz)
+      return {
+        ...lesson, passed: state.hasEnded,
+        upcoming: (state.phase === 'upcoming' && state.minutesUntil != null && state.minutesUntil <= 60) || undefined,
+        minutesUntil: state.minutesUntil != null && state.minutesUntil > 0 ? state.minutesUntil : undefined,
       }
     })
     days.push({
       date: dateStr,
       label: formatter.format(d),
-      isToday: offset === 0,
+      isToday: dateStr === todayDate,
       lessons,
     })
   }

@@ -81,7 +81,7 @@ const quickActions: QuickItem[] = [
   { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу / 1:1',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
 ]
 
-export default function TeacherTopBar() {
+export default function TeacherTopBar({ standReviewCount }: { standReviewCount?: number } = {}) {
   const t = useT()
   const { tc, tn } = useTc()
   const [collapsed, setCollapsed]     = useState(false)
@@ -388,7 +388,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         {visibleNav.map(item => {
           const isActive = activePage === item.id
-          const badgeCount = item.id === 'homework' ? pendingHwCount : item.id === 'gradebook' ? pendingJournalCount : 0
+          const badgeCount = item.id === 'homework' ? standReviewCount ?? pendingHwCount : item.id === 'gradebook' ? pendingJournalCount : 0
           return (
             <motion.button
               key={item.id}
@@ -446,7 +446,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
                 transition: 'max-width 0.38s cubic-bezier(0.42,0,0.58,1), opacity 0.22s ease-in-out',
               }}>
-                {t(item.label)}
+                {t(standReviewCount !== undefined && item.id === 'homework' ? 'Проверка' : item.label)}
               </span>
               <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5)' }} />
             </motion.button>
@@ -617,6 +617,23 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
             </button>
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '0 8px 4px' }} />
+
+            {teacherRole === 'admin' && (
+              <motion.button whileTap={{ scale: 0.98 }}
+                onClick={() => { setProfileOpen(false); window.location.hash = '#/' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
+              >
+                <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <BookOpen size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{t('В ученический кабинет')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Переключить роль')}</div>
+                </div>
+              </motion.button>
+            )}
 
             {profileMenuItems.map(item => (
               <motion.button key={item.action} whileTap={{ scale: 0.98 }}

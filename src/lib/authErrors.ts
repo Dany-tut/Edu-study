@@ -20,7 +20,7 @@ const BY_CODE: Record<string, string> = {
   user_already_exists: 'Аккаунт с такой почтой уже существует. Войдите или укажите другую почту.',
   email_exists: 'Аккаунт с такой почтой уже существует. Войдите или укажите другую почту.',
   phone_exists: 'Аккаунт с таким телефоном уже существует.',
-  identity_already_exists: 'Этот способ входа уже привязан к другому аккаунту.',
+  identity_already_exists: 'Этот Apple ID или Google-аккаунт уже привязан к другой учётной записи Искры. Выйдите из текущего аккаунта и войдите через этот Apple ID или Google — откроется связанный профиль.',
   signup_disabled: 'Регистрация сейчас закрыта. Обратитесь к администратору.',
   email_address_invalid: 'Проверьте адрес почты — он выглядит некорректно.',
   email_address_not_authorized: 'На этот адрес письма отправлять нельзя. Укажите другую почту.',
@@ -70,6 +70,7 @@ const BY_CODE: Record<string, string> = {
 
 // Фолбэк для ответов без code (старый GoTrue, edge-функции, сетевые ошибки).
 const BY_TEXT: Array<[RegExp, string]> = [
+  [/identity.*already linked|already linked.*identity/i, BY_CODE.identity_already_exists],
   [/already registered|already exists|duplicate key/i, 'Аккаунт с такой почтой уже существует. Войдите или укажите другую почту.'],
   [/invalid login credentials/i, 'Неверный email или пароль'],
   [/email not confirmed/i, 'Почта не подтверждена. Откройте письмо и перейдите по ссылке.'],

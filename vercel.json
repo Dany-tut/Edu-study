@@ -2,7 +2,8 @@
   "services": {
     "web": {
       "root": ".",
-      "framework": "vite"
+      "framework": "vite",
+      "installCommand": "npm ci"
     }
   },
   "rewrites": [
@@ -29,6 +30,24 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/release.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/version.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
         }
       ]
     }

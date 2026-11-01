@@ -5,7 +5,10 @@ import type { Lesson, Subject, ScheduleLesson } from '../data/mockData'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { resolveScheduleLesson } from '../lib/db'
-import { useNow, lessonTimeState } from '../lib/useNow'
+import { useNow } from '../lib/useNow'
+import { getStudentScheduleState } from '../lib/lessonStatus'
+import { pickScheduleFocus } from '../lib/scheduleState'
+import { useStudentTz } from '../lib/studentTz'
 import { appFlag } from '../lib/cardGroups'
 import { useT, useTc } from '../lib/i18n'
 import CourseTrack from './CourseTrack'
@@ -216,17 +219,19 @@ function TodayCard({ date, lessons, nextDay }: { date: string | null; lessons: S
   const t = useT()
   const { tc } = useTc()
   const now = useNow(30_000)
+  const timeZone = useStudentTz(s => s.tz)
+  const subjects = useStudentData(s => s.subjects)
+  const scheduleDays = useStudentData(s => s.scheduleDays)
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
 
-  const sorted = [...lessons].sort((a, b) => a.time.localeCompare(b.time))
-  const states = sorted.map(l => (date ? lessonTimeState(date, l.time, now) : { passed: false, minutesUntil: 0 }))
-  // «Идёт» — последний начавшийся (длительности уроков нет, считаем час);
-  // иначе подсвечиваем ближайший будущий.
-  const runningIdx = states.reduce((acc, s, i) => (s.passed && s.minutesUntil > -60 ? i : acc), -1)
-  const nextIdx = runningIdx >= 0 ? -1 : states.findIndex(s => !s.passed)
-  const passedCount = states.filter((s, i) => s.passed && i !== runningIdx).length
+  const entries = scheduleDays.flatMap(day => day.lessons.map(lesson => ({ lesson, date: day.date })))
+  const overnight = entries.filter(entry => entry.date !== date && getStudentScheduleState(entry.lesson, entry.date, now, timeZone, subjects).isCurrent)
+  const sorted = [...lessons, ...overnight.map(entry => entry.lesson)].sort((a, b) => a.time.localeCompare(b.time))
+  const states = sorted.map(l => getStudentScheduleState(l, entries.find(entry => entry.lesson.id === l.id)?.date ?? date ?? '', now, timeZone, subjects))
+  const focusIndex = pickScheduleFocus(states)
+  const passedCount = states.filter(s => s.hasEnded).length
 
   const open = (l: ScheduleLesson) => {
     const { subjectId, lesson } = resolveScheduleLesson(l, useStudentData.getState().subjects)
@@ -251,14 +256,16 @@ function TodayCard({ date, lessons, nextDay }: { date: string | null; lessons: S
       ) : (
         <div style={{ display: 'flex', gap: 8 }}>
           {sorted.map((l, i) => {
-            const running = i === runningIdx
-            const upcoming = i === nextIdx
-            const passed = states[i].passed && !running
+            const running = states[i].isCurrent
+            const upcoming = i === focusIndex && states[i].phase === 'upcoming'
+            const passed = states[i].hasEnded
             const hot = running || upcoming
             return (
               <button
                 key={l.id}
                 type="button"
+                data-schedule-state={states[i].phase}
+                disabled={states[i].phase === 'cancelled'}
                 onClick={() => open(l)}
                 style={{
                   flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left',
@@ -269,8 +276,7 @@ function TodayCard({ date, lessons, nextDay }: { date: string | null; lessons: S
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: hot ? 'var(--color-purple-text)' : 'var(--color-text-3)', ...NUM }}>
                   {l.time}
-                  {passed && <Check size={12} strokeWidth={2.8} style={{ color: 'var(--color-green-text)' }} />}
-                  {running && <span style={{ fontWeight: 700 }}>{t('идёт')}</span>}
+                  {states[i].phase === 'completed' && <Check size={12} strokeWidth={2.8} style={{ color: 'var(--color-green-text)' }} />}
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: passed ? 'var(--color-text-3)' : 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(l.subject)}</span>
                 <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(l.lessonTitle)}</span>

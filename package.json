@@ -7,7 +7,7 @@
     "icons:generate": "node scripts/buildLoopIcons.mjs",
     "icons:check": "node scripts/buildLoopIcons.mjs --check && node scripts/checkLoopIcons.mjs",
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/guardProductionRelease.mjs --before-build && vite build && node scripts/guardProductionRelease.mjs --after-build",
     "stamp": "node scripts/stampVersion.mjs",
     "check:gloss": "node scripts/checkGloss.mjs",
     "build:spn": "node scripts/buildSpnDecks.mjs",
@@ -25,6 +25,7 @@
     "adapt:feed": "node scripts/adaptFeed.mjs",
     "translate:feed": "node scripts/translateFeed.mjs",
     "check:attendance": "esbuild scripts/checkScheduleAttendance.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkScheduleAttendance.mjs --log-level=error && node node_modules/.cache/checkScheduleAttendance.mjs",
+    "check:schedule": "esbuild scripts/checkScheduleState.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkScheduleState.mjs --log-level=error && node node_modules/.cache/checkScheduleState.mjs",
     "check:logic": "esbuild scripts/checkLogic.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLogic.mjs --log-level=error && node node_modules/.cache/checkLogic.mjs",
     "check:gradebook": "esbuild scripts/checkGradebook.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkGradebook.mjs --log-level=error && node node_modules/.cache/checkGradebook.mjs",
     "check:course-journal": "esbuild scripts/checkCourseJournal.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkCourseJournal.mjs --log-level=error && node node_modules/.cache/checkCourseJournal.mjs",
@@ -37,7 +38,9 @@
     "check:course-track": "node scripts/checkCourseTrack.mjs",
     "build:diag-defaults": "esbuild scripts/buildDiagDefaults.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/buildDiagDefaults.mjs --log-level=error && node node_modules/.cache/buildDiagDefaults.mjs",
     "check:homework-attempts": "node scripts/checkHomeworkAttempts.mjs",
-    "check:lesson-participation": "node scripts/checkLessonParticipation.mjs"
+    "check:lesson-participation": "node scripts/checkLessonParticipation.mjs",
+    "release:check": "node scripts/guardProductionRelease.mjs --check",
+    "check:release": "node scripts/checkReleasePolicy.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

@@ -162,7 +162,20 @@ function AppRoutes() {
 
     const finishWebOAuth = async () => {
       if (IS_NATIVE || completed || !hasPendingSocialAuth()) return
+      // Supabase returns identity-link failures as URL query parameters and
+      // does not emit SIGNED_IN for that callback. Handle that path even when
+      // there is no session, otherwise the app stays on its loading shell.
+      const query = new URLSearchParams(window.location.search)
+      const fragment = new URLSearchParams(window.location.hash.slice(1))
+      const callbackHasError = Boolean(
+        query.get('error') || query.get('error_code') || query.get('error_description') ||
+        fragment.get('error') || fragment.get('error_code') || fragment.get('error_description'),
+      )
       completed = true
+      if (!callbackHasError) {
+        const { data } = await supabase.auth.getSession()
+        if (!data.session) { completed = false; return }
+      }
       try { completed = await finishSocialLogin() }
       catch (error) {
         completed = false
@@ -174,7 +187,9 @@ function AppRoutes() {
     })
     if (!IS_NATIVE) {
       void supabase.auth.getSession().then(({ data }) => {
-        if (data.session && hasPendingSocialAuth()) void finishWebOAuth()
+        if (hasPendingSocialAuth() && (data.session || window.location.search.includes('error') || window.location.hash.includes('error'))) {
+          void finishWebOAuth()
+        }
       })
     }
     return () => { subscription.unsubscribe(); dispose?.() }
@@ -306,7 +321,7 @@ function AppRoutes() {
   if (hash.startsWith('#/teacher')) {
     if (session === undefined && !import.meta.env.DEV) return null
     // A student's Supabase session must not unlock the teacher cabinet.
-    const isStudentAccount = session?.user?.user_metadata?.role === 'student'
+    const isStudentAccount = session?.user?.user_metadata?.role === 'student' && session?.user?.app_metadata?.role !== 'admin'
     if (isStudentAccount && !import.meta.env.DEV) return <StudentLoginPage />
     if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (

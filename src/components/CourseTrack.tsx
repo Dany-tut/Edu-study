@@ -11,7 +11,8 @@ import { type Subject, type Lesson, type LessonStatus } from '../data/mockData'
 import { getLessonDetail, lessonHasHardLevel } from '../data/lessonContent'
 import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
 import { HARD_STYLE } from './CourseNode'
-import { getTrackLessonStatus, lessonScheduleDate, lessonStatusLabel, lessonTrackStep, type TrackLessonStatus } from '../lib/lessonStatus'
+import { getTrackLessonStatus, getLessonScheduleState, lessonScheduleDate, lessonStatusLabel, lessonTrackStep, type TrackLessonStatus } from '../lib/lessonStatus'
+import { useStudentTz } from '../lib/studentTz'
 import { hardLevelState } from '../lib/lessonAssessments'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { useNow } from '../lib/useNow'
@@ -109,6 +110,8 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
   const [selectedHardLessonId, setSelectedHardLessonId] = useState<string | null>(null)
   const now = useNow()
+  useStudentTz(s => s.tz)
+  useStudentData(s => s.scheduleDays)
   // activeModuleId from the store may not match a real module id on first paint,
   // so resolve to an actually-rendered module — lets the pill appear without a click.
   const effectiveModuleId =
@@ -162,7 +165,8 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const activeModule = subject.modules.find(m => m.id === effectiveModuleId) ?? subject.modules[0]
   const allLessons = activeModule?.lessons ?? []
   // Первый текущий урок — на нём праздничная тема ставит фонарь/конфету (CourseNode.seasonMark).
-  const statuses = allLessons.map(lesson => getTrackLessonStatus(lesson, now))
+  const scheduleStates = allLessons.map(lesson => getLessonScheduleState(lesson, now))
+  const statuses = allLessons.map((lesson, i) => getTrackLessonStatus(lesson, now, scheduleStates[i]))
   const seasonMarkIndex = statuses.indexOf('today')
   const selectedLesson = allLessons.find(lesson => lesson.id === selectedLessonId) ?? null
 
@@ -197,11 +201,15 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const selectedStep = selectedLesson && selectedLessonStatus ? lessonTrackStep(selectedLesson, selectedLessonStatus) : null
   const resumeRetake = selectedStep === 'resume'
   const showRetake = hasBasicHomework && (resumeRetake || selectedStep === 'retake')
+  const isResumingRetake = showRetake && resumeRetake
   const homeworkAccepted = selectedLessonStatus === 'test_passed' || selectedLessonStatus === 'completed'
   const quietLessonButton = selectedLesson && selectedLesson.kind !== 'test' && (
     showRetake || lessonStudyProgress(selectedLesson).completed || (homeworkAccepted && !selectedLesson.videoUrl?.trim())
   )
-  const selectedDetail = selectedLessonStatus ? { ...detailStyles[selectedLessonStatus], palette: trackPalette(selectedLessonStatus) } : null
+  const selectedDetail = selectedLessonStatus ? {
+    ...detailStyles[selectedLessonStatus],
+    palette: trackPalette(isResumingRetake ? 'test_low' : selectedLessonStatus),
+  } : null
   const DetailIcon = selectedDetail?.icon
   const selectedGrade = selectedLesson ? gradedTrackResult(selectedLesson) : null
 
@@ -311,6 +319,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                     <CourseNode
                       lesson={lesson}
                       status={statuses[i]}
+                      scheduleState={scheduleStates[i]}
                       index={i}
                       isSelected={selectedLesson?.id === lesson.id}
                       isHighlighted={highlightLessonId === lesson.id}
@@ -390,7 +399,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                         >
                           <DetailIcon size={14} color={selectedDetail.palette.icon} />
                           <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.25 }}>
-                            {t(showRetake && resumeRetake ? 'Пересдача ДЗ' : selectedDetail.badgeLabel ?? lessonStatusLabel(selectedLessonStatus, selectedLesson.kind))}
+                            {t(isResumingRetake ? 'Пересдача ДЗ' : selectedDetail.badgeLabel ?? lessonStatusLabel(selectedLessonStatus, selectedLesson.kind))}
                             {selectedLessonStatus === 'test_low' && selectedLesson.result && (
                               <span style={{ whiteSpace: 'nowrap' }}> · {t('порог')} {selectedLesson.result.passingScore}%</span>
                             )}
@@ -426,7 +435,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                               {selectedGrade ? `${selectedGrade.percent}%` : selectedLesson.points}
                             </span>
                             <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: 'var(--color-text)', marginTop: 4 }}>
-                              {t(selectedGrade ? (selectedGrade.status === selectedLessonStatus ? 'результат' : 'лучший результат') : 'баллов')}
+                              {t(selectedGrade ? 'результат' : 'баллов')}
                             </span>
                           </div>
                         ) : (
