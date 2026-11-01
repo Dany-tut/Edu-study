@@ -714,3 +714,4 @@
  .jo-class-grid,.jo-bento { grid-template-columns:minmax(0,1fr); gap:36px; }
  .jo-class-grid > .jo-tile--3d,.jo-bento > .jo-tile--3d,.jo-bento > .jo-tile--3d.jo-wide { grid-column:auto; --report-object-size:128px; min-height:190px; }
 }
+.jo-class-grid > .jo-tile--3d > :is(h3,.jo-value,.jo-detail),.jo-bento > .jo-tile--3d > :is(h3,.jo-value,.jo-detail) { align-self:stretch; text-align:left; }
