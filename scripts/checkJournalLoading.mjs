@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict'
-import { journalLessonDetailIds } from '../src/lib/journalLessonScope.ts'
 import { journalPages, journalParallelPages } from '../src/lib/journalPages.ts'
 
 const signal = new AbortController().signal
@@ -58,22 +57,3 @@ await assert.rejects(journalParallelPages(async () => {
   return {data: [], error: null}
 }, cancelled.signal), {name: 'AbortError'})
 console.log('Parallel journal: complete ordered rows, bounded concurrency, split timeout retries, required failures, tail and cancellation passed.')
-
-// Do not download unrelated authoring material, but preserve a withdrawn
-// enrollment's submissions, extra homework, recordings and attempt history.
-const lesson = (id, course_id = 'unassigned') => ({id, short_id: `short-${id}`, course_id})
-const detailIds = journalLessonDetailIds({
-  courses: [
-    {id:'direct', student_ids:['student'], group_ids:[]},
-    {id:'group', student_ids:[], group_ids:['group']},
-    {id:'unassigned', student_ids:['another-student'], group_ids:['another-group']},
-  ],
-  lessons: [lesson('direct','direct'),lesson('group','group'),lesson('extra'),lesson('recording'),lesson('attempt'),lesson('scheduled'),lesson('assigned'),lesson('unused')],
-  studentIds:['student'],groupIds:['group'],
-  work:[{lesson_ref:'short-extra~practice-hard'},{lesson_ref:'video-short-recording~rec'}],
-  attempts:[{lesson_ref:'short-attempt~rec~practice'}],
-  events:[{lesson_id:'scheduled'}],assignments:[{lesson_id:'assigned'}],
-})
-assert.deepEqual(detailIds, ['direct','group','extra','recording','attempt','scheduled','assigned'])
-assert.deepEqual(journalLessonDetailIds({courses:[],lessons:[lesson('unused')],studentIds:[],groupIds:[],work:[],attempts:[],events:[],assignments:[]}), [])
-console.log('Journal payload scope: direct/group access, withdrawn enrollment history, extra work, recordings, attempts and explicit assignments preserved; unrelated task content excluded.')

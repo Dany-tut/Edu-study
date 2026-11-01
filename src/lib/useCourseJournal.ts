@@ -2,21 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { useAllStudentsSnapshot, useGroups } from './useGroups'
-import type { CourseJournalData, CourseJournalLesson } from './courseJournal'
-import { journalLessonDetailIds } from './journalLessonScope'
+import type { CourseJournalData } from './courseJournal'
 import { journalPages, journalBatches } from './journalRequests'
 import { journalPages as adaptiveJournalPages, journalParallelPages } from './journalPages'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
-async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal, lessonPageSize = 50): Promise<T[]> {
+async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
   const started = performance.now()
   const rows = await journalBatches(ids, batch => {
     const build = (offset: number, size: number) => supabase.from(table).select(columns)
       .in(field, batch).order(table === 'teacher_lesson_sessions' ? 'schedule_id' : 'id')
       .range(offset, offset + size - 1).abortSignal(signal).retry(false)
-    // Rich homework JSON makes small lesson pages necessary. Read those pages
-    // concurrently instead of paying one network round trip for every 50 rows.
-    if (table === 'lessons') return journalParallelPages<T>(build, signal, lessonPageSize, 4)
+    // The invoker view returns task summaries, never rich lesson bodies.
+    if (table === 'teacher_journal_lessons_v1') return journalParallelPages<T>(build, signal, 500, 2)
     if (table === 'lesson_progress') return journalParallelPages<T>(build, signal, 500, 2)
     return adaptiveJournalPages<T>(build, signal)
   })
@@ -71,8 +69,8 @@ export function useCourseJournal(completeWorkList = false) {
       const scope = [gids.length ? `group_id.in.(${gids.join(',')})` : '', ids.length ? `student_id.in.(${ids.join(',')})` : ''].filter(Boolean).join(',')
       const courseIds = courses.map(c => c.id)
       const warnings: string[] = []
-      const [lessonMetadata, modules, work, events, assignments, legacy, attempts] = await Promise.all([
-        byIds<Omit<CourseJournalLesson, 'hwTask' | 'recTask' | 'extraHw'>>('lessons', 'id, short_id, course_id, module_id, title, kind, position, lesson_number, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, delivery_mode, youtube_url, hwDate:homework->>hwDate, recHwDate:homework->>recHwDate', 'course_id', courseIds, signal, 250),
+      const [lessons, modules, work, events, assignments, legacy, attempts] = await Promise.all([
+        byIds<CourseJournalData['lessons'][number]>('teacher_journal_lessons_v1', 'id, short_id, course_id, module_id, title, kind, position, lesson_number, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, delivery_mode, youtube_url, hwTask:hw_tasks, recTask:rec_tasks, hwDate:hw_date, recHwDate:rec_hw_date' + (completeWorkList ? ',extraHw:extra_hw' : ''), 'course_id', courseIds, signal),
         byIds<CourseJournalData['modules'][number]>('course_modules', 'id, course_id, label, position', 'course_id', courseIds, signal),
         byIds<CourseJournalData['work'][number]>('lesson_progress', 'id, student_id, lesson_ref, status, score, attachments, updated_at, review_comment', 'student_id', ids, signal),
         scope ? journalPages<CourseJournalData['events'][number]>(offset => supabase.from('schedule_lessons')
@@ -84,20 +82,8 @@ export function useCourseJournal(completeWorkList = false) {
         byIds<CourseJournalData['attempts'][number]>('homework_attempts', 'id, student_id, lesson_ref, number, status, score, passing_score, submitted_at, review_comment', 'student_id', ids, signal)
           .catch(error => { if (signal.aborted) throw error; warnings.push('История попыток недоступна. Показаны текущие результаты работ.'); return [] }),
       ])
-      const detailIds = journalLessonDetailIds({ courses, lessons: lessonMetadata,
-        studentIds: ids, groupIds: gids, work, attempts, events, assignments })
-      const [details, marks] = await Promise.all([
-        byIds<Pick<CourseJournalLesson, 'id' | 'hwTask' | 'recTask' | 'extraHw'>>('lessons',
-          'id, hwTask:homework->hwTasks, recTask:homework->recHwTasks' + (completeWorkList ? ',extraHw:homework->extraHw' : ''),
-          'id', detailIds, signal),
-        byIds<CourseJournalData['marks'][number]>('teacher_lesson_sessions', 'schedule_id, attendance', 'schedule_id', events.map(e => e.id), signal)
-          .catch(error => { if (signal.aborted) throw error; warnings.push('Не удалось загрузить отметки занятий. Посещаемость может быть неполной.'); return [] }),
-      ])
-      const detailById = new Map(details.map(lesson => [lesson.id, lesson]))
-      if (detailIds.some(id => !detailById.has(id))) throw new Error('Не удалось загрузить журнал')
-      const lessons: CourseJournalLesson[] = lessonMetadata.map(lesson => ({
-        ...lesson, hwTask: null, recTask: null, ...detailById.get(lesson.id),
-      }))
+      const marks = await byIds<CourseJournalData['marks'][number]>('teacher_lesson_sessions', 'schedule_id, attendance', 'schedule_id', events.map(e => e.id), signal)
+        .catch(error => { if (signal.aborted) throw error; warnings.push('Не удалось загрузить отметки занятий. Посещаемость может быть неполной.'); return [] })
       return { courses, lessons, modules, work, events, assignments, legacy, marks, attempts, warnings, demo: false, students: [], groups: [] } as CourseJournalData
     }
     const timeout = setTimeout(() => {

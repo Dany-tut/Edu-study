@@ -99,7 +99,7 @@ jobs:
         run: npm run check:i18n
 
       - name: Полнота и параллельная загрузка журнала
-        run: npm run check:journal-loading
+        run: npm run check:journal-loading && npm run check:journal-summary
 
       - name: Просмотр кабинета преподавателя (check:teacher-view)
         run: npm run check:teacher-view
