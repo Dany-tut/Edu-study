@@ -13,6 +13,18 @@ export function git(args, cwd = process.cwd()) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] }).trim()
 }
 
+/** Vercel removes .vercelignore matches after cloning, before running the build.
+ * Only those unstaged deletions are expected; modified, staged and untracked
+ * files still reject the release. Local preflight remains fully strict. */
+export function releaseCheckoutChanges({ cwd = process.cwd(), allowVercelDeletions = false } = {}) {
+  const run = args => execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] })
+  const changes = run(['status', '--porcelain=v1', '-z', '--untracked-files=normal']).split('\0').filter(Boolean)
+  if (!allowVercelDeletions || !changes.length) return changes
+  // --exclude-from deliberately does not read .gitignore or global excludes.
+  const excluded = new Set(run(['ls-files', '--cached', '--ignored', '--exclude-from=.vercelignore', '-z']).split('\0').filter(Boolean))
+  return changes.filter(change => change.slice(0, 2) !== ' D' || !excluded.has(change.slice(3)))
+}
+
 export function assertCommit(value) {
   if (!/^[a-f0-9]{40}$/.test(value ?? '')) throw new Error('Release commit must be a full Git SHA.')
   return value

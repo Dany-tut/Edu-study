@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { RELEASE, git, assertCommit, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
+import { RELEASE, git, releaseCheckoutChanges, assertCommit, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
 
 const phase = process.argv[2]
 if (!['--before-build', '--after-build', '--check'].includes(phase)) {
@@ -17,8 +17,9 @@ try {
     if (production && (process.env.VERCEL_GIT_COMMIT_REF !== RELEASE.branch || process.env.VERCEL_GIT_COMMIT_SHA !== head)) {
       throw new Error('Production must be built by the Git integration from the current main commit.')
     }
-    if (git(['status', '--porcelain', '--untracked-files=normal'])) {
-      throw new Error('Release checkout has uncommitted files. Use a clean, isolated worktree.')
+    const changes = releaseCheckoutChanges({ allowVercelDeletions: production && process.env.VERCEL === '1' })
+    if (changes.length) {
+      throw new Error('Release checkout has uncommitted files. Use a clean, isolated worktree. Changes: ' + changes.slice(0, 12).join('; '))
     }
     const remote = git(['ls-remote', RELEASE.remote, `refs/heads/${RELEASE.branch}`])
     const main = assertCommit(remote.split(/\s/)[0])
