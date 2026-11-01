@@ -195,7 +195,8 @@ function clearCardsSession() {
 // so on refresh we restore both the page AND the ids those pages need to re-fetch.
 // sessionStorage is per-tab, so a fresh tab / deep-link starts clean and honours
 // the URL hash instead.
-const NAV_SESSION_KEY = 'teacher-nav'
+const NAV_SESSION_KEY = import.meta.env.DEV && typeof window !== 'undefined' && window.location.pathname.replace(/\/$/, '') === '/journal-stand'
+  ? 'teacher-nav-journal-stand' : 'teacher-nav'
 type NavSnapshot = {
   page: TeacherPage
   selectedGroupId: string | null

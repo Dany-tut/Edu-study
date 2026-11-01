@@ -67,9 +67,9 @@ export const DEMO_SUBJECTS: Subject[] = [
               }],
             },
           }),
-          L('demo-c6', 'chemistry', 6, 'Реакции ионного обмена', 'returned', { points: 45, comment: 'Пересдай задание 3 — перепутал осадок.' }),
+          L('demo-c6', 'chemistry', 6, 'Реакции ионного обмена', 'returned', { deliveryMode: 'live', attended: true, points: 45, comment: 'Пересдай задание 3 — перепутал осадок.' }),
           L('demo-c7', 'chemistry', 7, 'Окислительно-восстановительные реакции', 'submitted'),
-          L('demo-c8', 'chemistry', 8, 'Запись: скорость реакций', 'unviewed', { shape: 'diamond', videoUrl: 'https://rutube.ru/video/demo/' }),
+          L('demo-c8', 'chemistry', 8, 'Запись: скорость реакций', 'unviewed', { deliveryMode: 'recording', shape: 'diamond', videoUrl: 'https://rutube.ru/video/demo/', watch: { position: 35, duration: 100, ranges: [[0,35]], completed: false, updatedAt: '' } }),
           L('demo-c9', 'chemistry', 9, 'Химическое равновесие', 'locked'),
         ],
       },
@@ -145,6 +145,9 @@ export const DEMO_SUBJECTS: Subject[] = [
 ]
 
 export const DEMO_SCHEDULE: ScheduleDay[] = [
+  { date: iso(-2), label: iso(-2), isToday: false, lessons: [
+    { id: 'demo-sd5', subject: 'Химия', lessonTitle: 'Реакции ионного обмена', lessonNumber: 6, time: '19:30', attendance: true, passed: true },
+  ] },
   { date: iso(-1), label: 'Вчера', isToday: false, lessons: [
     { id: 'demo-sd0', subject: 'Физика', lessonTitle: 'Газовые законы', lessonNumber: 5, time: '18:00', passed: true },
   ] },
@@ -155,9 +158,6 @@ export const DEMO_SCHEDULE: ScheduleDay[] = [
   { date: iso(1), label: 'Завтра', isToday: false, lessons: [
     { id: 'demo-sd3', subject: 'Математика', lessonTitle: 'Производная', lessonNumber: 2, time: '17:00' },
     { id: 'demo-sd4', subject: 'Физика', lessonTitle: 'Термодинамика', lessonNumber: 6, time: '19:00' },
-  ] },
-  { date: iso(2), label: iso(2), isToday: false, lessons: [
-    { id: 'demo-sd5', subject: 'Химия', lessonTitle: 'Реакции ионного обмена', lessonNumber: 6, time: '19:30' },
   ] },
   { date: iso(4), label: iso(4), isToday: false, lessons: [
     { id: 'demo-sd6', subject: 'Биология', lessonTitle: 'Митоз и мейоз', lessonNumber: 4, time: '21:00' },

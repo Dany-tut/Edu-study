@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useIsPresent, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
 import Modal from '../../Modal'
 import MobileSheet from '../../MobileSheet'
+import FadeText from '../../FadeText'
+import { useLoopIcons } from '../../icons/LoopIcon'
 import DateTimeField from '../../DateTimeField'
 import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../../lib/teacherTz'
 import QuickAddLesson from './QuickAddLesson'
 import WeekStrip from './WeekStrip'
+import { CALENDAR_BACKDROP, CALENDAR_EASE } from './calendarMotion'
 import { RadioMark } from '../../Radio'
 import { CheckboxMark } from '../../Checkbox'
 import { MODAL_BACKDROP } from '../../Modal'
@@ -69,15 +72,13 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const today = todayMsk()
   const [day, setDay] = useState(today)
   const [weekNavigation, setWeekNavigation] = useState(0)
+  const [visibleDates, setVisibleDates] = useState(() => ({ first: weekStart(today), last: addDays(weekStart(today), 6) }))
   const start = weekStart(day)
   const { items, reload } = useTeacherWeek(start)
-  const week = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(start, i)), [start])
   const list = (items ?? []).filter(i => i.date === day)
   const [dir, setDir] = useState(0)
 
-  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect } | null>(null)
-  const [sheet, setSheet] = useState<SchedItem | null>(null)
-  const [addOpen, setAddOpen] = useState(false)
+  const overlays = useRef<CalendarOverlayHandle>(null)
   const [toast, setToast] = useState<Toast | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -174,9 +175,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 2) { haptic(6); go(addDays(day, dx < 0 ? 1 : -1)) }
   }
   const monthTitle = (() => {
-    const a = monthIdx(week[0]), b = monthIdx(week[6])
-    const m = MONTHS[monthIdx(day)]
-    const s = a === b ? m : `${MONTHS[a].slice(0, 3)} — ${MONTHS[b].slice(0, 3)}`
+    const a = monthIdx(visibleDates.first), b = monthIdx(visibleDates.last)
+    const s = a === b ? MONTHS[a] : `${MONTHS[a].slice(0, 3)} — ${MONTHS[b].slice(0, 3)}`
     return s[0].toUpperCase() + s.slice(1)
   })()
 
@@ -189,7 +189,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
           {!mobile && (
             <button
               aria-label={t('Добавить занятие')}
-              onClick={() => setAddOpen(true)}
+              onClick={() => overlays.current?.openAdd(day)}
               style={btn('S', 'primary', { width: 32, padding: 0 })}
             ><Plus size={17} /></button>
           )}
@@ -210,6 +210,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
         start={start}
         navigationKey={weekNavigation}
         label={t('Выбор недели')}
+        onVisibleRangeChange={(first, last) => setVisibleDates({ first, last })}
         renderDay={(d, i) => {
           const sel = d === day
           const hot = target === d && drag?.item.date !== d
@@ -282,8 +283,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
                 key={item.id}
                 item={item}
                 ghost={drag?.item.id === item.id}
-                onTap={el => onOpen ? onOpen(item) : setMenu({ item, rect: el.getBoundingClientRect() })}
-                onMenu={el => { haptic(10); setMenu({ item, rect: el.getBoundingClientRect() }) }}
+                onTap={el => onOpen ? onOpen(item) : overlays.current?.openMenu(item, el.getBoundingClientRect())}
+                onMenu={el => { haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect()) }}
                 onDragStart={(el, x, y) => { haptic(10); startDrag(item, el, x, y) }}
                 onDragMove={moveDrag}
                 onDragEnd={endDrag}
@@ -304,56 +305,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
         document.body,
       )}
 
-      <AnimatePresence>
-        {menu && (
-          <ContextMenu
-            key="menu"
-            item={menu.item}
-            rect={menu.rect}
-            onClose={() => setMenu(null)}
-            onOpen={onOpen && (() => { setMenu(null); onOpen(menu.item) })}
-            onAttendance={() => { setMenu(null); onAttendance(menu.item) }}
-            onMove={days => {
-              const it = menu.item
-              setMenu(null)
-              const to = addDays(it.date, days)
-              void run(() => scheduleMove(it.id, to, null), `${it.who} → ${shortLabel(to)}, ${it.time}`)
-            }}
-            onShift={() => {
-              const it = menu.item
-              setMenu(null)
-              void run(() => scheduleShift(it.id), t('Занятия сдвинуты на одно вперёд'))
-            }}
-            onCancel={() => {
-              const it = menu.item
-              setMenu(null)
-              void run(() => scheduleCancel(it.id), t('Занятие отменено, ученики получат уведомление'))
-            }}
-            onRestore={() => {
-              const it = menu.item
-              setMenu(null)
-              void run(() => scheduleMove(it.id, it.date, null, false), t('Занятие вернулось в расписание'))
-            }}
-            onDeep={() => { const it = menu.item; setMenu(null); setSheet(it) }}
-          />
-        )}
-      </AnimatePresence>
-
-      <RescheduleSheet
-        mobile={mobile}
-        item={sheet}
-        onClose={() => setSheet(null)}
-        onDone={(fn, text) => { setSheet(null); void run(fn, text) }}
-      />
-
-      {addOpen && !mobile && (
-        <QuickAddLesson
-          day={day}
-          onClose={() => setAddOpen(false)}
-          onMove={(id, date, time, notify) => { setAddOpen(false); go(date); void run(() => scheduleMove(id, date, time, notify), `${shortLabel(date)}, ${time}`) }}
-          onAdd={(gid, title, date, time, notify) => { setAddOpen(false); go(date); void run(() => scheduleAdd(gid, null, title, date, time, notify), `${title} · ${shortLabel(date)}, ${time}`) }}
-        />
-      )}
+      <CalendarOverlays ref={overlays} mobile={mobile} onOpen={onOpen}
+        onAttendance={onAttendance} onAction={run} onSelectDay={go} />
 
       {createPortal(
         <AnimatePresence>
@@ -391,6 +344,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
 
 function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean }) {
   const t = useT()
+  const mobile = useLoopIcons()
   const viewTz = useTeacherTz(s => s.tz)
   const localStart = isMsk(viewTz) ? null : convertWallTime(item.date, item.time, 'Europe/Moscow', viewTz)
   const localEnd = isMsk(viewTz) || !item.endTime ? null : convertWallTime(item.date, item.endTime, 'Europe/Moscow', viewTz)
@@ -410,20 +364,19 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
       <span className="calendar-widget-time" style={{ display: 'flex', flexDirection: 'column', width: localStart ? 68 : 48, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: item.cancelled ? 'var(--color-text-4)' : 'var(--color-text)', textDecoration: item.cancelled ? 'line-through' : undefined }}>{startTime}</span>
         {localStart
-          ? <span style={{ fontSize: 10, lineHeight: 1.3, color: 'var(--color-text-4)', whiteSpace: 'nowrap' }}>{item.time} МСК</span>
-          : item.endTime && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{endTime}</span>}
-        {localStart && item.endTime && <span style={{ fontSize: 10, lineHeight: 1.3, color: 'var(--color-text-4)' }}>до {endTime}</span>}
+          ? <span style={{ fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: 'var(--color-text-2)', whiteSpace: 'nowrap' }}>{item.time} МСК</span>
+          : item.endTime && <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-2)' }}>{endTime}</span>}
+        {localStart && item.endTime && <span style={{ fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: 'var(--color-text-2)' }}>до {endTime}</span>}
       </span>
       <span className="calendar-widget-details" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span className="calendar-widget-person" style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <span style={{
+          <FadeText enabled={mobile} style={{
             fontSize: 15, fontWeight: 700, color: item.cancelled ? 'var(--color-text-3)' : 'var(--color-text)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>{item.who}</span>
+          }}>{item.who}</FadeText>
           {item.rec && <Chip>{t('Запись')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
         </span>
-        {sub && <span className="calendar-widget-subtitle" style={{ fontSize: 13, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</span>}
+        {sub && <FadeText enabled={mobile} className="calendar-widget-subtitle" style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{sub}</FadeText>}
       </span>
     </div>
   )
@@ -557,6 +510,99 @@ function Card({ item, ghost, onTap, onMenu, onDragStart, onDragMove, onDragEnd }
   )
 }
 
+// Overlay state is deliberately separate: opening a menu must not rerender
+// every animated day and lesson behind it.
+type CalendarOverlayHandle = {
+  openMenu: (item: SchedItem, rect: DOMRect) => void
+  openAdd: (day: string) => void
+}
+
+const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
+  mobile: boolean
+  onOpen?: (item: SchedItem) => void
+  onAttendance: (item: SchedItem) => void
+  onAction: (fn: () => Promise<{ undo: SchedUndo }>, text: string) => Promise<void>
+  onSelectDay: (day: string) => void
+}>(function CalendarOverlays({ mobile, onOpen, onAttendance, onAction, onSelectDay }, ref) {
+  const t = useT()
+  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect } | null>(null)
+  const pendingMenuAction = useRef<(() => void) | null>(null)
+  const dismissMenu = (afterClose?: () => void) => {
+    pendingMenuAction.current = afterClose ?? null
+    setMenu(null)
+  }
+  const [sheet, setSheet] = useState<SchedItem | null>(null)
+  const [addDay, setAddDay] = useState<string | null>(null)
+
+  useImperativeHandle(ref, () => ({
+    openMenu: (item, rect) => setMenu({ item, rect }),
+    openAdd: day => setAddDay(day),
+  }), [])
+
+  return (
+    <>
+      <AnimatePresence onExitComplete={() => {
+        const action = pendingMenuAction.current
+        pendingMenuAction.current = null
+        action?.()
+      }}>
+        {menu && (
+          <ContextMenu
+            key="menu"
+            item={menu.item}
+            rect={menu.rect}
+            onClose={() => dismissMenu()}
+            onOpen={onOpen && (() => dismissMenu(() => onOpen(menu.item)))}
+            onAttendance={() => dismissMenu(() => onAttendance(menu.item))}
+            onMove={days => {
+              const it = menu.item
+              setMenu(null)
+              const to = addDays(it.date, days)
+              void onAction(() => scheduleMove(it.id, to, null), `${it.who} → ${shortLabel(to)}, ${it.time}`)
+            }}
+            onShift={() => {
+              const it = menu.item
+              setMenu(null)
+              void onAction(() => scheduleShift(it.id), t('Занятия сдвинуты на одно вперёд'))
+            }}
+            onCancel={() => {
+              const it = menu.item
+              setMenu(null)
+              void onAction(() => scheduleCancel(it.id), t('Занятие отменено, ученики получат уведомление'))
+            }}
+            onRestore={() => {
+              const it = menu.item
+              setMenu(null)
+              void onAction(() => scheduleMove(it.id, it.date, null, false), t('Занятие вернулось в расписание'))
+            }}
+            onDeep={() => { const it = menu.item; dismissMenu(() => setSheet(it)) }}
+          />
+        )}
+      </AnimatePresence>
+
+      <RescheduleSheet
+        mobile={mobile}
+        item={sheet}
+        onClose={() => setSheet(null)}
+        onDone={(fn, text) => { setSheet(null); void onAction(fn, text) }}
+      />
+
+      <AnimatePresence>
+        {addDay !== null && !mobile && (
+          <QuickAddLesson
+            key="quick-add"
+            day={addDay}
+            onClose={() => setAddDay(null)}
+            onMove={(id, date, time, notify) => { setAddDay(null); onSelectDay(date); void onAction(() => scheduleMove(id, date, time, notify), `${shortLabel(date)}, ${time}`) }}
+            onAdd={(gid, title, date, time, notify) => { setAddDay(null); onSelectDay(date); void onAction(() => scheduleAdd(gid, null, title, date, time, notify), `${title} · ${shortLabel(date)}, ${time}`) }}
+          />
+        )}
+      </AnimatePresence>
+
+    </>
+  )
+})
+
 // ── Меню удержания ────────────────────────────────────────────────────────────
 
 function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
@@ -573,11 +619,15 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
 }) {
   const t = useT()
   const [sub, setSub] = useState(false)
+  const isPresent = useIsPresent()
+  const reducedMotion = useReducedMotion()
+  const transition = { duration: reducedMotion ? 0 : 0.2, ease: CALENDAR_EASE }
   // Карточка остаётся там, где была; не влезает меню снизу — всё поднимается.
-  const MENU_H = (onOpen ? 5 : 4) * 46 + (sub ? 4 * 42 : 0)
+  const MENU_H = ((onOpen ? 1 : 0) + (item.cancelled ? 2 : 4)) * 46 + (sub ? 4 * 42 : 0)
   const vh = window.innerHeight
-  const top = Math.max(16, Math.min(rect.top, vh - 16 - MENU_H - rect.height - 10))
-  const width = Math.min(rect.width, 420)
+  const maxMenuHeight = Math.max(46, vh - 32 - rect.height - 10)
+  const top = Math.max(16, Math.min(rect.top, vh - 16 - Math.min(MENU_H, maxMenuHeight) - rect.height - 10))
+  const width = Math.min(rect.width, 420, window.innerWidth - 32)
   const left = Math.max(16, Math.min(rect.left, window.innerWidth - 16 - width))
 
   useEffect(() => {
@@ -610,18 +660,24 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
     <>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose}
-        style={{ ...MODAL_BACKDROP, zIndex: Z.modal }}
+        transition={transition}
+        onClick={() => { if (isPresent) onClose() }}
+        onContextMenu={e => { e.preventDefault(); if (isPresent) onClose() }}
+        style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal }}
       />
       <motion.div
-        initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
-        transition={SPRING}
-        style={{ position: 'fixed', top, left, width, zIndex: Z.modal + 1, transformOrigin: 'top center' }}
+        initial={{ opacity: 0, y: top + 6, scale: 0.98 }} animate={{ opacity: 1, y: top, scale: 1 }} exit={{ opacity: 0, y: top + 6, scale: 0.98 }}
+        transition={transition}
+        onContextMenu={e => e.preventDefault()}
+        style={{ position: 'fixed', top: 0, left, width, zIndex: Z.modal + 1, transformOrigin: 'top center',
+          willChange: 'transform, opacity', pointerEvents: isPresent ? 'auto' : 'none' }}
       >
-        <CardBody item={item} lifted />
+        <div style={{ containerType: 'inline-size', containerName: 'teacher-calendar' }}>
+          <CardBody item={item} lifted />
+        </div>
         <div style={{
-          marginTop: 10, borderRadius: 18, overflow: 'hidden', background: 'var(--color-bg-2)',
-          boxShadow: 'var(--shadow-4)', maxWidth: 300,
+          marginTop: 10, borderRadius: 18, overflowX: 'hidden', overflowY: 'auto', background: 'var(--color-bg-2)',
+          boxShadow: 'var(--shadow-4)', maxWidth: 300, maxHeight: maxMenuHeight, overscrollBehavior: 'contain',
         }}>
           <div style={{ marginTop: -1 }}>
             {onOpen && row(t('Открыть урок'), ArrowUpRight, onOpen)}
@@ -631,7 +687,7 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
             {sub && (
               <motion.div
                 initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
-                transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+                transition={transition}
                 style={{ overflow: 'hidden' }}
               >
                 {row(t('Завтра'), CalendarClock, () => onMove(1), { sub: true })}
@@ -753,7 +809,7 @@ function RescheduleSheet({ mobile, item, onClose, onDone }: {
   return (
     <AnimatePresence>
       {it && (
-        <Modal key="resched" onClose={onClose} title={title} subtitle={it.title || undefined} width={460} footer={footer}>
+        <Modal key="resched" onClose={onClose} title={title} subtitle={it.title || undefined} width={460} footer={footer} backdropStyle={CALENDAR_BACKDROP}>
           {body}
         </Modal>
       )}

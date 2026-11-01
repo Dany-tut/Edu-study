@@ -1,3 +1,4 @@
+import FadeText from '../../FadeText'
 import { useState, useEffect, useMemo } from 'react'
 import TeacherSchedule from '../schedule/TeacherSchedule'
 import { motion } from 'framer-motion'
@@ -313,8 +314,8 @@ function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string
   return (
     <button onClick={copy} className="flex items-center cursor-pointer text-left" style={{ gap: 12, width: '100%', padding: '12px 12px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="truncate" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
-        {sub && <div className="truncate" style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</div>}
+        <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</FadeText>
+        {sub && <FadeText style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</FadeText>}
       </div>
       <span className="flex items-center flex-shrink-0" style={{ gap: 6, padding: '8px 12px', borderRadius: 999, background: copied ? 'var(--color-green-soft)' : 'var(--grad-purple)', color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700, transition: 'background 0.15s' }}>
         {copied ? <Check size={14} /> : <Copy size={14} />}

@@ -114,7 +114,7 @@ export function useHomeData() {
 
   const pendingJournals = useJournalPending(null)
   const pendingHomework = allHomework.filter(hw => hw.status === 'active')
-  const totalStudents = groups.reduce((a, g) => a + g.studentCount, 0)
+  const totalStudents = new Set(allStudents.map(s => s.personId || s.authUserId || s.id)).size
   const TODAY = new Date().toISOString().split('T')[0]
 
   const pendingHard = hardSubs.filter(s => s.status === 'submitted')
@@ -158,7 +158,7 @@ export function useHomeData() {
 
   const reminderDone = (r: Reminder) =>
     r.type === 'check-hw' &&
-    pendingHomework.some(hw => r.text.includes(hw.groupName) && hw.reviewedCount >= hw.submittedCount)
+    pendingHomework.some(hw => r.id === `hw-${hw.id}` && hw.reviewedCount >= hw.submittedCount)
 
   const reminderAction = (r: Reminder): (() => void) | undefined => {
     if (r.id.startsWith('hard-')) { const id = r.id.slice(5); return () => openHardReview(id) }

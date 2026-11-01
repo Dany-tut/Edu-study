@@ -2300,7 +2300,16 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
-export default function TeacherGroupsPage() {
+type GroupRosterProps = {
+  renderRoster?: (groupId: string | null) => React.ReactNode
+  availableGroupIds?: Set<string>
+  onOpenStudent?: (student: Student) => void
+  rosterTools?: React.ReactNode
+  rosterHomeworkScore?: (student: Student) => number | null
+  initialStripTab?: 'groups' | 'students'
+  onStripChange?: (tab: 'groups' | 'students') => void
+}
+export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
@@ -2351,7 +2360,7 @@ export default function TeacherGroupsPage() {
   const [showAddStudent, setShowAddStudent] = usePersistentState('groups.show.addStudent', false)
   const [showAddIndividual, setShowAddIndividual] = usePersistentState('groups.show.addIndividual', false)
   const [showExistingIndiv, setShowExistingIndiv] = useState(false)  // existing person → new 1:1 card
-  const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('students')
+  const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>(initialStripTab)
   const [sortKey, setSortKey] = useState<SortKey>('attention')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
@@ -2360,10 +2369,12 @@ export default function TeacherGroupsPage() {
   const tableRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (activeStripTab === 'groups' && !selectedGroupId && groups.length > 0 && !groupsLoading) {
-      setSelectedGroupId(groups[0].id)
+    const visibleGroups = availableGroupIds ? groups.filter(g => !g.isIndividual && availableGroupIds.has(g.id)) : groups
+    const needsSelection = !selectedGroupId || (availableGroupIds && !visibleGroups.some(g => g.id === selectedGroupId))
+    if (activeStripTab === 'groups' && !groupsLoading && visibleGroups.length && needsSelection) {
+      setSelectedGroupId(visibleGroups[0].id)
     }
-  }, [groups, groupsLoading, activeStripTab, selectedGroupId, setSelectedGroupId])
+  }, [groups, groupsLoading, activeStripTab, selectedGroupId, setSelectedGroupId, availableGroupIds])
 
   const openAddGroupModal = useCallback(() => setShowAddGroup(true), [])
 
@@ -2389,6 +2400,7 @@ export default function TeacherGroupsPage() {
     activeTab: activeStripTab,
     onTabChange: (id) => {
       setActiveStripTab(id as 'groups' | 'students')
+      onStripChange?.(id as 'groups' | 'students')
       setSelectedGroupId(null)
       setActiveStudentId(null)
     },
@@ -2568,10 +2580,10 @@ export default function TeacherGroupsPage() {
   return (
     <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <motion.div {...fadeUp(0.04)}>
+        <motion.div {...fadeUp(0.04)} className={renderRoster || onOpenStudent ? 'js-stand-strip' : undefined}>
           <GroupStrip
             mergePersons
-            groups={activeStripTab === 'groups' ? regularGroups : []}
+            groups={activeStripTab === 'groups' ? regularGroups.filter(g => !availableGroupIds || availableGroupIds.has(g.id)) : []}
             individualGroups={[]}
             selectedGroupId={selectedGroupId}
             onSelectGroup={(id) => {
@@ -2583,6 +2595,7 @@ export default function TeacherGroupsPage() {
           />
         </motion.div>
 
+        {renderRoster ? renderRoster(allRosterView ? null : selectedGroupId ?? '') : <>
         {/* Переезд на аккаунты: показывается, только пока есть кого звать. */}
         <motion.div {...fadeUp(0.06)}>
           <PendingAccountsPanel students={allStudents} />
@@ -2660,6 +2673,7 @@ export default function TeacherGroupsPage() {
                       })}
                     </div>
 
+                    {rosterTools}
                     {/* Right: search */}
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flex: '0 0 auto' }}>
                       <div style={{
@@ -2755,7 +2769,7 @@ export default function TeacherGroupsPage() {
                             initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.22, delay: i * 0.04 }}
-                            onClick={() => setActiveStudentId(isSelected ? null : student.id)}
+                            onClick={() => onOpenStudent ? onOpenStudent(student) : setActiveStudentId(isSelected ? null : student.id)}
                             style={{
                               cursor: 'pointer',
                               background: isSelected ? `${activeGroup.color}12` : 'transparent',
@@ -2794,7 +2808,7 @@ export default function TeacherGroupsPage() {
                             </td>
                             {/* Scores */}
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('hwScore') }}>
-                              <ScorePill value={hasStudentActivity(student) ? student.hwScore : null} />
+                              <ScorePill value={rosterHomeworkScore ? rosterHomeworkScore(student) : hasStudentActivity(student) ? student.hwScore : null} />
                             </td>
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('testScore') }}>
                               <ScorePill value={hasStudentActivity(student) ? student.testScore : null} />
@@ -2862,6 +2876,7 @@ export default function TeacherGroupsPage() {
             <div style={{ fontSize: 12, marginTop: 4 }}>{t('Всех учеников можно увидеть во вкладке «Ученики»')}</div>
           </motion.div>
         )}
+        </>}
       </div>
 
       {/* Mini student panel */}

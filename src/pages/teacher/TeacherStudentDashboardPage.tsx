@@ -302,13 +302,14 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
-export default function TeacherStudentDashboardPage() {
+export default function TeacherStudentDashboardPage({ workPanel, onBack, backLabel }: { workPanel?: React.ReactNode; onBack?: () => void; backLabel?: string } = {}) {
   const t = useT()
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedStudentId = useTeacher(s => s.selectedStudentId)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
-  const studentTrainerStats = useTeacher(s => s.studentTrainerStats)
+  const cachedTrainerStats = useTeacher(s => s.studentTrainerStats)
+  const studentTrainerStats = workPanel ? null : cachedTrainerStats
 
   const { groups } = useGroups()
   const students = useAllStudents()
@@ -345,9 +346,9 @@ export default function TeacherStudentDashboardPage() {
     const sid = student.id
     const gid = student.groupId ?? ''
     const aid = (student as any).authUserId ?? null
-    fetchStudentHwHistory(sid).then(setHwHistory)
+    if (!workPanel) fetchStudentHwHistory(sid).then(setHwHistory)
     fetchStudentLessonHistory(sid, gid).then(setLessonHistory)
-    fetchStudentScoreDynamics(sid).then(setScoreDynamics)
+    if (!workPanel) fetchStudentScoreDynamics(sid).then(setScoreDynamics)
     fetchStudentTrainerSections(sid, aid).then(setTrainerSections)
     fetchStudentWrongTasks(sid, aid).then(setWrongTasks)
     fetchStudentActivity(sid, aid).then(setActivityHeat)
@@ -403,7 +404,7 @@ export default function TeacherStudentDashboardPage() {
               transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <BackCircle onClick={() => setActivePage('groups')} label="Назад" />
+              <BackCircle onClick={onBack ?? (() => setActivePage('groups'))} label="Назад" />
 
               <div style={{
                 flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden',
@@ -444,6 +445,7 @@ export default function TeacherStudentDashboardPage() {
       {/* Hidden print container */}
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
         <h1 style={{ fontSize: 24, marginBottom: 4 }}>{tn(student.name)}</h1>
+        {workPanel}
         <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · {group.icon}{ICON_GAP}{tc(group.subject)} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
           <tbody>
@@ -452,10 +454,10 @@ export default function TeacherStudentDashboardPage() {
               student.telegramLink ? [contactLabel(student.telegramLink).startsWith('VK') ? 'VK' : 'Telegram', contactLabel(student.telegramLink)] : null,
               [t('Начало занятий'), student.startedAt],
               [t('Последний вход'), student.lastVisit],
-              [t('ДЗ (средний балл)'), `${Math.round(hwAvg)}%`],
+              workPanel ? null : [t('ДЗ (средний балл)'), `${Math.round(hwAvg)}%`],
               [t('Тесты'), `${student.testScore}%`],
               student.trialScore != null ? [t('Пробник'), `${student.trialScore}%`] : null,
-              [t('Посещаемость'), `${realAttendance}%`],
+              workPanel ? null : [t('Посещаемость'), `${realAttendance}%`],
               [t('Тренажёр: верно'), `${correctTrainer} ${t('из')} ${totalTrainer}`],
               [t('Тренажёр: ошибок'), String(wrongTrainer)],
             ].filter(Boolean).map((row, i) => (
@@ -473,7 +475,7 @@ export default function TeacherStudentDashboardPage() {
             <strong>{s.correct}/{s.total} ({Math.round(s.correct / s.total * 100)}%)</strong>
           </div>
         ))}
-        <h2 style={{ fontSize: 15, marginBottom: 8, marginTop: 16 }}>{t('История домашних работ')}</h2>
+        {!workPanel && <h2 style={{ fontSize: 15, marginBottom: 8, marginTop: 16 }}>{t('История домашних работ')}</h2>}
         {hwHistory.map((h, i) => (
           <div key={i} style={{ marginBottom: 4 }}>
             {tc(h.title)} · {h.date} — {h.returned ? t('Возвращено') : `${h.score}/${h.maxScore}`}
@@ -491,13 +493,13 @@ export default function TeacherStudentDashboardPage() {
           style={{ paddingTop: 24, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', pointerEvents: docked ? 'none' : 'auto' }}
         >
           <button
-            onClick={() => setActivePage('groups')}
+            onClick={onBack ?? (() => setActivePage('groups'))}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px 8px 12px', borderRadius: 999, border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, backdropFilter: 'var(--blur-glass)', transition: 'color 0.15s', fontFamily: 'inherit' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
           >
             <ArrowLeft size={14} />
-            {t('Назад к группам')}
+            {t(backLabel ?? 'Назад к группам')}
           </button>
           <button
             onClick={() => printStudentCard(tn(student.name))}
@@ -581,9 +583,10 @@ export default function TeacherStudentDashboardPage() {
           </div>
         )}
 
+        {workPanel}
         {/* ── KPI summary row ───────────────────────────────────────────── */}
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12,
+          display: 'grid', gridTemplateColumns: workPanel ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: 12,
           marginBottom: (hasStats && diagResults.length > 0) ? 0 : 20,
           opacity: !hasStats && diagResults.length > 0 ? 0.45 : 1,
           transition: 'opacity 0.22s',
@@ -594,7 +597,7 @@ export default function TeacherStudentDashboardPage() {
             { icon: Award,          label: t('Пробник'), value: student.trialScore != null ? `${student.trialScore}%` : '—', color: 'var(--color-yellow-text)', bg: 'rgba(245,166,35,0.12)' },
             { icon: Clock,          label: t('Посещаемость'), value: `${realAttendance}%`, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)', bg: realAttendance >= 90 ? 'var(--color-green-soft)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
             { icon: Target,         label: t('Тренажёр'), value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: 'rgba(109,155,255,0.14)' },
-          ].map(({ icon: Icon, label, value, color, bg }) => (
+          ].filter(item => !workPanel || (item.icon !== ClipboardCheck && item.icon !== Clock)).map(({ icon: Icon, label, value, color, bg }) => (
             <div key={label} style={{ padding: '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon size={13} style={{ color }} />
@@ -665,6 +668,7 @@ export default function TeacherStudentDashboardPage() {
           {/* LEFT */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+            {!workPanel && <>
             {/* Показатели */}
             <Card>
               <SectionHeader icon={BarChart3} label={t('Показатели')} />
@@ -765,6 +769,7 @@ export default function TeacherStudentDashboardPage() {
               </div>
             </Card>
 
+            </>}
             {/* Оплата и заметки */}
             {(student.paymentDue || student.debt || student.comment) && (
               <Card>
@@ -904,7 +909,7 @@ export default function TeacherStudentDashboardPage() {
 
             {/* Активность */}
             <Card>
-              <SectionHeader icon={Star} label={t('Активность (28 дней)')} />
+              <SectionHeader icon={Star} label={t(workPanel ? 'Активность тренажёра (28 дней)' : 'Активность (28 дней)')} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
                 {activityHeat.map((heat, i) => {
                   const bg = heat === 0 ? 'var(--color-bg-5)' : heat === 1 ? 'rgba(52,200,119,0.18)' : heat === 2 ? 'rgba(52,200,119,0.45)' : 'var(--color-green-text)'

@@ -30,8 +30,8 @@ function EmptyValue({ icon }: { icon: string }) {
   const t = useT()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontSize: 28, opacity: 0.25, filter: 'grayscale(1)' }}>{icon}</span>
-      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-4)', letterSpacing: 0.2 }}>
+      <span style={{ fontSize: 28, opacity: 'var(--stat-empty-icon-opacity, 0.25)', filter: 'grayscale(1)' }}>{icon}</span>
+      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--stat-empty-text, var(--color-text-4))', letterSpacing: 0.2 }}>
         {t('нет данных')}
       </span>
     </div>
@@ -75,7 +75,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
 
   const cardStyle: React.CSSProperties = {
     minWidth: 0,
-    background: 'rgba(var(--glass-rgb), 0.88)',
+    background: 'var(--stat-card-bg, rgba(var(--glass-rgb), 0.88))',
     backdropFilter: 'var(--blur-solid)',
     WebkitBackdropFilter: 'var(--blur-solid)',
     border: '1px solid var(--color-border-glass)',

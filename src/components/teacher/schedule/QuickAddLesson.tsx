@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AnimatePresence } from 'framer-motion'
 import { Pencil } from '../../icons/appIcons'
 import Modal from '../../Modal'
 import DateTimeField from '../../DateTimeField'
@@ -9,6 +8,7 @@ import { btn } from '../../../lib/pillStyles'
 import { useGroups } from '../../../lib/useGroups'
 import { useLang, useT, type Lang } from '../../../lib/i18n'
 import { fetchGroupUpcoming, type SchedItem } from '../../../lib/teacherSchedule'
+import { CALENDAR_BACKDROP } from './calendarMotion'
 
 /*
  * «+» в расписании (ПК): быстро поставить занятие на выбранный день, не уходя в
@@ -83,8 +83,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
   )
 
   return (
-    <AnimatePresence>
-      <Modal key="quick-add" onClose={onClose} title={t('Добавить занятие')} subtitle={dayShort(target.day)} width={460} footer={footer}>
+      <Modal onClose={onClose} title={t('Добавить занятие')} subtitle={dayShort(target.day)} width={460} footer={footer} backdropStyle={CALENDAR_BACKDROP}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Кому */}
           <div>
@@ -185,6 +184,5 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
           </button>
         </div>
       </Modal>
-    </AnimatePresence>
   )
 }

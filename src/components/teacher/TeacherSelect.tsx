@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, Plus, Trash2, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
+import FadeText from '../FadeText'
+import { useLoopIcons } from '../icons/LoopIcon'
 import { useT, tc } from '../../lib/i18n'
 import { GLASS, glassMenu } from '../../lib/nativeGlass'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
@@ -42,6 +44,7 @@ export default function TeacherSelect({
   onDeleteOption?: (value: string) => void
 }) {
   const t = useT()
+  const mobile = useLoopIcons()
   const editable = !!onAddOption
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState('')
@@ -221,14 +224,14 @@ export default function TeacherSelect({
             }}
           />
         ) : (
-          <span style={{
-            flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          <FadeText enabled={mobile} style={{
+            flex: 1, minWidth: 0,
             color: isEmpty ? 'var(--color-text-3)' : undefined,
             fontWeight: 500,
             cursor: 'pointer',
           }}>
             {isEmpty ? (placeholder ?? '') : tc(t(current!.label))}
-          </span>
+          </FadeText>
         )}
 
         {!isEmpty && clearable ? (

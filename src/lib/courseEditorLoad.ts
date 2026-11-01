@@ -8,7 +8,7 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
 
   const { data: dbCourse, error } = await supabase
     .from('courses')
-    .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual)')
+    .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
     .eq('short_id', shortId)
     .abortSignal(signal)
     .single()
@@ -33,6 +33,7 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
     recTime: l.rec_time ?? undefined,
     recDuration: l.rec_duration ?? undefined,
     lessonSchedManual: l.lesson_sched_manual ?? false,
+    deliveryMode: l.delivery_mode ?? 'live',
     // Конспект, домашки и файлы сюда НЕ едут: это мегабайты, из-за
     // которых открытие курса ждало секундами. Их досыпает редактор
     // вторым запросом (loadHeavyLessons), а до его прихода курс помечен

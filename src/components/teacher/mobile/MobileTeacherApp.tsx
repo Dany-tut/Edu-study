@@ -8,6 +8,9 @@ import MobileTeacherProfile from './MobileTeacherProfile'
 import { useHomework, useHardSubmissions } from '../../../lib/useHomework'
 import { useTeacherAccess, type TeacherTabId } from '../../../lib/teacherAccess'
 import { DEMO_HARD_SUBS, DEMO_HW } from '../../../data/teacherDevDemo'
+import { useTeacher } from '../../../store/teacherStore'
+import { useTeacherSession } from '../../../lib/useTeacherSession'
+import './mobileTeacher.css'
 
 // Each mobile tab maps to a desktop nav tab for access checks (profile is always
 // available). Hiding the matching desktop tab hides the mobile one too.
@@ -27,7 +30,13 @@ const MTAB_TAB: Record<MTab, TeacherTabId | null> = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function MobileTeacherApp() {
-  const [tab, setTab] = useState<MTab>('home')
+  const signedIn = useTeacherSession()
+  const [tab, setTab] = useState<MTab>(() => useTeacher.getState().activePage === 'gradebook' ? 'gradebook' : 'home')
+  const teacherPage = useTeacher(s => s.activePage)
+  const pendingJournal = useTeacher(s => s.pendingGradebookLessonId)
+  useEffect(() => {
+    if (teacherPage === 'gradebook' || pendingJournal) setTab('gradebook')
+  }, [teacherPage, pendingJournal])
   const [dayDetailOpen, setDayDetailOpen] = useState(false)
 
   // Admin-configured access — hide revoked tabs (mirrors the desktop gating).
@@ -48,7 +57,7 @@ export default function MobileTeacherApp() {
   const { homework } = useHomework()
   const { submissions } = useHardSubmissions()
   // DEV-only: mirror the review screen's demo fallback so the badge isn't 0.
-  const demoReview = import.meta.env.DEV && submissions.length === 0 && homework.length === 0
+  const demoReview = import.meta.env.DEV && signedIn === false && submissions.length === 0 && homework.length === 0
   const hardList = demoReview ? DEMO_HARD_SUBS : submissions
   const hwList = demoReview ? DEMO_HW : homework
   const reviewBadge =
@@ -56,14 +65,14 @@ export default function MobileTeacherApp() {
     hwList.filter(h => h.status !== 'closed').reduce((n, h) => n + Math.max(0, h.submittedCount - h.reviewedCount), 0)
 
   return (
-    <div className="lg:hidden">
+    <div className="mobile-teacher-app lg:hidden">
       {tab === 'home'      && <MobileTeacherDay onNavigate={setTab} onDetailChange={setDayDetailOpen} />}
       {tab === 'students'  && <MobileTeacherStudents />}
       {tab === 'review'    && <MobileTeacherReview />}
       {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
       {tab === 'profile'   && <MobileTeacherProfile onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} />}
 
-      {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab === 'gradebook' ? 'profile' : tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />}
+      {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />}
     </div>
   )
 }

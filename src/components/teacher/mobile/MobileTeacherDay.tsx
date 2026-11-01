@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import MobileScreen from '../../MobileScreen'
+import NativeSelectField from '../../NativeSelectField'
+import FadeText from '../../FadeText'
 import MobileSheet from '../../MobileSheet'
 import BackCircle from '../../BackCircle'
 import { GlassPill } from '../../mobileChrome'
@@ -45,12 +47,12 @@ function AttendancePicker({ name, value, onChange, disabled }: { name: string; v
   const options = [t('Не отмечен'), t('Был'), t('Не был')]
   const index = value === null ? 0 : value ? 1 : 2
   const pair = value === null ? null : value ? PAIR.success : PAIR.error
-  const style: CSSProperties = { ...FIELD, minHeight: 44, width: 128, borderRadius: 14, background: pair?.bg ?? 'var(--color-bg-3)', color: pair?.text ?? 'var(--color-muted)' }
+  const style: CSSProperties = { ...FIELD, minHeight: 44, width: 128, flexShrink: 0, gap: 8, borderRadius: 14, background: pair?.bg ?? 'var(--color-bg-3)', color: pair?.text ?? 'var(--color-muted)' }
   if (GLASS) return <button type="button" disabled={disabled} aria-label={`${t('Посещаемость')}: ${name}`} style={{ ...style, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} onClick={async e => {
     const selected = await glassMenu(e.currentTarget, options.map((label, i) => ({ label, checked: i === index })), name)
     if (selected >= 0) onChange(selected === 0 ? null : selected === 1)
-  }}>{options[index]}<ChevronDown size={14} /></button>
-  return <select disabled={disabled} aria-label={`${t('Посещаемость')}: ${name}`} value={index} onChange={e => onChange(e.target.value === '0' ? null : e.target.value === '1')} style={style}>{options.map((label, i) => <option key={i} value={i}>{label}</option>)}</select>
+  }}><FadeText style={{ flex: 1 }}>{options[index]}</FadeText><ChevronDown size={16} style={{ flexShrink: 0 }} /></button>
+  return <NativeSelectField displayValue={options[index]} disabled={disabled} aria-label={`${t('Посещаемость')}: ${name}`} value={index} onChange={e => onChange(e.target.value === '0' ? null : e.target.value === '1')} style={style}>{options.map((label, i) => <option key={i} value={i}>{label}</option>)}</NativeSelectField>
 }
 
 /** The lesson workflow is mobile-only. All durable changes are owner-checked

@@ -1,3 +1,4 @@
+import type { HomeworkAttempt } from './homeworkResult'
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
@@ -425,7 +426,6 @@ export function useHomework() {
   return { homework, loading, createHomework, updateHomework, closeHomework, reload: load }
 }
 
-let hardChannelSeq = 0
 
 // Сдачи сложных заданий. Общий запрос И ОДИН живой канал на всех: хук зовут
 // девять компонентов, и раньше каждый заводил свой канал на lesson_progress —
@@ -503,7 +503,7 @@ const hardQuery = createSharedQuery<HardSub[]>(async () => {
     // Имя канала всё равно уникальное: Supabase бросает, если два подписчика
     // делят одно, а страницу могут открыть и переоткрыть за одну жизнь вкладки.
     const channel = supabase
-      .channel(`hard-submissions-${hardChannelSeq++}`)
+      .channel(`hard-submissions-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => reload())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
@@ -644,24 +644,24 @@ export async function reviewHomework(
 // Read the actual submission, including independent students with no group.
 const courseTestlyQuery = createSharedQuery<Array<{
   id: string; studentId: string; studentName: string; lessonRef: string;
-  score: number; status: string; payload: BasicAnswersPayload
+  score: number | null; status: string; payload: BasicAnswersPayload; attempts: HomeworkAttempt[]
 }>>(async () => {
   const uid = await getOwnerId()
   const { data, error } = await supabase.from('lesson_progress')
-    .select('id, student_id, lesson_ref, score, status, attachments, students!inner(name, created_by)')
+    .select('id, student_id, lesson_ref, score, status, attachments, students!inner(name, created_by), homework_attempts(id,number,status,score,passing_score,submitted_at,review_comment)')
     .eq('students.created_by', uid).not('lesson_ref', 'like', 'hw-%')
     .contains('attachments', { v: 'basic-1' }).in('status', ['submitted', 'returned', 'completed'])
     .order('updated_at', { ascending: false })
   if (error) throw error
   return (data ?? []).flatMap(row => {
     const payload = parseBasicAnswers(row.attachments)
-    if (!payload?.rows.some(r => r.testly)) return []
+    if (!payload?.rows.length || payload.draft) return []
     return [{ id: row.id, studentId: row.student_id, studentName: (row.students as unknown as { name: string })?.name ?? '',
-      lessonRef: row.lesson_ref, score: row.score ?? 0, status: row.status, payload }]
+      lessonRef: row.lesson_ref, score: row.score, status: row.status, payload, attempts: (row.homework_attempts ?? []) as HomeworkAttempt[] }]
   })
 }, [], {
   watch: reload => {
-    const channel = supabase.channel(`course-testly-${hardChannelSeq++}`)
+    const channel = supabase.channel(`course-testly-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => reload()).subscribe()
     const refresh = () => { if (document.visibilityState === 'visible') reload() }
     const interval = window.setInterval(refresh, 20000)

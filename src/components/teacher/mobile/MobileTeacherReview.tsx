@@ -1,3 +1,4 @@
+import FadeText from '../../FadeText'
 import { LoopActionLabel } from '../../icons/LoopIcon'
 import { useRef, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
@@ -18,6 +19,7 @@ import { Alert } from '../../Alert'
 import AnswerBody from '../AnswerBody'
 import Modal from '../../Modal'
 import { TaskliIcon } from '../../icons/TaskliIcon'
+import { useTeacherSession } from '../../../lib/useTeacherSession'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -81,8 +83,8 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(sub.studentName) || t('Ученик')}</div>
-          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(sub.lessonTitle)}</div>
+          <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{tn(sub.studentName) || t('Ученик')}</FadeText>
+          <FadeText style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>{tc(sub.lessonTitle)}</FadeText>
         </div>
         <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, flexShrink: 0 }}>{t('сложное')}</span>
       </div>
@@ -177,7 +179,8 @@ export default function MobileTeacherReview() {
     .filter(h => h.status !== 'closed' && h.submittedCount > h.reviewedCount)
 
   // DEV-only: nothing to review locally → показать демо-инбокс (в БД не пишем).
-  const demo = import.meta.env.DEV && realHard.length === 0 && realHw.length === 0
+  const signedIn = useTeacherSession()
+  const demo = import.meta.env.DEV && signedIn === false && realHard.length === 0 && realHw.length === 0
   const pendingHard = demo ? DEMO_HARD_SUBS : realHard
   const pendingHw = demo ? DEMO_HW : realHw
 
@@ -219,7 +222,7 @@ export default function MobileTeacherReview() {
               <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
                 <ImageIcon size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(h.title)}</div>
+                  <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{tc(h.title)}</FadeText>
                   <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>{h.groupName} · {h.submittedCount - h.reviewedCount} {t('ждут')}</div>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', flexShrink: 0 }}>{t('на ПК')}</span>

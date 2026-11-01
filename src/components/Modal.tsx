@@ -42,7 +42,7 @@ export const MODAL_CARD: CSSProperties = {
 
 export default function Modal({
   onClose, title, subtitle, icon, width = 540, padding = 24, zIndex = 1200,
-  footer, children, onPaste, cardStyle,
+  footer, children, onPaste, cardStyle, backdropStyle,
 }: {
   onClose: () => void
   /** Без заголовка шапки нет — крестик тогда рисует само содержимое. */
@@ -58,6 +58,7 @@ export default function Modal({
   children: ReactNode
   onPaste?: (e: React.ClipboardEvent) => void
   cardStyle?: CSSProperties
+  backdropStyle?: CSSProperties
 }) {
   const t = useT()
   const keyboard = useKeyboardState()
@@ -75,7 +76,7 @@ export default function Modal({
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        style={{ ...MODAL_BACKDROP, zIndex }}
+        style={{ ...MODAL_BACKDROP, ...backdropStyle, zIndex }}
       />
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: keyboard.inset, zIndex: zIndex + 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
         <motion.div

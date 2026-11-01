@@ -1,4 +1,6 @@
-import { returnTestlyHomework } from '../../lib/testlyModule'
+import HomeworkAttemptPanel from '../../components/HomeworkAttemptPanel'
+import { homeworkResult } from '../../lib/homeworkResult'
+import { reviewHomework } from '../../lib/useHomework'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import { useCourseTestlySubmissions } from '../../lib/useHomework'
 import { LoopInlineIcon } from '../../components/icons/LoopIcon'
@@ -654,6 +656,7 @@ export default function TeacherHomeworkPage() {
   const { value: courseTestlySubs, reload: reloadCourseTestly } = useCourseTestlySubmissions()
   const [returningTestly, setReturningTestly] = useState<string | null>(null)
   const [testlyReturnError, setTestlyReturnError] = useState('')
+  const [finalGrades, setFinalGrades] = useState<Record<string, string>>({})
   const [testlyComments, setTestlyComments] = useState<Record<string, string>>({})
 
   // Selecting a merged 1:1 person card expands to the union of that person's
@@ -757,12 +760,12 @@ export default function TeacherHomeworkPage() {
 
         {courseTestlySubs.length > 0 && (
           <section style={{ display: 'grid', gap: 10 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('Тестли')} · {t('Домашки')}</h2>
+            <h2 style={{ fontSize: 16, fontWeight: 700 }}>{t('Домашние задания курса')}</h2>
             {courseTestlySubs.map(sub => (
               <Card key={sub.id}>
                 <details style={{ padding: 18 }}>
                   <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
-                    {sub.studentName} · {sub.payload.rows.filter(r => r.testly).map(r => r.prompt).join(', ')} · {sub.score} / 100{sub.status === 'returned' ? ` · ${t('На доработке')}` : ''}
+                    {sub.studentName} · {tc(sub.payload.rows[0]?.prompt) || t('Домашнее задание')} · {sub.score == null ? t('На проверке') : `${sub.score}%`}{sub.status === 'returned' ? ` · ${t('На доработке')}` : ''}
                   </summary>
                   <div style={{ marginTop: 14 }}><BasicAnswersList payload={sub.payload} studentId={sub.studentId} /></div>
                   {sub.status !== 'returned' && (
@@ -772,7 +775,7 @@ export default function TeacherHomeworkPage() {
                         style={{ ...FIELD, minHeight: 64 }} />
                       <button disabled={returningTestly !== null} style={{ ...btn('S', 'secondary'), justifySelf: 'start' }} onClick={async () => {
                         setReturningTestly(sub.id); setTestlyReturnError('')
-                        try { await returnTestlyHomework(sub.id, testlyComments[sub.id] ?? ''); await reloadCourseTestly() }
+                        try { await reviewHomework(sub.id, 'returned', sub.score ?? 0, testlyComments[sub.id] ?? '', undefined, sub.payload.attemptId).then(ok => {if (!ok) throw new Error('Review failed')}); await reloadCourseTestly() }
                         catch (error) { setTestlyReturnError(error instanceof Error ? error.message : t('Не удалось сохранить изменения')) }
                         finally { setReturningTestly(null) }
                       }}>
@@ -780,6 +783,21 @@ export default function TeacherHomeworkPage() {
                       </button>
                     </div>
                   )}
+                  <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginTop:12}}>
+                    <label style={{fontSize:13}}>{t('ИТОГ ДЗ (0–100%)')} <input type="number" min={0} max={100} value={finalGrades[sub.id] ?? ''}
+                      onChange={e => setFinalGrades(v => ({...v,[sub.id]:e.target.value}))} style={{width:80,padding:8}} /></label>
+                    <button disabled={returningTestly === sub.id || !finalGrades[sub.id]?.trim()} style={btn('M','primary')}
+                      onClick={async () => {
+                        const grade=Number(finalGrades[sub.id]); if (!Number.isFinite(grade) || grade<0 || grade>100) return
+                        setReturningTestly(sub.id); setTestlyReturnError('')
+                        try {
+                          if (!await reviewHomework(sub.id,'accepted',grade,testlyComments[sub.id] ?? '',undefined,sub.payload.attemptId)) throw new Error()
+                          await reloadCourseTestly()
+                        } catch { setTestlyReturnError(t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.')) }
+                        finally { setReturningTestly(null) }
+                      }}>{t('Завершить проверку')}</button>
+                  </div>
+                  <HomeworkAttemptPanel result={homeworkResult(sub.payload,sub.score,sub.status,sub.attempts)} status={sub.status} studentId={sub.studentId} lessonRef={sub.lessonRef} />
                   {testlyReturnError && <p role="alert" style={{ color: 'var(--color-red-text)', marginTop: 10 }}>{testlyReturnError}</p>}
                 </details>
               </Card>

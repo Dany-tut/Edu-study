@@ -37,7 +37,7 @@ import { useT } from '../../lib/i18n'
 import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
 import { getOwnerId } from '../../lib/owner'
 
-export default function TeacherDashboardPage() {
+export default function TeacherDashboardPage({ standContent }: { standContent?: React.ReactNode } = {}) {
   const t = useT()
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
   // читают палитру через реестр, поэтому карту достаточно поставить один раз.
@@ -219,17 +219,17 @@ export default function TeacherDashboardPage() {
             />
           </div>
         )}
-        {activePage === 'groups'          && <TeacherGroupsPage />}
+        {activePage === 'groups'          && (standContent ? isDesktop && standContent : <TeacherGroupsPage />)}
         {activePage === 'homework'        && <TeacherHomeworkPage />}
         {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}
         {activePage === 'homework-review' && <TeacherHomeworkReviewPage />}
         {activePage === 'hard-review'     && <TeacherHardReviewPage />}
         {activePage === 'lesson-editor'   && <TeacherLessonEditorPage />}
-        {activePage === 'gradebook'       && <TeacherGradebookPage />}
+        {activePage === 'gradebook'       && (standContent ? isDesktop && standContent : <TeacherGradebookPage />)}
         {activePage === 'constructor'     && <TeacherConstructorPage />}
         {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
         {activePage === 'cards-editor'    && <TeacherCardSetEditorPage />}
-        {activePage === 'student'         && <TeacherStudentDashboardPage />}
+        {activePage === 'student'         && (standContent ? isDesktop && standContent : <TeacherStudentDashboardPage />)}
         {activePage === 'storage'          && <TeacherStoragePage />}
         {activePage === 'admin'            && <TeacherAdminPage />}
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
@@ -240,7 +240,7 @@ export default function TeacherDashboardPage() {
     </div>
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    {!isDesktop && <MobileTeacherApp />}
+    {!isDesktop && (standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
     </>
   )
 }

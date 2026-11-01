@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { scheduleRowStatus } from '../src/lib/scheduleAttendance.ts'
+import { planCourseSchedule } from '../src/lib/courseScheduleSync.ts'
 const now = new Date('2026-10-31T18:00:00')
 const opts = { dayDate: '2026-10-31', isToday: true }
 const row = { id: 'event', time: '14:00', lessonTitle: 'Telegram', subject: 'Химия', lessonNumber: 1 }
@@ -20,3 +21,12 @@ assert.equal(scheduleRowStatus({ ...row, attendance: false }, past, [], now), 'm
 assert.equal(scheduleRowStatus(row, past, [], now), 'unmarked')
 assert.equal(scheduleRowStatus(row, opts, [], new Date('2026-10-31T14:00:01')), 'unmarked')
 console.log('Calendar attendance: explicit marks, homework independence, late marking, past and future slots passed')
+
+const slot = { lesson_id: 'course-lesson', group_id: 'group', student_id: null, node_type: 'lesson', date: '2026-11-01', time_start: '10:00', time_end: '11:00', subject: 'Химия', lesson_title: 'Тема', lesson_number: 2 }
+const saved = { ...slot, id: 'event-with-marks', time_start: '10:00:00', status: 'completed' }
+assert.deepEqual(planCourseSchedule([saved], [slot]), { insert: [], update: [], remove: [] })
+const moved = { ...slot, date: '2026-11-02' }
+assert.deepEqual(planCourseSchedule([saved], [moved]), { insert: [], update: [{ ...moved, id: saved.id }], remove: [] })
+const rec = { ...slot, node_type: 'rec' }
+assert.deepEqual(planCourseSchedule([saved], [slot, rec]), { insert: [rec], update: [], remove: [] })
+console.log('Course save: existing journal ids and session status preserved')

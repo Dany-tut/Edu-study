@@ -1,3 +1,4 @@
+import { planCourseSchedule, type CourseSlot } from '../../lib/courseScheduleSync'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
 import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
@@ -171,6 +172,7 @@ export interface CELesson {
    * lesson schedule mirrors the recording schedule (one node).
    */
   lessonSchedManual?: boolean
+  deliveryMode?: 'live' | 'recording'
 }
 
 export interface CEModule {
@@ -1359,6 +1361,20 @@ function ScheduleCard({
       boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18, padding: '16px 16px 18px',
     }}>
+      <label style={{ display: 'grid', gap: 7, marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
+        {t('Формат урока')}
+        <select value={lesson.deliveryMode ?? 'live'}
+          onChange={e => onUpdate({ ...lesson, deliveryMode: e.target.value as 'live' | 'recording' })}
+          style={{ width: '100%', padding: 9, borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)' }}>
+          <option value="live">{t('С преподавателем')}</option>
+          <option value="recording">{t('В записи')}</option>
+        </select>
+        <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-muted)', lineHeight: 1.4 }}>
+          {lesson.deliveryMode === 'recording'
+            ? t('Урок засчитывается после просмотра 90% записи.')
+            : t('Онлайн или очно: присутствие в журнале засчитывает урок. Пропустившие смотрят запись.')}
+        </span>
+      </label>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <Calendar size={14} style={{ color: date ? accent : 'var(--color-muted)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: date ? 'var(--color-text)' : 'var(--color-text-3)' }}>
@@ -6266,6 +6282,7 @@ export default function TeacherCourseEditorPage() {
       rec_time: lesson.recTime ?? null,
       rec_duration: lesson.recDuration ?? null,
       lesson_sched_manual: lesson.lessonSchedManual ?? false,
+      delivery_mode: lesson.deliveryMode ?? 'live',
       // Homework («Домашки» tab) lives only in editor state — persist it as a
       // JSONB blob so it survives a re-entry. Hard tasks live inline in the
       // task arrays via the isHard flag.
@@ -6411,7 +6428,7 @@ export default function TeacherCourseEditorPage() {
       return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
     }
 
-    const rows: object[] = []
+    const rows: CourseSlot[] = []
     for (const lesson of scheduledLessons) {
       const dbLesson = dbLessons.find(l => l.lesson_number === lessonIndexById[lesson.id])
       if (!dbLesson) continue
@@ -6428,7 +6445,6 @@ export default function TeacherCourseEditorPage() {
           // byNumber lookup lands on the right lesson — NOT lessonIndex + 1.
           lesson_number: lessonIndexById[lesson.id],
           subject: c.subject,
-          status: 'upcoming',
           node_type: nodeType,
         }
         for (const groupId of c.groupIds) rows.push({ ...base, group_id: groupId, student_id: null })
@@ -6446,31 +6462,30 @@ export default function TeacherCourseEditorPage() {
       }
     }
 
-    // Rebuild the calendar for the WHOLE course: wipe every schedule row for its
-    // lessons, then insert the fresh set. Deleting only the lessons that still
-    // produce a row (the old behaviour) orphaned entries whenever a date was
-    // cleared or a recording stopped diverging → phantom calendar dates.
-    //
-    // ПОРЯДОК: прочитать старые → вставить новые → удалить старые по id. Было
-    // «удалить всё, потом вставить», и упавшая вставка оставляла курс без
-    // календаря, а сохранение всё равно возвращало true — «Сохранено!».
+    // Update matching slots in place: teacher_lesson_sessions belongs to the
+    // schedule id and would be cascade-deleted by rebuilding the calendar.
     const allLessonIds = dbLessons.map(l => l.id)
-    let oldScheduleIds: string[] = []
+    let existingSlots: Array<CourseSlot & { id: string }> = []
     if (allLessonIds.length > 0) {
       const { data: oldRows, error: readErr } = await supabase
-        .from('schedule_lessons').select('id').in('lesson_id', allLessonIds)
+        .from('schedule_lessons').select('id,lesson_id,group_id,student_id,node_type,date,time_start,time_end,subject,lesson_title,lesson_number').in('lesson_id', allLessonIds)
       if (readErr) { console.error('schedule_lessons read failed:', readErr); return await writeFailed() }
-      oldScheduleIds = (oldRows ?? []).map(r => (r as { id: string }).id)
+      existingSlots = oldRows ?? []
     }
-    if (rows.length > 0) {
+    const plan = planCourseSchedule(existingSlots, rows)
+    if (plan.update.length) {
+      const { error } = await supabase.from('schedule_lessons').upsert(plan.update, { onConflict: 'id' })
+      if (error) { console.error('schedule_lessons update failed:', error); return await writeFailed() }
+    }
+    if (plan.insert.length > 0) {
       const { error: insErr } = await supabase
         .from('schedule_lessons')
-        .insert(rows)
+        .insert(plan.insert.map(row => ({ ...row, status: 'upcoming' })))
       if (insErr) { console.error('schedule_lessons insert failed:', insErr); return await writeFailed() }
     }
-    if (oldScheduleIds.length > 0) {
+    if (plan.remove.length > 0) {
       const { error: delErr } = await supabase
-        .from('schedule_lessons').delete().in('id', oldScheduleIds)
+        .from('schedule_lessons').delete().in('id', plan.remove)
       if (delErr) { console.error('schedule_lessons delete failed:', delErr); return await writeFailed() }
     }
     // Записали мы — значит теперь свежая версия наша. Штамп берём из ответов

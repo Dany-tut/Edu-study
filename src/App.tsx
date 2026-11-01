@@ -17,6 +17,8 @@ import LandingPage from './pages/LandingPage'
 // кабинет ученика), так что ленивая загрузка не отнимает ничего у первого
 // кадра ни у той стороны, ни у другой.
 const TeacherDashboardPage = lazy(() => retryImport(() => import('./pages/teacher/TeacherDashboardPage')))
+const JournalStand = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand'))) : null
+const ExampleGroups = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/ExampleGroups'))) : null
 const TeacherLoginPage = lazy(() => retryImport(() => import('./pages/teacher/TeacherLoginPage')))
 const JoinPage = lazy(() => retryImport(() => import('./pages/JoinPage')))
 const JoinTeacherPage = lazy(() => retryImport(() => import('./pages/JoinTeacherPage')))
@@ -289,6 +291,17 @@ function AppRoutes() {
   if (hash.startsWith('#error=')) return <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher' }} linkExpired /></Chunk>
 
   if (recovery) return <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); window.location.hash = '#/teacher' }} recovery /></Chunk>
+
+  // Local previews allow a guest teacher cabinet. Keep the real sign-in form
+  // explicitly reachable so development can exercise authenticated RLS too.
+  if (import.meta.env.DEV && hash === '#/teacher/login') return <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher/gradebook' }} /></Chunk>
+
+  if (JournalStand && window.location.pathname.replace(/\/$/, '') === '/journal-stand') {
+    if (ExampleGroups && new URLSearchParams(window.location.search).get('example') === 'groups') return <Chunk><ExampleGroups /></Chunk>
+    if (session === undefined) return null
+    if (!session || session.user.user_metadata?.role === 'student') return <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher/gradebook' }} /></Chunk>
+    return <Chunk><JournalStand key={session.user.id} owner={session.user.id} /></Chunk>
+  }
 
   if (hash.startsWith('#/teacher')) {
     if (session === undefined && !import.meta.env.DEV) return null

@@ -363,6 +363,89 @@ html[data-season-variant="candy"] .season-node-current svg *,
 html[data-season-variant="candy"] .season-node-unviewed svg,
 html[data-season-variant="candy"] .season-node-unviewed svg * { color: #E0650A !important; stroke: #E0650A !important; }
 
+/* «Сладость или гадость» · тёмный макет. Локальная палитра главной не спорит
+   с инлайновым оттенком курса на <html> и снимается вместе с вариантом/темой. */
+html[data-theme="dark"][data-season-variant="candy"] .dashboard-root--home {
+  --color-text: #F4F2F8;
+  --color-text-2: #D2CEDD;
+  --color-text-3: #B8B5C5;
+  --color-muted: var(--color-text-3);
+  --glass-rgb: 32, 32, 39;
+  --color-border-glass: #34343F;
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.18);
+  --shadow-3: 0 6px 20px rgba(0, 0, 0, 0.22);
+  --shadow-pill: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 6px 20px rgba(0, 0, 0, 0.24);
+  --schedule-center-bg: #202027;
+  --schedule-side-bg: #202027;
+  --schedule-card-edge: inset 0 0 0 1px #34343F;
+  --stat-card-bg: #202027;
+  --stat-empty-text: #B8B5C5;
+  --stat-empty-icon-opacity: 0.65;
+  background: #101014;
+}
+html[data-theme="dark"][data-season-variant="candy"] .schedule-card--today {
+  --schedule-center-bg: #25232E;
+  --schedule-card-edge: inset 0 0 0 1px #B69AF5;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-blob--amber {
+  background: rgba(255, 154, 70, 0.07);
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-blob--violet {
+  background: rgba(156, 140, 240, 0.09);
+}
+html[data-theme="dark"][data-season-variant="candy"] .stat-card--season-stars {
+  background: linear-gradient(135deg, #422519, #301D16) !important;
+  border-color: #FF9A3D !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22) !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .stat-card--season-stars .stat-value {
+  color: #FF9A3D !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .stat-card--season-stars .stat-label {
+  color: #F4F2F8 !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-track-base {
+  background: #51495F !important;
+  box-shadow: inset 0 0 0 1px #686075;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-track-fill {
+  background: linear-gradient(90deg, #8662CC, #B69AF5) !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-node:not(.season-node-done) {
+  background: #D8C9F2 !important;
+  border-color: #A98ADC !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-node.season-node-locked {
+  background: #292630 !important;
+  border-color: #686075 !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-node.season-node-current,
+html[data-theme="dark"][data-season-variant="candy"] .season-node.season-node-unviewed {
+  background: #D8C9F2 !important;
+  border-color: #B69AF5 !important;
+  box-shadow: 0 0 0 4px rgba(182, 154, 245, 0.12) !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-node-done {
+  background: #422519 !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-node-label--now {
+  color: #B69AF5 !important;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-node-label--done {
+  color: #FFB36B !important;
+}
+/* Телефон использует свою главную, но шапка этого же варианта тоже не должна
+   оставаться светлой при переключении режима. */
+html[data-theme="dark"][data-season-variant="candy"] .season-hero--compact.season-hero--candy {
+  background: linear-gradient(135deg, #25232E, #302338);
+  box-shadow: inset 0 0 0 1px #494052, 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-hero--candy .season-hero__chip {
+  background: rgba(255, 154, 61, 0.14); color: #FFB36B;
+}
+html[data-theme="dark"][data-season-variant="candy"] .season-hero--candy .season-hero__title { color: #F4F2F8; }
+html[data-theme="dark"][data-season-variant="candy"] .season-hero--candy .season-hero__sub { color: #B8B5C5; }
+
 /* Лёгкое парение 3D-объектов; при «меньше движения» стоят на месте. */
 @keyframes season-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
 .season-float { animation: season-float 4.5s ease-in-out infinite; }

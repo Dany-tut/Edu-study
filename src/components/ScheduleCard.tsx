@@ -14,6 +14,7 @@ import ScrollFade from './ScrollFade'
 import { useT, useTc } from '../lib/i18n'
 import { SeasonEmptyDay } from './season/Season'
 import { useSeason } from '../lib/season'
+import { useTheme } from '../store/themeStore'
 
 interface Props {
   day: ScheduleDay
@@ -34,6 +35,10 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   // вместо «Пока нет данных». В боковых карточках его нет: ряд из пяти
   // одинаковых привидений читался как сбой, а не как шутка.
   const season = useSeason()
+  const dark = useTheme(s => s.dark)
+  // В тёмной «Сладости» глубину задают размер и поверхности, а не прозрачность
+  // надписей: даже крайние даты должны оставаться читаемыми.
+  const readableSides = dark && season.variant === 'candy'
   const seasonEmpty = season.on('empty')
   // Праздничная тема: под карточками картинка (ночь, вечерняя шапка), и боковым нужно
   // стекло с размытием. Затухание обёрткой (opacity) его убивает: backdrop-filter
@@ -107,8 +112,8 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   return (
     <motion.div
       layout
-      animate={{ scale, opacity: glassFade ? 1 : opacity }}
-      whileHover={isCenter ? undefined : { scale: scale * 1.04, opacity: glassFade ? 1 : Math.min(1, opacity + 0.18) }}
+      animate={{ scale, opacity: glassFade || readableSides ? 1 : opacity }}
+      whileHover={isCenter ? undefined : { scale: scale * 1.04, opacity: glassFade || readableSides ? 1 : Math.min(1, opacity + 0.18) }}
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       data-schedule-day={dataSelected ? 'selected' : undefined}
@@ -123,14 +128,14 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
     >
       {isCenter ? (
         <div
-          className="w-full h-full rounded-[24px]"
+          className={`schedule-card schedule-card--center w-full h-full rounded-[24px]${day.isToday ? ' schedule-card--today' : ''}`}
           style={{
             padding: '16px',
             display: 'flex', flexDirection: 'column', minHeight: 0,
-            background: 'rgba(var(--glass-rgb), 0.85)',
+            background: 'var(--schedule-center-bg, rgba(var(--glass-rgb), 0.85))',
             backdropFilter: 'var(--blur-solid)',
             WebkitBackdropFilter: 'var(--blur-solid)',
-            boxShadow: 'var(--shadow-3)',
+            boxShadow: 'var(--schedule-card-edge, inset 0 0 0 0 transparent), var(--shadow-3)',
           }}
         >
           <div style={{ flexShrink: 0 }}>{dateHeader(13, 10)}</div>
@@ -254,15 +259,15 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
         </div>
       ) : (
         <div
-          className="w-full h-full rounded-[24px]"
+          className="schedule-card w-full h-full rounded-[24px]"
           style={{
             padding: '14px 16px',
-            background: `rgba(var(--glass-rgb), ${glassFade ? (0.35 + 0.4 * opacity).toFixed(2) : 0.80})`,
+            background: `var(--schedule-side-bg, rgba(var(--glass-rgb), ${glassFade ? (0.35 + 0.4 * opacity).toFixed(2) : 0.80}))`,
             backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
-            boxShadow: 'var(--shadow-2)',
+            boxShadow: 'var(--schedule-card-edge, inset 0 0 0 0 transparent), var(--shadow-2)',
           }}
         >
-          <div style={glassFade ? { opacity: Math.min(1, opacity + 0.15) } : undefined}>
+          <div style={glassFade && !readableSides ? { opacity: Math.min(1, opacity + 0.15) } : undefined}>
           {dateHeader(11, 8)}
           <div className="flex flex-col gap-2" style={{ minHeight: 0 }}>
             {day.lessons.length > 0 ? (

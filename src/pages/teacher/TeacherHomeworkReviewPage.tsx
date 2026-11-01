@@ -465,7 +465,7 @@ export default function TeacherHomeworkReviewPage() {
     })
     if (!saved && addedRows.length === 0) return null
     return {
-      v: 'basic-1', gradable: saved?.gradable ?? 0, correct: saved?.correct ?? 0,
+      v: 'basic-1', testlyKey: saved?.testlyKey, gradable: saved?.gradable ?? 0, correct: saved?.correct ?? 0,
       rows: [...(saved?.rows ?? []), ...addedRows],
     }
   })()
@@ -522,14 +522,17 @@ export default function TeacherHomeworkReviewPage() {
   async function handleVerdict(verdict: 'accepted' | 'returned', ai?: { score: number; comment: string }) {
     const submissionId = currentSubmission?.id
     if (!submissionId) return
+    if (verdict === 'accepted' && !ai && (!hasTasks ? draft.score.trim() === '' : hw!.tasks!.some(task => draft.taskScores[task.id] == null || draft.taskScores[task.id] === ''))) {
+      void alertDialog({ title: t('Укажи итоговую оценку всей работы.'), tone: 'danger' }); return
+    }
     const score = ai ? ai.score
-      : hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
+      : hasTasks ? Math.round(100 * (taskTotal ?? 0) / Math.max(1, maxTaskTotal ?? 0)) : Math.max(0, Math.min(100, Number(draft.score) || 0))
     const comment = ai && !draft.comment.trim() ? ai.comment : draft.comment
     // Реальная запись в lesson_progress (та же строка, куда ученик сдал) —
     // вердикт/оценка/комментарий/фото/доска дойдут до ученика и переживут reload.
     const ok = await reviewHomework(submissionId, verdict, score, comment, {
       photos: draft.photos, board: draft.board,
-    })
+    }, currentSubmission?.answers?.attemptId)
     if (!ok) {
       // Черновик проверки НЕ трогаем и к следующему ученику не уходим:
       // написанное — единственная копия этой проверки.
@@ -753,7 +756,7 @@ export default function TeacherHomeworkReviewPage() {
                     ) : (
                       <>
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
-                          {t('БАЛЛ (0–100)')}
+                          {t('ИТОГ ДЗ (0–100%)')}
                         </div>
                         <div className="flex items-center" style={{ gap: 10 }}>
                           <input

@@ -1,0 +1,6 @@
+/* Text may shrink; glyphs keep their dimensions and never inherit a baseline gap. */
+.mobile-teacher-app svg.lucide,
+.mobile-teacher-app svg.taskli-loop-icon {
+  display: block;
+  flex-shrink: 0;
+}

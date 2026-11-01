@@ -1,3 +1,4 @@
+import { openJournalTask } from '../../../lib/journalTasks'
 import { useState, useRef } from 'react'
 import Checkbox from '../../Checkbox'
 import { motion } from 'framer-motion'
@@ -138,6 +139,7 @@ export default function WidgetTodayTasks() {
   // «Заполнить карточку: Анна · Японский», после которой карточку ищут руками в
   // Группах, — это не задача, а напоминание о поиске.
   const openTask = (task: TeacherTask) => {
+    if (openJournalTask(task)) return
     if (task.studentId && task.groupId) openStudentDashboard(task.studentId, task.groupId)
     else setEditingTask(task)
   }

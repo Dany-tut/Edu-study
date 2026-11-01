@@ -8,6 +8,7 @@ import { useKeyboardOpen } from '../../../lib/useKeyboardInset'
 import { useT } from '../../../lib/i18n'
 import { GLASS } from '../../../lib/nativeGlass'
 import MobileTeacherGlassTabs from './MobileTeacherGlassTabs'
+import FadeText from '../../FadeText'
 
 // Shared ease/duration for the scroll collapse (matches the student dock).
 const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
@@ -98,7 +99,7 @@ export default function MobileTeacherNav({
               style={{ flex: '1 1 0', minWidth: 0, minHeight: 44, position: 'relative' }}
               aria-label={t(item.label)}
             >
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0 }}>
                 <TaskliIcon
                   name={item.icon}
                   size={20}
@@ -117,11 +118,10 @@ export default function MobileTeacherNav({
                   overflow: 'hidden',
                   maxWidth: '100%',
                   whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
                 }}>
-                {t(item.label)}
+                <FadeText>{t(item.label)}</FadeText>
               </motion.span>
             </motion.button>
           )

@@ -33,7 +33,9 @@ if (Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
 {
   const { pathname, search, hash } = window.location
   const route = pathname.replace(/\/+$/, '')
-  if (route && route !== '/index.html') {
+  if (import.meta.env.DEV && route === '/journal-stand') {
+    if (!hash) window.history.replaceState(null, '', pathname + search + '#/teacher/gradebook')
+  } else if (route && route !== '/index.html') {
     const rest = hash.replace(/^#\/?/, '')
     const target = `#${route}${rest ? '/' + rest : ''}`
     window.history.replaceState(null, '', `/${search}${target}`)

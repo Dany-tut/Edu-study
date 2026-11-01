@@ -1,3 +1,4 @@
+import FadeText from '../../FadeText'
 import { useState, useMemo } from 'react'
 import EmptyState from '../../EmptyState'
 import { ICON_GAP } from '../../../lib/subjects'
@@ -73,10 +74,10 @@ function PersonRow({ student, subject, onClick }: { student: Student; subject?: 
         <AvatarPhotoFill path={student.avatarPath} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(student.name)}</div>
-        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <FadeText style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{tn(student.name)}</FadeText>
+        <FadeText style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>
           {subject ? tc(subject) : !student.groupId ? t('Пока без занятий') : `${t('ДЗ')} ${student.hwScore}% · ${t('посещ.')} ${student.attendance}%`}
-        </div>
+        </FadeText>
       </div>
       {signal && <SignalChip signal={signal} />}
       <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
@@ -99,7 +100,7 @@ function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClic
     >
       <div style={{ width: 42, height: 42, borderRadius: 12, background: `color-mix(in srgb, ${group.color} 18%, transparent)`, color: group.color, fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><SubjectMark subject={group.subject} fallback={group.icon} size={26} /></div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</div>
+        <FadeText style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</FadeText>
         <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>
           {group.studentCount} {t('учеников')}{agg.avgHw != null ? ` · ${t('ср. ДЗ')} ${agg.avgHw}%` : ''}
         </div>

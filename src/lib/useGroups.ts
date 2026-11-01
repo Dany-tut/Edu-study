@@ -669,8 +669,9 @@ export type GroupLesson = {
 // reach it (group_id OR one of its students). When no group is selected
 // ("Все группы"), list every scheduled lesson so the teacher can still pick one
 // — the chosen lesson then determines whose grades are recorded.
-export function useGroupLessons(groupId: string | null) {
+export function useGroupLessons(groupId: string | null, scheduleIds?: string[]) {
   const [lessons, setLessons] = useState<GroupLesson[]>([])
+  const scheduleKey = scheduleIds ? JSON.stringify([...scheduleIds].sort()) : null
 
   useEffect(() => {
     let cancelled = false
@@ -679,6 +680,13 @@ export function useGroupLessons(groupId: string | null) {
       let query = supabase
         .from('schedule_lessons')
         .select('id, date, lesson_title, lesson_number, time_start, group_id, student_id, groups(name), students(name)')
+        .neq('status', 'cancelled')
+
+      if (scheduleKey !== null) {
+        const ids: string[] = JSON.parse(scheduleKey)
+        if (!ids.length) { if (!cancelled) setLessons([]); return }
+        query = query.in('id', ids)
+      }
 
       if (groupId) {
         // Student-scoped lessons reach the group through its members too.
@@ -696,14 +704,15 @@ export function useGroupLessons(groupId: string | null) {
         // this teacher's own groups (and their students) explicitly.
         const uid = await getOwnerId()
         if (!uid) { if (!cancelled) setLessons([]); return }
-        const { data: ownGroups } = await supabase
-          .from('groups').select('id').eq('created_by', uid)
+        const [{ data: ownGroups }, { data: ownedStudents }] = await Promise.all([
+          supabase.from('groups').select('id').eq('created_by', uid),
+          supabase.from('students').select('id').eq('created_by', uid),
+        ])
         const groupIds = (ownGroups ?? []).map((g: any) => g.id)
-        if (!groupIds.length) { if (!cancelled) setLessons([]); return }
-        const { data: studs } = await supabase
-          .from('students').select('id').in('group_id', groupIds)
-        const studentIds = (studs ?? []).map((s: any) => s.id)
-        const scope = [`group_id.in.(${groupIds.join(',')})`]
+        const studentIds = (ownedStudents ?? []).map((s: any) => s.id)
+        if (!groupIds.length && !studentIds.length) { if (!cancelled) setLessons([]); return }
+        const scope: string[] = []
+        if (groupIds.length) scope.push(`group_id.in.(${groupIds.join(',')})`)
         if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
         query = query.or(scope.join(','))
       }
@@ -717,7 +726,7 @@ export function useGroupLessons(groupId: string | null) {
       const seen = new Set<string>()
       const rows: GroupLesson[] = []
       for (const r of data as any[]) {
-        const key = `${r.date}|${r.time_start}|${r.lesson_title}|${r.lesson_number}`
+        const key = r.id
         if (seen.has(key)) continue
         seen.add(key)
         rows.push({
@@ -730,7 +739,7 @@ export function useGroupLessons(groupId: string | null) {
     })()
 
     return () => { cancelled = true }
-  }, [groupId])
+  }, [groupId, scheduleKey])
 
   return lessons
 }
@@ -919,7 +928,8 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
 
       let query = supabase
         .from('schedule_lessons')
-        .select('id, date, lesson_title, time_start, group_id, student_id, groups(name), students(name, group_id)')
+        .select('id, date, lesson_title, time_start, group_id, student_id, lesson_id, subject, node_type, groups(name), students(name, group_id)')
+        .neq('status', 'cancelled')
         .gte('date', fromStr)
         .lte('date', todayStr)
 
@@ -933,9 +943,13 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
         // No group filter (the nav badge): still scope to THIS teacher's own
         // groups / students, otherwise a new teacher sees every teacher's lessons.
         const uid = await getOwnerId()
-        const { data: myGroups } = await supabase.from('groups').select('id, students(id)').eq('created_by', uid)
+        if (!uid) { if (!cancelled) setPending([]); return }
+        const [{ data: myGroups }, { data: myStudents }] = await Promise.all([
+          supabase.from('groups').select('id').eq('created_by', uid),
+          supabase.from('students').select('id').eq('created_by', uid),
+        ])
         const groupIds = (myGroups ?? []).map((g: any) => g.id)
-        const studentIds = (myGroups ?? []).flatMap((g: any) => (g.students ?? []).map((s: any) => s.id))
+        const studentIds = (myStudents ?? []).map((s: any) => s.id)
         if (!groupIds.length && !studentIds.length) { setPending([]); return }
         const scope: string[] = []
         if (groupIds.length) scope.push(`group_id.in.(${groupIds.join(',')})`)
@@ -967,7 +981,7 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
         const marks = byEvent.get(r.id)
         // Legacy marks are ambiguous when the same title occurs twice that day.
         const matchingTimes = new Set(data.filter(other => other.date === r.date && other.lesson_title === r.lesson_title
-          && other.group_id === r.group_id && other.student_id === r.student_id).map(other => other.time_start))
+          && other.group_id === r.group_id && other.student_id === r.student_id).map(other => JSON.stringify([other.time_start, other.lesson_id, other.subject, other.node_type])))
         const filled = roster.length > 0 && roster.every(id => {
           if (marks && Object.prototype.hasOwnProperty.call(marks, id)) return typeof marks[id] === 'boolean'
           return matchingTimes.size === 1 && typeof legacyMarks.get(`${id}|${r.date}|${r.lesson_title ?? ''}`) === 'boolean'

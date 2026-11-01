@@ -1,3 +1,4 @@
+import FadeText from '../../FadeText'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages } from '../../icons/appIcons'
@@ -24,6 +25,7 @@ import { subjectNamesFromStored } from '../../../lib/subjects'
 import TeacherSubjectsField from '../TeacherSubjectsField'
 import { Alert } from '../../Alert'
 import TeacherLoginMethods from '../TeacherLoginMethods'
+import { useTeacherSession } from '../../../lib/useTeacherSession'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -50,6 +52,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
 }
 
 export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?: () => void }) {
+  const signedIn = useTeacherSession()
   const t = useT()
   const { tc, tn } = useTc()
   const { lang, setLang } = useLang()
@@ -87,7 +90,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
   // демо, чтобы полировать экран. Реальные данные всегда побеждают.
   const debtorCount = home.allStudents.filter((s: any) => s.debt && s.debt > 0).length
   const realEmpty = home.totalStudents === 0 && finance.received === 0 && home.pendingCount === 0 && !plan
-  const useDemo = import.meta.env.DEV && realEmpty
+  const useDemo = import.meta.env.DEV && signedIn === false && realEmpty
 
   const emailName = email ? email.split('@')[0] : t('Учитель')
   const m: TeacherProfileModel = useDemo ? DEMO_TEACHER_PROFILE : {
@@ -128,7 +131,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, textTransform: 'capitalize' }}>{tn(m.name)}</div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(m.subject)}</div>
+            <FadeText style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>{tc(m.subject)}</FadeText>
           </div>
         </div>
 

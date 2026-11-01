@@ -1,3 +1,4 @@
+import { openJournalTask } from '../../lib/journalTasks'
 import { motion, AnimatePresence } from 'framer-motion'
 import Checkbox from '../../components/Checkbox'
 import { useState, useEffect, useRef } from 'react'
@@ -739,6 +740,7 @@ function MyTasksBlock() {
   // «Заполнить карточку: Анна · Японский», после которой карточку ищут руками в
   // Группах, — это не задача, а напоминание о поиске.
   const openTask = (task: TeacherTask) => {
+    if (openJournalTask(task)) return
     if (task.studentId && task.groupId) openStudentDashboard(task.studentId, task.groupId)
     else setEditingTask(task)
   }
@@ -987,7 +989,7 @@ export default function TeacherHome() {
 
   const pendingJournals = useJournalPending(null)
   const pendingHomework = allHomework.filter(hw => hw.status === 'active')
-  const totalStudents = groups.reduce((a, g) => a + g.studentCount, 0)
+  const totalStudents = new Set(allStudents.map(s => s.personId || s.authUserId || s.id)).size
   const TODAY = new Date().toISOString().split('T')[0]
 
   // Обычное И сложное ДЗ теперь оба живут в lesson_progress; reviewedCount у hw
@@ -1030,7 +1032,7 @@ export default function TeacherHome() {
 
   const reminderDone = (r: Reminder) =>
     r.type === 'check-hw' &&
-    pendingHomework.some(hw => r.text.includes(hw.groupName) && hw.reviewedCount >= hw.submittedCount)
+    pendingHomework.some(hw => r.id === `hw-${hw.id}` && hw.reviewedCount >= hw.submittedCount)
 
   // Куда ведёт напоминание — по префиксу id (см. формирование reminders выше):
   // hard- → проверка сложного ДЗ, hw- → проверка обычного ДЗ, pay- → карточка ученика, journal- → Журнал.
