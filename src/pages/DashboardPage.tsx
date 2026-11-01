@@ -33,6 +33,8 @@ import { useT, tc } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from '../components/season/Season'
 import SeasonAsk from '../components/season/SeasonAsk'
+import Modal from '../components/Modal'
+import '../components/studentHomeLayout.css'
 
 // ── Тренажёр — отдельным чанком ──────────────────────────────────────────────
 //
@@ -471,7 +473,7 @@ export default function DashboardPage() {
             </section>
 
             {/* Full-width content below */}
-            <main className="dashboard-main">
+            <main className="dashboard-main dashboard-main--overview">
               {/* Row 2: Widget carousel (stats / science facts / focus timer). */}
               <section style={{ flexShrink: 0, position: 'relative', zIndex: 20 }}>
                 <WidgetCarousel />
@@ -485,9 +487,9 @@ export default function DashboardPage() {
                 <CourseTrack />
               </section>
 
-              {/* Row 4: Assigned tests */}
-              <section style={{ flexShrink: 0 }}>
-                <AssignedTestsBlock />
+              {/* The full assignment list opens above the fixed home composition. */}
+              <section className="dashboard-home-assignments" style={{ flexShrink: 0 }}>
+                <AssignedTestsBlock compact />
               </section>
             </main>
             <SeasonCornerPumpkin />
@@ -690,10 +692,11 @@ const SUBJECT_LABEL: Record<string, string> = {
   'eng-restore': 'Английский — восстановление B2',
 }
 
-function AssignedTestsBlock() {
+function AssignedTestsBlock({ compact = false }: { compact?: boolean }) {
   const t = useT()
   const session = getStudentSession()
   const [assignments, setAssignments] = useState<(TestAssignment & { done: boolean })[]>([])
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     if (!session?.id || !session?.groupId) return
@@ -723,7 +726,7 @@ function AssignedTestsBlock() {
     window.location.hash = `#/diagnostic?subject=${a.subject}&assignment=${a.id}&sid=${session?.id}&sname=${name}`
   }
 
-  return (
+  const list = (
     <div style={{ padding: '12px 0 4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <ClipboardList size={14} style={{ color: 'var(--color-accent)' }} />
@@ -758,4 +761,8 @@ function AssignedTestsBlock() {
       </div>
     </div>
   )
+  return compact ? <>
+    <button type="button" className="home-assignment-button" onClick={() => setExpanded(true)}><ClipboardList size={14} />{t('Назначенные тесты')} · {pending.length}<ChevronRight size={14} /></button>
+    {expanded && <Modal title={t('Назначенные тесты')} onClose={() => setExpanded(false)} width={640}>{list}</Modal>}
+  </> : list
 }
