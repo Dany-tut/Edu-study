@@ -1,4 +1,7 @@
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { isDeepStrictEqual } from 'node:util'
+import { join } from 'node:path'
 
 export const RELEASE = Object.freeze({
   repository: 'Dany-tut/Edu-study',
@@ -22,7 +25,18 @@ export function releaseCheckoutChanges({ cwd = process.cwd(), allowVercelDeletio
   if (!allowVercelDeletions || !changes.length) return changes
   // --exclude-from deliberately does not read .gitignore or global excludes.
   const excluded = new Set(run(['ls-files', '--cached', '--ignored', '--exclude-from=.vercelignore', '-z']).split('\0').filter(Boolean))
-  return changes.filter(change => change.slice(0, 2) !== ' D' || !excluded.has(change.slice(3)))
+  return changes.filter(change => {
+    if (change.slice(0, 2) === ' D' && excluded.has(change.slice(3))) return false
+    // Services rewrites JSON formatting; compare parsed committed and build config.
+    if (change === ' M vercel.json') {
+      try {
+        const committed = JSON.parse(run(['show', 'HEAD:vercel.json']))
+        const current = JSON.parse(readFileSync(join(cwd, 'vercel.json'), 'utf8'))
+        if (isDeepStrictEqual(committed, current)) return false
+      } catch { /* Invalid or semantically changed config remains blocked. */ }
+    }
+    return true
+  })
 }
 
 export function assertCommit(value) {
