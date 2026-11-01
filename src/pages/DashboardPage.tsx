@@ -565,7 +565,7 @@ export default function DashboardPage() {
 
         {(showDiary || diarySeen) && <main ref={diaryPane} className="dashboard-main"
           onScroll={event => { diaryScroll.current = event.currentTarget.scrollTop }}
-          style={{ display: showDiary ? undefined : 'none', overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}>
+          style={{ display: showDiary ? undefined : 'none', overflowY: 'auto', scrollbarGutter: 'stable', minHeight: 0, marginTop: -100, paddingTop: 100 }}>
           <Suspense fallback={<LessonLoading />}><StudentDiaryPage tab={diaryTab} setTab={setDiaryTab} /></Suspense>
         </main>}
 
