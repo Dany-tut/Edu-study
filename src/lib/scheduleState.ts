@@ -29,7 +29,7 @@ export interface ScheduleState {
 
 const labels: Record<SchedulePhase, string | null> = {
   upcoming: null, today: 'Сегодня', scheduled_now: 'Идёт', live: 'Идёт',
-  elapsed: 'Время занятия прошло', completed: 'Завершено', cancelled: 'Отменено',
+  elapsed: 'Завершено', completed: 'Завершено', cancelled: 'Отменено',
   available: 'Материалы открыты', unknown: null,
 }
 const formatters = new Map<string, Intl.DateTimeFormat>()

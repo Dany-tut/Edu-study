@@ -10,7 +10,6 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
-  'Время занятия прошло': 'Scheduled lesson time has ended',
   'Материалы открыты': 'Materials are available',
   'Нет запланированных занятий': 'No scheduled lessons',
   'Был на занятии': 'Attended the lesson',
