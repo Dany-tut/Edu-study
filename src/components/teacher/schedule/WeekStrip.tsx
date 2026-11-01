@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { addDays } from '../../../lib/teacherSchedule'
 
 const BUFFER = 4
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 const mask = (edge: number) => `linear-gradient(to right, transparent 0%, black ${edge}%, black ${100 - edge}%, transparent 100%)`
 
 /** A native, unsnapped timeline. Recycle the surrounding weeks after a gesture. */
@@ -23,6 +24,7 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
   const pendingLeft = useRef<number | null>(null)
   const expectedLeft = useRef<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const animationFrame = useRef<number | null>(null)
   const rangeCallback = useRef(onVisibleRangeChange)
   const lastRange = useRef('')
   useLayoutEffect(() => { rangeCallback.current = onVisibleRangeChange }, [onVisibleRangeChange])
@@ -48,6 +50,49 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
     return { monday, days: Array.from({ length: 7 }, (_, d) => addDays(monday, d)) }
   }), [anchor])
 
+  const stopAnimation = useCallback(() => {
+    if (animationFrame.current !== null) cancelAnimationFrame(animationFrame.current)
+    animationFrame.current = null
+  }, [])
+
+  const animateTo = useCallback((destination: number) => {
+    const el = viewport.current
+    if (!el?.clientWidth) return
+    stopAnimation()
+    if (timer.current) clearTimeout(timer.current)
+    const base = anchorRef.current
+    const from = el.scrollLeft / el.clientWidth - BUFFER
+    const distance = destination - from
+    const duration = reducedMotion ? 0 : Math.min(650, 320 + Math.abs(distance) * 30)
+    const started = performance.now()
+    setScrolling(true)
+
+    const frame = (now: number) => {
+      const progress = duration ? Math.min(1, (now - started) / duration) : 1
+      const position = from + distance * (1 - (1 - progress) ** 3)
+      const nearest = Math.round(position)
+      const nextAnchor = addDays(base, nearest * 7)
+      const left = (BUFFER + position - nearest) * el.clientWidth
+      // Keep the moving dates inside the buffer, even when Today is months away.
+      // Replacing the buffer preserves their exact on-screen positions.
+      if (nextAnchor !== anchorRef.current) {
+        pendingLeft.current = left
+        setAnchor(nextAnchor)
+      } else {
+        expectedLeft.current = null
+        el.scrollLeft = left
+        reportVisibleRange()
+      }
+      if (progress < 1) animationFrame.current = requestAnimationFrame(frame)
+      else {
+        animationFrame.current = null
+        setScrolling(false)
+      }
+    }
+    if (duration) animationFrame.current = requestAnimationFrame(frame)
+    else frame(started)
+  }, [reducedMotion, reportVisibleRange, stopAnimation])
+
   useLayoutEffect(() => {
     const el = viewport.current
     if (!el) return
@@ -65,22 +110,13 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
     const navigate = navigationKey !== lastNavigation.current
     lastNavigation.current = navigationKey
     if (!navigate) return
-    if (timer.current) clearTimeout(timer.current)
-    if (weekStep && viewport.current) {
-      expectedLeft.current = null
-      viewport.current.scrollLeft += weekStep * viewport.current.clientWidth
-      reportVisibleRange()
-      return
-    }
-    pendingLeft.current = null
-    setScrolling(false)
-    if (anchor !== start) setAnchor(start)
-    else if (viewport.current) {
-      expectedLeft.current = BUFFER * viewport.current.clientWidth
-      viewport.current.scrollLeft = expectedLeft.current
-      reportVisibleRange()
-    }
-  }, [start, anchor, navigationKey, weekStep, reportVisibleRange])
+    const el = viewport.current
+    if (!el?.clientWidth) return
+    const destination = weekStep
+      ? el.scrollLeft / el.clientWidth - BUFFER + weekStep
+      : (Date.parse(`${start}T00:00:00Z`) - Date.parse(`${anchorRef.current}T00:00:00Z`)) / WEEK_MS
+    animateTo(destination)
+  }, [start, navigationKey, weekStep, animateTo])
 
   useEffect(() => {
     const el = viewport.current
@@ -108,6 +144,7 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
       }
       setScrolling(true)
       if (timer.current) clearTimeout(timer.current)
+      if (animationFrame.current !== null) return
       timer.current = setTimeout(settle, 160)
       // Refill before reaching either end, including during a long wheel gesture.
       const position = el.scrollLeft / el.clientWidth
@@ -117,15 +154,19 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
       if (event.ctrlKey || event.metaKey) return
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
       if (!delta) return
+      stopAnimation()
       event.preventDefault()
       // The dashboard also listens for horizontal wheel gestures to switch desks.
       event.stopPropagation()
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? el.clientWidth : 1
       el.scrollLeft += delta * unit
     }
+    const onPointerDown = () => { stopAnimation(); setScrolling(false) }
     const resize = new ResizeObserver(() => {
       const nextWidth = el.clientWidth
       if (nextWidth && width !== nextWidth) {
+        stopAnimation()
+        setScrolling(false)
         expectedLeft.current = width ? el.scrollLeft / width * nextWidth : BUFFER * nextWidth
         el.scrollLeft = expectedLeft.current
         reportVisibleRange()
@@ -135,13 +176,18 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
     resize.observe(el)
     el.addEventListener('scroll', onScroll, { passive: true })
     el.addEventListener('wheel', onWheel, { passive: false })
+    el.addEventListener('pointerdown', onPointerDown, { passive: true })
+    el.addEventListener('keydown', onPointerDown)
     return () => {
       resize.disconnect()
       el.removeEventListener('scroll', onScroll)
       el.removeEventListener('wheel', onWheel)
+      el.removeEventListener('pointerdown', onPointerDown)
+      el.removeEventListener('keydown', onPointerDown)
+      stopAnimation()
       if (timer.current) clearTimeout(timer.current)
     }
-  }, [reportVisibleRange])
+  }, [reportVisibleRange, stopAnimation])
 
   return (
     <motion.div
@@ -156,6 +202,7 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
         aria-label={label}
         className="no-scrollbar"
         onClickCapture={() => {
+          stopAnimation()
           if (timer.current) clearTimeout(timer.current)
           setScrolling(false)
         }}
