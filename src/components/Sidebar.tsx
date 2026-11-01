@@ -450,7 +450,7 @@ export default function Sidebar() {
       }}
     >
       {/* Avatar (flower on a generated-color backdrop) + Name */}
-      <div style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0, paddingRight: 8 }}>
         <div ref={avatarRef} style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
           <motion.button
             whileHover={{ scale: 1.08, filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.35))' }}
