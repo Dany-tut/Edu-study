@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
-import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react'
+import { useState, useCallback, useRef, useEffect, lazy, Suspense, type ReactNode } from 'react'
 import Modal from './Modal'
 import { WIDGET_META } from '../data/widgets'
 import { type HomeWidgetTask } from '../lib/homeWidgetTasks'
@@ -45,7 +45,11 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? '-130%' : '130%', opacity: 0 }),
 }
 
-export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: number } = {}) {
+export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
+  columnsOverride?: number
+  /** In-memory stand content, in the home page's original carousel geometry. */
+  previewWidgets?: { id: number; content: ReactNode }[]
+} = {}) {
   const t = useT()
   const home = useDashboard(s => s.activePage === 'home')
   const [openWidget, setOpenWidget] = useState<number | null>(null)
@@ -72,7 +76,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
   //   • уместность (чужой предмет / пустой контент) — lib/widgetVisibility.ts.
   // Ни один не переписывает настройки ученика: сменится курс — виджет вернётся.
   const relevant = useWidgetRelevance()
-  const widgetOrder = rawOrder.filter(id => (home || id !== 11) && !hiddenWidgets.includes(id) && relevant(id))
+  const widgetOrder = previewWidgets ? previewWidgets.map(widget => widget.id) : rawOrder.filter(id => (home || id !== 11) && !hiddenWidgets.includes(id) && relevant(id))
   // Page count follows the number of *visible* widgets (hidden ones are simply
   // absent from widgetOrder), so a hidden widget leaves no empty trailing page.
   const pageCount = Math.max(1, Math.ceil(widgetOrder.length / perPage))
@@ -130,6 +134,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
   }
 
   const renderWidget = (p: number, isActive: boolean, columns = perPage) => {
+    if (previewWidgets) return previewWidgets.find(widget => widget.id === p)?.content ?? null
     if (p === 6) return <QuizWidget active={isActive} columns={columns} />
     if (p === 0) return <StatsWidget columns={columns} />
     if (p === 7) return <TrainerProgressWidget columns={columns} />
@@ -199,7 +204,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
                 {/* Пустая стойка на время чанка: своя на каждый виджет,
                     чтобы приехавший сосед не сбрасывал уже показанный. */}
                 <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
-                  {home ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, true)}
+                  {home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, true)}
                 </Suspense>
               </div>
             ))}
