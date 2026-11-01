@@ -1,10 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  ChevronLeft, ChevronRight, Check, RotateCcw, Send,
-  ClipboardCheck, TrendingUp, Clock, Award, FileText,
-  CheckCircle2, Star, Image as ImageIcon, PenLine, X,
-} from '../../components/icons/appIcons'
+import { ChevronLeft, ChevronRight, Check, RotateCcw, CheckCircle2, ClipboardList, Search, Image as ImageIcon, PenLine, X } from '../../components/icons/appIcons'
 import type { Student, Group, HomeworkItem, HwTask } from '../../data/teacherMockData'
 import { useHomework, useHomeworkSubmissions, reviewHomework, type HwSubmission } from '../../lib/useHomework'
 import { useGroups, useStudents } from '../../lib/useGroups'
@@ -18,9 +13,10 @@ import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import type { BasicAnswerRow, BasicAnswersPayload } from '../../lib/basicAnswers'
 import AiGradeCard from '../../components/teacher/AiGradeCard'
 import { useAiGrades, confirmAiGrade, type AiGrade } from '../../lib/useAiGrades'
-import { alertDialog } from '../../components/ConfirmHost'
 import { Alert } from '../../components/Alert'
-import { btn } from '../../lib/pillStyles'
+import HomeworkReviewScroll from '../../components/teacher/HomeworkReviewScroll'
+import '../../components/teacher/journalStand/homeworkReview.css'
+import './homeworkReviewWorkspace.css'
 
 // Фото/доска учителя — base64, живут только в черновике до отправки (в review_attachments).
 type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string; photos: string[]; board: string | null }
@@ -46,199 +42,6 @@ function formatSubmittedAt(iso?: string): string | null {
   else if (diffDays < 5) rel = `${diffDays} ${t('дня назад')}`
   else rel = `${diffDays} ${t('дней назад')}`
   return `${date} ${t('в')} ${time} · ${rel}`
-}
-
-// ─── Student summary card (left rail) ───────────────────────────────────────
-function StudentSummary({ student, group }: { student: Student; group: Group }) {
-  const t = useT()
-  const { tn } = useTc()
-  return (
-    <div className="flex flex-col" style={{ gap: 16 }}>
-      {/* Identity */}
-      <div
-        style={{
-          padding: 18, borderRadius: 24,
-          background: `${group.color}26`,
-          border: `1px solid ${group.color}33`,
-        }}
-      >
-        <div className="flex items-center" style={{ gap: 12, marginBottom: 6 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 16, flexShrink: 0,
-            background: group.color, color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 18, fontWeight: 700,
-          }}>
-            {initials(tn(student.name))}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{tn(student.name)}</div>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6,
-              background: group.color + '33', borderRadius: 7, padding: '2px 8px',
-            }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Scores */}
-      <div
-        className="flex flex-col"
-        style={{
-          padding: 18, borderRadius: 22, gap: 12,
-          background: 'rgba(var(--glass-rgb), 0.94)',
-          border: '1px solid var(--color-border-soft)',
-        }}
-      >
-        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          {t('Сводка по ученику')}
-        </div>
-        <ScoreBar label={t('ДЗ')} icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" />
-        <ScoreBar label={t('Тесты')} icon={TrendingUp} value={student.testScore} color="var(--color-purple)" />
-        {student.trialScore !== null && (
-          <ScoreBar label={t('Пробник')} icon={Award} value={student.trialScore} color="#F5A623" />
-        )}
-        <div className="flex items-center justify-between" style={{ padding: '8px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
-          <div className="flex items-center" style={{ gap: 8 }}>
-            <Clock size={14} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
-            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
-          </div>
-          <span style={{
-            fontSize: 13, fontWeight: 700,
-            color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)',
-          }}>
-            {student.attendance}%
-          </span>
-        </div>
-        <div className="flex items-center justify-between" style={{
-          padding: '8px 10px', borderRadius: 10,
-          background: 'var(--color-yellow-soft)', border: '1px solid color-mix(in srgb, var(--color-yellow-text) 28%, transparent)',
-        }}>
-          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Желаемый балл')}</span>
-          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
-        </div>
-      </div>
-
-      {student.comment && (
-        <div style={{
-          padding: 16, borderRadius: 20,
-          background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)',
-        }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>
-            {t('Заметка')}
-          </div>
-          <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>{student.comment}</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ScoreBar({ label, icon: Icon, value, color }: {
-  label: string; icon: React.ElementType; value: number; color: string
-}) {
-  return (
-    <div className="flex flex-col" style={{ gap: 4 }}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center" style={{ gap: 6 }}>
-          <Icon size={12} strokeWidth={2} style={{ color }} />
-          <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{label}</span>
-        </div>
-        <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
-      </div>
-      <div style={{ height: 5, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden' }}>
-        <motion.div
-          initial={{ width: 0 }} animate={{ width: `${value}%` }}
-          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-          style={{ height: '100%', background: color, borderRadius: 99, opacity: 0.85 }}
-        />
-      </div>
-    </div>
-  )
-}
-
-// ─── Floating bottom progress bar ───────────────────────────────────────────
-function ReviewBottomBar({
-  submitters, reviews, activeIdx, onJump, color,
-}: {
-  submitters: Student[]
-  reviews: Record<string, { verdict: 'accepted' | 'returned' }>
-  activeIdx: number
-  onJump: (i: number) => void
-  color: string
-}) {
-  const t = useT()
-  const { tn } = useTc()
-  const reviewedCount = submitters.filter(s => reviews[s.id]).length
-  const remaining = submitters.length - reviewedCount
-
-  return (
-    <div className="flex items-center" style={{ gap: 10 }}>
-      {/* track */}
-      <div style={{
-        display: 'flex', alignItems: 'center', flex: 1, minWidth: 0,
-        height: 44, padding: '12px 16px', borderRadius: 18,
-        background: 'rgba(var(--glass-rgb), 0.62)', border: '1px solid var(--color-border-glass)',
-        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
-        boxShadow: 'var(--shadow-sm)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0, height: 20 }}>
-          {submitters.map((s, i) => {
-            const review = reviews[s.id]
-            const isActive = i === activeIdx
-            const bg = review?.verdict === 'accepted' ? '#6EE7A0'
-              : review?.verdict === 'returned' ? '#F8C991'
-              : isActive ? color : '#E4E4E9'
-            // Dark ink on the light green/peach chips (white "2" was near-invisible);
-            // white only on the saturated group-color active node.
-            const numColor = review?.verdict === 'accepted' ? '#0F5132'
-              : review?.verdict === 'returned' ? '#7A4A12'
-              : '#fff'
-            if (isActive) {
-              return (
-                <button key={s.id} onClick={() => onJump(i)} style={{
-                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: 'none', cursor: 'pointer',
-                  background: bg, color: numColor, fontSize: 11, fontWeight: 800, lineHeight: 1,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: `0 2px 10px ${color}59`,
-                }}>
-                  {i + 1}
-                </button>
-              )
-            }
-            return (
-              <button key={s.id} onClick={() => onJump(i)} title={tn(s.name)} style={{
-                flex: 1, height: i < activeIdx ? 6 : 4, minWidth: 2, borderRadius: 3, border: 'none', cursor: 'pointer',
-                background: bg, padding: 0, transition: 'height 0.22s ease',
-              }} />
-            )
-          })}
-        </div>
-      </div>
-
-      {/* counter */}
-      <div style={{
-        flexShrink: 0, height: 44, display: 'flex', alignItems: 'center',
-        padding: '0 14px', borderRadius: 18,
-        background: 'rgba(var(--glass-rgb), 0.62)', border: '1px solid var(--color-border-glass)',
-        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
-        boxShadow: 'var(--shadow-sm)',
-      }}>
-        {remaining === 0 ? (
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-green-text)', whiteSpace: 'nowrap' }}>
-            {t('Все проверены ✓')}
-          </span>
-        ) : (
-          <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
-            {t('Осталось')} {remaining} {t('из')} {submitters.length}
-          </span>
-        )}
-      </div>
-    </div>
-  )
 }
 
 // ─── Per-task score grid ─────────────────────────────────────────────────────
@@ -271,7 +74,7 @@ function TaskScoreGrid({
             </div>
             <div className="flex items-center flex-shrink-0" style={{ gap: 6 }}>
               <input
-                type="number" min={0} max={task.maxScore} value={val}
+                aria-label={t('Балл за задание') + ' ' + task.title} type="number" min={0} max={task.maxScore} value={val}
                 onChange={e => onScoreChange(task.id, e.target.value)}
                 placeholder="—"
                 style={{
@@ -290,7 +93,7 @@ function TaskScoreGrid({
       {/* Total row */}
       <div style={{
         marginTop: 4, padding: '10px 14px', borderRadius: 14,
-        background: groupColorSoft, border: `1px solid ${groupColor}33`,
+        background: groupColorSoft, border: `1px solid color-mix(in srgb, ${groupColor} 20%, transparent)`,
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
         <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Итого')}</div>
@@ -299,7 +102,7 @@ function TaskScoreGrid({
         <span style={{
           fontSize: 12, fontWeight: 700,
           padding: '4px 8px', borderRadius: 8,
-          background: groupColor + '22', color: groupColor,
+          background: `color-mix(in srgb, ${groupColor} 14%, transparent)`, color: groupColor,
         }}>{pct}%</span>
       </div>
     </div>
@@ -307,60 +110,38 @@ function TaskScoreGrid({
 }
 
 // ─── Teacher attachments (фото + доска) ─────────────────────────────────────
-function ReviewAttachEditor({
-  photos, board, onPhotos, onBoard, color,
-}: {
-  photos: string[]
-  board: string | null
-  onPhotos: (photos: string[]) => void
-  onBoard: (board: string | null) => void
-  color: string
+function ReviewAttachEditor({photos, board, onPhotos, onBoard}: {
+  photos: string[]; board: string | null; onPhotos: (photos: string[]) => void; onBoard: (board: string | null) => void
 }) {
   const t = useT()
-  const [showBoard, setShowBoard] = useState(false)
+  const [showBoard, setShowBoard] = useState(!!board)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
-
-  function addPhotos(files: FileList | null) {
-    if (!files) return
-    setError(null)
-    Array.from(files).forEach(async file => {
-      try {
-        const src = await optimizePhoto(file)
-        if (src) onPhotos([...photos, src])
-      } catch (e) {
-        if (e instanceof ImageTooLargeError) setError(e.message)
-        else throw e
-      }
-    })
+  async function addPhotos(files: FileList | null) {
+    if (!files?.length || loading) return
+    setError(null);setLoading(true)
+    try {
+      const images = await Promise.all(Array.from(files).map(file => optimizePhoto(file)))
+      onPhotos([...photos, ...images.filter(Boolean)])
+    } catch(e) {setError(e instanceof ImageTooLargeError ? e.message : t('Не удалось добавить фото. Попробуйте другой файл.'))}
+    finally {setLoading(false)}
   }
-
-  return (
-    <div role="group" aria-label={t('Фото и доска к проверке')}>
-      <input aria-label={t('Добавить фото к проверке')} ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
-        onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ ...btn('M', 'secondary'), flex: 1 }}>
-          <ImageIcon size={14} /> {t('Фото')}
-        </button>
-        <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? color : 'var(--color-border-medium)'}`, background: showBoard || board ? color + '22' : 'var(--color-bg-2)', color: showBoard || board ? color : 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
-          <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
-        </button>
-      </div>
-      {error && <Alert tone="danger" text={error} onClose={() => setError(null)} style={{ marginTop: 8 }} />}
-      {photos.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
-          {photos.map((src, i) => (
-            <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
-              <img src={src} alt={t('Фото к проверке') + ' ' + (i + 1)} style={{ width: '100%', height: 72, objectFit: 'cover', display: 'block' }} />
-              <button onClick={() => onPhotos(photos.filter((_, j) => j !== i))} className="cursor-pointer" style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
-            </div>
-          ))}
-        </div>
-      )}
-      {showBoard && <div style={{ marginTop: 10 }}><WhiteboardCanvas initialData={board ?? undefined} onSave={onBoard} /></div>}
+  return <div className="hr-attachments" role="group" aria-label={t('Фото и доска к проверке')}>
+    <input aria-label={t('Добавить фото к проверке')} ref={fileRef} type="file" accept="image/*" multiple hidden
+      onChange={e => {void addPhotos(e.target.files);e.target.value=''}}/>
+    <div className="hr-attachment-tools">
+      <button type="button" className="hr-button" disabled={loading} onClick={() => fileRef.current?.click()}><ImageIcon size={15}/>{loading?t('Добавляем…'):t('Фото')}</button>
+      <button type="button" className="hr-button" aria-pressed={showBoard} onClick={() => setShowBoard(value=>!value)}><PenLine size={15}/>{board?t('Доска ✓'):t('Доска')}</button>
+      <span>{t('Вложения получит ученик')}</span>
     </div>
-  )
+    {error&&<Alert tone="danger" text={error} onClose={()=>setError(null)}/>}
+    {!!photos.length&&<div className="hr-photo-grid">{photos.map((src,i)=><div key={i} className="hr-photo">
+      <img src={src} alt={t('Фото к проверке')+' '+(i+1)}/><button type="button" aria-label={t('Удалить фото')+' '+(i+1)} onClick={()=>onPhotos(photos.filter((_,j)=>j!==i))}><X size={14}/></button>
+    </div>)}</div>}
+    {showBoard&&<div className="hr-whiteboard"><WhiteboardCanvas initialData={board??undefined} onSave={onBoard}/></div>}
+    {!showBoard&&!photos.length&&<p className="hr-attachment-hint">{t('Добавьте фото разбора или объясните решение на доске.')}</p>}
+  </div>
 }
 
 // ─── Main page ──────────────────────────────────────────────────────────────
@@ -418,7 +199,7 @@ export type HomeworkReviewEditorProps = {
 export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSubmissions, reviewIdx, setReviewIdx,
   onBack, returnLabel, onReview, reloadSubmissions, aiByProgress, reloadAi, onConfirmAi, embedded = false}: HomeworkReviewEditorProps) {
   const t = useT()
-  const { tc } = useTc()
+  const { tc, tn } = useTc()
   const subByStudent = useMemo(() => new Map(rawSubmissions.map(s => [s.studentId, s])), [rawSubmissions])
   const reviewedMap = useMemo(() => {
     const m: Record<string, { verdict: 'accepted' | 'returned' }> = {}
@@ -427,33 +208,14 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
     }
     return m
   }, [rawSubmissions])
-  const idx = reviewIdx
-  const prevIdxRef = useRef(reviewIdx)
-  const [dir, setDir] = useState(0)
-  if (prevIdxRef.current !== reviewIdx) {
-    setDir(reviewIdx > prevIdxRef.current ? 1 : -1)
-    prevIdxRef.current = reviewIdx
-  }
-  // Per-student draft: score (manual), taskScores (per-task), comment.
-  // Mirrored into sessionStorage per hw+student so grading survives a reload.
+  const idx = Math.max(0,Math.min(reviewIdx,submitters.length-1))
   const [drafts, setDrafts] = useState<Partial<Record<string, ReviewDraft>>>({})
-  const scrollRef = useRef<HTMLDivElement>(null)
-  // Shared via the store — the dashboard hides the ReviewNavPill while the
-  // docked bar shows its own arrows/counter on the same spot.
-  const liveDocked = useTeacher(s => s.headerDocked)
-  const setLiveDocked = useTeacher(s => s.setHeaderDocked)
-  const [standDocked, setStandDocked] = useState(false)
-  const docked = embedded ? standDocked : liveDocked
-  const setDocked = embedded ? setStandDocked : setLiveDocked
-
-  const dockGlass = {
-    border: '1px solid var(--color-border-glass)',
-    background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'var(--blur-glass)',
-    WebkitBackdropFilter: 'var(--blur-glass)',
-    boxShadow: 'var(--shadow-lg)',
-  } as const
-
+  const [studentSearch, setStudentSearch] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const setHeaderDocked = useTeacher(s=>s.setHeaderDocked)
+  useEffect(()=>{if(!embedded)setHeaderDocked(false)},[embedded,setHeaderDocked])
+  useEffect(()=>{setSaveError('')},[submitters[idx]?.id])
   if (!hw || !group || submitters.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ flex: 1, color: 'var(--color-muted)', gap: 12 }}>
@@ -500,14 +262,14 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   const reviewed = currentSubmission?.verdict === 'accepted' || currentSubmission?.verdict === 'returned'
   const aiGrade = currentSubmission ? aiByProgress?.get(currentSubmission.id) : undefined
   const draftKey = `hwReview:${hw.id}:${student.id}`
+  const savedDraft: Partial<ReviewDraft> = drafts[student.id] ?? readDraft<Partial<ReviewDraft>>(draftKey) ?? {}
   const draft: ReviewDraft = {
     score: reviewed ? String(currentSubmission!.score) : '',
     taskScores: {},
     comment: currentSubmission?.reviewComment ?? '',
     photos: currentSubmission?.reviewPhotos ?? [],
     board: currentSubmission?.reviewBoard ?? null,
-    ...readDraft<Partial<ReviewDraft>>(draftKey),
-    ...drafts[student.id],
+    ...savedDraft,
   }
 
   // If hw has tasks, compute total from task scores; otherwise use manual score.
@@ -532,16 +294,14 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   }
 
   function go(next: number) {
-    if (next < 0 || next >= submitters.length) return
-    setDir(next > idx ? 1 : -1)
+    if (busy || next < 0 || next >= submitters.length) return
     setReviewIdx(next)
-    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function advance() {
     // Jump to the next student who still needs a review; else stay/finish.
     const nextUnreviewed = submitters.findIndex((s, i) => i > idx && !reviewedMap[s.id])
-    const fallback = submitters.findIndex(s => !reviewedMap[s.id])
+    const fallback = submitters.findIndex(s => s.id !== student.id && !reviewedMap[s.id])
     const target = nextUnreviewed !== -1 ? nextUnreviewed : fallback
     if (target !== -1 && target !== idx) go(target)
   }
@@ -549,409 +309,73 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   // ai — «Ок» на предоценке ИИ: балл и ответ ИИ вместо полей формы (свой
   // комментарий учителя, если уже написан, остаётся). Ученик получает ответ
   // от учителя — про ИИ он не знает.
-  async function handleVerdict(verdict: 'accepted' | 'returned', ai?: { score: number; comment: string }) {
+  async function handleVerdict(verdict: 'accepted' | 'returned', ai?: {score:number;comment:string}) {
     const submissionId = currentSubmission?.id
-    if (!submissionId) return
-    if (verdict === 'accepted' && !ai && (!hasTasks ? draft.score.trim() === '' : hw!.tasks!.some(task => draft.taskScores[task.id] == null || draft.taskScores[task.id] === ''))) {
-      void alertDialog({ title: t('Укажи итоговую оценку всей работы.'), tone: 'danger' }); return
+    if (!submissionId || busy) return
+    setSaveError('')
+    if (verdict==='accepted'&&!ai&&(!hasTasks?!draft.score.trim():hw!.tasks!.some(task=>!draft.taskScores[task.id]?.trim()))) {
+      setSaveError(t('Укажите итоговую оценку всей работы.'));return
     }
-    const score = ai ? ai.score
-      : hasTasks ? Math.round(100 * (taskTotal ?? 0) / Math.max(1, maxTaskTotal ?? 0)) : Math.max(0, Math.min(100, Number(draft.score) || 0))
-    const comment = ai && !draft.comment.trim() ? ai.comment : draft.comment
-    // Реальная запись в lesson_progress (та же строка, куда ученик сдал) —
-    // вердикт/оценка/комментарий/фото/доска дойдут до ученика и переживут reload.
-    const ok = await onReview(submissionId, verdict, score, comment, {
-      photos: draft.photos, board: draft.board,
-    }, currentSubmission?.answers?.attemptId)
-    if (!ok) {
-      // Черновик проверки НЕ трогаем и к следующему ученику не уходим:
-      // написанное — единственная копия этой проверки.
-      void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
-      return
-    }
-    // Балл ушёл ученику прежним путём; здесь — отметка «ИИ → учитель»:
-    // принял балл ИИ или поставил свой.
-    if (verdict === 'accepted' && aiGrade && (aiGrade.status === 'graded' || aiGrade.status === 'dismissed')) {
-      await onConfirmAi?.(aiGrade.id, score)
-    }
-    void reloadAi?.()
-    clearDraft(draftKey)
-    setDrafts(d => {
-      const { [student.id]: _gone, ...rest } = d
-      return rest
-    })
-    await reloadSubmissions?.()
-    setTimeout(advance, 260)
+    const score = ai ? ai.score : hasTasks ? Math.round(100*(taskTotal??0)/Math.max(1,maxTaskTotal??0)) : Number(draft.score)
+    if (verdict==='accepted'&&(!Number.isFinite(score)||score<0||score>100)) {setSaveError(t('Укажите итог от 0 до 100%.'));return}
+    const comment = ai&&!draft.comment.trim()?ai.comment:draft.comment
+    if(verdict==='returned'&&!comment.replace(/<[^>]*>/g,'').trim()&&!draft.photos.length&&!draft.board){setSaveError(t('Добавьте комментарий для доработки.'));return}
+    setBusy(true)
+    try {
+      const ok = await onReview(submissionId,verdict,Number.isFinite(score)?score:0,comment,{photos:draft.photos,board:draft.board},currentSubmission?.answers?.attemptId)
+      if(!ok){setSaveError(t('Не удалось сохранить проверку. Черновик сохранён — попробуйте ещё раз.'));return}
+      if(verdict==='accepted'&&aiGrade&&(aiGrade.status==='graded'||aiGrade.status==='dismissed'))await onConfirmAi?.(aiGrade.id,score)
+      void reloadAi?.()
+      clearDraft(draftKey)
+      setDrafts(previous=>{const {[student.id]:_saved,...rest}=previous;return rest})
+      await reloadSubmissions?.()
+      advance()
+    } catch {setSaveError(t('Не удалось сохранить проверку. Черновик сохранён — попробуйте ещё раз.'))}
+    finally {setBusy(false)}
   }
-
-  return (
-    // Single scroll container — same recipe as TeacherHomeworkCreatePage.
-    // marginTop:-100 lifts the pane to y=0; paddingTop:100 re-insets content
-    // below the topbar so it melts into the progressive-blur strip on scroll.
-    <div
-      ref={scrollRef}
-      onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
-      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: embedded ? 0 : -100, paddingTop: embedded ? 8 : 100, paddingBottom: 110 }}
-    >
-
-      {/* ── Rest-state header: Назад + title. Fades out (opacity only — NO height
-          collapse, which would jolt the scroll position / feel "magnetic") as the
-          page docks; its fixed twin below takes over on the topbar line. ── */}
-      <motion.div
-        className="flex items-center"
-        initial={false}
-        animate={{ opacity: docked ? 0 : 1 }}
-        transition={{ duration: 0.22, ease: 'easeOut' }}
-        style={{ position: 'relative', flexShrink: 0, justifyContent: 'space-between', paddingLeft: 32, paddingRight: 32, paddingBottom: 14, gap: 12, pointerEvents: docked ? 'none' : 'auto' }}
-      >
-        <motion.button
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-          onClick={() => onBack()}
-          className="flex items-center cursor-pointer flex-shrink-0"
-          style={{
-            gap: 4, padding: '10px 16px 10px 12px', borderRadius: 999,
-            border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
-            boxShadow: 'var(--shadow-2)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
-          }}
-        >
-          <ChevronLeft size={18} />
-          {t(returnLabel)}
-        </motion.button>
-
-        <span style={{
-          position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-          maxWidth: '44%', pointerEvents: 'none',
-          textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {tc(hw.title)}
-        </span>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0,
-          background: `${group.color}26`, borderRadius: 8, padding: '4px 10px',
-        }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: group.color }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
-        </span>
-      </motion.div>
-
-      {/* ── Docked bar (appears on scroll): arrows + counter ── */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: embedded ? 12 : 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
-      <AnimatePresence>
-        {docked && (
-          <motion.div
-            key="review-dock"
-            className="flex items-center"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ gap: 10, pointerEvents: 'none' }}
-          >
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={() => onBack()}
-              className="flex items-center cursor-pointer flex-shrink-0"
-              style={{
-                gap: 4, padding: '10px 16px 10px 12px', borderRadius: 999,
-                ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
-              }}
-            >
-              <ChevronLeft size={18} />
-              {t(returnLabel)}
-            </motion.button>
-
-            <div style={{
-              flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              padding: '10px 16px', borderRadius: 999, ...dockGlass,
-              fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
-            }}>
-              {tc(hw.title)}
-            </div>
-
-            <div style={{ flexGrow: 1, flexBasis: 0 }} />
-
-            <div className="flex items-center flex-shrink-0" style={{ gap: 8, pointerEvents: 'auto' }}>
-              <NavArrow dir="left" disabled={idx === 0} onClick={() => go(idx - 1)} />
-              <NavArrow dir="right" disabled={idx === submitters.length - 1} onClick={() => go(idx + 1)} />
-            </div>
-
-            <div className="flex-shrink-0 flex items-center" style={{
-              gap: 8, padding: '10px 16px', borderRadius: 999,
-              ...dockGlass, color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
-            }}>
-              <CheckCircle2 size={16} style={{ color: 'var(--color-green-text)' }} />
-              {reviewedCount} / {submitters.length}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      </div>
-
-      {/* ── Content ── */}
-      <div style={{ padding: '8px 32px 0' }}>
-          {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет навсегда
-              залипнуть (сигнал «выход завершён» теряется — см. onExit в
-              AnimatePresence/index.mjs), и работа ученика встала бы пустой
-              посреди проверки — до F5. Ученики перелистываются вперёд, само
-              не вылечится.
-              Направление выезда сохранено: `dir` подставляется прямо в
-              initial, а не через варианты, поэтому `custom` был не нужен. */}
-            <motion.div
-              key={student.id}
-              initial={{ opacity: 0, x: dir * 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="grid"
-              style={{ gridTemplateColumns: 'minmax(260px, 320px) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}
-            >
-              {/* Left: student summary */}
-              <StudentSummary student={student} group={group} />
-
-              {/* Right: submission + grading */}
-              <div className="flex flex-col" style={{ gap: 16 }}>
-                {/* Submission */}
-                <div style={{
-                  padding: 22, borderRadius: 24,
-                  background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
-                  boxShadow: 'var(--shadow-3)',
-                }}>
-                  <div className="flex items-center" style={{ gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-                    <FileText size={16} style={{ color: group.color }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Работа ученика')}</span>
-                    {formatSubmittedAt(currentSubmission?.submittedAt) && (
-                      <span className="flex items-center" style={{
-                        gap: 6, marginLeft: 'auto', padding: '4px 10px', borderRadius: 999,
-                        background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600,
-                      }}>
-                        <Clock size={12} />
-                        {t('Сдано')} {formatSubmittedAt(currentSubmission?.submittedAt)}
-                      </span>
-                    )}
-                  </div>
-                  {currentSubmission?.comment && (
-                    <p style={{
-                      fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)',
-                      whiteSpace: 'pre-line', marginBottom: 16,
-                    }}>
-                      {currentSubmission.comment}
-                    </p>
-                  )}
-                  {/* Ответы базового уровня. У сдач, сделанных до появления
-                      снимка, их нет — там честно говорим, что показать нечего,
-                      вместо прежних выдуманных «solution.pdf». */}
-                  {currentAnswers
-                    ? <BasicAnswersList payload={currentAnswers} studentId={embedded ? undefined : student.id} teacherReviewed={currentSubmission?.verdict === 'accepted'} />
-                    : !currentSubmission?.comment && (
-                      <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)' }}>
-                        {t('Ответы этой сдачи не сохранились — она сделана до того, как работа начала доезжать до преподавателя.')}
-                      </p>
-                    )
-                  }
-                </div>
-
-                {/* Grading */}
-                <div style={{
-                  padding: 22, borderRadius: 24,
-                  background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
-                  boxShadow: 'var(--shadow-3)',
-                }}>
-                  <div className="flex items-center" style={{ gap: 8, marginBottom: 16 }}>
-                    <Star size={16} style={{ color: '#F5A623' }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Оценка и комментарий')}</span>
-                  </div>
-
-                  {aiGrade && (
-                    <AiGradeCard
-                      grade={aiGrade}
-                      onAccept={() => { if (aiGrade.score != null) void handleVerdict('accepted', { score: aiGrade.score, comment: aiGrade.comment }) }}
-                      onEdit={() => setDraft({
-                        ...(aiGrade.score != null ? { score: String(aiGrade.score) } : {}),
-                        ...(aiGrade.comment ? { comment: aiGrade.comment } : {}),
-                      })}
-                    />
-                  )}
-
-                  {/* Score field */}
-                  <div style={{ marginBottom: 16 }}>
-                    {hasTasks ? (
-                      <TaskScoreGrid
-                        tasks={hw.tasks!}
-                        taskScores={draft.taskScores}
-                        onScoreChange={setTaskScore}
-                        groupColor={group.color}
-                        groupColorSoft={`${group.color}33`}
-                        total={taskTotal!}
-                        maxTotal={maxTaskTotal!}
-                      />
-                    ) : (
-                      <>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
-                          {t('ИТОГ ДЗ (0–100%)')}
-                        </div>
-                        <div className="flex items-center" style={{ gap: 10 }}>
-                          <input
-                            aria-label={t('Итог ДЗ в процентах')} type="number" min={0} max={100} value={draft.score}
-                            onChange={e => setDraft({ score: e.target.value })}
-                            placeholder="—"
-                            style={{
-                              width: 96, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
-                              border: '1.5px solid var(--color-border-medium)', fontSize: 20, fontWeight: 700, color: 'var(--color-text)',
-                              background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
-                              appearance: 'textfield',
-                            } as React.CSSProperties}
-                          />
-                          <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
-                            {[60, 75, 85, 100].map(v => (
-                              <button key={v} onClick={() => setDraft({ score: String(v) })} style={{
-                                padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                                fontSize: 12, fontWeight: 700,
-                                background: Number(draft.score) === v ? `${group.color}33` : 'var(--color-bg)',
-                                color: Number(draft.score) === v ? group.color : 'var(--color-muted)',
-                              }}>
-                                {v}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Comment */}
-                  <div style={{ marginBottom: 18 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
-                      {t('ЗАМЕЧАНИЯ / КОММЕНТАРИЙ')}
-                    </div>
-                    <RichConditionEditor
-                      value={draft.comment}
-                      onChange={html => setDraft({ comment: html })}
-                      placeholder={t('Что получилось, что доработать...')}
-                      autoGrow
-                      minHeight={148}
-                    />
-                  </div>
-
-                  {/* Приложить к проверке — фото + доска (как в проверке сложных) */}
-                  <div style={{ marginBottom: 18 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
-                      {t('ПРИЛОЖИТЬ К ОТВЕТУ')}
-                    </div>
-                    <ReviewAttachEditor
-                      photos={draft.photos}
-                      board={draft.board}
-                      onPhotos={photos => setDraft({ photos })}
-                      onBoard={board => setDraft({ board })}
-                      color={group.color}
-                    />
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
-                    <motion.button
-                      whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => handleVerdict('accepted')}
-                      className="flex items-center cursor-pointer"
-                      style={{ height: 40,
-                        gap: 8, padding: '0 16px', borderRadius: 12, border: 'none',
-                        background: 'var(--grad-purple)',
-                        color: '#fff', fontSize: 13, fontWeight: 700,
-                        boxShadow: '0 6px 18px rgba(124,108,224,0.35)',
-                      }}
-                    >
-                      <Check size={18} strokeWidth={2.5} />
-                      {t('Засчитать и начислить баллы')}
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => handleVerdict('returned')}
-                      className="flex items-center cursor-pointer"
-                      style={{
-                        gap: 8, padding: '12px 20px', borderRadius: 16, border: 'none',
-                        background: 'var(--color-peach-soft)',
-                        color: 'var(--color-peach-text)', fontSize: 14, fontWeight: 600,
-                      }}
-                    >
-                      <RotateCcw size={16} strokeWidth={2} />
-                      {t('Вернуть на доработку')}
-                    </motion.button>
-                  </div>
-                  <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Send size={12} />
-                    {embedded ? t('Учебный пример: результат сохранится только на стенде до обновления страницы.') : t('Решение и комментарий уйдут ученику в его кабинет.')}
-                  </p>
-                </div>
-
-                {allDone && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                    style={{
-                      padding: 18, borderRadius: 22,
-                      background: 'var(--color-green-soft)',
-                      border: '1px solid color-mix(in srgb, var(--color-green-text) 30%, transparent)',
-                      display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14,
-                    }}
-                  >
-                    <div style={{
-                      width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-                      background: 'color-mix(in srgb, var(--color-green-text) 18%, transparent)', color: 'var(--color-green-text)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <CheckCircle2 size={24} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 160 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Все работы проверены!')}</div>
-                      <div style={{ fontSize: 13, color: 'var(--color-green-text)', marginTop: 2 }}>{t('Задача «Проверить ДЗ» отмечена на главной.')}</div>
-                    </div>
-                    <motion.button
-                      whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                      onClick={() => onBack()}
-                      style={{
-                        flexShrink: 0, padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                        background: 'var(--color-green-accent)', color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {t(returnLabel)}
-                    </motion.button>
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
+  const autoPercent = currentAnswers&&currentAnswers.gradable>0?Math.round(currentAnswers.correct/currentAnswers.gradable*100):null
+  const passingScore = currentSubmission?.answers?.recommendationScore??80
+  const filteredStudents = submitters.filter(s=>tn(s.name).toLocaleLowerCase('ru').includes(studentSearch.toLocaleLowerCase('ru')))
+  const currentStatus = currentSubmission?.verdict==='accepted'?t('Проверено'):currentSubmission?.verdict==='returned'?t('На доработке'):t('На проверке')
+  const nav = <div className="hr-student-nav"><button type="button" className="hr-icon-button" aria-label={t('Предыдущая работа')} disabled={busy||idx===0} onClick={()=>go(idx-1)}><ChevronLeft size={17}/></button><span>{idx+1} / {submitters.length}</span><button type="button" className="hr-icon-button" aria-label={t('Следующая работа')} disabled={busy||idx===submitters.length-1} onClick={()=>go(idx+1)}><ChevronRight size={17}/></button></div>
+  return <section className={'hr-workspace'+(embedded?' hr-embedded':'')} aria-label={t('Полная проверка домашнего задания')}>
+    <header className="hr-workspace-top"><button type="button" className="hr-button hr-back" disabled={busy} onClick={onBack}><ChevronLeft size={16}/>{t(returnLabel)}</button>
+      <div className="hr-workspace-title"><span>{t('Полная проверка')}</span><h1>{tc(hw.title)}</h1></div><span className="hr-group-label">{group.name}</span>
+    </header>
+    <div className="hr-workspace-body">
+      <aside className="hr-roster" aria-label={t('Работы учеников')}><div className="hr-panel-heading"><h2>{t('Ученики')}</h2><span>{submitters.length}</span></div>
+        <label className="hr-roster-search"><Search size={14}/><input type="search" aria-label={t('Найти ученика в полной проверке')} placeholder={t('Найти ученика')} value={studentSearch} onChange={e=>setStudentSearch(e.target.value)}/></label>
+        <HomeworkReviewScroll label={t('Список работ учеников')} className="hr-roster-scroll" contentClassName="hr-roster-list">
+          {filteredStudents.map(s=>{const index=submitters.findIndex(v=>v.id===s.id),submission=subByStudent.get(s.id);return <button type="button" key={s.id} className="hr-roster-student" disabled={busy} aria-pressed={s.id===student.id} onClick={()=>go(index)}>
+            <span className="hr-roster-avatar">{initials(tn(s.name))}</span><span><strong>{tn(s.name)}</strong><small>{submission?.verdict==='accepted'?t('Проверено'):submission?.verdict==='returned'?t('На доработке'):t('На проверке')}</small></span><b className={submission?.verdict==='accepted'?'hr-passed':'hr-pending'}>{submission?.verdict==='accepted'?submission.score+'%':'●'}</b>
+          </button>})}
+          {!filteredStudents.length&&<p className="hr-muted">{t('Ученик не найден')}</p>}
+        </HomeworkReviewScroll>
+        <div className="hr-student-summary"><h3>{t('Об ученике')}</h3><span>{t('ДЗ')}<b>{student.hwScore}%</b></span><span>{t('Тесты')}<b>{student.testScore}%</b></span><span>{t('Посещаемость')}<b>{student.attendance}%</b></span>{student.trialScore!==null&&<span>{t('Пробник')}<b>{student.trialScore}</b></span>}<span>{t('Желаемый балл')}<b>{student.desiredScore}</b></span></div>
+      </aside>
+      <article className="hr-document" aria-label={t('Работа ученика')+' · '+tn(student.name)}>
+        <div className="hr-document-top"><span className="hr-document-avatar">{initials(tn(student.name))}</span><div><h2>{tn(student.name)}</h2><p>{group.name}{hw.dueDate?' · '+t('Срок')+' '+new Date(hw.dueDate).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):''}</p></div><span className={'hr-status '+(reviewed?'hr-status-reviewed':'')}>{currentStatus}</span></div>
+        <label className="hr-mobile-student">{t('Ученик')}<select aria-label={t('Выбрать ученика в полной проверке')} value={idx} disabled={busy} onChange={e=>go(Number(e.target.value))}>{submitters.map((s,i)=><option value={i} key={s.id}>{tn(s.name)}</option>)}</select></label>
+        <HomeworkReviewScroll key={student.id} label={t('Ответы и разбор работы')} className="hr-document-scroll" contentClassName="hr-document-content">
+          <section className="hr-answers"><div className="hr-section-title"><h3><ClipboardList size={16}/>{t('Ответы ученика')}</h3>{currentSubmission?.submittedAt&&<span>{formatSubmittedAt(currentSubmission.submittedAt)}</span>}</div>
+            {currentSubmission?.comment&&<p className="hr-submission-comment">{currentSubmission.comment}</p>}
+            {currentAnswers?<BasicAnswersList payload={currentAnswers} studentId={embedded?undefined:student.id} teacherReviewed={currentSubmission?.verdict==='accepted'} appearance="review" showSummary={false} passingScore={passingScore}/>:!currentSubmission?.comment&&<p className="hr-muted">{t('Ответы этой сдачи не сохранились.')}</p>}
+          </section>
+          {aiGrade&&<section className="hr-feedback-section"><AiGradeCard grade={aiGrade} onAccept={()=>{if(aiGrade.score!=null)void handleVerdict('accepted',{score:aiGrade.score,comment:aiGrade.comment})}} onEdit={()=>setDraft({...(aiGrade.score!=null?{score:String(aiGrade.score)}:{}),...(aiGrade.comment?{comment:aiGrade.comment}:{})})}/></section>}
+          <section className="hr-feedback-section"><div className="hr-section-title"><h3><PenLine size={16}/>{t('Разбор преподавателя')}</h3></div>
+            <ReviewAttachEditor key={student.id} photos={draft.photos} board={draft.board} onPhotos={photos=>setDraft({photos})} onBoard={board=>setDraft({board})}/>
+          </section>
+          {student.comment&&<details className="hr-student-note"><summary>{t('Заметка об ученике')}</summary><p>{student.comment}</p></details>}
+        </HomeworkReviewScroll>
+      </article>
+      <aside className="hr-inspector" aria-label={t('Оценка и комментарий')}><div className="hr-panel-heading"><h2>{t('Проверка работы')}</h2>{reviewed&&<CheckCircle2 size={16}/>}</div>
+        <div className="hr-inspector-fields">
+          {hasTasks?<HomeworkReviewScroll key={'grades:'+student.id} label={t('Баллы за задания')} className="hr-task-grades"><TaskScoreGrid tasks={hw.tasks!} taskScores={draft.taskScores} onScoreChange={setTaskScore} groupColor="var(--color-accent)" groupColorSoft="var(--color-purple-soft)" total={taskTotal!} maxTotal={maxTaskTotal!}/></HomeworkReviewScroll>:<div className="hr-grade-block"><label>{t('Итоговый результат')}<div><input aria-label={t('Итог ДЗ в процентах')} type="number" min={0} max={100} step="any" value={draft.score} placeholder="—" disabled={busy} onChange={e=>setDraft({score:e.target.value})}/><span>%</span></div></label><div className="hr-score-context">{autoPercent!==null&&<span>{t('Автопроверка')}<b>{autoPercent}%</b></span>}<span>{t('Порог зачёта')}<b>{passingScore}%</b></span></div><div className="hr-quick-scores">{[60,75,85,100].map(value=><button key={value} type="button" disabled={busy} aria-label={t('Поставить')+' '+value+'%'} aria-pressed={Number(draft.score)===value} onClick={()=>setDraft({score:String(value)})}>{value}%</button>)}</div></div>}
+          <div className="hr-review-comment"><h3>{t('Комментарий ученику')}</h3><RichConditionEditor key={student.id} value={draft.comment} onChange={comment=>setDraft({comment})} placeholder={t('Что получилось и что исправить')} minHeight={0} fixedHeight="var(--hr-comment-height, 112px)" fontSize={13} ariaLabel={t('Комментарий ученику в полной проверке')} inputSt={{width:'100%',boxSizing:'border-box',border:'1px solid var(--color-border-soft)',borderRadius:12,background:'var(--color-bg-card)',color:'var(--color-text)',outline:'none',fontFamily:'inherit'}}/></div>
         </div>
-
-      {/* ── Floating bottom bar (fixed so it stays on screen while content scrolls) ── */}
-      <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 40, width: 'min(560px, calc(100vw - 48px))' }}>
-        <ReviewBottomBar
-          submitters={submitters}
-          reviews={reviewedMap}
-          activeIdx={idx}
-          onJump={go}
-          color={group.color}
-        />
-      </div>
+        <div className="hr-review-actions">{saveError&&<p className="hr-save-error" role="alert">{saveError}</p>}<button type="button" className="hr-button hr-primary" disabled={busy} onClick={()=>void handleVerdict('accepted')}><Check size={16}/>{busy?t('Сохраняем…'):t('Завершить проверку')}</button><button type="button" className="hr-button" disabled={busy} onClick={()=>void handleVerdict('returned')}><RotateCcw size={15}/>{t('На доработку')}</button></div>
+      </aside>
     </div>
-  )
-}
-
-function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled: boolean; onClick: () => void }) {
-  const Icon = dir === 'left' ? ChevronLeft : ChevronRight
-  return (
-    <motion.button
-      whileHover={disabled ? undefined : { scale: 1.08 }}
-      whileTap={disabled ? undefined : { scale: 0.94 }}
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-        border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.86)',
-        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
-        boxShadow: 'var(--shadow-lg)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        color: disabled ? 'var(--color-text-4)' : 'var(--color-text)',
-        opacity: disabled ? 0.6 : 1,
-      }}
-    >
-      <Icon size={20} />
-    </motion.button>
-  )
+    <footer className="hr-workspace-footer"><span>{allDone?t('Все работы проверены'):t('Проверено')+' '+reviewedCount+' '+t('из')+' '+submitters.length}{embedded?' · '+t('Учебный пример'):''}</span>{nav}</footer>
+  </section>
 }
