@@ -1,14 +1,12 @@
 import type { ScheduleState } from '../lib/scheduleState'
 import { useT } from '../lib/i18n'
 
-export default function ScheduleStatusBadge({ state, label = state.label, compact = false }: {
+export default function ScheduleStatusBadge({ state, label = state.label }: {
   state: ScheduleState
   label?: string | null
-  compact?: boolean
 }) {
   const t = useT()
   if (!label || state.phase === 'upcoming' || state.phase === 'unknown') return null
-  const text = compact && state.phase === 'scheduled_now' ? 'Сейчас' : label
   return (
     <span data-schedule-status={state.phase} style={{
       display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%',
@@ -18,7 +16,7 @@ export default function ScheduleStatusBadge({ state, label = state.label, compac
       background: state.phase === 'live' ? 'var(--color-control-accent)' : state.isCurrent ? 'var(--color-accent-soft)' : 'var(--color-bg-4)',
     }}>
       {state.phase === 'live' && <span aria-hidden="true" style={{ width: 4, height: 4, borderRadius: 999, background: 'currentColor', flexShrink: 0 }} />}
-      <span style={{ transform: 'translateY(-0.5px)' }}>{t(text)}</span>
+      <span style={{ transform: 'translateY(-0.5px)' }}>{t(label)}</span>
     </span>
   )
 }

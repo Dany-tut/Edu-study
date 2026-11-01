@@ -261,7 +261,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
           {/* В теме под фонарём/конфетой — «Урок N · сейчас», как в макетах. */}
           {seasonNode ? `${tr('Урок')} ${lesson.number + 1} · ${tr('сейчас')}` : `#${lesson.number + 1}`}
         </span>
-        {scheduleState?.isCurrent && <ScheduleStatusBadge state={scheduleState} compact />}
+        {scheduleState?.isCurrent && <ScheduleStatusBadge state={scheduleState} />}
         {caption && (
           <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, whiteSpace: 'nowrap', marginTop: 2 }}>
             {caption}

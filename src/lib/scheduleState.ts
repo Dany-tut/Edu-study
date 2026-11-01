@@ -28,7 +28,7 @@ export interface ScheduleState {
 }
 
 const labels: Record<SchedulePhase, string | null> = {
-  upcoming: null, today: 'Сегодня', scheduled_now: 'Сейчас по расписанию', live: 'Идёт',
+  upcoming: null, today: 'Сегодня', scheduled_now: 'Идёт', live: 'Идёт',
   elapsed: 'Время занятия прошло', completed: 'Завершено', cancelled: 'Отменено',
   available: 'Материалы открыты', unknown: null,
 }
