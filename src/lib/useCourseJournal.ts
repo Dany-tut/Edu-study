@@ -6,6 +6,7 @@ import type { CourseJournalData, CourseJournalLesson } from './courseJournal'
 import { journalLessonDetailIds } from './journalLessonScope'
 import { journalPages, journalBatches } from './journalRequests'
 import { journalPages as adaptiveJournalPages, journalParallelPages } from './journalPages'
+import { createAuthDataChangeGuard } from './authDataChange'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal, lessonPageSize = 50): Promise<T[]> {
@@ -114,10 +115,11 @@ export function useCourseJournal(completeWorkList = false) {
     return () => { active = false; clearTimeout(timeout); controller.abort() }
   }, [studentIds, groupIds, tick, completeWorkList, rosterReady])
   useEffect(() => {
+    const authDataChanged = createAuthDataChangeGuard()
     const focus = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoaded.current > 30_000) reload() }
     window.addEventListener('focus', focus)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (authDataChanged(event, session) && event !== 'INITIAL_SESSION') {
         setData(null)
         reload()
       }
