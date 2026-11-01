@@ -1,0 +1,1026 @@
+/* The diary is an isolated design stand, using the app's subject and track palettes. */
+.student-diary {
+  --ds-ink: var(--color-text);
+  --ds-muted: var(--color-text-3);
+  --ds-surface: var(--color-bg-card, var(--color-bg-2));
+  --ds-line: var(--color-border-soft);
+  --ds-primary: #6354cf;
+  --ds-on-primary: #fff;
+  --ds-focus: var(--status-now-soft);
+  --ds-focus-text: var(--status-now-text);
+  color: var(--ds-ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-width: 0;
+}
+[data-theme='dark'] .student-diary {
+  --ds-primary: #b3a6f7;
+  --ds-on-primary: #211a45;
+}
+.student-diary * {
+  box-sizing: border-box;
+}
+.student-diary h1,
+.student-diary h2,
+.student-diary h3,
+.student-diary p {
+  margin: 0;
+}
+.student-diary button,
+.student-diary select,
+.student-diary input {
+  font: inherit;
+  color: inherit;
+}
+.student-diary button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.student-diary button:focus-visible,
+.student-diary select:focus-visible,
+.student-diary input:focus-visible {
+  outline: 2px solid var(--ds-primary);
+  outline-offset: 4px;
+}
+.student-diary svg {
+  flex-shrink: 0;
+}
+.student-diary h2 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+.student-diary h3 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.student-diary small {
+  font-size: 12px;
+}
+.ds-round {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex: none;
+  border: 1px solid var(--ds-line);
+  background: var(--ds-surface);
+  color: var(--ds-muted);
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+}
+.ds-round:hover {
+  color: var(--ds-primary);
+  background: var(--ds-focus);
+}
+.ds-page-heading {
+  text-align: center;
+}
+.ds-page-heading h1 {
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -1.3px;
+}
+.ds-page-heading p {
+  font-size: 13px;
+  color: var(--ds-muted);
+  margin-top: 8px;
+}
+.ds-page-heading p::first-letter {
+  text-transform: uppercase;
+}
+.ds-tabs {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin: 20px auto 26px;
+  padding: 4px;
+  width: max-content;
+  max-width: 100%;
+  border-radius: 99px;
+  background: var(--color-bg-5);
+}
+.ds-tabs button {
+  border: 0;
+  border-radius: 99px;
+  padding: 10px 23px;
+  background: transparent;
+  color: var(--ds-muted);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.ds-tabs button[aria-pressed='true'] {
+  background: var(--ds-surface);
+  box-shadow: var(--shadow-xs);
+  color: var(--ds-ink);
+}
+.ds-tabs button > span {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  color: var(--ds-focus-text);
+  background: var(--ds-focus);
+}
+.ds-scope {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.ds-scope label {
+  min-width: 0;
+  max-width: 100%;
+}
+.ds-field-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.ds-scope select {
+  min-width: 0;
+  max-width: 100%;
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-line);
+  border-radius: 99px;
+  padding: 10px 32px 10px 15px;
+  font-size: 12px;
+}
+.ds-scope-summary {
+  margin-left: auto;
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+.ds-focus-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr);
+  gap: 22px;
+}
+.ds-focus-grid > main,
+.ds-focus-grid > aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.ds-section {
+  border-radius: 23px;
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-line);
+  padding: 20px 22px 5px;
+  min-width: 0;
+}
+.ds-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+.ds-section-head > span {
+  font-size: 12px;
+  color: var(--ds-muted);
+}
+.ds-priority {
+  padding: 24px 26px;
+  background: var(--ds-surface);
+  border-radius: 25px;
+  border: 1px solid color-mix(in srgb, var(--ds-tone-line, var(--ds-line)) 35%, var(--ds-line));
+  box-shadow: var(--shadow-xs);
+  position: relative;
+  overflow: hidden;
+}
+.ds-priority::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--ds-tone-bg, var(--ds-focus));
+}
+.ds-priority-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.ds-priority-top > span:first-child {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ds-muted);
+}
+.ds-tiny-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--ds-tone);
+  border-radius: 50%;
+}
+.ds-priority-body {
+  display: flex;
+  gap: 21px;
+  align-items: start;
+}
+.ds-priority-body > div:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.ds-priority-number {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 78px;
+  min-height: 115px;
+  padding: 10px 8px 12px;
+  border-radius: 17px;
+  background: var(--ds-tone-bg);
+  color: var(--ds-tone);
+  font-size: 35px;
+  line-height: 1;
+  flex: none;
+}
+.ds-priority-number > span {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+.ds-priority-body h2 {
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.8px;
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+}
+.ds-priority-body p {
+  font-size: 13px;
+  color: var(--ds-muted);
+  line-height: 1.6;
+  margin: 10px 0 13px;
+}
+.ds-priority-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding-left: 99px;
+}
+.ds-primary,
+.ds-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 99px;
+  border: 0;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 550;
+}
+.ds-primary {
+  background: var(--ds-primary);
+  color: var(--ds-on-primary) !important;
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--ds-primary) 18%, transparent);
+}
+.ds-secondary {
+  background: var(--ds-focus);
+  color: var(--ds-focus-text) !important;
+}
+.ds-primary:hover,
+.ds-secondary:hover {
+  filter: brightness(0.96);
+}
+.ds-course-label {
+  display: inline;
+  color: var(--ds-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.ds-course-label > i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ds-course);
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+.ds-course-label > span {
+  margin: 0 5px;
+}
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 8px;
+  padding: 4px 7px;
+  background: var(--ds-tone-bg);
+  color: var(--ds-tone);
+  font-size: 11px;
+  line-height: 1.2;
+}
+.ds-due {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ds-muted);
+  font-size: 11px;
+}
+.ds-overdue {
+  color: var(--color-red-text);
+}
+.ds-work-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 17px 0;
+  border: 0;
+  border-bottom: 1px solid var(--ds-line);
+  background: transparent;
+  color: var(--ds-ink);
+  width: 100%;
+  text-align: left;
+}
+.ds-work-row:last-child {
+  border-bottom: 0;
+}
+.ds-work-row:hover .ds-work-copy > strong {
+  color: var(--ds-primary);
+}
+.ds-work-number {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 43px;
+  border-radius: 12px;
+  background: var(--ds-tone-bg);
+  color: var(--ds-tone);
+  border: 1px solid var(--ds-line);
+  font-size: 16px;
+  flex: none;
+}
+.ds-work-copy {
+  flex: 1;
+  min-width: 0;
+}
+.ds-work-copy > strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 550;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.ds-work-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--ds-muted);
+}
+.ds-chevron {
+  color: var(--color-text-4);
+}
+.ds-upcoming {
+  background: var(--ds-focus);
+  color: var(--ds-focus-text);
+  border-radius: 24px;
+  padding: 22px;
+}
+.ds-upcoming h2 {
+  font-size: 14px;
+  font-weight: 500;
+}
+.ds-upcoming .ds-section-head {
+  margin-bottom: 17px;
+}
+.ds-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ds-focus-text);
+}
+.ds-upcoming-time {
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  font-weight: 500;
+  margin-bottom: 13px;
+}
+.ds-upcoming-time small {
+  font-size: 12px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.ds-upcoming .ds-course-label {
+  color: var(--ds-focus-text);
+  opacity: 0.85;
+}
+.ds-upcoming h3 {
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 500;
+  margin-top: 6px;
+}
+.ds-upcoming-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 18px;
+}
+.ds-upcoming-bottom > span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+}
+.ds-upcoming .ds-round {
+  color: var(--ds-focus-text);
+  border: 0;
+}
+.ds-recommend {
+  display: flex;
+  gap: 11px;
+  padding: 20px 2px;
+}
+.ds-recommend-icon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  color: var(--ds-primary);
+  display: grid;
+  place-items: center;
+}
+.ds-recommend > div {
+  min-width: 0;
+}
+.ds-recommend small {
+  color: var(--ds-muted);
+  font-size: 11px;
+}
+.ds-recommend h3 {
+  font-size: 15px;
+  margin: 5px 0 6px;
+  font-weight: 550;
+}
+.ds-recommend p {
+  color: var(--ds-muted);
+  font-size: 12px;
+  line-height: 1.65;
+  max-width: 400px;
+}
+.ds-text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  padding: 8px 0 0;
+  color: var(--ds-primary) !important;
+  font-size: 12px;
+}
+.ds-reminder-note {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  border-top: 1px solid var(--ds-line);
+  padding: 16px 0;
+  color: var(--ds-muted);
+}
+.ds-reminder-note > span {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ds-ink);
+}
+.ds-reminder-note small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ds-muted);
+  margin-top: 3px;
+}
+.ds-reminder-note .ds-round {
+  height: 30px;
+  width: 30px;
+  background: transparent;
+}
+.ds-bottom-heading {
+  margin: 27px 0 14px;
+}
+.ds-course-shelf {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.ds-course-card {
+  min-width: 0;
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-line);
+  border-radius: 22px;
+  padding: 19px 20px;
+}
+.ds-course-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ds-subject-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 44px;
+  border-radius: 13px;
+  flex: none;
+  background: var(--ds-course-soft);
+}
+.ds-course-top > span:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+}
+.ds-course-top small {
+  font-size: 11px;
+  color: var(--ds-muted);
+}
+.ds-course-top h3 {
+  font-size: 15px;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.ds-course-top .ds-round {
+  width: 29px;
+  height: 29px;
+  background: transparent;
+  border: 0;
+}
+.ds-progress {
+  height: 5px;
+  border-radius: 9px;
+  background: var(--color-bg-5);
+  overflow: hidden;
+  margin: 17px 0 9px;
+}
+.ds-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: 9px;
+}
+.ds-course-progress {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  color: var(--ds-muted);
+  font-size: 11px;
+}
+.ds-course-progress > span {
+  margin-left: auto;
+}
+.ds-pending-strip {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ds-muted);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 21px 3px 0;
+  text-align: left;
+}
+.ds-pending-strip > span {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 13px;
+  font-size: 12px;
+  flex: 1;
+}
+.ds-pending-strip > span > span {
+  color: var(--color-text-4);
+  font-size: 11px;
+}
+.ds-notice {
+  color: var(--ds-focus-text);
+  font-size: 12px;
+  text-align: center;
+  padding-top: 10px;
+}
+.ds-notice:empty {
+  display: none;
+}
+.ds-course-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  align-items: start;
+}
+.ds-course-board .ds-course-card:last-child:nth-child(odd) {
+  grid-column: 1/-1;
+}
+.ds-course-track {
+  display: flex;
+  align-items: start;
+  gap: 0;
+  margin: 27px 0 15px;
+}
+.ds-track-step {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  padding: 0;
+  position: relative;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+}
+.ds-track-step::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: var(--color-bg-5);
+}
+.ds-track-step:first-child::before {
+  display: none;
+}
+.ds-track-step > span {
+  display: grid;
+  place-items: center;
+  background: var(--ds-tone-bg);
+  color: var(--ds-tone);
+  border: 2px solid var(--ds-tone-line);
+  position: relative;
+  z-index: 1;
+  width: 37px;
+  height: 37px;
+  border-radius: 50%;
+  font-size: 13px;
+}
+.ds-track-step[aria-pressed='true'] > span {
+  outline: 4px solid var(--ds-focus);
+  outline-offset: 4px;
+}
+.ds-track-step small {
+  color: var(--ds-muted);
+  font-size: 10px;
+}
+.ds-course-work {
+  border-top: 1px solid var(--ds-line);
+  margin-top: 20px;
+}
+.ds-course-work .ds-work-row {
+  gap: 10px;
+}
+.ds-course-work .ds-work-number {
+  width: 32px;
+  height: 35px;
+  font-size: 13px;
+}
+.ds-course-work .ds-work-copy > strong {
+  font-size: 12px;
+}
+.ds-course-work .ds-course-label {
+  display: none;
+}
+.ds-work-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.ds-work-toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--ds-muted);
+  min-width: 0;
+}
+.ds-work-toolbar select {
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--ds-line);
+  border-radius: 12px;
+  background: var(--ds-surface);
+  font-size: 12px;
+  padding: 10px 28px 10px 11px;
+  color: var(--ds-ink);
+}
+.ds-sort-direction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 11px;
+  color: var(--ds-muted) !important;
+}
+.ds-all-work {
+  padding: 20px 24px;
+}
+.ds-empty {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 13px;
+  color: var(--ds-muted);
+  padding: 30px 20px;
+  text-align: center;
+  font-size: 13px;
+}
+.ds-dialog h2 {
+  font-size: 24px;
+  line-height: 1.3;
+  margin: 10px 0 15px;
+}
+.ds-reminder-field {
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+}
+.ds-reminder-field input {
+  border-radius: 13px;
+  border: 1px solid var(--ds-line);
+  padding: 12px;
+  color: var(--ds-ink);
+  background: var(--color-bg);
+}
+.ds-dialog form .ds-primary {
+  margin-top: 22px;
+  width: 100%;
+}
+@media (max-width: 1000px) {
+  .ds-focus-grid {
+    grid-template-columns: minmax(0, 1.5fr) minmax(230px, 1fr);
+    gap: 18px;
+  }
+  .ds-priority {
+    padding: 20px;
+  }
+  .ds-priority-body h2 {
+    font-size: 22px;
+  }
+  .ds-priority-number {
+    width: 62px;
+    min-height: 104px;
+  }
+  .ds-priority-footer {
+    padding-left: 83px;
+  }
+}
+@media (max-width: 760px) {
+  .ds-page-heading h1 {
+    font-size: 29px;
+  }
+  .ds-focus-grid {
+    grid-template-columns: 1fr;
+  }
+  .ds-focus-grid > aside {
+    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .ds-focus-grid > aside .ds-reminder-note {
+    grid-column: 1/-1;
+  }
+  .ds-course-shelf,
+  .ds-course-board {
+    grid-template-columns: 1fr;
+  }
+  .ds-course-board .ds-course-card:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+  .ds-scope-summary {
+    width: 100%;
+    margin-left: 0;
+    padding: 3px 4px 0;
+  }
+  .ds-scope {
+    gap: 8px;
+  }
+  .ds-scope label {
+    flex: 1 1 150px;
+  }
+  .ds-scope select {
+    width: 100%;
+  }
+  .ds-work-toolbar label {
+    flex: 1 1 145px;
+  }
+  .ds-work-toolbar select {
+    width: 100%;
+  }
+}
+@media (max-width: 480px) {
+  .ds-page-heading p {
+    font-size: 12px;
+  }
+  .ds-tabs {
+    margin-bottom: 22px;
+  }
+  .ds-tabs button {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+  .ds-priority {
+    padding: 19px 17px;
+  }
+  .ds-priority-top {
+    gap: 8px;
+    margin-bottom: 19px;
+  }
+  .ds-priority-body {
+    gap: 13px;
+  }
+  .ds-priority-number {
+    width: 53px;
+    min-height: 96px;
+    font-size: 31px;
+    border-radius: 13px;
+  }
+  .ds-priority-body h2 {
+    font-size: 21px;
+  }
+  .ds-priority-body p {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .ds-priority-footer {
+    padding-left: 0;
+    margin-top: 19px;
+  }
+  .ds-primary {
+    flex: 1;
+    padding: 12px;
+  }
+  .ds-section {
+    padding: 17px 15px 3px;
+  }
+  .student-diary h2 {
+    font-size: 17px;
+  }
+  .ds-priority-body h2 {
+    font-size: 21px;
+  }
+  .ds-focus-grid > aside {
+    grid-template-columns: 1fr;
+  }
+  .ds-work-row {
+    gap: 10px;
+  }
+  .ds-work-number {
+    width: 31px;
+    height: 36px;
+    font-size: 14px;
+  }
+  .ds-work-copy > strong {
+    font-size: 12px;
+  }
+  .ds-work-meta {
+    gap: 7px;
+  }
+  .ds-work-row > .ds-chevron {
+    width: 13px;
+  }
+  .ds-badge {
+    font-size: 10px;
+  }
+  .ds-badge svg {
+    width: 13px;
+    height: 13px;
+  }
+  .ds-work-meta .ds-due {
+    font-size: 10px;
+  }
+  .ds-course-label {
+    font-size: 10px;
+  }
+  .ds-course-card {
+    padding: 18px;
+  }
+  .ds-course-progress {
+    font-size: 10px;
+  }
+  .ds-all-work {
+    padding: 17px 14px;
+  }
+  .ds-dialog h2 {
+    font-size: 21px;
+  }
+}
+@media (pointer: coarse) {
+  .ds-round {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .ds-tabs button,
+  .ds-work-toolbar select,
+  .ds-scope select {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .student-diary button {
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+}
+.student-diary {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 2px 30px;
+}
+.student-diary > .ds-page-heading {
+  padding-top: 3px;
+}
+.student-diary > .ds-page-heading > p {
+  margin-top: 0;
+}
+.student-diary .ds-course-track {
+  flex-wrap: wrap;
+  gap: 16px 0;
+}
+.student-diary .ds-track-step {
+  flex: 0 0 16.66%;
+  min-width: 40px;
+}
+.student-diary .ds-track-step:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.student-diary .ds-no-lesson {
+  padding: 22px;
+}
+.student-diary .ds-no-lesson > svg {
+  color: var(--ds-muted);
+  margin-bottom: 13px;
+}
+.student-diary .ds-no-lesson > p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 9px;
+  color: var(--ds-muted);
+}
+.ds-load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--color-yellow-soft);
+  color: var(--color-yellow-text);
+  padding: 15px 18px;
+  border-radius: 18px;
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+.ds-reminder-explanation {
+  color: var(--ds-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 17px 0 !important;
+}
+.student-diary .ds-dialog {
+  margin: 0;
+}
+@media (max-width: 480px) {
+  .student-diary .ds-tabs {
+    width: 100%;
+  }
+  .student-diary .ds-tabs button {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 11px;
+  }
+  .ds-load-error {
+    flex-wrap: wrap;
+  }
+}
+.student-diary .ds-track-step:nth-child(6n+1)::before { display:none; }

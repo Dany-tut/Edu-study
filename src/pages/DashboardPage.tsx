@@ -7,9 +7,10 @@ import CourseTrack from '../components/CourseTrack'
 import HomeNext, { useHomeRedesign } from '../components/HomeNext'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileHome from '../components/MobileHome'
-import MobileCourses from '../components/MobileCourses'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
+import type { DiaryTab } from './StudentDiaryPage'
+import { useDiaryRemindersInit } from '../lib/diaryReminders'
 import LessonPage from './LessonPage'
 import TestFlow from '../components/TestFlow'
 import AnswerFlightLayer from '../components/AnswerFlightLayer'
@@ -52,6 +53,7 @@ import TrainerBootSkeleton from '../components/trainer/TrainerBootSkeleton'
 // которую рисуют узлы маршрута, вынесена в homeworkSteps.ts — иначе они тянули
 // бы весь модуль домашки обратно в главный чанк.
 const HomeworkFlow = lazy(() => retryImport(() => import('../components/HomeworkFlow')))
+const StudentDiaryPage = lazy(() => retryImport(() => import('./StudentDiaryPage')))
 
 // Пока чанк тренажёра едет — сразу его скелет, а не пустой фон: иначе ожидание
 // шло тремя экранами подряд (белый → скелетон → содержимое). Дальше тренажёр
@@ -78,6 +80,7 @@ const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer' | 'profile' | 
   '#': 'home',
   '': 'home',
   '#/courses': 'courses',
+  '#/diary': 'courses',
   '#/trainer': 'trainer',
   '#/profile': 'profile',
   // Вкладка «ДЗ» (каталог занятий). Без слэша и без id — «#/homework/<id>»
@@ -86,7 +89,7 @@ const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer' | 'profile' | 
 }
 const PAGE_TO_HASH: Record<string, string> = {
   home: '#/',
-  courses: '#/courses',
+  courses: '#/diary',
   trainer: '#/trainer',
   profile: '#/profile',
   homeworkList: '#/homework',
@@ -101,6 +104,7 @@ const TRAINER_HASH_RE = /^#\/trainer\//
 
 export default function DashboardPage() {
   useStudentPrefsSync()
+  useDiaryRemindersInit()
   // Оттенок курса: пишет переменные на <html>, снимает их при выходе.
   useCourseTint()
   // Правка цвета в настройках меняет карту предметов, а её читают не только
@@ -197,6 +201,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (activePage === 'home') return
+    if (activePage === 'courses') { setTintSubject(null); return }
     // В ТРЕНАЖЁРЕ оттенок ставит он сам (pages/TrainerPage): выбор языка обычно
     // переводит и курс, но предмет может прийти ссылкой или из банка заданий —
     // курса под ним нет вовсе, и тон брал бы чужой язык. Уход с тренажёра
@@ -270,6 +275,15 @@ export default function DashboardPage() {
   // вынесен отдельным слоем (см. ниже, «Каталог не размонтируется»), а условия
   // нужны обеим сторонам — поэтому считаем их один раз здесь.
   const lessonWaiting = (!lesson && !dataLoaded) || lessonPending
+  const [diaryTab, setDiaryTab] = useState<DiaryTab>('today')
+  const diaryFocusNonce = useDashboard(s => s.moduleFocusNonce)
+  useEffect(() => { if (useDashboard.getState().coursesFocusLessonId) setDiaryTab('lessons') }, [diaryFocusNonce])
+  const showDiary = activePage === 'courses'
+  const [diarySeen, setDiarySeen] = useState(false)
+  useEffect(() => { if (showDiary) setDiarySeen(true) }, [showDiary])
+  const diaryPane = useRef<HTMLElement>(null)
+  const diaryScroll = useRef(0)
+  useLayoutEffect(() => { if (showDiary && diaryPane.current) diaryPane.current.scrollTop = diaryScroll.current }, [showDiary])
   const showLesson = activePage === 'lesson'
   const showHomeworkWaiting = activePage === 'homework' && lessonWaiting
   const showHomework = activePage === 'homework' && !!lesson && !!homework
@@ -277,8 +291,8 @@ export default function DashboardPage() {
   // Тот же «остальное» из старой цепочки: 'courses', 'homeworkList', 'profile'
   // (десктопного профиля нет) и домашка, у которой не нашлось ни данных, ни
   // ожидания. На телефоне профиль и «Курсы» рисуют свои экраны.
-  const showCatalogue = activePage !== 'home' && !showLesson && !showHomeworkWaiting && !showHomework && !showTrainer
-  const showMobileCatalogue = showCatalogue && activePage !== 'courses' && activePage !== 'profile'
+  const showCatalogue = activePage !== 'home' && activePage !== 'courses' && !showLesson && !showHomeworkWaiting && !showHomework && !showTrainer
+  const showMobileCatalogue = showCatalogue && activePage !== 'profile'
 
   // КАТАЛОГ НЕ РАЗМОНТИРУЕТСЯ, КОГДА ОТКРЫТ УРОК.
   //
@@ -479,7 +493,8 @@ export default function DashboardPage() {
             <SeasonCornerPumpkin />
           </>
           )
-        ) : showLesson ? (
+        ) : showDiary ? null
+        : showLesson ? (
           /* Single lesson — player + materials (screen 2). The page
              extends past the viewport (homework levels, transcript, etc.),
              so we override the dashboard's no-scroll layout and let this
@@ -539,6 +554,12 @@ export default function DashboardPage() {
           </main>
         ) : null}
 
+        {(showDiary || diarySeen) && <main ref={diaryPane} className="dashboard-main"
+          onScroll={event => { diaryScroll.current = event.currentTarget.scrollTop }}
+          style={{ display: showDiary ? undefined : 'none', overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}>
+          <Suspense fallback={<LessonLoading />}><StudentDiaryPage tab={diaryTab} setTab={setDiaryTab} /></Suspense>
+        </main>}
+
         {/* Courses catalogue (screen 3) — живёт отдельным слоем и на время урока
             только прячется: см. «Каталог не размонтируется» выше. */}
         {(showCatalogue || catalogueSeen) && (
@@ -566,9 +587,8 @@ export default function DashboardPage() {
       <div>
         {activePage === 'home' ? (
           <MobileHome />
-        ) : activePage === 'courses' ? (
-          <MobileCourses />
-        ) : activePage === 'profile' ? (
+        ) : showDiary ? null
+        : activePage === 'profile' ? (
           <MobileProfilePage />
         ) : activePage === 'trainer' ? (
           <TrainerChunk />
@@ -603,6 +623,11 @@ export default function DashboardPage() {
             <MobileBottomNav />
           </div>
         )}
+
+        {(showDiary || diarySeen) && <div style={{ display: showDiary ? 'block' : 'none', minHeight: '100dvh', background: 'var(--color-bg)', paddingTop: MOBILE_TOP_INSET, paddingLeft: 16, paddingRight: 16, paddingBottom: 120, overflowX: 'clip' }}>
+          <Suspense fallback={<LessonLoading />}><StudentDiaryPage tab={diaryTab} setTab={setDiaryTab} /></Suspense>
+          {showDiary && <MobileBottomNav />}
+        </div>}
 
         {/* Вкладка «ДЗ» — каталог занятий со статусами (свой поиск/фильтр/
             сортировка в нижнем доке). Отдельная страница, а не 'homework': та

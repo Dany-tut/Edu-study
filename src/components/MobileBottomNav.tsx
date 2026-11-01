@@ -21,7 +21,7 @@ const COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
 
 const items = [
   { id: 'home',     label: 'Главная',  icon: 'home' },
-  { id: 'courses',  label: 'Курсы',    icon: 'courses' },
+  { id: 'courses',  label: 'Дневник',  icon: 'courses' },
   { id: 'trainer',  label: 'Тренажёр', icon: 'trainer' },
   { id: 'homeworkList', label: 'ДЗ',   icon: 'review' },
   { id: 'profile',  label: 'Профиль',  icon: 'profile' },
