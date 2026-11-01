@@ -7,6 +7,7 @@ import MobileSheet from '../../MobileSheet'
 import DateTimeField from '../../DateTimeField'
 import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../../lib/teacherTz'
 import QuickAddLesson from './QuickAddLesson'
+import WeekStrip from './WeekStrip'
 import { RadioMark } from '../../Radio'
 import { CheckboxMark } from '../../Checkbox'
 import { MODAL_BACKDROP } from '../../Modal'
@@ -80,7 +81,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const [busy, setBusy] = useState(false)
 
   // ── перетаскивание ─────────────────────────────────────────────────────────
-  const cellRefs = useRef<(HTMLDivElement | null)[]>([])
+  const cellRefs = useRef(new Map<string, HTMLButtonElement>())
   const [drag, setDrag] = useState<{ item: SchedItem; x: number; y: number; w: number; dx: number; dy: number } | null>(null)
   const [target, setTarget] = useState<string | null>(null)
   const targetRef = useRef<string | null>(null)
@@ -88,10 +89,13 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const go = (next: string) => { setDir(next > day ? 1 : -1); setDay(next) }
 
   const hitDay = (x: number, y: number): string | null => {
-    for (let i = 0; i < 7; i++) {
-      const r = cellRefs.current[i]?.getBoundingClientRect()
+    for (const [date, cell] of cellRefs.current) {
+      const r = cell.getBoundingClientRect()
       // Поле приёма выше и ниже ячейки: палец закрывает цифру, в неё не прицелишься.
-      if (r && x >= r.left && x <= r.right && y >= r.top - 28 && y <= r.bottom + 28) return week[i]
+      if (x >= r.left && x <= r.right && y >= r.top - 28 && y <= r.bottom + 28) {
+        const strip = cell.closest('[data-week-strip]')?.getBoundingClientRect()
+        if (strip && x >= strip.left && x <= strip.right) return date
+      }
     }
     return null
   }
@@ -164,8 +168,6 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
     const dy = e.changedTouches[0].clientY - s.y
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 2) { haptic(6); go(addDays(day, dx < 0 ? 1 : -1)) }
   }
-  const stripSwipe = useRef<number | null>(null)
-
   const monthTitle = (() => {
     const a = monthIdx(week[0]), b = monthIdx(week[6])
     const m = MONTHS[monthIdx(day)]
@@ -175,53 +177,49 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: embedded ? 10 : 12, height: embedded ? '100%' : undefined, minHeight: 0, userSelect: drag ? 'none' : undefined }}>
-      {/* Шапка: месяц, «Сегодня», недели стрелками — на ПК свайпа нет */}
+      {/* Шапка: месяц, «Сегодня», недели стрелками */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px' }}>
         <div style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
-        {!mobile && (
-          <button
-            aria-label={t('Добавить занятие')}
-            onClick={() => setAddOpen(true)}
-            style={btn('S', 'primary', { width: 32, padding: 0 })}
-          ><Plus size={17} /></button>
-        )}
-        {weekStart(today) !== start && (
-          <button onClick={() => go(today)} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
-        )}
-        {!mobile && (
-          <>
-            <button aria-label={t('Прошлая неделя')} onClick={() => go(addDays(day, -7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
-            <button aria-label={t('Следующая неделя')} onClick={() => go(addDays(day, 7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
-          </>
-        )}
+          {!mobile && (
+            <button
+              aria-label={t('Добавить занятие')}
+              onClick={() => setAddOpen(true)}
+              style={btn('S', 'primary', { width: 32, padding: 0 })}
+            ><Plus size={17} /></button>
+          )}
+          {weekStart(today) !== start && (
+            <button onClick={() => go(today)} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
+          )}
+          {!mobile && (
+            <>
+              <button aria-label={t('Прошлая неделя')} onClick={() => go(addDays(day, -7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
+              <button aria-label={t('Следующая неделя')} onClick={() => go(addDays(day, 7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
+            </>
+          )}
       </div>
 
       {/* Неделя */}
-      <div
-        style={{ display: 'flex', gap: 2, touchAction: 'pan-y' }}
-        onTouchStart={e => { stripSwipe.current = e.touches[0].clientX }}
-        onTouchEnd={e => {
-          const s = stripSwipe.current
-          stripSwipe.current = null
-          if (s == null || dragged.current) return
-          const dx = e.changedTouches[0].clientX - s
-          if (Math.abs(dx) > 50) { haptic(6); go(addDays(day, dx < 0 ? 7 : -7)) }
-        }}
-      >
-        {week.map((d, i) => {
+      <WeekStrip
+        start={start}
+        label={t('Выбор недели')}
+        onWeekChange={next => go(addDays(next, weekdayIdx(day)))}
+        renderDay={(d, i) => {
           const sel = d === day
           const hot = target === d && drag?.item.date !== d
           const dots = (items ?? []).filter(x => x.date === d && !x.cancelled).slice(0, 3)
           return (
-            <motion.div
+            <motion.button
               key={d}
+              type="button"
+              aria-label={dayLabel(d)}
+              aria-pressed={sel}
               aria-current={d === today ? 'date' : undefined}
-              ref={el => { cellRefs.current[i] = el }}
+              ref={el => { if (el) cellRefs.current.set(d, el); else cellRefs.current.delete(d) }}
               onClick={() => go(d)}
               animate={{ scale: hot ? 1.08 : 1 }}
               transition={SPRING}
               style={{
-                flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: 16,
+                flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: 16, border: 0, font: 'inherit',
                 padding: '6px 0 7px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                 background: sel ? 'var(--color-purple)' : hot ? 'color-mix(in srgb, var(--color-purple) 30%, transparent)' : 'transparent',
                 boxShadow: d === today && !sel ? 'inset 0 0 0 2px var(--color-purple)' : undefined,
@@ -236,10 +234,10 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
               <span style={{ display: 'flex', gap: 3, height: 5 }}>
                 {dots.map(x => <span key={x.id} style={{ width: 5, height: 5, borderRadius: '50%', background: sel ? '#fff' : x.color }} />)}
               </span>
-            </motion.div>
+            </motion.button>
           )
-        })}
-      </div>
+        }}
+      />
 
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', padding: '4px 4px 0' }}>
         {day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}
