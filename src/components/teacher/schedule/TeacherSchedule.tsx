@@ -232,7 +232,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
               animate={{ scale: hot ? 1.08 : 1 }}
               transition={SPRING}
               style={{
-                flex: 1, minWidth: 0, margin: '0 3px', cursor: 'pointer', borderRadius: 16, border: 0, font: 'inherit',
+                flex: 1, minWidth: 0, margin: '0 3px', cursor: 'pointer', borderRadius: 16, border: 0, outline: 'none', font: 'inherit',
                 padding: '6px 0 7px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                 background: sel ? 'var(--color-purple)' : hot ? 'color-mix(in srgb, var(--color-purple) 30%, transparent)' : 'transparent',
                 boxShadow: d === today && !sel ? 'inset 0 0 0 2px var(--color-purple)' : undefined,
