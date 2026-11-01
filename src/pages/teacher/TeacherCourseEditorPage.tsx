@@ -6141,6 +6141,7 @@ export default function TeacherCourseEditorPage() {
     // it lands created_by=NULL → RLS rejects the row → upsert returns null → the
     // course silently never persists (shows "Опубликован" locally, absent in DB).
     const ownerId = await getOwnerId()
+    const changes = accessChangesForSave(c)
 
     const { data: courseUpsert, error: courseErr } = await supabase
       .from('courses')
@@ -6181,7 +6182,16 @@ export default function TeacherCourseEditorPage() {
     // без конспектов и домашек и давала ноль — кнопки «Из сида» не было даже
     // там, где расхождений сотня, — а отпечаток сида было некому записать, и
     // точка на плитке горела вечно.
-    if (!c.dbCourseId) setCourse(prev => (prev.dbCourseId ? prev : { ...prev, dbCourseId: shortId }))
+    if (!c.dbCourseId) setCourse(prev => {
+      if ((prev.dbCourseId ?? prev.id) !== shortId || prev.dbCourseId) return prev
+      // Keep initial grants as pending intents until the access RPC succeeds,
+      // including retries after a partial content save or a metadata refresh.
+      return { ...prev, dbCourseId: shortId, accessChanges: {
+        students: { ...changes.students, ...prev.accessChanges?.students },
+        groups: { ...changes.groups, ...prev.accessChanges?.groups },
+        modes: { ...changes.modes, ...prev.accessChanges?.modes },
+      } }
+    })
 
     // ── Persist modules + lessons so the student track renders ──────────────
     // The student reader (fetchCourseStructure) reads lessons through
@@ -6333,7 +6343,6 @@ export default function TeacherCourseEditorPage() {
 
     // Content saves carry no audience arrays. Apply only explicit UI actions,
     // under a database row lock, preserving concurrent assignments and modes.
-    const changes = accessChangesForSave(c)
     const { data: access, error: accessError } = await supabase.rpc('save_course_access_changes', {
       p_course: courseDbId, p_changes: changes,
     })

@@ -21,3 +21,9 @@ assert.deepEqual(accessChangesForSave(modeEdit).modes,{matvey:'full'})
 assert.equal(acknowledgeCourseAccess(modeEdit,accessChangesForSave(modeEdit),server).accessChanges,undefined)
 assert.deepEqual(accessChangesForSave({studentIds:['anna'],groupIds:['group']}),{students:{anna:true},groups:{group:true},modes:{}})
 console.log('PASS: stale drafts, explicit add/remove, queued saves, in-flight reversal, modes, new-course audience')
+const creating = { studentIds:['anna'], groupIds:[] }
+const retry = { ...creating, dbCourseId:'new-course', accessChanges:accessChangesForSave(creating) }
+const duringLoad = acknowledgeCourseAccess(retry,{}, { student_ids:[], group_ids:[] })
+assert.deepEqual(duringLoad.studentIds,['anna'])
+assert.deepEqual(accessChangesForSave(duringLoad).students,{anna:true})
+console.log('PASS: new-course grants survive partial-save retries and metadata loading')
