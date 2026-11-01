@@ -5,6 +5,7 @@ import type { Provider } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { clearStudentSession, setStudentSession } from './studentSession'
 import { trackNow } from './analytics'
+import { authErrorRu } from './authErrors'
 
 export type LoginRole = 'teacher' | 'student'
 
@@ -42,12 +43,22 @@ async function finishIdentityLink() {
   if (!raw) return false
   let pending: { userId: string; provider: string; time: number }
   try { pending = JSON.parse(raw) } catch { localStorage.removeItem(LINK_KEY); return false }
-  const callbackError = new URLSearchParams(window.location.hash.slice(1)).get('error_description')
+  // GoTrue may return OAuth errors in the query string (web) or fragment.
+  const queryParams = new URLSearchParams(window.location.search)
+  const fragmentParams = new URLSearchParams(window.location.hash.slice(1))
+  const callbackError = queryParams.get('error_description') || fragmentParams.get('error_description')
   if (callbackError) {
+    const message = authErrorRu({
+      code: queryParams.get('error_code') || fragmentParams.get('error_code'),
+      message: callbackError,
+    }, 'Не удалось подключить способ входа. Попробуйте ещё раз.')
     localStorage.removeItem(LINK_KEY)
-    sessionStorage.setItem('iskra:link-error', callbackError)
+    sessionStorage.setItem('iskra:link-error', message)
+    for (const key of ['error', 'error_code', 'error_description']) queryParams.delete(key)
+    const remainingQuery = queryParams.toString()
+    window.history.replaceState(null, '', `${window.location.pathname}${remainingQuery ? `?${remainingQuery}` : ''}${window.location.hash}`)
     window.location.hash = '#/teacher/profile'
-    throw new Error(callbackError)
+    throw new Error(message)
   }
   if (!pending.userId || !['google', 'apple'].includes(pending.provider) || !Number.isFinite(pending.time) || Date.now() - pending.time > 15 * 60 * 1000) {
     localStorage.removeItem(LINK_KEY)
