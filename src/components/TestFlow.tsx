@@ -1,4 +1,5 @@
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
+import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
 import { isHomeworkSubmissionStatus, type HomeworkResult } from '../lib/homeworkResult'
 import { useRef, useState } from 'react'
 import { CheckboxMark } from './Checkbox'
@@ -127,6 +128,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
         <HomeworkAttemptPanel kind="test" result={useSavedSubmission ? result.homework : progress?.result}
           status={useSavedSubmission ? 'submitted' : progress?.status} studentId={ownerStudentIdFor(lesson.subject)} lessonRef={lesson.id}
           onRetake={async () => { setAnswers({}); setResult(null); await reload() }} />
+        <HomeworkAttemptHistorySection result={useSavedSubmission ? result.homework : progress?.result}
+          studentId={ownerStudentIdFor(lesson.subject)} lessonRef={lesson.id} />
         <button onClick={onBack} style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
           {t('К курсу')}
         </button>

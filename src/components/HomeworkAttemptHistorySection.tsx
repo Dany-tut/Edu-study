@@ -5,8 +5,8 @@ import type { BasicAnswersPayload } from '../lib/basicAnswers'
 import { supabase } from '../lib/supabase'
 import HomeworkAttemptHistory from './HomeworkAttemptHistory'
 
-export default function HomeworkAttemptHistorySection({ result, studentId, lessonRef }: {
-  result?: HomeworkResult; studentId: string; lessonRef: string
+export default function HomeworkAttemptHistorySection({ result, studentId, lessonRef, authorName }: {
+  result?: HomeworkResult; studentId: string; lessonRef: string; authorName?: string
 }) {
   const t = useT()
   const [error, setError] = useState('')
@@ -56,7 +56,7 @@ export default function HomeworkAttemptHistorySection({ result, studentId, lesso
     }
   }
   return <section aria-label={t('История попыток')}>
-    <HomeworkAttemptHistory key={`${studentId}:${lessonRef}`} attempts={attempts} attemptCount={attemptCount}
+    <HomeworkAttemptHistory key={`${studentId}:${lessonRef}`} authorName={authorName} attempts={attempts} attemptCount={attemptCount}
       answers={answers} reading={reading} readErrors={readErrors} loadingOlder={loadingOlder}
       onRead={id => { void read(id) }} onLoadOlder={() => { void loadOlder() }} />
     {error && <p role="alert" style={{ color: 'var(--color-red-text)' }}>{error}</p>}
