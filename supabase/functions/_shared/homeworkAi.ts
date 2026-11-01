@@ -3,20 +3,23 @@ import atlas from './homeworkCriteria.json' with { type: 'json' }
 
 export type GradeErrorCode = 'configuration' | 'credentials' | 'balance' | 'rate_limit' | 'timeout' | 'unavailable' | 'invalid_result' | 'missing_evidence'
 export class GradeError extends Error {
+  providerStatus?: number
+  providerCode?: string
   constructor(public code: GradeErrorCode, public retryable = false) { super(code); this.name = 'GradeError' }
 }
 
 // Linali's documented Chat Completions route. Override only on the server.
 export const LINALI_URL = 'https://api.linaliapi.com/v1/chat/completions'
-export const DEFAULT_MODEL = 'anthropic/claude-opus-5'
+export const DEFAULT_MODEL = 'anthropic/claude-opus-5.5'
 
 export function classifyProviderStatus(status: number): GradeError {
-  if (status === 401 || status === 403) return new GradeError('credentials')
-  if (status === 402) return new GradeError('balance')
-  if (status === 429) return new GradeError('rate_limit', true)
-  if (status === 408 || status === 504) return new GradeError('timeout', true)
-  if (status >= 500) return new GradeError('unavailable', true)
-  return new GradeError('invalid_result')
+  const error = status === 401 || status === 403 ? new GradeError('credentials')
+    : status === 402 ? new GradeError('balance')
+    : status === 429 ? new GradeError('rate_limit',true)
+    : status === 408 || status === 504 ? new GradeError('timeout',true)
+    : status >= 500 ? new GradeError('unavailable',true) : new GradeError('invalid_result')
+  error.providerStatus = status
+  return error
 }
 
 type AtlasItem = { n: number; max_points: number; criteria?: unknown[] }
@@ -80,7 +83,13 @@ scale — массив {elements:целое,points:целое} из критер
     if (error instanceof Error && ['TimeoutError','AbortError'].includes(error.name)) throw new GradeError('timeout', true)
     throw new GradeError('unavailable', true)
   }
-  if (!response.ok) { await response.body?.cancel(); throw classifyProviderStatus(response.status) }
+  if (!response.ok) {
+    const error = classifyProviderStatus(response.status)
+    const body = await response.json().catch(()=>null)
+    const code = body?.error?.code
+    if(typeof code==='string' && /^[a-z0-9_:-]{1,60}$/i.test(code))error.providerCode=code
+    throw error
+  }
   try {
     const body = await response.json()
     const choice = body.choices?.[0]

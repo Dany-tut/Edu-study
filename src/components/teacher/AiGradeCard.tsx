@@ -62,7 +62,7 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit, onRet
   }
   if (grade.status === 'error' || grade.status === 'skipped') {
     const issue=homeworkAiIssue(retryError||(grade.status==='skipped'?'missing_evidence':grade.error))
-    return <div style={{marginBottom:16}}><Alert tone="info" title={t(issue.title)} text={t(issue.text)}
+    return <div style={{marginBottom:16}}><Alert stacked tone="info" title={t(issue.title)} text={t(issue.text)}
       action={onRetry?{label:retrying?t('Повторяем…'):t('Повторить'),onClick:()=>{if(retrying)return;setRetrying(true);setRetryError('');void onRetry().catch(error=>setRetryError(error instanceof Error?error.message:'unavailable')).finally(()=>setRetrying(false))}}:undefined}/></div>
   }
   if (!['graded', 'dismissed', 'confirmed', 'changed'].includes(grade.status)) return null

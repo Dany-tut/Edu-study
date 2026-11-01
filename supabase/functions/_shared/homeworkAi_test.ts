@@ -33,3 +33,10 @@ Deno.test('configuration failure does not make a paid provider request',async()=
 Deno.test('token-truncated JSON cannot masquerade as a completed grade',async()=>{
  await assertRejects(()=>gradeViaLinali(work,[],{key:'test',fetcher:async()=>new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:JSON.stringify(raw())}}]}))}),GradeError,'invalid_result')
 })
+
+Deno.test('legacy credentials are never selected without explicit routing',async()=>{
+ const {resolveLinaliKey}=await import('./homeworkAiKey.ts')
+ assertEquals(resolveLinaliKey(undefined,'legacy-key'),undefined)
+ assertEquals(resolveLinaliKey(undefined,' saved-key ',true),'saved-key')
+ assertEquals(resolveLinaliKey(' dedicated-key ','legacy-key',true),'dedicated-key')
+})

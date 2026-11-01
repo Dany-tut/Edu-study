@@ -24,6 +24,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2.118.0'
 import { SCHEMA, SYSTEM, buildPrompt, score } from './grader.ts'
 import { loadWork } from '../_shared/homeworkWork.ts'
+import { resolveLinaliKey } from '../_shared/homeworkAiKey.ts'
 
 const FLAGS = ['ai_enabled', 'ai_hw_grade']
 // Мак взял работу и пропал — через столько она снова в очереди.
@@ -54,14 +55,14 @@ Deno.serve(async (req) => {
 
   const body = await req.json().catch(() => ({})) as Record<string, unknown>
   const id = typeof body.id === 'string' && /^[0-9a-f-]{36}$/i.test(body.id) ? body.id : ''
-  if (['claim','result'].includes(String(body.action)) && Deno.env.get('LINALI_API_KEY')) {
+  if (['claim','result'].includes(String(body.action)) && resolveLinaliKey(Deno.env.get('LINALI_API_KEY'),Deno.env.get('KIE_API_KEY'),Deno.env.get('LINALI_KEY_SOURCE')==='KIE_API_KEY')) {
     const { data: apiFlag } = await admin.from('app_flags').select('enabled').eq('key','ai_hw_api').maybeSingle()
     if(apiFlag?.enabled)return json({error:'API worker is active'},409)
   }
 
   if (body.action === 'queue') {
     const { data: apiFlag } = await admin.from('app_flags').select('enabled').eq('key','ai_hw_api').maybeSingle()
-    if (apiFlag?.enabled && Deno.env.get('LINALI_API_KEY')) return json({ tasks: [], system: SYSTEM, schema: SCHEMA, off: true })
+    if (apiFlag?.enabled && resolveLinaliKey(Deno.env.get('LINALI_API_KEY'),Deno.env.get('KIE_API_KEY'),Deno.env.get('LINALI_KEY_SOURCE')==='KIE_API_KEY')) return json({ tasks: [], system: SYSTEM, schema: SCHEMA, off: true })
     if (!(await flagsOn())) return json({ tasks: [], system: SYSTEM, schema: SCHEMA, off: true })
     // Взятые и брошенные — обратно в очередь.
     await admin.from('hw_ai_grades').update({ status: 'pending', claimed_at: null, updated_at: new Date().toISOString() })
