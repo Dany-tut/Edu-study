@@ -131,34 +131,38 @@ export async function finishSocialLogin() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
 
-  const { data: students, error: studentError } = await supabase
-    .from('students')
-    .select('id, name, group_id, created_at')
-    .eq('auth_user_id', user.id)
-    .order('created_at', { ascending: true })
-  if (studentError) throw studentError
-  const student = students?.[0]
-  if (student) {
-    setStudentSession({ id: student.id, name: student.name, groupId: student.group_id ?? '' })
-    localStorage.removeItem(OAUTH_ROLE_KEY)
-    void trackNow('login', { role: 'student', method: 'oauth' })
-    window.location.hash = '#/'
-    window.location.reload()
-    return true
+  if (selectedRole === 'student') {
+    const { data: students, error: studentError } = await supabase
+      .from('students')
+      .select('id, name, group_id, created_at')
+      .eq('auth_user_id', user.id)
+      .order('created_at', { ascending: true })
+    if (studentError) throw studentError
+    const student = students?.[0]
+    if (student) {
+      setStudentSession({ id: student.id, name: student.name, groupId: student.group_id ?? '' })
+      localStorage.removeItem(OAUTH_ROLE_KEY)
+      void trackNow('login', { role: 'student', method: 'oauth' })
+      window.location.hash = '#/'
+      window.location.reload()
+      return true
+    }
   }
 
-  // Teacher accounts are provisioned by invitation and carry a role claim.
-  // Social OAuth must not turn an arbitrary identity into an Искра teacher.
-  const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
-  if (profileError) throw profileError
-  const accountRole = user.app_metadata?.role || profile?.role
-  if (accountRole === 'teacher' || accountRole === 'admin') {
-    localStorage.removeItem(OAUTH_ROLE_KEY)
-    clearStudentSession()
-    void trackNow('login', { role: 'teacher', method: 'oauth' })
-    window.location.hash = '#/teacher'
-    window.location.reload()
-    return true
+  if (selectedRole === 'teacher') {
+    // Check the selected cabinet before routing: one Auth account can have
+    // both a teacher profile and a linked student row.
+    const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    if (profileError) throw profileError
+    const accountRole = user.app_metadata?.role || profile?.role
+    if (accountRole === 'teacher' || accountRole === 'admin') {
+      localStorage.removeItem(OAUTH_ROLE_KEY)
+      clearStudentSession()
+      void trackNow('login', { role: 'teacher', method: 'oauth' })
+      window.location.hash = '#/teacher'
+      window.location.reload()
+      return true
+    }
   }
 
   await supabase.auth.signOut()
