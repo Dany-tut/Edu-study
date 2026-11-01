@@ -7,6 +7,8 @@ import { useT } from '../lib/i18n'
 import ScheduleCard from './ScheduleCard'
 import Skeleton from './Skeleton'
 import HScrollFade from './HScrollFade'
+import ScheduleRibbon from './ScheduleRibbon'
+import type { ScheduleDay } from '../data/mockData'
 
 // Side card widths by distance from center — must match ScheduleCard.
 const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
@@ -21,10 +23,20 @@ const SCROLLER_STYLE = {
 }
 
 export default function ScheduleCarousel() {
+  const desktop = useIsDesktop()
+  return desktop ? <ScheduleRibbon>{(days, index, onSelect, loaded) => <ScheduleCarouselStrip days={days} index={index} onSelect={onSelect} loaded={loaded} />}</ScheduleRibbon> : <ScheduleCarouselStrip />
+}
+
+function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; onSelect?: (index: number) => void; loaded?: boolean }) {
   const t = useT()
-  const { scheduleIndex, setScheduleIndex } = useDashboard()
-  const scheduleDays = useStudentData(s => s.scheduleDays)
-  const loaded = useStudentData(s => s.loaded)
+  const storedIndex = useDashboard(s => s.scheduleIndex)
+  const storedSetIndex = useDashboard(s => s.setScheduleIndex)
+  const storedDays = useStudentData(s => s.scheduleDays)
+  const storedLoaded = useStudentData(s => s.loaded)
+  const scheduleIndex = props.index ?? storedIndex
+  const setScheduleIndex = props.onSelect ?? storedSetIndex
+  const scheduleDays = props.days ?? storedDays
+  const loaded = props.loaded ?? storedLoaded
   const total = scheduleDays.length
   const isDesktop = useIsDesktop()
   const mobile = !isDesktop
@@ -63,7 +75,7 @@ export default function ScheduleCarousel() {
   // the whole strip grow/shrink — keeping the tallest height avoids the jump.
   // Two full lesson rows must fit even on a laptop. Taller windows give the
   // calendar more room; longer lists scroll inside the card at every size.
-  const stripHeight = mobile ? 210 : 'clamp(210px, 26vh, 260px)'
+  const stripHeight = mobile ? 210 : 'var(--home-schedule-height, clamp(210px, 26vh, 260px))'
 
   const offsets = [-3, -2, -1, 0, 1, 2, 3]
   const slots = offsets.map(offset => {
