@@ -1,3 +1,4 @@
+import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, type CourseSlot } from '../../lib/courseScheduleSync'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
@@ -192,6 +193,8 @@ export interface CourseEdData {
   bg: string
   groupIds: string[]
   studentIds: string[]
+  /** Explicit access actions survive draft recovery; content snapshots never revoke access. */
+  accessChanges?: CourseAccessChanges
   modules: CEModule[]
   lessons: CELesson[]
   description?: string
@@ -772,7 +775,7 @@ function AssignPicker({
 }
 
 function CenterCourseAccess({
-  course, setCourse, groups, allStudents, addIndividualCard, accessModes, setAccessModes,
+  course, setCourse, groups, allStudents, addIndividualCard, accessModes, onAccessModesChange,
 }: {
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
@@ -781,7 +784,7 @@ function CenterCourseAccess({
   /** Завести человеку ещё одно направление (карточку) — из useGroups. */
   addIndividualCard: ReturnType<typeof useGroups>['addIndividualCard']
   accessModes: Record<string, AccessMode>
-  setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
+  onAccessModesChange: (changes: Record<string, AccessMode>) => void
 }) {
   const t = useT()
   const [assignTab, setAssignTab] = useState<'group' | 'student'>('group')
@@ -980,7 +983,7 @@ function CenterCourseAccess({
 
   const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
   const setStudentMode = (id: string, mode: AccessMode) =>
-    setAccessModes(m => ({ ...m, [id]: mode }))
+    onAccessModesChange({ [id]: mode })
   // A group's mode is applied to every current member (stored per-student).
   const memberIdsOf = (groupId: string) =>
     students.filter(s => s.groupId === groupId).map(s => s.id)
@@ -994,11 +997,7 @@ function CenterCourseAccess({
     return ids.every(id => modeOf(id) === first) ? first : 'mixed'
   }
   const setGroupMode = (groupId: string, mode: AccessMode) =>
-    setAccessModes(m => {
-      const next = { ...m }
-      for (const id of memberIdsOf(groupId)) next[id] = mode
-      return next
-    })
+    onAccessModesChange(Object.fromEntries(memberIdsOf(groupId).map(id => [id, mode])))
 
   // Во вкладке «Группе» — только настоящие группы. 1:1-карточка тоже лежит в
   // groups (каждый индивидуальный ученик = своя группа), и в списке это был тот
@@ -4550,7 +4549,7 @@ function StudentsLeftPanel({
 // ─── CENTER: Lesson-level students tab — who actually has access ─────────────
 
 function CenterLessonStudents({
-  lesson, onUpdate, course, groups, allStudents, accessModes, setAccessModes,
+  lesson, onUpdate, course, groups, allStudents, accessModes, onAccessModesChange,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
@@ -4558,7 +4557,7 @@ function CenterLessonStudents({
   groups: Array<{ id: string; name: string }>
   allStudents: Array<{ id: string; name: string; groupId?: string }>
   accessModes: Record<string, AccessMode>
-  setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
+  onAccessModesChange: (changes: Record<string, AccessMode>) => void
 }) {
   const t = useT()
   const {
@@ -4571,7 +4570,7 @@ function CenterLessonStudents({
   // it changes the whole course, not just this lesson.
   const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
   const setStudentMode = (id: string, mode: AccessMode) =>
-    setAccessModes(m => ({ ...m, [id]: mode }))
+    onAccessModesChange({ [id]: mode })
   const memberIdsOf = (groupId: string) =>
     allStudents.filter(s => s.groupId === groupId).map(s => s.id)
   const groupMode = (groupId: string): AccessMode | 'mixed' => {
@@ -4581,11 +4580,7 @@ function CenterLessonStudents({
     return ids.every(id => modeOf(id) === first) ? first : 'mixed'
   }
   const setGroupMode = (groupId: string, mode: AccessMode) =>
-    setAccessModes(m => {
-      const next = { ...m }
-      for (const id of memberIdsOf(groupId)) next[id] = mode
-      return next
-    })
+    onAccessModesChange(Object.fromEntries(memberIdsOf(groupId).map(id => [id, mode])))
 
   function removeExtraGroup(id: string) {
     onUpdate({ ...lesson, extraGroupIds: extraGroupIds.filter(x => x !== id) })
@@ -5802,6 +5797,15 @@ export default function TeacherCourseEditorPage() {
   // 'full' → all lessons open · 'custom' → teacher unlocks by hand ·
   // 'by_date' → lessons open as their scheduled date passes. Absent → 'custom'.
   const [accessModes, setAccessModes] = useState<Record<string, 'full' | 'custom' | 'by_date'>>({})
+  const editCourseAccess: React.Dispatch<React.SetStateAction<CourseEdData>> = edit => {
+    setCourse(before => recordCourseAccessEdit(before, typeof edit === 'function' ? edit(before) : edit))
+  }
+  function editAccessModes(changes: Record<string, AccessMode>) {
+    setAccessModes(before => ({ ...before, ...changes }))
+    setCourse(before => ({ ...before, accessChanges: {
+      ...before.accessChanges, modes: { ...before.accessChanges?.modes, ...changes },
+    } }))
+  }
   // Курс ищем по тому же ключу, которым его ПИШЕТ syncAccessToSupabase:
   // `dbCourseId ?? id`. Курс, открытый с карточки сида, приезжает без
   // dbCourseId (его ставит только загрузка из БД, см. dbCourseToLocal), а id у
@@ -5811,32 +5815,23 @@ export default function TeacherCourseEditorPage() {
   // ученик показывался «По датам», и выбранное «Всё открыто» откатывалось
   // назад при следующем открытии редактора, хотя в БД лежало верное значение.
   const accessCourseKey = course.dbCourseId ?? course.id
-  // Доехала ли карта из БД. Пока нет — сохранение НЕ трогает course_enrollments:
-  // иначе пустая карта выдаёт себя за «у всех по датам» и сохранение курса
-  // (в том числе автосохранение по правке урока) молча сбрасывает выставленные
-  // уровни доступа.
-  const accessModesLoaded = useRef(false)
+  // Refresh audience independently of a possibly stale ce-session draft.
+  // Pending explicit actions are replayed over the current server audience.
   useEffect(() => {
     if (!accessCourseKey) return
     let cancelled = false
     ;(async () => {
-      const { data: courseRow } = await supabase
-        .from('courses').select('id').eq('short_id', accessCourseKey).maybeSingle()
-      // Курса в БД ещё нет — читать нечего, но и затирать нечего: сохранение
-      // такого курса пишет уровни доступа с чистого листа.
-      if (cancelled) return
-      if (!courseRow?.id) { accessModesLoaded.current = true; return }
-      const { data: enr } = await supabase
-        .from('course_enrollments')
-        .select('student_id, access_mode')
-        .eq('course_id', courseRow.id)
-      if (cancelled) return
-      const map: Record<string, 'full' | 'custom' | 'by_date'> = {}
-      for (const row of (enr ?? []) as Array<{ student_id: string; access_mode: 'full' | 'custom' | 'by_date' }>) {
-        map[row.student_id] = row.access_mode
-      }
-      setAccessModes(map)
-      accessModesLoaded.current = true
+      const { data: row, error: courseError } = await supabase.from('courses')
+        .select('id, student_ids, group_ids').eq('short_id', accessCourseKey).maybeSingle()
+      if (cancelled || courseError || !row) return
+      const { data: enr, error } = await supabase.from('course_enrollments')
+        .select('student_id, access_mode').eq('course_id', row.id)
+      if (cancelled || error) return
+      const map = Object.fromEntries((enr ?? []).map(r => [r.student_id, r.access_mode])) as Record<string, AccessMode>
+      setCourse(before => acknowledgeCourseAccess(before, {}, {
+        student_ids: row.student_ids ?? [], group_ids: row.group_ids ?? [],
+      }))
+      setAccessModes({ ...map, ...latestCourse.current.accessChanges?.modes })
     })()
     return () => { cancelled = true }
   }, [accessCourseKey])
@@ -6105,7 +6100,7 @@ export default function TeacherCourseEditorPage() {
 
     // Страховка на случай нового пути в сохранение: запись идёт курсом целиком,
     // а недогруженный курс — это курс без конспектов и домашек.
-    if (c.heavyPending) return false
+    if (c.metadataPending || c.heavyPending) return false
 
     // ── Защита от перезаписи устаревшей вкладкой ──────────────────────────────
     //
@@ -6146,6 +6141,7 @@ export default function TeacherCourseEditorPage() {
     // it lands created_by=NULL → RLS rejects the row → upsert returns null → the
     // course silently never persists (shows "Опубликован" locally, absent in DB).
     const ownerId = await getOwnerId()
+    const changes = accessChangesForSave(c)
 
     const { data: courseUpsert, error: courseErr } = await supabase
       .from('courses')
@@ -6155,7 +6151,6 @@ export default function TeacherCourseEditorPage() {
           title: c.title, subject: c.subject, level: c.level,
           description: c.description ?? '',
           status: c.status, color: c.color, bg: c.bg,
-          group_ids: c.groupIds, student_ids: c.studentIds,
           created_by: ownerId,
           // ОТПЕЧАТОК СИДА ПИШЕМ ОТСЮДА, иначе «Из сида» не закрывает вопрос:
           // применение ставит штамп только в состояние редактора, а плитка в
@@ -6187,7 +6182,16 @@ export default function TeacherCourseEditorPage() {
     // без конспектов и домашек и давала ноль — кнопки «Из сида» не было даже
     // там, где расхождений сотня, — а отпечаток сида было некому записать, и
     // точка на плитке горела вечно.
-    if (!c.dbCourseId) setCourse(prev => (prev.dbCourseId ? prev : { ...prev, dbCourseId: shortId }))
+    if (!c.dbCourseId) setCourse(prev => {
+      if ((prev.dbCourseId ?? prev.id) !== shortId || prev.dbCourseId) return prev
+      // Keep initial grants as pending intents until the access RPC succeeds,
+      // including retries after a partial content save or a metadata refresh.
+      return { ...prev, dbCourseId: shortId, accessChanges: {
+        students: { ...changes.students, ...prev.accessChanges?.students },
+        groups: { ...changes.groups, ...prev.accessChanges?.groups },
+        modes: { ...changes.modes, ...prev.accessChanges?.modes },
+      } }
+    })
 
     // ── Persist modules + lessons so the student track renders ──────────────
     // The student reader (fetchCourseStructure) reads lessons through
@@ -6337,28 +6341,26 @@ export default function TeacherCourseEditorPage() {
     if (keepShortIds.length > 0) delQuery = delQuery.not('short_id', 'in', `(${keepShortIds.join(',')})`)
     await delQuery
 
-    // ── Sync per-student access mode (course_enrollments) ───────────────────
-    // Audience = directly-assigned students + members of assigned groups.
-    // Each gets an enrollment row carrying its access mode (default 'custom').
-    const groupMemberIds = allStudents
-      .filter(s => s.groupId && c.groupIds.includes(s.groupId))
-      .map(s => s.id)
-    const audienceIds = [...new Set([...c.studentIds, ...groupMemberIds])]
-    const effMode = (id: string): 'full' | 'custom' | 'by_date' => accessModes[id] ?? 'by_date'
-
-    // Drop enrollments for students no longer in the audience, then upsert the rest.
-    // Карта уровней ещё не доехала — не пишем ничего: пустая карта означала бы
-    // «у всех по датам» и стёрла бы выставленное.
-    if (accessModesLoaded.current) {
-      let del = supabase.from('course_enrollments').delete().eq('course_id', courseDbId)
-      if (audienceIds.length > 0) del = del.not('student_id', 'in', `(${audienceIds.join(',')})`)
-      await del
-      if (audienceIds.length > 0) {
-        const enrRows = audienceIds.map(id => ({ course_id: courseDbId, student_id: id, access_mode: effMode(id) }))
-        const { error } = await supabase.from('course_enrollments').upsert(enrRows, { onConflict: 'course_id,student_id' })
-        if (error) console.error('course_enrollments upsert failed:', error)
-      }
+    // Content saves carry no audience arrays. Apply only explicit UI actions,
+    // under a database row lock, preserving concurrent assignments and modes.
+    const { data: access, error: accessError } = await supabase.rpc('save_course_access_changes', {
+      p_course: courseDbId, p_changes: changes,
+    })
+    if (accessError || !access) {
+      console.error('[syncAccessToSupabase] course access save failed', accessError)
+      return await writeFailed()
     }
+    if (access.updated_at > (writeStamp ?? '')) writeStamp = access.updated_at
+    if ((latestCourse.current.dbCourseId ?? latestCourse.current.id) === shortId) {
+      setCourse(before => acknowledgeCourseAccess(before, changes, access))
+      const pendingModes = acknowledgeCourseAccess(latestCourse.current, changes, access).accessChanges?.modes
+      setAccessModes({ ...access.access_modes, ...pendingModes })
+    }
+    // Scheduling and full-access seeding must use the merged audience too.
+    c = { ...c, studentIds: access.student_ids ?? [], groupIds: access.group_ids ?? [] }
+    const groupMemberIds = allStudents.filter(s => s.groupId && c.groupIds.includes(s.groupId)).map(s => s.id)
+    const audienceIds = [...new Set([...c.studentIds, ...groupMemberIds])]
+    const effMode = (id: string): AccessMode => access.access_modes[id] ?? 'by_date'
 
     // 'full' students get every lesson opened now (seed 'current', never clobber
     // 'done'). 'by_date' is computed at read time; 'custom' stays manual — so
@@ -6547,6 +6549,7 @@ export default function TeacherCourseEditorPage() {
       title: title.trim() || course.title,
       groupIds: [groupId],
       studentIds: [],
+      accessChanges: undefined,
       modules,
       lessons,
       lastEdited: undefined,
@@ -7062,10 +7065,10 @@ export default function TeacherCourseEditorPage() {
             {!selectedLesson ? (
               /* ── Course meta view ── */
                 <CenterCourseAccess
-                  course={course} setCourse={setCourse}
+                  course={course} setCourse={editCourseAccess}
                   groups={groups} allStudents={allStudents}
                   addIndividualCard={addIndividualCard}
-                  accessModes={accessModes} setAccessModes={setAccessModes}
+                  accessModes={accessModes} onAccessModesChange={editAccessModes}
                 />
             ) : (
               /* ── Lesson editor view ── */
@@ -7177,7 +7180,7 @@ export default function TeacherCourseEditorPage() {
                         key={selectedLesson.id}
                         lesson={selectedLesson} onUpdate={updateLesson}
                         course={course} groups={groups} allStudents={allStudents}
-                        accessModes={accessModes} setAccessModes={setAccessModes}
+                        accessModes={accessModes} onAccessModesChange={editAccessModes}
                       />
                     )}
                   </motion.div>
