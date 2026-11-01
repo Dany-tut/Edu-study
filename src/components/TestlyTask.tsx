@@ -23,7 +23,9 @@ import { testlyPresentation } from '../lib/testlyPresentation'
 // устраняет длинное окно, в котором Искра ещё считает тест начатым.
 const POLL_MS = 5_000
 
-export default function TestlyTask({ test, value, disabled, onChange, onReopen }: {
+export default function TestlyTask({ test, value, disabled, onChange, onReopen, lessonRef, hideResult }: {
+  lessonRef?: string
+  hideResult?: boolean
   test: TestlyRef | undefined
   value: string | undefined
   disabled?: boolean
@@ -53,7 +55,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     if (!test?.id) return
     const request = ++requestSeq.current
     try {
-      const a = await fetchTestlyStatus(test.id, test.owner)
+      const a = await fetchTestlyStatus(test.id, test.owner, lessonRef)
       if (request !== requestSeq.current) return
       setAttempt(a); setOffline(false); setSessionError('')
       const { value: v, onChange: change } = live.current
@@ -64,7 +66,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
       }
       if (a.state === 'submitted') {
         setEmbedUrl(null)
-        const fetchedScore: TestlyScore | null = a.got != null && a.max != null
+        const fetchedScore: TestlyScore | null = a.pending ? { got: 0, max: 0, pending: true } : a.got != null && a.max != null
           ? { got: a.got, max: a.max, pending: !!a.pending, ...(a.review ? { review: a.review } : {}) }
           : null
         // Ответы Testly могут на короткое время прийти без итоговых баллов
@@ -78,7 +80,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
         setOffline(true)
       }
     }
-  }, [test?.id, test?.owner])
+  }, [test?.id, test?.owner, lessonRef])
 
   useEffect(() => {
     void refresh()
@@ -111,7 +113,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     if (disabled || opening) return
     setOpening(true)
     try {
-      const url = await startTestlyTest(test.id, test.owner)
+      const url = await startTestlyTest(test.id, test.owner, lessonRef)
       setEmbedUrl(url)
       setOpened(true)
       setOffline(false); setSessionError('')
@@ -129,7 +131,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
     onChange(TESTLY_DONE_PREFIX + new Date().toISOString())
   }
 
-  const { doneAt, score, started, pending, progress, percent } = testlyPresentation(attempt, value)
+  const { doneAt, score, started, pending, progress, percent } = testlyPresentation(hideResult && attempt ? { ...attempt, got: undefined, max: undefined, pending: true, review: undefined } : attempt, hideResult ? undefined : value)
   const statusLabel = sessionError ? t('Требуется вход') : offline ? t('Нет связи')
     : doneAt !== null ? pending ? t('На проверке') : t('Тест сдан')
     : started ? t('В процессе') : t('Не начат')
@@ -167,7 +169,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ListChecks size={14} style={{ color: 'var(--color-text-3)' }} /> {test.questions} {t(plural(test.questions, 'вопрос', 'вопроса', 'вопросов'))}</span>
             {test.minutes ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Clock size={14} style={{ color: 'var(--color-text-3)' }} /> {test.minutes} {t('мин')}</span> : null}
           </div>
-          {doneAt !== null && score && (
+          {doneAt !== null && score && !pending && !hideResult && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16, width: '100%' }}>
               <div>
                 <p style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{pending ? t('Баллы автопроверки') : t('Набрано баллов')}</p>
@@ -181,7 +183,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen }
               </div>
             </div>
           )}
-          {doneAt !== null && pending && <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('Вторую часть проверяет преподаватель')}</p>}
+          {doneAt !== null && pending && <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('Итоговый результат появится после проверки всей работы.')}</p>}
           {progress && (
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--color-text-2)' }}>

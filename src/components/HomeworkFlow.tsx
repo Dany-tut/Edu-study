@@ -1,6 +1,9 @@
+import HomeworkAttemptPanel from './HomeworkAttemptPanel'
+import { homeworkResult, homeworkDisplayScore } from '../lib/homeworkResult'
 import { LoopTextIcon } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { EMOJI_STEPS } from './homeworkSteps'
+import { saveLessonSelfAssessment } from '../lib/saveLessonSelfAssessment'
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
@@ -136,9 +139,9 @@ function playSliderTick() {
   } catch {}
 }
 
-function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function EmojiSlider({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
   const t = useT()
-  const step = EMOJI_STEPS[value]
+  const step = value == null ? { emoji: '💭', label: 'Самооценка не указана' } : EMOJI_STEPS[value]
   const prevValue = React.useRef(value)
   const controls = useAnimationControls()
 
@@ -192,7 +195,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
         <div style={{ position: 'absolute', left: 0, right: 0, height: 6, borderRadius: 999, background: 'var(--color-bg-5)' }} />
         <div style={{
           position: 'absolute', left: 0, height: 6, borderRadius: 999,
-          width: `${(value / (EMOJI_STEPS.length - 1)) * 100}%`,
+          width: `${((value ?? 0) / (EMOJI_STEPS.length - 1)) * 100}%`,
           background: 'var(--grad-purple-bar)',
           transition: 'width 0.15s ease',
         }} />
@@ -203,19 +206,21 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
             transform: 'translateX(-50%)',
             width: i === value ? 0 : 7, height: i === value ? 0 : 7,
             borderRadius: '50%',
-            background: i <= value ? 'var(--color-purple)' : 'var(--color-text-4)',
+            background: value != null && i <= value ? 'var(--color-purple)' : 'var(--color-text-4)',
             transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
             pointerEvents: 'none',
           }} />
         ))}
         <input
-          type="range" min={0} max={EMOJI_STEPS.length - 1} step={1} value={value}
+          type="range" min={0} max={EMOJI_STEPS.length - 1} step={1} value={value ?? 2}
+          aria-label={t('Самооценка')} aria-valuetext={t(step.label)}
           onChange={e => handleChange(Number(e.target.value))}
+          onPointerUp={e => handleChange(Number(e.currentTarget.value))}
           style={{ position: 'absolute', inset: 0, width: '100%', opacity: 0, cursor: 'pointer', margin: 0, padding: 0 }}
         />
         <div style={{
           position: 'absolute',
-          left: `${(value / (EMOJI_STEPS.length - 1)) * 100}%`,
+          left: `${((value ?? 2) / (EMOJI_STEPS.length - 1)) * 100}%`,
           transform: 'translateX(-50%)',
           width: 26, height: 26, borderRadius: '50%',
           background: 'var(--grad-purple)',
@@ -234,7 +239,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
             background: 'none', border: 'none', cursor: 'pointer',
             transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
             transform: i === value ? 'translateY(-3px)' : 'none',
-            opacity: Math.abs(i - value) > 1 ? 0.3 : 1,
+            opacity: value != null && Math.abs(i - value) > 1 ? 0.3 : 1,
             padding: '2px 4px',
           }}>
             {s.emoji}
@@ -390,12 +395,19 @@ function ResultModal({
   score?: number
   recommendationScore?: number
   showHard?: boolean
-  onContinue: (emojiIndex: number, goToHard?: boolean) => void
+  onContinue: (emojiIndex: number | null, goToHard?: boolean) => void | Promise<void>
 }) {
   const t = useT()
-  const [emojiValue, setEmojiValue] = useState(() =>
-    score !== undefined ? Math.round((score / 100) * (EMOJI_STEPS.length - 1)) : 2
-  )
+  const [emojiValue, setEmojiValue] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
+  async function continueWithAssessment(goToHard?: boolean) {
+    if (saving) return
+    setSaving(true); setSaveError(false)
+    try { await onContinue(emojiValue, goToHard) }
+    catch { setSaveError(true) }
+    finally { setSaving(false) }
+  }
   const bannerRef = useRef<HTMLDivElement>(null)
   // «passed» открывает CTA к харду. Если хард-уровня нет (showHard=false), даже
   // отличный балс базы не показывает переход к харду — обычная кнопка «Продолжить».
@@ -466,10 +478,10 @@ function ResultModal({
               color: context === 'hard' ? 'var(--color-green-text)' : passed ? 'var(--color-accent)' : 'var(--color-amber)',
               marginBottom: 6,
             }}>
-              {context === 'hard' ? t('Работа отправлена') : t('Тест сдан')}
+              {context === 'hard' || score === undefined ? t('Работа отправлена') : t('Результат ДЗ')}
             </p>
             <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 8 }}>
-              {context === 'hard'
+              {context === 'hard' || score === undefined
                 ? t('Отправлено на проверку!')
                 : passed
                   ? `${t('Отлично')}, ${score} ${t('из 100!')}`
@@ -478,7 +490,7 @@ function ResultModal({
             </h2>
             {!(passed && context === 'basic') && (
               <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
-                {context === 'hard'
+                {context === 'hard' || score === undefined
                   ? t('Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.')
                   /* «нужно 80+» ушло в полосу порога ниже — та же логика, что в
                      плашке итогов на странице: цифра нагляднее повтора в тексте. */
@@ -553,12 +565,17 @@ function ResultModal({
             <EmojiSlider value={emojiValue} onChange={setEmojiValue} />
           </div>
 
+          {saveError && <p role="alert" style={{ fontSize: 13, color: 'var(--color-red-text)' }}>
+            {t('Не удалось сохранить самооценку. Попробуй ещё раз.')}
+          </p>}
+
           {passed ? (
             <div style={{ display: 'flex', gap: 10 }}>
               <motion.button
                 whileHover={{ y: -1 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => onContinue(emojiValue, false)}
+                disabled={saving}
+                onClick={() => { void continueWithAssessment(false) }}
                 style={{
                   flex: 1, padding: '16px 16px',
                   borderRadius: 18, border: '1px solid var(--color-border-medium)',
@@ -572,7 +589,8 @@ function ResultModal({
               <motion.button
                 whileHover={{ y: -1 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => { playUnlock(); vibrate([12, 40, 18]); onContinue(emojiValue, true) }}
+                disabled={saving}
+                onClick={() => { playUnlock(); vibrate([12, 40, 18]); void continueWithAssessment(true) }}
                 style={{
                   flex: 2, padding: '16px 20px 16px 10px',
                   borderRadius: 18, border: 'none',
@@ -594,7 +612,8 @@ function ResultModal({
             <motion.button
               whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => onContinue(emojiValue)}
+              disabled={saving}
+              onClick={() => { void continueWithAssessment() }}
               style={{
                 width: '100%', padding: '16px 20px',
                 borderRadius: 18, border: 'none',
@@ -642,6 +661,7 @@ interface PersistedHomeworkState {
   // Новый per-task формат: ответ + фото + доска по каждому заданию, ключ = HardTaskDef.key.
   hardTaskDrafts: Record<string, HardTaskDraft>
   basicSubmitted: boolean
+  attemptId?: string
   /**
    * Когда домашку сдали, ISO. Нужна сверке с базой (lib/homeworkReset.ts):
    * свежая сдача могла не дойти по сети — на экране висит «Отправить ещё раз»,
@@ -655,6 +675,7 @@ interface PersistedHomeworkState {
    */
   touchedAt?: string
   selfAssessmentValue: number | null
+  selfAssessedAt?: string
   /**
    * Задания, проверенные по кнопке «Проверить» — до сдачи всей домашки.
    *
@@ -1614,6 +1635,16 @@ function dedupeCards(cards: ReviewCard[]): ReviewCard[] {
   return cards.filter(c => (seen.has(c.id) ? false : (seen.add(c.id), true)))
 }
 
+function enterDraft(current: PersistedHomeworkState, attemptId: string): PersistedHomeworkState {
+  if (current.attemptId === attemptId) return current
+  return {
+    ...current,
+    attemptId, selectedLevel: 'basic', basicSubmitted: false, submittedAt: undefined,
+    basicAnswers: {}, basicChecked: {}, basicHints: {}, basicHintsOpen: {},
+    selfAssessmentValue: null, selfAssessedAt: undefined, flowStep: 0, flowQueue: undefined,
+  }
+}
+
 function getInitialState(): PersistedHomeworkState {
   return {
     selectedLevel: 'basic',
@@ -1692,19 +1723,33 @@ export default function HomeworkFlow({
   const dockTitleRef = useRef<HTMLDivElement>(null)
   const [dockTitleMax, setDockTitleMax] = useState<number | undefined>(undefined)
   const basicProgress = useStudentData(s => s.progress[lessonId])
+  const passingScore = basicProgress?.result?.attemptId ? basicProgress.result.passingScore : homework.recommendationScore
   const basicLevel = homework.levels.find(level => level.id === 'basic')
   const hardLevel = homework.levels.find(level => level.id === 'hard')
   // Нет реального сложного уровня → не показываем вход в хард (кнопки/CTA/карточка).
   const showHard = homework.hasHardLevel !== false
   const [state, setState] = useState<PersistedHomeworkState>(() => {
-    const raw = window.localStorage.getItem(homeworkStorageKey(lessonId))
-    if (!raw) return getInitialState()
+    let initial = getInitialState()
     try {
-      return { ...getInitialState(), ...(JSON.parse(raw) as Partial<PersistedHomeworkState>) }
-    } catch {
-      return getInitialState()
-    }
+      const raw = window.localStorage.getItem(homeworkStorageKey(lessonId))
+      if (raw) initial = { ...initial, ...JSON.parse(raw) }
+    } catch { /* No readable local draft. */ }
+    const attempt = basicProgress?.result
+    return attempt?.draft && attempt.attemptId ? enterDraft(initial, attempt.attemptId) : initial
   })
+  useEffect(() => {
+    const r = basicProgress?.result
+    if (!r?.attemptId) return
+    setState(current => {
+      if (r.draft) return enterDraft(current, r.attemptId!)
+      const self = r.selfAssessment
+      if (current.attemptId === r.attemptId && current.basicSubmitted &&
+        (!self || self.assessedAt === current.selfAssessedAt)) return current
+      return { ...current, attemptId: r.attemptId, basicSubmitted: true,
+        ...(self ? { selfAssessmentValue: self.value, selfAssessedAt: self.assessedAt } : {}) }
+    })
+  }, [basicProgress?.result?.attemptId, basicProgress?.result?.draft, basicProgress?.status,
+    basicProgress?.result?.selfAssessment?.value, basicProgress?.result?.selfAssessment?.assessedAt])
   const [showResultModal, setShowResultModal] = useState<'basic' | 'hard' | null>(null)
   /**
    * Отправка, которая не дошла до базы.
@@ -1783,22 +1828,26 @@ export default function HomeworkFlow({
    */
   const [burst, setBurst] = useState<{ id: string; n: number } | null>(null)
   const fireBurst = (id: string) => setBurst(b => ({ id, n: (b?.n ?? 0) + 1 }))
-  const setLessonAssessment = useDashboard(s => s.setLessonAssessment)
   const setHardCompleted = useDashboard(s => s.setHardCompleted)
   // Teacher's verdict on the hard essay, synced from `lesson_progress` on load.
   // Drives the submitted-panel badge so an accept/return actually shows here.
   const hardVerdict = useDashboard(s => s.lessonAssessments[lessonId]?.hardStatus)
   // Какой уровень открыть при входе (карточка «Сложный уровень» открывает хард).
-  const homeworkInitialLevel = useDashboard(s => s.homeworkInitialLevel)
-  const clearHomeworkInitialLevel = useDashboard(s => s.clearHomeworkInitialLevel)
-  // Открытие домашки на конкретном уровне (хард-карточка → сразу хард).
+  const initialTarget = useDashboard(s => s.homeworkInitialTarget)
+  const clearInitialTarget = useDashboard(s => s.clearHomeworkInitialTarget)
   useEffect(() => {
-    if (!homeworkInitialLevel) return
-    // Хард-уровня нет → игнорируем запрос открыть его сразу, остаёмся на базе.
-    const target = homeworkInitialLevel === 'hard' && !showHard ? 'basic' : homeworkInitialLevel
-    setState(current => (current.selectedLevel === target ? current : { ...current, selectedLevel: target }))
-    clearHomeworkInitialLevel()
-  }, [homeworkInitialLevel, clearHomeworkInitialLevel, showHard])
+    if (!initialTarget) return
+    const level = initialTarget === 'hard' && showHard ? 'hard' : 'basic'
+    if (state.selectedLevel !== level) {
+      setState(current => ({ ...current, selectedLevel: level }))
+      return
+    }
+    if (initialTarget === 'result') {
+      summaryRef.current?.focus({ preventScroll: true })
+      summaryRef.current?.scrollIntoView({ block: 'nearest' })
+    }
+    clearInitialTarget()
+  }, [initialTarget, clearInitialTarget, state.selectedLevel, showHard])
   // Сверка с базой стёрла результат этого урока — учитель обнулил курс, сдачи
   // больше нет ни у кого (lib/homeworkReset.ts). Перечитываем себя с нуля: без
   // этого экран остался бы на «Домашка сдана», а автосейв ниже вернул бы
@@ -1905,10 +1954,10 @@ export default function HomeworkFlow({
   const basicScore = basicGradableCount > 0
     ? Math.round((basicCorrectCount / basicGradableCount) * 100)
     : (basicCompleted ? 100 : 0)
-  const basicPassed = basicScore >= homework.recommendationScore
+  const basicPassed = basicScore >= passingScore
   // Сколько баллов не хватает до харда. Раньше это было только текстом
   // «нужен результат 80+», и ученик считал разницу сам.
-  const basicGapToHard = Math.max(0, homework.recommendationScore - basicScore)
+  const basicGapToHard = Math.max(0, passingScore - basicScore)
   /**
    * Разбор итогов: задания, которые после сдачи нужно пересмотреть.
    *
@@ -1947,7 +1996,7 @@ export default function HomeworkFlow({
   // Хард открыт, если база сдана на нужный балл ЛИБО на сервере уже есть статус
   // хард-работы (submitted/returned/completed) — иначе после возврата на другом
   // устройстве (нет локальных ответов) хард показался бы «закрытым».
-  const hardUnlocked = (basicCompleted && basicScore >= homework.recommendationScore) || !!hardVerdict
+  const hardUnlocked = ((homeworkDisplayScore(basicProgress?.result) ?? -1) >= passingScore) || !!hardVerdict
   const selectedLevel = state.selectedLevel
 
   // Сдача базы в полёте — второй клик не шлёт её повторно (см. submitBasic).
@@ -2118,6 +2167,12 @@ export default function HomeworkFlow({
     })
     return {
       v: 'basic-1',
+      attemptId: state.attemptId ?? basicProgress?.result?.attemptId,
+      testlyKey: basicProgress?.result?.testlyKey,
+      ...(state.selfAssessmentValue != null && state.selfAssessedAt
+        ? { selfAssessment: { value: state.selfAssessmentValue, assessedAt: state.selfAssessedAt } } : {}),
+      reviewRequired: basicReviewCount > 0,
+      recommendationScore: passingScore,
       gradable: basicGradableCount,
       correct: Math.round(basicCorrectCount * 100) / 100,
       rows,
@@ -2150,20 +2205,20 @@ export default function HomeworkFlow({
     // автопроверяемым, и ученик мог набрать 100, пока его запись никто не
     // слушал: домашка вставала «выполнена», а у преподавателя в очереди
     // числилась проверенной. Такая сдача ждёт преподавателя.
-    const needsTeacher = level === 'basic' && basicReviewCount > 0
-    const status = level === 'basic' && score >= homework.recommendationScore && !needsTeacher
+    const needsTeacher = level === 'basic' && homeworkResult(attachments, score).pending
+    const status = level === 'basic' && score >= passingScore && !needsTeacher
       ? 'completed'
       : 'submitted'
     const ref = level === 'hard' ? `${lessonId}-hard` : lessonId
-    const { error } = await supabase.from('lesson_progress').upsert({
+    const { data, error } = await supabase.from('lesson_progress').upsert({
       student_id: ownerStudentIdFor(subject),
       lesson_ref: ref,
       subject,
       status,
-      score,
+      score: needsTeacher ? null : score,
       comment,
       attachments: attachments ?? {},
-    }, { onConflict: 'student_id,lesson_ref' })
+    }, { onConflict: 'student_id,lesson_ref' }).select('attachments').single()
     if (error) {
       // Сдача — единственная запись, ради которой ученик делал домашку. Молча
       // проглотить её ошибку нельзя: экран покажет «сдано», а работы не будет
@@ -2181,6 +2236,9 @@ export default function HomeworkFlow({
       return false
     }
     setSubmitFailed(null)
+    if (level === 'basic' && data?.attachments?.attemptId) {
+      setState(current => ({ ...current, attemptId: data.attachments.attemptId }))
+    }
     trackEvent('homework_submit', { lesson_ref: ref, kind: level })
     if (level === 'basic') void captureBasicToDeck()
     useStudentData.getState().load()
@@ -2210,23 +2268,15 @@ export default function HomeworkFlow({
   const testlySnapshot = basicQuestions.some(q => qType(q) === 'testly') ? JSON.stringify(state.basicAnswers) : ''
   const syncedTestly = useRef(testlySnapshot)
   useEffect(() => {
-    if (basicProgress?.status !== 'returned') return
-    syncedTestly.current = ''
-    setShowResultModal(null)
-    setState(current => ({ ...current, basicSubmitted: false, submittedAt: undefined, basicChecked: {},
-      basicAnswers: Object.fromEntries(Object.entries(current.basicAnswers).map(([id, answer]) =>
-        [id, basicQuestions.some(q => q.id === id && qType(q) === 'testly') ? '' : answer])),
-    }))
-  }, [basicProgress?.status, lessonId])
-  useEffect(() => {
     if (!basicQuestions.some(q => qType(q) === 'testly' && testlyDoneAt(state.basicAnswers[q.id]) !== null)) return
-    if (!testlySnapshot || (!state.basicSubmitted && !(basicCompleted && basicQuestions.every(q => qType(q) === 'testly')))) return
+    if (basicProgress?.result?.attemptId && !basicProgress.result.draft && basicProgress.status !== 'current') return
+    if (state.basicSubmitted || !testlySnapshot || (!state.basicSubmitted && !(basicCompleted && basicQuestions.every(q => qType(q) === 'testly')))) return
     if (syncedTestly.current === testlySnapshot) return
     syncedTestly.current = testlySnapshot
     void submitToSupabase('basic', basicScore, '', buildBasicSnapshot()).then(ok => {
       if (ok) {
         setState(current => ({ ...current, basicSubmitted: true, submittedAt: current.submittedAt ?? new Date().toISOString() }))
-        setLessonAssessment(lessonId, basicScore, state.selfAssessmentValue ?? 0, showHard && basicPassed)
+        setShowResultModal('basic')
       } else syncedTestly.current = ''
     })
   }, [testlySnapshot, state.basicSubmitted, basicCompleted, basicScore])
@@ -3024,14 +3074,19 @@ export default function HomeworkFlow({
       {showResultModal && (
         <ResultModal
           context={showResultModal}
-          score={showResultModal === 'basic' ? basicScore : undefined}
-          recommendationScore={homework.recommendationScore}
+          score={showResultModal === 'basic' && !homeworkResult(buildBasicSnapshot(), basicScore).pending ? basicScore : undefined}
+          recommendationScore={passingScore}
           showHard={showHard}
-          onContinue={(emojiIndex, goToHard) => {
-            const hardAvailable = showHard && basicScore >= homework.recommendationScore
-            setState(current => ({ ...current, basicSubmitted: true, submittedAt: new Date().toISOString(), selfAssessmentValue: emojiIndex, ...(goToHard ? { selectedLevel: 'hard' } : {}) }))
+          onContinue={async (emojiIndex, goToHard) => {
+            const attemptId = state.attemptId ?? useStudentData.getState().progress[lessonId]?.result?.attemptId
+            const self = emojiIndex != null
+              ? await saveLessonSelfAssessment(ownerStudentIdFor(subject), lessonId, attemptId ?? '', emojiIndex) : null
+            setState(current => ({ ...current, basicSubmitted: true, submittedAt: new Date().toISOString(),
+              ...(self ? { selfAssessmentValue: self.value, selfAssessedAt: self.assessedAt } : {}),
+              ...(goToHard ? { selectedLevel: 'hard' } : {}) }))
             if (goToHard) clearHomeworkWidgetFeedback()
-            setLessonAssessment(lessonId, basicScore, emojiIndex, hardAvailable)
+            if (self) useDashboard.getState().setLessonSelfAssessment(lessonId, self.value, self.assessedAt, attemptId)
+            void useStudentData.getState().load()
             setShowResultModal(null)
             // Из модалки — сразу в итоги: разбор ошибок и «что дальше» там.
             if (!goToHard) {
@@ -3356,144 +3411,16 @@ export default function HomeworkFlow({
               {/* Итоги сдачи. До этого сданная домашка оставляла ученика в том же
                   списке заданий: балл был, а «сколько ошибок, каких именно и что
                   делать дальше» — нет, и он просто закрывал вкладку. */}
-              {state.basicSubmitted && !onlyTestly && (
-                <section
-                  ref={summaryRef}
-                  className="flex flex-col"
-                  style={{
-                    gap: 16, padding: 20, borderRadius: 24,
-                    background: 'rgba(var(--glass-rgb), 0.96)',
-                    border: '1px solid var(--color-border-medium)',
-                  }}
-                >
-                  <div className="flex flex-wrap items-start justify-between" style={{ gap: 14 }}>
-                    <div className="flex items-start" style={{ gap: 12, flex: '1 1 260px', minWidth: 0 }}>
-                      <div style={{
-                        width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: basicPassed ? 'var(--color-green-soft)' : 'var(--grad-amber)',
-                        color: basicPassed ? 'var(--color-green-text)' : '#fff',
-                      }}>
-                        {basicPassed ? <Trophy size={20} /> : <CircleAlert size={20} />}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center flex-wrap" style={{ gap: 8, marginBottom: 4 }}>
-                          <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
-                            {t('Домашка сдана')}
-                          </p>
-                          {!basicPassed && showHard && (
-                            <span style={{
-                              padding: '2px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700,
-                              background: 'var(--color-amber-soft)', color: 'var(--color-amber)',
-                            }}>
-                              {t('до порога')} {basicGapToHard}
-                            </span>
-                          )}
-                        </div>
-                        <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
-                          {basicPassed
-                            ? (showHard
-                              ? t('База закрыта уверенно. Доступен необязательный хард-уровень с разбором от преподавателя.')
-                              : t('База закрыта уверенно.'))
-                            /* «нужен результат 80+» ушло в полосу порога ниже: цифра
-                               там нагляднее, а в тексте она только дублировалась. */
-                            : t('Можно вернуться к конспекту и попробовать снова.')
-                          }
-                        </p>
-                        {state.selfAssessmentValue !== null && (
-                          <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
-                            <span style={{ fontSize: 20 }}>{EMOJI_STEPS[state.selfAssessmentValue].emoji}</span>
-                            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>
-                              {t('Самооценка:')} {t(EMOJI_STEPS[state.selfAssessmentValue].label)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                      {/* Балл нейтральный: он факт, а не тревога. Статус несут
-                          иконка, чип «до порога» и полоса — точечно, а не
-                          заливкой всей карточки. */}
-                      <span style={{
-                        fontSize: 36, fontWeight: 700, lineHeight: 1, color: 'var(--color-text)',
-                      }}>{basicScore}</span>
-                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>
-                        {t('из 100')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Полоса порога: «сколько до харда» вместо абстрактной оценки. */}
-                  {showHard && (
-                    <div className="flex flex-col" style={{ gap: 8 }}>
-                      <div style={{
-                        position: 'relative', height: 8, borderRadius: 999,
-                        background: 'var(--color-bg-3)',
-                      }}>
-                        <div style={{
-                          position: 'absolute', left: 0, top: 0, bottom: 0,
-                          width: `${Math.min(100, basicScore)}%`, borderRadius: 999,
-                          background: basicPassed ? 'var(--color-green-accent)' : 'var(--grad-amber-bar)',
-                        }} />
-                        <div style={{
-                          position: 'absolute', left: `${Math.min(100, homework.recommendationScore)}%`,
-                          top: -4, bottom: -4, width: 2, borderRadius: 2,
-                          background: 'var(--color-text)',
-                        }} />
-                      </div>
-                      <div className="flex items-center justify-between" style={{ gap: 12, fontSize: 12 }}>
-                        <span style={{ color: 'var(--color-muted)' }}>
-                          {basicPassed
-                            ? t('порог пройден')
-                            : `${basicGapToHard} ${t('до открытия харда')}`}
-                        </span>
-                        <span style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>
-                          {t('порог')} {homework.recommendationScore}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap" style={{ gap: 10 }}>
-                    <MetricPill label={t('Верно')} value={`${basicQuestions.filter(q => qType(q) !== 'testly' && questionScored(q) && !state.basicHints[q.id] && questionCorrect(q, state.basicAnswers[q.id])).length}`} />
-                    <MetricPill
-                      label={t('Ошибок')}
-                      value={`${basicWrong.length}`}
-                      tone={basicWrong.length > 0 ? 'amber' : undefined}
-                    />
-                    {basicReviewCount > 0 && (
-                      <MetricPill label={t('У преподавателя')} value={`${basicReviewCount}`} />
-                    )}
-                  </div>
-
-                  {/* Номера заданий с ошибками — сразу и список, и навигация. */}
-                  {basicWrong.length > 0 && (
-                    <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
-                        {t('Разобрать')}:
-                      </span>
-                      {basicWrong.map(({ q, number }) => (
-                        <button
-                          key={q.id}
-                          onClick={() => jumpToQuestion(q.id)}
-                          className="cursor-pointer"
-                          /* Не красный: это «разобрать», а не ошибка системы —
-                             красный в продукте остаётся за деструктивным. */
-                          style={{
-                            minWidth: 34, height: 30, padding: '0 10px', borderRadius: 10,
-                            border: '1px solid var(--color-border-strong)', background: 'var(--color-bg-3)',
-                            color: 'var(--color-text)', fontFamily: 'inherit',
-                            fontSize: 13, fontWeight: 700,
-                          }}
-                        >
-                          {number}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                </section>
-              )}
+              {(state.basicSubmitted || basicProgress?.result?.percent != null || !!(basicProgress?.result?.attemptCount ?? basicProgress?.result?.attempts?.length)) && <section tabIndex={-1} ref={summaryRef} style={{ scrollMarginTop: 96 }}>
+                <HomeworkAttemptPanel result={basicProgress?.result} status={basicProgress?.status}
+                  studentId={ownerStudentIdFor(subject)} lessonRef={lessonId}
+                  onRetake={async draft => {
+                    syncedTestly.current = ''
+                    setShowResultModal(null)
+                    if (draft.attemptId) setState(current => enterDraft(current, draft.attemptId!))
+                    await useStudentData.getState().load()
+                  }} />
+              </section>}
 
               {/* Знакомство со словами — до заданий, а не после них. Карточки
                   внизу домашки остаются проверкой; здесь слово вводится. */}
@@ -3997,11 +3924,14 @@ export default function HomeworkFlow({
                     /* Тест из Тестли: проходится на его сайте, сюда — отметка сдачи. */
                     ) : qType(question) === 'testly' ? (
                     <TestlyTask
-                      key={question.testly?.id ?? question.id}
+                      key={`${question.testly?.id ?? question.id}:${basicProgress?.result?.attemptId ?? "first"}`}
+                      lessonRef={lessonId}
+                      hideResult={basicReviewCount > 0 || !!basicProgress?.result?.pending}
                       test={question.testly}
                       value={selectedAnswer}
                       disabled={locked}
                       onReopen={() => {
+                        if (basicProgress?.result?.attemptId && !basicProgress.result.draft) return
                         syncedTestly.current = ''
                         setShowResultModal(null)
                         setState(current => ({ ...current, basicSubmitted: false, submittedAt: undefined,
@@ -4643,7 +4573,7 @@ export default function HomeworkFlow({
                   checked={state.basicChecked}
                   hints={state.basicHints}
                   score={basicScore}
-                  recommendationScore={homework.recommendationScore}
+                  recommendationScore={passingScore}
                   onSubmit={() => { void submitBasic() }}
                   onShowSummary={() => summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                   onJump={jumpToQuestion}

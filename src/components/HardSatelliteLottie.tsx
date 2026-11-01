@@ -1,6 +1,6 @@
 import LottieIcon from './LottieIcon'
 
-// Перекрашиваем все сплошные заливки в жёлтый (#F5C842). Данные те же, что у
+// Перекрашиваем все сплошные заливки в охру (#B28325). Данные те же, что у
 // звезды: hard-star-satellite.json был её точной копией, отличалась только
 // эта правка цвета.
 function recolor(data: unknown, r: number, g: number, b: number): unknown {
@@ -36,15 +36,15 @@ function recolor(data: unknown, r: number, g: number, b: number): unknown {
   return data
 }
 
-const toYellow = (data: unknown) => recolor(data, 0.96, 0.78, 0.26)
+const toGold = (data: unknown) => recolor(data, 178 / 255, 131 / 255, 37 / 255)
 
 export default function HardSatelliteLottie({ size = 18 }: { size?: number }) {
   return (
     <LottieIcon
       name="star"
       size={size}
-      transform={toYellow}
-      transformKey="yellow"
+      transform={toGold}
+      transformKey="track-gold"
       style={{ marginTop: -2 }}
     />
   )

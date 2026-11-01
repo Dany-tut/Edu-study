@@ -175,7 +175,7 @@ export default function BasicAnswersList({ payload, studentId }: { payload: Basi
       if (busy) return
       busy = true
       try {
-        const items = await fetchTestlyResults(testlyKey.split(',').map(testId => ({ testId, studentId })))
+        const items = await fetchTestlyResults(testlyKey.split(',').map(testId => ({ testId, studentId, attemptKey: payload.testlyKey })))
         if (!alive) return
         const m: Record<string, TestlyLive> = {}
         for (const x of items) m[x.testId] = {

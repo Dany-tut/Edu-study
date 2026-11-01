@@ -8,6 +8,8 @@ import ScrollFade from './ScrollFade'
 import { DROPDOWN_GLASS, dropdownSurface, dropdownRow, dropdownRowHover } from '../lib/dropdownStyle'
 import { Z } from '../lib/layers'
 import { useT, useTc } from '../lib/i18n'
+import { isCourseModuleLocked } from '../lib/moduleAccess'
+import { getDisplayLessonStatus } from '../lib/lessonStatus'
 
 /**
  * ПЕРЕКЛЮЧАТЕЛЬ КУРСА И МОДУЛЯ над треком главной — одна строка 36 px.
@@ -47,7 +49,7 @@ const TEXT_LIFT: CSSProperties = { position: 'relative', top: '-0.04em' }
 export function coursePct(s: Subject): number {
   const lessons = s.modules.flatMap(m => m.lessons)
   if (lessons.length === 0) return 0
-  return Math.round((lessons.filter(l => l.status === 'completed').length / lessons.length) * 100)
+  return Math.round((lessons.filter(l => l.result ? l.result.passed : l.status === 'completed').length / lessons.length) * 100)
 }
 
 // ─── Курс ───────────────────────────────────────────────────────────────
@@ -212,13 +214,11 @@ export function ModuleChain({ subject, activeId, onSelect }: {
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
       {subject.modules.map((mod, i) => {
         const total = mod.lessons.length
-        const done = mod.lessons.filter(l => l.status === 'completed').length
+        const done = mod.lessons.filter(l => l.result ? l.result.passed : l.status === 'completed').length
         const isDone = total > 0 && done === total
         const pct = total > 0 ? Math.round((done / total) * 100) : 0
-        // Модуль закрыт, пока не пройден последний урок предыдущего.
         const prev = i > 0 ? subject.modules[i - 1] : null
-        const isLocked = prev != null && prev.lessons.length > 0
-          && prev.lessons[prev.lessons.length - 1].status !== 'completed'
+        const isLocked = isCourseModuleLocked(subject, i, lesson => getDisplayLessonStatus(lesson) !== 'locked')
         const isActive = mod.id === activeId
         const name = tc(mod.label) || t('Уроки')
         const num = i + 1
@@ -258,6 +258,7 @@ export function ModuleChain({ subject, activeId, onSelect }: {
             <motion.button
               type="button"
               data-module-tab={mod.id}
+              disabled={isLocked}
               whileHover={isLocked ? undefined : { scale: 1.08 }}
               whileTap={isLocked ? undefined : { scale: 0.94 }}
               onClick={() => { if (!isLocked) onSelect(mod.id) }}

@@ -15,8 +15,10 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
 import { getSubject, ICON_GAP } from '../lib/subjects'
 import {
-  emptyWatch, loadVideoWatch, saveVideoWatch, watchRatio, type VideoWatch,
+  emptyWatch, loadVideoWatch, saveVideoWatch, type VideoWatch,
 } from '../lib/videoProgress'
+import { lessonStudyProgress } from '../lib/lessonStudyProgress'
+import { lessonScheduleDate } from '../lib/lessonStatus'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/homeworkSteps'
@@ -604,7 +606,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
                   padding: '2px 8px',
                 }}
               >
-                {assessment.score}
+                {assessment.score}%
               </span>
             )}
             {id === 'base' && !basicSubmitted && basicEstimatedTime != null && solidWhite && (
@@ -822,6 +824,7 @@ export default function LessonPage() {
   }
 
   const detail = getLessonDetail(lesson)
+  const date = lessonScheduleDate(lesson, 'short')
   const videoSource = detail.videoSource
 
   const timecodes = detail.timecodes
@@ -869,7 +872,8 @@ export default function LessonPage() {
   const glossAccent = resolveSubjectPalette(subjectDef?.id, dark).accent
   const videoBadge = subjectDef ? `${subjectDef.icon}${ICON_GAP}${t(subjectDef.name)}` : undefined
 
-  const watchedPct = Math.round(watchRatio({ ...watch, duration: videoDuration || watch.duration }) * 100)
+  const studyProgress = lessonStudyProgress(lesson ?? {}, { ...watch, duration: videoDuration || watch.duration })
+  const watchedPct = studyProgress.percent
 
   // Подтянуть активную строку в видимую часть списка. Скроллим сам контейнер, а
   // не через scrollIntoView: тот тянет за собой и страницу целиком.
@@ -944,7 +948,7 @@ export default function LessonPage() {
           {t('Занятие')} #{lesson.number + 1} {tContent(lesson.title)}
         </h1>
 
-        <div
+        {date && <div
           className="flex items-center flex-shrink-0"
           // Пара для свайпа «назад»: дата перетекает в дату экрана под ней.
           // По именам, а не по геометрии: докнутый чип даты сжимается до
@@ -960,8 +964,8 @@ export default function LessonPage() {
           }}
         >
           <Calendar size={16} />
-          {detail.date}
-        </div>
+          {date}
+        </div>}
       </motion.div>
 
       {/* Docked twin — fixed at the topbar line, escaping the scroll
@@ -1019,7 +1023,7 @@ export default function LessonPage() {
                 the row is tight, so the icon and ".month" smoothly collapse to
                 zero width, leaving just the day number. The chip's own width
                 follows its content per-frame, so it glides between the two. */}
-            <div
+            {date && <div
               className="flex items-center flex-shrink-0"
               // Та же именованная пара, что и у шапки в покое (см. выше).
               data-swipe-morph="date"
@@ -1038,16 +1042,16 @@ export default function LessonPage() {
               >
                 <Calendar size={16} />
               </motion.span>
-              <span style={{ whiteSpace: 'nowrap' }}>{detail.date.split('.')[0]}</span>
+              <span style={{ whiteSpace: 'nowrap' }}>{date.split('.')[0]}</span>
               <motion.span
                 initial={false}
                 animate={{ width: topBarCompact ? 'auto' : 0, opacity: topBarCompact ? 1 : 0 }}
                 transition={dateMorph}
                 style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap' }}
               >
-                .{detail.date.split('.')[1]}
+                .{date.split('.')[1]}
               </motion.span>
-            </div>
+            </div>}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1086,27 +1090,30 @@ export default function LessonPage() {
 
             {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не
                 попадает — считаются только отрезки, пройденные воспроизведением. */}
-            {(watchedPct > 0 || watch.completed) && (
+            {(watchedPct > 0 || studyProgress.completed) && (
               <div className="flex items-center" style={{ gap: 10 }}>
                 <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'var(--color-bg)', overflow: 'hidden' }}>
                   <div
                     style={{
                       height: '100%', width: `${Math.max(2, watchedPct)}%`, borderRadius: 999,
-                      background: watch.completed ? 'var(--grad-green-bar)' : 'var(--grad-purple)',
+                      background: studyProgress.completed ? 'var(--grad-green-bar)' : 'var(--grad-purple)',
                       transition: 'width 0.38s ease',
                     }}
                   />
                 </div>
                 <span
                   className="flex items-center flex-shrink-0"
-                  style={{ gap: 6, fontSize: 13, fontWeight: 600, color: watch.completed ? 'var(--color-green-text)' : 'var(--color-text-3)' }}
+                  style={{ gap: 6, fontSize: 13, fontWeight: 600, color: studyProgress.completed ? 'var(--color-green-text)' : 'var(--color-text-3)' }}
                 >
-                  {watch.completed
+                  {studyProgress.attended
+                    ? <><CheckCircle2 size={14} /> {t('Урок засчитан — был на занятии')}</>
+                    : studyProgress.completed
                     ? <><CheckCircle2 size={14} /> {t('Запись просмотрена')}</>
                     : <>{t('Просмотрено')} {watchedPct}%</>}
                 </span>
               </div>
             )}
+            {studyProgress.attended && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Запись можно пересмотреть для повторения.')}</p>}
           </div>
 
           {/* Timecodes panel.

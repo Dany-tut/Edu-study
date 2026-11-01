@@ -3,6 +3,7 @@
 // import from here instead of hardcoding hex literals.
 
 import { resolveSubjectPalette } from './subjects'
+import type { TrackLessonStatus } from './lessonStatus'
 
 export interface SubjectPalette {
   /** Text color on a neutral/white surface. AA contrast vs white. */
@@ -37,16 +38,21 @@ export const PURPLE = {
   gradient: 'var(--grad-purple)',
 } as const
 
-// Course track status palette — kept here so all status chrome (CourseNode,
-// lesson page badges) reads from one place.
+// Glyphs can be lighter than the small captions. Nodes and popovers share both.
+const trackTone = (bg: string, border: string, icon: string, text = icon) => ({ bg, border, icon, text })
 export const TRACK_STATUS = {
-  completed: { bg: 'var(--color-green-soft)',  border: '#6EE7A0', icon: '#2A7D4F' },
-  returned:  { bg: 'var(--color-yellow-soft)', border: '#F8EF8C', icon: '#7A6A00' },
-  unviewed:  { bg: 'var(--color-red-soft)',    border: '#F48B91', icon: '#A8282D' },
-  submitted: { bg: 'var(--color-peach-soft)',  border: '#F8C991', icon: '#8A4A00' },
-  // «Сейчас» держится на --status-now*, а не на PURPLE: брендовый фиолетовый
-  // уходит в цвет открытого курса (lib/courseTint.ts), а статусная линия обязана
-  // оставаться различимой при любом предмете.
-  current:   { bg: 'var(--color-bg-input)',    border: 'var(--status-now)', icon: 'var(--status-now-text)' },
-  locked:    { bg: 'var(--color-bg-3)',        border: 'var(--color-border-soft)', icon: 'var(--color-muted)' },
+  completed: trackTone('var(--color-green-soft)', '#6EE7A0', 'var(--color-green-text)'),
+  returned:  trackTone('var(--color-yellow-soft)', '#F8EF8C', 'var(--color-yellow-text)'),
+  unviewed:  trackTone('var(--track-recording-bg)', 'var(--track-recording-border)', 'var(--track-recording-icon)', 'var(--track-recording-text)'),
+  test_low:  trackTone('var(--color-red-soft)', '#F48B91', 'var(--color-red-text)'),
+  submitted: trackTone('var(--color-peach-soft)', '#F8C991', 'var(--color-peach-text)'),
+  today:     trackTone('var(--status-now-soft)', 'var(--status-now)', 'var(--track-today-icon)', 'var(--status-now-text)'),
+  current:   trackTone('rgb(var(--glass-rgb))', 'var(--color-border-strong)', 'var(--color-muted)', 'var(--track-muted-text)'),
+  locked:    trackTone('var(--color-bg-3)', 'var(--color-border-soft)', 'var(--color-muted)', 'var(--track-muted-text)'),
+}
+
+export function trackPalette(status: TrackLessonStatus) {
+  if (status === 'test_passed') return TRACK_STATUS.completed
+  if (status === 'submitted_unknown') return TRACK_STATUS.locked
+  return TRACK_STATUS[status]
 }

@@ -5,6 +5,7 @@
 import { supabase } from './supabase'
 import { trackEvent } from './analytics'
 import { isVideoWatchRef } from './videoProgress'
+import { applyLessonParticipation, fetchLessonParticipation } from './lessonParticipation'
 import { isCourseResetRef } from './homeworkReset'
 import { streakDays } from './trainerDay'
 import { parseLessonFiles } from './lessonFiles'
@@ -13,6 +14,8 @@ import type { HardTaskStudentBlock, HardTaskReviewBlock, HardTaskDef } from './u
 import { getSessionUser } from './owner'
 import { useStudentTz } from './studentTz'
 import { convertWallTime } from './teacherTz'
+import type { BasicAnswersPayload } from './basicAnswers'
+import { homeworkResult, homeworkDisplayScore, type HomeworkAttempt, type HomeworkResult } from './homeworkResult'
 
 /**
  * Report a real Supabase error (RLS denial, 5xx, timeout) to console + analytics
@@ -54,6 +57,7 @@ interface DbScheduleLesson {
   group_id: string
   date: string
   time_start: string
+  time_end?: string | null
   subject: string
   lesson_title: string
   lesson_number: number
@@ -107,7 +111,14 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
   const seen = new Set<string>()
   const localRows = (data as DbScheduleLesson[]).map(row => {
     const local = convertWallTime(row.date, row.time_start, 'Europe/Moscow', viewerTz)
-    return { ...row, date: local.day, time_start: local.time }
+    let endDate = row.date
+    if (row.time_end && row.time_end < row.time_start) {
+      const next = new Date(`${row.date}T12:00:00`)
+      next.setDate(next.getDate() + 1)
+      endDate = fmt(next)
+    }
+    const end = row.time_end ? convertWallTime(endDate, row.time_end, 'Europe/Moscow', viewerTz) : null
+    return { ...row, date: local.day, time_start: local.time, time_end: end?.time, endDate: end?.day }
   })
   for (const row of localRows) {
     // Отменённое учителем занятие (0121) в календарь ученика не ставим: об отмене
@@ -142,6 +153,8 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
         lessonTitle: row.lesson_title,
         lessonNumber: row.lesson_number,
         time: row.time_start,
+        endTime: row.time_end ?? undefined,
+        endDate: (row as DbScheduleLesson & { endDate?: string }).endDate,
         kind: row.node_type === 'rec' ? 'rec' as const : 'lesson' as const,
         passed: passed && !upcoming,
         upcoming: upcoming || undefined,
@@ -168,14 +181,16 @@ interface DbProgress {
   score: number
   comment: string
   review_comment: string | null
-  attachments: { tasks?: HardTaskStudentBlock[] } | null
+  attachments: ({ tasks?: HardTaskStudentBlock[] } & Partial<BasicAnswersPayload>) | null
   review_attachments: { photos?: string[]; board?: string | null; annotation?: { image: string; w: number; h: number } | null; tasks?: HardTaskReviewBlock[] } | null
   hard_submitted: boolean
 }
 
 export type ReviewAttachments = { photos: string[]; board: string | null; annotation?: { image: string; w: number; h: number } | null }
 export type ProgressMap = Record<string, {
-  status: LessonStatus; score: number; comment: string; reviewComment: string;
+  status: LessonStatus; score: number | null; comment: string; reviewComment: string;
+  result?: HomeworkResult;
+  watch?: import('./videoProgress').VideoWatch;
   reviewAttachments: ReviewAttachments; hardSubmitted: boolean;
   // Per-task сложные задания: ответы ученика и ревью учителя (пусто для legacy).
   hardTaskBlocks: HardTaskStudentBlock[];
@@ -283,6 +298,8 @@ export async function fetchLessonProgress(studentIds: string | string[]): Promis
       hardTaskBlocks: Array.isArray(row.attachments?.tasks) ? row.attachments!.tasks! : [],
       hardReviewBlocks: Array.isArray(row.review_attachments?.tasks) ? row.review_attachments!.tasks! : [],
       hardSubmitted: row.hard_submitted,
+      result: homeworkResult(row.attachments, row.score, row.status),
+      watch: (row.attachments as any)?.video,
     }
   }
   return map
@@ -292,7 +309,7 @@ export async function upsertLessonProgress(
   studentId: string,
   lessonRef: string,
   subject: string,
-  patch: Partial<{ status: LessonStatus; score: number; comment: string }>,
+  patch: Partial<{ status: LessonStatus; score: number | null; comment: string; attachments: BasicAnswersPayload }>,
 ): Promise<void> {
   // Единственная ЗАПИСЬ в этом файле — и она была единственной, чья ошибка
   // никуда не уходила: результат теста не сохранился, а экран об этом молчал.
@@ -303,7 +320,31 @@ export async function upsertLessonProgress(
     ...patch,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'student_id,lesson_ref' })
-  if (error) reportDbError('upsertLessonProgress', error)
+  if (error) {
+    reportDbError('upsertLessonProgress', error)
+    throw error
+  }
+}
+
+async function hydrateAttemptHistory(studentIds: string[], progress: ProgressMap) {
+  try {
+  const [{ data, error }, totals] = await Promise.all([supabase.from('homework_attempts')
+    .select('id,lesson_ref,number,status,score,passing_score,submitted_at,review_comment')
+    .in('student_id', studentIds).order('number', { ascending: false }),
+    supabase.from('homework_attempt_totals').select('lesson_ref,best_score,attempt_count').in('student_id',studentIds)])
+  if (error) { reportDbError('homework_attempts', error); return }
+  for (const [ref, p] of Object.entries(progress)) {
+    if (!p.result) continue
+    const attempts = (data ?? []).filter(a => a.lesson_ref === ref) as HomeworkAttempt[]
+    const finals = attempts.filter(a => a.status === 'completed' && a.score !== null).map(a => a.score!)
+    if (p.result.percent !== null && p.status !== 'returned') finals.push(p.result.percent)
+    for (const total of totals.data ?? []) if (total.lesson_ref === ref && total.best_score !== null) finals.push(total.best_score)
+    p.result.attemptCount = (totals.data ?? []).filter(t => t.lesson_ref === ref).reduce((sum,t) => sum + Number(t.attempt_count),0) || attempts.length
+    p.result.attempts = attempts
+    p.result.bestPercent = finals.length ? Math.max(...finals) : null
+    p.result.passed = p.result.bestPercent !== null && p.result.bestPercent >= p.result.passingScore
+  }
+  } catch (error) { reportDbError('homework_attempts', {message: String(error)}) }
 }
 
 // ─── Course structure from Supabase ──────────────────────────────────────────
@@ -446,7 +487,8 @@ type TrackPayload = {
   courses?: CourseTuple[]
 }
 
-export type StudentTrack = { scope: PersonScope; subjects: Subject[]; progress: ProgressMap }
+// null means the progress request failed, NOT that the student has no work.
+export type StudentTrack = { scope: PersonScope; subjects: Subject[]; progress: ProgressMap | null }
 
 /** Пустые вложения — их привозит fetchProgressAttachments отдельно. */
 const emptyAtt = (): ProgressMap[string]['reviewAttachments'] => ({ photos: [], board: null, annotation: null })
@@ -471,9 +513,10 @@ export async function fetchStudentTrack(
     const scope = await fetchPersonScope(fallback)
     const [subjects, progress] = await Promise.all([
       fetchCourseStructure(scope.rows),
-      fetchLessonProgress(scope.studentIds).catch(() => ({} as ProgressMap)),
+      fetchLessonProgress(scope.studentIds).catch(() => null),
     ])
-    return { scope, subjects, progress }
+    if (progress) await hydrateAttemptHistory(scope.studentIds, progress)
+    return { scope, subjects: applyLessonParticipation(subjects, await fetchLessonParticipation(subjects)), progress }
   }
 
   const rows: Array<{ id: string; groupId: string }> = []
@@ -516,6 +559,31 @@ export async function fetchStudentTrack(
     }
   }
 
+  // Fetch only grading metadata, never the full task/voice/photo attachments.
+  // The lightweight RPC deliberately omits attachments, but a score alone cannot
+  // distinguish a finished auto-test from work awaiting its teacher.
+  try {
+    const { data, error } = await supabase.from('lesson_progress')
+      .select('lesson_ref, status, score, snapshot:attachments->v, answer_rows:attachments->rows, review_required:attachments->reviewRequired, passing_score:attachments->recommendationScore, attempt_id:attachments->attemptId, testly_key:attachments->testlyKey, draft:attachments->draft, reviewed_at:attachments->reviewedAt, self_assessment:attachments->selfAssessment, video:attachments->video')
+      .in('student_id', scope.studentIds)
+    if (error) reportDbError('fetchStudentTrack.grading', error)
+    else for (const row of data ?? []) {
+      const p = progress[row.lesson_ref] ?? (row.video ? (progress[row.lesson_ref] = { status: row.status, score: row.score, comment: '', reviewComment: '', reviewAttachments: emptyAtt(), hardSubmitted: false, hardTaskBlocks: [], hardReviewBlocks: [] }) : undefined)
+      if (!p || row.lesson_ref.endsWith('-hard')) continue
+      if (row.video) p.watch = row.video as unknown as import('./videoProgress').VideoWatch
+      p.result = homeworkResult({ v: row.snapshot, rows: row.answer_rows,
+        reviewRequired: row.review_required, recommendationScore: row.passing_score,
+        attemptId: row.attempt_id, testlyKey: row.testly_key, draft: row.draft, reviewedAt: row.reviewed_at,
+        selfAssessment: row.self_assessment }, row.score, row.status)
+      p.status = row.status
+      p.score = row.score
+    }
+  } catch (error) {
+    reportDbError('fetchStudentTrack.grading', { message: String(error) })
+  }
+
+  await hydrateAttemptHistory(scope.studentIds, progress)
+
   const modes = payload.modes ?? {}
   const positions = payload.pos ?? {}
   const ownerFor = (studentIds: string[] | null, groupIds: string[] | null): string | undefined =>
@@ -556,11 +624,12 @@ export async function fetchStudentTrack(
               ? timecodes as Lesson['timecodes'] : undefined,
             files: parseLessonFiles(materials),
             scheduledDate: schedDate ?? undefined,
+            scheduledTime: schedTime ?? undefined,
           }
           const diverged = !!schedManual && !!recDate && (recDate !== schedDate || recTime !== schedTime)
           if (diverged) {
             return [
-              { ...base, id: `${lShort}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, scheduledDate: recDate ?? undefined },
+              { ...base, id: `${lShort}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, scheduledDate: recDate ?? undefined, scheduledTime: recTime ?? undefined },
               { ...base, id: lShort, shape: (shape as LessonShape) ?? 'circle', nodeType: 'lesson' as const, videoUrl: undefined },
             ]
           }
@@ -570,7 +639,7 @@ export async function fetchStudentTrack(
     }
   })
 
-  return { scope, subjects: orderCourses(subjects, positions), progress }
+  return { scope, subjects: orderCourses(applyLessonParticipation(subjects, await fetchLessonParticipation(subjects)), positions), progress: Array.isArray(payload.progress) ? progress : null }
 }
 
 /**
@@ -744,6 +813,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
               files: parseLessonFiles(l.materials),
               scheduledDate: l.scheduled_date ?? undefined,
+              scheduledTime: l.scheduled_time ?? undefined,
             }
             // Recording date diverged from the lesson date → split into two nodes:
             // a 🎥 «Запись» node (live session) and a 📖 «Урок» node, each tracked
@@ -752,7 +822,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               && (l.rec_date !== l.scheduled_date || l.rec_time !== l.scheduled_time)
             if (diverged) {
               return [
-                { ...base, id: `${l.short_id}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, scheduledDate: l.rec_date ?? undefined },
+                { ...base, id: `${l.short_id}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, scheduledDate: l.rec_date ?? undefined, scheduledTime: l.rec_time ?? undefined },
                 { ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle', nodeType: 'lesson' as const, videoUrl: undefined },
               ]
             }
@@ -868,9 +938,9 @@ export function mergeSubjectsWithProgress(catalog: Subject[], progress: Progress
         const p = progress[lesson.id]
         if (!p || p.status === 'locked') {
           const status: LessonStatus = autoOpen(lesson) ? 'current' : 'locked'
-          return { ...lesson, status, points: undefined, comment: undefined }
+          return { ...lesson, status, points: undefined, comment: undefined, watch: progress[`video-${lesson.id}`]?.watch }
         }
-        return { ...lesson, status: p.status, points: p.score > 0 || p.status === 'submitted' || p.status === 'completed' ? p.score : undefined, comment: p.comment || undefined }
+        return { ...lesson, status: p.result?.passed ? 'completed' : p.status === 'completed' && p.result && !p.result.passed ? 'submitted' : p.status, points: p.result ? homeworkDisplayScore(p.result) ?? undefined : p.status === 'completed' ? p.score ?? undefined : undefined, comment: p.comment || undefined, result: p.result, watch: progress[`video-${lesson.id}`]?.watch }
       }),
     }))
 
@@ -886,7 +956,7 @@ export function mergeSubjectsWithProgress(catalog: Subject[], progress: Progress
           // Exception: keep completed/submitted/returned (student already acted).
           const done = l.status === 'completed' || l.status === 'submitted' || l.status === 'returned'
           if (!done) l.status = allPrevDone ? 'current' : 'locked'
-        } else if (l.status !== 'completed') {
+        } else if (!(l.result ? l.result.passed : l.status === 'completed')) {
           allPrevDone = false
         }
       }
@@ -899,7 +969,7 @@ export function mergeSubjectsWithProgress(catalog: Subject[], progress: Progress
 
     // Compute progress %
     const total = allLessons.length
-    const completed = allLessons.filter(l => l.status === 'completed').length
+    const completed = allLessons.filter(l => l.result ? l.result.passed : l.status === 'completed').length
     const progress_pct = total > 0 ? Math.round((completed / total) * 100) : 0
 
     return { ...subject, modules, activeModuleId, progress: progress_pct }
@@ -931,14 +1001,14 @@ export function computeStats(progress: ProgressMap): StudentStats {
     // она давала бы вечно недовыполненное задание на каждый сброшенный курс.
     .filter(([ref]) => !isVideoWatchRef(ref) && !isCourseResetRef(ref))
     .map(([, p]) => p)
-  const completed = entries.filter(p => p.status === 'completed')
+  const completed = entries.filter(p => p.result ? p.result.passed : p.status === 'completed')
   // Include submitted lessons in score stats — the student earned the score
   // even before the teacher finalises the review.
-  const scored = entries.filter(p => p.status === 'completed' || p.status === 'submitted')
+  const scored = entries.map(p => ({ ...p, score: p.result ? homeworkDisplayScore(p.result) : p.status === 'completed' ? p.score : null })).filter(p => p.score != null)
   const withScore = scored.filter(p => p.score != null)
   const totalPoints = scored.reduce((s, p) => s + (p.score ?? 0), 0)
   const avgScore = withScore.length > 0
-    ? Math.round(withScore.reduce((s, p) => s + p.score, 0) / withScore.length)
+    ? Math.round(withScore.reduce((s, p) => s + (p.score ?? 0), 0) / withScore.length)
     : 0
   const totalTasks = entries.length
   const performance = totalTasks > 0 ? Math.round((completed.length / totalTasks) * 100) : 0
@@ -977,9 +1047,9 @@ export function computeStats(progress: ProgressMap): StudentStats {
  */
 export function computeSubjectStats(subject: Subject, progress: ProgressMap): StudentStats {
   const lessons = subject.modules.flatMap(m => m.lessons)
-  const completed = lessons.filter(l => l.status === 'completed')
+  const completed = lessons.filter(l => l.result ? l.result.passed : l.status === 'completed')
   // Сданное на проверку считаем наравне со зачтённым — балл ученик уже получил.
-  const scored = lessons.filter(l => (l.status === 'completed' || l.status === 'submitted') && l.points != null)
+  const scored = lessons.filter(l => l.points != null)
   const totalPoints = scored.reduce((s, l) => s + (l.points ?? 0), 0)
   const avgScore = scored.length > 0 ? Math.round(totalPoints / scored.length) : 0
   const totalTasks = lessons.length

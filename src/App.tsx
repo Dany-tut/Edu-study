@@ -1,4 +1,5 @@
 import { fetchScheduleDays } from './lib/db'
+import { applyLessonParticipation, fetchLessonParticipation } from './lib/lessonParticipation'
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
@@ -117,6 +118,7 @@ function AppRoutes() {
   const [recovery, setRecovery] = useState(false)
   const [consented, setConsented] = useState(hasStudentConsent())
   const loadStudentData = useStudentData(s => s.load)
+  const progressScope = useStudentData(s => s.scopeStudentIds.join(','))
 
   // Behavioural telemetry: init once, then log every route change.
   useEffect(() => { initAnalytics() }, [])
@@ -194,24 +196,6 @@ function AppRoutes() {
       console.error('[studentData.load]', e)
       useStudentData.setState({ loaded: true })
     })
-    // Realtime: re-sync when teacher opens a lesson (lesson_progress changes for this student)
-    const channel = supabase
-      .channel('student-lesson-progress')
-      .on('postgres_changes', {
-        // '*' (not just UPDATE): opening a lesson for a not-yet-enrolled student
-        // INSERTs a fresh lesson_progress row, so an UPDATE-only filter would
-        // never re-sync the live student screen.
-        event: '*',
-        schema: 'public',
-        table: 'lesson_progress',
-        filter: `student_id=eq.${sess.id}`,
-      }, () => loadStudentData())
-      .subscribe(status => {
-        // Surface realtime failures instead of silently never updating.
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.error('[realtime] lesson_progress subscription:', status)
-        }
-      })
     // Возврат на вкладку = пересинхронизация. Realtime не закрывает удаление:
     // таблица живёт с REPLICA IDENTITY DEFAULT, и в DELETE-событии приходит
     // только id — фильтр по student_id его не пропускает. Значит обнуление
@@ -223,29 +207,51 @@ function AppRoutes() {
       if (document.visibilityState !== 'visible') return
       if (Date.now() - lastSync < 20_000) return
       lastSync = Date.now()
-      loadStudentData()
+      void loadStudentData().catch(e => console.error('[studentData.refresh]', e))
     }
     document.addEventListener('visibilitychange', onVisible)
     // Teacher-only sessions cannot be subscribed to by students. Refresh just
-    // the calendar while visible so late attendance marks reach an open page.
+    // the calendar and lesson credit so late/corrected marks reach an open page.
     let syncingAttendance = false
     let disposed = false
     const attendanceTimer = window.setInterval(async () => {
       if (document.visibilityState !== 'visible' || syncingAttendance) return
       syncingAttendance = true
       try {
-        const scheduleDays = await fetchScheduleDays(sess.groupId, sess.id)
-        if (!disposed && scheduleDays.length && getStudentSession()?.id === sess.id) useStudentData.setState({ scheduleDays })
+        const [calendar, participation] = await Promise.allSettled([
+          fetchScheduleDays(sess.groupId, sess.id),
+          fetchLessonParticipation(useStudentData.getState().subjects),
+        ])
+        if (!disposed && getStudentSession()?.id === sess.id) useStudentData.setState(state => ({
+          ...(calendar.status === 'fulfilled' && calendar.value.length ? { scheduleDays: calendar.value } : {}),
+          ...(participation.status === 'fulfilled' ? { subjects: applyLessonParticipation(state.subjects, participation.value) } : {}),
+        }))
       } catch (error) { console.error('[attendance sync]', error) }
       finally { syncingAttendance = false }
     }, 30_000)
     return () => {
       disposed = true
       window.clearInterval(attendanceTimer)
-      supabase.removeChannel(channel)
       document.removeEventListener('visibilitychange', onVisible)
     }
   }, [loadStudentData])
+
+  // One person can own several student rows. Subscribe to every row loaded by the track.
+  useEffect(() => {
+    const sess = getStudentSession()
+    if (!sess) return
+    const ids = progressScope ? progressScope.split(',') : [sess.id]
+    const channel = supabase.channel('student-lesson-progress')
+    for (const id of ids) {
+      channel.on('postgres_changes', {
+        event: '*', schema: 'public', table: 'lesson_progress', filter: `student_id=eq.${id}`,
+      }, () => { void loadStudentData().catch(e => console.error('[studentData.realtime]', e)) })
+    }
+    channel.subscribe(status => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.error('[realtime] lesson_progress subscription:', status)
+    })
+    return () => { void supabase.removeChannel(channel) }
+  }, [loadStudentData, progressScope])
 
   // Supabase Auth redirects MCP clients to the app's consent path (without a
   // hash fragment). Keep this route independent from the cabinet hash router.

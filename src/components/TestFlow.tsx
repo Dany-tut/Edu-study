@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import HomeworkAttemptPanel from './HomeworkAttemptPanel'
+import { isHomeworkSubmissionStatus, type HomeworkResult } from '../lib/homeworkResult'
+import { useRef, useState } from 'react'
 import { CheckboxMark } from './Checkbox'
 import BackCircle from './BackCircle'
 import { usePersistentState, clearDraft } from '../lib/useDraft'
@@ -7,7 +9,7 @@ import { ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from './icons/appIco
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
 import {
-  charUnits, crosswordClues, gapChoiceRows, gradeTask, isAutoGradable, sentenceTokens, sortRows,
+  charUnits, crosswordClues, gapChoiceRows, sentenceTokens, sortRows,
   tfRows, type TaskAnswer,
 } from '../data/taskTypes'
 import WordBankSolver from './WordBankSolver'
@@ -27,7 +29,8 @@ import SyllableBuilder from './SyllableBuilder'
 import MatchingSolver, { matchingFromMap, matchingToMap } from './MatchingSolver'
 import AudioPlayer from './AudioPlayer'
 import TaskVideo from './TaskVideo'
-import { upsertLessonProgress } from '../lib/db'
+import { saveFinalTestSubmission } from '../lib/finalTestSubmission'
+import { Alert } from './Alert'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
@@ -58,13 +61,16 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
   // Свайп от левого края = кнопка «Назад» в шапке теста.
   useSwipeBack(onBack, !isDesktop)
   const reload = useStudentData(s => s.load)
+  const progress = useStudentData(s => s.progress[lesson.id])
   // Ответы переживают перезагрузку: тест из пятнадцати заданий заполняют не в
   // один присест, и F5 (или автоперезагрузка после деплоя) не должен стирать
   // работу. Черновик привязан к уроку и снимается только после отправки.
   const ANSWERS_KEY = `test.${lesson.id}.answers`
   const [answers, setAnswers] = usePersistentState<Record<string, TaskAnswer>>(ANSWERS_KEY, {})
   const [submitting, setSubmitting] = useState(false)
-  const [result, setResult] = useState<{ score: number; correct: number; gradable: number } | null>(null)
+  const submittingRef = useRef(false)
+  const [submitError, setSubmitError] = useState(false)
+  const [result, setResult] = useState<{ score: number; correct: number; gradable: number; homework: HomeworkResult } | null>(null)
 
   function setAnswer(id: string, value: TaskAnswer) {
     setAnswers(a => ({ ...a, [id]: value }))
@@ -93,37 +99,34 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
 
   async function submit() {
     const session = getStudentSession()
-    if (!session) return
+    if (submittingRef.current) return
+    if (!session) { setSubmitError(true); return }
+    submittingRef.current = true
     setSubmitting(true)
-
-    const gradable = tasks.filter(isAutoGradable)
-    const correct = gradable.filter(t => gradeTask(t, answers[t.id] ?? null).correct).length
-    const score = gradable.length > 0 ? Math.round((correct / gradable.length) * 100) : 0
-
-    await upsertLessonProgress(ownerStudentIdFor(lesson.subject), lesson.id, lesson.subject, {
-      status: 'submitted',
-      score,
-    })
-    await reload()
-    clearDraft(ANSWERS_KEY)
-    setResult({ score, correct, gradable: gradable.length })
-    setSubmitting(false)
+    setSubmitError(false)
+    try {
+      const saved = await saveFinalTestSubmission(ownerStudentIdFor(lesson.subject), lesson, answers, progress?.result?.attemptId)
+      clearDraft(ANSWERS_KEY)
+      setResult(saved)
+      // The write succeeded. A failed dashboard refresh must not invite a duplicate submission.
+      void reload().catch(error => console.error('[test refresh]', error))
+    } catch (error) {
+      console.error('[test submit]', error)
+      setSubmitError(true)
+    } finally {
+      submittingRef.current = false
+      setSubmitting(false)
+    }
   }
 
   // ── Result screen ──
-  if (result) {
+  if (result || (progress?.result?.attemptId && !progress.result.draft)) {
+    const useSavedSubmission = !!result && (!progress?.result || progress.result.draft || !isHomeworkSubmissionStatus(progress.status))
     return (
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '40px 20px', textAlign: 'center' }}>
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
-          <CheckCircle2 size={38} style={{ color: 'var(--color-green-text)' }} />
-        </motion.div>
-        <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Тест отправлен!')}</h2>
-        <p style={{ fontSize: 14, color: 'var(--color-muted)', marginBottom: 20 }}>
-          {result.gradable > 0
-            ? `${t('Верно')} ${result.correct} ${t('из')} ${result.gradable} · ${result.score}%`
-            : t('Ответы отправлены преподавателю на проверку')}
-        </p>
+        <HomeworkAttemptPanel kind="test" result={useSavedSubmission ? result.homework : progress?.result}
+          status={useSavedSubmission ? 'submitted' : progress?.status} studentId={ownerStudentIdFor(lesson.subject)} lessonRef={lesson.id}
+          onRetake={async () => { setAnswers({}); setResult(null); await reload() }} />
         <button onClick={onBack} style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
           {t('К курсу')}
         </button>
@@ -551,6 +554,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
       )}
 
       {tasks.length > 0 && (
+        <>
+        {submitError && <Alert tone="danger" text={t('Ответы не отправлены — проверьте связь и повторите.')} />}
         <div style={{ position: 'sticky', bottom: 16, marginTop: 24, display: 'flex', justifyContent: 'center' }}>
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
@@ -565,6 +570,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
             {submitting ? t('Отправляем…') : `${t('Отправить тест')} (${answeredCount}/${tasks.length})`}
           </motion.button>
         </div>
+        </>
       )}
     </div>
   )
