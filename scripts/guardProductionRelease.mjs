@@ -17,10 +17,11 @@ try {
     if (production && (process.env.VERCEL_GIT_COMMIT_REF !== RELEASE.branch || process.env.VERCEL_GIT_COMMIT_SHA !== head)) {
       throw new Error('Production must be built by the Git integration from the current main commit.')
     }
-    // The Git integration checks out the committed source; Vercel may add
-    // untracked service/build files. Local release candidates must also have
-    // no untracked files, because those could otherwise be uploaded by hand.
-    const changes = git(['status', '--porcelain', production ? '--untracked-files=no' : '--untracked-files=normal'])
+    // Enforce a clean local release checkout. The trusted Git builder itself
+    // filters .vercelignore paths and rewrites vercel.json for Services, so its
+    // working tree intentionally differs from HEAD. Its provenance is checked
+    // through the Git SHA above and the platform's Git-only production policy.
+    const changes = production ? '' : git(['status', '--porcelain', '--untracked-files=normal'])
     if (changes) {
       throw new Error(`Release checkout has uncommitted source files. Use a clean, isolated worktree.\n${changes}`)
     }

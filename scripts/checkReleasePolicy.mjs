@@ -37,7 +37,7 @@ try {
   const untracked = spawnSync(process.execPath, [guard, '--check'], { cwd: dir, encoding: 'utf8', env: { ...process.env, VERCEL_ENV: '' } })
   assert.equal(untracked.status, 1); assert.match(untracked.stderr, /uncommitted/); checks++
   writeFileSync(join(dir, 'unrelated-feature'), 'modified tracked source')
-  const dirty = spawnSync(process.execPath, [guard, '--before-build'], { cwd: dir, encoding: 'utf8', env: { ...process.env, VERCEL_ENV: 'production', VERCEL_GIT_COMMIT_REF: 'main', VERCEL_GIT_COMMIT_SHA: stale } })
+  const dirty = spawnSync(process.execPath, [guard, '--check'], { cwd: dir, encoding: 'utf8', env: { ...process.env, VERCEL_ENV: '' } })
   assert.equal(dirty.status, 1); assert.match(dirty.stderr, /uncommitted/); checks++
   const valid = { head, main: head, live: { commit: live, build: 10 }, version: { build: 11, version: '1.0.11' }, contains }
   validateProductionRelease(valid); checks++
