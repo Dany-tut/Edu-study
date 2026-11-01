@@ -1,5 +1,6 @@
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
+import { isStoredTestlySubmission } from '../lib/testlySubmission'
 import { homeworkResult, homeworkDisplayScore } from '../lib/homeworkResult'
 import { LoopTextIcon } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
@@ -2211,7 +2212,7 @@ export default function HomeworkFlow({
       ? 'completed'
       : 'submitted'
     const ref = level === 'hard' ? `${lessonId}-hard` : lessonId
-    const { data, error } = await supabase.from('lesson_progress').upsert({
+    let { data, error } = await supabase.from('lesson_progress').upsert({
       student_id: ownerStudentIdFor(subject),
       lesson_ref: ref,
       subject,
@@ -2220,6 +2221,17 @@ export default function HomeworkFlow({
       comment,
       attachments: attachments ?? {},
     }, { onConflict: 'student_id,lesson_ref' }).select('attachments').single()
+    if (error && level === 'basic' && onlyTestly && attachments && 'v' in attachments && attachments.v === 'basic-1') {
+      // The webhook can close this attempt first. Its authoritative snapshot is
+      // immutable; a differently rounded browser snapshot must not show a false
+      // submission failure or overwrite the server's grade.
+      const { data: stored, error: readError } = await supabase.from('lesson_progress')
+        .select('status,attachments').eq('student_id', ownerStudentIdFor(subject)).eq('lesson_ref', ref).maybeSingle()
+      if (!readError && isStoredTestlySubmission(attachments, stored)) {
+        data = { attachments: stored!.attachments }
+        error = null
+      }
+    }
     if (error) {
       // Сдача — единственная запись, ради которой ученик делал домашку. Молча
       // проглотить её ошибку нельзя: экран покажет «сдано», а работы не будет

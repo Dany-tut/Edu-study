@@ -15,10 +15,11 @@ try {
   create table students(id uuid primary key,auth_user_id uuid,created_by uuid,group_id uuid);
   create table groups(id uuid primary key,created_by uuid);
   create table lesson_progress(id uuid primary key default gen_random_uuid(),student_id uuid,lesson_ref text,status text,score int,attachments jsonb,comment text,review_comment text,review_attachments jsonb,updated_at timestamptz default now());`)
-  for(const path of ['supabase/migrations/20261101025458_homework_attempt_history.sql','supabase/migrations/20261101030743_homework_attempt_summary.sql','supabase/migrations/20261101035910_legacy_homework_retake.sql','scripts/checkHomeworkAttempts.sql']) sql(readFileSync(path,'utf8'))
+  for(const path of ['supabase/migrations/20261101025458_homework_attempt_history.sql','supabase/migrations/20261101030743_homework_attempt_summary.sql','supabase/migrations/20261101035910_legacy_homework_retake.sql','supabase/migrations/20261101101728_preserve_returned_homework_attempt_answers.sql','scripts/checkHomeworkAttempts.sql']) sql(readFileSync(path,'utf8'))
   sql(readFileSync('supabase/migrations/20261101035125_lesson_self_assessment.sql','utf8'))
   sql(readFileSync('scripts/checkLessonSelfAssessment.sql','utf8'))
   sql(readFileSync('scripts/checkLegacyHomeworkRetake.sql','utf8'))
+  sql(readFileSync('scripts/checkReturnedHomeworkHistory.sql','utf8'))
   console.log('PASS: PostgreSQL migration, mixed grading, retries, history, idempotency, frozen answers, RLS isolation, self-assessment')
 } catch(error) { console.error(error.stderr?.toString() || error); process.exitCode=1 }
 finally { try {run(['rm','-f',name])} catch {} }
