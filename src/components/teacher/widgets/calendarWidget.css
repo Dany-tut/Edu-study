@@ -153,3 +153,9 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* Keep past lessons readable and interactive while removing their active accent. */
+.calendar-widget-lesson[data-ended] {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
