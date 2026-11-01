@@ -212,7 +212,7 @@ export default function Sidebar() {
   const avatarRef = useRef<HTMLDivElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
-  const nameWrapRef = useRef<HTMLDivElement>(null)
+  const nameWrapRef = useRef<HTMLButtonElement>(null)
   // Max width for the name when a widget pill shares the top-bar row; undefined
   // means "no cap" (home page, or when there's room for the full name).
   const [nameMaxWidth, setNameMaxWidth] = useState<number | undefined>(undefined)
@@ -450,8 +450,8 @@ export default function Sidebar() {
       }}
     >
       {/* Avatar (flower on a generated-color backdrop) + Name */}
-      <div style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0, paddingRight: 8 }}>
-        <div ref={avatarRef} style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
+      <div ref={avatarRef} style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0, paddingRight: 0 }}>
+        <div style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
           <motion.button
             whileHover={{ scale: 1.08, filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.35))' }}
             whileTap={{ scale: 0.94 }}
@@ -816,25 +816,31 @@ export default function Sidebar() {
         </div>
         {/* Width collapses to 0 (instead of popLayout's absolute exit) so the
             name tucks behind the avatar in flow — nothing detaches sideways. */}
-        <motion.div
+        <motion.button
+          type="button"
+          aria-label={t('Профиль')}
+          aria-expanded={pickerOpen}
+          onClick={() => { tactile(); if (pickerOpen) closePicker(); else { setMenuView('root'); setPickerOpen(true) } }}
           ref={nameWrapRef}
           initial={false}
           animate={{
             width: isCompact ? 0 : 'auto',
             opacity: isCompact ? 0 : 1,
-            marginLeft: isCompact ? 0 : 10,
+            paddingLeft: isCompact ? 0 : 10,
+            paddingRight: isCompact ? 0 : 8,
           }}
           transition={transition}
           // When the widget pill sits beside the bar, `nameMaxWidth` caps the
           // name so the expanded bar + pill still fit the viewport. max-width
           // bounds the animated `width:auto`, turning the span into a definite
           // box that can fade. undefined → no cap (plenty of room / home).
-          style={{ overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: nameMaxWidth }}
+          style={{ overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: nameMaxWidth, minHeight: 44, border: 0, background: 'transparent', cursor: 'pointer', font: 'inherit', paddingTop: 0, paddingBottom: 0 }}
+          tabIndex={isCompact ? -1 : 0}
         >
           <FadeText style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
             {tn(displayName)}
           </FadeText>
-        </motion.div>
+        </motion.button>
       </div>
 
       {/* Divider */}
