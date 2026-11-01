@@ -5390,4 +5390,5 @@ export const EN: Record<string, string> = {
   "Выбор даты": "Choose a date",
   "Выбрать дату": "Choose date",
   "Есть занятие": "Lesson scheduled",
+  "Календарь": "Calendar",
 }
