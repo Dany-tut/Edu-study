@@ -5466,4 +5466,18 @@ export const EN: Record<string, string> = {
   "Что получилось и что исправить": "What went well and what to improve",
   "Комментарий ученику в полной проверке": "Student feedback in the full review",
   "Учебный пример": "Demo assignment",
+  'Пока нет домашних заданий': 'No homework yet',
+
+  'По курсам': 'By course',
+
+  'План на неделю': 'Weekly plan',
+
+  'Все сроки': 'All due dates',
+
+  'Дни недели': 'Days of the week',
+
+  'Лента заданий': 'Assignment feed',
+
+  'На этот день заданий нет': 'No assignments for this day',
+
 }

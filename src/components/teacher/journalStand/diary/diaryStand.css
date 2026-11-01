@@ -130,7 +130,6 @@
   background: var(--color-bg);
   border: 1px solid var(--ds-line);
   border-radius: 28px;
-  min-height: 950px;
 }
 .ds-app-chrome {
   display: flex;
@@ -455,6 +454,7 @@
   filter: brightness(0.96);
 }
 .ds-course-label {
+  overflow-wrap: anywhere;
   display: inline;
   color: var(--ds-muted);
   font-size: 11px;
@@ -947,9 +947,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
   align-items: start;
-}
-.ds-course-board .ds-course-card:last-child:nth-child(odd) {
-  grid-column: 1/-1;
 }
 .ds-course-full {
   padding: 23px;
@@ -1485,3 +1482,15 @@
       color 0.15s;
   }
 }
+
+/* Sparse collections keep the same card width; empty states span the collection. */
+.ds-course-board > .ds-empty, .ds-course-shelf > .ds-empty { grid-column: 1 / -1; }
+.ds-focus-grid:has(> aside:empty) { grid-template-columns: minmax(0, 1fr); }
+.ds-focus-grid > aside:empty { display: none; }
+.ds-section-head { flex-wrap: wrap; }
+.ds-section-head h2, .ds-course-top h3, .ds-upcoming h3, .ds-recommend h3 { overflow-wrap: anywhere; }
+.ds-recommend > div { min-width: 0; }
+
+.ds-course-track:empty, .ds-course-work:empty { display: none; }
+
+.ds-focus-grid > aside > :only-child { grid-column: 1 / -1; }
