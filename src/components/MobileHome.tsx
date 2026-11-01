@@ -12,13 +12,16 @@ import MobileHScroll from './MobileHScroll'
 import UpdateDockPill from './UpdateDockPill'
 import { useAppUpdate, watchForUpdates } from '../lib/appUpdate'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
-import { getDisplayLessonStatus } from '../lib/lessonStatus'
-import { useNow, lessonTimeState } from '../lib/useNow'
+import { getDisplayLessonStatus, getStudentScheduleState } from '../lib/lessonStatus'
+import { useNow } from '../lib/useNow'
+import { pickScheduleFocus } from '../lib/scheduleState'
+import { useStudentTz } from '../lib/studentTz'
+import ScheduleStatusBadge from './ScheduleStatusBadge'
 import MobileStickersRow from './MobileStickersRow'
 import Skeleton from './Skeleton'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
-import { computeSubjectStats } from '../lib/db'
+import { computeSubjectStats, resolveScheduleLesson } from '../lib/db'
 import { useWidgetRelevance } from '../lib/widgetVisibility'
 import { useFeedGlance } from '../lib/feedRead'
 import { pickTrainerSubject } from '../lib/trainerSubject'
@@ -80,6 +83,7 @@ export default function MobileHome() {
   const openCourses = useDashboard(s => s.openCourses)
   const setActivePage = useDashboard(s => s.setActivePage)
   const now = useNow(30_000)
+  const timeZone = useStudentTz(s => s.tz)
   const { dark } = useTheme()
   const notifUnread = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -253,13 +257,13 @@ export default function MobileHome() {
     memes: relevant(4) ? scienceMemes[0] : undefined,
   }
 
-  const todayLessons = scheduleDays.find(d => d.isToday)?.lessons ?? []
-
-  // Dynamic Island: soonest upcoming lesson today, else streak summary.
-  const nextToday = todayLessons
-    .map(l => ({ l, st: lessonTimeState(scheduleDays.find(d => d.isToday)!.date, l.time, now) }))
-    .filter(x => !x.st.passed)
-    .sort((a, b) => a.st.minutesUntil - b.st.minutesUntil)[0]
+  // Keep an ongoing lesson (including one crossing midnight) in the island.
+  const todayEntries = scheduleDays.flatMap(day => day.lessons.map(l => ({
+    l, st: getStudentScheduleState(l, day.date, now, timeZone, subjects),
+  }))).filter(({ st }) => st.isCurrent || st.isToday)
+  const todayLessons = todayEntries.map(({ l }) => l)
+  const todayCandidates = todayEntries.filter(({ st }) => st.isCurrent || st.phase === 'upcoming')
+  const nextToday = todayCandidates[pickScheduleFocus(todayCandidates.map(({ st }) => st))]
 
   // Рубрики занимают место острова, только когда они есть и есть что листать:
   // одна рубрика — это не выбор, а подпись, и ради неё стрик уводить незачем.
@@ -303,7 +307,7 @@ export default function MobileHome() {
         {nextToday ? (
           <>
             <TaskliIcon name="schedule" size={16} tone="accent" />
-            <span>{t('Урок')} {fmtUntil(nextToday.st.minutesUntil)}</span>
+            <span data-schedule-state={nextToday.st.phase}>{nextToday.st.isCurrent ? t(nextToday.st.label!) : `${t('Урок')} ${fmtUntil(nextToday.st.minutesUntil ?? 0)}`}</span>
           </>
         ) : !loaded ? (
           // Пока данные едут, ноль — это не «ноль дней», а «мы ещё не знаем».
@@ -417,16 +421,27 @@ export default function MobileHome() {
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>{todayLessons.length} {t('занятия')}</span>
               </div>
               <div className="flex flex-col">
-                {todayLessons.map((l, i) => (
+                {todayEntries.map(({ l, st }, i) => (
                   <button
                     key={l.id}
-                    onClick={() => { tactile(); openCourses() }}
+                    type="button"
+                    data-schedule-state={st.phase}
+                    disabled={st.phase === 'cancelled'}
+                    onClick={() => {
+                      tactile()
+                      const match = resolveScheduleLesson(l, subjects)
+                      if (match.lesson) useDashboard.getState().openLesson(match.lesson.id)
+                      else { if (match.subjectId) useDashboard.getState().setActiveSubject(match.subjectId); openCourses() }
+                    }}
                     className="flex items-center text-left"
-                    style={{ gap: 10, padding: '8px 0', background: 'none', border: 'none', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)', cursor: 'pointer', width: '100%' }}
+                    style={{ gap: 10, padding: '10px 8px', borderRadius: 12, background: st.isCurrent ? 'var(--color-accent-soft)' : 'none', border: 'none', borderTop: i === 0 || st.isCurrent ? 'none' : '1px solid var(--color-border-soft)', cursor: st.phase === 'cancelled' ? 'default' : 'pointer', width: '100%' }}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-accent)', minWidth: 44 }}>{l.time}</span>
-                    <span className="flex-1 min-w-0 truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</span>
-                    <ChevronRight size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 800, color: st.isCurrent ? 'var(--color-accent)' : 'var(--color-text)', minWidth: 44, textDecoration: st.phase === 'cancelled' ? 'line-through' : undefined }}>{l.time}</span>
+                    <span className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+                      <span className="truncate" style={{ maxWidth: '100%', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</span>
+                      {st.label && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
+                    </span>
+                    {st.phase !== 'cancelled' && <ChevronRight size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
                   </button>
                 ))}
               </div>

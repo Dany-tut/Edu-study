@@ -10,6 +10,12 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Сейчас по расписанию': 'Scheduled for now',
+  'Время занятия прошло': 'Scheduled lesson time has ended',
+  'Материалы открыты': 'Materials are available',
+  'Нет запланированных занятий': 'No scheduled lessons',
+  'Был на занятии': 'Attended the lesson',
+  'Не был на занятии': 'Did not attend the lesson',
   'Задача добавлена в демопросмотре': 'Task added in the demo',
   'Вне курсов': 'Outside courses',
   'Задача добавлена. Она откроет эту работу из «Моих задач».': 'Task added. Open this submission from My tasks.',

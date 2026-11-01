@@ -144,6 +144,9 @@ export type ScheduleLesson = {
   time: string
   endTime?: string
   endDate?: string
+  startsAt?: string
+  endsAt?: string
+  status?: import('../lib/scheduleState').ScheduleEventStatus
   /** 'rec' = live session / recording, 'lesson' = lesson opening. */
   kind?: 'rec' | 'lesson'
   upcoming?: boolean

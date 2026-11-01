@@ -37,7 +37,7 @@ await build({
   stdin: { contents: `
     export { baseNodeShape } from './src/components/CourseNodeSilhouette';
     export { fetchStudentTrack, mergeSubjectsWithProgress, upsertLessonProgress, fetchScheduleDays, computeStats, computeSubjectStats } from './src/lib/db';
-    export { getDisplayLessonStatus, getTrackLessonStatus, lessonTrackStep, lessonScheduleDate } from './src/lib/lessonStatus';
+    export { getDisplayLessonStatus, getTrackLessonStatus, getLessonScheduleState, getStudentScheduleState, lessonTrackStep, lessonScheduleDate } from './src/lib/lessonStatus';
     export { homeworkResult, homeworkDisplayScore, canRetakeHomework, gradedTrackResult } from './src/lib/homeworkResult';
     export { useStudentData, startCourseHomeworkRetake } from './src/store/studentDataStore';
     export { useDashboard } from './src/store/dashboardStore';
@@ -311,6 +311,20 @@ const scheduled = { ...lesson(), videoUrl: 'https://example.test/video', schedul
 const scheduledSubject = subject([{ id: 1, label: 'One', lessons: [scheduled] }])
 m.useStudentData.setState({ subjects: [scheduledSubject], scheduleDays: [{ date: '2026-11-01', lessons: [{ id: 'slot', subject: 'Course', lessonTitle: 'lesson', lessonNumber: 0, time: '12:00', endTime: '13:30' }] }] })
 assert.equal(m.getDisplayLessonStatus(scheduled, new Date('2026-11-01T12:00:01+03:00')), 'current')
+const runningNow = new Date('2026-11-01T12:01:00+03:00')
+const slot = m.useStudentData.getState().scheduleDays[0].lessons[0]
+assert.equal(m.getStudentScheduleState(slot, '2026-11-01', runningNow, 'Europe/Moscow', [scheduledSubject]).phase, 'scheduled_now')
+assert.equal(m.getLessonScheduleState(scheduled, runningNow).phase, 'scheduled_now')
+assert.equal(m.getTrackLessonStatus({ ...scheduled, status: 'unviewed' }, runningNow), 'today')
+for (const status of ['live', 'completed', 'cancelled']) {
+  m.useStudentData.setState({ scheduleDays: [{ date: '2026-11-01', lessons: [{ ...slot, status }] }] })
+  assert.equal(m.getLessonScheduleState(scheduled, runningNow).phase, status)
+  assert.equal(m.getStudentScheduleState({ ...slot, status }, '2026-11-01', runningNow, 'Europe/Moscow', [scheduledSubject]).phase, status)
+}
+m.useStudentData.setState({ scheduleDays: [{ date: '2026-11-01', lessons: [{ ...slot, status: 'live' }] }] })
+assert.equal(m.getTrackLessonStatus({ ...scheduled, status: 'completed', result: { ...pendingResult, passed: true, pending: false } }, runningNow), 'test_passed')
+assert.equal(m.getTrackLessonStatus({ ...scheduled, kind: 'test', status: 'locked' }, runningNow), 'locked')
+m.useStudentData.setState({ scheduleDays: [{ date: '2026-11-01', lessons: [slot] }] })
 assert.equal(m.getDisplayLessonStatus(scheduled, new Date('2026-11-01T13:31:00+03:00')), 'unviewed')
 assert.equal(m.getDisplayLessonStatus({ ...scheduled, videoUrl: undefined }, new Date('2026-11-01T13:31:00+03:00')), 'current')
 assert.equal(m.getDisplayLessonStatus({ ...scheduled, kind: 'test', status: 'current' }, new Date('2026-11-01T13:31:00+03:00')), 'current')
@@ -371,12 +385,18 @@ const today = dateText(calendarDate)
 const tomorrow = new Date(calendarDate); tomorrow.setDate(tomorrow.getDate() + 1)
 rpc = () => ({ data: [], error: null })
 query = request => ({ data: request.table === 'schedule_lessons'
-  ? [{ id: 'overnight', date: today, time_start: '23:30:00', time_end: '00:30:00', subject: 'Course', lesson_title: 'lesson', lesson_number: 0 }]
+  ? [{ id: 'overnight', date: today, time_start: '23:30:00', time_end: '00:30:00', status: 'live', subject: 'Course', lesson_title: 'lesson', lesson_number: 0 }]
   : [], error: null })
 let days = await m.fetchScheduleDays(group, student)
 let overnight = days.flatMap(d => d.lessons).find(l => l.id === 'overnight')
 assert.equal(overnight.endDate, dateText(tomorrow))
 assert.equal(overnight.endTime, '00:30')
+assert.equal(overnight.status, 'live')
+assert.equal(overnight.startsAt, `${today}T23:30:00+03:00`)
+// An explicit live event stays live until the teacher completes it, even on overrun.
+m.useStudentData.setState({ subjects: [scheduledSubject], scheduleDays: days })
+assert.equal(m.getLessonScheduleState(scheduled, new Date(`${dateText(tomorrow)}T00:31:00+03:00`)).phase, 'live')
+days = days.map(day => ({ ...day, lessons: day.lessons.map(l => ({ ...l, status: undefined })) }))
 m.useStudentData.setState({ subjects: [scheduledSubject], scheduleDays: days })
 assert.equal(m.getDisplayLessonStatus(scheduled, new Date(`${today}T23:45:00+03:00`)), 'current')
 assert.equal(m.getDisplayLessonStatus(scheduled, new Date(`${dateText(tomorrow)}T00:31:00+03:00`)), 'unviewed')
@@ -384,6 +404,11 @@ m.useStudentTz.setState({ tz: 'Asia/Bangkok' })
 days = await m.fetchScheduleDays(group, student)
 overnight = days.flatMap(d => d.lessons).find(l => l.id === 'overnight')
 assert.equal(overnight.time, '03:30')
+assert.equal(overnight.status, 'live')
+query = request => ({ data: request.table === 'schedule_lessons'
+  ? [{ id: 'cancelled-slot', date: today, time_start: '12:00:00', status: 'cancelled', subject: 'Course', lesson_title: 'lesson', lesson_number: 0 }]
+  : [], error: null })
+assert.equal((await m.fetchScheduleDays(group, student)).flatMap(day => day.lessons).find(l => l.id === 'cancelled-slot')?.status, 'cancelled')
 assert.equal(overnight.endTime, '04:30')
 assert.equal(overnight.endDate, dateText(tomorrow))
 m.useStudentTz.setState({ tz: 'Europe/Moscow' })

@@ -11,7 +11,9 @@ import { type Subject, type Lesson, type LessonStatus } from '../data/mockData'
 import { getLessonDetail, lessonHasHardLevel } from '../data/lessonContent'
 import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
 import { HARD_STYLE } from './CourseNode'
-import { getTrackLessonStatus, lessonScheduleDate, lessonStatusLabel, lessonTrackStep, type TrackLessonStatus } from '../lib/lessonStatus'
+import { getTrackLessonStatus, getLessonScheduleState, lessonScheduleDate, lessonStatusLabel, lessonTrackStep, type TrackLessonStatus } from '../lib/lessonStatus'
+import { useStudentTz } from '../lib/studentTz'
+import ScheduleStatusBadge from './ScheduleStatusBadge'
 import { hardLevelState } from '../lib/lessonAssessments'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { useNow } from '../lib/useNow'
@@ -109,6 +111,8 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
   const [selectedHardLessonId, setSelectedHardLessonId] = useState<string | null>(null)
   const now = useNow()
+  useStudentTz(s => s.tz)
+  useStudentData(s => s.scheduleDays)
   // activeModuleId from the store may not match a real module id on first paint,
   // so resolve to an actually-rendered module — lets the pill appear without a click.
   const effectiveModuleId =
@@ -162,9 +166,11 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const activeModule = subject.modules.find(m => m.id === effectiveModuleId) ?? subject.modules[0]
   const allLessons = activeModule?.lessons ?? []
   // Первый текущий урок — на нём праздничная тема ставит фонарь/конфету (CourseNode.seasonMark).
-  const statuses = allLessons.map(lesson => getTrackLessonStatus(lesson, now))
+  const scheduleStates = allLessons.map(lesson => getLessonScheduleState(lesson, now))
+  const statuses = allLessons.map((lesson, i) => getTrackLessonStatus(lesson, now, scheduleStates[i]))
   const seasonMarkIndex = statuses.indexOf('today')
   const selectedLesson = allLessons.find(lesson => lesson.id === selectedLessonId) ?? null
+  const selectedScheduleState = selectedLesson ? scheduleStates[allLessons.indexOf(selectedLesson)] : null
 
   // Full-width track: nodes are distributed evenly across the available width so
   // the line always reaches the end of the row. Each lesson owns the line up to
@@ -311,6 +317,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                     <CourseNode
                       lesson={lesson}
                       status={statuses[i]}
+                      scheduleState={scheduleStates[i]}
                       index={i}
                       isSelected={selectedLesson?.id === lesson.id}
                       isHighlighted={highlightLessonId === lesson.id}
@@ -396,6 +403,9 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                             )}
                           </span>
                         </div>
+                        {selectedScheduleState?.isCurrent && (
+                          <ScheduleStatusBadge state={selectedScheduleState} />
+                        )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.palette.text, lineHeight: 1 }}>
                             {t('Занятие')} #{selectedLesson.number + 1}

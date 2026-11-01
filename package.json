@@ -25,6 +25,7 @@
     "adapt:feed": "node scripts/adaptFeed.mjs",
     "translate:feed": "node scripts/translateFeed.mjs",
     "check:attendance": "esbuild scripts/checkScheduleAttendance.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkScheduleAttendance.mjs --log-level=error && node node_modules/.cache/checkScheduleAttendance.mjs",
+    "check:schedule": "esbuild scripts/checkScheduleState.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkScheduleState.mjs --log-level=error && node node_modules/.cache/checkScheduleState.mjs",
     "check:logic": "esbuild scripts/checkLogic.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLogic.mjs --log-level=error && node node_modules/.cache/checkLogic.mjs",
     "check:gradebook": "esbuild scripts/checkGradebook.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkGradebook.mjs --log-level=error && node node_modules/.cache/checkGradebook.mjs",
     "check:course-journal": "esbuild scripts/checkCourseJournal.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkCourseJournal.mjs --log-level=error && node node_modules/.cache/checkCourseJournal.mjs",

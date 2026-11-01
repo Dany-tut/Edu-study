@@ -18,6 +18,8 @@ import HardSatelliteLottie from './HardSatelliteLottie'
 import CourseNodeSilhouette, { baseNodeShape } from './CourseNodeSilhouette'
 import { SeasonCurrentNode } from './season/Season'
 import { useSeason } from '../lib/season'
+import type { ScheduleState } from '../lib/scheduleState'
+import ScheduleStatusBadge from './ScheduleStatusBadge'
 
 type IconProps = { color?: string; size?: number }
 type CustomIcon = (props: IconProps) => ReactElement
@@ -56,6 +58,7 @@ export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: strin
 interface Props {
   lesson: Lesson
   status: TrackLessonStatus
+  scheduleState?: ScheduleState | null
   index: number
   isSelected?: boolean
   isHighlighted?: boolean
@@ -66,7 +69,7 @@ interface Props {
   seasonMark?: boolean
 }
 
-export default function CourseNode({ lesson, status, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect, seasonMark = false }: Props) {
+export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect, seasonMark = false }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
   const { tc } = useTc()
@@ -85,7 +88,8 @@ export default function CourseNode({ lesson, status, index, isSelected = false, 
   const isAutoResult = displayStatus === 'test_low' || displayStatus === 'test_passed'
   const caption = step ? tr(trackStepLabel[step]) : null
   const statusText = tr(lessonStatusLabel(displayStatus, lesson.kind))
-  const statusDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
+  const progressDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
+  const statusDescription = scheduleState?.isCurrent ? `${tr(scheduleState.label!)} · ${progressDescription}` : progressDescription
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
   const seasonal = useSeason().on('track')
@@ -117,7 +121,7 @@ export default function CourseNode({ lesson, status, index, isSelected = false, 
   // Active = the node the popover is anchored to, or the in-progress lesson.
   const nodeRgb = FLASH_RGB[displayStatus]
   const isToday = displayStatus === 'today'
-  const isActive = isSelected || isToday
+  const isActive = isSelected || isToday || !!scheduleState?.isCurrent
   // Праздничная тема: текущий урок — фонарь, конфета или шарик зелья поверх кружка.
   // Кружок прячем, но кнопка остаётся на месте: по ней кликают.
   const seasonNode = seasonal && seasonMark && isToday && !isDiamond
@@ -153,6 +157,7 @@ export default function CourseNode({ lesson, status, index, isSelected = false, 
       {/* Main lesson node */}
       <motion.button
         type="button"
+        data-schedule-state={scheduleState?.phase}
         data-track-shape={silhouette ?? (isDiamond ? 'diamond' : isSquare ? 'square' : 'circle')}
         initial={{ opacity: 0, scale: 0.7 }}
         whileHover={displayStatus !== 'locked' ? { scale: 1.1 } : { scale: 1.04 }}
@@ -172,7 +177,7 @@ export default function CourseNode({ lesson, status, index, isSelected = false, 
                 : '0 2px 10px rgba(0,0,0,0.4)')
             : isSelected
               ? `0 0 0 6px rgba(255,255,255,0.7), 0 0 0 10px rgba(${nodeRgb},0.15), 0 10px 28px rgba(${nodeRgb},0.3)`
-              : isToday
+              : isToday || scheduleState?.isCurrent
                 ? `0 0 0 4px rgba(156,140,240,0.18), 0 4px 20px rgba(156,140,240,0.22)`
                 : '0 2px 8px rgba(0,0,0,0.06)',
         }}
@@ -256,6 +261,7 @@ export default function CourseNode({ lesson, status, index, isSelected = false, 
           {/* В теме под фонарём/конфетой — «Урок N · сейчас», как в макетах. */}
           {seasonNode ? `${tr('Урок')} ${lesson.number + 1} · ${tr('сейчас')}` : `#${lesson.number + 1}`}
         </span>
+        {scheduleState?.isCurrent && <ScheduleStatusBadge state={scheduleState} compact />}
         {caption && (
           <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, whiteSpace: 'nowrap', marginTop: 2 }}>
             {caption}
