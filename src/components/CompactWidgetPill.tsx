@@ -42,6 +42,16 @@ const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
 const PILL_WIDTH = 320
 
+// Свёрнутые подписи занимают одну строку и исчезают у правого края.
+// Прозрачная маска сохраняет стекло и тему; при раскрытии виден весь текст.
+const pillTextStyle = (expanded: boolean): React.CSSProperties => ({
+  minWidth: 0,
+  overflow: 'hidden',
+  whiteSpace: expanded ? 'normal' : 'nowrap',
+  maskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
+  WebkitMaskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
+})
+
 // One-line "kicker" tags + accent colours per widget id.
 const META: Record<number, { kicker: string; accent: string }> = {
   0: { kicker: 'Сегодня', accent: 'var(--color-accent)' },
@@ -129,9 +139,9 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }}>
           {/* Kicker */}
           <span style={{
+            ...pillTextStyle(expanded),
             fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
             textTransform: 'uppercase', color: 'var(--color-text-3)',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {t('Домашка')} · {lessonTitle}
           </span>
@@ -140,14 +150,15 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{
               fontSize: 13, fontWeight: 700, color: accentColor,
-              whiteSpace: 'nowrap',
+              whiteSpace: 'nowrap', flexShrink: 0,
             }}>
               {lastCorrect ? t('Верно') : t('Пока мимо')}
             </span>
             <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>·</span>
             <span style={{
+              ...pillTextStyle(expanded),
+              flex: 1,
               fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
               {t('вопрос')} {lastQuestionIndex + 1} {t('из')} {total}
             </span>
@@ -794,6 +805,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 2 }}>
         {/* Кикер — предмет, а не общее слово «прогресс»: тренажёр у ученика не один */}
         <span style={{
+          ...pillTextStyle(expanded),
           fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
         }}>
@@ -837,14 +849,8 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
                 молчать нельзя: точка отвечает на «а он вообще считает?». */}
             {counting && <ClockDot on color={accent} />}
             <span style={{
+              ...pillTextStyle(expanded),
               flex: 1,
-              minWidth: 0,
-              overflow: 'hidden',
-              whiteSpace: expanded ? 'normal' : 'nowrap',
-              // В капсуле оставляем одну строку и плавно гасим её у края.
-              // Маска прозрачная, чтобы фейд работал и на стекле, и в тёмной теме.
-              maskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
-              WebkitMaskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
             }}>
               {counting
                 ? t('Считаю время…')
@@ -950,12 +956,8 @@ function PillContent({
   detail: React.ReactNode
   expanded: boolean
 }) {
-  // INVARIANT layout: avatar size, padding, gap, title clamp — all FIXED.
-  // Nothing inside the content moves when `expanded` flips. The outer
-  // pill's animated height simply clips the lower portion (where the
-  // detail text lives) when collapsed. Detail opacity cross-fades on the
-  // same curve as the outer height. One animation, one timing curve, no
-  // jitter from competing layout changes.
+  // Avatar, padding and gaps stay fixed. Collapsed text fades on one line;
+  // expanded text wraps, and the outer pill grows to its measured height.
   return (
     <div
       style={{
@@ -996,20 +998,19 @@ function PillContent({
       >
         <span
           style={{
+            ...pillTextStyle(expanded),
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.3,
             textTransform: 'uppercase',
             color: 'var(--color-text-3)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
           }}
         >
           {kicker}
         </span>
         <span
           style={{
+            ...pillTextStyle(expanded),
             fontSize: 14,
             fontWeight: 600,
             color: 'var(--color-text)',
@@ -1017,13 +1018,6 @@ function PillContent({
             // В заголовке тикает отсчёт помодоро — без моноширинных цифр плашка
             // меняет ширину каждую секунду.
             fontVariantNumeric: 'tabular-nums',
-            display: '-webkit-box',
-            // Collapsed: clamp to one line so the mini pill stays a capsule.
-            // Expanded: drop the clamp so the full question is revealed (the
-            // pill's measured height grows to fit the extra lines).
-            WebkitLineClamp: expanded ? 'unset' : 1,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
           }}
         >
           {title}
