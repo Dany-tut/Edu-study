@@ -1197,10 +1197,11 @@ export default function CompactWidgetPill() {
   // язык из ссылки, запасной банк заданий, — и виджеты в шапке должны быть про
   // то, чем ученик занят прямо сейчас.
   const relevant = useWidgetRelevance(activePage === 'trainer' ? (trainerSubjectId || trainerSubject) : null)
-  const visibleOrder = rawOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
+  const compactOrder = rawOrder.filter(id => id !== 11) // The task list belongs to the home row.
+  const visibleOrder = compactOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
   // Если фильтры выели всё (данные ещё не приехали, чужие id в настройках) —
   // показываем исходный порядок: пустая шапка хуже неточной.
-  const widgetOrder = visibleOrder.length > 0 ? visibleOrder : rawOrder
+  const widgetOrder = visibleOrder.length > 0 ? visibleOrder : compactOrder.length > 0 ? compactOrder : [0]
   // Волна под виджетом тренажёра красится предметом, а не вечным зелёным:
   // полоска шире самого виджета и на корейском была главным чужим пятном.
   const { dark: darkTheme } = useTheme()

@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'
+import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
+import { mergeWidgetOrder } from './widgetOrderMigration'
 import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
 import { useDashboard } from '../store/dashboardStore'
@@ -7,8 +9,9 @@ import { isTintLevel, type TintLevel } from './courseTint'
 
 type SavedPrefs = {
   avatarId?: string
-  widgetColumns?: 1 | 2 | 3
+  widgetColumns?: 1 | 2 | 3 | 4
   widgetOrder?: number[]
+  knownWidgetIds?: number[]
   pomoTimerMode?: 'timer' | 'stopwatch'
   pomoFocusDuration?: number
   /** Глубина перекраски под курс. */
@@ -59,7 +62,7 @@ export function useStudentPrefsSync() {
         if (p) {
           if (p.avatarId) setAvatarId(p.avatarId)
           if (p.widgetColumns) setWidgetColumns(p.widgetColumns)
-          if (p.widgetOrder?.length) setWidgetOrder(p.widgetOrder)
+          if (p.widgetOrder?.length) setWidgetOrder(mergeWidgetOrder(p.widgetOrder, p.knownWidgetIds ?? DEFAULT_WIDGET_ORDER.filter(id => id !== 11), DEFAULT_WIDGET_ORDER, 11))
           if (isTintLevel(p.tintLevel)) setTintLevel(p.tintLevel)
           if (p.subjectColors) setStudentColors(p.subjectColors)
         }
@@ -106,7 +109,7 @@ export function useStudentPrefsSync() {
     saveTimer.current = setTimeout(() => {
       supabase
         .from('students')
-        .update({ preferences: { avatarId, widgetColumns, widgetOrder, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors } })
+        .update({ preferences: { avatarId, widgetColumns, widgetOrder, knownWidgetIds: DEFAULT_WIDGET_ORDER, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors } })
         .eq('id', session.id)
         .then(() => {})
     }, 1500)

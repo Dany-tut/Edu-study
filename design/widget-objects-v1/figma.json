@@ -1,0 +1,67 @@
+{
+  "fileKey": "y8qQ23hqFJtufp7gGdZTse",
+  "pageId": "195:2",
+  "boardId": "195:3",
+  "components": [
+    {
+      "slug": "reminders",
+      "nodeId": "195:7",
+      "source": "public/widget-objects-v1/reminders.png"
+    },
+    {
+      "slug": "stats",
+      "nodeId": "195:13",
+      "source": "public/widget-objects-v1/stats.png"
+    },
+    {
+      "slug": "trainer",
+      "nodeId": "195:19",
+      "source": "public/widget-objects-v1/trainer.png"
+    },
+    {
+      "slug": "quiz",
+      "nodeId": "195:25",
+      "source": "public/widget-objects-v1/quiz.png"
+    },
+    {
+      "slug": "practice",
+      "nodeId": "195:32",
+      "source": "public/widget-objects-v1/practice.png"
+    },
+    {
+      "slug": "focus",
+      "nodeId": "195:38",
+      "source": "public/widget-objects-v1/focus.png"
+    },
+    {
+      "slug": "reaction",
+      "nodeId": "195:44",
+      "source": "public/widget-objects-v1/reaction.png"
+    },
+    {
+      "slug": "fact",
+      "nodeId": "195:50",
+      "source": "public/widget-objects-v1/fact.png"
+    },
+    {
+      "slug": "awards",
+      "nodeId": "195:57",
+      "source": "public/widget-objects-v1/awards.png"
+    },
+    {
+      "slug": "daily",
+      "nodeId": "195:63",
+      "source": "public/widget-objects-v1/daily.png"
+    },
+    {
+      "slug": "feed",
+      "nodeId": "195:69",
+      "source": "public/widget-objects-v1/feed.png"
+    },
+    {
+      "slug": "memes",
+      "nodeId": "195:75",
+      "source": "public/widget-objects-v1/memes.png"
+    }
+  ]
+}
