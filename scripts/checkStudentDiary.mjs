@@ -36,11 +36,12 @@ const outfile = resolve('node_modules/.cache/checkStudentDiary.bundle.mjs')
 await build({
   stdin: { contents: `
     export { buildStudentDiary, diaryWorkLabel, diaryDay, diaryOverdue, diaryPriority, sortStudentDiary } from './src/lib/studentDiary';
+    export { standaloneHomeworkNumber } from './src/lib/standaloneHomework';
     export { fetchDiaryMetadata } from './src/lib/useStudentDiary';
     export { useStudentData } from './src/store/studentDataStore';
     export { useStudentTz } from './src/lib/studentTz';
     export { trackPalette } from './src/lib/theme';
-    export { readDiaryReminders, writeDiaryReminders } from './src/lib/diaryReminders';
+    export { readDiaryReminders, writeDiaryReminders, diaryReminderResolved } from './src/lib/diaryReminders';
   `, resolveDir: process.cwd() },
   outfile, bundle: true, platform: 'node', format: 'esm', packages: 'external', logLevel: 'silent',
   define: { 'import.meta.env': JSON.stringify({ DEV: false }) },
@@ -74,6 +75,8 @@ const metadata = new Map([
  ['closed',{hasMain:true,mainDate:'2026-10-30',hasRecording:false,recordingDate:null,extras:[]}],
  ['no-homework',{hasMain:false,mainDate:null,hasRecording:false,recordingDate:null,extras:[]}],
 ])
+assert.equal(m.standaloneHomeworkNumber('ДЗ №1 · Химические реакции', 2), 0)
+assert.equal(m.standaloneHomeworkNumber(null, 2), 2)
 const list=m.buildStudentDiary([course],metadata,{},now)
 assert.deepEqual(list.map(e=>e.id),['main','main~extra','split~rec','split','ten'])
 assert.equal(list.find(e=>e.id==='main').status,'test_passed')
@@ -104,6 +107,8 @@ assert.ok(!selected.includes('content'))
 assert.deepEqual(requested[0].filters.find(f=>f[0]==='in'),['in','short_id',['main']])
 query=()=>({data:null,error:{message:'offline'}})
 await assert.rejects(m.fetchDiaryMetadata(['main']))
+assert.equal(m.diaryReminderResolved({low:{status:'completed',result:{passed:false,pending:false}}},'low'),false)
+assert.equal(m.diaryReminderResolved({sent:{status:'submitted',result:{passed:false,pending:true}}},'sent'),true)
 globalThis.window.dispatchEvent=()=>{}
 assert.equal(m.writeDiaryReminders('one',[{id:'main',title:'Work',course:'Chemistry',at:123}]),true)
 assert.equal(m.readDiaryReminders('one').length,1)

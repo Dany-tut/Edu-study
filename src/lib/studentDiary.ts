@@ -155,7 +155,10 @@ export function sortStudentDiary(
     } else if (sort === 'number') order = a.lesson.number - b.lesson.number
     else if (sort === 'subject') order = compare(a.course.subject ?? '', b.course.subject ?? '')
     else if (sort === 'course') order = compare(a.course.name, b.course.name)
-    else order = diaryPriority(a, today) - diaryPriority(b, today)
+    else
+      order =
+        diaryPriority(a, today) - diaryPriority(b, today) ||
+        compare(a.due ?? '9999-12-31', b.due ?? '9999-12-31')
     return (
       (descending ? -1 : 1) * order ||
       compare(a.course.id, b.course.id) ||

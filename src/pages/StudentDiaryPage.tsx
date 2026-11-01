@@ -18,6 +18,7 @@ import CoursesPage from './CoursesPage'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useTheme } from '../store/themeStore'
+import { HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { useStudentDiaryMetadata } from '../lib/useStudentDiary'
 import {
   buildStudentDiary,
@@ -78,8 +79,14 @@ function CourseLabel({ entry }: { entry: StudentDiaryEntry }) {
       style={{ '--ds-course': subjectTheme(entry.course.subject, dark).accent } as CSSProperties}
     >
       <i />
-      {entry.course.subject || entry.course.name}
-      <span>·</span>
+      {entry.course.id !== HW_SUBJECT_ID &&
+      entry.course.subject &&
+      entry.course.subject !== entry.course.name ? (
+        <>
+          {entry.course.subject}
+          <span>·</span>
+        </>
+      ) : null}
       {entry.course.name}
     </span>
   )
@@ -206,14 +213,14 @@ export default function StudentDiaryPage({
   )
   const scoped = entries.filter(
     (e) =>
-      (subject === '*' || (e.course.subject ?? e.course.name) === subject) &&
+      (subject === '*' || (e.course.subject || '__none') === subject) &&
       (course === '*' || e.course.id === course),
   )
   const actions = sortStudentDiary(scoped.filter(diaryNeedsAction), 'priority', false, today),
     first = actions[0]
   const pendingWork = scoped.filter((e) => e.status === 'submitted' || e.status === 'submitted_unknown')
   const courses = subjects.filter(
-    (c) => (subject === '*' || (c.subject ?? c.name) === subject) && (course === '*' || c.id === course),
+    (c) => (subject === '*' || (c.subject || '__none') === subject) && (course === '*' || c.id === course),
   )
   const list = sortStudentDiary(
     scoped.filter(
@@ -408,8 +415,10 @@ export default function StudentDiaryPage({
               }}
             >
               <option value="*">{t('Все предметы')}</option>
-              {[...new Set(subjects.map((c) => c.subject ?? c.name))].map((name) => (
-                <option key={name}>{name}</option>
+              {[...new Set(subjects.map((c) => c.subject || '__none'))].map((name) => (
+                <option key={name} value={name}>
+                  {name === '__none' ? t('Предмет не указан') : name}
+                </option>
               ))}
             </select>
           </label>
@@ -422,7 +431,7 @@ export default function StudentDiaryPage({
             >
               <option value="*">{t('Все курсы и интенсивы')}</option>
               {subjects
-                .filter((c) => subject === '*' || (c.subject ?? c.name) === subject)
+                .filter((c) => subject === '*' || (c.subject || '__none') === subject)
                 .map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
