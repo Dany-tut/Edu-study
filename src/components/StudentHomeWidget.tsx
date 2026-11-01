@@ -14,7 +14,7 @@ import './studentHomeWidget.css'
 
 const OBJECTS: Record<number, string> = { 0:'stats',1:'fact',2:'reaction',3:'focus',4:'memes',5:'practice',6:'quiz',7:'trainer',8:'awards',9:'daily',10:'feed',11:'reminders' }
 export function HomeWidgetObject({ id }: { id: number }) {
-  return <img className="ihw-object" src={`/widget-objects-v1/ui/${OBJECTS[id] ?? 'reminders'}.png`} alt="" aria-hidden="true" draggable={false} width={84} height={84} decoding="async" />
+  return <img className="ihw-object" src={`/widget-objects-v1/ui/${OBJECTS[id] ?? 'reminders'}.png`} alt="" aria-hidden="true" draggable={false} width={168} height={168} decoding="async" />
 }
 export function HomeWidgetFade({ children, className = '' }: { children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -32,7 +32,7 @@ export function HomeWidgetFade({ children, className = '' }: { children: ReactNo
   return <div ref={ref} className={`ihw-fade ${className}`} data-overflow={overflow}>{children}</div>
 }
 export function HomeWidgetCard({ id, title, extra, children, footer }: { id:number;title:string;extra?:ReactNode;children:ReactNode;footer:ReactNode }) {
-  return <section className="ihw-card" data-home-widget={id}><header className="ihw-heading"><h3><HomeWidgetFade>{title}</HomeWidgetFade></h3>{extra}</header><div className="ihw-body"><div className="ihw-main">{children}</div><HomeWidgetObject id={id}/></div><footer className="ihw-footer">{footer}</footer></section>
+  return <section className="ihw-card" data-home-widget={id}><header className="ihw-heading"><h3><HomeWidgetFade>{title}</HomeWidgetFade></h3>{extra}</header><div className="ihw-body"><div className="ihw-main">{children}</div></div><HomeWidgetObject id={id}/><footer className="ihw-footer">{footer}</footer></section>
 }
 function Value({ children, label }: { children:ReactNode;label:string }) { return <div className="ihw-metric"><strong>{children}</strong><span>{label}</span></div> }
 function Copy({ title, text }: { title:string;text?:string }) { return <HomeWidgetFade className="ihw-copy"><div className="ihw-title-window"><HomeWidgetFade><h4>{title}</h4></HomeWidgetFade></div>{text && <p>{text}</p>}</HomeWidgetFade> }
