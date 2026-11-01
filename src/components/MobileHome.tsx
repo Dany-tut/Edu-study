@@ -426,6 +426,7 @@ export default function MobileHome() {
                     key={l.id}
                     type="button"
                     data-schedule-state={st.phase}
+                    data-ended={st.hasEnded || undefined}
                     disabled={st.phase === 'cancelled'}
                     onClick={() => {
                       tactile()
@@ -434,7 +435,7 @@ export default function MobileHome() {
                       else { if (match.subjectId) useDashboard.getState().setActiveSubject(match.subjectId); openCourses() }
                     }}
                     className="flex items-center text-left"
-                    style={{ gap: 10, padding: '10px 8px', borderRadius: 12, background: st.isCurrent ? 'var(--color-accent-soft)' : 'none', border: 'none', borderTop: i === 0 || st.isCurrent ? 'none' : '1px solid var(--color-border-soft)', cursor: st.phase === 'cancelled' ? 'default' : 'pointer', width: '100%' }}
+                    style={{ filter: st.hasEnded ? 'grayscale(1)' : undefined, opacity: st.hasEnded ? 0.65 : 1, gap: 10, padding: '10px 8px', borderRadius: 12, background: st.isCurrent ? 'var(--color-accent-soft)' : 'none', border: 'none', borderTop: i === 0 || st.isCurrent ? 'none' : '1px solid var(--color-border-soft)', cursor: st.phase === 'cancelled' ? 'default' : 'pointer', width: '100%' }}
                   >
                     <span style={{ fontSize: 13, fontWeight: 800, color: st.isCurrent ? 'var(--color-accent)' : 'var(--color-text)', minWidth: 44, textDecoration: st.phase === 'cancelled' ? 'line-through' : undefined }}>{l.time}</span>
                     <span className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
