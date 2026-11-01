@@ -67,7 +67,7 @@ jobs:
           cache: npm
 
       - name: Защита релизов (check:release)
-        run: npm run check:release
+        run: npm run check:release && npm run check:feed-release
 
       # ci, а не install: ставим ровно то, что в package-lock.json, иначе
       # «у меня работает» и «в CI падает» разъезжаются на минорных версиях.
