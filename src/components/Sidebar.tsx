@@ -229,6 +229,14 @@ export default function Sidebar() {
   // незачем — она подождёт полторы секунды.
   const feedUnread = useFeedGlance(1500).unread.length
   const session = getStudentSession()
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    let alive = true
+    supabase.auth.getUser().then(({ data }) => {
+      if (alive) setIsAdmin(data.user?.app_metadata?.role === 'admin')
+    })
+    return () => { alive = false }
+  }, [])
   const displayName = session?.name ?? ''
   const AVATARS = buildAvatars(displayName)
   const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
@@ -442,7 +450,7 @@ export default function Sidebar() {
       }}
     >
       {/* Avatar (flower on a generated-color backdrop) + Name */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0 }}>
         <div ref={avatarRef} style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
           <motion.button
             whileHover={{ scale: 1.08, filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.35))' }}
@@ -583,6 +591,13 @@ export default function Sidebar() {
                         Сам решает, показываться ли (скрыт/null при одной карточке, без пустого зазора). */}
                     <SubjectSwitcher style={{ marginTop: 12, padding: '0 8px' }} />
                     <div style={{ height: 1, background: 'var(--color-border)', margin: '12px 8px' }} />
+                    {isAdmin && (
+                      <SettingsRow
+                        icon={GraduationCap}
+                        label={t('В кабинет преподавателя')}
+                        onClick={() => { closePicker(); window.location.hash = '#/teacher' }}
+                      />
+                    )}
                     <SettingsRow
                       icon={Settings}
                       label={t('Настройки')}
@@ -823,10 +838,10 @@ export default function Sidebar() {
       </div>
 
       {/* Divider */}
-      <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0 }} />
+      <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0, order: 4 }} />
 
       {/* Nav */}
-      <nav style={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'center' }}>
+      <nav style={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'center', order: 1 }}>
         {navItems.map(item => {
           const isActive = activeItem === item.id
           // Лента — единственное, что появляется само; про остальное в
@@ -905,10 +920,10 @@ export default function Sidebar() {
       </nav>
 
       {/* Divider */}
-      <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0 }} />
+      <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0, order: 2 }} />
 
       {/* Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8, order: 3 }}>
         <div ref={bellRef} style={{ display: 'inline-flex' }}>
           <NotificationBell onClick={() => setNotifOpen(o => !o)} />
         </div>

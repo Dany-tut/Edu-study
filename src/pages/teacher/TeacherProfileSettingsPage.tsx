@@ -215,7 +215,7 @@ export default function TeacherProfileSettingsPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
-      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
@@ -306,7 +306,11 @@ export default function TeacherProfileSettingsPage() {
         <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <input
             value={name}
-            onChange={e => setName(e.target.value)}
+            onChange={e => {
+              const value = e.target.value
+              setName(value)
+              window.dispatchEvent(new CustomEvent('iskra:teacher-name-draft', { detail: value }))
+            }}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
             placeholder={t('Имя')}
             style={inputStyle}

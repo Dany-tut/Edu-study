@@ -84,6 +84,10 @@ export default function MobileProfilePage() {
   const { dark, toggle } = useTheme()
   const season = useSeason()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setIsAdmin(data.user?.app_metadata?.role === 'admin'))
+  }, [])
   const { avatarPath, savePhoto, removePhoto } = useStudentAvatarPhoto()
   const [cropFile, setCropFile] = useState<File | null>(null)
   const [tintOpen, setTintOpen] = useState(false)
@@ -355,6 +359,18 @@ export default function MobileProfilePage() {
               )}
 
               {/* Цвет курса — глубина перекраски и личные цвета предметов */}
+              {isAdmin && <motion.button
+                whileTap={{ scale: 0.99 }}
+                onClick={() => { tactile(); window.location.hash = '#/teacher' }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+              >
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
+                  {t('В кабинет преподавателя')}
+                </span>
+                <ChevronRight size={18} style={{ color: 'var(--color-accent)' }} />
+              </motion.button>}
+
               <motion.button
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setTintOpen(true) }}

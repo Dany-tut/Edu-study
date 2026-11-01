@@ -5,6 +5,7 @@ import type { Provider } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { clearStudentSession, setStudentSession } from './studentSession'
 import { trackNow } from './analytics'
+import { authErrorRu } from './authErrors'
 
 export type LoginRole = 'teacher' | 'student'
 
@@ -42,12 +43,23 @@ async function finishIdentityLink() {
   if (!raw) return false
   let pending: { userId: string; provider: string; time: number }
   try { pending = JSON.parse(raw) } catch { localStorage.removeItem(LINK_KEY); return false }
-  const callbackError = new URLSearchParams(window.location.hash.slice(1)).get('error_description')
+  // GoTrue may return OAuth errors in the query string (web) or fragment.
+  const queryParams = new URLSearchParams(window.location.search)
+  const fragmentParams = new URLSearchParams(window.location.hash.slice(1))
+  const callbackError = queryParams.get('error_description') || fragmentParams.get('error_description')
   if (callbackError) {
+    const message = authErrorRu({
+      code: queryParams.get('error_code') || fragmentParams.get('error_code'),
+      message: callbackError,
+    }, 'Не удалось подключить способ входа. Попробуйте ещё раз.')
     localStorage.removeItem(LINK_KEY)
-    sessionStorage.setItem('iskra:link-error', callbackError)
+    sessionStorage.setItem('iskra:link-error', message)
+    sessionStorage.setItem('iskra:link-error-provider', pending.provider)
+    for (const key of ['error', 'error_code', 'error_description']) queryParams.delete(key)
+    const remainingQuery = queryParams.toString()
+    window.history.replaceState(null, '', `${window.location.pathname}${remainingQuery ? `?${remainingQuery}` : ''}${window.location.hash}`)
     window.location.hash = '#/teacher/profile'
-    throw new Error(callbackError)
+    throw new Error(message)
   }
   if (!pending.userId || !['google', 'apple'].includes(pending.provider) || !Number.isFinite(pending.time) || Date.now() - pending.time > 15 * 60 * 1000) {
     localStorage.removeItem(LINK_KEY)
@@ -120,34 +132,38 @@ export async function finishSocialLogin() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
 
-  const { data: students, error: studentError } = await supabase
-    .from('students')
-    .select('id, name, group_id, created_at')
-    .eq('auth_user_id', user.id)
-    .order('created_at', { ascending: true })
-  if (studentError) throw studentError
-  const student = students?.[0]
-  if (student) {
-    setStudentSession({ id: student.id, name: student.name, groupId: student.group_id ?? '' })
-    localStorage.removeItem(OAUTH_ROLE_KEY)
-    void trackNow('login', { role: 'student', method: 'oauth' })
-    window.location.hash = '#/'
-    window.location.reload()
-    return true
+  if (selectedRole === 'student') {
+    const { data: students, error: studentError } = await supabase
+      .from('students')
+      .select('id, name, group_id, created_at')
+      .eq('auth_user_id', user.id)
+      .order('created_at', { ascending: true })
+    if (studentError) throw studentError
+    const student = students?.[0]
+    if (student) {
+      setStudentSession({ id: student.id, name: student.name, groupId: student.group_id ?? '' })
+      localStorage.removeItem(OAUTH_ROLE_KEY)
+      void trackNow('login', { role: 'student', method: 'oauth' })
+      window.location.hash = '#/'
+      window.location.reload()
+      return true
+    }
   }
 
-  // Teacher accounts are provisioned by invitation and carry a role claim.
-  // Social OAuth must not turn an arbitrary identity into an Искра teacher.
-  const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
-  if (profileError) throw profileError
-  const accountRole = user.app_metadata?.role || profile?.role
-  if (accountRole === 'teacher' || accountRole === 'admin') {
-    localStorage.removeItem(OAUTH_ROLE_KEY)
-    clearStudentSession()
-    void trackNow('login', { role: 'teacher', method: 'oauth' })
-    window.location.hash = '#/teacher'
-    window.location.reload()
-    return true
+  if (selectedRole === 'teacher') {
+    // Check the selected cabinet before routing: one Auth account can have
+    // both a teacher profile and a linked student row.
+    const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    if (profileError) throw profileError
+    const accountRole = user.app_metadata?.role || profile?.role
+    if (accountRole === 'teacher' || accountRole === 'admin') {
+      localStorage.removeItem(OAUTH_ROLE_KEY)
+      clearStudentSession()
+      void trackNow('login', { role: 'teacher', method: 'oauth' })
+      window.location.hash = '#/teacher'
+      window.location.reload()
+      return true
+    }
   }
 
   await supabase.auth.signOut()

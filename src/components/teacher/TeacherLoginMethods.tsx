@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { App } from '@capacitor/app'
 import { Browser } from '@capacitor/browser'
@@ -17,11 +17,19 @@ export default function TeacherLoginMethods() {
   const [ready, setReady] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState(() => sessionStorage.getItem('iskra:link-error') || '')
+  const errorRef = useRef(error)
+  const errorProviderRef = useRef(sessionStorage.getItem('iskra:link-error-provider') || '')
   const [notice, setNotice] = useState('')
   const [available, setAvailable] = useState<Record<string, boolean> | null>(null)
+  const updateError = (message: string, provider?: string) => {
+    errorRef.current = message
+    if (provider !== undefined) errorProviderRef.current = provider
+    setError(message)
+  }
 
   useEffect(() => {
     sessionStorage.removeItem('iskra:link-error')
+    sessionStorage.removeItem('iskra:link-error-provider')
     let active = true
     const controller = new AbortController()
     void fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_KEY! }, signal: controller.signal })
@@ -34,10 +42,30 @@ export default function TeacherLoginMethods() {
       setUser(data.user)
       setReady(true)
       setBusy(null)
-      if (error) setError(authErrorRu(error instanceof Error ? error : { message: String(error) }))
+      const displayedError = errorRef.current
+      const linkedProviders = data.user?.identities?.filter(identity => identity.provider === 'google' || identity.provider === 'apple') ?? []
+      const namedProvider = /Google-аккаунт|Google account/i.test(displayedError) ? 'google'
+        : /Apple ID/i.test(displayedError) && !/Google-аккаунт|Google account/i.test(displayedError) ? 'apple' : ''
+      const provider = errorProviderRef.current || namedProvider || (linkedProviders.length === 1 ? linkedProviders[0].provider : '')
+      const isDuplicateIdentityError = /identity_already_exists|привязан к другой учётной записи Искры|привязан к другому аккаунту|already linked to another/i.test(displayedError)
+      if (isDuplicateIdentityError && provider && linkedProviders.some(identity => identity.provider === provider)) {
+        updateError('', '')
+        sessionStorage.removeItem('iskra:link-error')
+        sessionStorage.removeItem('iskra:link-error-provider')
+      }
+      if (error) updateError(authErrorRu(error instanceof Error ? error : { message: String(error) }))
     }
-    const linked = () => { setNotice('Способ входа подключён к вашему аккаунту.'); void refresh() }
-    const failed = (event: Event) => { setError((event as CustomEvent<string>).detail); setBusy(null) }
+    const linked = () => {
+      updateError('', '')
+      sessionStorage.removeItem('iskra:link-error')
+      sessionStorage.removeItem('iskra:link-error-provider')
+      setNotice('Способ входа подключён к вашему аккаунту.')
+      void refresh()
+    }
+    const failed = (event: Event) => {
+      updateError((event as CustomEvent<string>).detail, sessionStorage.getItem('iskra:link-error-provider') || errorProviderRef.current)
+      setBusy(null)
+    }
     void refresh()
     window.addEventListener('focus', refresh)
     window.addEventListener('iskra:identity-linked', linked)
@@ -64,12 +92,12 @@ export default function TeacherLoginMethods() {
 
   async function connect(provider: 'google' | 'apple') {
     setBusy(provider)
-    setError('')
+    updateError('', '')
     setNotice('')
     try { await connectLoginProvider(provider) }
     catch (error) {
       const code = (error as { code?: string }).code
-      setError(t(code === 'manual_linking_disabled'
+      updateError(t(code === 'manual_linking_disabled'
         ? 'Подключение способов входа пока недоступно. Обратитесь в поддержку.'
         : authErrorRu(error instanceof Error ? error : { message: String(error) }, 'Не удалось подключить способ входа. Попробуйте ещё раз.')))
       setBusy(null)

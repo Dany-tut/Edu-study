@@ -18,7 +18,7 @@ import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { useJournalPending } from '../../lib/useGroups'
 import ViewAsBanner from './ViewAsBanner'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
-import { usePersistentState, clearDrafts } from '../../lib/useDraft'
+import { usePersistentState, clearDrafts, readDraft } from '../../lib/useDraft'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import FeedbackModal from '../FeedbackModal'
@@ -163,7 +163,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
   useEffect(() => {
     getAuthUser().then(u => {
       if (!u) return
-      const name = u.user_metadata?.name ?? u.email?.split('@')[0] ?? ''
+      const name = readDraft<string>('profile.name') ?? u.user_metadata?.name ?? u.email?.split('@')[0] ?? ''
       const role: 'admin' | 'teacher' = u.app_metadata?.role === 'admin' ? 'admin' : 'teacher'
       setTeacherName(name)
       setTeacherEmail(u.email ?? '')
@@ -180,7 +180,12 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       setAvatarId(m.avatarId ?? 'flower')
       setAvatarPath(m.avatarPath ?? null)
     })
-    return () => sub.subscription.unsubscribe()
+    const syncDraftName = (event: Event) => setTeacherName((event as CustomEvent<string>).detail)
+    window.addEventListener('iskra:teacher-name-draft', syncDraftName)
+    return () => {
+      sub.subscription.unsubscribe()
+      window.removeEventListener('iskra:teacher-name-draft', syncDraftName)
+    }
   }, [])
 
   const [myPlan, setMyPlan] = useState<MyPlan | null>(null)
@@ -617,6 +622,23 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
             </button>
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '0 8px 4px' }} />
+
+            {teacherRole === 'admin' && (
+              <motion.button whileTap={{ scale: 0.98 }}
+                onClick={() => { setProfileOpen(false); window.location.hash = '#/' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
+              >
+                <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <BookOpen size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{t('В ученический кабинет')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Переключить роль')}</div>
+                </div>
+              </motion.button>
+            )}
 
             {profileMenuItems.map(item => (
               <motion.button key={item.action} whileTap={{ scale: 0.98 }}
