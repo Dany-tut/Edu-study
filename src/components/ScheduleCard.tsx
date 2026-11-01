@@ -180,9 +180,12 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                     }
                   }}
                   data-schedule-state={st.phase}
+                  data-ended={st.hasEnded || undefined}
                   className={`rounded-2xl flex flex-wrap items-center ${isCancelled ? 'cursor-default' : 'cursor-pointer'}`}
                   style={{
                     minHeight: 58,
+                    filter: st.hasEnded ? 'grayscale(1)' : undefined,
+                    opacity: st.hasEnded ? 0.65 : 1,
                     padding: '10px 12px 10px 16px',
                     gap: 14,
                     background: (isEmphasized || isMissed) ? pal.soft : 'var(--color-schedule-row)',
@@ -291,8 +294,11 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             {day.lessons.length > 0 ? (
               <ScrollFade maxHeight="100%" fadeMode="mask" fadeHeight={18} scrollClassName="no-scrollbar" style={{ maxHeight: 146 }} scrollStyle={{ paddingBottom: 4 }}>
               <div className="flex flex-col gap-2">
-              {day.lessons.slice(0, 2).map(lesson => (
-                <div key={lesson.id}>
+              {day.lessons.slice(0, 2).map((lesson, lessonIndex) => (
+                <div key={lesson.id} data-ended={states[lessonIndex].hasEnded || undefined} style={{
+                  filter: states[lessonIndex].hasEnded ? 'grayscale(1)' : undefined,
+                  opacity: states[lessonIndex].hasEnded ? 0.65 : 1,
+                }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {tc(lesson.subject)}
                   </p>
