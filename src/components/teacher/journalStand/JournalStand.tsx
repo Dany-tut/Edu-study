@@ -491,7 +491,7 @@ export default function JournalStand({ owner }: { owner: string }) {
           slots.some(
             (slot) =>
               (!!slot.group && slot.group === e.student.groupId) ||
-              index?.journal.work.has(e.student.id + ':' + slot.ref)
+              (course === OUTSIDE_COURSES && index?.journal.work.has(e.student.id + ':' + slot.ref))
           )
       ),
     [entries, index, course, slots]
@@ -536,7 +536,11 @@ export default function JournalStand({ owner }: { owner: string }) {
                 set({
                   student: entry.student.id,
                   workRef: work.slot.ref,
-                  course: work.slot.course,
+                  course:
+                    index?.roster.get(work.slot.course)?.has(entry.student.id) ||
+                    work.slot.group === entry.student.groupId
+                      ? work.slot.course
+                      : ALL_COURSES,
                   module: '',
                   strip: 'students',
                   search: '',

@@ -9,7 +9,7 @@ import type { Student } from '../../../data/teacherMockData'
 
 const letters = 'АБВГДЕЖЗ'.split('')
 const given = ['Анна', 'Иван', 'Вера', 'Лев', 'Софья', 'Антон', 'Майя', 'Илья', 'Ника', 'Марк']
-const family = ['Сокол', 'Титов', 'Белов', 'Орлов', 'Громов', 'Морозов', 'Жуков', 'Миронов']
+const family = ['Соколов', 'Титов', 'Белов', 'Орлов', 'Громов', 'Морозов', 'Жуков', 'Миронов']
 function exampleData() {
   const data = journalDemo()
   const template = data.groups[0],
