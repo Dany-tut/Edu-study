@@ -5432,4 +5432,5 @@ export const EN: Record<string, string> = {
   "Что получилось и что исправить": "What went well and what to improve",
   "Комментарий ученику в полной проверке": "Student feedback in the full review",
   "Учебный пример": "Demo assignment",
+  "Расширить": "Expand",
 }
