@@ -254,7 +254,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
       {/* Below label — lesson number */}
       <div
         className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
-        style={{ top: 'calc(100% + 7px)', maxWidth: 120, textAlign: 'center' }}
+        style={{ top: 'calc(100% + 7px)', width: 120, textAlign: 'center' }}
       >
         <span
           className={cn('season-node-label', displayStatus === 'completed' && 'season-node-label--done', seasonNode && 'season-node-label--now')}
