@@ -645,7 +645,10 @@ export default function JournalStand({ owner, production = false }: { owner: str
       ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {setQueueGroup(group ?? '*');useTeacher.getState().setActivePage('homework')}}/>
       : <HomeworkQueue queue={homework.queue} groups={data.groups} groupId={queueGroup} onGroup={setQueueGroup}
           onOpen={entry => homework.openQueue(entry, queueGroup === '*' ? undefined : queueGroup)}/>}</div>
-      : <div className="cj-empty" role="status">{error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}</div>
+      : <div className="cj-empty" role={error ? 'alert' : 'status'}>
+          {error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}
+          {error && <button type="button" className="cj-button" onClick={reload}>Повторить загрузку</button>}
+        </div>
   }
   if (['gradebook', 'groups', 'student'].includes(page)) {
     if (loading && !error && (!data || data.demo))
