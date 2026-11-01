@@ -27,6 +27,7 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const animationFrame = useRef<number | null>(null)
   const animationTarget = useRef<number | null>(null)
+  const animationSource = useRef<'navigation' | 'wheel' | null>(null)
   const rangeCallback = useRef(onVisibleRangeChange)
   const lastRange = useRef('')
   useLayoutEffect(() => { rangeCallback.current = onVisibleRangeChange }, [onVisibleRangeChange])
@@ -56,6 +57,7 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
     if (animationFrame.current !== null) cancelAnimationFrame(animationFrame.current)
     animationFrame.current = null
     animationTarget.current = null
+    animationSource.current = null
   }, [])
 
   const placeAt = useCallback((position: number) => {
@@ -76,18 +78,20 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
     }
   }, [reportVisibleRange])
 
-  const animateTo = useCallback((destination: number) => {
+  const animateTo = useCallback((destination: number, source: 'navigation' | 'wheel' = 'navigation') => {
     const el = viewport.current
     if (!el?.clientWidth) return
     if (timer.current) clearTimeout(timer.current)
     if (reducedMotion) {
       stopAnimation()
       animationTarget.current = destination
+      animationSource.current = source
       placeAt(destination)
       setScrolling(false)
       return
     }
     animationTarget.current = destination
+    animationSource.current = source
     setScrolling(true)
     // Retarget the running spring without resetting its position or velocity.
     if (animationFrame.current !== null) return
@@ -168,7 +172,10 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
         expectedLeft.current = null
         if (Math.abs(el.scrollLeft - expected) < 1) return
       }
-      if (animationFrame.current === null) animationTarget.current = null
+      if (animationFrame.current === null) {
+        animationTarget.current = null
+        animationSource.current = null
+      }
       setScrolling(true)
       if (timer.current) clearTimeout(timer.current)
       if (animationFrame.current !== null) return
@@ -181,12 +188,15 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
       if (event.ctrlKey || event.metaKey) return
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
       if (!delta) return
-      stopAnimation()
       event.preventDefault()
       // The dashboard also listens for horizontal wheel gestures to switch desks.
       event.stopPropagation()
+      // The first wheel event interrupts button navigation. Subsequent ticks
+      // accumulate against the wheel destination and keep the spring's velocity.
+      if (animationSource.current !== 'wheel') stopAnimation()
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? el.clientWidth : 1
-      el.scrollLeft += delta * unit
+      const visible = weekPosition(anchorRef.current) + el.scrollLeft / el.clientWidth - BUFFER
+      animateTo((animationTarget.current ?? visible) + delta * unit / el.clientWidth, 'wheel')
     }
     const onPointerDown = () => { stopAnimation(); setScrolling(false) }
     const resize = new ResizeObserver(() => {
@@ -214,7 +224,7 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
       stopAnimation()
       if (timer.current) clearTimeout(timer.current)
     }
-  }, [reportVisibleRange, stopAnimation])
+  }, [animateTo, reportVisibleRange, stopAnimation])
 
   return (
     <motion.div
