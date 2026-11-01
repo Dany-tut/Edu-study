@@ -9,7 +9,7 @@ import { useLoopIcons } from '../../icons/LoopIcon'
 import DateTimeField from '../../DateTimeField'
 import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../../lib/teacherTz'
 import QuickAddLesson from './QuickAddLesson'
-import WeekStrip from './WeekStrip'
+import WeekStrip, { type WeekNavigation } from './WeekStrip'
 import { CALENDAR_BACKDROP, CALENDAR_EASE } from './calendarMotion'
 import { isScheduleLive, scheduleLiveWindow } from '../../../lib/scheduleLive'
 import { RadioMark } from '../../Radio'
@@ -72,9 +72,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const t = useT()
   const today = todayMsk()
   const [day, setDay] = useState(today)
-  const [weekNavigation, setWeekNavigation] = useState(0)
-  const [weekStep, setWeekStep] = useState<-1 | 0 | 1>(0)
-  const [stripStart, setStripStart] = useState(() => weekStart(today))
+  const [weekNavigation, setWeekNavigation] = useState<WeekNavigation>(() => ({ start: weekStart(today), revision: 0, offset: 0 }))
   const [visibleDates, setVisibleDates] = useState(() => ({ first: weekStart(today), last: addDays(weekStart(today), 6) }))
   const start = weekStart(day)
   const { items, reload } = useTeacherWeek(start)
@@ -95,19 +93,14 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
     setDir(next > day ? 1 : -1)
     setDay(next)
     if (navigate) {
-      setWeekStep(0)
-      setStripStart(weekStart(next))
-      setWeekNavigation(key => key + 1)
+      setWeekNavigation(navigation => ({ start: weekStart(next), revision: navigation.revision + 1, offset: 0 }))
     }
   }
   const returnToToday = () => {
-    setWeekStep(0)
-    setStripStart(weekStart(today))
-    setWeekNavigation(key => key + 1)
+    setWeekNavigation(navigation => ({ start: weekStart(today), revision: navigation.revision + 1, offset: 0 }))
   }
   const moveVisibleWeek = (direction: -1 | 1) => {
-    setWeekStep(direction)
-    setWeekNavigation(key => key + 1)
+    setWeekNavigation(navigation => ({ ...navigation, offset: navigation.offset + direction }))
   }
 
   const hitDay = (x: number, y: number): string | null => {
@@ -223,9 +216,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
 
       {/* Неделя */}
       <WeekStrip
-        start={stripStart}
-        navigationKey={weekNavigation}
-        weekStep={weekStep}
+        navigation={weekNavigation}
         label={t('Выбор недели')}
         onVisibleRangeChange={(first, last) => setVisibleDates({ first, last })}
         renderDay={(d, i) => {

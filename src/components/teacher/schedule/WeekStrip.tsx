@@ -4,27 +4,29 @@ import { addDays } from '../../../lib/teacherSchedule'
 
 const BUFFER = 4
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
-const mask = (edge: number) => `linear-gradient(to right, transparent 0%, black ${edge}%, black ${100 - edge}%, transparent 100%)`
+const mask = (edgeAlpha: number) => `linear-gradient(to right, rgba(0, 0, 0, ${edgeAlpha}) 0%, black 6%, black 94%, rgba(0, 0, 0, ${edgeAlpha}) 100%)`
+const weekPosition = (date: string) => Date.parse(`${date}T00:00:00Z`) / WEEK_MS
+
+export type WeekNavigation = { start: string; revision: number; offset: number }
 
 /** A native, unsnapped timeline. Recycle the surrounding weeks after a gesture. */
-export default function WeekStrip({ start, navigationKey, weekStep, label, onVisibleRangeChange, renderDay }: {
-  start: string
-  navigationKey: number
-  weekStep: -1 | 0 | 1
+export default function WeekStrip({ navigation, label, onVisibleRangeChange, renderDay }: {
+  navigation: WeekNavigation
   label: string
   onVisibleRangeChange: (first: string, last: string) => void
   renderDay: (date: string, weekday: number) => ReactNode
 }) {
-  const [anchor, setAnchor] = useState(start)
+  const [anchor, setAnchor] = useState(navigation.start)
   const [scrolling, setScrolling] = useState(false)
   const reducedMotion = useReducedMotion()
   const viewport = useRef<HTMLDivElement>(null)
   const anchorRef = useRef(anchor)
-  const lastNavigation = useRef(navigationKey)
+  const lastNavigation = useRef(navigation)
   const pendingLeft = useRef<number | null>(null)
   const expectedLeft = useRef<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const animationFrame = useRef<number | null>(null)
+  const animationTarget = useRef<number | null>(null)
   const rangeCallback = useRef(onVisibleRangeChange)
   const lastRange = useRef('')
   useLayoutEffect(() => { rangeCallback.current = onVisibleRangeChange }, [onVisibleRangeChange])
@@ -53,45 +55,66 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
   const stopAnimation = useCallback(() => {
     if (animationFrame.current !== null) cancelAnimationFrame(animationFrame.current)
     animationFrame.current = null
+    animationTarget.current = null
   }, [])
+
+  const placeAt = useCallback((position: number) => {
+    const el = viewport.current
+    if (!el?.clientWidth) return
+    const offset = position - weekPosition(anchorRef.current)
+    const nearest = Math.round(offset)
+    const nextAnchor = addDays(anchorRef.current, nearest * 7)
+    const left = (BUFFER + offset - nearest) * el.clientWidth
+    // Refill the buffer without moving the dates on screen.
+    if (nextAnchor !== anchorRef.current) {
+      pendingLeft.current = left
+      setAnchor(nextAnchor)
+    } else {
+      expectedLeft.current = left
+      el.scrollLeft = left
+      reportVisibleRange()
+    }
+  }, [reportVisibleRange])
 
   const animateTo = useCallback((destination: number) => {
     const el = viewport.current
     if (!el?.clientWidth) return
-    stopAnimation()
     if (timer.current) clearTimeout(timer.current)
-    const base = anchorRef.current
-    const from = el.scrollLeft / el.clientWidth - BUFFER
-    const distance = destination - from
-    const duration = reducedMotion ? 0 : Math.min(650, 320 + Math.abs(distance) * 30)
-    const started = performance.now()
+    if (reducedMotion) {
+      stopAnimation()
+      animationTarget.current = destination
+      placeAt(destination)
+      setScrolling(false)
+      return
+    }
+    animationTarget.current = destination
     setScrolling(true)
+    // Retarget the running spring without resetting its position or velocity.
+    if (animationFrame.current !== null) return
+    let position = weekPosition(anchorRef.current) + el.scrollLeft / el.clientWidth - BUFFER
+    let velocity = 0
+    let previousTime = performance.now()
 
     const frame = (now: number) => {
-      const progress = duration ? Math.min(1, (now - started) / duration) : 1
-      const position = from + distance * (1 - (1 - progress) ** 3)
-      const nearest = Math.round(position)
-      const nextAnchor = addDays(base, nearest * 7)
-      const left = (BUFFER + position - nearest) * el.clientWidth
-      // Keep the moving dates inside the buffer, even when Today is months away.
-      // Replacing the buffer preserves their exact on-screen positions.
-      if (nextAnchor !== anchorRef.current) {
-        pendingLeft.current = left
-        setAnchor(nextAnchor)
-      } else {
-        expectedLeft.current = null
-        el.scrollLeft = left
-        reportVisibleRange()
-      }
-      if (progress < 1) animationFrame.current = requestAnimationFrame(frame)
+      const target = animationTarget.current
+      if (target === null) return
+      const elapsed = Math.min(0.064, Math.max(0, (now - previousTime) / 1000))
+      previousTime = now
+      const displacement = position - target
+      const coefficient = velocity + 22 * displacement
+      const decay = Math.exp(-22 * elapsed)
+      position = target + (displacement + coefficient * elapsed) * decay
+      velocity = (velocity - 22 * coefficient * elapsed) * decay
+      const finished = Math.abs(position - target) < 0.0005 && Math.abs(velocity) < 0.005
+      placeAt(finished ? target : position)
+      if (!finished) animationFrame.current = requestAnimationFrame(frame)
       else {
         animationFrame.current = null
         setScrolling(false)
       }
     }
-    if (duration) animationFrame.current = requestAnimationFrame(frame)
-    else frame(started)
-  }, [reducedMotion, reportVisibleRange, stopAnimation])
+    animationFrame.current = requestAnimationFrame(frame)
+  }, [reducedMotion, placeAt, stopAnimation])
 
   useLayoutEffect(() => {
     const el = viewport.current
@@ -104,19 +127,22 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
     reportVisibleRange()
   }, [anchor, reportVisibleRange])
 
-  // Arrows shift the actual viewport by seven days, including its fractional
-  // offset. Today and feed navigation align a week without affecting clicks.
+  // Accumulate every click against the intended destination, including clicks
+  // batched in one render. Wheel/touch input clears that destination.
   useLayoutEffect(() => {
-    const navigate = navigationKey !== lastNavigation.current
-    lastNavigation.current = navigationKey
-    if (!navigate) return
+    const previous = lastNavigation.current
+    lastNavigation.current = navigation
+    const absolute = navigation.revision !== previous.revision
+    const steps = navigation.offset - previous.offset
+    if (!absolute && !steps) return
     const el = viewport.current
     if (!el?.clientWidth) return
-    const destination = weekStep
-      ? el.scrollLeft / el.clientWidth - BUFFER + weekStep
-      : (Date.parse(`${start}T00:00:00Z`) - Date.parse(`${anchorRef.current}T00:00:00Z`)) / WEEK_MS
+    const visible = weekPosition(anchorRef.current) + el.scrollLeft / el.clientWidth - BUFFER
+    const destination = absolute
+      ? weekPosition(navigation.start) + navigation.offset
+      : (animationTarget.current ?? visible) + steps
     animateTo(destination)
-  }, [start, navigationKey, weekStep, animateTo])
+  }, [navigation, animateTo])
 
   useEffect(() => {
     const el = viewport.current
@@ -142,6 +168,7 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
         expectedLeft.current = null
         if (Math.abs(el.scrollLeft - expected) < 1) return
       }
+      if (animationFrame.current === null) animationTarget.current = null
       setScrolling(true)
       if (timer.current) clearTimeout(timer.current)
       if (animationFrame.current !== null) return
@@ -191,9 +218,9 @@ export default function WeekStrip({ start, navigationKey, weekStep, label, onVis
 
   return (
     <motion.div
-      animate={{ maskImage: mask(scrolling ? 6 : 0), WebkitMaskImage: mask(scrolling ? 6 : 0) }}
+      animate={{ maskImage: mask(scrolling ? 0 : 1), WebkitMaskImage: mask(scrolling ? 0 : 1) }}
       transition={{ duration: reducedMotion ? 0 : 0.16 }}
-      style={{ minWidth: 0 }}
+      style={{ minWidth: 0, maskPosition: '0 0', WebkitMaskPosition: '0 0', maskSize: '100% 100%', WebkitMaskSize: '100% 100%', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat' }}
     >
       <div
         ref={viewport}
