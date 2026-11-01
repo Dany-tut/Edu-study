@@ -55,3 +55,12 @@ html .dashboard-root--home > .dashboard-schedule:has(.student-schedule-ribbon) {
 @media (min-width:1024px) and (pointer:coarse) {
   .student-schedule-ribbon { --ssr-control-height:44px; }
 }
+
+/* Give the nearest dates a smaller lift, keeping the carousel's depth. */
+@media (min-width:1024px) {
+  .student-schedule-ribbon [data-schedule-day="selected"] + div > .schedule-card,
+  .student-schedule-ribbon div:has(+ [data-schedule-day="selected"]) > .schedule-card {
+    height:calc(100% + var(--ssr-card-rise) * .36);
+    margin-top:calc(var(--ssr-card-rise) * -.36);
+  }
+}
