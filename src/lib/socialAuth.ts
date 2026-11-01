@@ -20,7 +20,7 @@ export async function connectLoginProvider(provider: 'google' | 'apple') {
   try {
     const native = Capacitor.isNativePlatform()
     const { data, error } = await supabase.auth.linkIdentity({ provider, options: {
-      redirectTo: native ? IOS_OAUTH_REDIRECT : `${window.location.origin}${window.location.pathname}#/teacher/profile`,
+      redirectTo: native ? IOS_OAUTH_REDIRECT : `${window.location.origin}/`,
       skipBrowserRedirect: true,
     } })
     if (error) throw error
@@ -63,6 +63,8 @@ async function finishIdentityLink() {
   }
   if (!user.identities?.some(identity => identity.provider === pending.provider)) return false
   localStorage.removeItem(LINK_KEY)
+  clearStudentSession()
+  window.location.hash = '#/teacher/profile'
   window.dispatchEvent(new Event('iskra:identity-linked'))
   return true
 }
@@ -74,8 +76,9 @@ export async function startSocialLogin(provider: Provider, role: LoginRole) {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: native ? IOS_OAUTH_REDIRECT : `${window.location.origin}${window.location.pathname}${window.location.hash}`,
-      skipBrowserRedirect: native,
+      redirectTo: native ? IOS_OAUTH_REDIRECT : `${window.location.origin}/`,
+      // Navigate once after supabase-js has stored the PKCE verifier.
+      skipBrowserRedirect: true,
     },
   })
   if (error) throw error

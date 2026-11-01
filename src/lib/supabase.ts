@@ -13,7 +13,8 @@ if (!url || !key) {
   )
 }
 
-export const supabase = createClient(url, key)
+// OAuth returns a one-time query code, leaving the application's hash router intact.
+export const supabase = createClient(url, key, { auth: { flowType: 'pkce' } })
 
 // Адрес и ключ отдельно: на выгрузке страницы обычный клиент не годится —
 // его fetch умирает вместе со страницей. Телеметрия досылает последнюю пачку
