@@ -5395,4 +5395,5 @@ export const EN: Record<string, string> = {
   "Напоминание о задании": "Assignment reminder",
   "Часть заданий недоступна": "Some assignments are unavailable",
   "Задания временно недоступны": "Assignments are temporarily unavailable",
+  "Предмет не указан": "Subject not specified",
 }

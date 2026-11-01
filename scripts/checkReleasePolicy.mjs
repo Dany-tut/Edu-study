@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { RELEASE, git, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
+import { RELEASE, git, releaseCheckoutChanges, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
 
 const dir = mkdtempSync(join(tmpdir(), 'iskra-release-policy-test-'))
 let checks = 0
@@ -39,6 +39,47 @@ try {
   writeFileSync(join(dir, 'unrelated-feature'), 'modified tracked source')
   const dirty = spawnSync(process.execPath, [guard, '--check'], { cwd: dir, encoding: 'utf8', env: { ...process.env, VERCEL_ENV: '' } })
   assert.equal(dirty.status, 1); assert.match(dirty.stderr, /uncommitted/); checks++
+  // Real Vercel clones drop tracked .vercelignore matches before the guard runs.
+  const hosted = join(dir, 'hosted-checkout')
+  mkdirSync(hosted)
+  git(['init', '-b', 'main'], hosted)
+  git(['config', 'user.name', 'Release policy test'], hosted)
+  git(['config', 'user.email', 'release@example.test'], hosted)
+  mkdirSync(join(hosted, 'supabase'))
+  writeFileSync(join(hosted, '.vercelignore'), '.env*\nsupabase/\n')
+  writeFileSync(join(hosted, '.gitignore'), 'local-only.txt\n')
+  const config = { services: { web: { root: '.', framework: 'vite', installCommand: 'npm ci' } }, rewrites: [{ source: '/(.*)', destination: { service: 'web' } }] }
+  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config, null, 2) + '\n')
+  for (const name of ['.env.example', 'supabase/schema.sql', 'app.ts', 'local-only.txt']) writeFileSync(join(hosted, name), 'fixture')
+  git(['add', '-f', '.'], hosted)
+  git(['-c', 'core.hooksPath=/dev/null', 'commit', '-m', 'Hosted fixture'], hosted)
+  rmSync(join(hosted, '.env.example'))
+  rmSync(join(hosted, 'supabase/schema.sql'))
+  assert.equal(releaseCheckoutChanges({cwd:hosted}).length, 2); checks++
+  assert.deepEqual(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}), []); checks++
+  writeFileSync(join(hosted, 'app.ts'), 'changed source')
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('app.ts'))); checks++
+  git(['checkout', '--', 'app.ts'], hosted)
+  writeFileSync(join(hosted, 'unexpected.ts'), 'uncommitted source')
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.startsWith('??'))); checks++
+  rmSync(join(hosted, 'unexpected.ts'))
+  rmSync(join(hosted, 'app.ts'))
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('app.ts'))); checks++
+  git(['checkout', '--', 'app.ts'], hosted)
+  rmSync(join(hosted, 'local-only.txt'))
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('local-only.txt'))); checks++
+  git(['checkout', '--', 'local-only.txt'], hosted)
+  git(['add', '-u'], hosted)
+  assert.equal(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).length, 2); checks++
+  git(['reset', '--hard', 'HEAD'], hosted)
+  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config))
+  assert.ok(releaseCheckoutChanges({cwd:hosted}).some(change => change.endsWith('vercel.json'))); checks++
+  assert.deepEqual(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true,allowVercelFormatting:true}), []); checks++
+  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify({ ...config, buildCommand: 'skip-guard' }))
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelFormatting:true}).some(change => change.endsWith('vercel.json'))); checks++
+  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config))
+  git(['add', 'vercel.json'], hosted)
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelFormatting:true}).some(change => change.endsWith('vercel.json'))); checks++
   const valid = { head, main: head, live: { commit: live, build: 10 }, version: { build: 11, version: '1.0.11' }, contains }
   validateProductionRelease(valid); checks++
   reject({ ...valid, head: stale }, /behind origin\/main/)

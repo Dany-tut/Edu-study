@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { RELEASE, git, assertCommit, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
+import { RELEASE, git, releaseCheckoutChanges, assertCommit, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
 
 const phase = process.argv[2]
 if (!['--before-build', '--after-build', '--check'].includes(phase)) {
@@ -17,13 +17,11 @@ try {
     if (production && (process.env.VERCEL_GIT_COMMIT_REF !== RELEASE.branch || process.env.VERCEL_GIT_COMMIT_SHA !== head)) {
       throw new Error('Production must be built by the Git integration from the current main commit.')
     }
-    // Enforce a clean local release checkout. The trusted Git builder itself
-    // filters .vercelignore paths and rewrites vercel.json for Services, so its
-    // working tree intentionally differs from HEAD. Its provenance is checked
-    // through the Git SHA above and the platform's Git-only production policy.
-    const changes = production ? '' : git(['status', '--porcelain', '--untracked-files=normal'])
-    if (changes) {
-      throw new Error(`Release checkout has uncommitted source files. Use a clean, isolated worktree.\n${changes}`)
+    // Git-hosted builds may add generated service files; local preflight is strict.
+    const changes = releaseCheckoutChanges({ allowVercelDeletions: production && process.env.VERCEL === '1', allowVercelFormatting: production && process.env.VERCEL === '1', includeUntracked: !production })
+    if (changes.length) {
+      if (production && changes.some(change => change.slice(3) === 'vercel.json')) console.error(git(['diff', '--', 'vercel.json']))
+      throw new Error('Release checkout has uncommitted source files. Use a clean, isolated worktree. Changes: ' + changes.slice(0, 12).join('; '))
     }
     const remote = git(['ls-remote', RELEASE.remote, `refs/heads/${RELEASE.branch}`])
     const main = assertCommit(remote.split(/\s/)[0])

@@ -1,4 +1,7 @@
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { isDeepStrictEqual } from 'node:util'
 
 export const RELEASE = Object.freeze({
   repository: 'Dany-tut/Edu-study',
@@ -11,6 +14,28 @@ export const RELEASE = Object.freeze({
 
 export function git(args, cwd = process.cwd()) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] }).trim()
+}
+
+/** Vercel removes .vercelignore matches after cloning, before running the build.
+ * Only those unstaged deletions are expected; modified and staged files still reject the release.
+ * Local preflight also rejects untracked files. */
+export function releaseCheckoutChanges({ cwd = process.cwd(), allowVercelDeletions = false, allowVercelFormatting = false, includeUntracked = true } = {}) {
+  const run = args => execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] })
+  const changes = run(['status', '--porcelain=v1', '-z', includeUntracked ? '--untracked-files=normal' : '--untracked-files=no']).split('\0').filter(Boolean)
+  if ((!allowVercelDeletions && !allowVercelFormatting) || !changes.length) return changes
+  // --exclude-from deliberately does not read .gitignore or global excludes.
+  const excluded = new Set(allowVercelDeletions ? run(['ls-files', '--cached', '--ignored', '--exclude-from=.vercelignore', '-z']).split('\0').filter(Boolean) : [])
+  return changes.filter(change => {
+    if (allowVercelDeletions && change.slice(0, 2) === ' D' && excluded.has(change.slice(3))) return false
+    // Services serializes the same JSON into one line. Permit formatting only,
+    // never staged changes or altered routes, commands, headers or settings.
+    if (allowVercelFormatting && change === ' M vercel.json') {
+      try {
+        return !isDeepStrictEqual(JSON.parse(run(['show', 'HEAD:vercel.json'])), JSON.parse(readFileSync(join(cwd, 'vercel.json'), 'utf8')))
+      } catch { return true }
+    }
+    return true
+  })
 }
 
 export function assertCommit(value) {
