@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { BookOpen, Check, ChevronRight, CircleAlert, Download, Plus, RefreshCw, Search, Users, X } from '../icons/appIcons'
+import JournalSkeleton from './JournalSkeleton'
 import Modal from '../Modal'
 import MobileSheet from '../MobileSheet'
 import NativeSelectField from '../NativeSelectField'
@@ -256,7 +257,7 @@ export default function CourseJournal({ mobile = false }: { mobile?: boolean }) 
     const link = document.createElement('a'); link.href = url; link.download = `iskra-journal-${today}.csv`; link.click()
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
-  if (!data && loading) return <div className="course-journal cj-empty" role="status">{t('Загрузка журнала…')}</div>
+  if (!data && loading) return <JournalSkeleton table embedded />
   if (error || !data) return <div className="course-journal cj-empty" role="alert"><CircleAlert size={28} /><p>{t('Не удалось загрузить журнал')}</p><p className="cj-note">{error}</p><button className="cj-button" type="button" onClick={reload}>{t('Повторить')}</button></div>
   const modules = data.modules.filter(m => m.course_id === courseId).sort((a, b) => a.position - b.position)
   const pendingEvents = allColumns.flatMap(c => c.events).filter((event, i, all) => event.status !== 'cancelled'

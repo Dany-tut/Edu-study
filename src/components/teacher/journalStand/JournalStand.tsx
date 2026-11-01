@@ -1,4 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import JournalSkeleton from '../JournalSkeleton'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import TeacherStudentDashboardPage, { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
@@ -647,10 +648,12 @@ export default function JournalStand({ owner, production = false }: { owner: str
       : <div className="cj-empty" role="status">{error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}</div>
   }
   if (['gradebook', 'groups', 'student'].includes(page)) {
-    if (error || !data || data.demo)
+    if (loading && !error && (!data || data.demo))
+      content = <JournalSkeleton table={selected.tab !== 'Обзор'} />
+    else if (error || !data || data.demo)
       content = (
         <div className="cj-empty" role="status">
-          {error ?? (loading ? 'Загрузка журнала…' : 'Войдите в аккаунт преподавателя')}{' '}
+          {error ?? 'Войдите в аккаунт преподавателя'}{' '}
           <button className="cj-button" onClick={reload}>
             Обновить
           </button>
