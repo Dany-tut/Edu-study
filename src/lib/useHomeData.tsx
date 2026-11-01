@@ -4,31 +4,16 @@ import { useTeacher } from '../store/teacherStore'
 import { useGroups, useAllStudents, useJournalPending } from './useGroups'
 import { useHomework, useHardSubmissions } from './useHomework'
 import { supabase } from './supabase'
-import { t, useT } from './i18n'
+import { useT } from './i18n'
+import { buildTeacherReminders } from './reminderContent'
 import { scheduleHasEnded, todayMsk } from './teacherSchedule'
-
-function diffDays(isoA: string, isoB: string) {
-  return Math.round((new Date(isoA).getTime() - new Date(isoB).getTime()) / 86400000)
-}
-
-// Компактное «сдано N назад» для строк напоминаний.
-function agoLabel(iso?: string): string {
-  if (!iso) return ''
-  const diff = Date.now() - new Date(iso).getTime()
-  if (!Number.isFinite(diff) || diff < 0) return t('сдано только что')
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${t('сдано')} ${mins} ${t('мин назад')}`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${t('сдано')} ${hrs} ${t('ч назад')}`
-  const days = Math.floor(hrs / 24)
-  return `${t('сдано')} ${days} ${t('дн назад')}`
-}
 
 export function useOverlayThumb() {
   const [m, setM] = useState({ st: 0, sh: 0, ch: 0 })
   const [hover, setHover] = useState(false)
   const [scrolling, setScrolling] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(timer.current), [])
 
   function update(el: HTMLElement) {
     setM(prev => (prev.st === el.scrollTop && prev.sh === el.scrollHeight && prev.ch === el.clientHeight
@@ -115,7 +100,6 @@ export function useHomeData() {
   const pendingJournals = useJournalPending(null)
   const pendingHomework = allHomework.filter(hw => hw.status === 'active')
   const totalStudents = new Set(allStudents.map(s => s.personId || s.authUserId || s.id)).size
-  const TODAY = new Date().toISOString().split('T')[0]
 
   const pendingHard = hardSubs.filter(s => s.status === 'submitted')
   const pendingCount =
@@ -124,41 +108,8 @@ export function useHomeData() {
 
   const doneCount = todaySchedule.filter(s => s.status === 'completed').length
 
-  const reminders: Reminder[] = [
-    ...pendingHomework.filter(hw => hw.submittedCount > 0).map(hw => ({
-      id: `hw-${hw.id}`,
-      type: 'check-hw' as Reminder['type'],
-      text: `${t('Проверить ДЗ')} — ${hw.groupName}`,
-      detail: `${hw.submittedCount} ${t('из')} ${hw.totalCount} ${t('сдали')}`
-        + (hw.lastSubmittedAt ? ` · ${agoLabel(hw.lastSubmittedAt)}` : ''),
-      urgency: 'high' as Reminder['urgency'],
-    })),
-    ...pendingHard.map(s => ({
-      id: `hard-${s.id}`,
-      type: 'check-hw' as Reminder['type'],
-      text: `${t('Сложное ДЗ')} — ${s.studentName.split(' ')[0]}`,
-      detail: s.updatedAt ? `${s.lessonTitle} · ${agoLabel(s.updatedAt)}` : s.lessonTitle,
-      urgency: 'high' as Reminder['urgency'],
-    })),
-    ...allStudents.filter(s => s.paymentDue && diffDays(s.paymentDue, TODAY) <= 7).map(s => ({
-      id: `pay-${s.id}`,
-      type: 'payment-debt' as Reminder['type'],
-      text: `${t('Оплата')} — ${s.name.split(' ')[0]}`,
-      detail: s.paymentAmount ? `${s.paymentAmount.toLocaleString('ru-RU')} ₽` : '',
-      urgency: (diffDays(s.paymentDue!, TODAY) < 0 ? 'high' : 'medium') as Reminder['urgency'],
-    })),
-    ...pendingJournals.map(p => ({
-      id: `journal-${p.scheduleId}`,
-      type: 'fill-journal' as Reminder['type'],
-      text: `${t('Журнал')} — ${p.scopeName}`,
-      detail: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
-      urgency: 'medium' as Reminder['urgency'],
-    })),
-  ]
-
-  const reminderDone = (r: Reminder) =>
-    r.type === 'check-hw' &&
-    pendingHomework.some(hw => r.id === `hw-${hw.id}` && hw.reviewedCount >= hw.submittedCount)
+  const reminders = buildTeacherReminders({ homework: allHomework, hard: hardSubs, students: allStudents, journals: pendingJournals, today: todayMsk(), now: scheduleClock, t })
+  const reminderDone = (r: Reminder) => r.done === true
 
   const reminderAction = (r: Reminder): (() => void) | undefined => {
     if (r.id.startsWith('hard-')) { const id = r.id.slice(5); return () => openHardReview(id) }

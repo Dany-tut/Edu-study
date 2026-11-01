@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   ClipboardCheck, Layers, BookOpen, Bell, Banknote, Clock,
   AlertCircle, ChevronRight, CheckCircle2,
 } from '../../icons/appIcons'
 import type { Reminder } from '../../../data/teacherMockData'
-import { useTheme } from '../../../store/themeStore'
+import './remindersWidget.css'
 import { useHomeData, useOverlayThumb } from '../../../lib/useHomeData'
-import { t, useT } from '../../../lib/i18n'
+import { t, useT, useLang } from '../../../lib/i18n'
 
 const reminderIcons: Record<Reminder['type'], React.ElementType> = {
   'check-hw': ClipboardCheck,
@@ -27,18 +27,22 @@ const reminderAccent = (item: Pick<Reminder, 'type' | 'urgency'>) => {
 const urgencyLabel = (type: Reminder['type']) =>
   type === 'payment-debt' ? t('Просрочено')
   : type === 'fill-journal' ? t('Не заполнен')
-  : type === 'check-hw' ? t('Давно ждёт')
+  : type === 'check-hw' ? t('На проверке')
   : t('Срочно')
 
-function ReminderRow({ item, done, onAction, style: styleOverride }: {
-  item: Reminder; done?: boolean; onAction?: () => void; style?: React.CSSProperties
+function ReminderRow({ item, done, onAction, showChevron = true, style: styleOverride }: {
+  item: Reminder; done?: boolean; onAction?: () => void; showChevron?: boolean; style?: React.CSSProperties
 }) {
   const Icon = done ? CheckCircle2 : reminderIcons[item.type]
   const clickable = !done && !!onAction
   const accent = done ? 'var(--color-green-text)' : reminderAccent(item)
   return (
     <motion.div
+      className={`teacher-reminder-row${clickable && showChevron ? ' teacher-reminder-with-chevron' : ''}`} data-reminder-row={item.id}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
       onClick={clickable ? onAction : undefined}
+      onKeyDown={e => { if (clickable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onAction?.() } }}
       whileTap={clickable ? { scale: 0.99 } : undefined}
       style={{
         display: 'flex', alignItems: 'center', gap: 12,
@@ -60,7 +64,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
       }}>
         <Icon size={18} strokeWidth={2.2} style={{ color: accent }} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="teacher-reminder-details" style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: 14, fontWeight: 700,
           color: done ? 'var(--color-green-text)' : 'var(--color-text)',
@@ -72,26 +76,26 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
         {item.detail && (
           <div style={{
             fontSize: 12, fontWeight: 500, marginTop: 2,
-            color: done ? 'var(--color-green-text)' : 'var(--color-text-3)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            color: done ? 'var(--color-green-text)' : 'var(--color-text-2)',
+            whiteSpace: 'normal', lineHeight: 1.4,
           }}>
             {done ? t('Готово') : item.detail}
           </div>
         )}
       </div>
-      {!done && item.urgency === 'high' && (
-        <span style={{
+      {!done && (item.statusLabel || item.urgency === 'high') && (
+        <span className="teacher-reminder-status" style={{
           display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
           padding: '4px 10px 4px 8px', borderRadius: 999,
           background: `color-mix(in srgb, ${accent} 16%, transparent)`,
           color: accent, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
         }}>
           <AlertCircle size={12} strokeWidth={2.5} />
-          {urgencyLabel(item.type)}
+          {item.statusLabel || urgencyLabel(item.type)}
         </span>
       )}
-      {clickable && (
-        <ChevronRight size={16} strokeWidth={2} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+      {clickable && showChevron && (
+        <ChevronRight className="teacher-reminder-chevron" size={16} strokeWidth={2} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
       )}
     </motion.div>
   )
@@ -106,132 +110,108 @@ const stackTypeLabel: Record<Reminder['type'], string> = {
   'send-push': 'Уведомление',
 }
 
-const COLLAPSE = {
-  height: { type: 'spring' as const, stiffness: 300, damping: 44 },
-  opacity: { duration: 0.22, ease: 'easeOut' as const },
+const plural = new Intl.PluralRules('ru')
+const reminderAmount = (count: number, forms: [string, string, string], english: string, lang: string) => {
+  const form = plural.select(count)
+  return `${count} ${lang === 'en' ? english : forms[form === 'one' ? 0 : form === 'few' ? 1 : 2]}`
 }
+const SOFT_EASE = [0.22, 1, 0.36, 1] as const
 
-function ReminderGroupStack({ items, getAction, isDone }: {
+const ReminderGroupStack = memo(function ReminderGroupStack({ items, getAction, isDone }: {
   items: Reminder[]
   getAction: (r: Reminder) => (() => void) | undefined
   isDone: (r: Reminder) => boolean
 }) {
+  const lang = useLang(s => s.lang)
   const [expanded, setExpanded] = useState(false)
-  const dark = useTheme(s => s.dark)
-  const collapseColor = dark ? 'var(--color-text-3)' : 'var(--color-text-4)'
+  const [hasRows, setHasRows] = useState(false)
+  const expandedRef = useRef(expanded)
+  expandedRef.current = expanded
+  const reducedMotion = useReducedMotion()
+  const frontRef = useRef<HTMLDivElement>(null)
+  const rowsRef = useRef(new Map<string, HTMLDivElement>())
+  const [sizes, setSizes] = useState<{ front: number; rows: number[] }>({ front: 0, rows: [] })
+  const front = items[0]
+  const rest = items.slice(1)
+  const accent = reminderAccent(front)
+  const behind = Math.min(rest.length, 2)
+  const count = front.type === 'check-hw'
+    ? items.reduce((sum, r) => sum + (isDone(r) ? 0 : r.pendingCount ?? 1), 0)
+    : items.length
+  const quantity = front.type === 'check-hw'
+    ? reminderAmount(count, ['работа', 'работы', 'работ'], count === 1 ? 'submission' : 'submissions', lang)
+    : front.type === 'payment-debt'
+      ? reminderAmount(count, ['платёж', 'платежа', 'платежей'], count === 1 ? 'payment' : 'payments', lang)
+      : reminderAmount(count, ['занятие', 'занятия', 'занятий'], count === 1 ? 'lesson' : 'lessons', lang)
+  const summary = front.type === 'check-hw' ? `${quantity} · ${items.length} ${t('ДЗ')}` : quantity
+  const transition = { duration: reducedMotion ? 0 : 0.27, ease: SOFT_EASE }
 
-  if (items.length === 1) {
-    return <ReminderRow item={items[0]} done={isDone(items[0])} onAction={getAction(items[0])} />
+  useLayoutEffect(() => {
+    const measure = () => {
+      const next = { front: frontRef.current?.offsetHeight ?? 0, rows: rest.map(r => rowsRef.current.get(r.id)?.offsetHeight ?? 68) }
+      setSizes(old => old.front === next.front && old.rows.length === next.rows.length && old.rows.every((h, i) => h === next.rows[i]) ? old : next)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    if (frontRef.current) observer.observe(frontRef.current)
+    rowsRef.current.forEach(el => observer.observe(el))
+    return () => observer.disconnect()
+  }, [items, hasRows])
+
+  if (items.length === 1) return <ReminderRow item={front} done={isDone(front)} onAction={getAction(front)} />
+
+  const collapsedHeight = sizes.front + (behind >= 2 ? 31 : 21)
+  const expandedHeight = sizes.front + sizes.rows.reduce((sum, h) => sum + h + 6, 0) + 6
+  let rowY = sizes.front + 6
+  const toggle = () => {
+    if (!expanded) setHasRows(true)
+    setExpanded(value => !value)
   }
 
-  const front = items[0]
-  const accent = reminderAccent(front)
-  const behind = Math.min(items.length - 1, 2)
-
   return (
-    <div style={{ display: 'grid' }}>
-      <AnimatePresence initial={false}>
-        {!expanded ? (
-          <motion.div
-            key="stack"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={COLLAPSE}
-            onClick={() => setExpanded(true)}
-            style={{ gridArea: '1 / 1', alignSelf: 'start', overflow: 'hidden', cursor: 'pointer' }}
-          >
-            <div>
-              <div style={{ position: 'relative', zIndex: 3 }}>
-                <ReminderRow item={front} done={isDone(front)} onAction={undefined} style={{ paddingRight: 48, background: 'rgba(var(--glass-rgb), 0.80)', backdropFilter: 'var(--blur-thin)', WebkitBackdropFilter: 'var(--blur-thin)' }} />
-                <div style={{
-                  position: 'absolute', inset: 0, borderRadius: 16, overflow: 'hidden',
-                  pointerEvents: 'none', zIndex: 1,
-                  background: `radial-gradient(70% 46% at 50% 100%, color-mix(in srgb, ${accent} 13%, transparent), transparent 70%)`,
-                }} />
-                <div style={{
-                  position: 'absolute', top: '50%', right: 14, transform: 'translateY(-50%)',
-                  minWidth: 26, height: 26, padding: '0 8px', borderRadius: 13,
-                  background: accent, color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 700, lineHeight: 1, pointerEvents: 'none',
-                  boxShadow: `0 4px 12px color-mix(in srgb, ${accent} 50%, transparent)`,
-                }}>
-                  {items.length}
-                </div>
-              </div>
-              <div style={{
-                height: 18, marginTop: -4, marginLeft: 12, marginRight: 12,
-                position: 'relative', zIndex: 2,
-                background: `color-mix(in srgb, ${accent} 14%, rgba(var(--glass-rgb), 0.55))`,
-                backdropFilter: 'var(--blur-thin)',
-                WebkitBackdropFilter: 'var(--blur-thin)',
-                borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 24%, transparent)`,
-                borderRadius: '0 0 16px 16px',
-              }} />
-              {behind >= 2 && (
-                <div style={{
-                  height: 18, marginTop: -6, marginLeft: 22, marginRight: 22,
-                  position: 'relative', zIndex: 1,
-                  background: `color-mix(in srgb, ${accent} 10%, rgba(var(--glass-rgb), 0.5))`,
-                  backdropFilter: 'var(--blur-thin)',
-                  WebkitBackdropFilter: 'var(--blur-thin)',
-                  borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 16%, transparent)`,
-                  borderRadius: '0 0 16px 16px',
-                }} />
-              )}
-              <div style={{ height: behind >= 2 ? 5 : 7 }} />
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="list"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={COLLAPSE}
-            style={{ gridArea: '1 / 1', alignSelf: 'start', overflow: 'hidden' }}
-          >
-            <div style={{ paddingBottom: 16 }}>
-              <div
-                onClick={() => setExpanded(false)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '0 10px 6px', cursor: 'pointer',
-                }}
-              >
-                <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>
-                  {t(stackTypeLabel[front.type])} · {items.length}
-                </span>
-                <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {t('Свернуть')} <ChevronRight size={12} style={{ transform: 'rotate(-90deg)' }} />
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {items.map((r, i) => {
-                  const next = items[i + 1]
-                  const nAccent = !isDone(r) && next && isDone(next) ? 'var(--color-green-text)' : undefined
-                  return (
-                    <div key={r.id} style={{ position: 'relative' }}>
-                      <ReminderRow item={r} done={isDone(r)} onAction={getAction(r)} />
-                      {nAccent && (
-                        <div style={{
-                          position: 'absolute', bottom: 0, left: '2%', right: '2%', height: 32,
-                          pointerEvents: 'none', opacity: 0.6,
-                          background: `radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, ${nAccent} 20%, transparent), transparent 70%)`,
-                        }} />
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <motion.div
+      className="teacher-reminder-stack" data-reminder-stack={front.type}
+      initial={false}
+      animate={sizes.front ? { height: expanded ? expandedHeight : collapsedHeight } : undefined}
+      transition={transition}
+      onAnimationComplete={() => { if (!expandedRef.current) setHasRows(false) }}
+      style={{ position: 'relative', flexShrink: 0 }}
+    >
+      <div ref={frontRef} style={{ position: 'relative', zIndex: 4 }}>
+        <button type="button" onClick={toggle} aria-expanded={expanded} className="teacher-reminder-stack-toggle" style={{ color: accent }}>
+          <span>{t(stackTypeLabel[front.type])} · {summary}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, color: 'var(--color-text-2)' }}>
+            {expanded ? t('Свернуть') : t('Развернуть')}
+            <motion.span animate={{ rotate: expanded ? -90 : 90 }} transition={transition} style={{ display: 'flex' }}><ChevronRight size={12} /></motion.span>
+          </span>
+        </button>
+        <div style={{ position: 'relative' }}>
+          <ReminderRow item={front} showChevron={false} done={isDone(front)} onAction={expanded ? getAction(front) : toggle} style={{ paddingRight: 70, background: 'rgba(var(--glass-rgb), 0.80)' }} />
+          <div style={{ position: 'absolute', inset: 0, borderRadius: 16, pointerEvents: 'none', background: `radial-gradient(70% 46% at 50% 100%, color-mix(in srgb, ${accent} 13%, transparent), transparent 70%)` }} />
+          <div aria-label={summary} style={{ position: 'absolute', top: '50%', right: 14, transform: 'translateY(-50%)', minWidth: 26, height: 26, padding: '0 8px', borderRadius: 13, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, lineHeight: 1, pointerEvents: 'none', boxShadow: `0 4px 12px color-mix(in srgb, ${accent} 50%, transparent)` }}>{count}</div>
+        </div>
+      </div>
+      {!hasRows && [0, 1].slice(0, behind).map(i => <div key={i} aria-hidden="true" style={{ position: 'absolute', top: sizes.front - 4 + i * 12, left: i ? 22 : 12, right: i ? 22 : 12, height: 18, zIndex: 2 - i, background: `color-mix(in srgb, ${accent} ${i ? 10 : 14}%, rgba(var(--glass-rgb), 0.55))`, border: `1px solid color-mix(in srgb, ${accent} 20%, transparent)`, borderTop: 0, borderRadius: '0 0 16px 16px' }} />)}
+      {hasRows && rest.map((r, i) => {
+        const height = sizes.rows[i] ?? 68
+        const y = rowY
+        rowY += height + 6
+        const collapsedY = sizes.front - height + (i ? 26 : 14)
+        return <motion.div key={r.id}
+          ref={el => { if (el) rowsRef.current.set(r.id, el); else rowsRef.current.delete(r.id) }}
+          className="teacher-reminder-moving-row"
+          initial={{ y: collapsedY, scale: i ? 0.93 : 0.97 }}
+          animate={{ y: expanded ? y : collapsedY, scale: expanded ? 1 : i ? 0.93 : 0.97 }}
+          transition={transition}
+          aria-hidden={!expanded}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3, pointerEvents: expanded ? 'auto' : 'none' }}
+        >
+          <ReminderRow item={r} done={isDone(r)} onAction={expanded ? getAction(r) : undefined} style={{ ...(expanded ? {} : { background: 'rgb(var(--glass-rgb))' }), backdropFilter: 'none', WebkitBackdropFilter: 'none' }} />
+        </motion.div>
+      })}
+    </motion.div>
   )
-}
+})
 
 function RemindersScroll({ reminders, reminderAction, reminderDone }: {
   reminders: Reminder[]
@@ -239,7 +219,26 @@ function RemindersScroll({ reminders, reminderAction, reminderDone }: {
   reminderDone: (r: Reminder) => boolean
 }) {
   const [atBottom, setAtBottom] = useState(false)
+  const groups = useMemo(() => Object.values(reminders.reduce((acc, r) => {
+    ;(acc[r.type] ??= []).push(r)
+    return acc
+  }, {} as Record<string, Reminder[]>))
+    .map(group => [...group].sort((a, b) => Number(reminderDone(a)) - Number(reminderDone(b))))
+    .sort((a, b) => Number(a.every(reminderDone)) - Number(b.every(reminderDone))), [reminders, reminderDone])
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const { update, onScroll, setHover, thumb } = useOverlayThumb()
+
+  const syncRef = useRef<(el: HTMLElement) => void>(() => {})
+  syncRef.current = el => { update(el); setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 4) }
+  useLayoutEffect(() => {
+    const sync = () => { if (scrollRef.current) syncRef.current(scrollRef.current) }
+    sync()
+    const observer = new ResizeObserver(sync)
+    if (contentRef.current) observer.observe(contentRef.current)
+    if (scrollRef.current) observer.observe(scrollRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget
@@ -254,7 +253,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone }: {
   return (
     <>
       <div
-        ref={el => { if (el) update(el) }}
+        ref={scrollRef}
         onScroll={handleScroll}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
@@ -266,22 +265,9 @@ function RemindersScroll({ reminders, reminderAction, reminderDone }: {
           paddingBlock: 8, paddingLeft: 4, paddingRight: 12,
         }}
       >
-        {Object.values(
-          reminders.reduce((acc, r) => {
-            ;(acc[r.type] ??= []).push(r)
-            return acc
-          }, {} as Record<string, Reminder[]>)
-        )
-          .map(group => [...group].sort((a, b) => Number(reminderDone(a)) - Number(reminderDone(b))))
-          .sort((a, b) => Number(a.every(reminderDone)) - Number(b.every(reminderDone)))
-          .map(group => (
-            <ReminderGroupStack
-              key={group[0].type}
-              items={group}
-              getAction={reminderAction}
-              isDone={reminderDone}
-            />
-          ))}
+        <div ref={contentRef} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {groups.map(group => <ReminderGroupStack key={group[0].type} items={group} getAction={reminderAction} isDone={reminderDone} />)}
+        </div>
       </div>
       {thumb}
     </>
@@ -294,6 +280,7 @@ export default function WidgetTodayReminders() {
 
   return (
     <div style={{
+      containerType: 'inline-size', containerName: 'teacher-reminders',
       height: '100%', width: '100%', overflow: 'hidden',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
