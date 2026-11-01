@@ -25,6 +25,7 @@ import { formatShort, GOAL_MS } from '../lib/trainerDay'
 import { useTextOfDay } from '../lib/useTextOfDay'
 import { tactile } from '../lib/feedback'
 import { t, tc, useT } from '../lib/i18n'
+import PillText from './PillText'
 
 /**
  * The minimalist "pill" the WidgetCarousel morphs into when the user leaves the
@@ -41,16 +42,6 @@ import { t, tc, useT } from '../lib/i18n'
 const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
 const PILL_WIDTH = 320
-
-// Свёрнутые подписи занимают одну строку и исчезают у правого края.
-// Прозрачная маска сохраняет стекло и тему; при раскрытии виден весь текст.
-const pillTextStyle = (expanded: boolean): React.CSSProperties => ({
-  minWidth: 0,
-  overflow: 'hidden',
-  whiteSpace: expanded ? 'normal' : 'nowrap',
-  maskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
-  WebkitMaskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
-})
 
 // One-line "kicker" tags + accent colours per widget id.
 const META: Record<number, { kicker: string; accent: string }> = {
@@ -138,13 +129,12 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
 
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }}>
           {/* Kicker */}
-          <span style={{
-            ...pillTextStyle(expanded),
+          <PillText expanded={expanded} style={{
             fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
             textTransform: 'uppercase', color: 'var(--color-text-3)',
           }}>
             {t('Домашка')} · {lessonTitle}
-          </span>
+          </PillText>
 
           {/* Title row: status + score pill */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
@@ -155,13 +145,12 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
               {lastCorrect ? t('Верно') : t('Пока мимо')}
             </span>
             <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>·</span>
-            <span style={{
-              ...pillTextStyle(expanded),
+            <PillText expanded={expanded} style={{
               flex: 1,
               fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
             }}>
               {t('вопрос')} {lastQuestionIndex + 1} {t('из')} {total}
-            </span>
+            </PillText>
             {/* score pill — only after ≥1 answered */}
             {correct > 0 && (
               <span style={{
@@ -804,15 +793,14 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 2 }}>
         {/* Кикер — предмет, а не общее слово «прогресс»: тренажёр у ученика не один */}
-        <span style={{
-          ...pillTextStyle(expanded),
+        <PillText expanded={expanded} style={{
           fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
         }}>
           {/* `||`, а не `??`: у предмета из стора пустая строка — это «предмета
               нет», и точка с пустотой после неё выглядела как обрезанный текст. */}
           {t('Тренажёр')} · <span style={{ color: palette.text }}>{t(def?.name || subject || 'прогресс')}</span>
-        </span>
+        </PillText>
 
         {/* Пилюли — плавно перетекают из капсулы в плитку */}
         {started ? (
@@ -848,14 +836,13 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {/* Первая минута ещё не набралась. Показывать «0м» нечестно, но и
                 молчать нельзя: точка отвечает на «а он вообще считает?». */}
             {counting && <ClockDot on color={accent} />}
-            <span style={{
-              ...pillTextStyle(expanded),
+            <PillText expanded={expanded} style={{
               flex: 1,
             }}>
               {counting
                 ? t('Считаю время…')
                 : kind === 'lang' ? t('Открой набор фраз — счётчик пойдёт') : t('Начни решать задания')}
-            </span>
+            </PillText>
           </span>
         )}
 
@@ -996,9 +983,8 @@ function PillContent({
           paddingTop: 2,
         }}
       >
-        <span
+        <PillText expanded={expanded}
           style={{
-            ...pillTextStyle(expanded),
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.3,
@@ -1007,10 +993,9 @@ function PillContent({
           }}
         >
           {kicker}
-        </span>
-        <span
+        </PillText>
+        <PillText expanded={expanded}
           style={{
-            ...pillTextStyle(expanded),
             fontSize: 14,
             fontWeight: 600,
             color: 'var(--color-text)',
@@ -1021,7 +1006,7 @@ function PillContent({
           }}
         >
           {title}
-        </span>
+        </PillText>
         {/* Detail text is ALWAYS rendered (so the measured natural height
             of this block is the expanded height); it just fades opacity
             in and out. The outer pill height clips it when collapsed. */}

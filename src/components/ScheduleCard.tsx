@@ -31,9 +31,11 @@ interface Props {
       centre card never exceeds the screen (desktop keeps the fixed 480). */
   centerWidth?: number
   dataSelected?: boolean
+  /** Local stand navigation without changing the live dashboard page. */
+  onOpenLesson?: (lesson: ScheduleLesson) => void
 }
 
-export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth, dataSelected = false }: Props) {
+export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth, dataSelected = false, onOpenLesson }: Props) {
   const t = useT()
   // Праздничная тема: пустой день в центральной карточке — привидение-листок
   // вместо «Пока нет данных». В боковых карточках его нет: ряд из пяти
@@ -82,6 +84,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   // Open the scheduled lesson directly on the lesson page. If we can't resolve an
   // exact lesson, fall back to the catalogue scoped to the right subject.
   const openScheduledLesson = (lesson: ScheduleLesson) => {
+    if (onOpenLesson) { onOpenLesson(lesson); return }
     const subjects = useStudentData.getState().subjects
     const { subjectId, lesson: match } = resolveScheduleLesson(lesson, subjects)
     if (match) {
@@ -141,7 +144,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             boxShadow: 'var(--schedule-card-edge, inset 0 0 0 0 transparent), var(--shadow-3)',
           }}
         >
-          <div style={{ flexShrink: 0 }}>{dateHeader(13, 10)}</div>
+          <div style={{ flexShrink: 0, paddingInlineStart: 8 }}>{dateHeader(13, 10)}</div>
           {(() => {
             const lessonsList = (
               <div className="flex flex-col" style={{ gap: 10 }}>
@@ -180,7 +183,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   className={`rounded-2xl flex flex-wrap items-center ${isCancelled ? 'cursor-default' : 'cursor-pointer'}`}
                   style={{
                     minHeight: 58,
-                    padding: '10px 12px 10px 14px',
+                    padding: '10px 12px 10px 16px',
                     gap: 14,
                     background: (isEmphasized || isMissed) ? pal.soft : 'var(--color-schedule-row)',
                     outline: isSelected ? `2px solid ${pal.accent}` : '2px solid transparent',

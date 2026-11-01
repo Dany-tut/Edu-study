@@ -451,6 +451,18 @@ export default function MobileProfilePage() {
                 </span>
               </button>
 
+              {isAdmin && <motion.button
+                whileTap={{ scale: 0.99 }}
+                onClick={() => { tactile(); window.location.hash = '#/teacher' }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+              >
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
+                  {t('В кабинет преподавателя')}
+                </span>
+                <ChevronRight size={18} style={{ color: 'var(--color-accent)' }} />
+              </motion.button>}
+
               <motion.button
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedbackOpen(true) }}
