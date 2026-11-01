@@ -6,8 +6,9 @@ const BUFFER = 4
 const mask = (edge: number) => `linear-gradient(to right, transparent 0%, black ${edge}%, black ${100 - edge}%, transparent 100%)`
 
 /** A native, unsnapped timeline. Recycle the surrounding weeks after a gesture. */
-export default function WeekStrip({ start, label, onWeekChange, renderDay }: {
+export default function WeekStrip({ start, navigationKey, label, onWeekChange, renderDay }: {
   start: string
+  navigationKey: number
   label: string
   onWeekChange: (start: string) => void
   renderDay: (date: string, weekday: number) => ReactNode
@@ -18,6 +19,7 @@ export default function WeekStrip({ start, label, onWeekChange, renderDay }: {
   const viewport = useRef<HTMLDivElement>(null)
   const anchorRef = useRef(anchor)
   const observedStart = useRef(start)
+  const lastNavigation = useRef(navigationKey)
   const pendingLeft = useRef<number | null>(null)
   const expectedLeft = useRef<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -39,9 +41,15 @@ export default function WeekStrip({ start, label, onWeekChange, renderDay }: {
     el.scrollLeft = left
   }, [anchor])
 
-  // Arrows, Today and a click on an adjacent week still position the right week.
+  // Selecting a date preserves the timeline's exact position. Only explicit
+  // navigation (arrows, Today or a feed swipe) aligns the requested week.
   useLayoutEffect(() => {
-    if (start === observedStart.current) return
+    const navigate = navigationKey !== lastNavigation.current
+    lastNavigation.current = navigationKey
+    if (!navigate) {
+      observedStart.current = start
+      return
+    }
     observedStart.current = start
     if (timer.current) clearTimeout(timer.current)
     pendingLeft.current = null
@@ -51,7 +59,7 @@ export default function WeekStrip({ start, label, onWeekChange, renderDay }: {
       expectedLeft.current = BUFFER * viewport.current.clientWidth
       viewport.current.scrollLeft = expectedLeft.current
     }
-  }, [start, anchor])
+  }, [start, anchor, navigationKey])
 
   useEffect(() => {
     const el = viewport.current
@@ -127,10 +135,14 @@ export default function WeekStrip({ start, label, onWeekChange, renderDay }: {
         role="group"
         aria-label={label}
         className="no-scrollbar"
+        onClickCapture={() => {
+          if (timer.current) clearTimeout(timer.current)
+          setScrolling(false)
+        }}
         style={{ display: 'flex', overflowX: 'auto', overscrollBehaviorX: 'contain', overflowAnchor: 'none' }}
       >
         {weeks.map(week => (
-          <div key={week.monday} style={{ display: 'flex', gap: 2, flex: '0 0 100%', minWidth: 0, padding: '4px 0' }}>
+          <div key={week.monday} style={{ display: 'flex', flex: '0 0 100%', minWidth: 0, padding: '4px 0' }}>
             {week.days.map(renderDay)}
           </div>
         ))}

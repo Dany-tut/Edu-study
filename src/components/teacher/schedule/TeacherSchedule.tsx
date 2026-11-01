@@ -68,6 +68,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const t = useT()
   const today = todayMsk()
   const [day, setDay] = useState(today)
+  const [weekNavigation, setWeekNavigation] = useState(0)
   const start = weekStart(day)
   const { items, reload } = useTeacherWeek(start)
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(start, i)), [start])
@@ -86,7 +87,11 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const [target, setTarget] = useState<string | null>(null)
   const targetRef = useRef<string | null>(null)
 
-  const go = (next: string) => { setDir(next > day ? 1 : -1); setDay(next) }
+  const go = (next: string, navigate = true) => {
+    setDir(next > day ? 1 : -1)
+    setDay(next)
+    if (navigate) setWeekNavigation(key => key + 1)
+  }
 
   const hitDay = (x: number, y: number): string | null => {
     for (const [date, cell] of cellRefs.current) {
@@ -201,8 +206,9 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
       {/* Неделя */}
       <WeekStrip
         start={start}
+        navigationKey={weekNavigation}
         label={t('Выбор недели')}
-        onWeekChange={next => go(addDays(next, weekdayIdx(day)))}
+        onWeekChange={next => go(addDays(next, weekdayIdx(day)), false)}
         renderDay={(d, i) => {
           const sel = d === day
           const hot = target === d && drag?.item.date !== d
@@ -215,11 +221,15 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
               aria-pressed={sel}
               aria-current={d === today ? 'date' : undefined}
               ref={el => { if (el) cellRefs.current.set(d, el); else cellRefs.current.delete(d) }}
-              onClick={() => go(d)}
+              onMouseDown={event => {
+                event.preventDefault()
+                event.currentTarget.focus({ preventScroll: true })
+              }}
+              onClick={() => go(d, false)}
               animate={{ scale: hot ? 1.08 : 1 }}
               transition={SPRING}
               style={{
-                flex: 1, minWidth: 0, cursor: 'pointer', borderRadius: 16, border: 0, font: 'inherit',
+                flex: 1, minWidth: 0, margin: '0 3px', cursor: 'pointer', borderRadius: 16, border: 0, font: 'inherit',
                 padding: '6px 0 7px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                 background: sel ? 'var(--color-purple)' : hot ? 'color-mix(in srgb, var(--color-purple) 30%, transparent)' : 'transparent',
                 boxShadow: d === today && !sel ? 'inset 0 0 0 2px var(--color-purple)' : undefined,
