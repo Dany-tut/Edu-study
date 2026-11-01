@@ -1,0 +1,32 @@
+.teacher-reminder-stack-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0 10px 6px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-weight: 600;
+  line-height: 1.5;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.teacher-reminder-moving-row { transform-origin: center bottom; }
+.teacher-reminder-row[role='button']:focus-visible,
+.teacher-reminder-stack-toggle:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
+@container teacher-reminders (max-width: 440px) {
+  .teacher-reminder-row {
+    display: grid !important;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 8px 12px !important;
+  }
+  .teacher-reminder-details { grid-column: 2; grid-row: 1; }
+  .teacher-reminder-row:not(.teacher-reminder-with-chevron) .teacher-reminder-details { grid-column: 2 / 4; }
+  .teacher-reminder-details > div:first-child { white-space: normal !important; overflow-wrap: anywhere; }
+  .teacher-reminder-status { grid-column: 2 / 4; justify-self: start; max-width: 100%; white-space: normal !important; }
+  .teacher-reminder-chevron { grid-column: 3; grid-row: 1; }
+  .teacher-reminder-stack-toggle { flex-wrap: wrap; gap: 4px 10px; }
+}

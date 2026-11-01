@@ -10,6 +10,11 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Ждёт': 'Waiting',
+  'Сдано только что': 'Just submitted',
+  'Просрочено на': 'Overdue by',
+  'Оплата сегодня': 'Payment due today',
+  'Через': 'In',
   "Фото и доска к проверке": "Photos and whiteboard for review",
   "Добавить фото к проверке": "Add a photo for review",
   "Фото к проверке": "Review photos",

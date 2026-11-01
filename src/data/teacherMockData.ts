@@ -97,6 +97,7 @@ export type HomeworkItem = {
   reviewedCount: number
   // ISO-время самой поздней сдачи среди непроверенных работ — для «когда сдали».
   lastSubmittedAt?: string
+  oldestSubmittedAt?: string
   color: string
   status?: string
   tasks?: HwTask[]
@@ -118,6 +119,9 @@ export type Reminder = {
   type: 'check-hw' | 'fill-widget' | 'make-trainer' | 'send-push' | 'payment-debt' | 'fill-journal'
   text: string
   detail?: string
+  statusLabel?: string
+  pendingCount?: number
+  done?: boolean
   urgency: 'high' | 'medium' | 'low'
 }
 
