@@ -632,7 +632,14 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
-  align-items: start;
+  align-items: stretch;
+}
+.ds-course-board > .ds-course-card {
+  display: flex;
+  flex-direction: column;
+}
+.ds-course-board .ds-course-links {
+  margin-top: auto;
 }
 .ds-course-track {
   display: flex;
@@ -955,6 +962,12 @@
   margin: 0 auto;
   padding: 0 2px 30px;
 }
+/* Fill the dashboard flex column independently of each view’s intrinsic content. */
+.student-diary:not(.ds-dialog) {
+  box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
+}
 .student-diary > .ds-page-heading {
   padding-top: 3px;
 }
@@ -1035,7 +1048,14 @@
 
 /* Three student views share the same filters, work rows and status palette. */
 .student-diary .ds-view-navigation { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin: 20px 0 26px; }
-.student-diary .ds-view-navigation .ds-tabs { margin: 0; min-width: 0; }
+.student-diary .ds-view-navigation .ds-tabs { margin: 0; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 340px; }
+.student-diary .ds-view-navigation .ds-tabs button { justify-content: center; padding-inline: 12px; }
+.student-diary .ds-tabs button > span { flex-shrink: 0; }
+.student-diary .ds-tabs button > span[aria-hidden='true'] { visibility: hidden; }
+.student-diary .ds-scope label:first-child { flex: 0 1 180px; }
+.student-diary .ds-scope label:nth-child(2) { flex: 0 1 260px; }
+.student-diary .ds-scope select { width: 100%; text-overflow: ellipsis; }
+@media (max-width: 760px) { .student-diary .ds-scope label:first-child, .student-diary .ds-scope label:nth-child(2) { flex: 1 1 150px; } }
 .student-diary .ds-lesson-catalog { font-size: 12px; padding: 10px 12px; }
 .student-diary .ds-lesson-catalog[aria-pressed='true'] { color: var(--ds-primary); background: var(--color-purple-soft); }
 .student-diary .ds-feed-grid { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; gap: 22px; }

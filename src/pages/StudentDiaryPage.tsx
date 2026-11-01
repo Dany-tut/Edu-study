@@ -458,7 +458,7 @@ export default function StudentDiaryPage({
         <div className="ds-tabs" role="group" aria-label={t('Представление дневника')}>
           {([['today', 'Фокус'], ['work', 'Лента'], ['courses', 'По курсам']] as const).map(([id, label]) => (
             <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>
-              {t(label)}{id === 'work' && actions.length ? <span>{actions.length}</span> : null}
+              {t(label)}{id === 'work' ? <span aria-hidden={actions.length === 0}>{actions.length || ''}</span> : null}
             </button>
           ))}
         </div>
