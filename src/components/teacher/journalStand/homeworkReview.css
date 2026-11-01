@@ -88,3 +88,12 @@
   .jh-inspector-actions .cj-button { min-height:34px; }
   .jh-review-footer { min-height:45px; padding-block:5px; }
 }
+.jh-inspector-scroll { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; padding-bottom:14px; }
+.jh-inspector-scroll>.aic-summary { margin:0 16px 18px; }
+.jh-ai-comment { margin:0 20px 16px; }
+.jh-ai-comment .aic-comment-draft { margin:0; }
+.jh-has-ai .jh-review-body { grid-template-columns:minmax(0,1fr) 310px; }
+.jh-has-ai.jh-shell-has-stack .jh-review-body { grid-template-columns:204px minmax(0,1fr) 310px; }
+@media(max-width:1100px) { .jh-has-ai.jh-shell-has-stack .jh-review-body { grid-template-columns:170px minmax(0,1fr) 290px; } }
+@media(max-width:950px) { .jh-has-ai.jh-shell-has-stack .jh-review-body { grid-template-columns:minmax(0,1fr) 290px; } }
+@media(max-width:650px) { .jh-has-ai .jh-review-body { display:flex; }.jh-inspector-scroll>.aic-summary { margin:10px 13px; }.jh-ai-comment { margin:0 13px 10px; } }

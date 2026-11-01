@@ -1,3 +1,5 @@
+import type { AiGrade } from './useAiGrades'
+
 export type HomeworkAiIssue = { title: string; text: string; retry: boolean }
 const issues: Record<string, HomeworkAiIssue> = {
   configuration: { title:'Проверка ИИ пока недоступна', text:'Ответы ученика сохранены. Работу можно проверить вручную.', retry:false },
@@ -19,4 +21,14 @@ export function homeworkAiIssue(code: string): HomeworkAiIssue { return issues[c
 /** A model's plain text must never become active HTML in the rich editor. */
 export function aiCommentHtml(text: string): string {
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/\n/g,'<br>')
+}
+
+/** A resubmission must never inherit the previous attempt's model feedback. */
+export function homeworkAiForAttempt(grade: AiGrade | undefined, attemptId?: string, submittedAt?: string): AiGrade | undefined {
+  if (!grade) return undefined
+  if (attemptId && grade.attemptId) return attemptId === grade.attemptId ? grade : undefined
+  // Pending jobs have no result/attempt_id yet. Older submissions may also lack an id.
+  if (submittedAt && grade.submittedAt && Date.parse(grade.submittedAt) < Date.parse(submittedAt)) return undefined
+  if (attemptId && !grade.attemptId && ['graded', 'confirmed', 'changed', 'dismissed'].includes(grade.status)) return undefined
+  return grade
 }

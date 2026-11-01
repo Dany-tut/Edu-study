@@ -13,7 +13,7 @@ import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import type { BasicAnswerRow, BasicAnswersPayload } from '../../lib/basicAnswers'
 import { useAiGrades, confirmAiGrade, requestAiGrade, type AiGrade, type AiRequestResult } from '../../lib/useAiGrades'
 import { Alert } from '../../components/Alert'
-import { aiCommentHtml } from '../../lib/homeworkAiState'
+import { aiCommentHtml, homeworkAiForAttempt } from '../../lib/homeworkAiState'
 import { AiReviewSummary, AiTaskFeedback, AiCommentDraft, aiReviewLabel } from '../../components/teacher/journalStand/AiReviewConcept'
 import HomeworkReviewScroll from '../../components/teacher/HomeworkReviewScroll'
 import '../../components/teacher/journalStand/homeworkReview.css'
@@ -289,7 +289,7 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   })()
   const reviewed = currentSubmission?.verdict === 'accepted' || currentSubmission?.verdict === 'returned'
   const savedAiGrade = currentSubmission ? aiByProgress?.get(currentSubmission.id) : undefined
-  const aiGrade = savedAiGrade?.attemptId && currentSubmission?.answers?.attemptId && savedAiGrade.attemptId !== currentSubmission.answers.attemptId ? undefined : savedAiGrade
+  const aiGrade = homeworkAiForAttempt(savedAiGrade, currentSubmission?.answers?.attemptId, currentSubmission?.submittedAt)
   const aiRequest = currentSubmission ? aiRequests[currentSubmission.id] : undefined
   const draftKey = `hwReview:${hw.id}:${student.id}`
   const savedDraft: Partial<ReviewDraft> = drafts[student.id] ?? readDraft<Partial<ReviewDraft>>(draftKey) ?? {}

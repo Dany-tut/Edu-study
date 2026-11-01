@@ -36,22 +36,27 @@ export interface AiGrade {
   nextRetryAt?: string | null
 }
 
+const NO_AI_GRADES = new Map<string, AiGrade>()
+
 /** Предоценки по строкам lesson_progress. Пока ИИ проверяет — опрос раз в 10 с. */
 export function useAiGrades(progressIds: string[]): { byProgress: Map<string, AiGrade>; reload: () => Promise<void>; error: string; loading: boolean } {
   const [byProgress, setByProgress] = useState<Map<string, AiGrade>>(new Map())
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [loadedKey, setLoadedKey] = useState('')
   const key = [...new Set(progressIds)].sort().join(',')
   const activeKey = useRef(key)
   const sequence = useRef(0)
   activeKey.current = key
   const load = useCallback(async () => {
     const seq = ++sequence.current
-    if (!key) { setByProgress(new Map()); setLoading(false); setError(''); return }
+    if (!key) { setByProgress(new Map()); setLoadedKey(key); setLoading(false); setError(''); return }
+    try {
     const { data, error: failure } = await supabase.from('hw_ai_grades')
       .select('id, progress_id, status, score, primary_score, max_score, comment, result, error, submitted_at, next_retry_at')
       .in('progress_id', key.split(','))
     if (activeKey.current !== key || seq !== sequence.current) return
+    setLoadedKey(key)
     setLoading(false)
     if (failure) { setError('unavailable'); return }
     setError('')
@@ -62,6 +67,10 @@ export function useAiGrades(progressIds: string[]): { byProgress: Map<string, Ai
       error:r.error ?? '', attemptId:r.result?.attempt_id ?? undefined,
       submittedAt:r.submitted_at, nextRetryAt:r.next_retry_at,
     } satisfies AiGrade])))
+    } catch {
+      if (activeKey.current !== key || seq !== sequence.current) return
+      setLoadedKey(key); setLoading(false); setError('unavailable')
+    }
   }, [key])
   useEffect(() => { setByProgress(new Map()); setLoading(!!key); void load() }, [key,load])
   const waiting = !!key && (byProgress.size < key.split(',').length || !!error || [...byProgress.values()].some(g => g.status === 'pending' || g.status === 'working' || !!g.nextRetryAt))
@@ -70,7 +79,9 @@ export function useAiGrades(progressIds: string[]): { byProgress: Map<string, Ai
     const id = setInterval(() => { void load() }, 10_000)
     return () => clearInterval(id)
   }, [waiting,load])
-  return { byProgress, reload:load, error, loading }
+  // Do not briefly expose the previous student's data before the effect runs.
+  return { byProgress:loadedKey === key ? byProgress : NO_AI_GRADES, reload:load,
+    error:loadedKey === key ? error : '', loading:!!key && (loadedKey !== key || loading) }
 }
 
 export type AiRequestResult = { ok: boolean; error?: string }

@@ -82,11 +82,19 @@ export function useCourseJournal(completeWorkList = false) {
     return () => { active = false }
   }, [studentIds, groupIds, tick, completeWorkList])
   useEffect(() => {
+    let sessionUser: string | null | undefined
     const focus = () => { if (document.visibilityState === 'visible') reload() }
     window.addEventListener('focus', focus)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const nextUser = session?.user.id ?? null
+      const changed = sessionUser !== undefined && sessionUser !== nextUser
+      sessionUser = nextUser
+      // SIGNED_IN can repeat for the same session. Refocusing must not unmount
+      // the open homework card or discard its unsaved teacher comment.
+      if (changed || event === 'SIGNED_OUT') {
         setData(null)
+        reload()
+      } else if (event === 'USER_UPDATED') {
         reload()
       }
     })
