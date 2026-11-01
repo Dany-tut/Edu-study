@@ -11,7 +11,7 @@ import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../..
 import QuickAddLesson from './QuickAddLesson'
 import WeekStrip, { type WeekNavigation } from './WeekStrip'
 import { CALENDAR_BACKDROP, CALENDAR_EASE } from './calendarMotion'
-import { isScheduleLive, scheduleLiveWindow } from '../../../lib/scheduleLive'
+import { isScheduleLive, isScheduleEnded, scheduleLiveWindow } from '../../../lib/scheduleLive'
 import { scheduleDurationMinutes } from '../../../lib/scheduleDuration'
 import '../widgets/calendarWidget.css'
 import { RadioMark } from '../../Radio'
@@ -353,15 +353,17 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
 // ── Карточка занятия ──────────────────────────────────────────────────────────
 
 function useLiveLesson(item: SchedItem) {
-  const [live, setLive] = useState(() => isScheduleLive(item))
+  const [now, setNow] = useState(Date.now)
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
     const sync = () => {
       clearTimeout(timer)
       const now = Date.now()
-      setLive(isScheduleLive(item, now))
+      setNow(now)
       const window = scheduleLiveWindow(item)
-      const next = window && (now < window.start ? window.start : now < window.end ? window.end : null)
+      const dayEnd = !item.endTime ? Date.parse(`${item.date}T00:00:00+03:00`) + 86_400_000 : null
+      const next = window ? (now < window.start ? window.start : now < window.end ? window.end : null)
+        : dayEnd != null && Number.isFinite(dayEnd) && now < dayEnd ? dayEnd : null
       if (next != null) timer = setTimeout(sync, Math.min(next - now + 20, 2_147_483_647))
     }
     sync()
@@ -374,13 +376,13 @@ function useLiveLesson(item: SchedItem) {
       document.removeEventListener('visibilitychange', sync)
     }
   }, [item.date, item.time, item.endTime, item.cancelled, item.rec, item.status])
-  return live
+  return { live: isScheduleLive(item, now), ended: isScheduleEnded(item, now) }
 }
 
 function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; lifted?: boolean; preview?: boolean }) {
   const t = useT()
   const mobile = useLoopIcons()
-  const live = useLiveLesson(item)
+  const { live, ended } = useLiveLesson(item)
   const viewTz = useTeacherTz(s => s.tz)
   const localStart = isMsk(viewTz) ? null : convertWallTime(item.date, item.time, 'Europe/Moscow', viewTz)
   const localEnd = isMsk(viewTz) || !item.endTime ? null : convertWallTime(item.date, item.endTime, 'Europe/Moscow', viewTz)
@@ -393,7 +395,7 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
     item.title,
   ].filter(Boolean).join(' · ')
   return (
-    <div className={`calendar-widget-lesson${preview ? ' calendar-widget-lesson-preview' : ''}`} data-live={live || undefined} style={{
+    <div className={`calendar-widget-lesson${preview ? ' calendar-widget-lesson-preview' : ''}`} data-live={live || undefined} data-ended={ended || undefined} style={{
       display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 22,
       background: live ? 'var(--color-accent-soft)' : 'var(--color-bg-2)',
       border: `1px solid ${live ? 'var(--color-purple)' : 'var(--color-border)'}`,
