@@ -2286,7 +2286,7 @@ export default function TeacherHomeworkCreatePage() {
 
   // Explicit "Назад" = user abandons the form — the one place a draft dies unsaved.
   function exitPage() {
-    const leave = () => { clearDrafts(`${draftScope}.`); setActivePage('homework') }
+    const leave = () => { clearDrafts(`${draftScope}.`); setActivePage('gradebook') }
     // Назад стирает черновик насовсем — с собранными заданиями спрашиваем.
     if (published || hwTasks.length + hardTasks.length === 0) { leave(); return }
     void confirmDialog({
@@ -2424,7 +2424,7 @@ export default function TeacherHomeworkCreatePage() {
       }
       clearDrafts(`${draftScope}.`)
       setPublished(true)
-      setTimeout(() => setActivePage('homework'), 1600)
+      setTimeout(() => setActivePage('gradebook'), 1600)
     } finally {
       setPublishing(false)
     }

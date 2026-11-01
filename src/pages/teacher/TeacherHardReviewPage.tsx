@@ -59,7 +59,7 @@ export default function TeacherHardReviewPage() {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
         <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t('Работа не найдена')}</div>
-        <button onClick={() => setActivePage('homework')} style={btn('M', 'secondary')}>{t('Назад')}</button>
+        <button onClick={() => setActivePage('gradebook')} style={btn('M', 'secondary')}>{t('Назад')}</button>
       </div>
     )
   }
@@ -127,7 +127,7 @@ export default function TeacherHardReviewPage() {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px 16px' }}>
-        <BackCircle onClick={() => setActivePage('homework')} label="Назад" />
+        <BackCircle onClick={() => setActivePage('gradebook')} label="Назад" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <Star size={16} style={{ color: 'var(--color-accent)' }} fill="currentColor" />
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

@@ -35,6 +35,7 @@ globalThis.__trackTestClient = {
 const outfile = resolve('node_modules/.cache/checkCourseTrack.bundle.mjs')
 await build({
   stdin: { contents: `
+    export { courseTrackWidth, courseResumeTarget } from './src/lib/courseTrackLayout';
     export { baseNodeShape } from './src/components/CourseNodeSilhouette';
     export { fetchStudentTrack, mergeSubjectsWithProgress, upsertLessonProgress, fetchScheduleDays, computeStats, computeSubjectStats } from './src/lib/db';
     export { getDisplayLessonStatus, getTrackLessonStatus, getLessonScheduleState, getStudentScheduleState, lessonTrackStep, lessonScheduleDate } from './src/lib/lessonStatus';
@@ -66,6 +67,17 @@ await build({
   } }],
 })
 const m = await import(pathToFileURL(outfile).href)
+// Long courses preserve spacing and show at most fifteen lessons per viewport.
+assert.equal(m.courseTrackWidth(1440, 15), 1440)
+assert.equal(m.courseTrackWidth(1440, 50), 4800)
+assert.ok(m.courseTrackWidth(375, 15) >= 128 + 14 * 88)
+const resumeCourse = { activeModuleId: 3, modules: [
+  { id: 1, lessons: [{ id: 'old-debt', status: 'returned' }] },
+  { id: 3, lessons: [{ id: 'review', status: 'submitted' }, { id: 'resume', status: 'current' }] },
+] }
+assert.deepEqual(m.courseResumeTarget(resumeCourse), { moduleId: 3, lessonId: 'resume' })
+assert.deepEqual(m.courseResumeTarget({ modules: [] }), { moduleId: undefined, lessonId: undefined })
+
 // Shape follows the authored activity, including the two halves of a split lesson.
 const attachedVideo = { kind: 'lesson', videoUrl: 'https://example.test/video', shape: 'diamond' }
 assert.equal(m.baseNodeShape({ ...attachedVideo, status: 'unviewed' }), 'circle')

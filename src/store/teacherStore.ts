@@ -86,6 +86,9 @@ function taskToRow(t: Partial<TeacherTask>): Record<string, unknown> {
 
 type TeacherStore = {
   activePage: TeacherPage
+  pendingGroupForm: 'group' | 'student' | null
+  openGroupForm: (form: 'group' | 'student') => void
+  clearPendingGroupForm: () => void
   setActivePage: (page: TeacherPage) => void
   // One-shot: when navigating to gradebook from a reminder, pre-open a specific lesson.
   pendingGradebookLessonId: string | null
@@ -143,8 +146,8 @@ type TeacherStore = {
   tasks: TeacherTask[]
   tasksLoaded: boolean
   loadTasks: () => Promise<void>
-  addTask: (task: Omit<TeacherTask, 'id' | 'done'>) => void
-  updateTask: (id: string, task: Omit<TeacherTask, 'id' | 'done'>) => void
+  addTask: (task: Omit<TeacherTask, 'id' | 'done'>) => Promise<{ error: string | null }>
+  updateTask: (id: string, task: Omit<TeacherTask, 'id' | 'done'>) => Promise<{ error: string | null }>
   toggleTask: (id: string) => void
   removeTask: (id: string) => void
   studentTrainerStats: StudentTrainerStats | null
@@ -157,7 +160,7 @@ type TeacherStore = {
 export const HASH_TO_PAGE: Record<string, TeacherPage> = {
   '#/teacher':             'home',
   '#/teacher/groups':      'groups',
-  '#/teacher/homework':    'homework',
+  '#/teacher/homework':    'gradebook',
   '#/teacher/gradebook':   'gradebook',
   '#/teacher/constructor': 'constructor',
   '#/teacher/finances':    'finances',
@@ -238,7 +241,7 @@ function initialPage(): TeacherPage {
   if (readCardsSession()) return 'cards-editor'
   // The per-tab snapshot is the freshest record of where this tab was.
   // (course-editor is owned by the editor session above, so ignore it here.)
-  if (_nav?.page && _nav.page !== 'course-editor' && _nav.page !== 'cards-editor') return _nav.page
+  if (_nav?.page && _nav.page !== 'course-editor' && _nav.page !== 'cards-editor') return _nav.page === 'homework' ? 'gradebook' : _nav.page
   return HASH_TO_PAGE[window.location.hash] ?? 'home'
 }
 
@@ -262,7 +265,20 @@ export function whenMayLeave(go: () => void) {
 
 export const useTeacher = create<TeacherStore>(set => ({
   activePage: initialPage(),
-  setActivePage: page => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: page, headerDocked: false }) }),
+  pendingGroupForm: null,
+  openGroupForm: form => whenMayLeave(() => {
+    clearEditorSession(); clearCardsSession()
+    set({ activePage: 'groups', pendingGroupForm: form, headerDocked: false })
+  }),
+  clearPendingGroupForm: () => set({ pendingGroupForm: null }),
+  setActivePage: page => whenMayLeave(() => {
+    clearEditorSession(); clearCardsSession()
+    set({
+      activePage: page === 'homework' ? 'gradebook' : page, headerDocked: false, pendingGroupForm: null,
+      ...(page === 'lesson-editor' ? { editingScheduleId: null } : {}),
+      ...(page === 'homework-create' ? { editingHomeworkId: null, hwPresetStudentId: null } : {}),
+    })
+  }),
   pendingGradebookLessonId: null,
   openGradebook: scheduleId => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) }),
   clearPendingGradebookLesson: () => set({ pendingGradebookLessonId: null }),
@@ -290,9 +306,9 @@ export const useTeacher = create<TeacherStore>(set => ({
   headerDocked: false,
   setHeaderDocked: docked => set({ headerDocked: docked }),
   editingScheduleId: _nav?.editingScheduleId ?? null,
-  openLessonEditor: scheduleId => set({ editingScheduleId: scheduleId, activePage: 'lesson-editor', headerDocked: false }),
+  openLessonEditor: scheduleId => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ editingScheduleId: scheduleId, activePage: 'lesson-editor', headerDocked: false }) }),
   constructorIntent: null,
-  openConstructor: mode => set({ activePage: 'constructor', constructorIntent: mode, headerDocked: false }),
+  openConstructor: mode => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: 'constructor', constructorIntent: mode, headerDocked: false }) }),
   clearConstructorIntent: () => set({ constructorIntent: null }),
   constructorBackTick: 0,
   triggerConstructorBack: () => set(s => ({ constructorBackTick: s.constructorBackTick + 1 })),
@@ -301,11 +317,11 @@ export const useTeacher = create<TeacherStore>(set => ({
   clearEditTaskIntent: () => set({ editTaskIntent: null }),
   reviewingHwId: _nav?.reviewingHwId ?? null,
   reviewingStudentId: _nav?.reviewingStudentId ?? null,
-  reviewReturnPage: _nav?.reviewReturnPage ?? 'homework',
-  openHomeworkReview: (hwId, studentId, returnPage = 'homework') => set({ reviewingHwId: hwId, reviewingStudentId: studentId ?? null, reviewReturnPage:returnPage, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
+  reviewReturnPage: (_nav?.reviewReturnPage === 'homework' ? 'gradebook' : _nav?.reviewReturnPage) ?? 'gradebook',
+  openHomeworkReview: (hwId, studentId, returnPage = 'gradebook') => set({ reviewingHwId: hwId, reviewingStudentId: studentId ?? null, reviewReturnPage:returnPage, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
   editingHomeworkId: _nav?.editingHomeworkId ?? null,
   hwPresetStudentId: _nav?.hwPresetStudentId ?? null,
-  openHomeworkCreate: presetStudentId => set({ activePage: 'homework-create', editingHomeworkId: null, hwPresetStudentId: presetStudentId ?? null, headerDocked: false }),
+  openHomeworkCreate: presetStudentId => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: 'homework-create', editingHomeworkId: null, hwPresetStudentId: presetStudentId ?? null, headerDocked: false }) }),
   clearHwPreset: () => set({ hwPresetStudentId: null }),
   openHomeworkEdit: hwId => set({ activePage: 'homework-create', editingHomeworkId: hwId, hwPresetStudentId: null, headerDocked: false }),
   reviewingHardId: _nav?.reviewingHardId ?? null,
@@ -329,17 +345,28 @@ export const useTeacher = create<TeacherStore>(set => ({
       .order('created_at', { ascending: true })
     set({ tasks: (data ?? []).map(rowToTask), tasksLoaded: true })
   },
-  addTask: task => {
-    // crypto.randomUUID() so the local id matches the DB row id — no reconcile.
+  addTask: async task => {
     const id = crypto.randomUUID()
-    set(s => ({ tasks: [...s.tasks, { ...task, id, done: false }] }))
-    supabase.from('teacher_tasks').insert({ id, ...taskToRow({ ...task, id, done: false }) })
-      .then(({ error }) => { if (error) console.warn('addTask persist failed', error.message) })
+    try {
+      const { data, error } = await supabase.from('teacher_tasks')
+        .insert({ id, ...taskToRow({ ...task, id, done: false }) }).select('*').single()
+      if (error) return { error: error.message }
+      set(s => ({ tasks: [...s.tasks.filter(t => t.id !== id), rowToTask(data)] }))
+      return { error: null }
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) }
+    }
   },
-  updateTask: (id, task) => {
-    set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, ...task } : t) }))
-    supabase.from('teacher_tasks').update(taskToRow(task)).eq('id', id)
-      .then(({ error }) => { if (error) console.warn('updateTask persist failed', error.message) })
+  updateTask: async (id, task) => {
+    try {
+      const { data, error } = await supabase.from('teacher_tasks')
+        .update(taskToRow(task)).eq('id', id).select('*').single()
+      if (error) return { error: error.message }
+      set(s => ({ tasks: s.tasks.map(t => t.id === id ? rowToTask(data) : t) }))
+      return { error: null }
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) }
+    }
   },
   toggleTask: id => {
     const next = !useTeacher.getState().tasks.find(t => t.id === id)?.done

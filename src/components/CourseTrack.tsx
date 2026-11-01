@@ -2,9 +2,11 @@ import LessonWatchStatus from './LessonWatchStatus'
 import TrackHomeworkButton from './TrackHomeworkButton'
 import LessonSelfAssessment from './LessonSelfAssessment'
 import { gradedTrackResult } from '../lib/homeworkResult'
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react'
 import CourseTrackSkeleton from './CourseTrackSkeleton'
 import { TRACK_NODE_SIZE as NODE_SIZE, TRACK_SIDE_PADDING, TRACK_GLOW_PAD as GLOW_PAD, TRACK_ROW_HEIGHT } from './courseTrackLayout'
+import { useWheelHScroll } from '../lib/useWheelHScroll'
+import { courseResumeTarget, courseTrackWidth } from '../lib/courseTrackLayout'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock, CircleAlert } from './icons/appIcons'
 import { IconLessonRecording } from './icons'
@@ -114,7 +116,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   // activeModuleId from the store may not match a real module id on first paint,
   // so resolve to an actually-rendered module — lets the pill appear without a click.
   const effectiveModuleId =
-    subject.modules.find(m => m.id === activeModuleId)?.id ?? subject.modules[0]?.id
+    subject.modules.find(m => m.id === activeModuleId)?.id ?? courseResumeTarget(subject).moduleId
   const moduleRowRef = useRef<HTMLDivElement>(null)
   useScrollTabIntoView(moduleRowRef, 'data-module-tab', String(effectiveModuleId ?? ''))
 
@@ -127,6 +129,8 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const scrollRef = useRef<HTMLDivElement>(null)
   const trackAreaRef = useRef<HTMLDivElement>(null)
   const [viewW, setViewW] = useState(0)
+  const [scrollX, setScrollX] = useState(0)
+  useWheelHScroll(scrollRef)
 
   const measure = useCallback(() => {
     const el = scrollRef.current
@@ -136,8 +140,9 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
 
   useEffect(() => {
     measure()
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
+    const observer = new ResizeObserver(measure)
+    if (scrollRef.current) observer.observe(scrollRef.current)
+    return () => observer.disconnect()
   }, [measure])
 
   // Dismiss the detail popover on any click that isn't on a node (which toggles
@@ -175,9 +180,23 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   // the midpoint to its neighbours; the aggregate percentage stays in ModuleChain.
   const nodeCount = allLessons.length
   const padCenter = TRACK_SIDE_PADDING + NODE_SIZE / 2          // first / last node center inset
-  const containerW = viewW || 900                              // measured row width (fallback pre-measure)
+  const viewportW = viewW || 900
+  const containerW = courseTrackWidth(viewportW, nodeCount)
   const span = Math.max(0, containerW - padCenter * 2)         // distance between first & last node centers
   const nodeCenter = (i: number) => nodeCount <= 1 ? padCenter : padCenter + (span * i) / (nodeCount - 1)
+  const resume = courseResumeTarget(subject)
+  const focusId = allLessons.some(l => l.id === highlightLessonId) ? highlightLessonId : resume.lessonId
+  const focusIndex = allLessons.findIndex(l => l.id === focusId)
+  useLayoutEffect(() => {
+    const el = scrollRef.current
+    if (!el || !viewW) return
+    const center = focusIndex < 0 ? 0 : padCenter + (nodeCount <= 1 ? 0 : span * focusIndex / (nodeCount - 1))
+    el.scrollLeft = Math.max(0, center - viewW / 2)
+    setScrollX(el.scrollLeft)
+    setSelectedLessonId(null)
+    setSelectedHardLessonId(null)
+  }, [subject.id, effectiveModuleId, focusId, viewW, nodeCount, span, padCenter, focusIndex])
+  const edges = { left: scrollX > 2, right: scrollX + viewportW < containerW - 2 }
   const trackColors = allLessons.map((lesson, i) => {
     const status = gradedTrackResult(lesson)?.status ?? statuses[i]
     return status === 'completed' || status === 'test_passed' ? TRACK_STATUS.completed.border : 'var(--color-bg-5)'
@@ -188,9 +207,9 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const selectedHardLesson = allLessons.find(lesson => lesson.id === selectedHardLessonId && lessonHasHardLevel(lesson)) ?? null
 
   const selectedIndex = selectedLesson ? allLessons.findIndex(lesson => lesson.id === selectedLesson.id) : -1
-  const selectedCenter = selectedIndex >= 0 ? nodeCenter(selectedIndex) : 0
-  const detailCardWidth = Math.min(DETAIL_CARD_WIDTH, Math.max(240, containerW - 24))
-  const detailLeft = Math.max(0, Math.min(selectedCenter - detailCardWidth / 2, Math.max(0, containerW - detailCardWidth)))
+  const selectedCenter = selectedIndex >= 0 ? nodeCenter(selectedIndex) - scrollX : 0
+  const detailCardWidth = Math.min(DETAIL_CARD_WIDTH, Math.max(0, viewportW - 24))
+  const detailLeft = Math.max(0, Math.min(selectedCenter - detailCardWidth / 2, Math.max(0, viewportW - detailCardWidth)))
   const arrowX = Math.max(16, Math.min(selectedCenter - detailLeft, detailCardWidth - 16))
   const selectedLessonStatus = statuses[selectedIndex] ?? null
   const selectedDate = selectedLesson ? lessonScheduleDate(selectedLesson, 'long') : null
@@ -214,9 +233,9 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const selectedGrade = selectedLesson ? gradedTrackResult(selectedLesson) : null
 
   const hardIndex = selectedHardLesson ? allLessons.findIndex(l => l.id === selectedHardLesson.id) : -1
-  const hardCenter = hardIndex >= 0 ? nodeCenter(hardIndex) : 0
-  const hardCardWidth = Math.min(HARD_CARD_WIDTH, Math.max(240, containerW - 24))
-  const hardDetailLeft = Math.max(0, Math.min(hardCenter - hardCardWidth / 2, Math.max(0, containerW - hardCardWidth)))
+  const hardCenter = hardIndex >= 0 ? nodeCenter(hardIndex) - scrollX : 0
+  const hardCardWidth = Math.min(HARD_CARD_WIDTH, Math.max(0, viewportW - 24))
+  const hardDetailLeft = Math.max(0, Math.min(hardCenter - hardCardWidth / 2, Math.max(0, viewportW - hardCardWidth)))
   const hardArrowX = Math.max(16, Math.min(hardCenter - hardDetailLeft, hardCardWidth - 16))
   const hardAssessment = selectedHardLesson ? lessonAssessments[selectedHardLesson.id] : null
   const hardStatus = hardLevelState(hardAssessment).status
@@ -261,7 +280,17 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
           <div ref={trackAreaRef} className="flex-1 min-w-0 relative">
             <div
               ref={scrollRef}
+              className="no-scrollbar"
+              tabIndex={0}
+              aria-label={t('Занятия модуля')}
+              onScroll={e => {
+                setScrollX(e.currentTarget.scrollLeft)
+                setSelectedLessonId(null)
+                setSelectedHardLessonId(null)
+              }}
               style={{
+                overflowX: 'auto', overscrollBehaviorX: 'contain',
+                maskImage: `linear-gradient(to right, ${edges.left ? 'transparent, black 24px' : 'black 0%'}, ${edges.right ? 'black calc(100% - 24px), transparent' : 'black 100%'})`,
                 paddingTop: GLOW_PAD,
                 paddingBottom: 14,
               }}
@@ -269,7 +298,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
               <div
                 style={{
                   position: 'relative',
-                  width: '100%',
+                  width: containerW,
                   height: TRACK_ROW_HEIGHT,
                   overflow: 'visible',
                 }}
@@ -322,7 +351,9 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                       scheduleState={scheduleStates[i]}
                       index={i}
                       isSelected={selectedLesson?.id === lesson.id}
-                      isHighlighted={highlightLessonId === lesson.id}
+                      isHighlighted={focusId === lesson.id}
+                      scrollHighlight={false}
+                      isCurrent={resume.lessonId === lesson.id}
                       seasonMark={i === seasonMarkIndex}
                       onSelect={(clickedLesson) => {
                         setSelectedHardLessonId(null)
@@ -340,6 +371,11 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                 ))}
               </div>
             </div>
+
+            {(edges.left || edges.right) && <div style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '4px 16px', padding: '0 32px', fontSize: 11, color: 'var(--color-text-3)' }}>
+              {edges.left && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}>{t('← Предыдущие занятия')}</button>}
+              {edges.right && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}>{t('Дальше есть ещё занятия →')}</button>}
+            </div>}
 
             {/* ── Detail popover — overlay anchored to the selected node, rendered
                  OUTSIDE the scroll viewport so it's never clipped and never shifts
@@ -626,7 +662,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
 
 export default function CourseTrack() {
   const t = useT()
-  const { activeSubjectId, setActiveSubject } = useDashboard()
+  const { activeSubjectId, setActiveSubject, setActiveModule } = useDashboard()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   // The store's default activeSubjectId may not match a real (DB) subject id yet,
@@ -634,6 +670,12 @@ export default function CourseTrack() {
   // first paint without requiring a click.
   const effectiveActiveId =
     subjects.find(s => s.id === activeSubjectId)?.id ?? subjects[0]?.id ?? ''
+
+  useLayoutEffect(() => {
+    if (effectiveActiveId && !useDashboard.getState().highlightLessonId) {
+      setActiveSubject(effectiveActiveId)
+    }
+  }, [effectiveActiveId, setActiveSubject])
 
   if (subjects.length === 0 && !loaded) return <CourseTrackSkeleton />
 
@@ -654,13 +696,18 @@ export default function CourseTrack() {
   return (
     <div className="flex flex-col h-full">
       <TrackForSubject
+        key={effectiveActiveId}
         courseSlot={
           <CourseSelect
             subjects={subjects}
             activeId={effectiveActiveId}
             onSelect={id => {
               playTransitionDrop()
+              useDashboard.getState().clearTrackHighlight()
               setActiveSubject(id)
+              const next = subjects.find(s => s.id === id)
+              const moduleId = next && courseResumeTarget(next).moduleId
+              if (moduleId != null) setActiveModule(moduleId)
             }}
           />
         }

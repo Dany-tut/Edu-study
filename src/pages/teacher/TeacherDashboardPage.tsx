@@ -36,7 +36,7 @@ import { useT } from '../../lib/i18n'
 import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
 import { getOwnerId } from '../../lib/owner'
 
-export default function TeacherDashboardPage({ standContent, standReviewCount }: { standContent?: React.ReactNode; standReviewCount?: number } = {}) {
+export default function TeacherDashboardPage({ standContent }: { standContent?: React.ReactNode } = {}) {
   const t = useT()
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
   // читают палитру через реестр, поэтому карту достаточно поставить один раз.
@@ -163,7 +163,7 @@ export default function TeacherDashboardPage({ standContent, standReviewCount }:
 
         {/* Topbar — always in center column */}
         <div style={{ display: 'inline-flex', pointerEvents: 'auto' }}>
-          <TeacherTopBar standReviewCount={standReviewCount} />
+          <TeacherTopBar />
         </div>
 
         {/* Right column — widget appears/disappears independently */}
@@ -236,7 +236,7 @@ export default function TeacherDashboardPage({ standContent, standReviewCount }:
     </div>
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    {!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(standReviewCount === undefined ? ['gradebook', 'groups'] as const : ['home', 'gradebook', 'groups', 'homework'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'homework' ? 'Проверка' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
+    {!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
     </>
   )
 }

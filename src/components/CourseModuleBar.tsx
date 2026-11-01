@@ -66,7 +66,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
   const { tc } = useTc()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null)
+  const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number; width: number; listHeight: number; above: boolean } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -77,9 +77,19 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
     if (!open) return
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
-    const width = Math.min(420, Math.max(320, r.width))
-    setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), top: r.bottom + 8, width })
-  }, [open])
+    const width = Math.min(420, Math.max(320, r.width), window.innerWidth - 16)
+    const aboveSpace = Math.max(0, r.top - 16)
+    const belowSpace = Math.max(0, window.innerHeight - r.bottom - 16)
+    const chrome = 14 + (subjects.length >= SEARCH_FROM ? 46 : 0)
+    const desiredHeight = Math.min(360, subjects.length * 42 - 2) + chrome
+    const above = desiredHeight > belowSpace && aboveSpace > belowSpace
+    const available = above ? aboveSpace : belowSpace
+    setPos({
+      left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), width, above,
+      ...(above ? { bottom: window.innerHeight - r.top + 8 } : { top: r.bottom + 8 }),
+      listHeight: Math.max(0, Math.min(360, available - chrome)),
+    })
+  }, [open, subjects.length])
 
   // Закрываем по клику мимо, Esc, прокрутке и ресайзу — список стоит fixed и
   // от кнопки на прокрутке отъехал бы.
@@ -143,11 +153,11 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
             <motion.div
               ref={menuRef}
               role="listbox"
-              initial={{ scale: 0.96, opacity: 0, y: -6 }}
+              initial={{ scale: 0.96, opacity: 0, y: pos.above ? 6 : -6 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: -6 }}
+              exit={{ scale: 0.96, opacity: 0, y: pos.above ? 6 : -6 }}
               transition={{ type: 'spring', stiffness: 460, damping: 30, mass: 0.7 }}
-              style={{ position: 'fixed', zIndex: Z.dropdown, left: pos.left, top: pos.top, width: pos.width, transformOrigin: 'top left', ...dropdownSurface, borderRadius: 18 }}
+              style={{ position: 'fixed', zIndex: Z.dropdown, left: pos.left, top: pos.top, bottom: pos.bottom, width: pos.width, transformOrigin: pos.above ? 'bottom left' : 'top left', ...dropdownSurface, borderRadius: 18 }}
             >
               {subjects.length >= SEARCH_FROM && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 38, padding: '0 12px', margin: '2px 2px 6px', borderRadius: 12, background: 'var(--color-bg-input)', cursor: 'text' }}>
@@ -161,7 +171,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
                   />
                 </label>
               )}
-              <ScrollFade maxHeight={360} bg={DROPDOWN_GLASS} overlayScrollbar>
+              <ScrollFade maxHeight={pos.listHeight} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {shown.length === 0 && (
                     <div style={{ padding: '8px 12px', fontSize: 13, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>

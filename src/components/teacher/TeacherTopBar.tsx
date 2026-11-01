@@ -14,7 +14,6 @@ import { createPortal } from 'react-dom'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
-import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { useJournalPending } from '../../lib/useGroups'
 import ViewAsBanner from './ViewAsBanner'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
@@ -39,7 +38,6 @@ import { useDashboard } from '../../store/dashboardStore'
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
   { id: 'groups',      label: 'Группы',      icon: Users },
-  { id: 'homework',    label: 'ДЗ',          icon: ClipboardList },
   { id: 'gradebook',   label: 'Журнал',      icon: BookOpen },
   { id: 'constructor', label: 'Конструктор', icon: Layers },
   { id: 'finances',    label: 'Финансы',     icon: Wallet },
@@ -73,15 +71,15 @@ type QuickItem = QuickAction | QuickSeparator
 
 const quickActions: QuickItem[] = [
   { icon: BookOpen,      label: 'Создать курс',      sub: 'новый курс',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-course' },
-  { icon: GraduationCap, label: 'Создать урок',      sub: 'новый урок',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
-  { icon: ClipboardList, label: 'Создать домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
-  { icon: CheckSquare,   label: 'Создать задачу',    sub: 'встреча, урок…',   color: '#4B8EF1', bg: 'rgba(75,142,241,0.13)', action: 'create-task' },
+  { icon: GraduationCap, label: 'Создать урок',      sub: 'занятие в расписании',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
+  { icon: ClipboardList, label: 'Назначить домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
+  { icon: CheckSquare,   label: 'Добавить личную задачу', sub: 'для себя, без назначения ученикам',   color: '#4B8EF1', bg: 'rgba(75,142,241,0.13)', action: 'create-task' },
   { type: 'separator' },
   { icon: Users,         label: 'Создать группу',    sub: 'новая группа',     color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'create-group' },
-  { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу / 1:1',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
+  { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу или без группы',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
 ]
 
-export default function TeacherTopBar({ standReviewCount }: { standReviewCount?: number } = {}) {
+export default function TeacherTopBar() {
   const t = useT()
   const { tc, tn } = useTc()
   const [collapsed, setCollapsed]     = useState(false)
@@ -89,12 +87,6 @@ export default function TeacherTopBar({ standReviewCount }: { standReviewCount?:
   const [profileOpen, setProfileOpen] = useState(false)
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
-  const { homework } = useHomework()
-  const { submissions: hardSubs } = useHardSubmissions()
-  const pendingHwCount = homework
-    .filter(hw => hw.status === 'active')
-    .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - hw.reviewedCount), 0)
-    + hardSubs.filter(s => s.status === 'submitted').length
   const pendingJournals = useJournalPending(null)
   const pendingJournalCount = pendingJournals.length
   const syncJournalNotifs = useNotificationsStore(s => s.syncJournalNotifs)
@@ -123,6 +115,9 @@ export default function TeacherTopBar({ standReviewCount }: { standReviewCount?:
 
   const activePage             = useTeacher(s => s.activePage)
   const setActivePage          = useTeacher(s => s.setActivePage)
+  const openLessonEditor = useTeacher(s => s.openLessonEditor)
+  const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
+  const openGroupForm = useTeacher(s => s.openGroupForm)
   const addTask                = useTeacher(s => s.addTask)
   const openConstructor        = useTeacher(s => s.openConstructor)
   const triggerConstructorBack = useTeacher(s => s.triggerConstructorBack)
@@ -393,7 +388,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         {visibleNav.map(item => {
           const isActive = activePage === item.id
-          const badgeCount = item.id === 'homework' ? standReviewCount ?? pendingHwCount : item.id === 'gradebook' ? pendingJournalCount : 0
+          const badgeCount = item.id === 'gradebook' ? pendingJournalCount : 0
           return (
             <motion.button
               key={item.id}
@@ -451,7 +446,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
                 transition: 'max-width 0.38s cubic-bezier(0.42,0,0.58,1), opacity 0.22s ease-in-out',
               }}>
-                {t(standReviewCount !== undefined && item.id === 'homework' ? 'Проверка' : item.label)}
+                {t(item.label)}
               </span>
               <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5)' }} />
             </motion.button>
@@ -551,9 +546,11 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   onClick={() => {
                     if (action.action === 'create-task') setTaskModalOpen(true)
                     if (action.action === 'create-course') openConstructor('course')
-                    if (action.action === 'create-group') { setActivePage('groups'); setTimeout(() => window.dispatchEvent(new CustomEvent('teacher:open-add-group')), 80) }
-                    if (action.action === 'add-student') { setActivePage('groups'); setTimeout(() => window.dispatchEvent(new CustomEvent('teacher:open-add-student')), 80) }
-                    if (action.page) setActivePage(action.page)
+                    if (action.action === 'create-group') openGroupForm('group')
+                    if (action.action === 'add-student') openGroupForm('student')
+                    if (action.page === 'lesson-editor') openLessonEditor(null)
+                    else if (action.page === 'homework-create') openHomeworkCreate()
+                    else if (action.page) setActivePage(action.page)
                     setAddOpen(false)
                   }}
                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
@@ -718,8 +715,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
     {taskModalOpen && (
       <CreateTaskModal
         onClose={() => { setTaskModalOpen(false); clearDrafts('createTask.') }}
-        onSave={task => {
-          addTask({
+        onSave={async task => {
+          const { error } = await addTask({
             typeId: task.type?.id ?? null,
             typeLabel: task.type?.label ?? null,
             typeBg: task.type?.bg ?? null,
@@ -729,7 +726,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
             time: task.time,
             comment: task.comment,
           })
-          setTaskModalOpen(false)
+          if (error) throw new Error(error)
         }}
       />
     )}

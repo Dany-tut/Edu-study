@@ -51,7 +51,7 @@ function PillContent({
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 12,
-      padding: '10px 24px 14px 10px', width: '100%', boxSizing: 'border-box',
+      padding: '9px 24px 14px 9px', width: '100%', boxSizing: 'border-box',
     }}>
       <div style={{
         width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
@@ -128,7 +128,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
       expanded={expanded}
       action={toCheck > 0 ? (
         <button
-          onClick={e => { e.stopPropagation(); tactile(); setActivePage('homework') }}
+          onClick={e => { e.stopPropagation(); tactile(); setActivePage('gradebook') }}
           style={{
             padding: 6, borderRadius: '50%',
             border: 'none', cursor: 'pointer',
@@ -464,7 +464,7 @@ function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
       onClick={e => e.stopPropagation()}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        gap: 6, padding: '8px', width: '100%', boxSizing: 'border-box', height: COLLAPSED_H,
+        gap: 6, padding: 9, width: '100%', boxSizing: 'border-box', height: COLLAPSED_H - 2,
       }}
     >
       {actions.map(({ icon: Icon, label, bg, iconColor, page }, i) => {
