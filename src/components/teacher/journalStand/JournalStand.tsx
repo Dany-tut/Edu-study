@@ -499,7 +499,12 @@ export default function JournalStand({ owner }: { owner: string }) {
   const groupIds = useMemo(() => new Set(roster.map((e) => e.student.groupId)), [roster])
   const open = (student: Student) => {
     set({ student: student.id, origin: page === 'groups' ? 'groups' : 'gradebook' })
-    useTeacher.getState().openStudentDashboard(student.id, student.groupId)
+    // The full profile (diagnostics and trainer included) must always open the same enrollment.
+    const profile =
+      data?.students
+        .filter((s) => sameLearner(s, student))
+        .sort((a, b) => Number(!!b.authUserId) - Number(!!a.authUserId) || a.id.localeCompare(b.id))[0] ?? student
+    useTeacher.getState().openStudentDashboard(profile.id, profile.groupId)
   }
   const changeScope = (v: Scope) => {
     position.current = { top: 0, left: 0 }
@@ -519,7 +524,12 @@ export default function JournalStand({ owner }: { owner: string }) {
       )
     else if (page === 'student') {
       const entry = entries.find((e) => e.student.id === studentId)
-      const back = () => useTeacher.getState().setActivePage(selected.origin)
+      const back = () => {
+        const navigation = useTeacher.getState()
+        const previous = data.students.find((s) => s.id === selected.student)
+        if (selected.strip === 'groups' && previous) navigation.setSelectedGroupId(previous.groupId || null)
+        navigation.setActivePage(selected.origin)
+      }
       content = entry ? (
         <TeacherStudentDashboardPage
           key={studentId}
@@ -533,14 +543,16 @@ export default function JournalStand({ owner }: { owner: string }) {
               onReload={reload}
               refreshing={loading}
               onWork={(work) => {
+                const membership = data.students.find(
+                  (s) =>
+                    sameLearner(s, entry.student) &&
+                    (index?.roster.get(work.slot.course)?.has(s.id) ||
+                      (!!work.slot.group && s.groupId === work.slot.group))
+                )
                 set({
-                  student: entry.student.id,
+                  student: membership?.id ?? selected.student,
                   workRef: work.slot.ref,
-                  course:
-                    index?.roster.get(work.slot.course)?.has(entry.student.id) ||
-                    work.slot.group === entry.student.groupId
-                      ? work.slot.course
-                      : ALL_COURSES,
+                  course: membership ? work.slot.course : ALL_COURSES,
                   module: '',
                   strip: 'students',
                   search: '',
