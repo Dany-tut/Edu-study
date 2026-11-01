@@ -32,3 +32,22 @@ await assert.rejects(() => journalPages(() => {
 }, controller.signal), error => error.name === 'AbortError')
 assert.equal(calls, 1, 'Cancelled loads must not keep paginating')
 console.log('Journal requests: bounded parallel reads, ordering, empty scopes, full pagination, error propagation and cancellation passed.')
+
+// One bounded query per exact ID batch, with no speculative tail pages.
+const { journalRowsById } = await import('../src/lib/journalRequests.ts')
+const exactIds = Array.from({length: 147}, (_, i) => String(i))
+let exactCalls = 0
+const exactRows = await journalRowsById(exactIds, new AbortController().signal, async batch => {
+  exactCalls++
+  assert.ok(batch.length <= 50)
+  return {data: [...batch].reverse().map(id => ({id})), error: null}
+})
+assert.equal(exactCalls, 3, '147 known lesson IDs need exactly three requests, not speculative pages')
+assert.deepEqual(exactRows.map(row => row.id), exactIds)
+const recovered = await journalRowsById(exactIds, new AbortController().signal, async batch => batch.length > 20
+  ? {data:null,error:{code:'57014',message:'timeout'}}
+  : {data:batch.map(id=>({id})),error:null})
+assert.deepEqual(recovered, exactRows, 'Split ID batches retain every row in order')
+await assert.rejects(journalRowsById(['missing'],new AbortController().signal,async()=>({data:[],error:null})),/полностью/)
+assert.deepEqual(await journalRowsById([],new AbortController().signal,()=>{throw Error('Must not query empty IDs')}),[])
+console.log('Exact journal IDs: bounded request count, complete ordered rows, timeout splitting and missing-row rejection passed.')
