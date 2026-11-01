@@ -6,11 +6,10 @@ const BUFFER = 4
 const mask = (edge: number) => `linear-gradient(to right, transparent 0%, black ${edge}%, black ${100 - edge}%, transparent 100%)`
 
 /** A native, unsnapped timeline. Recycle the surrounding weeks after a gesture. */
-export default function WeekStrip({ start, navigationKey, label, onWeekChange, renderDay }: {
+export default function WeekStrip({ start, navigationKey, label, renderDay }: {
   start: string
   navigationKey: number
   label: string
-  onWeekChange: (start: string) => void
   renderDay: (date: string, weekday: number) => ReactNode
 }) {
   const [anchor, setAnchor] = useState(start)
@@ -18,13 +17,10 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
   const reducedMotion = useReducedMotion()
   const viewport = useRef<HTMLDivElement>(null)
   const anchorRef = useRef(anchor)
-  const observedStart = useRef(start)
   const lastNavigation = useRef(navigationKey)
   const pendingLeft = useRef<number | null>(null)
   const expectedLeft = useRef<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const onChangeRef = useRef(onWeekChange)
-  useLayoutEffect(() => { onChangeRef.current = onWeekChange }, [onWeekChange])
 
   const weeks = useMemo(() => Array.from({ length: BUFFER * 2 + 1 }, (_, i) => {
     const monday = addDays(anchor, (i - BUFFER) * 7)
@@ -46,11 +42,7 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
   useLayoutEffect(() => {
     const navigate = navigationKey !== lastNavigation.current
     lastNavigation.current = navigationKey
-    if (!navigate) {
-      observedStart.current = start
-      return
-    }
-    observedStart.current = start
+    if (!navigate) return
     if (timer.current) clearTimeout(timer.current)
     pendingLeft.current = null
     setScrolling(false)
@@ -70,10 +62,7 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
       if (!el.clientWidth) return
       const index = Math.round(el.scrollLeft / el.clientWidth)
       const next = addDays(anchorRef.current, (index - BUFFER) * 7)
-      if (next !== observedStart.current) {
-        observedStart.current = next
-        onChangeRef.current(next)
-      }
+      // Recycle the viewport without changing the selected date or its lessons.
       // Preserve the exact fractional offset: no snapping or visible jump.
       if (index !== BUFFER) {
         pendingLeft.current = el.scrollLeft + (BUFFER - index) * el.clientWidth

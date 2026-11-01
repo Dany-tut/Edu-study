@@ -210,7 +210,6 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
         start={start}
         navigationKey={weekNavigation}
         label={t('Выбор недели')}
-        onWeekChange={next => go(addDays(next, weekdayIdx(day)), false)}
         renderDay={(d, i) => {
           const sel = d === day
           const hot = target === d && drag?.item.date !== d
