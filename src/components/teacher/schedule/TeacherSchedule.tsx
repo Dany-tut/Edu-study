@@ -574,7 +574,8 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   onSelectDay: (day: string) => void
 }>(function CalendarOverlays({ mobile, onOpen, onAttendance, onAction, onSelectDay }, ref) {
   const t = useT()
-  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect; source?: HTMLElement } | null>(null)
+  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect; source?: HTMLElement; session: number } | null>(null)
+  const menuSession = useRef(0)
   const pendingMenuAction = useRef<(() => void) | null>(null)
   const dismissMenu = (afterClose?: () => void) => {
     pendingMenuAction.current = afterClose ?? null
@@ -584,20 +585,24 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   const [addDay, setAddDay] = useState<string | null>(null)
 
   useImperativeHandle(ref, () => ({
-    openMenu: (item, rect, source) => setMenu({ item, rect, source }),
+    openMenu: (item, rect, source) => {
+      pendingMenuAction.current = null
+      setMenu({ item, rect, source, session: ++menuSession.current })
+    },
     openAdd: day => setAddDay(day),
   }), [])
 
   return (
     <>
-      <AnimatePresence onExitComplete={() => {
+      {/* A new opening replaces an unfinished exit immediately: never stack glass layers. */}
+      <AnimatePresence key={menuSession.current} onExitComplete={() => {
         const action = pendingMenuAction.current
         pendingMenuAction.current = null
         action?.()
       }}>
         {menu && (
           <ContextMenu
-            key="menu"
+            key={menu.session}
             item={menu.item}
             rect={menu.rect}
             source={menu.source}
@@ -655,6 +660,10 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
 
 // ── Меню удержания ────────────────────────────────────────────────────────────
 
+// Overlapping exit/entry animations may briefly share a source. Restore it
+// only after the final owner leaves, using the visibility from before any menu.
+const hiddenMenuSources = new WeakMap<HTMLElement, { visibility: string; owners: number }>()
+
 function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
   item: SchedItem
   rect: DOMRect
@@ -672,14 +681,24 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
   const [sub, setSub] = useState(false)
   const isPresent = useIsPresent()
   const reducedMotion = useReducedMotion()
-  const transition = { duration: reducedMotion ? 0 : 0.2, ease: CALENDAR_EASE }
+  const transition = { duration: reducedMotion ? 0 : isPresent ? 0.14 : 0.1, ease: CALENDAR_EASE }
+  const submenuTransition = { duration: reducedMotion ? 0 : 0.16, ease: CALENDAR_EASE }
+  const presentRef = useRef(isPresent)
+  presentRef.current = isPresent
   const panelRef = useRef<HTMLDivElement>(null)
   // Restore the original before paint when the lifted layer is removed.
   useLayoutEffect(() => {
     if (!source) return
-    const visibility = source.style.visibility
+    const entry = hiddenMenuSources.get(source) ?? { visibility: source.style.visibility, owners: 0 }
+    entry.owners++
+    hiddenMenuSources.set(source, entry)
     source.style.visibility = 'hidden'
-    return () => { source.style.visibility = visibility }
+    return () => {
+      if (--entry.owners === 0) {
+        source.style.visibility = entry.visibility
+        hiddenMenuSources.delete(source)
+      }
+    }
   }, [source])
   const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }))
   useEffect(() => {
@@ -704,6 +723,7 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
     const previousFocus = document.activeElement as HTMLElement | null
     panelRef.current?.focus({ preventScroll: true })
     const onKey = (e: KeyboardEvent) => {
+      if (!presentRef.current) return
       if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
       if (e.key !== 'Tab') return
       const buttons = Array.from(panelRef.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])') ?? [])
@@ -714,7 +734,7 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
-      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true })
+      if (previousFocus?.isConnected && !document.querySelector('.calendar-context-panel')) previousFocus.focus({ preventScroll: true })
     }
   }, [onClose])
 
@@ -734,23 +754,23 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
     >
       <span style={{ flex: 1 }}>{label}</span>
       {opts?.open !== undefined
-        ? <motion.span animate={{ rotate: opts.open ? 180 : 0 }} style={{ display: 'flex' }}><ChevronDown size={18} color="var(--color-text-3)" /></motion.span>
+        ? <motion.span animate={{ rotate: opts.open ? 180 : 0 }} transition={submenuTransition} style={{ display: 'flex' }}><ChevronDown size={18} color="var(--color-text-3)" /></motion.span>
         : <Icon size={18} color={opts?.danger ? 'var(--color-red-text)' : opts?.primary ? 'var(--color-purple-text)' : 'var(--color-text-3)'} />}
     </button>
   )
 
   return createPortal(
     <>
-      <motion.div
+      <motion.div className="calendar-context-backdrop"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         transition={transition}
         onClick={() => { if (isPresent) onClose() }}
         onContextMenu={e => { e.preventDefault(); if (isPresent) onClose() }}
-        style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal }}
+        style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal, pointerEvents: isPresent ? 'auto' : 'none' }}
       />
       <motion.div
         aria-hidden="true"
-        className="calendar-context-lifted"
+        className="calendar-context-lifted" data-calendar-item={item.id}
         initial={{ y: 0, scale: 1, opacity: 1 }}
         animate={{ y: reducedMotion ? 0 : -4, scale: reducedMotion ? 1 : 1.012, opacity: 1 }}
         exit={{ y: 0, scale: 1, opacity: 1 }}
@@ -778,7 +798,7 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
             {sub && (
               <motion.div
                 initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
-                transition={transition}
+                transition={submenuTransition}
                 style={{ overflow: 'hidden' }}
               >
                 {row(t('Завтра'), CalendarClock, () => onMove(1), { sub: true })}
