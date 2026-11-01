@@ -29,6 +29,7 @@ try {
  insert into courses(id,created_by,title,student_ids) select '00000000-0000-0000-0000-000000000100','00000000-0000-0000-0000-000000000001','original',array_agg(id) from students where created_by='00000000-0000-0000-0000-000000000001';
  insert into course_enrollments select '00000000-0000-0000-0000-000000000100',id::text,case when id::text like '%12' then 'full' else 'by_date' end,created_by,7 from students where created_by='00000000-0000-0000-0000-000000000001';`)
  sql(readFileSync('supabase/migrations/20261101091040_course_access_changes.sql','utf8'))
+ sql(readFileSync('supabase/migrations/20261101092057_course_access_guard_validation_error.sql','utf8'))
  sql(readFileSync('scripts/checkCourseAccess.sql','utf8'))
  const concurrent = member => exec('docker',['exec','-i',name,'psql','-h','127.0.0.1','-U','postgres','-v','ON_ERROR_STOP=1','-c',
   `begin; set local role authenticated; select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true); select save_course_access_changes('00000000-0000-0000-0000-000000000100','{"students":{"${member}":true}}'); select pg_sleep(0.3); commit;`])

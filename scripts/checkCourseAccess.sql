@@ -5,7 +5,7 @@ do $$ begin
   begin
     update courses set title='stale content',student_ids=array['00000000-0000-0000-0000-000000000011'::uuid] where id='00000000-0000-0000-0000-000000000100';
     raise exception 'Stale snapshot unexpectedly accepted';
-  exception when serialization_failure then null; end;
+  exception when check_violation then null; end;
   if (select cardinality(student_ids) from courses where id='00000000-0000-0000-0000-000000000100') <> 5 then raise exception 'Lost audience'; end if;
 end $$;
 -- Current content saves omit audience fields. Empty access changes preserve all members/modes/order.
@@ -18,11 +18,11 @@ do $$ begin
  begin
    delete from course_enrollments where student_id='00000000-0000-0000-0000-000000000012';
    raise exception 'Old enrollment delete accepted';
- exception when serialization_failure then null; end;
+ exception when check_violation then null; end;
  begin
    update course_enrollments set access_mode='by_date' where student_id='00000000-0000-0000-0000-000000000012';
    raise exception 'Old mode overwrite accepted';
- exception when serialization_failure then null; end;
+ exception when check_violation then null; end;
 end $$;
 -- Explicit removal affects only its named member; another concurrent assignment survives.
 select save_course_access_changes('00000000-0000-0000-0000-000000000100','{"students":{"00000000-0000-0000-0000-000000000011":false},"modes":{"00000000-0000-0000-0000-000000000013":"custom"}}');
