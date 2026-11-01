@@ -51,6 +51,13 @@ async function fetchGroupSubject(groupId: string): Promise<string | null> {
   return (data as { subject?: string } | null)?.subject?.trim() || null
 }
 
+/** Keep authored homework numbers, using the track's zero-based representation. */
+export function standaloneHomeworkNumber(title: string | null | undefined, index: number): number {
+  const match = title?.match(/^(?:ДЗ|Домашнее задание)\s*№?\s*(\d+)/iu)
+  const number = match ? Number(match[1]) : 0
+  return Number.isSafeInteger(number) && number > 0 ? number - 1 : index
+}
+
 /** Активные standalone-ДЗ для группы ученика (lesson_id IS NULL). */
 export async function fetchStandaloneHomework(groupId: string): Promise<DbStandaloneHw[]> {
   if (!groupId) return []
@@ -167,7 +174,8 @@ export async function fetchStandaloneSubject(groupId: string): Promise<Subject |
     .map(({ hw, homework, idx }): Lesson => ({
       id: `hw-${hw.id}`,
       title: hw.title?.trim() || `${t('Домашнее задание')} ${idx + 1}`,
-      number: idx + 1,
+      // Lesson numbers are zero-based throughout the track and catalogue.
+      number: standaloneHomeworkNumber(hw.title, idx),
       status: 'locked',
       shape: 'circle',
       subject: HW_SUBJECT_ID,
@@ -179,6 +187,7 @@ export async function fetchStandaloneSubject(groupId: string): Promise<Subject |
 
   return {
     id: HW_SUBJECT_ID,
+    subject: subjectName ?? undefined,
     // Таблетка предмета в треке: имя предмета, выбранного при создании ДЗ (из
     // группы). Курс рядом показывается по своему названию — отдельной таблеткой.
     name: subjectName ? `${t('Домашка')} · ${subjectName}` : t('Домашние задания'),

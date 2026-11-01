@@ -116,7 +116,7 @@ function SectionRow({ section, correct, total }: { section: string; correct: num
 // Renders the card into an isolated off-screen iframe and prints only that, so
 // the live page is never hidden/mutated (which used to blank the preview and
 // leak the plain-text card onto the page).
-function printStudentCard(studentName: string) {
+export function printStudentCard(studentName: string) {
   const el = document.getElementById('student-dashboard-print')
   if (!el) return
 
@@ -130,12 +130,14 @@ function printStudentCard(studentName: string) {
 
   doc.open()
   doc.write(
-    `<!doctype html><html><head><meta charset="utf-8"><title>${t('Карточка')} — ${studentName}</title>` +
+    '<!doctype html><html><head><meta charset="utf-8">' +
     `<style>@page{margin:16mm 14mm;size:A4}` +
     `body{font-family:system-ui,-apple-system,sans-serif;color:#111;margin:0}</style>` +
     `</head><body>${el.innerHTML}</body></html>`
   )
   doc.close()
+  doc.title = t('Карточка') + ' — ' + studentName
+  doc.querySelectorAll('details').forEach(section => { section.open = true })
 
   let done = false
   const cleanup = () => { if (done) return; done = true; setTimeout(() => iframe.remove(), 100) }
@@ -302,20 +304,37 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
-export default function TeacherStudentDashboardPage({ workPanel, onBack, backLabel }: { workPanel?: React.ReactNode; onBack?: () => void; backLabel?: string } = {}) {
+interface ProfileOptions {
+  workPanel?: React.ReactNode
+  onBack?: () => void
+  backLabel?: string
+}
+
+export default function TeacherStudentDashboardPage(props: ProfileOptions = {}) {
+  const selectedStudentId = useTeacher(s => s.selectedStudentId)
+  const selectedGroupId = useTeacher(s => s.selectedGroupId)
+  const { groups } = useGroups()
+  const students = useAllStudents()
+  return <StudentDashboardReport key={selectedStudentId} {...props}
+    student={students.find(s => s.id === selectedStudentId)}
+    group={groups.find(g => g.id === selectedGroupId)} />
+}
+
+export function StudentDashboardReport({ student, group: assignedGroup, workPanel, onBack, backLabel, inDrawer, exampleCourses }: ProfileOptions & {
+  student?: Student
+  group?: Group
+  inDrawer?: boolean
+  exampleCourses?: StudentCourseInfo[]
+}) {
   const t = useT()
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
-  const selectedStudentId = useTeacher(s => s.selectedStudentId)
-  const selectedGroupId = useTeacher(s => s.selectedGroupId)
+  const selectedStudentId = student?.id
+  const example = exampleCourses !== undefined
   const cachedTrainerStats = useTeacher(s => s.studentTrainerStats)
   const studentTrainerStats = workPanel ? null : cachedTrainerStats
 
-  const { groups } = useGroups()
-  const students = useAllStudents()
-
-  const group = groups.find(g => g.id === selectedGroupId) ?? { id: '', name: t('Пока без занятий'), subject: '' as Group['subject'], icon: '', level: '', color: '#9B6DFF', colorSoft: '#EFE0FF', startDate: '', studentCount: 0, lessonsCompleted: 0, totalLessons: 0 }
-  const student = students.find(s => s.id === selectedStudentId) ?? null
+  const group = assignedGroup ?? { id: '', name: t('Пока без занятий'), subject: '' as Group['subject'], icon: '', level: '', color: '#9B6DFF', colorSoft: '#EFE0FF', startDate: '', studentCount: 0, lessonsCompleted: 0, totalLessons: 0 }
 
   const [docked, setDocked] = useState(false)
   const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -324,14 +343,16 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
 
   const [diagResults, setDiagResults] = useState<AnonDiagResult[]>([])
   useEffect(() => {
+    if (example || !selectedStudentId) return
     loadAnonResults().then(all => setDiagResults(all.filter(r => r.linkedStudentId === selectedStudentId)))
-  }, [selectedStudentId])
+  }, [selectedStudentId, example])
 
-  const [studentCourses, setStudentCourses] = useState<StudentCourseInfo[]>([])
+  const [loadedCourses, setStudentCourses] = useState<StudentCourseInfo[]>([])
+  const studentCourses = exampleCourses ?? loadedCourses
   useEffect(() => {
-    if (!student?.id) return
+    if (example || !student?.id) return
     fetchStudentActiveCourses(student.id, student.groupId ?? '').then(setStudentCourses)
-  }, [student?.id, student?.groupId])
+  }, [example, student?.id, student?.groupId])
 
   const [hwHistory, setHwHistory] = useState<StudentHwItem[]>([])
   const [lessonHistory, setLessonHistory] = useState<StudentLessonItem[]>([])
@@ -342,7 +363,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
   const [sessionDays, setSessionDays] = useState(0)
 
   useEffect(() => {
-    if (!student?.id) return
+    if (example || !student?.id) return
     const sid = student.id
     const gid = student.groupId ?? ''
     const aid = (student as any).authUserId ?? null
@@ -353,7 +374,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
     fetchStudentWrongTasks(sid, aid).then(setWrongTasks)
     fetchStudentActivity(sid, aid).then(setActivityHeat)
     fetchStudentSessionDays(sid, aid).then(setSessionDays)
-  }, [student?.id, student?.groupId])
+  }, [example, student?.id, student?.groupId])
 
   const [diagExpanded, setDiagExpanded] = useState(true)
 
@@ -393,7 +414,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
   return (
     <>
       {/* ── Docked pill row (fixed top, appears on scroll) ─────────────── */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+      {!inDrawer && <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
         <AnimatePresence>
           {docked && (
             <motion.div
@@ -432,15 +453,15 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </div>}
 
       <motion.div
-        onScroll={onScroll}
+        onScroll={inDrawer ? undefined : onScroll}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.22 }}
-        style={{ flex: 1, overflowY: 'auto', marginTop: -100, paddingTop: 100, minHeight: 0 }}
+        style={inDrawer ? undefined : { flex: 1, overflowY: 'auto', marginTop: -100, paddingTop: 100, minHeight: 0 }}
       >
       {/* Hidden print container */}
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
@@ -484,10 +505,10 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
         <p style={{ color: '#999', fontSize: 11, marginTop: 24 }}>{t('Сформировано автоматически')} · {new Date().toLocaleDateString('ru-RU')}</p>
       </div>
 
-      <div style={{ padding: '0 64px 56px' }}>
+      <div style={{ padding: inDrawer ? '12px 12px 24px' : '0 64px 56px' }}>
 
         {/* ── In-flow toolbar (fades when docked) ─────────────────────── */}
-        <motion.div
+        {!inDrawer && <motion.div
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.15 }}
           style={{ paddingTop: 24, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', pointerEvents: docked ? 'none' : 'auto' }}
@@ -508,21 +529,21 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
             <Download size={14} />
             {t('Скачать PDF')}
           </button>
-        </motion.div>
+        </motion.div>}
 
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <div style={{
-          padding: '24px 28px', borderRadius: 24, marginBottom: 20,
+          padding: inDrawer ? 14 : '24px 28px', borderRadius: inDrawer ? 16 : 24, marginBottom: inDrawer ? 12 : 20,
           background: `linear-gradient(135deg, ${group.color}1A 0%, ${group.color}08 60%, transparent 100%)`,
           border: `1.5px solid ${group.color}30`,
-          display: 'flex', alignItems: 'center', gap: 22,
+          display: 'flex', alignItems: inDrawer ? 'flex-start' : 'center', gap: inDrawer ? 10 : 22, flexWrap: inDrawer ? 'wrap' : 'nowrap',
           boxShadow: `0 0 0 1px ${group.color}10, 0 4px 24px rgba(0,0,0,0.10)`,
         }}>
-          <Avatar student={student} group={group} size={68} />
+          {!inDrawer && <Avatar student={student} group={group} size={68} />}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{tn(student.name)}</div>
+            {!inDrawer && <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{tn(student.name)}</div>}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{
+              {!inDrawer && <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 background: group.color + '20', borderRadius: 8, padding: '4px 10px',
                 border: `1px solid ${group.color}30`,
@@ -530,7 +551,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: group.color }}>{group.name}</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
-              </div>
+              </div>}
               {student.startedAt && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('c')} {student.startedAt}</span>}
               <span style={{
                 fontSize: 12, color: 'var(--color-text-3)',
@@ -538,7 +559,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
                 background: 'rgba(var(--glass-rgb),0.5)', border: '1px solid var(--color-border-soft)',
               }}>{t('Цель:')} <b style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>{student.desiredScore} {t('б.')}</b></span>
               {student.lastVisit && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{t('вход:')} {student.lastVisit}</span>}
-              {studentCourses.map(c => (
+              {!inDrawer && studentCourses.map(c => (
                 <span key={c.id} style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   fontSize: 12, color: group.color,
@@ -586,7 +607,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
         {workPanel}
         {/* ── KPI summary row ───────────────────────────────────────────── */}
         <div style={{
-          display: 'grid', gridTemplateColumns: workPanel ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: 12,
+          display: 'grid', gridTemplateColumns: inDrawer ? 'repeat(auto-fit, minmax(98px, 1fr))' : workPanel ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: inDrawer ? 6 : 12,
           marginBottom: (hasStats && diagResults.length > 0) ? 0 : 20,
           opacity: !hasStats && diagResults.length > 0 ? 0.45 : 1,
           transition: 'opacity 0.22s',
@@ -598,7 +619,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
             { icon: Clock,          label: t('Посещаемость'), value: `${realAttendance}%`, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)', bg: realAttendance >= 90 ? 'var(--color-green-soft)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
             { icon: Target,         label: t('Тренажёр'), value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: 'rgba(109,155,255,0.14)' },
           ].filter(item => !workPanel || (item.icon !== ClipboardCheck && item.icon !== Clock)).map(({ icon: Icon, label, value, color, bg }) => (
-            <div key={label} style={{ padding: '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div key={label} style={{ padding: inDrawer ? '10px 6px' : '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon size={13} style={{ color }} />
                 <span style={{ fontSize: 11, color, opacity: 0.85, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
@@ -663,7 +684,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
         )}
 
         {/* ── Two-column grid ───────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: inDrawer ? 'minmax(0, 1fr)' : '1fr 1fr', gap: inDrawer ? 12 : 20 }}>
 
           {/* LEFT */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -853,7 +874,7 @@ export default function TeacherStudentDashboardPage({ workPanel, onBack, backLab
             {/* Тренажёр сводка */}
             <Card>
               <SectionHeader icon={Dumbbell} label={t('Тренажёр — сводка')} />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: inDrawer ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
                 {[
                   { val: totalTrainer, label: t('Задач'), color: 'var(--color-text)', bg: 'var(--color-bg)' },
                   { val: correctTrainer, label: t('Верно'), color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },

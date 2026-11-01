@@ -136,3 +136,33 @@ assert.equal(opened.status, 'Пересдача')
 const awaitingReview = rollup({...lab,work:[{...lab.work[0],status:'submitted',attachments:snap([{...external,testly:{...external.testly,pending:true}}])}]},person)
 assert.equal(workStats(awaitingReview, '2026-11-01').graded, 0)
 console.log('Journal stand: stable learner across enrollments, native and mixed assignments, reused Testly, zero, pending review and retake passed.')
+
+// Four-week comparisons use distinct assignments and respect missing grades and timestamps.
+const { studentOverview, groupOverview } = await import('../src/components/teacher/journalStand/overviewStats')
+const end = '2026-11-01'
+const assessments = [
+  ['first',  '2026-10-05', 0,   'atom'],
+  ['second', '2026-10-18', 70,  'atom'],
+  ['third',  '2026-10-19', 80,  'ions'],
+  ['fourth', '2026-11-01', 100, 'ions'],
+  ['older',  '2026-10-04', 100, 'atom'],
+  ['future', '2026-11-02', 100, 'ions'],
+].map(([ref, day, score, topic]) => ({
+  ...combined[0], slot: {...combined[0].slot, ref, date:day, due:day, topic:{id:topic, title:topic}, required:true},
+  submitted:true, dates: ref === 'fourth' ? [] : [day], score, threshold:80, status:'Зачтено',
+}))
+const debt = {...assessments[0], submitted:false, dates:[], score:null, status:'Просрочено'}
+const report = studentOverview([...assessments, {...debt, slot:{...debt.slot, ref:'missing'}}], end)
+assert.deepEqual([report.before, report.after, report.delta], [35, 90, 55])
+assert.equal(report.graded.length, 4)
+assert.equal(report.focus.id,'atom')
+assert.deepEqual(report.mastered.map(t => t.id), ['ions'])
+assert.deepEqual([report.stats.timely,report.stats.due,report.debts.length], [3,4,1])
+const partial = studentOverview([assessments[3]], end)
+assert.equal(partial.delta,null)
+assert.equal(partial.topics.length,0)
+assert.equal(partial.hasDue,true)
+assert.deepEqual([partial.stats.timely,partial.stats.due],[0,0])
+const group = groupOverview([report, partial, studentOverview([],end)])
+assert.deepEqual([group.average, group.checked, group.ungraded, group.debtors, group.focus.known], [70,5,1,1,1])
+console.log('Stand overview: period boundaries, weighted class result, zero vs missing scores, topic pairs and unknown submission dates passed.')

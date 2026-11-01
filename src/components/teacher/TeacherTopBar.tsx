@@ -81,7 +81,7 @@ const quickActions: QuickItem[] = [
   { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу / 1:1',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
 ]
 
-export default function TeacherTopBar() {
+export default function TeacherTopBar({ standReviewCount }: { standReviewCount?: number } = {}) {
   const t = useT()
   const { tc, tn } = useTc()
   const [collapsed, setCollapsed]     = useState(false)
@@ -393,7 +393,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         {visibleNav.map(item => {
           const isActive = activePage === item.id
-          const badgeCount = item.id === 'homework' ? pendingHwCount : item.id === 'gradebook' ? pendingJournalCount : 0
+          const badgeCount = item.id === 'homework' ? standReviewCount ?? pendingHwCount : item.id === 'gradebook' ? pendingJournalCount : 0
           return (
             <motion.button
               key={item.id}
@@ -451,7 +451,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
                 transition: 'max-width 0.38s cubic-bezier(0.42,0,0.58,1), opacity 0.22s ease-in-out',
               }}>
-                {t(item.label)}
+                {t(standReviewCount !== undefined && item.id === 'homework' ? 'Проверка' : item.label)}
               </span>
               <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5)' }} />
             </motion.button>
