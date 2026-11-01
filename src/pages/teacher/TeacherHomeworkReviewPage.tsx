@@ -436,7 +436,7 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   }
   // Per-student draft: score (manual), taskScores (per-task), comment.
   // Mirrored into sessionStorage per hw+student so grading survives a reload.
-  const [drafts, setDrafts] = useState<Record<string, ReviewDraft>>({})
+  const [drafts, setDrafts] = useState<Partial<Record<string, ReviewDraft>>>({})
   const scrollRef = useRef<HTMLDivElement>(null)
   // Shared via the store — the dashboard hides the ReviewNavPill while the
   // docked bar shows its own arrows/counter on the same spot.
