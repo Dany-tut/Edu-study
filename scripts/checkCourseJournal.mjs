@@ -125,7 +125,7 @@ const rollup = (input, learner) => {
 }
 const combined = rollup(lab, person)
 assert.deepEqual(combined, rollup(lab, otherCard))
-assert.deepEqual(combined.map(w => w.source).sort(), ['Искра', 'Искра + Тестли', 'Тестли'].sort())
+assert.deepEqual(combined.filter(w => w.submitted).map(w => w.source).sort(), ['Искра', 'Искра + Тестли', 'Тестли'].sort())
 assert.equal(workStats(combined, '2026-11-01').average, 54)
 assert.equal(workStats(combined, '2026-11-01').graded, 3)
 const prior = { student_id: person.id, lesson_ref: standLesson.short_id, number: 1, status: 'completed', score: 8, submitted_at: '2026-10-11T12:00:00Z' }

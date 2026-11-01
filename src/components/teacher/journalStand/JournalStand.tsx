@@ -564,6 +564,11 @@ export default function JournalStand({ owner }: { owner: string }) {
           onStripChange={(strip) => set({ strip, search: '' })}
           onOpenStudent={open}
           rosterTools={page === 'groups' ? picker : undefined}
+          hasUnsubmittedWork={(student) =>
+            !!entries
+              .find((e) => e.student.id === student.id)
+              ?.works.some((w) => !w.submitted && ['Не сдано', 'В процессе', 'Просрочено'].includes(w.status))
+          }
           rosterHomeworkScore={(student) => entries.find((e) => e.student.id === student.id)?.stats.average ?? null}
           availableGroupIds={page === 'gradebook' ? groupIds : undefined}
           renderRoster={

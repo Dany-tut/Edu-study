@@ -1289,7 +1289,7 @@ const filterPredicate: Record<RosterFilter, (s: Student) => boolean> = {
   nohw: s => hasStudentActivity(s) && s.hwScore === 0,
 }
 
-function sortStudents(list: Student[], key: SortKey, dir: SortDir) {
+function sortStudents(list: Student[], key: SortKey, dir: SortDir, homeworkScore?: (s: Student) => number | null) {
   if (key === 'attention') {
     // Always urgent-first regardless of dir toggle; tie-break by name.
     return [...list].sort((a, b) => {
@@ -1300,6 +1300,7 @@ function sortStudents(list: Student[], key: SortKey, dir: SortDir) {
   return [...list].sort((a, b) => {
     let av: number | string = (a as Record<string, unknown>)[key] as number | string ?? -1
     let bv: number | string = (b as Record<string, unknown>)[key] as number | string ?? -1
+    if (key === 'hwScore' && homeworkScore) { av = homeworkScore(a) ?? -1; bv = homeworkScore(b) ?? -1 }
     if (typeof av === 'string' && typeof bv === 'string') {
       // dd.mm.yyyy → yyyymmdd for lastVisit; ISO dates sort lexically already
       const toTs = (s: string) => s.includes('.') ? s.split('.').reverse().join('') : s
@@ -2306,10 +2307,11 @@ type GroupRosterProps = {
   onOpenStudent?: (student: Student) => void
   rosterTools?: React.ReactNode
   rosterHomeworkScore?: (student: Student) => number | null
+  hasUnsubmittedWork?: (student: Student) => boolean
   initialStripTab?: 'groups' | 'students'
   onStripChange?: (tab: 'groups' | 'students') => void
 }
-export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
+export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
@@ -2416,19 +2418,20 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   const activeGroup = allRosterView ? { ...unassignedDisplay, name: t('Все ученики') } : groups.find(g => g.id === selectedGroupId) ?? null
   // Full roster of the active group (drives chip counts), then narrowed by the
   // search box + active quick-filter, then sorted for display.
-  const rosterAll = allRosterView ? [...new Map(allStudents.map(s => [personKey(s), s])).values()] : activeGroup ? students.filter(s => s.groupId === activeGroup.id) : []
+  const rosterAll = allRosterView ? [...new Map(allStudents.map(s => [onOpenStudent && !s.personId && !s.authUserId ? s.id : personKey(s), s])).values()] : activeGroup ? students.filter(s => s.groupId === activeGroup.id) : []
   const q = searchQuery.trim().toLowerCase()
+  const rosterPredicates = hasUnsubmittedWork ? { ...filterPredicate, nohw: hasUnsubmittedWork } : filterPredicate
   const groupStudents = sortStudents(
     rosterAll
       .filter(s => !q || s.name.toLowerCase().includes(q))
-      .filter(filterPredicate[rosterFilter]),
-    sortKey, sortDir,
+      .filter(rosterPredicates[rosterFilter]),
+    sortKey, sortDir, rosterHomeworkScore,
   )
   const filterCounts: Record<RosterFilter, number> = {
     all: rosterAll.length,
     debtors: rosterAll.filter(filterPredicate.debtors).length,
     fading: rosterAll.filter(filterPredicate.fading).length,
-    nohw: rosterAll.filter(filterPredicate.nohw).length,
+    nohw: rosterAll.filter(rosterPredicates.nohw).length,
   }
   const activeStudent = activeStudentId ? allStudents.find(s => s.id === activeStudentId) ?? null : null
   const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? {

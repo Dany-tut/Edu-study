@@ -2,6 +2,7 @@ import type { Student } from '../../../data/teacherMockData'
 import {
   buildJournalIndex,
   courseRoster,
+  eventReaches,
   journalCell,
   journalColumns,
   journalDate,
@@ -62,6 +63,7 @@ export function buildStandIndex(data: CourseJournalData) {
   const journal = buildJournalIndex(data)
   const slots = new Map<string, WorkSlot>()
   const roster = new Map(data.courses.map((c) => [c.id, new Set(courseRoster(data, c.id).map((s) => s.id))]))
+  roster.set(OUTSIDE_COURSES, new Set(courseRoster(data, OUTSIDE_COURSES).map((s) => s.id)))
   const lessons = new Map(data.lessons.map((l) => [l.id, l]))
   for (const course of data.courses) {
     for (const column of journalColumns(data, course.id)) {
@@ -94,6 +96,21 @@ export function buildStandIndex(data: CourseJournalData) {
         })
       }
     }
+  }
+  // Lessons held outside a course still belong in a learner's attendance total.
+  for (const column of journalColumns(data, OUTSIDE_COURSES)) {
+    if (column.assignment) continue
+    slots.set(column.id, {
+      ref: column.id,
+      title: column.title,
+      course: OUTSIDE_COURSES,
+      module: null,
+      date: column.date,
+      due: null,
+      types: [],
+      required: false,
+      lesson: column,
+    })
   }
   for (const a of data.assignments) {
     if (a.status === 'draft') continue
@@ -159,9 +176,11 @@ export function studentWorks(
 ): StudentWork[] {
   const members = data.students.filter((other) => sameLearner(student, other))
   return slots.flatMap((slot) => {
-    const assigned = members.filter((m) =>
-      slot.group !== undefined ? !!slot.group && slot.group === m.groupId : index.roster.get(slot.course)?.has(m.id)
-    )
+    const assigned = members.filter((member) => {
+      if (slot.group !== undefined) return !!slot.group && slot.group === member.groupId
+      if (slot.course === OUTSIDE_COURSES) return slot.lesson?.events.some((e) => eventReaches(e, member))
+      return index.roster.get(slot.course)?.has(member.id)
+    })
     const history = members.flatMap((m) => {
       const row = index.journal.work.get(m.id + ':' + slot.ref)
       return row ? [row] : []
