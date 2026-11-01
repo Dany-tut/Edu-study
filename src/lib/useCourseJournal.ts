@@ -4,13 +4,23 @@ import { getOwnerId } from './owner'
 import { useAllStudentsSnapshot, useGroups } from './useGroups'
 import type { CourseJournalData } from './courseJournal'
 import { journalPages, journalBatches } from './journalRequests'
-import { journalPages as adaptiveJournalPages } from './journalPages'
+import { journalPages as adaptiveJournalPages, journalParallelPages } from './journalPages'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
-  return journalBatches(ids, batch => adaptiveJournalPages<T>((offset, size) => supabase.from(table).select(columns)
-    .in(field, batch).order(table === 'teacher_lesson_sessions' ? 'schedule_id' : 'id')
-    .range(offset, offset + size - 1).abortSignal(signal).retry(false), signal, table === 'lessons' ? 50 : 500))
+  const started = performance.now()
+  const rows = await journalBatches(ids, batch => {
+    const build = (offset: number, size: number) => supabase.from(table).select(columns)
+      .in(field, batch).order(table === 'teacher_lesson_sessions' ? 'schedule_id' : 'id')
+      .range(offset, offset + size - 1).abortSignal(signal).retry(false)
+    // Rich homework JSON makes small lesson pages necessary. Read those pages
+    // concurrently instead of paying one network round trip for every 50 rows.
+    if (table === 'lessons') return journalParallelPages<T>(build, signal, 50, 4)
+    if (table === 'lesson_progress') return journalParallelPages<T>(build, signal, 500, 2)
+    return adaptiveJournalPages<T>(build, signal)
+  })
+  console.debug('[journal-read]', { table, rows: rows.length, ms: Math.round(performance.now() - started) })
+  return rows
 }
 export function useCourseJournal(completeWorkList = false) {
   const { groups, loading: groupsLoading } = useGroups()
@@ -36,6 +46,7 @@ export function useCourseJournal(completeWorkList = false) {
     const controller = new AbortController()
     const { signal } = controller
     lastLoaded.current = Date.now()
+    const loadStarted = performance.now()
     setLoading(true); setError(null)
     async function load() {
       const owner = await getOwnerId()
@@ -84,7 +95,7 @@ export function useCourseJournal(completeWorkList = false) {
         setLoading(false)
       }
     }, 20_000)
-    void load().then(next => { if (active) { lastLoaded.current = Date.now(); setData(next) } }).catch(e => {
+    void load().then(next => { if (active) { lastLoaded.current = Date.now(); console.debug('[journal-ready]', { ms: Math.round(performance.now() - loadStarted), lessons: next.lessons.length, work: next.work.length }); setData(next) } }).catch(e => {
       if (active) setError(e instanceof Error ? e.message : 'Не удалось загрузить журнал')
     }).finally(() => { clearTimeout(timeout); controller.abort(); if (active) setLoading(false) })
     return () => { active = false; clearTimeout(timeout); controller.abort() }

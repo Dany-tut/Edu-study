@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { journalPages } from '../src/lib/journalPages.ts'
+import { journalPages, journalParallelPages } from '../src/lib/journalPages.ts'
 
 const signal = new AbortController().signal
 const source = Array.from({length: 113}, (_, id) => ({id}))
@@ -28,3 +28,32 @@ controller.abort()
 resolve({data: [], error: null})
 await assert.rejects(pending, {name: 'AbortError'}, 'An obsolete response must not be accepted')
 console.log('Journal loading: complete pagination, timeout recovery, bounded failure and cancellation passed.')
+
+// Out-of-order responses must still produce every row in order, with at most
+// four requests in flight (large teachers must not create an unbounded fanout).
+const many = Array.from({length: 637}, (_, id) => ({id}))
+let active = 0, peak = 0
+const parallel = await journalParallelPages(async (offset, size) => {
+  active++; peak = Math.max(peak, active)
+  await new Promise(resolve => setTimeout(resolve, offset % 100 === 0 ? 8 : 1))
+  active--
+  return {data: many.slice(offset, offset + size), error: null}
+}, signal)
+assert.deepEqual(parallel, many)
+assert.equal(peak, 4)
+const retried = await journalParallelPages(async (offset, size) => size > 12
+  ? {data: null, error: {code: '57014', message: 'statement timeout'}}
+  : {data: source.slice(offset, offset + size), error: null}, signal)
+assert.deepEqual(retried, source, 'Split retries must retain exact range boundaries')
+await assert.rejects(journalParallelPages(async offset => offset === 50
+  ? {data: null, error: {message: 'required page denied'}}
+  : {data: many.slice(offset, offset + 50), error: null}, signal), /required page denied/)
+assert.deepEqual(await journalParallelPages(async offset => offset >= 150
+  ? {data: null, error: {message: 'irrelevant speculative page'}}
+  : {data: source.slice(offset, offset + 50), error: null}, signal), source)
+const cancelled = new AbortController()
+await assert.rejects(journalParallelPages(async () => {
+  cancelled.abort()
+  return {data: [], error: null}
+}, cancelled.signal), {name: 'AbortError'})
+console.log('Parallel journal: complete ordered rows, bounded concurrency, split timeout retries, required failures, tail and cancellation passed.')
