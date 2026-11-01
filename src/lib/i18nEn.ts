@@ -10,6 +10,16 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Ждёт': 'Waiting',
+  'дн.': 'days',
+  'Сдано только что': 'Just submitted',
+  'Просрочено на': 'Overdue by',
+  'Оплата сегодня': 'Payment due today',
+  'работ на проверке': 'submissions awaiting review',
+  'платежей': 'payments',
+  'занятий': 'lessons',
+  'Развернуть': 'Expand',
+  'Через': 'In',
   'Материалы открыты': 'Materials are available',
   'Нет запланированных занятий': 'No scheduled lessons',
   'Был на занятии': 'Attended the lesson',
