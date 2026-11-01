@@ -2380,15 +2380,15 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
 
   const openAddGroupModal = useCallback(() => setShowAddGroup(true), [])
 
+  const pendingGroupForm = useTeacher(s => s.pendingGroupForm)
+  const clearPendingGroupForm = useTeacher(s => s.clearPendingGroupForm)
   useEffect(() => {
-    const onAddStudent = () => setShowAddStudent(true)
-    window.addEventListener('teacher:open-add-group', openAddGroupModal)
-    window.addEventListener('teacher:open-add-student', onAddStudent)
-    return () => {
-      window.removeEventListener('teacher:open-add-group', openAddGroupModal)
-      window.removeEventListener('teacher:open-add-student', onAddStudent)
-    }
-  }, [openAddGroupModal])
+    if (!pendingGroupForm) return
+    setShowAddGroup(pendingGroupForm === 'group')
+    setShowAddStudent(pendingGroupForm === 'student')
+    setShowAddStudentPicker(false)
+    clearPendingGroupForm()
+  }, [pendingGroupForm, clearPendingGroupForm, setShowAddGroup, setShowAddStudent, setShowAddStudentPicker])
 
 
   const regularGroups = groups.filter(g => !g.isIndividual)

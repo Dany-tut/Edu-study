@@ -766,8 +766,8 @@ function MyTasksBlock() {
       <CreateTaskModal
         initialTask={editingTask}
         onClose={() => { setEditingTask(null); clearDrafts('createTask.') }}
-        onSave={saved => {
-          updateTask(editingTask.id, {
+        onSave={async saved => {
+          const { error } = await updateTask(editingTask.id, {
             typeId: saved.type?.id ?? null,
             typeLabel: saved.type?.label ?? null,
             typeBg: saved.type?.bg ?? null,
@@ -777,7 +777,7 @@ function MyTasksBlock() {
             time: saved.time,
             comment: saved.comment,
           })
-          setEditingTask(null)
+          if (error) throw new Error(error)
         }}
       />
     )}
