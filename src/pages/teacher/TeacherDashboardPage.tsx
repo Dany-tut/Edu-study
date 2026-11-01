@@ -14,7 +14,6 @@ import TeacherHomeworkReviewPage from './TeacherHomeworkReviewPage'
 import TeacherHardReviewPage from './TeacherHardReviewPage'
 import TeacherLessonEditorPage from './TeacherLessonEditorPage'
 import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
-import ReviewNavPill from '../../components/teacher/ReviewNavPill'
 import TeacherStudentDashboardPage from './TeacherStudentDashboardPage'
 import TeacherCourseEditorPage from './TeacherCourseEditorPage'
 import TeacherCardSetEditorPage from './TeacherCardSetEditorPage'
@@ -170,7 +169,7 @@ export default function TeacherDashboardPage({ standContent, standReviewCount }:
         {/* Right column — widget appears/disappears independently */}
         <div style={{ display: 'flex', alignItems: 'center', alignSelf: 'center', paddingLeft: 10, pointerEvents: 'none' }}>
           <AnimatePresence>
-            {activePage !== 'lesson-editor' && activePage !== 'constructor' && activePage !== 'course-editor' && activePage !== 'cards-editor' && activePage !== 'student' && !headerDocked && (
+            {activePage !== 'homework-review' && activePage !== 'lesson-editor' && activePage !== 'constructor' && activePage !== 'course-editor' && activePage !== 'cards-editor' && activePage !== 'student' && !headerDocked && (
               <motion.div
                 key="top-right-slot"
                 initial={{ opacity: 0, y: -8 }}
@@ -179,10 +178,7 @@ export default function TeacherDashboardPage({ standContent, standReviewCount }:
                 transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
                 style={{ pointerEvents: 'auto' }}
               >
-                {activePage === 'homework-review'
-                  ? <ReviewNavPill />
-                  : <TeacherCompactPill />
-                }
+                <TeacherCompactPill />
               </motion.div>
             )}
           </AnimatePresence>
