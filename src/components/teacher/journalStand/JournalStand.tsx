@@ -652,7 +652,21 @@ export default function JournalStand({ owner, production = false }: { owner: str
           {error && <button type="button" className="cj-button" onClick={reload}>Повторить загрузку</button>}
         </div>
   }
-  if (['gradebook', 'groups', 'student'].includes(page)) {
+  // Roster forms use their own group/student queries. A slow or failed journal
+  // must not prevent opening them or consume their pending navigation intent.
+  if (page === 'groups') {
+    content = <TeacherGroupsPage
+      key={page}
+      initialStripTab={selected.strip}
+      onStripChange={(strip) => set({ strip, search: '', student: '', workRef: '' })}
+      onOpenStudent={open}
+      rosterTools={picker}
+      hasUnsubmittedWork={data && !error ? student => !!entries.find(e => e.student.id === student.id)
+        ?.works.some(w => !w.submitted && ['Не сдано', 'В процессе', 'Просрочено'].includes(w.status)) : undefined}
+      rosterHomeworkScore={data && !error ? student => entries.find(e => e.student.id === student.id)?.stats.average ?? null : undefined}
+    />
+  }
+  if (['gradebook', 'student'].includes(page)) {
     if (loading && !error && (!data || data.demo))
       content = <JournalSkeleton table={selected.tab !== 'Обзор'} />
     else if (error || !data || data.demo)
@@ -723,7 +737,6 @@ export default function JournalStand({ owner, production = false }: { owner: str
           initialStripTab={selected.strip}
           onStripChange={(strip) => set({ strip, search: '', student: '', workRef: '' })}
           onOpenStudent={open}
-          rosterTools={page === 'groups' ? picker : undefined}
           hasUnsubmittedWork={(student) =>
             !!entries
               .find((e) => e.student.id === student.id)
