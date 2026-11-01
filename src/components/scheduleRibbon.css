@@ -36,3 +36,22 @@
 @media(max-height:600px) { .ssr-month-expanded { padding:16px; } .ssr-month-expanded .ssr-month-heading { margin-bottom:6px; } .ssr-month-expanded .ssr-expand { margin-bottom:6px; } }
 /* Keep the calendar above the following row, including seasonal stacking contexts. */
 html .dashboard-root--home > .dashboard-schedule:has(.student-schedule-ribbon) { position:relative; z-index:45; }
+
+/* Use the toolbar's reserved row to make the current day taller without
+   moving the following dashboard rows or covering neighbouring dates. */
+@media (min-width:1024px) {
+  .student-schedule-ribbon { --ssr-card-rise:calc(var(--ssr-control-height, 38px) + 12px); }
+  .student-schedule-ribbon [data-schedule-day="selected"] > div {
+    height:calc(100% + var(--ssr-card-rise)) !important;
+    margin-top:calc(-1 * var(--ssr-card-rise));
+  }
+}
+@media (min-width:1024px) and (max-height:800px) {
+  .student-schedule-ribbon { --ssr-card-rise:calc(var(--ssr-control-height, 38px) + 8px); }
+}
+@media (min-width:1024px) and (max-height:660px) {
+  .student-schedule-ribbon { --ssr-card-rise:calc(var(--ssr-control-height, 38px) + 6px); }
+}
+@media (min-width:1024px) and (pointer:coarse) {
+  .student-schedule-ribbon { --ssr-control-height:44px; }
+}
