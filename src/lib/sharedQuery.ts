@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { supabase } from './supabase'
+import { createAuthDataChangeGuard } from './authDataChange'
 
 /**
  * ОДИН запрос на всех, кто его просит.
@@ -113,7 +114,10 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
 
 // Вход/выход/смена аккаунта: чужие группы и ученики не должны пережить смену
 // владельца ни на кадр.
-supabase.auth.onAuthStateChange(() => { for (const q of registry) q.invalidate() })
+const authDataChanged = createAuthDataChangeGuard()
+supabase.auth.onAuthStateChange((event, session) => {
+  if (authDataChanged(event, session)) for (const q of registry) q.invalidate()
+})
 
 export function useSharedQuery<T>(q: SharedQuery<T>): Snapshot<T> {
   const snap = useSyncExternalStore(q.subscribe, q.getSnapshot, q.getSnapshot)
