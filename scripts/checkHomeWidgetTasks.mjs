@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { mergeWidgetOrder } from '../src/lib/widgetOrderMigration.ts'
 import { homeWidgetTasks } from '../src/lib/homeWidgetTasks.ts'
 const lesson=(id,status,extra={})=>({id,status,title:id,number:0,shape:'circle',subject:'Химия',...extra})
 const course=(id,lessons)=>({id,name:id,subject:'Химия',modules:[{id:1,label:'',lessons}]})
@@ -17,3 +18,9 @@ assert.equal(tasks.find(t=>t.lesson.id==='reading').label,'Продолжить 
 assert.equal(new Set(tasks.map(t=>t.key)).size,tasks.length,'Identity includes course, and repeated track nodes are deduplicated')
 assert.deepEqual(homeWidgetTasks([]),[])
 console.log('Home widget task checks passed')
+
+assert.deepEqual(mergeWidgetOrder([0,3],[0,3,6],[11,6,0,3],11),[11,0,3], 'A new task widget appears without restoring the hidden quiz')
+assert.deepEqual(mergeWidgetOrder([0,3],[11,6,0,3],[11,6,0,3],11),[0,3], 'A deliberately hidden task widget stays hidden after cloud reload')
+assert.deepEqual(mergeWidgetOrder([3,0,3],[0,3],[0,3],11),[3,0], 'Saved order is preserved and duplicates do not appear')
+
+assert.deepEqual(mergeWidgetOrder([11,0],[0],[11,0],11),[11,0], 'A new widget already in saved order is not duplicated')

@@ -5,6 +5,7 @@ import { resolveScheduleLesson, findChemistryLessonByTitle } from '../lib/db'
 import type { HardTaskReviewBlock } from '../lib/useHomework'
 import { useStudentData } from './studentDataStore'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
+import { mergeWidgetOrder } from '../lib/widgetOrderMigration'
 import { trackEvent } from '../lib/analytics'
 import { splitHwRef } from '../lib/extraHomework'
 import type { ProgressMap } from '../lib/db'
@@ -476,11 +477,10 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     // was in `saved` as already-known, so a previously-hidden widget reappears at
     // most once and then sticks (knownWidgetIds is written on the next save).
     const known = p?.knownWidgetIds ?? saved
-    const fresh = DEFAULT_WIDGET_ORDER.filter(id => !known.includes(id))
     return {
       ...current,
       ...p,
-      widgetOrder: [...(fresh.includes(11) ? [11] : []), ...saved, ...fresh.filter(id => id !== 11)],
+      widgetOrder: mergeWidgetOrder(saved, known, DEFAULT_WIDGET_ORDER, 11),
       knownWidgetIds: DEFAULT_WIDGET_ORDER,
     }
   },
