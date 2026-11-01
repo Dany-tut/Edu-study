@@ -26,6 +26,7 @@ import './journalStand.css'
 type StandView = 'Обзор' | 'Посещаемость' | 'Работы' | 'Статистика'
 export type StandSelection = Scope & {
   student: string
+  workRef?: string
   origin: 'groups' | 'gradebook'
   tab: StandView
   strip: 'groups' | 'students'
@@ -150,11 +151,13 @@ export function ProfileWorks({
   today,
   scope,
   onReload,
+  onWork,
   refreshing,
 }: {
   list: StudentWork[]
   today: string
   scope: React.ReactNode
+  onWork?: (work: StudentWork) => void
   onReload?: () => void
   refreshing?: boolean
 }) {
@@ -201,7 +204,13 @@ export function ProfileWorks({
           {history.map((w) => (
             <div key={w.slot.ref} className="js-work-row">
               <div>
-                <strong>{w.slot.title}</strong>
+                {onWork ? (
+                  <button className="js-work-link" onClick={() => onWork(w)}>
+                    {w.slot.title} <ChevronRight size={12} />
+                  </button>
+                ) : (
+                  <strong>{w.slot.title}</strong>
+                )}
                 <small>
                   {[w.slot.due && 'до ' + w.slot.due, w.dates[0] && 'первая сдача ' + w.dates[0]]
                     .filter(Boolean)
@@ -233,7 +242,7 @@ interface MatrixProps {
 }
 export function Matrix({ entries, slots, selected, picker, groupLabel, set, open, position }: MatrixProps) {
   const frame = useRef<HTMLDivElement>(null)
-  const [detail, setDetail] = useState('')
+  const detail = selected.workRef ?? ''
   const [attention, setAttention] = useState(false)
   const visible = entries.filter(
     (e) =>
@@ -249,6 +258,20 @@ export function Matrix({ entries, slots, selected, picker, groupLabel, set, open
       frame.current.scrollLeft = position.current.left
     }
   }, [position])
+  useLayoutEffect(() => {
+    const el = frame.current?.querySelector<HTMLElement>('[data-selected-work="true"]')
+    if (el && frame.current) {
+      const wrap = frame.current,
+        box = wrap.getBoundingClientRect(),
+        cell = el.getBoundingClientRect()
+      const pin = wrap.querySelector('tbody th')?.getBoundingClientRect().width ?? 0
+      const head = wrap.querySelector('thead')?.getBoundingClientRect().height ?? 0
+      if (cell.right > box.right) wrap.scrollLeft += cell.right - box.right + 12
+      else if (cell.left < box.left + pin) wrap.scrollLeft += cell.left - box.left - pin - 12
+      if (cell.bottom > box.bottom) wrap.scrollTop += cell.bottom - box.bottom + 8
+      else if (cell.top < box.top + head) wrap.scrollTop += cell.top - box.top - head - 8
+    }
+  }, [detail, selected.student, entries])
   const byStudent = useMemo(
     () => new Map(entries.map((e) => [e.student.id, new Map(e.works.map((w) => [w.slot.ref, w]))])),
     [entries]
@@ -325,8 +348,7 @@ export function Matrix({ entries, slots, selected, picker, groupLabel, set, open
                     type="button"
                     className="js-name"
                     onClick={() => {
-                      setDetail('')
-                      set({ student: student.id })
+                      set({ student: student.id, workRef: '' })
                     }}
                   >
                     <span className="cj-avatar">
@@ -353,11 +375,13 @@ export function Matrix({ entries, slots, selected, picker, groupLabel, set, open
                         <td key={col.ref}>
                           {w ? (
                             <button
+                              data-selected-work={
+                                (selected.student === student.id && detail === col.ref) || undefined
+                              }
                               className="js-cell"
                               aria-label={student.name + ' · ' + col.title}
                               onClick={() => {
-                                setDetail(col.ref)
-                                set({ student: student.id })
+                                set({ student: student.id, workRef: col.ref })
                               }}
                             >
                               {selected.tab !== 'Работы' && (
@@ -461,9 +485,16 @@ export default function JournalStand({ owner }: { owner: string }) {
   const roster = useMemo(
     () =>
       entries.filter(
-        (e) => course === ALL_COURSES || e.works.length > 0 || index?.roster.get(course)?.has(e.student.id)
+        (e) =>
+          course === ALL_COURSES ||
+          index?.roster.get(course)?.has(e.student.id) ||
+          slots.some(
+            (slot) =>
+              (!!slot.group && slot.group === e.student.groupId) ||
+              index?.journal.work.has(e.student.id + ':' + slot.ref)
+          )
       ),
-    [entries, index, course]
+    [entries, index, course, slots]
   )
   const groupIds = useMemo(() => new Set(roster.map((e) => e.student.groupId)), [roster])
   const open = (student: Student) => {
@@ -472,7 +503,7 @@ export default function JournalStand({ owner }: { owner: string }) {
   }
   const changeScope = (v: Scope) => {
     position.current = { top: 0, left: 0 }
-    set({ ...v, search: '' })
+    set({ ...v, search: '', workRef: '' })
   }
   const picker = data && <ScopePicker data={data} value={scope} onChange={changeScope} />
   let content: React.ReactNode
@@ -495,7 +526,25 @@ export default function JournalStand({ owner }: { owner: string }) {
           onBack={back}
           backLabel={selected.origin === 'groups' ? 'Назад к группам' : 'Назад в журнал'}
           workPanel={
-            <ProfileWorks list={entry.works} today={today} scope={picker} onReload={reload} refreshing={loading} />
+            <ProfileWorks
+              list={entry.works}
+              today={today}
+              scope={picker}
+              onReload={reload}
+              refreshing={loading}
+              onWork={(work) => {
+                set({
+                  student: entry.student.id,
+                  workRef: work.slot.ref,
+                  course: work.slot.course,
+                  module: '',
+                  strip: 'students',
+                  search: '',
+                  tab: 'Обзор',
+                })
+                useTeacher.getState().setActivePage('gradebook')
+              }}
+            />
           }
         />
       ) : (
