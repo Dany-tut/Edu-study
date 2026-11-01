@@ -162,7 +162,19 @@ function AppRoutes() {
 
     const finishWebOAuth = async () => {
       if (IS_NATIVE || completed || !hasPendingSocialAuth()) return
+      // Identity-link failures return as URL query parameters and do not emit
+      // SIGNED_IN. Handle this callback without requiring an active session.
+      const query = new URLSearchParams(window.location.search)
+      const fragment = new URLSearchParams(window.location.hash.slice(1))
+      const callbackHasError = Boolean(
+        query.get('error') || query.get('error_code') || query.get('error_description') ||
+        fragment.get('error') || fragment.get('error_code') || fragment.get('error_description'),
+      )
       completed = true
+      if (!callbackHasError) {
+        const { data } = await supabase.auth.getSession()
+        if (!data.session) { completed = false; return }
+      }
       try { completed = await finishSocialLogin() }
       catch (error) {
         completed = false
@@ -174,7 +186,9 @@ function AppRoutes() {
     })
     if (!IS_NATIVE) {
       void supabase.auth.getSession().then(({ data }) => {
-        if (data.session && hasPendingSocialAuth()) void finishWebOAuth()
+        if (hasPendingSocialAuth() && (data.session || window.location.search.includes('error') || window.location.hash.includes('error'))) {
+          void finishWebOAuth()
+        }
       })
     }
     return () => { subscription.unsubscribe(); dispose?.() }
