@@ -140,6 +140,11 @@ jobs:
         continue-on-error: true
         run: npm run check:light
 
+      - name: Назначения курса (check:course-access)
+        id: courseaccess
+        continue-on-error: true
+        run: npm run check:course-access
+
       - name: Сборка
         id: build
         continue-on-error: true
@@ -172,5 +177,6 @@ jobs:
           check "check:lesson"          "${{ steps.lesson.outcome }}"
           check "check:choicepos"       "${{ steps.choicepos.outcome }}"
           check "check:light"           "${{ steps.light.outcome }}"
+          check "check:course-access"    "${{ steps.courseaccess.outcome }}"
           check "сборка"                "${{ steps.build.outcome }}"
           exit $fail
