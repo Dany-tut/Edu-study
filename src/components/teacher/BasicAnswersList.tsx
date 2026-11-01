@@ -48,7 +48,7 @@ function verdictStyle(v: BasicAnswerVerdict): { bg: string; fg: string; Icon: ty
   }
 }
 
-function AnswerCard({ row, live }: { row: BasicAnswerRow; live?: TestlyLive }) {
+function AnswerCard({ row, live, teacherReviewed }: { row: BasicAnswerRow; live?: TestlyLive; teacherReviewed?: boolean }) {
   const t = useT()
   const { bg, fg, Icon } = verdictStyle(row.verdict)
   const tl = row.testly ? testlyOf(row, live) : null
@@ -96,7 +96,7 @@ function AnswerCard({ row, live }: { row: BasicAnswerRow; live?: TestlyLive }) {
             background: bg, color: fg, fontSize: 12, fontWeight: 700,
           }}>
             <Icon size={13} />
-            {returned ? t('На доработке') : t(verdictLabel(row.verdict))}
+            {returned ? t('На доработке') : teacherReviewed && row.verdict === 'review' ? t('Проверено') : t(verdictLabel(row.verdict))}
           </span>
         )}
       </div>
@@ -157,7 +157,30 @@ function AnswerCard({ row, live }: { row: BasicAnswerRow; live?: TestlyLive }) {
 /** Устное, которое машина зачла: слушать нечего — нужные слова прозвучали. */
 const isPassedVoice = (r: BasicAnswerRow) => !!r.voice && r.verdict === 'correct'
 
-export default function BasicAnswersList({ payload, studentId }: { payload: BasicAnswersPayload; studentId?: string }) {
+function ReviewAnswer({ row, live, teacherReviewed, passingScore }: { row: BasicAnswerRow; live?: TestlyLive; teacherReviewed: boolean; passingScore: number }) {
+  const t = useT()
+  const external = row.testly ? testlyOf(row, live) : null
+  const returned = !!row.testly?.returned || (live?.state === 'started' && !!row.testly?.submittedAt)
+  const points = external?.got != null && external.max != null && external.max > 0
+  const tone = row.testly ? returned || external?.pending ? 'review' : points ? external!.got! / external!.max! * 100 >= passingScore ? 'correct' : 'wrong' : 'empty'
+    : row.verdict === 'review' && teacherReviewed ? 'checked' : row.verdict
+  const label = row.testly ? returned ? t('На доработке') : external?.pending ? t('На проверке в Тестли') : points ? testlyPoints(external!.got!, external!.max!) : t('Нет результата')
+    : tone === 'checked' ? t('Проверено') : t(verdictLabel(row.verdict))
+  const showReference = !row.testly && row.correct && ['wrong', 'hint', 'empty', 'review'].includes(row.verdict)
+  return <section className="jh-task-answer" aria-label={t('Задание') + ' ' + row.n}>
+    <header><span className="jh-task-number">{String(row.n).padStart(2, '0')}</span><h3>{bindShortWords(row.prompt)}</h3><span className={'jh-answer-verdict jh-verdict-' + tone}>{label}</span></header>
+    {row.testly ? <div className="jh-external-answer"><span>{external?.submittedAt ? t('Сдан') + ' ' + new Date(external.submittedAt).toLocaleDateString('ru-RU', {day:'numeric',month:'short'}) : t('Результат теста из Тестли')}</span>
+      <a href={testlyResultsUrl(row.testly.testId)} target="_blank" rel="noopener noreferrer">{external?.pending ? t('Проверить в Тестли') : t('Разбор в Тестли')}<ExternalLink size={13}/></a></div>
+      : <div className={'jh-answer-comparison' + (showReference ? ' jh-with-reference' : '')}><div><small>{t('Ответ ученика')}</small>
+        {row.voice ? <AudioPlayer audioUrl={row.answer} compact/> : <p>{row.answer || t('Ответа нет.')}</p>}
+        {row.heard && row.verdict !== 'correct' && <p className="jh-transcript">{t('Машина услышала')}: {row.heard}</p>}
+      </div>{showReference && <div className="jh-reference-answer"><small>{t('Правильный ответ')}</small><p>{row.correct}</p></div>}</div>}
+  </section>
+}
+
+export default function BasicAnswersList({ payload, studentId, teacherReviewed = false, appearance = 'default', showSummary = true, passingScore = 80 }: {
+  payload: BasicAnswersPayload; studentId?: string; teacherReviewed?: boolean; appearance?: 'default' | 'review'; showSummary?: boolean; passingScore?: number
+}) {
   const t = useT()
   const [showPassed, setShowPassed] = useState(false)
   // Тесты из Тестли: балл переспрашиваем — у теста с ручной частью итог
@@ -212,7 +235,7 @@ export default function BasicAnswersList({ payload, studentId }: { payload: Basi
   const autoGradable = Math.max(0, payload.gradable - testlyRows.length)
   // Устные задания и описания картинок — то, ради чего преподаватель сюда и
   // заходит: машина их не проверяет, а раньше они вообще не доезжали.
-  const reviewCount = payload.rows.filter(r => r.verdict === 'review' || r.verdict === 'skip').length
+  const reviewCount = teacherReviewed ? 0 : payload.rows.filter(r => r.verdict === 'review' || r.verdict === 'skip').length
   const hintCount = payload.rows.filter(r => r.verdict === 'hint').length
   const passed = payload.rows.filter(isPassedVoice)
   // Порядок заданий сохраняется: свёрнутые не выдёргиваются наверх, а просто
@@ -223,7 +246,7 @@ export default function BasicAnswersList({ payload, studentId }: { payload: Basi
 
   return (
     <div className="flex flex-col" style={{ gap: 10 }}>
-      <div className="flex items-center flex-wrap" style={{ gap: 8 }}>
+      {showSummary && <div className="flex items-center flex-wrap" style={{ gap: 8 }}>
         {autoGradable > 0 && (
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
             {t('Автопроверка')}: {String(autoCorrect).replace('.', ',')} / {autoGradable}
@@ -260,7 +283,7 @@ export default function BasicAnswersList({ payload, studentId }: { payload: Basi
             {t('С подсказкой')}: {hintCount}
           </span>
         )}
-      </div>
+      </div>}
       {passed.length > 0 && (
         <button
           onClick={() => setShowPassed(v => !v)}
@@ -274,7 +297,8 @@ export default function BasicAnswersList({ payload, studentId }: { payload: Basi
           </span>
         </button>
       )}
-      {rows.map(row => <AnswerCard key={row.n} row={row} live={row.testly ? live[row.testly.testId] : undefined} />)}
+      {rows.map(row => appearance === 'review' ? <ReviewAnswer key={row.n} row={row} live={row.testly ? live[row.testly.testId] : undefined} teacherReviewed={teacherReviewed} passingScore={passingScore}/>
+        : <AnswerCard key={row.n} row={row} live={row.testly ? live[row.testly.testId] : undefined} teacherReviewed={teacherReviewed} />)}
     </div>
   )
 }
