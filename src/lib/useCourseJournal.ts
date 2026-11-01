@@ -3,13 +3,19 @@ import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { useAllStudentsSnapshot, useGroups } from './useGroups'
 import type { CourseJournalData } from './courseJournal'
-import { journalPages, journalBatches } from './journalRequests'
+import { journalPages, journalBatches, journalRowsById } from './journalRequests'
 import { journalPages as adaptiveJournalPages, journalParallelPages } from './journalPages'
 import { createAuthDataChangeGuard } from './authDataChange'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
   const started = performance.now()
+  if (table === 'lessons' && field === 'id') {
+    const rows = await journalRowsById<T>(ids, signal, batch => supabase.from(table).select(columns)
+      .in('id', batch).order('id').range(0, batch.length - 1).abortSignal(signal).retry(false))
+    console.debug('[journal-read] ' + JSON.stringify({ table, rows: rows.length, ms: Math.round(performance.now() - started), exactIds: true }))
+    return rows
+  }
   const rows = await journalBatches(ids, batch => {
     const build = (offset: number, size: number) => supabase.from(table).select(columns)
       .in(field, batch).order(table === 'teacher_lesson_sessions' ? 'schedule_id' : 'id')
