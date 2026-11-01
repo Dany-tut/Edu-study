@@ -10,6 +10,7 @@ import MobileHome from '../components/MobileHome'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import type { DiaryTab } from './StudentDiaryPage'
+import { readStudentDiaryView, saveStudentDiaryView } from '../lib/studentDiaryViews'
 import { useDiaryRemindersInit } from '../lib/diaryReminders'
 import LessonPage from './LessonPage'
 import TestFlow from '../components/TestFlow'
@@ -18,7 +19,7 @@ import NotificationToastContainer from '../components/NotificationToast'
 import { useNotificationsInit } from '../lib/notificationsSync'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
 import { retryImport } from '../lib/chunkError'
 import Skeleton from '../components/Skeleton'
 import { findLessonById, getExtraHomeworks, getLessonDetail } from '../data/lessonContent'
@@ -277,7 +278,13 @@ export default function DashboardPage() {
   // вынесен отдельным слоем (см. ниже, «Каталог не размонтируется»), а условия
   // нужны обеим сторонам — поэтому считаем их один раз здесь.
   const lessonWaiting = (!lesson && !dataLoaded) || lessonPending
-  const [diaryTab, setDiaryTab] = useState<DiaryTab>('today')
+  const diaryOwner = getStudentSession()?.id ?? null
+  const [diaryTab, setDiaryTabValue] = useState<DiaryTab>(() => readStudentDiaryView(diaryOwner))
+  useEffect(() => { setDiaryTabValue(readStudentDiaryView(diaryOwner)) }, [diaryOwner])
+  const setDiaryTab = useCallback((view: DiaryTab) => {
+    setDiaryTabValue(view)
+    saveStudentDiaryView(diaryOwner, view)
+  }, [diaryOwner])
   const diaryFocusNonce = useDashboard(s => s.moduleFocusNonce)
   useEffect(() => { if (useDashboard.getState().coursesFocusLessonId) setDiaryTab('lessons') }, [diaryFocusNonce])
   const showDiary = activePage === 'courses'

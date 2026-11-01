@@ -85,6 +85,9 @@ jobs:
       # логе раньше. Четыре последних гоняются через esbuild (они импортируют
       # исходники приложения), поэтому идут в конце.
 
+      - name: Виды дневника (check:diary-views)
+        run: npm run check:diary-views
+
       - name: Словарь слов (check:gloss)
         id: gloss
         continue-on-error: true

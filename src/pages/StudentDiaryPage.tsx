@@ -29,6 +29,7 @@ import {
   sortStudentDiary,
   type StudentDiaryEntry,
 } from '../lib/studentDiary'
+import { diaryUpcomingDays, groupDiaryTimeline } from '../lib/studentDiaryViews'
 import { useDiaryReminders } from '../lib/diaryReminders'
 import { gradedTrackResult } from '../lib/homeworkResult'
 import { getTrackLessonStatus } from '../lib/lessonStatus'
@@ -168,6 +169,9 @@ export default function StudentDiaryPage({
   const [subject, setSubject] = useState('*'),
     [course, setCourse] = useState('*'),
     [state, setState] = useState('action')
+  const [feedDay, setFeedDay] = useState<string | null>(null)
+  const diaryOwner = getStudentSession()?.id ?? null
+  useEffect(() => { setSubject('*'); setCourse('*'); setState('action'); setFeedDay(null) }, [diaryOwner])
   const [sort, setSort] = useState('priority'),
     [descending, setDescending] = useState(false)
   const [reminder, setReminder] = useState<StudentDiaryEntry | null>(null),
@@ -207,6 +211,7 @@ export default function StudentDiaryPage({
   }, [reminder, t])
   const clock = wallDateTimeInTz(now.toISOString(), tz),
     today = clock.day
+  useEffect(() => { setFeedDay(null) }, [today])
   const entries = useMemo(
     () => buildStudentDiary(subjects, metadata, progress, now),
     [subjects, metadata, progress, now],
@@ -361,7 +366,7 @@ export default function StudentDiaryPage({
                         {status === 'completed' || status === 'test_passed' ? (
                           <Check size={16} />
                         ) : (
-                          lesson.number
+                          lesson.number + 1
                         )}
                       </span>
                       <small>
@@ -372,35 +377,94 @@ export default function StudentDiaryPage({
                 })}
             </div>
             <div className="ds-course-work">{works.filter(diaryNeedsAction).slice(0, 3).map(row)}</div>
-            <button type="button" className="ds-text-action" onClick={() => openCourse(item.id)}>
-              {t('Все уроки')}
-              <ArrowRight size={15} />
-            </button>
+            <div className="ds-course-links">
+              {works.filter(diaryNeedsAction).length > 3 ? <button type="button" className="ds-text-action" onClick={() => {
+                setCourse(item.id); setSubject('*'); setState('action'); setFeedDay(null); setTab('work')
+              }}>{t('Все задания')}<ArrowRight size={15}/></button> : null}
+              <button type="button" className="ds-text-action" onClick={() => openCourse(item.id)}>
+                {t('Все уроки')}<ArrowRight size={15} />
+              </button>
+            </div>
           </>
         ) : null}
       </section>
     )
   }
+  const upcomingCard = (upcoming ? (
+                <section className="ds-upcoming">
+                  <div className="ds-section-head">
+                    <h2>{t(upcoming.event.isCurrent ? 'Идёт сейчас' : 'Ближайший урок')}</h2>
+                    <span className="ds-live-dot" />
+                  </div>
+                  <div className="ds-upcoming-time">
+                    {upcoming.row.time}
+                    <small>
+                      {' '}
+                      ·{' '}
+                      {upcoming.day === today
+                        ? t('Сегодня')
+                        : new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
+                            day: 'numeric',
+                            month: 'short',
+                            timeZone: 'UTC',
+                          }).format(new Date(upcoming.day + 'T12:00:00Z'))}
+                    </small>
+                  </div>
+                  <p className="ds-course-label">{upcoming.row.subject}</p>
+                  <h3>{upcoming.row.lessonTitle}</h3>
+                  <div className="ds-upcoming-bottom">
+                    <span>
+                      <Video size={15} />
+                      {upcoming.row.endTime ? `${upcoming.row.time}–${upcoming.row.endTime}` : ''}
+                    </span>
+                    <button
+                      type="button"
+                      className="ds-round"
+                      aria-label={t('Открыть урок')}
+                      onClick={() =>
+                        upcoming.lesson
+                          ? openLesson(upcoming.lesson.id)
+                          : useDashboard.getState().setActivePage('home')
+                      }
+                    >
+                      <ArrowRight size={17} />
+                    </button>
+                  </div>
+                </section>
+              ) : (
+                <section className="ds-section ds-no-lesson">
+                  <CalendarIcon />
+                  <h3>{t('Ближайших занятий пока нет')}</h3>
+                  <p>{t('Новые занятия появятся здесь после добавления в расписание.')}</p>
+                </section>
+              ))
+  const feedDays = diaryUpcomingDays(today)
+  const timeline = sort === 'priority' || sort === 'due'
+    ? groupDiaryTimeline(list, feedDay, entry => diaryOverdue(entry, today), sort === 'due' && descending)
+    : [{key: feedDay ?? 'all', entries: list.filter(entry => !feedDay || entry.due === feedDay)}].filter(group => group.entries.length)
+  const feedDate = (day: string) => new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
+    day: 'numeric', month: 'short', timeZone: 'UTC',
+  }).format(new Date(day + 'T12:00:00Z'))
+  const feedTitle = (key: string) => key === 'all' ? t('Все задания') : key === 'overdue' ? t('Просрочено') : key === 'undated' ? t('Без срока')
+    : key === today ? t('Сегодня') : feedDate(key)
+
   return (
     <div className="student-diary">
       <h1 className="sr-only">{t('Дневник')}</h1>
       <div className="ds-page-heading">
         <p>{dateLabel}</p>
       </div>
-      <div className="ds-tabs" aria-label={t('Представление дневника')}>
-        {(
-          [
-            ['today', 'Сегодня'],
-            ['work', 'Задания'],
-            ['courses', 'Курсы'],
-            ['lessons', 'Уроки'],
-          ] as const
-        ).map(([id, label]) => (
-          <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>
-            {t(label)}
-            {id === 'work' && actions.length ? <span>{actions.length}</span> : null}
-          </button>
-        ))}
+      <div className="ds-view-navigation">
+        <div className="ds-tabs" role="group" aria-label={t('Представление дневника')}>
+          {([['today', 'Фокус'], ['work', 'Лента'], ['courses', 'По курсам']] as const).map(([id, label]) => (
+            <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>
+              {t(label)}{id === 'work' && actions.length ? <span>{actions.length}</span> : null}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="ds-secondary ds-lesson-catalog" aria-pressed={tab === 'lessons'} onClick={() => setTab('lessons')}>
+          {t('Уроки')}<ChevronRight size={15}/>
+        </button>
       </div>
       {tab !== 'lessons' ? (
         <div className="ds-scope">
@@ -496,10 +560,30 @@ export default function StudentDiaryPage({
               {t(descending ? 'По убыванию' : 'По возрастанию')}
             </button>
           </div>
-          <section className="ds-section ds-all-work">
-            {list.map(row)}
-            {!list.length ? empty(pending ? 'Загружаем задания…' : 'По этим фильтрам работ нет') : null}
-          </section>
+          <div className="ds-feed-grid">
+            <aside className="ds-feed-aside">
+              <section className="ds-feed-planner" aria-label={t('План на неделю')}>
+                <div className="ds-section-head"><h2>{t('План на неделю')}</h2><BookOpen size={17}/></div>
+                <button type="button" className="ds-feed-all" aria-pressed={feedDay === null} onClick={() => setFeedDay(null)}>{t('Все сроки')}</button>
+                <div className="ds-day-picker" role="group" aria-label={t('Дни недели')}>
+                  {feedDays.map(day => <button key={day} type="button" aria-label={feedDate(day)} aria-pressed={feedDay === day}
+                    onClick={() => setFeedDay(feedDay === day ? null : day)}>
+                    <span>{new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {weekday:'short',timeZone:'UTC'}).format(new Date(day+'T12:00:00Z'))}</span>
+                    <strong>{Number(day.slice(-2))}</strong><i aria-hidden="true" data-has-work={list.some(entry => entry.due === day) || undefined}/>
+                  </button>)}
+                </div>
+                <p>{feedDay ? feedDate(feedDay) : t('Все сроки')} · {timeline.reduce((count, group) => count + group.entries.length, 0)} {t('ДЗ')}</p>
+              </section>
+              {feedDay === null || upcoming?.day === feedDay ? upcomingCard : null}
+            </aside>
+            <main className="ds-feed-timeline" aria-label={t('Лента заданий')}>
+              {timeline.map(group => <section className="ds-feed-event" key={group.key}>
+                <div className="ds-section-head"><h2>{feedTitle(group.key)}</h2><span>{group.entries.length} {t('ДЗ')}</span></div>
+                <div className="ds-section ds-all-work">{group.entries.map(row)}</div>
+              </section>)}
+              {!timeline.length ? <section className="ds-section ds-all-work">{empty(pending ? 'Загружаем задания…' : feedDay ? 'На этот день заданий нет' : 'По этим фильтрам работ нет')}</section> : null}
+            </main>
+          </div>
         </>
       ) : (
         <>
@@ -556,7 +640,9 @@ export default function StudentDiaryPage({
                       ? 'Загружаем задания…'
                       : error
                         ? 'Задания временно недоступны'
-                        : 'Все дела выполнены',
+                        : !scoped.length
+                          ? 'Пока нет домашних заданий'
+                          : 'Все дела выполнены',
                   )}
                 </section>
               )}
@@ -579,54 +665,7 @@ export default function StudentDiaryPage({
               ) : null}
             </main>
             <aside>
-              {upcoming ? (
-                <section className="ds-upcoming">
-                  <div className="ds-section-head">
-                    <h2>{t(upcoming.event.isCurrent ? 'Идёт сейчас' : 'Ближайший урок')}</h2>
-                    <span className="ds-live-dot" />
-                  </div>
-                  <div className="ds-upcoming-time">
-                    {upcoming.row.time}
-                    <small>
-                      {' '}
-                      ·{' '}
-                      {upcoming.day === today
-                        ? t('Сегодня')
-                        : new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
-                            day: 'numeric',
-                            month: 'short',
-                            timeZone: 'UTC',
-                          }).format(new Date(upcoming.day + 'T12:00:00Z'))}
-                    </small>
-                  </div>
-                  <p className="ds-course-label">{upcoming.row.subject}</p>
-                  <h3>{upcoming.row.lessonTitle}</h3>
-                  <div className="ds-upcoming-bottom">
-                    <span>
-                      <Video size={15} />
-                      {upcoming.row.endTime ? `${upcoming.row.time}–${upcoming.row.endTime}` : ''}
-                    </span>
-                    <button
-                      type="button"
-                      className="ds-round"
-                      aria-label={t('Открыть урок')}
-                      onClick={() =>
-                        upcoming.lesson
-                          ? openLesson(upcoming.lesson.id)
-                          : useDashboard.getState().setActivePage('home')
-                      }
-                    >
-                      <ArrowRight size={17} />
-                    </button>
-                  </div>
-                </section>
-              ) : (
-                <section className="ds-section ds-no-lesson">
-                  <CalendarIcon />
-                  <h3>{t('Ближайших занятий пока нет')}</h3>
-                  <p>{t('Новые занятия появятся здесь после добавления в расписание.')}</p>
-                </section>
-              )}
+              {upcomingCard}
               {recommendation ? (
                 <section className="ds-recommend">
                   <span className="ds-recommend-icon">
