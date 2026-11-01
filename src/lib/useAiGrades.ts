@@ -5,7 +5,7 @@
  * решение учителя отмечает hw_ai_grade_confirm() — после того как проверка
  * уже записана прежним путём (reviewHomework).
  */
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 
 export type AiGradeStatus =
@@ -31,44 +31,62 @@ export interface AiGrade {
   teacherNote: string
   tasks: AiGradeTask[]
   error: string
+  attemptId?: string
+  submittedAt?: string
+  nextRetryAt?: string | null
 }
 
-/** Предоценки по строкам lesson_progress. Пока ИИ проверяет — опрос раз в 20 с. */
-export function useAiGrades(progressIds: string[]): { byProgress: Map<string, AiGrade>; reload: () => Promise<void> } {
+/** Предоценки по строкам lesson_progress. Пока ИИ проверяет — опрос раз в 10 с. */
+export function useAiGrades(progressIds: string[]): { byProgress: Map<string, AiGrade>; reload: () => Promise<void>; error: string; loading: boolean } {
   const [byProgress, setByProgress] = useState<Map<string, AiGrade>>(new Map())
-  const key = [...progressIds].sort().join(',')
-
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+  const key = [...new Set(progressIds)].sort().join(',')
+  const activeKey = useRef(key)
+  const sequence = useRef(0)
+  activeKey.current = key
   const load = useCallback(async () => {
-    if (!key) { setByProgress(new Map()); return }
-    const { data, error } = await supabase
-      .from('hw_ai_grades')
-      .select('id, progress_id, status, score, primary_score, max_score, comment, result, error')
+    const seq = ++sequence.current
+    if (!key) { setByProgress(new Map()); setLoading(false); setError(''); return }
+    const { data, error: failure } = await supabase.from('hw_ai_grades')
+      .select('id, progress_id, status, score, primary_score, max_score, comment, result, error, submitted_at, next_retry_at')
       .in('progress_id', key.split(','))
-    if (error) { console.error('[useAiGrades]', error); return }
-    setByProgress(new Map((data ?? []).map((r: any) => [r.progress_id, {
-      id: r.id,
-      progressId: r.progress_id,
-      status: r.status,
-      score: r.score,
-      primary: r.primary_score,
-      max: r.max_score,
-      comment: r.comment ?? '',
-      teacherNote: r.result?.teacher_note ?? '',
-      tasks: Array.isArray(r.result?.tasks) ? r.result.tasks : [],
-      error: r.error ?? '',
+    if (activeKey.current !== key || seq !== sequence.current) return
+    setLoading(false)
+    if (failure) { setError('unavailable'); return }
+    setError('')
+    setByProgress(new Map((data ?? []).map(r => [r.progress_id, {
+      id:r.id, progressId:r.progress_id, status:r.status, score:r.score,
+      primary:r.primary_score, max:r.max_score, comment:r.comment ?? '',
+      teacherNote:r.result?.teacher_note ?? '', tasks:Array.isArray(r.result?.tasks) ? r.result.tasks : [],
+      error:r.error ?? '', attemptId:r.result?.attempt_id ?? undefined,
+      submittedAt:r.submitted_at, nextRetryAt:r.next_retry_at,
     } satisfies AiGrade])))
   }, [key])
-
-  useEffect(() => { void load() }, [load])
-
-  const waiting = [...byProgress.values()].some(g => g.status === 'pending' || g.status === 'working')
+  useEffect(() => { setByProgress(new Map()); setLoading(!!key); void load() }, [key,load])
+  const waiting = !!key && (byProgress.size < key.split(',').length || !!error || [...byProgress.values()].some(g => g.status === 'pending' || g.status === 'working' || !!g.nextRetryAt))
   useEffect(() => {
     if (!waiting) return
-    const id = setInterval(() => { void load() }, 20_000)
+    const id = setInterval(() => { void load() }, 10_000)
     return () => clearInterval(id)
-  }, [waiting, load])
+  }, [waiting,load])
+  return { byProgress, reload:load, error, loading }
+}
 
-  return { byProgress, reload: load }
+export type AiRequestResult = { ok: boolean; error?: string }
+export async function requestAiGrade(progressId: string, retry = false): Promise<AiRequestResult> {
+  try {
+    const { data, error } = await supabase.functions.invoke('hw-grade-run', { body:{ action:retry ? 'retry' : 'start', progressId } })
+    if (error) {
+      const context = error.context
+      if (context instanceof Response) {
+        const body = await context.json().catch(() => ({}))
+        return { ok:false, error:body.error || 'unavailable' }
+      }
+      return { ok:false, error:'unavailable' }
+    }
+    return data?.ok ? { ok:true } : { ok:false, error:data?.error || 'unavailable' }
+  } catch { return { ok:false, error:'unavailable' } }
 }
 
 /** Учитель поставил балл после предоценки: confirmed, если совпал с ИИ, иначе changed. */

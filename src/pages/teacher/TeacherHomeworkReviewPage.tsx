@@ -11,9 +11,9 @@ import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
 import { useT, t, useTc } from '../../lib/i18n'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import type { BasicAnswerRow, BasicAnswersPayload } from '../../lib/basicAnswers'
-import AiGradeCard from '../../components/teacher/AiGradeCard'
-import { useAiGrades, confirmAiGrade, type AiGrade } from '../../lib/useAiGrades'
+import { useAiGrades, confirmAiGrade, requestAiGrade, type AiGrade, type AiRequestResult } from '../../lib/useAiGrades'
 import { Alert } from '../../components/Alert'
+import { aiCommentHtml } from '../../lib/homeworkAiState'
 import { AiReviewSummary, AiTaskFeedback, AiCommentDraft, aiReviewLabel } from '../../components/teacher/journalStand/AiReviewConcept'
 import HomeworkReviewScroll from '../../components/teacher/HomeworkReviewScroll'
 import '../../components/teacher/journalStand/homeworkReview.css'
@@ -177,12 +177,12 @@ export default function TeacherHomeworkReviewPage() {
       useTeacher.setState({reviewingStudentId:null})
     }
   }, [reviewingStudentId, submitters, setReviewIdx])
-  const { byProgress: aiByProgress, reload: reloadAi } = useAiGrades(rawSubmissions.map(s => s.id))
+  const { byProgress: aiByProgress, reload: reloadAi, error: aiLoadError, loading: aiLoading } = useAiGrades(rawSubmissions.map(s => s.id))
   return <HomeworkReviewEditor key={hw?.id} hw={hw} group={group} submitters={submitters} submissions={rawSubmissions}
     reviewIdx={reviewIdx} setReviewIdx={setReviewIdx} onBack={() => setActivePage(reviewReturnPage)}
     returnLabel={reviewReturnPage === 'gradebook' ? 'В журнал' : reviewReturnPage === 'home' ? 'На главную' : 'К списку ДЗ'}
     onReview={reviewHomework} reloadSubmissions={reloadSubmissions} aiByProgress={aiByProgress}
-    reloadAi={reloadAi} onConfirmAi={confirmAiGrade}/>
+    reloadAi={reloadAi} onConfirmAi={confirmAiGrade} onRequestAi={requestAiGrade} aiLoadError={aiLoadError} aiLoading={aiLoading}/>
 }
 
 type ReviewAttachments = { photos: string[]; board: string | null }
@@ -194,11 +194,13 @@ export type HomeworkReviewEditorProps = {
   reloadSubmissions?: () => Promise<void>; aiByProgress?: Map<string, AiGrade>
   reloadAi?: () => Promise<void>; onConfirmAi?: (id: string, score: number) => Promise<boolean>
   embedded?: boolean; aiConcept?: boolean
+  onRequestAi?: (progressId: string, retry?: boolean) => Promise<AiRequestResult>
+  aiLoadError?: string; aiLoading?: boolean
 }
 
 /** The production editor, with explicit data/save adapters for the isolated development stand. */
 export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSubmissions, reviewIdx, setReviewIdx,
-  onBack, returnLabel, onReview, reloadSubmissions, aiByProgress, reloadAi, onConfirmAi, embedded = false, aiConcept = false}: HomeworkReviewEditorProps) {
+  onBack, returnLabel, onReview, reloadSubmissions, aiByProgress, reloadAi, onConfirmAi, embedded = false, aiConcept = false, onRequestAi, aiLoadError = '', aiLoading = false}: HomeworkReviewEditorProps) {
   const t = useT()
   const { tc, tn } = useTc()
   const subByStudent = useMemo(() => new Map(rawSubmissions.map(s => [s.studentId, s])), [rawSubmissions])
@@ -216,6 +218,29 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   const [saveError, setSaveError] = useState('')
   const aiDetailsRef = useRef<HTMLDivElement>(null)
   const showAiConcept = embedded && aiConcept
+  const showAiReview = showAiConcept || !embedded
+  const [aiRequests, setAiRequests] = useState<Record<string,{busy:boolean;error:string}>>({})
+  const autoRequested = useRef(new Set<string>())
+  const activeSubmission = rawSubmissions.find(sub=>sub.studentId===submitters[idx]?.id)
+  const activeGrade = activeSubmission ? aiByProgress?.get(activeSubmission.id) : undefined
+  const activeAttempt = activeSubmission?.answers?.attemptId
+  async function askAi(submission: HwSubmission, retry = false) {
+    if (!onRequestAi) return
+    const id = submission.id
+    setAiRequests(old=>({...old,[id]:{busy:true,error:''}}))
+    try {
+      const result = await onRequestAi(id,retry)
+      setAiRequests(old=>({...old,[id]:{busy:false,error:result.error??''}}))
+      if(result.ok) await reloadAi?.()
+    } catch { setAiRequests(old=>({...old,[id]:{busy:false,error:'unavailable'}})) }
+  }
+  useEffect(()=>{
+    if(embedded||aiLoading||aiLoadError||!onRequestAi||!activeSubmission||activeSubmission.verdict!=='pending')return
+    const key=activeSubmission.id+':'+(activeAttempt??activeSubmission.submittedAt??'')
+    if(autoRequested.current.has(key)||activeGrade&&activeGrade.status!=='pending')return
+    autoRequested.current.add(key)
+    void askAi(activeSubmission)
+  },[embedded,aiLoading,aiLoadError,onRequestAi,activeSubmission?.id,activeAttempt,activeSubmission?.submittedAt,activeSubmission?.verdict,activeGrade?.status])
   const setHeaderDocked = useTeacher(s=>s.setHeaderDocked)
   useEffect(()=>{if(!embedded)setHeaderDocked(false)},[embedded,setHeaderDocked])
   useEffect(()=>{setSaveError('')},[submitters[idx]?.id])
@@ -263,7 +288,9 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
     }
   })()
   const reviewed = currentSubmission?.verdict === 'accepted' || currentSubmission?.verdict === 'returned'
-  const aiGrade = currentSubmission ? aiByProgress?.get(currentSubmission.id) : undefined
+  const savedAiGrade = currentSubmission ? aiByProgress?.get(currentSubmission.id) : undefined
+  const aiGrade = savedAiGrade?.attemptId && currentSubmission?.answers?.attemptId && savedAiGrade.attemptId !== currentSubmission.answers.attemptId ? undefined : savedAiGrade
+  const aiRequest = currentSubmission ? aiRequests[currentSubmission.id] : undefined
   const draftKey = `hwReview:${hw.id}:${student.id}`
   const savedDraft: Partial<ReviewDraft> = drafts[student.id] ?? readDraft<Partial<ReviewDraft>>(draftKey) ?? {}
   const draft: ReviewDraft = {
@@ -341,7 +368,7 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   const filteredStudents = submitters.filter(s=>tn(s.name).toLocaleLowerCase('ru').includes(studentSearch.toLocaleLowerCase('ru')))
   const currentStatus = currentSubmission?.verdict==='accepted'?t('Проверено'):currentSubmission?.verdict==='returned'?t('На доработке'):t('На проверке')
   const nav = <div className="hr-student-nav"><button type="button" className="hr-icon-button" aria-label={t('Предыдущая работа')} disabled={busy||idx===0} onClick={()=>go(idx-1)}><ChevronLeft size={17}/></button><span>{idx+1} / {submitters.length}</span><button type="button" className="hr-icon-button" aria-label={t('Следующая работа')} disabled={busy||idx===submitters.length-1} onClick={()=>go(idx+1)}><ChevronRight size={17}/></button></div>
-  return <section className={'hr-workspace'+(embedded?' hr-embedded':'')+(showAiConcept?' hr-ai-concept':'')} aria-label={t('Полная проверка домашнего задания')}>
+  return <section className={'hr-workspace'+(embedded?' hr-embedded':'')+(showAiReview?' hr-ai-concept':'')} aria-label={t('Полная проверка домашнего задания')}>
     <header className="hr-workspace-top"><button type="button" className="hr-button hr-back" disabled={busy} onClick={onBack}><ChevronLeft size={16}/>{t(returnLabel)}</button>
       <div className="hr-workspace-title"><span>{t('Полная проверка')}</span><h1>{tc(hw.title)}</h1></div>{showAiConcept&&<span className="aic-preview-badge">✦ Концепт ИИ</span>}<span className="hr-group-label">{group.name}</span>
     </header>
@@ -350,7 +377,7 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
         <label className="hr-roster-search"><Search size={14}/><input type="search" aria-label={t('Найти ученика в полной проверке')} placeholder={t('Найти ученика')} value={studentSearch} onChange={e=>setStudentSearch(e.target.value)}/></label>
         <HomeworkReviewScroll label={t('Список работ учеников')} className="hr-roster-scroll" contentClassName="hr-roster-list">
           {filteredStudents.map(s=>{const index=submitters.findIndex(v=>v.id===s.id),submission=subByStudent.get(s.id);return <button type="button" key={s.id} className="hr-roster-student" disabled={busy} aria-pressed={s.id===student.id} onClick={()=>go(index)}>
-            <span className="hr-roster-avatar">{initials(tn(s.name))}</span><span><strong>{tn(s.name)}</strong><small>{submission?.verdict==='accepted'?t('Проверено'):submission?.verdict==='returned'?t('На доработке'):t('На проверке')}</small>{showAiConcept&&<small className="aic-roster-status">{aiReviewLabel(submission?aiByProgress?.get(submission.id):undefined)}</small>}</span><b className={submission?.verdict==='accepted'?'hr-passed':'hr-pending'}>{submission?.verdict==='accepted'?submission.score+'%':'●'}</b>
+            <span className="hr-roster-avatar">{initials(tn(s.name))}</span><span><strong>{tn(s.name)}</strong><small>{submission?.verdict==='accepted'?t('Проверено'):submission?.verdict==='returned'?t('На доработке'):t('На проверке')}</small>{showAiReview&&<small className="aic-roster-status">{aiReviewLabel(submission?aiByProgress?.get(submission.id):undefined)}</small>}</span><b className={submission?.verdict==='accepted'?'hr-passed':'hr-pending'}>{submission?.verdict==='accepted'?submission.score+'%':'●'}</b>
           </button>})}
           {!filteredStudents.length&&<p className="hr-muted">{t('Ученик не найден')}</p>}
         </HomeworkReviewScroll>
@@ -363,9 +390,9 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
           {showAiConcept&&<div className="aic-demo-hint"><span>✦ Разбор рядом с ответами</span><span>Учебные критерии · итог утверждаете вы</span></div>}
           <section className="hr-answers"><div className="hr-section-title"><h3><ClipboardList size={16}/>{t('Ответы ученика')}</h3>{currentSubmission?.submittedAt&&<span>{formatSubmittedAt(currentSubmission.submittedAt)}</span>}</div>
             {currentSubmission?.comment&&<p className="hr-submission-comment">{currentSubmission.comment}</p>}
-            {currentAnswers?(showAiConcept?currentAnswers.rows.map(row=>{const task=aiGrade?.tasks.find(task=>task.n===row.n);return <div key={row.n} className="aic-answer-block" ref={row.n===(aiGrade?.tasks.find(task=>task.points<task.max_points)?.n??1)?aiDetailsRef:undefined}><BasicAnswersList payload={{...currentAnswers,rows:[row]}} teacherReviewed={currentSubmission?.verdict==='accepted'} appearance="review" showSummary={false} passingScore={passingScore}/>{task&&<AiTaskFeedback key={student.id+':'+row.n} task={task}/>}</div>}):<BasicAnswersList payload={currentAnswers} studentId={embedded?undefined:student.id} teacherReviewed={currentSubmission?.verdict==='accepted'} appearance="review" showSummary={false} passingScore={passingScore}/>):!currentSubmission?.comment&&<p className="hr-muted">{t('Ответы этой сдачи не сохранились.')}</p>}
+            {currentAnswers?(showAiReview?currentAnswers.rows.map(row=>{const task=aiGrade?.tasks.find(task=>task.n===row.n);return <div key={row.n} className="aic-answer-block" ref={row.n===(aiGrade?.tasks.find(task=>task.points<task.max_points)?.n??1)?aiDetailsRef:undefined}><BasicAnswersList payload={{...currentAnswers,rows:[row]}} studentId={embedded?undefined:student.id} teacherReviewed={currentSubmission?.verdict==='accepted'} appearance="review" showSummary={false} passingScore={passingScore}/>{task&&<AiTaskFeedback key={student.id+':'+row.n} task={task}/>}</div>}):<BasicAnswersList payload={currentAnswers} studentId={embedded?undefined:student.id} teacherReviewed={currentSubmission?.verdict==='accepted'} appearance="review" showSummary={false} passingScore={passingScore}/>):!currentSubmission?.comment&&<p className="hr-muted">{t('Ответы этой сдачи не сохранились.')}</p>}
           </section>
-          {aiGrade&&!showAiConcept&&<section className="hr-feedback-section"><AiGradeCard grade={aiGrade} onAccept={()=>{if(aiGrade.score!=null)void handleVerdict('accepted',{score:aiGrade.score,comment:aiGrade.comment})}} onEdit={()=>setDraft({...(aiGrade.score!=null?{score:String(aiGrade.score)}:{}),...(aiGrade.comment?{comment:aiGrade.comment}:{})})}/></section>}
+
           <section className="hr-feedback-section"><div className="hr-section-title"><h3><PenLine size={16}/>{t('Разбор преподавателя')}</h3></div>
             <ReviewAttachEditor key={student.id} photos={draft.photos} board={draft.board} onPhotos={photos=>setDraft({photos})} onBoard={board=>setDraft({board})}/>
           </section>
@@ -373,11 +400,11 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
         </HomeworkReviewScroll>
       </article>
       <aside className="hr-inspector" aria-label={t('Оценка и комментарий')}><div className="hr-panel-heading"><h2>{t('Проверка работы')}</h2>{reviewed&&<CheckCircle2 size={16}/>}</div>
-        <div className="hr-inspector-fields">
-          {showAiConcept&&aiGrade&&<AiReviewSummary grade={aiGrade} reviewed={reviewed} busy={busy} onApply={()=>{if(aiGrade.score!==null)setDraft({score:String(aiGrade.score)})}} onDetails={()=>aiDetailsRef.current?.scrollIntoView({block:'nearest'})}/>}
+        <HomeworkReviewScroll key={'inspector:'+student.id} label={t('Оценка, комментарий и предложения ИИ')} className="hr-inspector-scroll" contentClassName="hr-inspector-fields">
+          {showAiReview&&<AiReviewSummary grade={aiGrade} reviewed={reviewed} busy={busy||!!aiRequest?.busy} loading={aiLoading} requestError={aiLoadError||(aiGrade&&['graded','confirmed','changed','dismissed'].includes(aiGrade.status)?'':aiRequest?.error)} onRequest={currentSubmission&&onRequestAi?()=>{if(aiLoadError)void reloadAi?.();else void askAi(currentSubmission,aiGrade?.status==='error'||aiGrade?.status==='skipped')}:undefined} onApply={hasTasks?undefined:()=>{if(aiGrade?.score!=null)setDraft({score:String(aiGrade.score)})}} onDetails={()=>aiDetailsRef.current?.scrollIntoView({block:'nearest'})}/>}
           {hasTasks?<HomeworkReviewScroll key={'grades:'+student.id} label={t('Баллы за задания')} className="hr-task-grades"><TaskScoreGrid tasks={hw.tasks!} taskScores={draft.taskScores} onScoreChange={setTaskScore} groupColor="var(--color-accent)" groupColorSoft="var(--color-purple-soft)" total={taskTotal!} maxTotal={maxTaskTotal!}/></HomeworkReviewScroll>:<div className="hr-grade-block"><label>{t('Итоговый результат')}<div><input aria-label={t('Итог ДЗ в процентах')} type="number" min={0} max={100} step="any" value={draft.score} placeholder="—" disabled={busy} onChange={e=>setDraft({score:e.target.value})}/><span>%</span></div></label><div className="hr-score-context">{autoPercent!==null&&<span>{t('Автопроверка')}<b>{autoPercent}%</b></span>}<span>{t('Порог зачёта')}<b>{passingScore}%</b></span></div><div className="hr-quick-scores">{[60,75,85,100].map(value=><button key={value} type="button" disabled={busy} aria-label={t('Поставить')+' '+value+'%'} aria-pressed={Number(draft.score)===value} onClick={()=>setDraft({score:String(value)})}>{value}%</button>)}</div></div>}
-          <div className="hr-review-comment"><h3>{t('Комментарий ученику')}</h3><RichConditionEditor key={student.id} value={draft.comment} onChange={comment=>setDraft({comment})} placeholder={t('Что получилось и что исправить')} minHeight={0} fixedHeight="var(--hr-comment-height, 112px)" fontSize={13} ariaLabel={t('Комментарий ученику в полной проверке')} inputSt={{width:'100%',boxSizing:'border-box',border:'1px solid var(--color-border-soft)',borderRadius:12,background:'var(--color-bg-card)',color:'var(--color-text)',outline:'none',fontFamily:'inherit'}}/>{showAiConcept&&aiGrade?.comment&&aiGrade.status!=='working'&&aiGrade.status!=='pending'&&!reviewed&&<AiCommentDraft key={student.id} comment={aiGrade.comment} busy={busy||draft.comment.includes(aiGrade.comment)} onUse={()=>setDraft({comment:draft.comment.trim()?draft.comment+'<p>'+aiGrade.comment+'</p>':aiGrade.comment})}/>}</div>
-        </div>
+          <div className="hr-review-comment"><h3>{t('Комментарий ученику')}</h3><RichConditionEditor key={'comment:'+student.id} value={draft.comment} onChange={comment=>setDraft({comment})} placeholder={t('Что получилось и что исправить')} minHeight={0} fixedHeight="var(--hr-comment-height, 112px)" fontSize={13} toolbarPlacement="below" ariaLabel={t('Комментарий ученику в полной проверке')} inputSt={{width:'100%',boxSizing:'border-box',border:'1px solid var(--color-border-soft)',borderRadius:12,background:'var(--color-bg-card)',color:'var(--color-text)',outline:'none',fontFamily:'inherit'}}/>{showAiReview&&aiGrade?.comment&&aiGrade.status!=='working'&&aiGrade.status!=='pending'&&!reviewed&&<AiCommentDraft key={'ai-draft:'+student.id} comment={aiGrade.comment} busy={busy||draft.comment.includes(aiGrade.comment)} onUse={()=>setDraft({comment:draft.comment.trim()?draft.comment+'<p>'+aiCommentHtml(aiGrade.comment)+'</p>':aiCommentHtml(aiGrade.comment)})}/>}</div>
+        </HomeworkReviewScroll>
         <div className="hr-review-actions">{saveError&&<p className="hr-save-error" role="alert">{saveError}</p>}<button type="button" className="hr-button hr-primary" disabled={busy} onClick={()=>void handleVerdict('accepted')}><Check size={16}/>{busy?t('Сохраняем…'):t('Завершить проверку')}</button><button type="button" className="hr-button" disabled={busy} onClick={()=>void handleVerdict('returned')}><RotateCcw size={15}/>{t('На доработку')}</button></div>
       </aside>
     </div>

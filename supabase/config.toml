@@ -16,3 +16,7 @@ verify_jwt = false
 [functions.testly-sync]
 # Authenticated with the existing shared Testly bridge secret; never browser-facing.
 verify_jwt = false
+
+[functions.hw-grade-run]
+# JWT is verified inside the handler; cron uses its shared secret.
+verify_jwt = false

@@ -22,6 +22,8 @@ import { motion } from 'framer-motion'
 import { Sparkles, Check, PenLine, ChevronDown, Loader2 } from '../icons/appIcons'
 import type { AiGrade, AiGradeElement, AiGradeTask } from '../../lib/useAiGrades'
 import { useT } from '../../lib/i18n'
+import { Alert } from '../Alert'
+import { homeworkAiIssue } from '../../lib/homeworkAiState'
 
 const MARK: Record<AiGradeElement['verdict'], string> = { yes: '✓', partial: '½', no: '✗' }
 
@@ -32,7 +34,7 @@ function pointsWord(n: number, t: (s: string) => string): string {
   return t('баллов')
 }
 
-export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
+export default function AiGradeCard({ grade, task, done, onAccept, onEdit, onRetry }: {
   grade: AiGrade
   /** Одно сложное задание вместо всей работы. */
   task?: AiGradeTask
@@ -40,9 +42,12 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
   done?: boolean
   onAccept: () => void
   onEdit: () => void
+  onRetry?: () => Promise<void>
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
+  const [retrying,setRetrying] = useState(false)
+  const [retryError,setRetryError] = useState('')
 
   if (grade.status === 'pending' || grade.status === 'working') {
     return (
@@ -51,19 +56,14 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit }: {
         background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 600,
       }}>
         <Loader2 size={15} className="animate-spin" />
-        {t('ИИ проверяет работу по критериям ФИПИ…')}
+        {t(grade.status==='pending'?'Работа в очереди на проверку ИИ…':'ИИ читает ответы и готовит разбор…')}
       </div>
     )
   }
-  if (grade.status === 'error') {
-    return (
-      <div style={{
-        padding: '12px 14px', borderRadius: 16, marginBottom: 16,
-        background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 13, lineHeight: 1.35,
-      }}>
-        {t('ИИ не смог оценить эту работу — проверьте её как обычно.')}
-      </div>
-    )
+  if (grade.status === 'error' || grade.status === 'skipped') {
+    const issue=homeworkAiIssue(retryError||(grade.status==='skipped'?'missing_evidence':grade.error))
+    return <div style={{marginBottom:16}}><Alert tone="info" title={t(issue.title)} text={t(issue.text)}
+      action={onRetry?{label:retrying?t('Повторяем…'):t('Повторить'),onClick:()=>{if(retrying)return;setRetrying(true);setRetryError('');void onRetry().catch(error=>setRetryError(error instanceof Error?error.message:'unavailable')).finally(()=>setRetrying(false))}}:undefined}/></div>
   }
   if (!['graded', 'dismissed', 'confirmed', 'changed'].includes(grade.status)) return null
 

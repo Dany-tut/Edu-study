@@ -10,7 +10,7 @@ import {
 import { openHardSubHomework } from '../../lib/teacherNav'
 import { clearDrafts, readDraft, writeDraft } from '../../lib/useDraft'
 import AiGradeCard from '../../components/teacher/AiGradeCard'
-import { useAiGrades, confirmAiGrade } from '../../lib/useAiGrades'
+import { useAiGrades, confirmAiGrade, requestAiGrade } from '../../lib/useAiGrades'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
 import { useT, useTc } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -187,6 +187,7 @@ export default function TeacherHardReviewPage() {
           {aiGrade && (aiTask || aiGrade.status === 'pending' || aiGrade.status === 'working' || aiGrade.status === 'error') && (
             <AiGradeCard
               grade={aiGrade}
+              onRetry={async()=>{const result=await requestAiGrade(sub.id,true);if(!result.ok)throw new Error(result.error);await reloadAi()}}
               task={aiTask}
               done={taskDone}
               onAccept={() => {
