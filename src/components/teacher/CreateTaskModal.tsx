@@ -340,7 +340,7 @@ interface CreateTaskModalProps {
     date: string
     time: string
     comment: string
-  }) => void
+  }) => void | Promise<void>
 }
 
 export default function CreateTaskModal({ onClose, onSave, initialTask }: CreateTaskModalProps) {
@@ -359,6 +359,9 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
   const [time, setTime]             = usePersistentState('createTask.time', initialTask?.time ?? nextHourStr())
   const [comment, setComment]       = usePersistentState('createTask.comment', initialTask?.comment ?? '')
   const [saved, setSaved]           = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const savingRef = useRef(false)
 
   const [showCalendar, setShowCalendar] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
@@ -372,6 +375,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
 
   // Explicit user close — safe to drop the draft.
   function handleClose() {
+    if (savingRef.current) return
     clearDrafts('createTask.')
     onClose()
   }
@@ -456,13 +460,23 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
     inputRef.current?.focus()
   }
 
-  function handleSave() {
-    setSaved(true)
-    setTimeout(() => {
+  async function handleSave() {
+    if (savingRef.current || !canSave) return
+    savingRef.current = true
+    setSaving(true)
+    setSaveError(null)
+    try {
+      if (!onSave) throw new Error(t('Не удалось сохранить задачу'))
+      await onSave({ type: taskType, title: titleText, date, time, comment })
+      setSaved(true)
       clearDrafts('createTask.')
-      onSave?.({ type: taskType, title: titleText, date, time, comment })
       onClose()
-    }, 400)
+    } catch (error) {
+      setSaveError(`${t('Не удалось сохранить задачу')}: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      savingRef.current = false
+      setSaving(false)
+    }
   }
 
   const canSave = titleText.trim().length > 0 || taskType !== null
@@ -504,8 +518,10 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '18px 20px 0',
           }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{initialTask ? t('Редактировать') : t('Новая задача')}</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{initialTask ? t('Редактировать') : t('Новая личная задача')}</span>
             <button
+              aria-label={t('Закрыть')}
+              disabled={saving}
               onClick={handleClose}
               style={{
                 width: 28, height: 28, borderRadius: '50%',
@@ -519,6 +535,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
           </div>
 
           <div style={{ padding: '14px 20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-3)' }}>{t('Личная задача не создаёт занятие в расписании и не назначает домашку ученикам.')}</p>
 
             {/* Smart title input */}
             <div style={{ position: 'relative' }}>
@@ -739,6 +756,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               />
             </label>
 
+            {saveError && <div role="alert" style={{ color: 'var(--color-red-text)' }}>{saveError}</div>}
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
               <button
@@ -749,7 +767,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               </button>
               <TeacherSaveButton
                 label={t('Сохранить')} savedLabel={t('Сохранено')}
-                saved={saved} disabled={!canSave}
+                saved={saved} saving={saving} disabled={!canSave || saving}
                 onClick={handleSave}
                 style={{ flex: 2, borderRadius: 14 }}
               />
