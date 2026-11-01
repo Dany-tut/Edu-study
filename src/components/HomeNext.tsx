@@ -266,9 +266,11 @@ function TodayCard({ date, lessons, nextDay }: { date: string | null; lessons: S
                 key={l.id}
                 type="button"
                 data-schedule-state={states[i].phase}
+                data-ended={passed || undefined}
                 disabled={states[i].phase === 'cancelled'}
                 onClick={() => open(l)}
                 style={{
+                  filter: passed ? 'grayscale(1)' : undefined, opacity: passed ? 0.65 : 1,
                   flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left',
                   padding: '10px 12px 10px 14px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                   background: hot ? 'var(--color-purple-soft)' : passed ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
