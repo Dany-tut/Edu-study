@@ -618,6 +618,23 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '0 8px 4px' }} />
 
+            {teacherRole === 'admin' && (
+              <motion.button whileTap={{ scale: 0.98 }}
+                onClick={() => { setProfileOpen(false); window.location.hash = '#/' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
+              >
+                <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <BookOpen size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{t('В ученический кабинет')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Переключить роль')}</div>
+                </div>
+              </motion.button>
+            )}
+
             {profileMenuItems.map(item => (
               <motion.button key={item.action} whileTap={{ scale: 0.98 }}
                 onClick={() => {

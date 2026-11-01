@@ -1,7 +1,7 @@
 import FadeText from '../../FadeText'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages } from '../../icons/appIcons'
+import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -57,6 +57,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
   const { tc, tn } = useTc()
   const { lang, setLang } = useLang()
   const [email, setEmail] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
   const [plan, setPlan] = useState<{ planName: string; studentsUsed: number; maxStudents: number | null } | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
@@ -75,6 +76,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
   useEffect(() => {
     getSessionUser().then(u => {
       setEmail(u?.email ?? '')
+      setIsAdmin(u?.app_metadata?.role === 'admin')
       if (!u) return
       supabase.from('profiles').select('name, first_name, subject').eq('id', u.id).maybeSingle()
         .then(({ data: p }) => {
@@ -257,6 +259,15 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
             {t('Конструктор курсов и редактор уроков — на компьютере.')}
           </span>
         </div>
+
+        {isAdmin && <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => { tactile(); window.location.hash = '#/' }}
+          className="flex items-center justify-center cursor-pointer"
+          style={{ gridColumn: 'span 2', gap: 8, padding: 12, borderRadius: 16, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
+        >
+          <BookOpen size={18} /> {t('В ученический кабинет')}
+        </motion.button>}
 
         {/* Logout — span 2 */}
         <motion.button
