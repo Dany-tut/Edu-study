@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type CSSProperties } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useIsPresent, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
@@ -674,7 +674,8 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
   const reducedMotion = useReducedMotion()
   const transition = { duration: reducedMotion ? 0 : 0.2, ease: CALENDAR_EASE }
   const panelRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
+  // Restore the original before paint when the lifted layer is removed.
+  useLayoutEffect(() => {
     if (!source) return
     const visibility = source.style.visibility
     source.style.visibility = 'hidden'
@@ -745,11 +746,11 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
         className="calendar-context-lifted"
         initial={{ y: 0, scale: 1, opacity: 1 }}
         animate={{ y: reducedMotion ? 0 : -4, scale: reducedMotion ? 1 : 1.012, opacity: 1 }}
-        exit={{ y: 0, scale: 1, opacity: 0 }}
+        exit={{ y: 0, scale: 1, opacity: 1 }}
         transition={transition}
         style={{ position: 'fixed', left: rect.left, top: rect.top, width: rect.width, zIndex: Z.modal + 1, pointerEvents: 'none', transformOrigin: 'center bottom' }}
       >
-        <CardBody item={item} lifted />
+        <CardBody item={item} lifted={isPresent} />
       </motion.div>
       <div className="calendar-context-positioner" style={{ zIndex: Z.modal + 1, left, top, width, maxHeight: availableHeight }}>
       <motion.div ref={panelRef}

@@ -70,7 +70,7 @@
 .calendar-context-actions > div > button + button { border-top: 1px solid rgb(128 128 128 / 0.14) !important; }
 .calendar-context-actions > button:last-child { margin-top: 4px; }
 .calendar-context-lifted { container-type: inline-size; container-name: teacher-calendar; }
-.calendar-context-lifted .calendar-widget-lesson { box-shadow: 0 16px 40px rgb(0 0 0 / 0.22) !important; }
+.calendar-context-lifted .calendar-widget-lesson { transition: box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; }
 @supports not (backdrop-filter: blur(1px)) {
   .calendar-context-panel { background: rgba(var(--glass-rgb), 0.96); }
 }
