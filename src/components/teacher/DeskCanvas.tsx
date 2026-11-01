@@ -24,12 +24,18 @@ function iw(w: number, cw: number) { return w * colW(cw) + (w - 1) * GAP }
 function ih(h: number, rh: number) { return h * rh + (h - 1) * GAP }
 function toGridDX(px: number, cw: number) { return Math.round(px / (colW(cw) + GAP)) }
 function toGridDY(py: number) { return Math.round(py / (ROW_H + GAP)) }
+function itemMinW(it: LayoutItem) {
+  // Older saved calendars still carry minW: 4. Use the current limit without
+  // resetting their size or position, including during live resize and save.
+  return it.type === 'today-schedule' ? getWidgetDef(it.type)!.minW : it.minW ?? 2
+}
 function clampItem(it: LayoutItem): LayoutItem {
-  const w = Math.max(it.minW ?? 2, it.w)
+  const minW = itemMinW(it)
+  const w = Math.max(minW, it.w)
   const h = it.maxH ? Math.min(it.maxH, Math.max(it.minH ?? 2, it.h)) : Math.max(it.minH ?? 2, it.h)
   const x = Math.max(0, Math.min(COLS - w, it.x))
   const y = Math.max(0, it.y)
-  return { ...it, x, y, w, h }
+  return { ...it, x, y, w, h, minW }
 }
 
 // ── Collision resolution ────────────────────────────────────────────────
@@ -324,7 +330,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     const dy = e.clientY - resize.startMy
     const item = desk.items.find(it => it.i === resize.id)!
     const def = getWidgetDef(item.type)
-    const minW = item.minW ?? def?.minW ?? 2
+    const minW = itemMinW(item)
     const minH = item.minH ?? def?.minH ?? 2
     const maxH = item.maxH ?? def?.maxH
     const newW = Math.max(minW, Math.min(COLS - item.x, resize.startW + Math.round(dx / (colW(cw) + GAP))))

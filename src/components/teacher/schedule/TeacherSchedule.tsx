@@ -174,26 +174,28 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   })()
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: embedded ? 10 : 12, height: embedded ? '100%' : undefined, minHeight: 0, userSelect: drag ? 'none' : undefined }}>
-      {/* Шапка: месяц, «Сегодня», недели стрелками — на ПК свайпа нет */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px' }}>
-        <div style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
-        {!mobile && (
-          <button
-            aria-label={t('Добавить занятие')}
-            onClick={() => setAddOpen(true)}
-            style={btn('S', 'primary', { width: 32, padding: 0 })}
-          ><Plus size={17} /></button>
-        )}
-        {weekStart(today) !== start && (
-          <button onClick={() => go(today)} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
-        )}
-        {!mobile && (
-          <>
-            <button aria-label={t('Прошлая неделя')} onClick={() => go(addDays(day, -7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
-            <button aria-label={t('Следующая неделя')} onClick={() => go(addDays(day, 7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
-          </>
-        )}
+    <div className={embedded ? 'calendar-widget-schedule' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: embedded ? 10 : 12, height: embedded ? '100%' : undefined, minHeight: 0, userSelect: drag ? 'none' : undefined }}>
+      {/* Шапка: месяц, «Сегодня», недели стрелками */}
+      <div className="calendar-widget-header" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px' }}>
+        <div className="calendar-widget-title" style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
+        <div className="calendar-widget-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {!mobile && (
+            <button
+              aria-label={t('Добавить занятие')}
+              onClick={() => setAddOpen(true)}
+              style={btn('S', 'primary', { width: 32, padding: 0 })}
+            ><Plus size={17} /></button>
+          )}
+          {weekStart(today) !== start && (
+            <button onClick={() => go(today)} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
+          )}
+          {!mobile && (
+            <>
+              <button aria-label={t('Прошлая неделя')} onClick={() => go(addDays(day, -7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
+              <button aria-label={t('Следующая неделя')} onClick={() => go(addDays(day, 7))} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Неделя */}
@@ -392,21 +394,21 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
     item.title,
   ].filter(Boolean).join(' · ')
   return (
-    <div style={{
+    <div className="calendar-widget-lesson" style={{
       display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 22,
       background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
       boxShadow: lifted ? 'var(--shadow-4)' : 'var(--shadow-1)',
     }}>
       <span style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: item.cancelled ? 'var(--color-border-medium)' : item.color, flexShrink: 0 }} />
-      <span style={{ display: 'flex', flexDirection: 'column', width: localStart ? 68 : 48, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+      <span className="calendar-widget-time" style={{ display: 'flex', flexDirection: 'column', width: localStart ? 68 : 48, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: item.cancelled ? 'var(--color-text-4)' : 'var(--color-text)', textDecoration: item.cancelled ? 'line-through' : undefined }}>{startTime}</span>
         {localStart
           ? <span style={{ fontSize: 10, lineHeight: 1.3, color: 'var(--color-text-4)', whiteSpace: 'nowrap' }}>{item.time} МСК</span>
           : item.endTime && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{endTime}</span>}
         {localStart && item.endTime && <span style={{ fontSize: 10, lineHeight: 1.3, color: 'var(--color-text-4)' }}>до {endTime}</span>}
       </span>
-      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <span className="calendar-widget-details" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span className="calendar-widget-person" style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
           <span style={{
             fontSize: 15, fontWeight: 700, color: item.cancelled ? 'var(--color-text-3)' : 'var(--color-text)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -414,7 +416,7 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
           {item.rec && <Chip>{t('Запись')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
         </span>
-        {sub && <span style={{ fontSize: 13, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</span>}
+        {sub && <span className="calendar-widget-subtitle" style={{ fontSize: 13, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</span>}
       </span>
     </div>
   )

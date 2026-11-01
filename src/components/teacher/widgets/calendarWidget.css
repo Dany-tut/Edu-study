@@ -1,0 +1,75 @@
+.calendar-widget-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 20px;
+}
+
+@container teacher-calendar (max-width: 380px) {
+  .calendar-widget-content {
+    padding: 12px;
+  }
+
+  .calendar-widget-header {
+    flex-wrap: wrap;
+    row-gap: 6px !important;
+  }
+
+  .calendar-widget-title {
+    white-space: nowrap;
+  }
+
+  .calendar-widget-actions {
+    max-width: 100%;
+    margin-left: auto;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .calendar-widget-schedule {
+    gap: 8px !important;
+  }
+
+  .calendar-widget-lesson {
+    gap: 8px !important;
+    padding: 10px !important;
+    border-radius: 16px !important;
+  }
+
+  .calendar-widget-person {
+    flex-wrap: wrap;
+  }
+}
+
+@container teacher-calendar (max-width: 280px) {
+  .calendar-widget-lesson {
+    display: grid !important;
+    grid-template-columns: 4px minmax(0, 1fr);
+    gap: 6px 8px !important;
+  }
+
+  .calendar-widget-lesson > :first-child {
+    grid-row: 1 / 3;
+  }
+
+  .calendar-widget-time {
+    width: auto !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+  }
+
+  .calendar-widget-details {
+    grid-column: 2;
+  }
+
+  .calendar-widget-subtitle {
+    white-space: normal !important;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
+  }
+}

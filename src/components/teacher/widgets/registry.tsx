@@ -148,7 +148,7 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     iconColor: 'var(--color-accent)',
     description: 'Расписание уроков на сегодня',
     defaultW: 7, defaultH: 5,
-    minW: 4, minH: 3,
+    minW: 2, minH: 3,
     component: WidgetTodaySchedule,
   },
   {

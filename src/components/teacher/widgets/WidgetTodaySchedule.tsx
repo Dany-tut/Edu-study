@@ -1,5 +1,6 @@
 import TeacherSchedule from '../schedule/TeacherSchedule'
 import { useTeacher } from '../../../store/teacherStore'
+import './calendarWidget.css'
 
 // Виджет «Расписание» на Главной — та же живая лента, что была отдельной
 // вкладкой: неделя в шапке, занятие зажал-и-перетащил на день, зажал-и-отпустил
@@ -9,7 +10,7 @@ export default function WidgetTodaySchedule() {
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
   const openGradebook = useTeacher(s => s.openGradebook)
   return (
-    <div style={{
+    <div className="calendar-widget" style={{
       height: '100%', width: '100%', overflow: 'hidden',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
@@ -18,13 +19,15 @@ export default function WidgetTodaySchedule() {
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
-      padding: 20,
+      containerType: 'inline-size', containerName: 'teacher-calendar',
     }}>
-      <TeacherSchedule
-        embedded
-        onOpen={item => openLessonEditor(item.id)}
-        onAttendance={item => openGradebook(item.id)}
-      />
+      <div className="calendar-widget-content">
+        <TeacherSchedule
+          embedded
+          onOpen={item => openLessonEditor(item.id)}
+          onAttendance={item => openGradebook(item.id)}
+        />
+      </div>
     </div>
   )
 }
