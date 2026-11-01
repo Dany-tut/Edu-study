@@ -682,3 +682,35 @@
   .jo-week-stamps { gap: 2px; }
   .jo-week-stamps li { width: 18px; }
 }
+
+/* Approved Iskra ceramic/acrylic objects: a clear text column and visible overflow. */
+.jo-class-grid,.jo-bento { row-gap:40px; margin-top:32px; }
+.jo-class-grid > .jo-tile--3d,.jo-bento > .jo-tile--3d {
+  --report-object-size:clamp(120px,12cqi,176px);
+  overflow:visible; display:flex; flex-direction:column; align-items:stretch;
+  min-height:210px; padding-right:calc(var(--report-object-size) + 8px); gap:12px;
+}
+.jo-bento > .jo-tile--3d.jo-wide { --report-object-size:clamp(160px,15cqi,200px); }
+.jo-tile--3d .jo-report-object { position:absolute; top:-24px; right:-4px; width:var(--report-object-size); height:var(--report-object-size); object-fit:contain; pointer-events:none; user-select:none; }
+.jo-tile--3d.jo-topic-widget .jo-report-object,.jo-tile--3d.jo-mastery .jo-report-object { top:-42px; }
+.jo-tile--3d.jo-rhythm .jo-report-object { top:-50px; }
+.jo-tile--3d::before,.jo-tile--3d::after { display:none; }
+.jo-tile--3d h3 { margin:0; min-height:28px; }
+.jo-tile--3d h3 svg { display:none; }
+.jo-tile--3d .jo-value { margin:0; min-height:42px; overflow-wrap:anywhere; }
+.jo-tile--3d .jo-detail { margin-top:auto; min-width:0; overflow-wrap:anywhere; }
+/* Keep actual charts and percentages available; decorative vector artwork is replaced. */
+.jo-tile--3d .jo-report-data { display:none; }
+.jo-tile--3d.jo-vector .jo-report-data,.jo-tile--3d.jo-mastery .jo-report-data,.jo-tile--3d.jo-punctual .jo-report-data { display:block; position:relative; width:100%; max-width:100%; margin:0; }
+.jo-tile--3d .jo-week-stamps { flex-wrap:wrap; }
+.jo-bento .jo-tile--3d.jo-rhythm .jo-value { flex-wrap:wrap; gap:8px; }
+@container (max-width:1100px) {
+ .jo-bento { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .jo-bento > .jo-tile--3d.jo-wide { grid-column:span 2; }
+ .jo-class-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .jo-class-grid > .jo-tile--3d:first-child { grid-column:span 2; }
+}
+@container (max-width:600px) {
+ .jo-class-grid,.jo-bento { grid-template-columns:minmax(0,1fr); gap:36px; }
+ .jo-class-grid > .jo-tile--3d,.jo-bento > .jo-tile--3d,.jo-bento > .jo-tile--3d.jo-wide { grid-column:auto; --report-object-size:128px; min-height:190px; }
+}
