@@ -22,6 +22,7 @@
 // CourseSummary считает юниты, слова и задания словарного курса. Предметный
 // курс живёт по пути AP: сущности Конструктора + конспект по short_id.
 // ─────────────────────────────────────────────────────────────────────────────
+import { displayOrder } from './taskTypes'
 import type {
   Course, Lesson, Trainer, TrainerQ, Widget, Difficulty,
 } from '../pages/teacher/TeacherConstructorPage'
@@ -40,7 +41,7 @@ function q(
     id,
     text,
     answer: opts[correct],
-    answers: opts.map((t, i) => ({ id: `${id}a${i}`, text: t, correct: i === correct })),
+    answers: displayOrder(opts, id).map(i => ({ id: `${id}a${i}`, text: opts[i], correct: i === correct })),
     explanation,
     difficulty,
     source: 'manual',

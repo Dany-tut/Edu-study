@@ -16,6 +16,7 @@
 // строка: решатель включается по данным (pairs, sequenceItems, columns…), а не
 // по типу, см. taskBodyMissing() в HomeworkFlow.tsx.
 // ─────────────────────────────────────────────────────────────────────────────
+import { displayOrder } from './taskTypes'
 import type { LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from './lessonContent'
 
 /** Общая форма авторского урока: конспект + база домашки + хард. */
@@ -34,7 +35,8 @@ export const qq = (
 ): HomeworkQuizQuestion => ({
   id,
   prompt,
-  options: opts.map((text, i) => ({ id: String.fromCharCode(97 + i), text })),
+  // ID берём из исходного порядка: по ним сверяются сохранённые ответы учеников.
+  options: displayOrder(opts, id).map(i => ({ id: String.fromCharCode(97 + i), text: opts[i] })),
   correctOptionId: String.fromCharCode(97 + correctIdx),
   explanation,
 })

@@ -13,6 +13,8 @@
 import { x, type ExampleMap } from './model'
 
 export const KO_VOCAB_EXAMPLES: ExampleMap = {
+  'ibt': x('IBT는 컴퓨터로 보는 시험이에요.', 'aibitineun keompyuteoro boneun siheomieyo.', 'IBT — это экзамен, который сдают на компьютере.'),
+  '지필시험': x('지필시험에서는 종이에 답을 써요.', 'jipilsiheomeseoneun jongie dabeul sseoyo.', 'На бумажном экзамене ответы пишут на бумаге.'),
   '-라고 합니다': x('내일부터 비가 온다고 합니다.', 'naeilbuteo biga ondago hamnida.', 'Говорят, с завтрашнего дня пойдёт дождь.'),
   '-어 놓다': x('창문을 열어 놓았어요.', 'changmuneul yeoreo noasseoyo.', 'Я открыл окно и оставил открытым.'),
   '~ ㄴ 적이 있다': x('제주도에 간 적이 있어요.', 'jejudoe gan jeogi isseoyo.', 'Мне доводилось бывать на Чеджу.'),  // ~(으)ㄴ 적이 있다

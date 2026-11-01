@@ -22675,6 +22675,7 @@ Ada`,
 Обнимаю,
 Ада`,
     glossary: [
+      { term: 'Ada', ru: 'Ада, имя автора письма' },
       { term: 'the room by the stair', ru: 'комната у лестницы' },
       { term: 'from four o’clock on', ru: 'начиная с четырёх' },
       { term: 'you get used to it', ru: 'к этому привыкаешь' },
@@ -26562,6 +26563,7 @@ We reached out to the office that handled the case. They declined to comment. If
 
 [КОНЕЦ ПЕРВОЙ ЧАСТИ]`,
     glossary: [
+      { term: 'Reconsidering', ru: '«Пересмотр», название подкаста' },
       { term: 'cold open', ru: 'начало без заставки, сразу с материала' },
       { term: 'archive tape', ru: 'архивная запись' },
       { term: 'the case rests on', ru: 'обвинение держится на' },
@@ -26670,6 +26672,9 @@ A. Oyelaran`,
 С уважением,
 А. Ойеларан`,
     glossary: [
+      { term: 'Hale', ru: 'Хейл, фамилия в названии фирмы' },
+      { term: 'Oyelaran', ru: 'Ойеларан, фамилия автора письма' },
+      { term: 'Carver', ru: 'Карвер, фамилия адресата' },
       { term: 'we act for', ru: 'мы представляем интересы' },
       { term: 'further to our letter of', ru: 'в дополнение к нашему письму от' },
       { term: 'a substantive response', ru: 'ответ по существу' },

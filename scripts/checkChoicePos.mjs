@@ -52,6 +52,9 @@ import { ENGLISH_GRAMMAR } from '../src/data/grammar/grammarEn.ts'
 import { KOREAN_GRAMMAR } from '../src/data/grammar/grammarKo.ts'
 import { JAPANESE_GRAMMAR } from '../src/data/grammar/grammarJa.ts'
 import { AP_CHEM_TRAINERS } from '../src/data/apChemistry.ts'
+import { BIO_CELL_TRAINERS } from '../src/data/bioCell.ts'
+import { BIO_CELL_LESSON_CONTENT } from '../src/data/bioCellLessons.ts'
+import { BIO_PREU_LESSON_CONTENT } from '../src/data/bioPreULessons.ts'
 
 const detail = process.argv.includes('--detail')
 
@@ -281,7 +284,8 @@ if (badTests.length) {
  * ради сторожа значило бы переписывать рабочие данные под проверку:
  *   { options, correct } — тексты, аудио, сцены, лента;
  *   { options, answer }  — викторина справочника грамматики;
- *   { answers: [{ correct }] } — вопрос тренажёра.
+ *   { answers: [{ correct }] } — вопрос тренажёра;
+ *   { options: [{ id }], correctOptionId } — вопрос домашнего задания.
  * Вопрос с несколькими верными не в счёт: у него место не определено.
  */
 function questionsIn(root) {
@@ -297,6 +301,11 @@ function questionsIn(root) {
         : typeof v.answer === 'number' ? v.answer
         : null
       if (Number.isInteger(place) && place >= 0 && place < opts.length) out.push({ n: opts.length, place })
+    }
+    if (opts?.length >= 2 && v.type !== 'multi' && v.correctOptionId && opts.every(o => typeof o?.id === 'string')) {
+      const place = opts.findIndex(o => o.id === v.correctOptionId)
+      if (place < 0) throw new Error(`Не найден правильный вариант в вопросе ${v.id}`)
+      out.push({ n: opts.length, place })
     }
     if (Array.isArray(v.answers) && v.answers.length >= 2 && v.answers.every(a => a && typeof a.correct === 'boolean')) {
       const right = v.answers.filter(a => a.correct)
@@ -322,6 +331,9 @@ const BANKS = [
   ['грамматика · ko', KOREAN_GRAMMAR],
   ['грамматика · ja', JAPANESE_GRAMMAR],
   ['тренажёр · AP Chemistry', AP_CHEM_TRAINERS],
+  ['тренажёр · биология клетки', BIO_CELL_TRAINERS],
+  ['уроки · биология клетки', BIO_CELL_LESSON_CONTENT],
+  ['уроки · биология Pre-U', BIO_PREU_LESSON_CONTENT],
 ]
 
 const banks = mk()
@@ -373,7 +385,7 @@ const COVERED = new Set([
   'src/data/feed/feedEn.ts', 'src/data/feed/feedKo.ts', 'src/data/feed/feedJa.ts', 'src/data/feed/feedPt.ts',
   'src/data/grammarRu.ts', 'src/data/grammarDe.ts', 'src/data/grammar/grammarEn.ts', 'src/data/grammar/grammarKo.ts',
   'src/data/grammar/grammarJa.ts',
-  'src/data/apChemistry.ts',
+  'src/data/apChemistry.ts', 'src/data/bioCell.ts', 'src/data/bioCellLessons.ts', 'src/data/bioPreULessons.ts',
 ])
 
 /** Записи вопроса с выбором в исходнике: объектом и вызовом-строителем. */

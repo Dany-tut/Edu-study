@@ -13,6 +13,56 @@
 import { x, type ExampleMap } from './model'
 
 export const EN_VOCAB_EXAMPLES: ExampleMap = {
+  'i used ai to explore options': x('I used AI to explore options before I drew the final design.', 'Прежде чем нарисовать окончательный вариант, я изучил возможные решения с помощью ИИ.'),
+  'decision was mine': x('The team gave me advice, but the decision was mine.', 'Команда дала мне совет, но решение принял я.'),
+  'ai-assisted': x('This is an AI-assisted draft. I checked every example myself.', 'Этот черновик подготовлен с помощью ИИ. Каждый пример я проверил сам.'),
+  'are ai tools allowed': x('Are AI tools allowed for this task?', 'Можно ли использовать инструменты ИИ для этого задания?'),
+  'i used it for not instead of': x('I used it for, not instead of, research: it helped me find reports, and I read them myself.', 'ИИ помог мне в исследовании. Он нашёл отчёты, а прочитал и изучил их я сам.'),
+  'review your answers': x('Take a minute to review your answers before you finish the test.', 'Перед завершением теста уделите минуту проверке ответов.'),
+  'word count': x('The word count is 180, so the text is short enough.', 'В тексте 180 слов. По объёму он подходит.'),
+  'computer-delivered test': x('In a computer-delivered test, you type your answers.', 'На компьютерном экзамене ответы набирают на клавиатуре.'),
+  'one skill retake': x('I chose One Skill Retake to take just the writing part again.', 'Я выбрал One Skill Retake, чтобы пересдать только письменную часть.'),
+  'deck': x('I sent the deck after the meeting so everyone could see the slides.', 'После встречи я разослал презентацию, чтобы все могли посмотреть слайды.'),
+  'move a date': x('We need to move a date on the calendar because the office will be closed.', 'Нам нужно перенести одну из дат в календаре, потому что офис будет закрыт.'),
+  'away': x('I will be away on Friday. Can we meet on Monday?', 'В пятницу меня не будет. Можем встретиться в понедельник?'),
+  'draft': x('I sent the first draft so you could read it before I make changes.', 'Я отправил первый черновик, чтобы ты успел прочитать его до внесения правок.'),
+  'anyway': x('The meeting was cancelled, but I sent my notes anyway.', 'Встречу отменили, но я всё равно отправил свои заметки.'),
+  'slide': x('The last slide shows the price of each option.', 'На последнем слайде указана цена каждого варианта.'),
+  'notes': x('I put the figures in my notes so I can explain the slide.', 'Я записал цифры в заметки, чтобы пояснить слайд.'),
+  'weekly sync': x('At our weekly sync, each person shares one problem from the past week.', 'На еженедельной встрече каждый рассказывает об одной проблеме за прошедшую неделю.'),
+  'release': x('The next release of the app adds a map.', 'В следующей версии приложения появится карта.'),
+  'decision': x('We need a decision today so the team can start tomorrow.', 'Решение нужно принять сегодня, чтобы завтра команда могла начать работу.'),
+  'support ticket': x('I opened a support ticket when I could not sign in.', 'Когда мне не удалось войти, я отправил обращение в поддержку.'),
+  'aob': x('We have five minutes for AOB. Does anyone have another topic?', 'У нас пять минут на пункт «Разное». Кто-нибудь хочет обсудить ещё одну тему?'),
+  'update': x('Could you give us a short update on the project?', 'Расскажешь вкратце, как продвигается проект?'),
+  'go with': x('We decided to go with the smaller room because it costs less.', 'Мы остановились на зале поменьше, потому что он дешевле.'),
+  'frequent': x('Frequent delays made it hard to plan the trip.', 'Из-за частых задержек было трудно спланировать поездку.'),
+  'open question': x('Who will run the test is still an open question.', 'Кто проведёт тест, пока остаётся открытым вопросом.'),
+  'parked': x('We parked that idea until we know the cost.', 'Мы отложили эту идею, пока не узнаем стоимость.'),
+  'handover': x('During the handover, I showed the new manager which orders were still open.', 'Когда я передавал дела, я показал новому руководителю, какие заказы ещё открыты.'),
+  'i m off': x('I\'m off next week, so please send urgent requests to my manager.', 'На следующей неделе я в отпуске. Срочные запросы отправляйте моему руководителю.'),
+  'where everything stands': x('Here is a short note on where everything stands before I leave.', 'Перед уходом я вкратце записал, как обстоят дела.'),
+  'ticket': x('I added a ticket for the broken link and gave it to our team.', 'Я завёл задачу о неработающей ссылке и передал её нашей команде.'),
+  'waiting on': x('We are waiting on the client to confirm the date.', 'Мы ждём, когда клиент подтвердит дату.'),
+  'legal': x('Please ask legal to review the contract before we sign it.', 'Перед подписанием попроси юристов проверить договор.'),
+  'approve': x('Only the team lead can approve this change.', 'Только руководитель команды может утвердить это изменение.'),
+  'booked': x('The room is booked for our call at two.', 'Комнату забронировали для нашего звонка в два часа.'),
+  'urgent': x('If the issue is urgent, call me instead of sending an email.', 'Если вопрос срочный, лучше позвони мне.'),
+  'incident': x('After the incident, we checked why nobody could pay.', 'После сбоя мы проверили, почему никто не мог оплатить заказ.'),
+  'checkout': x('At checkout, the customer can choose how to pay.', 'При оформлении заказа покупатель может выбрать способ оплаты.'),
+  'silently': x('The payment failed silently. No error appeared on the screen.', 'Платёж не прошёл, но на экране не появилось сообщения об ошибке.'),
+  'drop': x('The chart shows a sudden drop in sales after the price change.', 'График показывает резкое падение продаж после изменения цены.'),
+  'root cause': x('We fixed the root cause of the delays by replacing the broken clock.', 'Мы устранили первопричину задержек, заменив сломанные часы.'),
+  'staging': x('Try the change on staging before customers see it.', 'Проверь изменение на тестовом стенде, прежде чем его увидят клиенты.'),
+  'fault': x('A fault in the payment system stopped all orders.', 'Из-за сбоя в платёжной системе перестали проходить заказы.'),
+  'alert': x('The alert woke me when the site went down.', 'Когда сайт перестал работать, меня разбудило оповещение.'),
+  'roll back': x('We had to roll back the update to get the site working again.', 'Пришлось откатить обновление, чтобы сайт снова заработал.'),
+  'sandbox': x('You can try the payment in the sandbox without spending real money.', 'В песочнице можно проверить оплату, не тратя настоящих денег.'),
+  'issue': x('The only issue with the form is that it will not save the date.', 'У формы одна проблема — она не сохраняет дату.'),
+  'nit': x('One small nit: the date is missing from the title.', 'Одно небольшое замечание — в заголовке пропущена дата.'),
+  'heavier': x('The longer word makes the sentence feel heavier.', 'Из-за длинного слова фраза кажется более громоздкой.'),
+  'cut': x('Can we cut this sentence? The next one says the same thing.', 'Может, вычеркнем это предложение? Следующее говорит о том же.'),
+  'agreed': x('Agreed. Let\'s keep the shorter title.', 'Согласен. Оставим более короткий заголовок.'),
   'case in point': x('Our checkout is a case in point: three steps, no drop-off.', 'Наш чекаут — показательный пример: три шага и никакого отвала.'),  // a case in point
   'chunk': x('Learn a chunk, not a word: "as far as I know".', 'Учите кусок, а не слово: «as far as I know».'),  // a chunk
   'compelling argument': x('Cost is a compelling argument for the client.', 'Цена — убедительный аргумент для клиента.'),  // a compelling argument
@@ -233,7 +283,7 @@ export const EN_VOCAB_EXAMPLES: ExampleMap = {
   'overgeneralisation': x('"Everyone hates ads" is an overgeneralisation.', '«Все ненавидят рекламу» — чрезмерное обобщение.'),  // overgeneralisation
   'overlap': x('We ask that you overlap with CET for four hours a day.', 'Мы просим пересекаться с центральноевропейским временем на четыре часа в день.'),  // overlap
   'paragraph function': x('Each paragraph function is different: one problem, one solution.', 'У каждого абзаца своя роль: один — проблема, другой — решение.'),  // paragraph function
-  'participle clause': x('Having finished the report, she left.', 'Закончив отчёт, она ушла.'),  // participle clause
+  'participle clause': x('The participle clause “having finished the report” tells us what she did before she left.', 'Причастный оборот «having finished the report» («закончив отчёт») показывает, что она сделала перед уходом.'),  // participle clause
   'passage': x('The third passage is always the hardest.', 'Третий текст всегда самый трудный.'),  // passage
   'people tend to': x('People tend to skip the first screen.', 'Люди склонны пропускать первый экран.'),  // people tend to
   'per my last email': x('Per my last email, the files are in the folder.', 'Как я писал ранее, файлы в папке.'),  // Per my last email
