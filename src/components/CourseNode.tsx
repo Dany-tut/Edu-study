@@ -62,6 +62,8 @@ interface Props {
   index: number
   isSelected?: boolean
   isHighlighted?: boolean
+  scrollHighlight?: boolean
+  isCurrent?: boolean
   onSelect?: (lesson: Lesson) => void
   onHardSelect?: (lesson: Lesson) => void
   /** Праздничная тема рисует фонарь/конфету только на ОДНОМ уроке — первом текущем:
@@ -69,7 +71,7 @@ interface Props {
   seasonMark?: boolean
 }
 
-export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect, seasonMark = false }: Props) {
+export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
   const { tc } = useTc()
@@ -77,10 +79,10 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
   const assessment = useDashboard(s => s.lessonAssessments[lesson.id])
 
   useEffect(() => {
-    if (isHighlighted) {
+    if (isHighlighted && scrollHighlight) {
       wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
     }
-  }, [isHighlighted])
+  }, [isHighlighted, scrollHighlight])
 
   const grade = gradedTrackResult(lesson)
   const displayStatus = grade?.status ?? status
@@ -130,7 +132,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
-    <div ref={wrapperRef} className="season-node-wrap relative flex-shrink-0" style={{ width: size, height: size }}>
+    <div ref={wrapperRef} className="season-node-wrap relative flex-shrink-0" style={{ width: size, height: size, borderRadius: nodeRadius, outline: isCurrent ? '2px solid var(--color-accent)' : undefined, outlineOffset: isCurrent ? 5 : undefined }}>
       {isHighlighted && !silhouette && (
         <div
           className="course-node-flash-ring"

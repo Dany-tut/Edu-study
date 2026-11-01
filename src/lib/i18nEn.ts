@@ -10,6 +10,9 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Занятия модуля': 'Module lessons',
+  '← Предыдущие занятия': '← Previous lessons',
+  'Дальше есть ещё занятия →': 'More lessons ahead →',
   "Новая личная задача": "New personal task",
   "Личная задача не создаёт занятие в расписании и не назначает домашку ученикам.": "A personal task does not schedule a lesson or assign homework to students.",
   "Не удалось сохранить задачу": "Could not save the task",
