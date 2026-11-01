@@ -48,3 +48,14 @@ assert.equal(applyTestlyResult(mixedDraft,'test',done,'current').attachments.dra
 assert.equal(applyTestlyResult({...completedRetry.attachments,reviewedAt:at},'test',{...done,got:0},'completed'),null)
 assert.equal(applyTestlyResult(completedRetry.attachments,'test',{...done,got:0,updatedAt:'2026-10-31T01:00:00Z'},'completed'),null)
 console.log('PASS: independent retry, closed-tab completion, mixed draft not auto-submitted, final grade protected, stale notification ignored')
+
+const { isStoredTestlySubmission } = await import('../src/lib/testlySubmission.ts')
+const trusted = { status: 'completed', attachments: completedRetry.attachments }
+assert.equal(isStoredTestlySubmission(retryDraft, trusted), true)
+assert.equal(isStoredTestlySubmission(retryDraft, { ...trusted, attachments: { ...trusted.attachments, rows: trusted.attachments.rows.map(row => ({ ...row, testly: { ...row.testly, got: 0 } })) } }), true)
+assert.equal(isStoredTestlySubmission(retryDraft, { ...trusted, status: 'returned' }), false)
+assert.equal(isStoredTestlySubmission(retryDraft, { ...trusted, attachments: retryDraft }), false)
+assert.equal(isStoredTestlySubmission({ ...retryDraft, attemptId: 'stale' }, trusted), false)
+assert.equal(isStoredTestlySubmission({ ...retryDraft, rows: [...retryDraft.rows, { type: 'single' }] }, trusted), false)
+assert.equal(isStoredTestlySubmission({ ...retryDraft, rows: [{ ...retryDraft.rows[0], testly: { testId: 'other' } }] }, trusted), false)
+console.log('PASS: webhook/browser completion race, zero result accepted, returned/draft/stale/mixed work rejected')
