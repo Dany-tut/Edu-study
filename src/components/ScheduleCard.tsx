@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { CalendarX2 } from './icons/appIcons'
+import { LoopSvg } from './icons/LoopIcon'
+import { LoopArtworkVideo } from './icons/loopArtwork'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
 import { resolveScheduleLesson } from '../lib/db'
 import { scheduleRowStatus } from '../lib/scheduleAttendance'
 import { useStudentData } from '../store/studentDataStore'
-import { IconMissedLesson } from './icons'
 import { useDashboard } from '../store/dashboardStore'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useNow, lessonTimeState } from '../lib/useNow'
@@ -193,9 +194,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                       {!isPassed && st.secondsUntil > 0 && st.secondsUntil <= 3600 && (
                         isUpcoming ? (
-                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 8px', borderRadius: 999 }} />
+                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, height: 18, padding: '0 8px', borderRadius: 999 }} />
                         ) : (
-                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-5)', padding: '1px 6px', borderRadius: 999 }} />
+                          <Countdown date={day.date} time={lesson.time} style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-5)', height: 16, padding: '0 6px', borderRadius: 999 }} />
                         )
                       )}
                     </div>
@@ -204,13 +205,17 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : 'var(--color-text)', lineHeight: 1, minWidth: 54, textAlign: 'right' }}>
+                    <span style={{ fontSize: 18, fontWeight: 600, color: isMissed ? pal.text : 'var(--color-text)', lineHeight: 1, minWidth: 54, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                       {lesson.time}
                     </span>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: isMissed ? 'rgba(248,99,107,0.30)' : isUpcoming ? 'rgba(var(--accent-rgb), 0.26)' : 'var(--color-bg-4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {/* Same camera-with-bars glyph in every state — only the
-                          colour changes (missed/upcoming → palette text, else muted). */}
-                      <IconMissedLesson size={11} color={isMissed || isUpcoming ? pal.text : 'var(--color-muted)'} />
+                    <div aria-hidden="true" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <LoopSvg
+                        name="Video"
+                        artwork={LoopArtworkVideo}
+                        size={18}
+                        color={isMissed || isUpcoming ? pal.text : 'var(--color-muted)'}
+                        style={{ '--loop-detail': 'currentColor' } as React.CSSProperties}
+                      />
                     </div>
                   </div>
                 </motion.div>
@@ -300,8 +305,11 @@ function Countdown({ date, time, style }: { date: string; time: string; style: R
   if (s <= 0) return null
   const m = Math.floor(s / 60)
   return (
-    <span style={{ ...style, fontVariantNumeric: 'tabular-nums' }}>
-      {`${t('через')} ${m}:${String(s % 60).padStart(2, '0')}`}
+    <span style={{ ...style, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: '14px', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+      {/* SF Pro's glyphs sit below the perceived centre of the pill. */}
+      <span style={{ transform: 'translateY(-0.5px)' }}>
+        {`${t('через')} ${m}:${String(s % 60).padStart(2, '0')}`}
+      </span>
     </span>
   )
 }
