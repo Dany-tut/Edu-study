@@ -1,4 +1,5 @@
 import JournalSkeleton from './components/teacher/JournalSkeleton'
+import HomeworkQueueSkeleton from './components/teacher/HomeworkQueueSkeleton'
 import { fetchScheduleDays } from './lib/db'
 import { applyLessonParticipation, fetchLessonParticipation } from './lib/lessonParticipation'
 import { useState, useEffect, lazy, Suspense } from 'react'
@@ -326,7 +327,7 @@ function AppRoutes() {
     if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (
       <>
-        <Chunk fallback={hash.startsWith('#/teacher/gradebook') ? <JournalSkeleton page /> : undefined}><TeacherWorkspace owner={session?.user.id ?? 'local'} production /></Chunk>
+        <Chunk fallback={hash.startsWith('#/teacher/gradebook') ? <JournalSkeleton page /> : hash === '#/teacher/homework' ? <HomeworkQueueSkeleton page /> : undefined}><TeacherWorkspace owner={session?.user.id ?? 'local'} production /></Chunk>
         <InstallPrompt />
       </>
     )
