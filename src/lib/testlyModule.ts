@@ -122,18 +122,18 @@ export interface TestlyAttempt {
 export const testlyReviewUrl = (token: string) => `${TESTLY_SITE}/r/${token}`
 
 /** Ученик: личная ссылка на тест (одна на ученика, заводится при первом открытии). */
-export async function startTestlyTest(testId: string, owner?: string): Promise<string> {
-  const { path } = await bridge<{ path: string }>({ action: 'start', testId, owner })
+export async function startTestlyTest(testId: string, owner?: string, lessonRef?: string): Promise<string> {
+  const { path } = await bridge<{ path: string }>({ action: 'start', testId, owner, lessonRef })
   return TESTLY_SITE + path
 }
 
 /** Ученик: что с его попыткой. */
-export function fetchTestlyStatus(testId: string, owner?: string): Promise<TestlyAttempt> {
-  return bridge<TestlyAttempt>({ action: 'status', testId, owner })
+export function fetchTestlyStatus(testId: string, owner?: string, lessonRef?: string): Promise<TestlyAttempt> {
+  return bridge<TestlyAttempt>({ action: 'status', testId, owner, lessonRef })
 }
 
 /** Учитель: свежие баллы своих учеников по тестам. */
-export async function fetchTestlyResults(items: { testId: string; studentId: string }[]): Promise<(TestlyAttempt & { testId: string; studentId: string })[]> {
+export async function fetchTestlyResults(items: { testId: string; studentId: string; attemptKey?: string }[]): Promise<(TestlyAttempt & { testId: string; studentId: string })[]> {
   if (!items.length) return []
   const { items: out } = await bridge<{ items: (TestlyAttempt & { testId: string; studentId: string })[] }>({ action: 'results', items })
   return out
@@ -162,6 +162,6 @@ export function testlyMeta(x: { questions: number; points: number; minutes: numb
 }
 
 /** Teacher: reopen the linked Testly attempts and return this homework together. */
-export function returnTestlyHomework(progressId: string, comment = ''): Promise<{ ok: boolean }> {
-  return bridge({ action: 'return_homework', progressId, comment })
+export function returnTestlyHomework(progressId: string, comment = '', expectedAttemptId?: string): Promise<{ ok: boolean }> {
+  return bridge({ action: 'return_homework', progressId, comment, expectedAttemptId })
 }

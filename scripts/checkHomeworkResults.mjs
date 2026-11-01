@@ -33,3 +33,18 @@ assert.equal(testlyPresentation({ ...done, answered: 99 }, saved).progress.answe
 assert.equal(testlyPresentation({ ...done, answered: -5 }, saved).progress.answered, 0)
 assert.equal(testlyPresentation({ ...done, answered: NaN }, saved).progress, null)
 console.log('PASS: points vs completion, zero score, pending grading, missing/retained score, reopened attempt, unknown/invalid progress')
+
+// Completion notifications are independent of the student keeping the page open.
+const { applyTestlyResult } = await import('../supabase/functions/_shared/testlyProgress.ts')
+const retryDraft = {v:'basic-1',draft:true,attemptId:'second',testlyKey:'iskra:second',gradable:1,correct:0,
+ rows:[{n:1,type:'testly',answer:'',verdict:'empty',testly:{testId:'test'}}]}
+const completedRetry = applyTestlyResult(retryDraft,'test',{...done,got:54,updatedAt:'2026-11-01T01:00:00Z'},'current')
+assert.equal(completedRetry.attachments.draft,false)
+assert.equal(completedRetry.score,86)
+assert.equal(completedRetry.status,'submitted')
+assert.equal(completedRetry.attachments.attemptId,'second')
+const mixedDraft = {...retryDraft,reviewRequired:true,rows:[...retryDraft.rows,{n:2,type:'extended',answer:'',verdict:'empty'}]}
+assert.equal(applyTestlyResult(mixedDraft,'test',done,'current').attachments.draft,true)
+assert.equal(applyTestlyResult({...completedRetry.attachments,reviewedAt:at},'test',{...done,got:0},'completed'),null)
+assert.equal(applyTestlyResult(completedRetry.attachments,'test',{...done,got:0,updatedAt:'2026-10-31T01:00:00Z'},'completed'),null)
+console.log('PASS: independent retry, closed-tab completion, mixed draft not auto-submitted, final grade protected, stale notification ignored')

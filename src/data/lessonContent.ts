@@ -233,8 +233,6 @@ export interface LessonContentData {
   hardTask: HomeworkTeacherTask
 }
 export interface LessonDetail {
-  /** formatted lesson date, e.g. "06.05" */
-  date: string
   /** Длительность записи, «24:18». Пусто, когда её никто не измерял: раньше
    *  здесь стояло зашитое «25:12» и оно врало поверх любого чужого ролика.
    *  Реальную длину знает только сам плеер — он и подписывает её, когда
@@ -299,7 +297,6 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   const ap = lesson.content ?? apLessonContent(lesson.id)
   if (ap) {
     return {
-      date: dateStr,
       videoSource,
       timecodes,
       files: lessonFiles(lesson),
@@ -312,7 +309,6 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   }
 
   return {
-    date: dateStr,
     videoSource,
     timecodes,
     files: lessonFiles(lesson),

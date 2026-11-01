@@ -1,3 +1,5 @@
+import LessonWatchStatus from './LessonWatchStatus'
+import { homeworkDisplayScore } from '../lib/homeworkResult'
 import { useState, useMemo } from 'react'
 import Skeleton from './Skeleton'
 import { motion } from 'framer-motion'
@@ -14,7 +16,7 @@ import MobileHScroll from './MobileHScroll'
 import MobilePill from './MobilePill'
 import { GlassPill } from './mobileChrome'
 import MobileBell from './MobileBell'
-import { getDisplayLessonStatus } from '../lib/lessonStatus'
+import { getDisplayLessonStatus, lessonStatusLabel, type LessonDisplayStatus } from '../lib/lessonStatus'
 import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
@@ -24,7 +26,7 @@ import { subjectIcon, subjectRank, resolveSubjectPalette } from '../lib/subjects
 import { stripCommonPrefix } from '../lib/courseLabels'
 import type { SubjectPalette } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
-import type { Lesson, LessonStatus } from '../data/mockData'
+import type { Lesson } from '../data/mockData'
 import { TaskliIcon, type TaskliIconName, type TaskliIconTone } from './icons/TaskliIcon'
 import { SubjectMark } from './icons/SubjectMark'
 
@@ -34,14 +36,17 @@ import { SubjectMark } from './icons/SubjectMark'
 
 const ALL = 'all' as const
 
-type StatusVisual = { icon: TaskliIconName; tone: TaskliIconTone; tintBg: string; tint: string; label: string }
-const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {
+type StatusVisual = { icon: TaskliIconName; tone: TaskliIconTone; tintBg: string; tint: string; label?: string }
+const STATUS_VISUAL: Record<LessonDisplayStatus, StatusVisual> = {
   completed: { icon: 'done', tone: 'success', tintBg: 'var(--color-green-soft)',  tint: 'var(--color-green-text)',  label: 'Выполнено' },
   // Та же плита, что в десктопной сетке: цвет курса с уровня «Акцент».
   current:   { icon: 'now', tone: 'now', tintBg: 'var(--status-now-soft)', tint: 'var(--status-now-text)', label: 'Сейчас' },
   returned:  { icon: 'returned', tone: 'returned', tintBg: 'var(--color-yellow-soft)', tint: 'var(--color-yellow-text)', label: 'Возврат' },
   submitted: { icon: 'reviewStatus', tone: 'review', tintBg: 'var(--color-peach-soft)',  tint: 'var(--color-peach-text)',  label: 'Проверка' },
-  unviewed:  { icon: 'recording', tone: 'attention', tintBg: 'var(--color-red-soft)', tint: 'var(--color-red-text)', label: 'Запись' },
+  unviewed:  { icon: 'recording', tone: 'neutral', tintBg: 'var(--color-blue-pill-bg)', tint: 'var(--color-blue-pill-text)', label: 'Запись доступна' },
+  test_low: { icon: 'attention', tone: 'attention', tintBg: 'var(--color-red-soft)', tint: 'var(--color-red-text)' },
+  test_passed: { icon: 'done', tone: 'success', tintBg: 'var(--color-green-soft)', tint: 'var(--color-green-text)' },
+  submitted_unknown: { icon: 'reviewStatus', tone: 'neutral', tintBg: 'var(--color-bg-3)', tint: 'var(--color-muted)', label: 'Работа отправлена' },
   locked:    { icon: 'closed', tone: 'closed', tintBg: 'var(--color-bg-3)',        tint: 'var(--color-muted)',       label: 'Закрыт' },
 }
 
@@ -69,7 +74,7 @@ export default function MobileCourses() {
   const pal = resolveSubjectPalette(subject?.subject, dark)
   // «Сейчас» — статус текущего урока — тоже предметный, иначе на корейском
   // курсе половина экрана фиолетовая ни от чего.
-  const statusVisual = (st: LessonStatus): StatusVisual =>
+  const statusVisual = (st: LessonDisplayStatus): StatusVisual =>
     st === 'current' ? { ...STATUS_VISUAL.current, tintBg: pal.soft, tint: pal.text } : STATUS_VISUAL[st]
 
   // Подписи чипс дока: у курсов одного языка общее первое слово съедает
@@ -327,7 +332,7 @@ function ModuleRow({ label, total, done, active, onClick, pal }: { label: string
   )
 }
 
-function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: Lesson; status: LessonStatus; index: number; focused: boolean; onOpen: () => void; pal: SubjectPalette }) {
+function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: Lesson; status: LessonDisplayStatus; index: number; focused: boolean; onOpen: () => void; pal: SubjectPalette }) {
   const t = useT()
   const { tc } = useTc()
   const v: StatusVisual = status === 'current' ? { ...STATUS_VISUAL.current, tintBg: pal.soft, tint: pal.text } : STATUS_VISUAL[status]
@@ -365,8 +370,13 @@ function LessonCard({ lesson, status, index, focused, onOpen, pal }: { lesson: L
           )}
         </div>
         <div className="flex items-center" style={{ gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: v.tint }}>{isLocked ? t('Откроется позже') : t(v.label)}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: v.tint }}>
+            {isLocked ? t('Откроется позже') : t(v.label ?? lessonStatusLabel(status, lesson.kind))}
+            {(status === 'test_low' || status === 'test_passed') && ` · ${homeworkDisplayScore(lesson.result)}%`}
+          </span>
         </div>
+        <LessonWatchStatus lesson={lesson} />
+        {status === 'test_low' && <span style={{ fontSize: 11, color: v.tint }}>{t('Ниже проходного балла')} · {t('порог')} {lesson.result?.passingScore}%</span>}
       </div>
       {/* trailing */}
       {!isLocked && <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}

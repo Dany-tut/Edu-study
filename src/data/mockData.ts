@@ -17,6 +17,11 @@ export interface Lesson {
   status: LessonStatus
   shape: LessonShape
   points?: number
+  result?: import('../lib/homeworkResult').HomeworkResult
+  watch?: import('../lib/videoProgress').VideoWatch
+  deliveryMode?: 'live' | 'recording'
+  /** Current journal mark; independent of homework and actual video coverage. */
+  attended?: boolean
   comment?: string
   subject: string
   /** Node kind: a normal lesson or a final test that opens a quiz. */
@@ -51,6 +56,7 @@ export interface Lesson {
   files?: import('../lib/lessonFiles').LessonFiles
   /** Scheduled calendar date (ISO "YYYY-MM-DD") — shown on the track to match the schedule. */
   scheduledDate?: string
+  scheduledTime?: string
   /**
    * Конспект и домашка ещё не приехали.
    *
@@ -136,6 +142,8 @@ export type ScheduleLesson = {
   lessonTitle: string
   lessonNumber: number
   time: string
+  endTime?: string
+  endDate?: string
   /** 'rec' = live session / recording, 'lesson' = lesson opening. */
   kind?: 'rec' | 'lesson'
   upcoming?: boolean

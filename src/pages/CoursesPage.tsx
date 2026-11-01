@@ -1,3 +1,5 @@
+import LessonWatchStatus from '../components/LessonWatchStatus'
+import { homeworkDisplayScore } from '../lib/homeworkResult'
 import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
@@ -7,7 +9,7 @@ import { useNavCollapse } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { type Lesson, type LessonStatus } from '../data/mockData'
-import { getDisplayLessonStatus } from '../lib/lessonStatus'
+import { getDisplayLessonStatus, lessonStatusLabel, type LessonDisplayStatus } from '../lib/lessonStatus'
 import { playTransitionDrop } from '../lib/sound'
 import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
@@ -25,15 +27,18 @@ const FILTER_OPTIONS: Array<{ id: StatusFilter; label: string }> = [
   { id: 'active', label: 'Нужно сделать' },
   { id: 'done', label: 'Выполненные' },
 ]
-const ACTIVE_STATUSES: LessonStatus[] = ['current', 'returned', 'unviewed', 'submitted']
+const ACTIVE_STATUSES: LessonDisplayStatus[] = ['current', 'returned', 'unviewed', 'submitted', 'test_low', 'submitted_unknown']
 
 // Soft surface colours per status — mirrors the course-track palette so a lesson
 // reads the same here as it does on the track / in the detail popover.
-const cardStyle: Record<LessonStatus, { bg: string; ring: string; label: string; subText: string }> = {
+const cardStyle: Record<LessonDisplayStatus, { bg: string; ring: string; label: string; subText: string }> = {
   completed: { bg: 'var(--color-green-soft)', ring: '#6EE7A0', label: 'var(--color-text)', subText: 'var(--color-green-text)' },
   returned:  { bg: 'var(--color-yellow-soft)', ring: '#F8EF8C', label: 'var(--color-text)', subText: 'var(--color-yellow-text)' },
-  unviewed:  { bg: 'var(--color-red-soft)', ring: '#F48B91', label: 'var(--color-text)', subText: 'var(--color-red-text)' },
+  unviewed:  { bg: 'var(--color-blue-pill-bg)', ring: '#9DBFEA', label: 'var(--color-text)', subText: 'var(--color-blue-pill-text)' },
   submitted: { bg: 'var(--color-peach-soft)', ring: '#F8C991', label: 'var(--color-text)', subText: 'var(--color-peach-text)' },
+  test_low: { bg: 'var(--color-red-soft)', ring: '#F48B91', label: 'var(--color-text)', subText: 'var(--color-red-text)' },
+  test_passed: { bg: 'var(--color-green-soft)', ring: '#6EE7A0', label: 'var(--color-text)', subText: 'var(--color-green-text)' },
+  submitted_unknown: { bg: 'var(--color-bg-3)', ring: 'var(--color-border-medium)', label: 'var(--color-text)', subText: 'var(--color-muted)' },
   // Плита «сейчас» идёт за цветом курса с уровня «Акцент» (--color-accent-soft,
   // lib/courseTint.ts): подпись здесь — --color-accent, и фиолетовая карточка
   // под коралловой подписью английского выглядела недокрашенной.
@@ -118,7 +123,7 @@ export default function CoursesPage() {
     )
     if (statusFilter !== 'all') base = base.filter(l => {
       const ds = getDisplayLessonStatus(l, now)
-      return statusFilter === 'done' ? ds === 'completed' : ACTIVE_STATUSES.includes(ds)
+      return statusFilter === 'done' ? (ds === 'completed' || ds === 'test_passed') : ACTIVE_STATUSES.includes(ds)
     })
     // Copy before sorting — never mutate the module's lesson array in place.
     if (sortDesc) base = [...base].sort((a, b) => b.number - a.number)
@@ -553,7 +558,7 @@ export default function CoursesPage() {
                       boxShadow: 'var(--shadow-inset)',
                     }}
                   >
-                    {lesson.points}
+                    {lesson.points}{displayStatus === 'test_low' || displayStatus === 'test_passed' ? '%' : ''}
                   </span>
                 )}
                 <span style={{ fontSize: 15, fontWeight: 600, color: st.label, lineHeight: 1.2 }}>
@@ -565,6 +570,12 @@ export default function CoursesPage() {
                 >
                   {tc(lesson.title)}
                 </span>
+                {(displayStatus === 'test_low' || displayStatus === 'test_passed' || displayStatus === 'submitted' || displayStatus === 'submitted_unknown') && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: st.subText }}>
+                    {t(lessonStatusLabel(displayStatus, lesson.kind))}{displayStatus === 'test_low' ? ` · ${t('Ниже проходного балла')}` : ''}
+                  </span>
+                )}
+                <LessonWatchStatus lesson={lesson} />
               </motion.button>
             )
           })}

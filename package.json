@@ -33,7 +33,10 @@
     "check:light": "esbuild scripts/checkLightData.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLightData.mjs --log-level=error && node node_modules/.cache/checkLightData.mjs",
     "check:exams": "node scripts/checkExamClaims.mjs",
     "check:homework-results": "esbuild scripts/checkHomeworkResults.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkResults.mjs --log-level=error && node node_modules/.cache/checkHomeworkResults.mjs",
-    "build:diag-defaults": "esbuild scripts/buildDiagDefaults.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/buildDiagDefaults.mjs --log-level=error && node node_modules/.cache/buildDiagDefaults.mjs"
+    "build:diag-defaults": "esbuild scripts/buildDiagDefaults.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/buildDiagDefaults.mjs --log-level=error && node node_modules/.cache/buildDiagDefaults.mjs",
+    "check:course-track": "node scripts/checkCourseTrack.mjs",
+    "check:homework-attempts": "node scripts/checkHomeworkAttempts.mjs",
+    "check:lesson-participation": "node scripts/checkLessonParticipation.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

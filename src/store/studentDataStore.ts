@@ -18,6 +18,8 @@ import {
 } from '../lib/db'
 import { fetchStandaloneSubject, HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { getStudentSession } from '../lib/studentSession'
+import { startHomeworkRetake } from '../lib/homeworkAttempts'
+import { homeworkResult } from '../lib/homeworkResult'
 import { loadApLessons } from '../data/apLessonChunk'
 import { getSubject } from '../lib/subjects'
 import { reconcileLocalHomework, reconcileCourseReset, courseResetRef } from '../lib/homeworkReset'
@@ -43,6 +45,7 @@ interface StudentDataState {
    * `${lessonId}-hard`, до уроков курса они не доезжают.
    */
   progress: ProgressMap
+  scopeStudentIds: string[]
   quizQuestions: QuizQuestion[]
   scienceFacts: ScienceFact[]
   scienceMemes: ScienceMeme[]
@@ -78,6 +81,36 @@ const defaultStats: StudentStats = {
   stars: 0,
 }
 
+let loadSequence = 0
+
+/** Publish the confirmed draft before the homework screen can mount with the old answers. */
+export async function startCourseHomeworkRetake(subjectId: string, lessonId: string, expectedId: string | null) {
+  const studentId = ownerStudentIdFor(subjectId)
+  const sessionId = getStudentSession()?.id
+  const draft = await startHomeworkRetake(studentId, lessonId, expectedId)
+  if (!draft?.draft || !draft.attemptId || getStudentSession()?.id !== sessionId) throw new Error('Retake draft unavailable')
+  const state = useStudentData.getState()
+  const previous = state.progress[lessonId]
+  // Realtime (or a second tab) can get here first. Keep the newest server state.
+  const prior = previous?.result
+  const archived = draft.archivedAttempt
+  const sameAttempt = prior?.attemptId === draft.attemptId
+  if (sameAttempt && (!prior?.draft || !archived)) return
+  if (!prior || (!sameAttempt && (prior.attemptId ?? null) !== expectedId)) throw new Error('Homework attempt changed')
+
+  const attempts = prior.attempts ?? []
+  const history = archived ? [archived, ...attempts.filter(a => a.id !== archived.id)] : attempts
+  const result = homeworkResult(draft, null, 'current', history)
+  if (!archived) result.bestPercent = prior.bestPercent ?? prior.percent
+  result.attemptCount = Math.max(prior.attemptCount ?? 0, archived?.number ?? 0, history.length)
+  const progress: ProgressMap = {
+    ...state.progress,
+    [lessonId]: { ...previous, status: 'current', score: null, reviewComment: '', reviewAttachments: { photos: [], board: null }, result },
+  }
+  ++loadSequence // An earlier track request must not put the submitted attempt back.
+  useStudentData.setState({ progress, subjects: mergeSubjectsWithProgress(state.subjects, progress) })
+}
+
 export const useStudentData = create<StudentDataState>((set, get) => ({
   loaded: false,
   subjects: [],
@@ -85,6 +118,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
   scheduleTodayIndex: 3,
   stats: defaultStats,
   progress: {},
+  scopeStudentIds: [],
   quizQuestions: [],
   scienceFacts: [],
   scienceMemes: [],
@@ -106,6 +140,8 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
   load: async () => {
     const session = getStudentSession()
     if (!session) return
+    const sequence = ++loadSequence
+    const isCurrent = () => sequence === loadSequence && getStudentSession()?.id === session.id
 
     // First load after a (re)mount — used to seed the active subject/module from
     // the freshly-loaded data. Realtime re-syncs leave the user's current tab put.
@@ -135,17 +171,13 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // Охват — все строки ученика и его группы: трек должен показать ВСЕ его
     // курсы, включая назначенные группе, в которую его записали позже, а не
     // только курс активной сессии. Приезжает вместе с самими курсами.
-    const track = await trackP
-    const scope = track.scope
-
     // allSettled (not Promise.all): one failing request must NOT reject the whole
     // load and leave `loaded:false` forever — that strands the dashboard on an
     // infinite "Загрузка…" spinner (a dead white screen for the student). Each
     // slice falls back to an empty value so the UI renders whatever succeeded.
     const results = await Promise.allSettled([
-      Promise.resolve(track.progress),
+      trackP,
       scheduleP,
-      Promise.resolve(track.subjects),
       quizP,
       factsP,
       memesP,
@@ -154,14 +186,18 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     ])
     const val = <T,>(i: number, fallback: T): T =>
       results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
-    const progress  = val(0, {} as ProgressMap)
+    if (!isCurrent()) return
+    if (results[0].status === 'rejected') throw results[0].reason
+    const track = results[0].value
+    const scope = track.scope
+    const progress = track.progress ?? get().progress
     const schedule  = val(1, [] as Awaited<ReturnType<typeof fetchScheduleDays>>)
-    const catalog   = val(2, [] as Subject[])
-    const quizQ     = val(3, [] as Awaited<ReturnType<typeof fetchQuizQuestions>>)
-    const facts     = val(4, [] as Awaited<ReturnType<typeof fetchScienceFacts>>)
-    const memes     = val(5, [] as Awaited<ReturnType<typeof fetchScienceMemes>>)
-    const reactions = val(6, [] as Awaited<ReturnType<typeof fetchCourseReactions>>)
-    const hwSubject = val(7, null as Awaited<ReturnType<typeof fetchStandaloneSubject>>)
+    const catalog   = track.subjects
+    const quizQ     = val(2, [] as Awaited<ReturnType<typeof fetchQuizQuestions>>)
+    const facts     = val(3, [] as Awaited<ReturnType<typeof fetchScienceFacts>>)
+    const memes     = val(4, [] as Awaited<ReturnType<typeof fetchScienceMemes>>)
+    const reactions = val(5, [] as Awaited<ReturnType<typeof fetchCourseReactions>>)
+    const hwSubject = val(6, null as Awaited<ReturnType<typeof fetchStandaloneSubject>>)
 
     // Standalone-ДЗ (вне курса) — отдельный предмет-трек «Домашние задания» со
     // своей нумерацией. Кладём в каталог ДО merge, чтобы прогресс/статусы
@@ -178,7 +214,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // курса. Сверяем: нет строки — нет и сдачи (подробности и оговорки в
     // lib/homeworkReset.ts). Только когда база РЕАЛЬНО ответила: упавший запрос
     // даёт ту же пустую карту, и стирать по ней ответы нельзя.
-    if (results[0].status === 'fulfilled') {
+    if (track.progress !== null) {
       const wiped: string[] = []
       // 1. Прямая отметка учителя «курс обнулён такого-то числа». Она говорит то,
       // чего не выведешь из отсутствия строк, поэтому стирает и НЕДОДЕЛАННЫЕ
@@ -195,7 +231,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       const submittedRefs = new Set(
         Object.entries(progress)
           .filter(([, p]) => p.status === 'submitted' || p.status === 'returned'
-            || p.status === 'completed' || (p.score ?? 0) > 0)
+            || p.status === 'completed' || !!p.result?.draft || (p.score ?? 0) > 0)
           .map(([ref]) => ref),
       )
       wiped.push(...reconcileLocalHomework(lessonIds, submittedRefs))
@@ -237,6 +273,12 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
 
     const todayIdx = scheduleDays.findIndex(d => d.isToday)
 
+    if (!isCurrent()) return
+    if (track.progress !== null) {
+      useDashboard.getState().syncLessonAssessments(session.id, progress,
+        fullCatalog.flatMap(s => s.modules.flatMap(m => m.lessons.map(l => l.id))))
+    }
+
     // Reconcile hard-level (essay) verdicts from `lesson_progress` into the
     // dashboard store. The hard status (satellite badge + homework screen) is
     // otherwise local-only — set to 'submitted' when the student submits — so
@@ -251,7 +293,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
         }
       }
     }
-    replayHard(progress)
+    if (track.progress !== null) replayHard(progress)
 
     // Уроки, тяжёлую половину которых уже приносили на этой странице, отдаём
     // сразу собранными. Иначе повторный load() (realtime после проверки ДЗ,
@@ -267,6 +309,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       scheduleTodayIndex: todayIdx >= 0 ? todayIdx : 3,
       stats,
       progress,
+      scopeStudentIds: scope.studentIds,
       quizQuestions: quizQ,
       scienceFacts: facts,
       scienceMemes: memes,
@@ -306,6 +349,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // рисовать нечем.
     void fetchProgressAttachments(scope.studentIds)
       .then(att => {
+        if (!isCurrent()) return
         if (Object.keys(att).length === 0) return
         const merged: ProgressMap = { ...useStudentData.getState().progress }
         for (const [ref, a] of Object.entries(att)) {
@@ -378,7 +422,9 @@ function applyHeavy(subjects: Subject[]): Subject[] {
           ...l,
           heavyPending: false,
           content: rec ? undefined : found?.content,
-          homework: withBankHard(found?.homework, l.bankHard),
+          homework: rec
+            ? { hwTasks: found?.homework?.recHwTasks, hwDate: found?.homework?.recHwDate }
+            : withBankHard(found?.homework, l.bankHard),
           // Описание тоже едет тяжёлой половиной: на треке его не показывают, а
           // в скелете оно весило больше всего остального вместе взятого.
           description: found?.description,

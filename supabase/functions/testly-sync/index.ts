@@ -12,7 +12,10 @@ Deno.serve(async req => {
     const { key, testId } = await req.json()
     if (!/^iskra:[0-9a-f-]{36}$/i.test(key ?? '') || typeof testId !== 'string') return new Response('Bad request', { status: 400 })
     const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-    const { data: students, error } = await db.from('students').select('id, created_by, group_id').eq('auth_user_id', key.slice(6))
+    const { data: attemptRows, error: attemptError } = await db.from('lesson_progress').select('student_id').eq('attachments->>testlyKey',key)
+    if (attemptError) throw attemptError
+    const people = db.from('students').select('id, created_by, group_id, auth_user_id')
+    const { data: students, error } = attemptRows?.length ? await people.in('id',attemptRows.map(p => p.student_id)) : await people.eq('auth_user_id',key.slice(6))
     if (error) throw error
     for (const student of students ?? []) {
       let owner = student.created_by
@@ -34,6 +37,7 @@ Deno.serve(async req => {
         .eq('student_id', student.id).contains('attachments', { v: 'basic-1' })
       if (readError) throw readError
       for (const row of rows ?? []) {
+        if ((row.attachments?.testlyKey ?? `iskra:${student.auth_user_id}`) !== key) continue
         const patch = applyTestlyResult(row.attachments, testId, result, row.status)
         if (patch) {
           const { error } = await db.from('lesson_progress').update(patch).eq('id', row.id).eq('updated_at', row.updated_at)

@@ -22,14 +22,17 @@ export function hwRef(lessonId: string, extraId?: string | null): string {
 
 /** Обратно: из ключа домашки (без `-hard`) — урок и доп. домашка, если она есть. */
 export function splitHwRef(ref: string): { lessonId: string; extraId: string | null } {
-  const i = ref.indexOf(EXTRA_HW_SEP)
-  return i === -1 ? { lessonId: ref, extraId: null } : { lessonId: ref.slice(0, i), extraId: ref.slice(i + 1) }
+  // У выделенного узла записи собственный адрес <урок>~rec; «rec» — не id доп. ДЗ.
+  const [lesson, part, extra] = ref.split(EXTRA_HW_SEP)
+  return part === 'rec'
+    ? { lessonId: `${lesson}~rec`, extraId: extra ?? null }
+    : { lessonId: lesson, extraId: part ?? null }
 }
 
 /** Урок, к которому относится запись lesson_progress: без `-hard` и без доп. домашки. */
 export function baseLessonRef(ref: string): string {
   const noHard = ref.endsWith('-hard') ? ref.slice(0, -5) : ref
-  return splitHwRef(noHard).lessonId
+  return noHard.split(EXTRA_HW_SEP, 1)[0]
 }
 
 /** Одна доп. домашка — «Доп», несколько — «Доп 1», «Доп 2»… */

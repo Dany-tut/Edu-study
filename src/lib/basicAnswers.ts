@@ -17,6 +17,7 @@
  * строка `<lessonId>-hard` и свой формат `{v:2, tasks}` — они не пересекаются).
  */
 import { t } from './i18n'
+import { parseLessonSelfAssessment, type LessonSelfAssessment } from './lessonSelfAssessment'
 
 
 /** Как машина оценила один ответ. */
@@ -54,11 +55,19 @@ export interface BasicAnswerRow {
    * Тест из Тестли: балл на момент сдачи и чем спросить свежий (у теста с
    * ручной частью итог приходит после проверки в Тестли).
    */
-  testly?: { testId: string; got?: number; max?: number; pending?: boolean; submittedAt?: string; returned?: boolean; returnedAt?: string }
+  testly?: { testId: string; updatedAt?: string; got?: number; max?: number; pending?: boolean; submittedAt?: string; returned?: boolean; returnedAt?: string }
 }
 
 export interface BasicAnswersPayload {
   v: 'basic-1'
+  selfAssessment?: LessonSelfAssessment | null
+  attemptId?: string
+  testlyKey?: string
+  draft?: boolean
+  reviewedAt?: string | null
+  /** Manual tasks, independently of the automatic score or skipped answers. */
+  reviewRequired?: boolean
+  recommendationScore?: number
   /** Сколько заданий с автопроверкой и сколько из них верно — для шапки (тест из Тестли — долей). */
   gradable: number
   correct: number
@@ -80,6 +89,10 @@ export function parseBasicAnswers(attachments: unknown): BasicAnswersPayload | n
   if (a.v !== 'basic-1' || !Array.isArray(a.rows)) return null
   return {
     v: 'basic-1',
+    attemptId: a.attemptId, testlyKey: a.testlyKey, draft: a.draft, reviewedAt: a.reviewedAt,
+    reviewRequired: a.reviewRequired,
+    recommendationScore: a.recommendationScore,
+    selfAssessment: parseLessonSelfAssessment(a.selfAssessment),
     gradable: typeof a.gradable === 'number' ? a.gradable : 0,
     correct: typeof a.correct === 'number' ? a.correct : 0,
     rows: a.rows as BasicAnswerRow[],

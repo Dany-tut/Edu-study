@@ -1,22 +1,28 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import LessonWatchStatus from './LessonWatchStatus'
+import TrackHomeworkButton from './TrackHomeworkButton'
+import LessonSelfAssessment from './LessonSelfAssessment'
+import { gradedTrackResult } from '../lib/homeworkResult'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import Skeleton from './Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock } from './icons/appIcons'
+import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock, CircleAlert } from './icons/appIcons'
 import { IconLessonRecording } from './icons'
 import { type Subject, type Lesson, type LessonStatus } from '../data/mockData'
-import { lessonHasHardLevel } from '../data/lessonContent'
-import { useStudentData } from '../store/studentDataStore'
+import { getLessonDetail, lessonHasHardLevel } from '../data/lessonContent'
+import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
 import { HARD_STYLE } from './CourseNode'
-import { getDisplayLessonStatus } from '../lib/lessonStatus'
+import { getTrackLessonStatus, lessonScheduleDate, lessonStatusLabel, lessonTrackStep, type TrackLessonStatus } from '../lib/lessonStatus'
+import { hardLevelState } from '../lib/lessonAssessments'
+import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import CourseNode from './CourseNode'
 import HScrollFade from './HScrollFade'
 import { CourseSelect, ModuleChain } from './CourseModuleBar'
 import { playTransitionDrop } from '../lib/sound'
-import { EMOJI_STEPS } from './homeworkSteps'
 import HardStarLottie from './HardStarLottie'
 import { useT, useTc } from '../lib/i18n'
+import { TRACK_STATUS, trackPalette } from '../lib/theme'
 
 const NODE_SIZE = 56
 const DETAIL_CARD_WIDTH = 340
@@ -30,18 +36,6 @@ const TRACK_PULL_UP = 12 - GLOW_PAD
 const ROW_SHADOW_TOP = 10
 const ROW_SHADOW_BOTTOM = 12
 
-// Format a lesson's scheduled date as "18 июня" to match the schedule calendar.
-// The DB stores dates as "DD.MM.YYYY" text; also tolerate ISO "YYYY-MM-DD".
-const LESSON_DATE_FMT = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' })
-function fmtLessonDate(raw?: string): string | null {
-  if (!raw) return null
-  const dmy = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/)
-  const d = dmy
-    ? new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]))
-    : new Date(`${raw}T00:00:00`)
-  return isNaN(d.getTime()) ? null : LESSON_DATE_FMT.format(d)
-}
-
 function withAlpha(hex: string, alpha: number) {
   const h = hex.replace('#', '')
   const r = parseInt(h.slice(0, 2), 16)
@@ -50,15 +44,14 @@ function withAlpha(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeText: string; badgeLabel: string; textColor: string; icon: React.ElementType; custom?: boolean }> = {
-  completed: { bg: 'var(--color-green-soft)', badgeBg: 'var(--color-green-soft)', badgeText: 'var(--color-green-text)', badgeLabel: 'выполнено', textColor: 'var(--color-text)', icon: CheckCircle2 },
-  returned: { bg: 'var(--color-yellow-soft)', badgeBg: 'var(--color-yellow-soft)', badgeText: 'var(--color-yellow-text)', badgeLabel: 'возвращено на доработку', textColor: 'var(--color-text)', icon: RotateCcw },
-  unviewed: { bg: 'var(--color-red-soft)', badgeBg: 'var(--color-red-soft)', badgeText: 'var(--color-red-text)', badgeLabel: 'запись урока', textColor: 'var(--color-text)', icon: IconLessonRecording, custom: true },
-  submitted: { bg: 'var(--color-peach-soft)', badgeBg: 'var(--color-peach-soft)', badgeText: 'var(--color-peach-text)', badgeLabel: 'отправлено на проверку', textColor: 'var(--color-text)', icon: Upload },
-  // Карточка (не узел трассы — тот держится на --status-now*): цвет курса с
-  // уровня «Акцент», как в сетке «Курсов».
-  current: { bg: 'var(--color-accent-soft)', badgeBg: 'var(--color-accent-soft)', badgeText: 'var(--color-accent)', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
-  locked: { bg: 'var(--color-bg-4)', badgeBg: 'var(--color-bg-5)', badgeText: 'var(--color-muted)', badgeLabel: 'недоступно', textColor: 'var(--color-text)', icon: Lock },
+const detailStyles: Record<TrackLessonStatus, { badgeLabel?: string; icon: React.ElementType }> = {
+  completed: { badgeLabel: 'выполнено', icon: CheckCircle2 },
+  returned: { badgeLabel: 'возвращено на доработку', icon: RotateCcw },
+  unviewed: { badgeLabel: 'Запись доступна', icon: IconLessonRecording },
+  submitted: { badgeLabel: 'отправлено на проверку', icon: Upload },
+  test_low: { icon: CircleAlert }, test_passed: { icon: CheckCircle2 },
+  submitted_unknown: { badgeLabel: 'Работа отправлена', icon: Clock },
+  today: { icon: Play }, current: { icon: Play }, locked: { badgeLabel: 'недоступно', icon: Lock },
 }
 
 /**
@@ -169,21 +162,22 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const activeModule = subject.modules.find(m => m.id === effectiveModuleId) ?? subject.modules[0]
   const allLessons = activeModule?.lessons ?? []
   // Первый текущий урок — на нём праздничная тема ставит фонарь/конфету (CourseNode.seasonMark).
-  const seasonMarkId = allLessons.find(l => l.status === 'current')?.id
+  const statuses = allLessons.map(lesson => getTrackLessonStatus(lesson, now))
+  const seasonMarkIndex = statuses.indexOf('today')
   const selectedLesson = allLessons.find(lesson => lesson.id === selectedLessonId) ?? null
 
-  // Progress: proportion of this module's lessons that are completed
-  const completedCount = allLessons.filter(l => l.status === 'completed').length
-  const progressPct = allLessons.length > 0 ? (completedCount / allLessons.length) * 100 : 0
-
   // Full-width track: nodes are distributed evenly across the available width so
-  // the line always reaches the end of the row. A 100%-complete module therefore
-  // fills green all the way to the last node at the right edge.
+  // the line always reaches the end of the row. Each lesson owns the line up to
+  // the midpoint to its neighbours; the aggregate percentage stays in ModuleChain.
   const nodeCount = allLessons.length
   const padCenter = TRACK_SIDE_PADDING + NODE_SIZE / 2          // first / last node center inset
   const containerW = viewW || 900                              // measured row width (fallback pre-measure)
   const span = Math.max(0, containerW - padCenter * 2)         // distance between first & last node centers
   const nodeCenter = (i: number) => nodeCount <= 1 ? padCenter : padCenter + (span * i) / (nodeCount - 1)
+  const trackColors = allLessons.map((lesson, i) => {
+    const status = gradedTrackResult(lesson)?.status ?? statuses[i]
+    return status === 'completed' || status === 'test_passed' ? TRACK_STATUS.completed.border : 'var(--color-bg-5)'
+  })
 
   // Хард открываем только у уроков, где реально есть сложные задания — иначе
   // внутри уровня пусто (см. lessonHasHardLevel).
@@ -194,9 +188,22 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const detailCardWidth = Math.min(DETAIL_CARD_WIDTH, Math.max(240, containerW - 24))
   const detailLeft = Math.max(0, Math.min(selectedCenter - detailCardWidth / 2, Math.max(0, containerW - detailCardWidth)))
   const arrowX = Math.max(16, Math.min(selectedCenter - detailLeft, detailCardWidth - 16))
-  const selectedLessonStatus = selectedLesson ? getDisplayLessonStatus(selectedLesson, now) : null
-  const selectedDetail = selectedLessonStatus ? detailStyles[selectedLessonStatus] : null
+  const selectedLessonStatus = statuses[selectedIndex] ?? null
+  const selectedDate = selectedLesson ? lessonScheduleDate(selectedLesson, 'long') : null
+  const hasBasicHomework = useMemo(() => {
+    if (!selectedLesson || selectedLessonStatus === 'locked' || selectedLesson.kind === 'test' || selectedLesson.heavyPending) return false
+    return !!getLessonDetail(selectedLesson).homework?.levels.some(level => level.id === 'basic' && level.questions?.length)
+  }, [selectedLesson, selectedLessonStatus])
+  const selectedStep = selectedLesson && selectedLessonStatus ? lessonTrackStep(selectedLesson, selectedLessonStatus) : null
+  const resumeRetake = selectedStep === 'resume'
+  const showRetake = hasBasicHomework && (resumeRetake || selectedStep === 'retake')
+  const homeworkAccepted = selectedLessonStatus === 'test_passed' || selectedLessonStatus === 'completed'
+  const quietLessonButton = selectedLesson && selectedLesson.kind !== 'test' && (
+    showRetake || lessonStudyProgress(selectedLesson).completed || (homeworkAccepted && !selectedLesson.videoUrl?.trim())
+  )
+  const selectedDetail = selectedLessonStatus ? { ...detailStyles[selectedLessonStatus], palette: trackPalette(selectedLessonStatus) } : null
   const DetailIcon = selectedDetail?.icon
+  const selectedGrade = selectedLesson ? gradedTrackResult(selectedLesson) : null
 
   const hardIndex = selectedHardLesson ? allLessons.findIndex(l => l.id === selectedHardLesson.id) : -1
   const hardCenter = hardIndex >= 0 ? nodeCenter(hardIndex) : 0
@@ -204,12 +211,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const hardDetailLeft = Math.max(0, Math.min(hardCenter - hardCardWidth / 2, Math.max(0, containerW - hardCardWidth)))
   const hardArrowX = Math.max(16, Math.min(hardCenter - hardDetailLeft, hardCardWidth - 16))
   const hardAssessment = selectedHardLesson ? lessonAssessments[selectedHardLesson.id] : null
-  const hardUnlocked = hardAssessment?.hardAvailable || (hardAssessment?.score != null && hardAssessment.score >= 80)
-  // Basic submitted below the threshold → hard is locked, overriding any stale status.
-  const hardLockedPopover = hardAssessment?.score != null && !hardUnlocked
-  const hardStatus: 'submitted' | 'returned' | 'completed' | 'available' | 'locked' = hardLockedPopover
-    ? 'locked'
-    : ((hardAssessment?.hardStatus as 'submitted' | 'returned' | 'completed' | undefined) ?? 'available')
+  const hardStatus = hardLevelState(hardAssessment).status
   const hardStyleData = HARD_STYLE[hardStatus]
 
   return (
@@ -264,40 +266,40 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                   overflow: 'visible',
                 }}
               >
-                {/* Base track line — spans the full width between first & last node.
-                    season-track-* — праздничная тема перекрашивает линию (season.css). */}
-                <div
-                  className="season-track-base"
-                  style={{
-                    position: 'absolute',
-                    left: padCenter,
-                    right: padCenter,
-                    top: NODE_SIZE / 2,
-                    transform: 'translateY(-50%)',
-                    height: 16,
-                    background: 'var(--color-bg-5)',
-                    borderRadius: 999,
-                  }}
-                />
-
-                {/* Completed progress fill — at 100% it reaches the last node at
-                    the right edge of the row. */}
-                <motion.div
-                  className="season-track-fill"
-                  style={{
-                    position: 'absolute',
-                    left: padCenter,
-                    top: NODE_SIZE / 2,
-                    transform: 'translateY(-50%)',
-                    height: 16,
-                    borderRadius: 999,
-                    background: 'var(--grad-green-bar)',
-                    transformOrigin: 'left center',
-                  }}
-                  initial={{ width: 0 }}
-                  animate={{ width: (span * progressPct) / 100 }}
-                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-                />
+                {/* Each connection runs from one node centre to the next. */}
+                {nodeCount > 1 && (
+                  <div
+                    data-course-track-line
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: padCenter,
+                      width: span,
+                      top: NODE_SIZE / 2,
+                      transform: 'translateY(-50%)',
+                      height: 16,
+                      borderRadius: 999,
+                      overflow: 'hidden',
+                      display: 'flex',
+                      background: 'var(--color-bg-5)',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {trackColors.slice(1).map((endColor, i) => {
+                      const startColor = trackColors[i]
+                      return (
+                        <div
+                          key={allLessons[i].id}
+                          style={{
+                            flex: 1,
+                            background: startColor === endColor ? startColor
+                              : `linear-gradient(90deg, ${startColor} 22%, ${endColor} 78%)`,
+                          }}
+                        />
+                      )
+                    })}
+                  </div>
+                )}
 
                 {/* Nodes — absolutely positioned at evenly distributed centers */}
                 {allLessons.map((lesson, i) => (
@@ -308,13 +310,17 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                   >
                     <CourseNode
                       lesson={lesson}
+                      status={statuses[i]}
                       index={i}
                       isSelected={selectedLesson?.id === lesson.id}
                       isHighlighted={highlightLessonId === lesson.id}
-                      seasonMark={lesson.id === seasonMarkId}
+                      seasonMark={i === seasonMarkIndex}
                       onSelect={(clickedLesson) => {
                         setSelectedHardLessonId(null)
                         setSelectedLessonId(prev => prev === clickedLesson.id ? null : clickedLesson.id)
+                        if (clickedLesson.heavyPending && clickedLesson.kind !== 'test' && statuses[i] !== 'locked') {
+                          useStudentData.getState().ensureLessonHeavy(clickedLesson.id)
+                        }
                       }}
                       onHardSelect={(clickedLesson) => {
                         setSelectedLessonId(null)
@@ -330,7 +336,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                  OUTSIDE the scroll viewport so it's never clipped and never shifts
                  the track layout. ── */}
             <AnimatePresence>
-              {selectedLesson && selectedDetail && DetailIcon && (
+              {selectedLesson && selectedLessonStatus && selectedDetail && DetailIcon && (
                 <motion.div
                   key={selectedLesson.id}
                   data-lesson-popover
@@ -356,7 +362,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                     // not the card centre; (2) vertical glass gradient — 80% opaque
                     // at the bottom fading to 40% at the top. Blur stays 18px.
                     background: [
-                      `radial-gradient(130% 85% at ${arrowX}px 112%, color-mix(in srgb, ${selectedDetail.badgeText} 16%, transparent), transparent 62%)`,
+                      `radial-gradient(130% 85% at ${arrowX}px 112%, color-mix(in srgb, ${selectedDetail.palette.border} 16%, transparent), transparent 62%)`,
                       `linear-gradient(to top, rgba(var(--glass-rgb), 0.40), rgba(var(--glass-rgb), 0.20))`,
                     ].join(', '),
                     backdropFilter: 'var(--blur-thin)',
@@ -377,31 +383,31 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                         <div
                           className="inline-flex items-center gap-1.5"
                           style={{
-                            color: selectedDetail.badgeText,
+                            color: selectedDetail.palette.text,
                             padding: '2px 0',
                             width: 'fit-content',
                           }}
                         >
-                          {selectedDetail.custom
-                            ? <DetailIcon size={14} color={selectedDetail.badgeText} />
-                            : <DetailIcon size={14} />
-                          }
-                          <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
-                            {selectedLesson.kind === 'test' ? t('финальный тест') : t(selectedDetail.badgeLabel)}
+                          <DetailIcon size={14} color={selectedDetail.palette.icon} />
+                          <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.25 }}>
+                            {t(showRetake && resumeRetake ? 'Пересдача ДЗ' : selectedDetail.badgeLabel ?? lessonStatusLabel(selectedLessonStatus, selectedLesson.kind))}
+                            {selectedLessonStatus === 'test_low' && selectedLesson.result && (
+                              <span style={{ whiteSpace: 'nowrap' }}> · {t('порог')} {selectedLesson.result.passingScore}%</span>
+                            )}
                           </span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.badgeText, lineHeight: 1 }}>
+                          <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.palette.text, lineHeight: 1 }}>
                             {t('Занятие')} #{selectedLesson.number + 1}
-                            {fmtLessonDate(selectedLesson.scheduledDate) && (
-                              <span style={{ color: 'var(--color-muted)', fontWeight: 500 }}> · {fmtLessonDate(selectedLesson.scheduledDate)}</span>
+                            {selectedDate && (
+                              <span style={{ color: 'var(--color-muted)', fontWeight: 500 }}> · {selectedDate}</span>
                             )}
                           </span>
                           <span
                             style={{
                               fontSize: 15,
                               fontWeight: 600,
-                              color: selectedDetail.textColor,
+                              color: 'var(--color-text)',
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
                               WebkitBoxOrient: 'vertical',
@@ -412,35 +418,27 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                             {tc(selectedLesson.title)}
                           </span>
                         </div>
-                        {lessonAssessments[selectedLesson.id] && EMOJI_STEPS[lessonAssessments[selectedLesson.id].emojiIndex] && (() => {
-                          const a = lessonAssessments[selectedLesson.id]
-                          return (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span style={{ fontSize: 18 }}>{EMOJI_STEPS[a.emojiIndex].emoji}</span>
-                              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{a.score} {t('баллов')}</span>
-                              <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>· {EMOJI_STEPS[a.emojiIndex].label}</span>
-                            </div>
-                          )
-                        })()}
                       </div>
                       <div className="flex-shrink-0">
-                        {selectedLesson.points != null ? (
+                        {selectedGrade || selectedLesson.points != null ? (
                           <div className="flex flex-col items-end">
-                            <span style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, color: selectedDetail.textColor }}>
-                              {selectedLesson.points}
+                            <span style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, color: 'var(--color-text)' }}>
+                              {selectedGrade ? `${selectedGrade.percent}%` : selectedLesson.points}
                             </span>
-                            <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: selectedDetail.textColor, marginTop: 4 }}>
-                              {t('баллов')}
+                            <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: 'var(--color-text)', marginTop: 4 }}>
+                              {t(selectedGrade ? (selectedGrade.status === selectedLessonStatus ? 'результат' : 'лучший результат') : 'баллов')}
                             </span>
                           </div>
                         ) : (
                           <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
-                            {t('Нет оценки')}
+                            {t(selectedLesson.result?.pending ? 'Результат после проверки' : 'Нет оценки')}
                           </span>
                         )}
                       </div>
                     </div>
-                  {/* Bottom row: full-width buttons */}
+                  <LessonSelfAssessment key={selectedLesson.id} lessonId={selectedLesson.id}
+                    studentId={ownerStudentIdFor(subject.id)} status={selectedLesson.status} result={selectedLesson.result} />
+                  <LessonWatchStatus lesson={selectedLesson} />
                   {selectedLessonStatus === 'locked' ? (
                     <span
                       style={{
@@ -458,7 +456,8 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                       {t('Недоступно')}
                     </span>
                   ) : (
-                    <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 8, width: '100%' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: showRetake ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)', gap: 8 }}>
+                      {showRetake && <TrackHomeworkButton lesson={selectedLesson} resume={resumeRetake} />}
                       <motion.button
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.96 }}
@@ -466,53 +465,18 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                         style={{
                           fontSize: 13,
                           fontWeight: 600,
-                          color: '#fff',
+                          color: quietLessonButton ? 'var(--color-accent)' : '#fff',
                           background: selectedLesson.kind === 'test'
                             ? 'linear-gradient(135deg, #34C877, #2A7D4F)'
-                            : 'var(--grad-purple)',
+                            : quietLessonButton ? 'var(--color-accent-soft)' : 'var(--grad-purple)',
                           borderRadius: 12,
-                          padding: '10px 18px',
-                          whiteSpace: 'nowrap',
+                          padding: '8px',
+                          minHeight: 40,
                           cursor: 'pointer',
-                          flex: 1,
                         }}
                       >
                         {selectedLesson.kind === 'test' ? t('Пройти тест') : t('Открыть урок')}
                       </motion.button>
-                      {(() => {
-                        const a = lessonAssessments[selectedLesson.id]
-                        const hardAvailable = a?.hardAvailable || (a?.score != null && a.score >= 80)
-                        if (!hardAvailable || a?.hardCompleted || a?.hardStatus) return null
-                        // Нет сложных заданий у урока → кнопка вела бы в пустой уровень.
-                        if (!lessonHasHardLevel(selectedLesson)) return null
-                        return (
-                          <motion.button
-                            whileHover={{ scale: 1.03, y: -1 }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={() => { setSelectedLessonId(null); openHomeworkForLesson(selectedLesson.id) }}
-                            style={{ height: 40,
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: '#fff',
-                              background: 'var(--grad-purple)',
-                              border: 'none',
-                              borderRadius: 12,
-                              padding: '0 16px',
-                              whiteSpace: 'nowrap',
-                              cursor: 'pointer',
-                              flex: 1,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 4,
-                              boxShadow: '0 6px 20px rgba(var(--accent-rgb), 0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
-                            }}
-                          >
-                            <HardStarLottie size={26} />
-                            {t('Хард-уровень')}
-                          </motion.button>
-                        )
-                      })()}
                     </div>
                   )}
                     </motion.div>
@@ -595,23 +559,12 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                       {t('Сложный уровень')} · {tc(selectedHardLesson.title)}
                     </span>
 
-                    {/* Score row — оценка 1–5, которую учитель выставил при приёмке хард-задания.
-                        Берём hardAssessment.hardScore (score строки `${ref}-hard`), а НЕ
-                        hardAssessment.score (авто-процент за основной тест). */}
+                    {/* The stored score is a sum across accepted hard tasks, not a 1–5 rating. */}
                     {hardStatus === 'completed' && hardAssessment?.hardScore != null && hardAssessment.hardScore > 0 && (
                       <div className="inline-flex items-center" style={{ gap: 6, width: 'fit-content' }}>
-                        <div className="inline-flex items-center" style={{ gap: 2 }}>
-                          {[1, 2, 3, 4, 5].map(i => (
-                            <Star
-                              key={i}
-                              size={15}
-                              fill={i <= hardAssessment.hardScore! ? '#F5C842' : 'transparent'}
-                              color={i <= hardAssessment.hardScore! ? '#F5C842' : 'var(--color-border-medium)'}
-                            />
-                          ))}
-                        </div>
+                        <Star size={15} fill="#F5C842" color="#F5C842" />
                         <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-yellow-text)' }}>
-                          {hardAssessment.hardScore}/5
+                          {hardAssessment.hardScore} {t('баллов')}
                         </span>
                       </div>
                     )}

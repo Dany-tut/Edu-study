@@ -613,12 +613,13 @@ export async function reviewHomework(
   score: number,
   comment: string,
   attachments?: { photos: string[]; board: string | null },
+  expectedAttemptId?: string,
 ) {
   if (verdict === 'returned') {
     const { data, error } = await supabase.from('lesson_progress').select('attachments').eq('id', progressRowId).maybeSingle()
-    if (error) return false
+    if (error || (expectedAttemptId && data?.attachments?.attemptId !== expectedAttemptId)) return false
     if (parseBasicAnswers(data?.attachments)?.rows.some(row => row.testly)) {
-      try { await returnTestlyHomework(progressRowId, comment) }
+      try { await returnTestlyHomework(progressRowId, comment, expectedAttemptId) }
       catch (error) { console.error('[reviewHomework] Testly return', error); return false }
     }
   }
@@ -626,12 +627,15 @@ export async function reviewHomework(
   // Возвращаем результат: раньше вызывающий после неудачной записи стирал
   // черновик проверки и уезжал к следующему ученику — комментарий учителя
   // пропадал вместе с вердиктом.
-  const { error } = await supabase.from('lesson_progress').update({
+  let update = supabase.from('lesson_progress').update({
     status: verdict === 'accepted' ? 'completed' : 'returned',
     score,
     review_comment: comment || null,
     review_attachments: hasAtt ? { photos: attachments!.photos, board: attachments!.board } : null,
   }).eq('id', progressRowId)
+  if (expectedAttemptId) update = update.eq('attachments->>attemptId', expectedAttemptId)
+  const { data: saved, error } = await update.select('id')
+  if (!saved?.length && !error) return false
   if (error) { console.error('[reviewHomework]', error); return false }
   return true
 }

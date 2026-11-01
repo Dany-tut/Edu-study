@@ -7,6 +7,8 @@ import { useStudentData } from './studentDataStore'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 import { trackEvent } from '../lib/analytics'
 import { splitHwRef } from '../lib/extraHomework'
+import type { ProgressMap } from '../lib/db'
+import { reconcileLessonAssessments, type LessonAssessment } from '../lib/lessonAssessments'
 
 // The top-level views the navigation switches between. 'home' is the dashboard,
 // 'courses' is the lesson catalogue (screen 3), 'lesson' is a single lesson with
@@ -16,6 +18,7 @@ import { splitHwRef } from '../lib/extraHomework'
 // статусами. Их нельзя мешать: страж «домашки у урока нет — вернись в урок»
 // отбивал тап по вкладке, и из урока в «ДЗ» было не попасть.
 export type AppPage = 'home' | 'courses' | 'lesson' | 'homework' | 'homeworkList' | 'trainer' | 'profile'
+type HomeworkTarget = 'basic' | 'hard' | 'result'
 // Куда «Назад» возвращает из урока. Список уроков живёт на ДВУХ вкладках —
 // «Курсы» и «ДЗ» (обе рисуют CoursesPage), — и схлопывать всё, кроме 'courses',
 // в 'home' нельзя: свайп назад показывает снимок предыдущего экрана, то есть
@@ -84,11 +87,11 @@ interface DashboardState {
   // student can return to the same lesson via the top bar.
   openHomework: (extraId?: string | null) => void
   /** lessonId может быть составным ключом `<урок>~<доп>` — так его пишет адрес домашки. */
-  openHomeworkForLesson: (lessonId: string, level?: 'basic' | 'hard', opts?: { keepReturn?: boolean }) => void
+  openHomeworkForLesson: (lessonId: string, target?: HomeworkTarget, opts?: { keepReturn?: boolean }) => void
   // Какой уровень домашки открыть при входе (напр. карточка «Сложный уровень ·
   // Возвращён» должна сразу открыть хард, а не базу). Сбрасывается в HomeworkFlow.
-  homeworkInitialLevel: 'basic' | 'hard' | null
-  clearHomeworkInitialLevel: () => void
+  homeworkInitialTarget: HomeworkTarget | null
+  clearHomeworkInitialTarget: () => void
   closeHomework: () => void
   homeworkWidgetFeedback: HomeworkWidgetFeedback | null
   setHomeworkWidgetFeedback: (feedback: HomeworkWidgetFeedback) => void
@@ -165,8 +168,11 @@ interface DashboardState {
   setTrackPopoverOpen: (v: boolean) => void
 
   // Homework self-assessment results, keyed by lessonId.
-  lessonAssessments: Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardScore?: number | null; hardComment?: string; hardReviewPhotos?: string[]; hardReviewBoard?: string | null; hardReviewAnnotation?: { image: string; w: number; h: number } | null; hardReviewBlocks?: HardTaskReviewBlock[] }>
+  lessonAssessments: Record<string, LessonAssessment>
+  assessmentStudentId: string | null
+  syncLessonAssessments: (studentId: string, progress: ProgressMap, lessonIds: string[]) => void
   setLessonAssessment: (lessonId: string, score: number, emojiIndex: number, hardAvailable?: boolean) => void
+  setLessonSelfAssessment: (lessonId: string, value: number, assessedAt: string, attemptId?: string) => void
   setHardCompleted: (lessonId: string) => void
   setHardStatus: (lessonId: string, status: 'submitted' | 'returned' | 'completed', comment?: string, reviewAttachments?: { photos: string[]; board: string | null; annotation?: { image: string; w: number; h: number } | null }, reviewBlocks?: HardTaskReviewBlock[], score?: number | null) => void
   /**
@@ -276,13 +282,13 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
       ? { activePage: 'homework', lessonScrolled: false, currentExtraHwId: extraId ?? null }
       : { activePage: s.activePage }
   )),
-  openHomeworkForLesson: (ref, level, opts) => {
+  openHomeworkForLesson: (ref, target, opts) => {
     const { lessonId, extraId } = splitHwRef(ref)
     useDashboard.getState().openLesson(lessonId, opts)
-    set({ activePage: 'homework', lessonScrolled: false, homeworkInitialLevel: level ?? null, currentExtraHwId: extraId })
+    set({ activePage: 'homework', lessonScrolled: false, homeworkInitialTarget: target ?? null, currentExtraHwId: extraId })
   },
-  homeworkInitialLevel: null,
-  clearHomeworkInitialLevel: () => set({ homeworkInitialLevel: null }),
+  homeworkInitialTarget: null,
+  clearHomeworkInitialTarget: () => set({ homeworkInitialTarget: null }),
   closeHomework: () => set((s) => (
     s.currentLessonId
       ? { activePage: 'lesson', lessonScrolled: false }
@@ -355,17 +361,27 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   trackPopoverOpen: false,
   setTrackPopoverOpen: (v) => set({ trackPopoverOpen: v }),
 
-  lessonAssessments: {} as Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardScore?: number | null; hardComment?: string; hardReviewPhotos?: string[]; hardReviewBoard?: string | null; hardReviewAnnotation?: { image: string; w: number; h: number } | null; hardReviewBlocks?: HardTaskReviewBlock[] }>,
+  lessonAssessments: {},
+  assessmentStudentId: null,
+  syncLessonAssessments: (studentId, progress, lessonIds) => set(s => ({
+    assessmentStudentId: studentId,
+    lessonAssessments: reconcileLessonAssessments(
+      // Legacy preferences have no owner yet. Only their emoji survives reconciliation.
+      s.assessmentStudentId === studentId || s.assessmentStudentId === null ? s.lessonAssessments : {}, progress, lessonIds),
+  })),
   setLessonAssessment: (lessonId, score, emojiIndex, hardAvailable) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], score, emojiIndex, hardAvailable } } })),
+  setLessonSelfAssessment: (lessonId, value, assessedAt, attemptId) =>
+    set(s => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], emojiIndex: value, selfAssessedAt: assessedAt, selfAssessmentAttemptId: attemptId } } })),
   setHardCompleted: (lessonId) =>
-    set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], hardCompleted: true, hardStatus: 'submitted' as const } } })),
+    set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], emojiIndex: s.lessonAssessments[lessonId]?.emojiIndex ?? -1, hardCompleted: false, hardStatus: 'submitted' as const } } })),
   setHardStatus: (lessonId, status, comment, reviewAttachments, reviewBlocks, score) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: {
       ...s.lessonAssessments[lessonId],
+      emojiIndex: s.lessonAssessments[lessonId]?.emojiIndex ?? -1,
       hardStatus: status,
       hardCompleted: status === 'completed',
-      // Teacher's 1–5 verdict, kept only once accepted (cleared on return/resubmit).
+      // Sum of teacher grades, kept only once accepted (cleared on return/resubmit).
       hardScore: status === 'completed' ? (score ?? s.lessonAssessments[lessonId]?.hardScore ?? null) : null,
       hardComment: comment ?? s.lessonAssessments[lessonId]?.hardComment,
       hardReviewPhotos: reviewAttachments ? reviewAttachments.photos : s.lessonAssessments[lessonId]?.hardReviewPhotos,
@@ -445,6 +461,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     pomoTimerMode: state.pomoTimerMode,
     pomoFocusDuration: state.pomoFocusDuration,
     lessonAssessments: state.lessonAssessments,
+    assessmentStudentId: state.assessmentStudentId,
     // Откуда открыт урок. F5 внутри урока восстанавливает сам урок из адреса, но
     // страницы «откуда» в адресе нет — без этого «Назад» после перезагрузки
     // всегда уводил на главную, даже если урок открыли из списка.
