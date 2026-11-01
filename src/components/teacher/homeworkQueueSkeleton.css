@@ -1,0 +1,20 @@
+.homework-loading { flex: 1; min-width: 0; padding: 0 32px 24px; }
+.homework-loading--page { min-height: 100dvh; padding-top: 28px; background: var(--color-bg); }
+.homework-loading__navigation { width: min(720px, 100%); margin: 0 auto 28px; }
+.homework-loading__heading { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 20px; }
+.homework-loading__filters { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
+.homework-loading__sort { margin-inline-start: auto; }
+.homework-loading__list { min-width: 0; overflow: hidden; border: 1px solid var(--color-border-soft); border-radius: 20px; background: var(--color-bg-card); }
+.homework-loading--tasks .homework-loading__list { max-width: 900px; }
+.homework-loading__row { display: flex; align-items: center; gap: 13px; padding: 15px 18px; border-bottom: 1px solid var(--color-border-soft); }
+.homework-loading__row:last-child { border-bottom: 0; }
+.homework-loading__row > .skeleton { flex-shrink: 0; }
+.homework-loading__person { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 7px; }
+@media (max-width: 760px) {
+  .homework-loading { padding-inline: 16px; }
+  .homework-loading__filters { gap: 10px; }
+  .homework-loading__filters > .skeleton { max-width: 100%; }
+  .homework-loading__sort, .homework-loading__date { display: none !important; }
+  .homework-loading__row { padding: 12px 10px; gap: 8px; }
+}
+@media (max-width: 420px) { .homework-loading__avatar { display: none !important; } }
