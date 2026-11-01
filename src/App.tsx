@@ -1,3 +1,4 @@
+import JournalSkeleton from './components/teacher/JournalSkeleton'
 import { fetchScheduleDays } from './lib/db'
 import { applyLessonParticipation, fetchLessonParticipation } from './lib/lessonParticipation'
 import { useState, useEffect, lazy, Suspense } from 'react'
@@ -77,9 +78,9 @@ void (() => {
 // Пока чанк страницы едет, показываем пустой экран цвета фона, а не белый
 // провал: страницы ниже сами рисуют свою загрузку, а мигание белым между
 // кадрами заметнее, чем лишние 150 мс тишины.
-function Chunk({ children }: { children: React.ReactNode }) {
+function Chunk({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--color-bg)' }} />}>
+    <Suspense fallback={fallback ?? <div style={{ minHeight: '100vh', background: 'var(--color-bg)' }} />}>
       {children}
     </Suspense>
   )
@@ -325,7 +326,7 @@ function AppRoutes() {
     if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (
       <>
-        <Chunk><TeacherWorkspace owner={session?.user.id ?? 'local'} production /></Chunk>
+        <Chunk fallback={hash.startsWith('#/teacher/gradebook') ? <JournalSkeleton page /> : undefined}><TeacherWorkspace owner={session?.user.id ?? 'local'} production /></Chunk>
         <InstallPrompt />
       </>
     )

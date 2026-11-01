@@ -1,0 +1,33 @@
+.journal-loading { flex: 1; min-width: 0; padding: 0 32px 32px; }
+.journal-loading--embedded { padding: 0; }
+.journal-loading--page { min-height: 100dvh; padding-top: 28px; background: var(--color-bg); }
+.journal-loading__navigation { width: min(720px, 100%); margin: 0 auto 28px; }
+.journal-loading__rail { display: flex; align-items: center; gap: 10px; height: 82px; overflow: hidden; }
+.journal-loading__rail > .skeleton { flex-shrink: 0; }
+.journal-loading__panel { min-width: 0; overflow: hidden; border: 1px solid var(--color-border-soft); border-radius: 20px; background: var(--color-bg-card); box-shadow: var(--shadow-sm-page); }
+.journal-loading__tools { display: flex; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--color-border-soft); }
+.journal-loading__tools > .skeleton { min-width: 0; }
+.journal-loading__search { margin-inline-start: auto; }
+.journal-loading__body { padding: clamp(14px, 1.55vw, 26px); }
+.journal-loading__heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+.journal-loading__metrics { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+.journal-loading__metric { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 20px; border: 1px solid var(--color-border-soft); border-radius: 18px; }
+.journal-loading__metric:first-child { background: var(--color-purple-soft); }
+.journal-loading__row { display: flex; align-items: center; gap: 20px; min-height: 62px; padding: 12px 4px; border-bottom: 1px solid var(--color-border-soft); }
+.journal-loading__row:last-child { border-bottom: 0; }
+.journal-loading__row > .skeleton { flex-shrink: 0; }
+.journal-loading__person { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+.journal-loading__rows--table .journal-loading__row { min-height: 68px; }
+@media (max-width: 700px) {
+  .journal-loading { padding: 0 16px 24px; }
+  .journal-loading--embedded { padding: 0; }
+  .journal-loading--page { padding-top: 20px; }
+  .journal-loading__tools { flex-wrap: wrap; gap: 8px; }
+  .journal-loading__tools > .skeleton { flex: 1 1 40%; }
+  .journal-loading__search { display: none !important; }
+  .journal-loading__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .journal-loading__metric { padding: 14px; }
+  .journal-loading__metric:first-child { grid-column: 1 / -1; }
+  .journal-loading__row { gap: 12px; }
+  .journal-loading__result { display: none !important; }
+}
