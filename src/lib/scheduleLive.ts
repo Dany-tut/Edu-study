@@ -25,3 +25,15 @@ export function isScheduleLive(item: TimedLesson, now = Date.now()): boolean {
   const window = scheduleLiveWindow(item)
   return window !== null && now >= window.start && now < window.end
 }
+
+/** Finished by the school clock, independent of the display timezone. */
+export function isScheduleEnded(item: TimedLesson, now = Date.now()): boolean {
+  if (item.cancelled || item.rec || item.status === 'cancelled') return false
+  if (item.status === 'completed') return true
+  const window = scheduleLiveWindow(item)
+  if (window) return now >= window.end
+  // An unknown end time becomes past only after the scheduled day.
+  if (item.endTime || !/^\d{4}-\d{2}-\d{2}$/.test(item.date)) return false
+  const nextDay = Date.parse(`${item.date}T00:00:00+03:00`) + 86_400_000
+  return Number.isFinite(nextDay) && now >= nextDay
+}
