@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { t } from './i18n'
 import { getStudentSession } from './studentSession'
 import { useNotificationsStore } from '../store/notificationsStore'
+import type { ProgressMap } from './db'
 import { useStudentData } from '../store/studentDataStore'
 
 export type DiaryReminder = { id: string; title: string; course: string; at: number }
@@ -60,6 +61,13 @@ export function useDiaryReminders() {
       ),
   }
 }
+/** A low grade is still actionable even when a legacy row says completed. */
+export function diaryReminderResolved(progress: ProgressMap, id: string): boolean {
+  const row = progress[id]
+  return row?.result
+    ? row.result.passed || row.result.pending === true
+    : row?.status === 'completed' || row?.status === 'submitted'
+}
 /** Local, persistent reminders appear in Iskra while the student's cabinet is open. */
 export function useDiaryRemindersInit() {
   const owner = getStudentSession()?.id ?? ''
@@ -70,8 +78,7 @@ export function useDiaryRemindersInit() {
       const items = readDiaryReminders(owner),
         progress = useStudentData.getState().progress,
         now = Date.now()
-      const done = (r: DiaryReminder) =>
-        progress[r.id]?.result?.passed || progress[r.id]?.status === 'completed'
+      const done = (r: DiaryReminder) => diaryReminderResolved(progress, r.id)
       const due = items.filter((r) => r.at <= now && !done(r))
       const keep = items.filter((r) => r.at > now && !done(r))
       if (keep.length === items.length || !writeDiaryReminders(owner, keep)) return
