@@ -31,7 +31,7 @@ export function addFullReviewExample(data: CourseJournalData, today: string): Co
   }))
   return { ...data,
     assignments: [...data.assignments, { id: FULL_REVIEW_EXAMPLE_ID, lesson_id: lesson.id, group_id: group.id,
-      title: FULL_REVIEW_EXAMPLE_TITLE, status: 'active', assignedAt: today, due_date: today, basicTasks: [{ type: 'write' }] }],
+      title: FULL_REVIEW_EXAMPLE_TITLE, status: 'active', assignedAt: today, due_date: today, basicTasks: [{ type: 'write' }, { type: 'write' }] }],
     work: [...data.work, ...work],
     attempts: [...data.attempts, ...work.map((row, i) => ({ id: 'example-full-attempt-' + i, student_id: row.student_id,
       lesson_ref: ref, number: 1, status: row.status, score: row.status === 'completed' ? row.score : null,
@@ -43,6 +43,7 @@ export function addFullReviewExample(data: CourseJournalData, today: string): Co
 export function fullReviewAiExample(submissions: HwSubmission[]): Map<string, AiGrade> {
   return new Map(submissions.map((submission, i) => {
     const issue = i === 1
+    const waiting = i === 0 && submission.verdict === 'pending'
     const tasks: AiGrade['tasks'] = [
       { n: 1, kim_n: null, max_points: 2, points: 2,
         comment: 'Восстановление объяснено верно: степень окисления железа уменьшается с +3 до 0, железо принимает электроны.',
@@ -58,10 +59,10 @@ export function fullReviewAiExample(submissions: HwSubmission[]): Map<string, Ai
         ] },
     ]
     return [submission.id, { id: 'example-ai-' + i, progressId: submission.id,
-      status: i === 0 ? 'working' : submission.verdict === 'pending' ? 'graded' : 'confirmed',
-      score: i === 0 ? null : issue ? 75 : 100, primary: i === 0 ? null : issue ? 3 : 4, max: 4,
+      status: waiting ? 'working' : submission.verdict === 'pending' ? 'graded' : submission.score === (issue ? 75 : 100) ? 'confirmed' : 'changed',
+      score: waiting ? null : issue ? 75 : 100, primary: waiting ? null : issue ? 3 : 4, max: 4,
       comment: issue ? 'Иван, восстановление железа ты объяснил верно. В уравнении реакции перед CO₂ нужен коэффициент 3. Исправь его и проверь число атомов каждого элемента с обеих сторон.' : 'Восстановление железа объяснено верно, коэффициенты в уравнении расставлены правильно. Хорошая работа!',
-      teacherNote: '', tasks: i === 0 ? [] : tasks, error: '',
+      teacherNote: '', tasks: waiting ? [] : tasks, error: '',
     } satisfies AiGrade]
   }))
 }

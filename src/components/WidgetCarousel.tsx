@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
-import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react'
+import { useState, useCallback, useRef, useEffect, lazy, Suspense, type ReactNode } from 'react'
 import { retryImport } from '../lib/chunkError'
 import { ChevronLeft, ChevronRight } from './icons/appIcons'
 // ── Виджеты — по одному чанку на виджет ─────────────────────────────────────
@@ -40,7 +40,11 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? '-130%' : '130%', opacity: 0 }),
 }
 
-export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: number } = {}) {
+export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
+  columnsOverride?: number
+  /** In-memory stand content, in the home page's original carousel geometry. */
+  previewWidgets?: { id: number; content: ReactNode }[]
+} = {}) {
   const t = useT()
   const [[page, dir], setPage] = useState<[number, number]>([0, 0])
   const [dotsVisible, setDotsVisible] = useState(false)
@@ -59,7 +63,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
   //   • уместность (чужой предмет / пустой контент) — lib/widgetVisibility.ts.
   // Ни один не переписывает настройки ученика: сменится курс — виджет вернётся.
   const relevant = useWidgetRelevance()
-  const widgetOrder = rawOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
+  const widgetOrder = previewWidgets ? previewWidgets.map(widget => widget.id) : rawOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
   // Page count follows the number of *visible* widgets (hidden ones are simply
   // absent from widgetOrder), so a hidden widget leaves no empty trailing page.
   const pageCount = Math.max(1, Math.ceil(widgetOrder.length / perPage))
@@ -117,6 +121,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
   }
 
   const renderWidget = (p: number, isActive: boolean) => {
+    if (previewWidgets) return previewWidgets.find(widget => widget.id === p)?.content ?? null
     if (p === 6) return <QuizWidget active={isActive} columns={perPage} />
     if (p === 0) return <StatsWidget columns={perPage} />
     if (p === 7) return <TrainerProgressWidget columns={perPage} />
