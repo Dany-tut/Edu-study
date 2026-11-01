@@ -2461,7 +2461,7 @@ export const EN: Record<string, string> = {
   // — Ошибки Supabase (lib/authErrors.ts) —
   "Аккаунт с такой почтой уже существует. Войдите или укажите другую почту.": "An account with this email already exists. Sign in or use another email.",
   "Аккаунт с таким телефоном уже существует.": "An account with this phone number already exists.",
-  "Этот Google-аккаунт уже привязан к другой учётной записи Искры. Чтобы использовать его в аккаунте Босса, сначала нужно перенести данные второго аккаунта. Повторная привязка сама по себе не объединяет аккаунты.": "This Google account is already linked to a different Iskra account. To use it with Boss's account, the second account's data must be transferred first. Linking alone does not merge accounts.",
+  "Этот Apple ID или Google-аккаунт уже привязан к другой учётной записи Искры. Выйдите из текущего аккаунта и войдите через этот Apple ID или Google — откроется связанный профиль.": "This Apple ID or Google account is already linked to a different Iskra account. Sign out of this account and sign in with that Apple ID or Google account to open its linked profile.",
   "Регистрация сейчас закрыта. Обратитесь к администратору.": "Sign-ups are closed right now. Contact your administrator.",
   "Проверьте адрес почты — он выглядит некорректно.": "Check the email address — it looks invalid.",
   "На этот адрес письма отправлять нельзя. Укажите другую почту.": "Emails can't be sent to this address. Use another one.",
