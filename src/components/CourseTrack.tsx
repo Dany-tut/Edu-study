@@ -3,7 +3,8 @@ import TrackHomeworkButton from './TrackHomeworkButton'
 import LessonSelfAssessment from './LessonSelfAssessment'
 import { gradedTrackResult } from '../lib/homeworkResult'
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import Skeleton from './Skeleton'
+import CourseTrackSkeleton from './CourseTrackSkeleton'
+import { TRACK_NODE_SIZE as NODE_SIZE, TRACK_SIDE_PADDING, TRACK_GLOW_PAD as GLOW_PAD, TRACK_ROW_HEIGHT } from './courseTrackLayout'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock, CircleAlert } from './icons/appIcons'
 import { IconLessonRecording } from './icons'
@@ -26,12 +27,9 @@ import HardStarLottie from './HardStarLottie'
 import { useT, useTc } from '../lib/i18n'
 import { TRACK_STATUS, trackPalette } from '../lib/theme'
 
-const NODE_SIZE = 56
 const DETAIL_CARD_WIDTH = 340
 const HARD_CARD_WIDTH = 320
-const TRACK_SIDE_PADDING = 36
 // Vertical breathing room above the row so the selected node's glow ring isn't clipped.
-const GLOW_PAD = 24
 // Трек подтягивается под строку курса: кружки встают в 12 px от неё, свечение
 // уходит в воздух над строкой (строка поверх — zIndex 2).
 const TRACK_PULL_UP = 12 - GLOW_PAD
@@ -272,7 +270,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                 style={{
                   position: 'relative',
                   width: '100%',
-                  height: NODE_SIZE + 50,
+                  height: TRACK_ROW_HEIGHT,
                   overflow: 'visible',
                 }}
               >
@@ -637,6 +635,8 @@ export default function CourseTrack() {
   const effectiveActiveId =
     subjects.find(s => s.id === activeSubjectId)?.id ?? subjects[0]?.id ?? ''
 
+  if (subjects.length === 0 && !loaded) return <CourseTrackSkeleton />
+
   if (subjects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 160, gap: 8 }}>
@@ -647,7 +647,6 @@ export default function CourseTrack() {
             <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
           </>
         )}
-        {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 280 }} />}
       </div>
     )
   }
