@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { addDays } from '../../../lib/teacherSchedule'
 
@@ -6,11 +6,11 @@ const BUFFER = 4
 const mask = (edge: number) => `linear-gradient(to right, transparent 0%, black ${edge}%, black ${100 - edge}%, transparent 100%)`
 
 /** A native, unsnapped timeline. Recycle the surrounding weeks after a gesture. */
-export default function WeekStrip({ start, navigationKey, label, onWeekChange, renderDay }: {
+export default function WeekStrip({ start, navigationKey, label, onVisibleRangeChange, renderDay }: {
   start: string
   navigationKey: number
   label: string
-  onWeekChange: (start: string) => void
+  onVisibleRangeChange: (first: string, last: string) => void
   renderDay: (date: string, weekday: number) => ReactNode
 }) {
   const [anchor, setAnchor] = useState(start)
@@ -18,13 +18,29 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
   const reducedMotion = useReducedMotion()
   const viewport = useRef<HTMLDivElement>(null)
   const anchorRef = useRef(anchor)
-  const observedStart = useRef(start)
   const lastNavigation = useRef(navigationKey)
   const pendingLeft = useRef<number | null>(null)
   const expectedLeft = useRef<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const onChangeRef = useRef(onWeekChange)
-  useLayoutEffect(() => { onChangeRef.current = onWeekChange }, [onWeekChange])
+  const rangeCallback = useRef(onVisibleRangeChange)
+  const lastRange = useRef('')
+  useLayoutEffect(() => { rangeCallback.current = onVisibleRangeChange }, [onVisibleRangeChange])
+
+  const reportVisibleRange = useCallback(() => {
+    const el = viewport.current
+    if (!el?.clientWidth) return
+    const dayWidth = el.clientWidth / 7
+    // Each day has a 3px margin. Ignore dates fully outside the viewport,
+    // including when an edge falls in the gap between two day buttons.
+    const firstIndex = Math.floor((el.scrollLeft + 3) / dayWidth)
+    const lastIndex = Math.ceil((el.scrollLeft + el.clientWidth - 3) / dayWidth) - 1
+    const first = addDays(anchorRef.current, firstIndex - BUFFER * 7)
+    const last = addDays(anchorRef.current, lastIndex - BUFFER * 7)
+    const key = `${first}/${last}`
+    if (lastRange.current === key) return
+    lastRange.current = key
+    rangeCallback.current(first, last)
+  }, [])
 
   const weeks = useMemo(() => Array.from({ length: BUFFER * 2 + 1 }, (_, i) => {
     const monday = addDays(anchor, (i - BUFFER) * 7)
@@ -39,18 +55,15 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
     pendingLeft.current = null
     expectedLeft.current = left
     el.scrollLeft = left
-  }, [anchor])
+    reportVisibleRange()
+  }, [anchor, reportVisibleRange])
 
   // Selecting a date preserves the timeline's exact position. Only explicit
   // navigation (arrows, Today or a feed swipe) aligns the requested week.
   useLayoutEffect(() => {
     const navigate = navigationKey !== lastNavigation.current
     lastNavigation.current = navigationKey
-    if (!navigate) {
-      observedStart.current = start
-      return
-    }
-    observedStart.current = start
+    if (!navigate) return
     if (timer.current) clearTimeout(timer.current)
     pendingLeft.current = null
     setScrolling(false)
@@ -58,8 +71,9 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
     else if (viewport.current) {
       expectedLeft.current = BUFFER * viewport.current.clientWidth
       viewport.current.scrollLeft = expectedLeft.current
+      reportVisibleRange()
     }
-  }, [start, anchor, navigationKey])
+  }, [start, anchor, navigationKey, reportVisibleRange])
 
   useEffect(() => {
     const el = viewport.current
@@ -70,10 +84,7 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
       if (!el.clientWidth) return
       const index = Math.round(el.scrollLeft / el.clientWidth)
       const next = addDays(anchorRef.current, (index - BUFFER) * 7)
-      if (next !== observedStart.current) {
-        observedStart.current = next
-        onChangeRef.current(next)
-      }
+      // Recycle the viewport without changing the selected date or its lessons.
       // Preserve the exact fractional offset: no snapping or visible jump.
       if (index !== BUFFER) {
         pendingLeft.current = el.scrollLeft + (BUFFER - index) * el.clientWidth
@@ -82,6 +93,7 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
       if (finished) setScrolling(false)
     }
     const onScroll = () => {
+      reportVisibleRange()
       if (expectedLeft.current !== null) {
         const expected = expectedLeft.current
         expectedLeft.current = null
@@ -109,6 +121,7 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
       if (nextWidth && width !== nextWidth) {
         expectedLeft.current = width ? el.scrollLeft / width * nextWidth : BUFFER * nextWidth
         el.scrollLeft = expectedLeft.current
+        reportVisibleRange()
       }
       width = nextWidth
     })
@@ -121,7 +134,7 @@ export default function WeekStrip({ start, navigationKey, label, onWeekChange, r
       el.removeEventListener('wheel', onWheel)
       if (timer.current) clearTimeout(timer.current)
     }
-  }, [])
+  }, [reportVisibleRange])
 
   return (
     <motion.div

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
@@ -69,9 +69,9 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const today = todayMsk()
   const [day, setDay] = useState(today)
   const [weekNavigation, setWeekNavigation] = useState(0)
+  const [visibleDates, setVisibleDates] = useState(() => ({ first: weekStart(today), last: addDays(weekStart(today), 6) }))
   const start = weekStart(day)
   const { items, reload } = useTeacherWeek(start)
-  const week = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(start, i)), [start])
   const list = (items ?? []).filter(i => i.date === day)
   const [dir, setDir] = useState(0)
 
@@ -174,9 +174,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 2) { haptic(6); go(addDays(day, dx < 0 ? 1 : -1)) }
   }
   const monthTitle = (() => {
-    const a = monthIdx(week[0]), b = monthIdx(week[6])
-    const m = MONTHS[monthIdx(day)]
-    const s = a === b ? m : `${MONTHS[a].slice(0, 3)} — ${MONTHS[b].slice(0, 3)}`
+    const a = monthIdx(visibleDates.first), b = monthIdx(visibleDates.last)
+    const s = a === b ? MONTHS[a] : `${MONTHS[a].slice(0, 3)} — ${MONTHS[b].slice(0, 3)}`
     return s[0].toUpperCase() + s.slice(1)
   })()
 
@@ -210,7 +209,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
         start={start}
         navigationKey={weekNavigation}
         label={t('Выбор недели')}
-        onWeekChange={next => go(addDays(next, weekdayIdx(day)), false)}
+        onVisibleRangeChange={(first, last) => setVisibleDates({ first, last })}
         renderDay={(d, i) => {
           const sel = d === day
           const hot = target === d && drag?.item.date !== d
