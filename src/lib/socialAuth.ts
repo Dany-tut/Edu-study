@@ -54,6 +54,7 @@ async function finishIdentityLink() {
     }, 'Не удалось подключить способ входа. Попробуйте ещё раз.')
     localStorage.removeItem(LINK_KEY)
     sessionStorage.setItem('iskra:link-error', message)
+    sessionStorage.setItem('iskra:link-error-provider', pending.provider)
     for (const key of ['error', 'error_code', 'error_description']) queryParams.delete(key)
     const remainingQuery = queryParams.toString()
     window.history.replaceState(null, '', `${window.location.pathname}${remainingQuery ? `?${remainingQuery}` : ''}${window.location.hash}`)
