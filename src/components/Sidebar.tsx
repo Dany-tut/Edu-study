@@ -1,3 +1,4 @@
+import FadeText from './FadeText'
 import { motion, AnimatePresence } from 'framer-motion'
 import CountBadge from './CountBadge'
 import {
@@ -298,7 +299,7 @@ export default function Sidebar() {
   // DashboardPage), and the bar is centred — so space reserved for the pill on
   // the right must be mirrored on the left, hence reserving 2× its footprint.
   // Cap the name's width to whatever's left; if that's narrower than the name,
-  // max-width turns the span into a definite box and it ellipsizes.
+  // max-width bounds the text so only the overflowing end fades.
   useLayoutEffect(() => {
     const PILL = 320, GAP = 20, ROW_PAD = 32 // mirror DashboardPage / .topbar-row
     const apply = () => {
@@ -812,21 +813,12 @@ export default function Sidebar() {
           // When the widget pill sits beside the bar, `nameMaxWidth` caps the
           // name so the expanded bar + pill still fit the viewport. max-width
           // bounds the animated `width:auto`, turning the span into a definite
-          // box that can ellipsize. undefined → no cap (plenty of room / home).
+          // box that can fade. undefined → no cap (plenty of room / home).
           style={{ overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: nameMaxWidth }}
         >
-          <span
-            style={{
-              display: 'block',
-              fontSize: 15,
-              fontWeight: 600,
-              color: 'var(--color-text)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
+          <FadeText style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
             {tn(displayName)}
-          </span>
+          </FadeText>
         </motion.div>
       </div>
 
