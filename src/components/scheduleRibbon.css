@@ -1,4 +1,4 @@
-.student-schedule-ribbon { position:relative; z-index:25; color:var(--color-text); padding:0 0 2px; }
+.student-schedule-ribbon { position:relative; z-index:45; color:var(--color-text); padding:0 0 2px; }
 .ssr-toolbar,.ssr-controls { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .ssr-toolbar { position:relative; z-index:2; justify-content:flex-end; gap:16px; margin-bottom:12px; }
 .ssr-controls { gap:7px; }
@@ -18,10 +18,21 @@
 .ssr-month-day:hover { background:var(--color-purple-soft); }
 .ssr-month-day.ssr-now { outline:1px solid var(--color-accent); outline-offset:-3px; color:var(--color-accent); }
 .ssr-month-day[aria-pressed=true] { background:var(--color-control-accent); color:#fff; outline:0; }
-.ssr-month-day i { position:absolute; width:3px; height:3px; border-radius:50%; background:currentColor; bottom:4px; left:calc(50% - 1.5px); }
+.ssr-month-day i { position:absolute; width:5px; height:5px; border-radius:50%; background:currentColor; bottom:4px; left:calc(50% - 2.5px); }
 .ssr-calendar-note { display:flex; align-items:center; gap:6px; color:var(--color-muted); font-size:11px; margin-top:12px; min-height:16px; }
 .ssr-calendar-note>i { width:4px; height:4px; border-radius:50%; background:var(--color-accent); }
 .ssr-retry { background:transparent; border:0; padding:0; color:var(--color-accent); font:inherit; cursor:pointer; text-align:left; }
 @media(pointer:coarse) { .ssr-button,.ssr-month-day { min-height:44px; } }
 
 .ssr-load-error { min-height:210px; display:flex; align-items:center; justify-content:center; gap:12px; color:var(--color-muted); font-size:13px; }
+
+.ssr-expand { width:100%; min-height:44px; margin-bottom:12px; color:var(--color-accent); background:var(--color-purple-soft); font-weight:600; }
+.ssr-expanded-dialog { padding:0; border:0; border-radius:24px; background:transparent; color:var(--color-text); max-width:calc(100vw - 32px); max-height:calc(100dvh - 32px); overflow:auto; }
+.ssr-expanded-dialog::backdrop { background:rgba(20,18,35,.35); backdrop-filter:blur(5px); }
+.ssr-month-expanded { position:relative; top:auto; right:auto; box-sizing:border-box; width:min(640px,calc(100vw - 32px)); padding:24px; }
+.ssr-month-expanded .ssr-month-day { min-height:clamp(38px,8dvh,72px); font-size:16px; }
+.ssr-month-expanded .ssr-month-heading strong { font-size:20px; }
+.ssr-month-expanded .ssr-weekday { font-size:13px; }
+@media(max-height:600px) { .ssr-month-expanded { padding:16px; } .ssr-month-expanded .ssr-month-heading { margin-bottom:6px; } .ssr-month-expanded .ssr-expand { margin-bottom:6px; } }
+/* Keep the calendar above the following row, including seasonal stacking contexts. */
+html .dashboard-root--home > .dashboard-schedule:has(.student-schedule-ribbon) { position:relative; z-index:45; }

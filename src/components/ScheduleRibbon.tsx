@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { LoopSvg } from './icons/LoopIcon'
-import { LoopArtworkCalendarDays, LoopArtworkChevronLeft, LoopArtworkChevronRight } from './icons/loopArtwork'
+import { LoopArtworkMaximize, LoopArtworkMinimize, LoopArtworkCalendarDays, LoopArtworkChevronLeft, LoopArtworkChevronRight } from './icons/loopArtwork'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { fetchScheduleDays } from '../lib/db'
@@ -20,7 +20,7 @@ const monthRange = (month: string) => {
   const last = new Date(first); last.setUTCMonth(last.getUTCMonth() + 1); last.setUTCDate(0)
   return { from: shift(keyOf(first), -2), to: shift(keyOf(last), 2) }
 }
-const glyphs = { CalendarDays: LoopArtworkCalendarDays, ChevronLeft: LoopArtworkChevronLeft, ChevronRight: LoopArtworkChevronRight }
+const glyphs = { Maximize: LoopArtworkMaximize, Minimize: LoopArtworkMinimize, CalendarDays: LoopArtworkCalendarDays, ChevronLeft: LoopArtworkChevronLeft, ChevronRight: LoopArtworkChevronRight }
 function Icon({ name }: { name: keyof typeof glyphs }) { return <LoopSvg name={name} artwork={glyphs[name]} size={18} /> }
 
 export default function ScheduleRibbon({ children }: { children: (days: ScheduleDay[], index: number, onSelect: (index: number) => void, loaded: boolean) => ReactNode }) {
@@ -37,6 +37,8 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
   const [selected, setSelected] = useState(() => days[index]?.date ?? today)
   const [month, setMonth] = useState(() => selected.slice(0, 7))
   const [open, setOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const expandedDialog = useRef<HTMLDialogElement>(null)
   const [remote, setRemote] = useState<ScheduleDay[]>([])
   const [pending, setPending] = useState(true)
   const [failed, setFailed] = useState(false)
@@ -71,10 +73,13 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
     document.addEventListener('keydown', escape)
     return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape) }
   }, [open])
+  useEffect(() => {
+    if (open && expanded) expandedDialog.current?.showModal()
+  }, [open, expanded])
   const byDate = new Map([...remote, ...days].map(day => [day.date, day]))
   const label = (key: string, options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' }) => dateOf(key).toLocaleDateString(locale, { ...options, timeZone: 'UTC' })
   function choose(key: string) {
-    setSelected(key); setMonth(key.slice(0, 7)); setOpen(false)
+    setSelected(key); setMonth(key.slice(0, 7)); setOpen(false); setExpanded(false)
     const next = days.findIndex(day => day.date === key)
     if (next >= 0) setIndex(next)
     if (open) trigger.current?.focus()
@@ -84,6 +89,21 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
   const last = new Date(first); last.setUTCMonth(last.getUTCMonth() + 1); last.setUTCDate(0)
   function changeMonth(amount: number) { const date = dateOf(`${month}-01`); date.setUTCMonth(date.getUTCMonth() + amount); setMonth(keyOf(date).slice(0, 7)) }
 
+  const calendar = <div className={`ssr-month${expanded ? ' ssr-month-expanded' : ''}`} role={expanded ? undefined : 'dialog'} aria-label={t('Выбор даты')} id={dialogId}>
+            <div className="ssr-month-heading"><strong>{label(`${month}-01`, { month: 'long', year: 'numeric' })}</strong><div>
+              <button type="button" className="ssr-button ssr-icon" aria-label={t('Предыдущий месяц')} onClick={() => changeMonth(-1)}><Icon name="ChevronLeft" /></button>
+              <button type="button" className="ssr-button ssr-icon" aria-label={t('Следующий месяц')} onClick={() => changeMonth(1)}><Icon name="ChevronRight" /></button>
+            </div></div>
+            <button type="button" className="ssr-button ssr-expand" onClick={() => setExpanded(value => !value)}><Icon name={expanded ? 'Minimize' : 'Maximize'} />{t(expanded ? 'Свернуть' : 'Расширить')}</button>
+            <div className="ssr-month-grid">{Array.from({ length: 7 }, (_, i) => <span className="ssr-weekday" key={`week-${i}`}>{label(shift('2026-11-02', i), { weekday: 'short' })}</span>)}
+              {Array.from({ length: leading }, (_, i) => <span key={`space-${i}`} />)}
+              {Array.from({ length: last.getUTCDate() }, (_, i) => {
+                const key = shift(`${month}-01`, i), hasLesson = byDate.get(key)?.lessons.some(lesson => lesson.status !== 'cancelled')
+                return <button type="button" key={key} className={`ssr-month-day${key === today ? ' ssr-now' : ''}`} aria-label={`${label(key)}${hasLesson ? ` · ${t('Есть занятие')}` : ''}`} aria-pressed={key === selected} onClick={() => choose(key)}>{i + 1}{hasLesson && <i aria-hidden="true" />}</button>
+              })}
+            </div><div className="ssr-calendar-note" role="status">{pending ? t('Загрузка…') : failed ? <button type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Не удалось загрузить расписание')} · {t('Повторить загрузку')}</button> : <><i />{t('Есть занятие')}</>}</div>
+          </div>
+
   return <section className="student-schedule-ribbon" aria-label={t('Расписание')}>
     <header className="ssr-toolbar">
       <div className="ssr-controls">
@@ -91,20 +111,8 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
         <button type="button" className="ssr-button ssr-icon" aria-label={t('Предыдущий день')} onClick={() => choose(shift(selected, -1))}><Icon name="ChevronLeft" /></button>
         <button type="button" className="ssr-button ssr-icon" aria-label={t('Следующий день')} onClick={() => choose(shift(selected, 1))}><Icon name="ChevronRight" /></button>
         <div className="ssr-picker" ref={picker}>
-          <button type="button" className="ssr-button ssr-trigger" ref={trigger} aria-expanded={open} aria-controls={dialogId} onClick={() => { if (!open) setMonth(selectedMonth); setOpen(value => !value) }}><Icon name="CalendarDays" />{t('Календарь')}</button>
-          {open && <div className="ssr-month" role="dialog" aria-label={t('Выбор даты')} id={dialogId}>
-            <div className="ssr-month-heading"><strong>{label(`${month}-01`, { month: 'long', year: 'numeric' })}</strong><div>
-              <button type="button" className="ssr-button ssr-icon" aria-label={t('Предыдущий месяц')} onClick={() => changeMonth(-1)}><Icon name="ChevronLeft" /></button>
-              <button type="button" className="ssr-button ssr-icon" aria-label={t('Следующий месяц')} onClick={() => changeMonth(1)}><Icon name="ChevronRight" /></button>
-            </div></div>
-            <div className="ssr-month-grid">{Array.from({ length: 7 }, (_, i) => <span className="ssr-weekday" key={`week-${i}`}>{label(shift('2026-11-02', i), { weekday: 'short' })}</span>)}
-              {Array.from({ length: leading }, (_, i) => <span key={`space-${i}`} />)}
-              {Array.from({ length: last.getUTCDate() }, (_, i) => {
-                const key = shift(`${month}-01`, i), hasLesson = byDate.get(key)?.lessons.some(lesson => lesson.status !== 'cancelled')
-                return <button type="button" key={key} className={`ssr-month-day${key === today ? ' ssr-now' : ''}`} aria-label={label(key)} aria-pressed={key === selected} onClick={() => choose(key)}>{i + 1}{hasLesson && <i aria-hidden="true" />}</button>
-              })}
-            </div><div className="ssr-calendar-note" role="status">{pending ? t('Загрузка…') : failed ? <button type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Не удалось загрузить расписание')} · {t('Повторить загрузку')}</button> : <><i />{t('Есть занятие')}</>}</div>
-          </div>}
+          <button type="button" className="ssr-button ssr-trigger" ref={trigger} aria-expanded={open} aria-controls={dialogId} onClick={() => { if (!open) { setMonth(selectedMonth); setExpanded(false) } setOpen(value => !value) }}><Icon name="CalendarDays" />{t('Календарь')}</button>
+          {open && (expanded ? <dialog ref={expandedDialog} className="ssr-expanded-dialog" aria-label={t('Календарь')} onCancel={() => { setOpen(false); setExpanded(false); trigger.current?.focus() }} onClick={event => { if (event.target === event.currentTarget) { setOpen(false); setExpanded(false); trigger.current?.focus() } }}>{calendar}</dialog> : calendar)}
         </div>
       </div>
     </header>
