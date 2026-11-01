@@ -11,6 +11,7 @@ import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../..
 import QuickAddLesson from './QuickAddLesson'
 import WeekStrip from './WeekStrip'
 import { CALENDAR_BACKDROP, CALENDAR_EASE } from './calendarMotion'
+import { isScheduleLive, scheduleLiveWindow } from '../../../lib/scheduleLive'
 import { RadioMark } from '../../Radio'
 import { CheckboxMark } from '../../Checkbox'
 import { MODAL_BACKDROP } from '../../Modal'
@@ -342,9 +343,35 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
 
 // ── Карточка занятия ──────────────────────────────────────────────────────────
 
+function useLiveLesson(item: SchedItem) {
+  const [live, setLive] = useState(() => isScheduleLive(item))
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const sync = () => {
+      clearTimeout(timer)
+      const now = Date.now()
+      setLive(isScheduleLive(item, now))
+      const window = scheduleLiveWindow(item)
+      const next = window && (now < window.start ? window.start : now < window.end ? window.end : null)
+      if (next != null) timer = setTimeout(sync, Math.min(next - now + 20, 2_147_483_647))
+    }
+    sync()
+    // Resync after a sleeping/background tab without polling the whole calendar.
+    window.addEventListener('focus', sync)
+    document.addEventListener('visibilitychange', sync)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('focus', sync)
+      document.removeEventListener('visibilitychange', sync)
+    }
+  }, [item.date, item.time, item.endTime, item.cancelled, item.rec, item.status])
+  return live
+}
+
 function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean }) {
   const t = useT()
   const mobile = useLoopIcons()
+  const live = useLiveLesson(item)
   const viewTz = useTeacherTz(s => s.tz)
   const localStart = isMsk(viewTz) ? null : convertWallTime(item.date, item.time, 'Europe/Moscow', viewTz)
   const localEnd = isMsk(viewTz) || !item.endTime ? null : convertWallTime(item.date, item.endTime, 'Europe/Moscow', viewTz)
@@ -355,9 +382,11 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
     item.title,
   ].filter(Boolean).join(' · ')
   return (
-    <div className="calendar-widget-lesson" style={{
+    <div className="calendar-widget-lesson" data-live={live || undefined} style={{
       display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 22,
-      background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
+      background: live ? 'var(--color-accent-soft)' : 'var(--color-bg-2)',
+      border: `1px solid ${live ? 'var(--color-purple)' : 'var(--color-border)'}`,
+      transition: 'background-color 0.2s ease, border-color 0.2s ease',
       boxShadow: lifted ? 'var(--shadow-4)' : 'var(--shadow-1)',
     }}>
       <span style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: item.cancelled ? 'var(--color-border-medium)' : item.color, flexShrink: 0 }} />
@@ -373,6 +402,7 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
           <FadeText enabled={mobile} style={{
             fontSize: 15, fontWeight: 700, color: item.cancelled ? 'var(--color-text-3)' : 'var(--color-text)',
           }}>{item.who}</FadeText>
+          {live && <Chip tone="live">{t('ИДЁТ СЕЙЧАС')}</Chip>}
           {item.rec && <Chip>{t('Запись')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
         </span>
@@ -382,12 +412,12 @@ function CardBody({ item, lifted = false }: { item: SchedItem; lifted?: boolean 
   )
 }
 
-function Chip({ children, tone }: { children: React.ReactNode; tone?: 'danger' }) {
+function Chip({ children, tone }: { children: React.ReactNode; tone?: 'danger' | 'live' }) {
   return (
     <span style={{
       fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, flexShrink: 0,
-      background: tone === 'danger' ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
-      color: tone === 'danger' ? 'var(--color-red-text)' : 'var(--color-text-3)',
+      background: tone === 'live' ? 'var(--color-purple)' : tone === 'danger' ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
+      color: tone === 'live' ? '#fff' : tone === 'danger' ? 'var(--color-red-text)' : 'var(--color-text-3)',
     }}>{children}</span>
   )
 }
