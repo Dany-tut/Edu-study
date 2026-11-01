@@ -672,8 +672,16 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
   const reducedMotion = useReducedMotion()
   const transition = { duration: reducedMotion ? 0 : 0.2, ease: CALENDAR_EASE }
   const panelRef = useRef<HTMLDivElement>(null)
-  // Narrow widgets get a readable preview; wide cards retain their original width.
-  const width = Math.max(612, rect.width + 32)
+  const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }))
+  useEffect(() => {
+    const resize = () => setViewport({ width: window.innerWidth, height: window.innerHeight })
+    window.addEventListener('resize', resize)
+    return () => window.removeEventListener('resize', resize)
+  }, [])
+  // Stay attached to the lesson, preserving its width. Only move enough to fit the screen.
+  const width = Math.min(rect.width, viewport.width - 24)
+  const left = Math.max(12, Math.min(rect.left, viewport.width - width - 12))
+  const top = Math.max(12, Math.min(rect.top, viewport.height - 440))
 
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null
@@ -722,14 +730,14 @@ function ContextMenu({ item, rect, onClose, onOpen, onAttendance, onMove, onShif
         onContextMenu={e => { e.preventDefault(); if (isPresent) onClose() }}
         style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal }}
       />
-      <div className="calendar-context-positioner" style={{ zIndex: Z.modal + 1 }}>
+      <div className="calendar-context-positioner" style={{ zIndex: Z.modal + 1, left, top, width, maxHeight: viewport.height - top - 12 }}>
       <motion.div ref={panelRef}
         role="dialog" aria-modal="true" aria-label={t('Занятие')}
         className="calendar-context-panel"
         initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
         transition={transition}
         onContextMenu={e => e.preventDefault()}
-        style={{ width, pointerEvents: isPresent ? 'auto' : 'none' }}
+        style={{ width: '100%', maxHeight: viewport.height - top - 12, pointerEvents: isPresent ? 'auto' : 'none' }}
       >
         <div className="calendar-context-heading">
           <span>{item.date === todayMsk() ? `${t('Сегодня')}, ` : ''}{dayLabel(item.date)}</span>
