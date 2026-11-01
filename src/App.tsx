@@ -320,7 +320,7 @@ function AppRoutes() {
   if (hash.startsWith('#/teacher')) {
     if (session === undefined && !import.meta.env.DEV) return null
     // A student's Supabase session must not unlock the teacher cabinet.
-    const isStudentAccount = session?.user?.user_metadata?.role === 'student'
+    const isStudentAccount = session?.user?.user_metadata?.role === 'student' && session?.user?.app_metadata?.role !== 'admin'
     if (isStudentAccount && !import.meta.env.DEV) return <StudentLoginPage />
     if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (

@@ -1,0 +1,27 @@
+.student-schedule-ribbon { position:relative; z-index:25; color:var(--color-text); padding:0 0 2px; }
+.ssr-toolbar,.ssr-controls { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.ssr-toolbar { position:relative; z-index:2; justify-content:flex-end; gap:16px; margin-bottom:12px; }
+.ssr-controls { gap:7px; }
+.ssr-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--color-border-soft); background:var(--color-bg-card); color:var(--color-text); border-radius:12px; min-height:38px; padding:8px 12px; font:inherit; font-size:13px; cursor:pointer; }
+.ssr-button:hover { background:var(--color-purple-soft); }
+.ssr-button.ssr-icon { width:38px; padding:8px; }
+.ssr-trigger { color:var(--color-accent); }
+.ssr-picker { position:relative; }
+.ssr-month { position:absolute; top:calc(100% + 10px); right:0; z-index:80; width:284px; padding:16px; border:1px solid var(--color-border-soft); border-radius:22px; background:var(--color-bg-card); box-shadow:var(--shadow-3); }
+.ssr-month-heading { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:12px; }
+.ssr-month-heading strong { font-size:14px; font-weight:600; text-transform:capitalize; }
+.ssr-month-heading>div { display:flex; }
+.ssr-month-heading .ssr-button { border:0; width:30px; min-height:30px; padding:5px; }
+.ssr-month-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px 0; }
+.ssr-weekday { font-size:11px; text-align:center; color:var(--color-muted); padding-bottom:7px; }
+.ssr-month-day { position:relative; min-height:34px; padding:4px 0 8px; border:0; border-radius:10px; background:transparent; color:var(--color-text); font:inherit; font-size:12px; cursor:pointer; }
+.ssr-month-day:hover { background:var(--color-purple-soft); }
+.ssr-month-day.ssr-now { outline:1px solid var(--color-accent); outline-offset:-3px; color:var(--color-accent); }
+.ssr-month-day[aria-pressed=true] { background:var(--color-control-accent); color:#fff; outline:0; }
+.ssr-month-day i { position:absolute; width:3px; height:3px; border-radius:50%; background:currentColor; bottom:4px; left:calc(50% - 1.5px); }
+.ssr-calendar-note { display:flex; align-items:center; gap:6px; color:var(--color-muted); font-size:11px; margin-top:12px; min-height:16px; }
+.ssr-calendar-note>i { width:4px; height:4px; border-radius:50%; background:var(--color-accent); }
+.ssr-retry { background:transparent; border:0; padding:0; color:var(--color-accent); font:inherit; cursor:pointer; text-align:left; }
+@media(pointer:coarse) { .ssr-button,.ssr-month-day { min-height:44px; } }
+
+.ssr-load-error { min-height:210px; display:flex; align-items:center; justify-content:center; gap:12px; color:var(--color-muted); font-size:13px; }

@@ -66,7 +66,7 @@ interface DbScheduleLesson {
   status?: ScheduleEventStatus
 }
 
-export async function fetchScheduleDays(groupId: string, studentId?: string): Promise<ScheduleDay[]> {
+export async function fetchScheduleDays(groupId: string, studentId?: string, range?: { from: string; to: string }): Promise<ScheduleDay[]> {
   await useStudentTz.getState().load()
   const viewerTz = useStudentTz.getState().tz
   const now = new Date()
@@ -78,6 +78,13 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
 
   const pad2 = (n: number) => String(n).padStart(2, '0')
   const fmt  = (d: Date) => `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`
+  const first = range ? new Date(`${range.from}T12:00:00Z`) : new Date(today.getTime() - 3 * 86400000)
+  const last = range ? new Date(`${range.to}T12:00:00Z`) : new Date(today.getTime() + 7 * 86400000)
+  if (!Number.isFinite(first.getTime()) || !Number.isFinite(last.getTime()) || first > last || last.getTime() - first.getTime() > 45 * 86400000) throw new Error('Invalid schedule range')
+  if (range) {
+    from.setTime(first.getTime() - 86400000)
+    to.setTime(last.getTime() + 86400000)
+  }
 
   // A lesson reaches the student either through their group OR a direct
   // (student-scoped) assignment. Match both.
@@ -96,6 +103,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
     .order('time_start', { ascending: true })
 
   if (error) reportDbError('fetchScheduleDays', error)
+  if (error && range) throw error
   if (error || !data) return []
 
   // The RPC projects only this student's attendance; private teacher state
@@ -139,9 +147,8 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
   const formatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', timeZone: 'UTC' })
   const days: ScheduleDay[] = []
 
-  // Span -3..+7 days from today
-  for (let offset = -3; offset <= 7; offset++) {
-    const d = new Date(today); d.setUTCDate(d.getUTCDate() + offset)
+  // Preserve the home window by default; the month picker requests its own range.
+  for (let d = new Date(first); d <= last; d.setUTCDate(d.getUTCDate() + 1)) {
     const dateStr = fmt(d)
     const rows = byDate.get(dateStr) ?? []
     const lessons: ScheduleLesson[] = rows.map(row => {
@@ -170,7 +177,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
     days.push({
       date: dateStr,
       label: formatter.format(d),
-      isToday: offset === 0,
+      isToday: dateStr === todayDate,
       lessons,
     })
   }

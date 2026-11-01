@@ -5396,4 +5396,10 @@ export const EN: Record<string, string> = {
   "Часть заданий недоступна": "Some assignments are unavailable",
   "Задания временно недоступны": "Assignments are temporarily unavailable",
   "Предмет не указан": "Subject not specified",
+  "Предыдущий день": "Previous day",
+  "Следующий день": "Next day",
+  "Выбор даты": "Choose a date",
+  "Выбрать дату": "Choose date",
+  "Есть занятие": "Lesson scheduled",
+  "Календарь": "Calendar",
 }

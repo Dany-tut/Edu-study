@@ -124,7 +124,7 @@ export default function WhiteboardCanvas({
   const [sizeError, setSizeError] = useState<string | null>(null)
   function emitSave(c: HTMLCanvasElement) {
     try {
-      emitSave(c)
+      onSave?.(optimizeCanvas(c))
       setSizeError(null)
     } catch (e) {
       if (e instanceof ImageTooLargeError) setSizeError(e.message)
