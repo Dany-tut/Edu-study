@@ -639,7 +639,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
   const scopeLabel = [data?.courses.find(c=>c.id===course)?.title ?? (course===ALL_COURSES?'Все курсы и работы':'Вне курсов'), data?.modules.find(m=>m.id===module)?.label].filter(Boolean).join(' · ')
   const picker = data && <ScopePicker data={data} value={scope} onChange={changeScope} />
   let content: React.ReactNode
-  if (!production && (page === 'home' || page === 'homework')) {
+  if (page === 'home' || page === 'homework') {
     content = data && !data.demo ? <div className="jh-live-page">{page === 'home'
       ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {setQueueGroup(group ?? '*');useTeacher.getState().setActivePage('homework')}}/>
       : <HomeworkQueue queue={homework.queue} groups={data.groups} groupId={queueGroup} onGroup={setQueueGroup}
@@ -764,7 +764,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
       )
   }
   return (
-    <><TeacherDashboardPage standReviewCount={production ? undefined : homework.queue.length}
+    <><TeacherDashboardPage standReviewCount={homework.queue.length}
       standContent={
         content && (
           <>

@@ -9,6 +9,7 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useT } from '../../lib/i18n'
 import { alertDialog } from '../ConfirmHost'
 import { btn } from '../../lib/pillStyles'
+import { useOverlayScroll } from './OverlayScroll'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -83,6 +84,7 @@ export function parseSmartPaste(text: string): { question: string; options: stri
 
 export default function RichConditionEditor({
   value, onChange, inputSt, placeholder, autoGrow = false, minHeight = 120, onSmartPaste,
+  fixedHeight, ariaLabel, fontSize: baseFontSize = 16,
 }: {
   value: string
   onChange: (html: string) => void
@@ -91,9 +93,12 @@ export default function RichConditionEditor({
   autoGrow?: boolean
   minHeight?: number
   onSmartPaste?: (question: string, options: string[]) => void
+  fixedHeight?: React.CSSProperties['height']
+  ariaLabel?: string
+  fontSize?: number
 }) {
   const t = useT()
-  const editorRef = useRef<HTMLDivElement>(null)
+  const {ref: editorRef, onScroll: onEditorScroll, maskStyle: editorMask} = useOverlayScroll()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const sizeBtnRef = useRef<HTMLButtonElement>(null)
   const [focused, setFocused] = useState(false)
@@ -326,6 +331,10 @@ export default function RichConditionEditor({
         <div
           ref={editorRef}
           contentEditable
+          role="textbox"
+          aria-multiline="true"
+          aria-label={ariaLabel}
+          onScroll={onEditorScroll}
           suppressContentEditableWarning
           onInput={emit}
           onFocus={() => setFocused(true)}
@@ -336,7 +345,7 @@ export default function RichConditionEditor({
           style={{
             ...st,
             minHeight,
-            fontSize: 16,
+            fontSize: baseFontSize,
             padding: '12px 16px',
             // autoGrow fields reserve the toolbar's space permanently so the
             // box height doesn't jump when the toolbar shows/hides on focus.
@@ -345,11 +354,12 @@ export default function RichConditionEditor({
             // autoGrow → grow with content (height auto, no inner scrollbar);
             // otherwise keep the scroll-and-resize behaviour.
             overflowY: autoGrow ? 'visible' : 'auto',
-            height: autoGrow ? 'auto' : undefined,
+            height: autoGrow ? 'auto' : fixedHeight,
             wordBreak: 'break-word',
             transition: 'padding-bottom 0.15s ease',
             cursor: 'text',
-            resize: autoGrow ? 'none' : 'vertical',
+            resize: autoGrow || fixedHeight != null ? 'none' : 'vertical',
+            ...editorMask,
           }}
         />
 
