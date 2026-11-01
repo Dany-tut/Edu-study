@@ -42,7 +42,8 @@
     "check:lesson-participation": "node scripts/checkLessonParticipation.mjs",
     "check:course-access": "esbuild scripts/checkCourseAccess.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkCourseAccess.mjs --log-level=error && node node_modules/.cache/checkCourseAccess.mjs && node scripts/checkCourseAccessDb.mjs",
     "release:check": "node scripts/guardProductionRelease.mjs --check",
-    "check:release": "node scripts/checkReleasePolicy.mjs"
+    "check:release": "node scripts/checkReleasePolicy.mjs",
+    "check:feed-release": "node scripts/checkFeedRelease.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
