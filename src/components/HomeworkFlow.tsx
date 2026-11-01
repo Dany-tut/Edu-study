@@ -1,4 +1,5 @@
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
+import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
 import { homeworkResult, homeworkDisplayScore } from '../lib/homeworkResult'
 import { LoopTextIcon } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
@@ -4439,6 +4440,12 @@ export default function HomeworkFlow({
                   </React.Fragment>
                 )
               })}
+
+              {!!basicProgress?.result?.attemptCount && <HomeworkAttemptHistorySection
+                result={basicProgress.result}
+                studentId={ownerStudentIdFor(subject)}
+                lessonRef={lessonId}
+              />}
 
               {/* В конце списка оставляем только нужные действия: вернуться к
                   первому пропуску или сдать работу. Номера отдельными чипсами
