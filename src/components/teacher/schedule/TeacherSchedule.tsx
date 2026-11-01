@@ -73,6 +73,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const today = todayMsk()
   const [day, setDay] = useState(today)
   const [weekNavigation, setWeekNavigation] = useState(0)
+  const [stripStart, setStripStart] = useState(() => weekStart(today))
   const [visibleDates, setVisibleDates] = useState(() => ({ first: weekStart(today), last: addDays(weekStart(today), 6) }))
   const start = weekStart(day)
   const { items, reload } = useTeacherWeek(start)
@@ -92,7 +93,14 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const go = (next: string, navigate = true) => {
     setDir(next > day ? 1 : -1)
     setDay(next)
-    if (navigate) setWeekNavigation(key => key + 1)
+    if (navigate) {
+      setStripStart(weekStart(next))
+      setWeekNavigation(key => key + 1)
+    }
+  }
+  const returnToToday = () => {
+    setStripStart(weekStart(today))
+    setWeekNavigation(key => key + 1)
   }
 
   const hitDay = (x: number, y: number): string | null => {
@@ -194,8 +202,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
               style={btn('S', 'primary', { width: 32, padding: 0 })}
             ><Plus size={17} /></button>
           )}
-          {weekStart(today) !== start && (
-            <button onClick={() => go(today)} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
+          {(visibleDates.first !== weekStart(today) || visibleDates.last !== addDays(weekStart(today), 6)) && (
+            <button onClick={returnToToday} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
           )}
           {!mobile && (
             <>
@@ -208,7 +216,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
 
       {/* Неделя */}
       <WeekStrip
-        start={start}
+        start={stripStart}
         navigationKey={weekNavigation}
         label={t('Выбор недели')}
         onVisibleRangeChange={(first, last) => setVisibleDates({ first, last })}
