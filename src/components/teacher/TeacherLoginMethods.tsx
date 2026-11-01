@@ -33,9 +33,9 @@ export default function TeacherLoginMethods() {
       setUser(data.user)
       setReady(true)
       setBusy(null)
-      if (error) setError(t(authErrorRu(error instanceof Error ? error : { message: String(error) })))
+      if (error) setError(authErrorRu(error instanceof Error ? error : { message: String(error) }))
     }
-    const linked = () => { setNotice(t('Способ входа подключён к вашему аккаунту.')); void refresh() }
+    const linked = () => { setNotice('Способ входа подключён к вашему аккаунту.'); void refresh() }
     const failed = (event: Event) => { setError((event as CustomEvent<string>).detail); setBusy(null) }
     void refresh()
     window.addEventListener('focus', refresh)
@@ -57,7 +57,9 @@ export default function TeacherLoginMethods() {
       window.removeEventListener('iskra:auth-error', failed)
       listeners.forEach(listener => { void listener.then(handle => handle.remove()) })
     }
-  }, [t])
+  // useT returns a new function on every render. Depending on it restarts the
+  // requests whenever provider settings arrive, cancelling the user response.
+  }, [])
 
   async function connect(provider: 'google' | 'apple') {
     setBusy(provider)
@@ -100,8 +102,8 @@ export default function TeacherLoginMethods() {
             </button>}
         </div>
       })}
-      {error && <Alert tone="danger" text={error} />}
-      {notice && <Alert tone="info" text={notice} />}
+      {error && <Alert tone="danger" text={t(error)} />}
+      {notice && <Alert tone="info" text={t(notice)} />}
       <a href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-muted)', fontSize: 12 }}>Политика конфиденциальности</a>
     </section>
   )
