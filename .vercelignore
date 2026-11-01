@@ -1,5 +1,3 @@
-.claude
-
 .env*
+!/.env.example
 node_modules/
-supabase/
