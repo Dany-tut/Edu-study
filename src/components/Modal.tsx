@@ -6,6 +6,7 @@ import { useT } from '../lib/i18n'
 import { OverlayScrollArea } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { useNativeOverlay } from '../lib/nativeGlass'
+import './Modal.css'
 
 /**
  * ОКНО — один каркас на всё приложение.
@@ -27,6 +28,13 @@ import { useNativeOverlay } from '../lib/nativeGlass'
 
 export const MODAL_RADIUS = 22
 
+const backdropHidden = { opacity: 0 }
+const cardHidden = { scale: 0.94, opacity: 0, y: 14 }
+const cardTransition = {
+  type: 'spring' as const, stiffness: 420, damping: 30,
+  opacity: { type: 'tween' as const, duration: 0.16 },
+}
+
 export const MODAL_BACKDROP: CSSProperties = {
   position: 'fixed', inset: 0,
   background: 'rgba(0,0,0,0.45)',
@@ -42,7 +50,7 @@ export const MODAL_CARD: CSSProperties = {
 
 export default function Modal({
   onClose, title, subtitle, icon, width = 540, padding = 24, zIndex = 1200,
-  footer, children, onPaste, cardStyle, backdropStyle,
+  footer, children, onPaste, cardStyle, backdropStyle, bodyStyle,
 }: {
   onClose: () => void
   /** Без заголовка шапки нет — крестик тогда рисует само содержимое. */
@@ -59,6 +67,7 @@ export default function Modal({
   onPaste?: (e: React.ClipboardEvent) => void
   cardStyle?: CSSProperties
   backdropStyle?: CSSProperties
+  bodyStyle?: CSSProperties
 }) {
   const t = useT()
   const keyboard = useKeyboardState()
@@ -74,15 +83,17 @@ export default function Modal({
   return createPortal(
     <>
       <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="iskra-modal-backdrop"
+        initial={false} exit={backdropHidden}
         onClick={onClose}
         style={{ ...MODAL_BACKDROP, ...backdropStyle, zIndex }}
       />
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: keyboard.inset, zIndex: zIndex + 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
         <motion.div
           role="dialog" aria-modal="true"
-          initial={{ scale: 0.94, opacity: 0, y: 14 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.94, opacity: 0, y: 14 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+          className="iskra-modal-card"
+          initial={false} exit={cardHidden}
+          transition={cardTransition}
           onPaste={onPaste}
           style={{
             ...MODAL_CARD,
@@ -112,6 +123,7 @@ export default function Modal({
           <OverlayScrollArea
             showScrollbar={false}
             style={{ flex: 1 }}
+            scrollStyle={bodyStyle}
             padding={`${title != null ? 4 : padding}px ${padding}px ${footer ? 12 : padding}px`}
           >
             {children}

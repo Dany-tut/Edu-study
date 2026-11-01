@@ -120,7 +120,9 @@ type TeacherStore = {
   openConstructorEditTask: (taskId: number) => void
   clearEditTaskIntent: () => void
   reviewingHwId: string | null
-  openHomeworkReview: (hwId: string) => void
+  reviewingStudentId: string | null
+  reviewReturnPage: TeacherPage
+  openHomeworkReview: (hwId: string, studentId?: string, returnPage?: TeacherPage) => void
   // Homework composer: null id = create new, set id = edit existing.
   editingHomeworkId: string | null
   // Optional student to pre-scope a fresh "ДЗ допом" to (consumed by the composer on mount).
@@ -202,6 +204,8 @@ type NavSnapshot = {
   selectedGroupId: string | null
   selectedStudentId: string | null
   reviewingHwId: string | null
+  reviewingStudentId?: string | null
+  reviewReturnPage?: TeacherPage
   reviewingHardId: string | null
   editingHomeworkId: string | null
   hwPresetStudentId: string | null
@@ -217,6 +221,8 @@ function writeNav(s: TeacherStore) {
       selectedGroupId: s.selectedGroupId,
       selectedStudentId: s.selectedStudentId,
       reviewingHwId: s.reviewingHwId,
+      reviewingStudentId: s.reviewingStudentId,
+      reviewReturnPage: s.reviewReturnPage,
       reviewingHardId: s.reviewingHardId,
       editingHomeworkId: s.editingHomeworkId,
       hwPresetStudentId: s.hwPresetStudentId,
@@ -294,7 +300,9 @@ export const useTeacher = create<TeacherStore>(set => ({
   openConstructorEditTask: taskId => set({ activePage: 'constructor', editTaskIntent: taskId, constructorIntent: 'trainer', headerDocked: false }),
   clearEditTaskIntent: () => set({ editTaskIntent: null }),
   reviewingHwId: _nav?.reviewingHwId ?? null,
-  openHomeworkReview: hwId => set({ reviewingHwId: hwId, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
+  reviewingStudentId: _nav?.reviewingStudentId ?? null,
+  reviewReturnPage: _nav?.reviewReturnPage ?? 'homework',
+  openHomeworkReview: (hwId, studentId, returnPage = 'homework') => set({ reviewingHwId: hwId, reviewingStudentId: studentId ?? null, reviewReturnPage:returnPage, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
   editingHomeworkId: _nav?.editingHomeworkId ?? null,
   hwPresetStudentId: _nav?.hwPresetStudentId ?? null,
   openHomeworkCreate: presetStudentId => set({ activePage: 'homework-create', editingHomeworkId: null, hwPresetStudentId: presetStudentId ?? null, headerDocked: false }),

@@ -2581,11 +2581,12 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
     : new Set<string>()
 
   return (
-    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
+    <div className={renderRoster ? 'js-journal-host' : undefined} style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <motion.div {...fadeUp(0.04)} className={renderRoster || onOpenStudent ? 'js-stand-strip' : undefined}>
           <GroupStrip
             mergePersons
+            compactRoster={!!(renderRoster || onOpenStudent)}
             groups={activeStripTab === 'groups' ? regularGroups.filter(g => !availableGroupIds || availableGroupIds.has(g.id)) : []}
             individualGroups={[]}
             selectedGroupId={selectedGroupId}

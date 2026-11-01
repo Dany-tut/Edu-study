@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, Check, RotateCcw, Send,
@@ -6,7 +6,7 @@ import {
   CheckCircle2, Star, Image as ImageIcon, PenLine, X,
 } from '../../components/icons/appIcons'
 import type { Student, Group, HomeworkItem, HwTask } from '../../data/teacherMockData'
-import { useHomework, useHomeworkSubmissions, reviewHomework } from '../../lib/useHomework'
+import { useHomework, useHomeworkSubmissions, reviewHomework, type HwSubmission } from '../../lib/useHomework'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useTeacher } from '../../store/teacherStore'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
@@ -17,7 +17,7 @@ import { useT, t, useTc } from '../../lib/i18n'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import type { BasicAnswerRow, BasicAnswersPayload } from '../../lib/basicAnswers'
 import AiGradeCard from '../../components/teacher/AiGradeCard'
-import { useAiGrades, confirmAiGrade } from '../../lib/useAiGrades'
+import { useAiGrades, confirmAiGrade, type AiGrade } from '../../lib/useAiGrades'
 import { alertDialog } from '../../components/ConfirmHost'
 import { Alert } from '../../components/Alert'
 import { btn } from '../../lib/pillStyles'
@@ -336,8 +336,8 @@ function ReviewAttachEditor({
   }
 
   return (
-    <div>
-      <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+    <div role="group" aria-label={t('Фото и доска к проверке')}>
+      <input aria-label={t('Добавить фото к проверке')} ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
         onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', gap: 8 }}>
         <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ ...btn('M', 'secondary'), flex: 1 }}>
@@ -352,7 +352,7 @@ function ReviewAttachEditor({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
           {photos.map((src, i) => (
             <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
-              <img src={src} alt="" style={{ width: '100%', height: 72, objectFit: 'cover', display: 'block' }} />
+              <img src={src} alt={t('Фото к проверке') + ' ' + (i + 1)} style={{ width: '100%', height: 72, objectFit: 'cover', display: 'block' }} />
               <button onClick={() => onPhotos(photos.filter((_, j) => j !== i))} className="cursor-pointer" style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
             </div>
           ))}
@@ -365,9 +365,9 @@ function ReviewAttachEditor({
 
 // ─── Main page ──────────────────────────────────────────────────────────────
 export default function TeacherHomeworkReviewPage() {
-  const t = useT()
-  const { tc } = useTc()
   const reviewingHwId = useTeacher(s => s.reviewingHwId)
+  const reviewingStudentId = useTeacher(s => s.reviewingStudentId)
+  const reviewReturnPage = useTeacher(s => s.reviewReturnPage)
   const setActivePage = useTeacher(s => s.setActivePage)
   const reviewIdx = useTeacher(s => s.reviewIdx)
   const setReviewIdx = useTeacher(s => s.setReviewIdx)
@@ -387,11 +387,39 @@ export default function TeacherHomeworkReviewPage() {
     const submittedIds = new Set(rawSubmissions.map(s => s.studentId))
     return groupStudents.filter(s => submittedIds.has(s.id))
   }, [hw, rawSubmissions, groupStudents])
-  // «Проверено» выводим прямо из вердикта сдачи (lesson_progress), а не из стора.
-  const subByStudent = useMemo(
-    () => new Map(rawSubmissions.map(s => [s.studentId, s])),
-    [rawSubmissions],
-  )
+  useEffect(() => {
+    if (!reviewingStudentId) return
+    const target = submitters.findIndex(s => s.id === reviewingStudentId)
+    if (target >= 0) {
+      setReviewIdx(target)
+      useTeacher.setState({reviewingStudentId:null})
+    }
+  }, [reviewingStudentId, submitters, setReviewIdx])
+  const { byProgress: aiByProgress, reload: reloadAi } = useAiGrades(rawSubmissions.map(s => s.id))
+  return <HomeworkReviewEditor key={hw?.id} hw={hw} group={group} submitters={submitters} submissions={rawSubmissions}
+    reviewIdx={reviewIdx} setReviewIdx={setReviewIdx} onBack={() => setActivePage(reviewReturnPage)}
+    returnLabel={reviewReturnPage === 'gradebook' ? 'В журнал' : reviewReturnPage === 'home' ? 'На главную' : 'К списку ДЗ'}
+    onReview={reviewHomework} reloadSubmissions={reloadSubmissions} aiByProgress={aiByProgress}
+    reloadAi={reloadAi} onConfirmAi={confirmAiGrade}/>
+}
+
+type ReviewAttachments = { photos: string[]; board: string | null }
+export type HomeworkReviewEditorProps = {
+  hw: HomeworkItem | null; group: Group | null; submitters: Student[]; submissions: HwSubmission[]
+  reviewIdx: number; setReviewIdx: (index: number) => void; onBack: () => void; returnLabel: string
+  onReview: (id: string, verdict: 'accepted' | 'returned', score: number, comment: string,
+    attachments: ReviewAttachments, expectedAttemptId?: string) => Promise<boolean>
+  reloadSubmissions?: () => Promise<void>; aiByProgress?: Map<string, AiGrade>
+  reloadAi?: () => Promise<void>; onConfirmAi?: (id: string, score: number) => Promise<boolean>
+  embedded?: boolean
+}
+
+/** The production editor, with explicit data/save adapters for the isolated development stand. */
+export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSubmissions, reviewIdx, setReviewIdx,
+  onBack, returnLabel, onReview, reloadSubmissions, aiByProgress, reloadAi, onConfirmAi, embedded = false}: HomeworkReviewEditorProps) {
+  const t = useT()
+  const { tc } = useTc()
+  const subByStudent = useMemo(() => new Map(rawSubmissions.map(s => [s.studentId, s])), [rawSubmissions])
   const reviewedMap = useMemo(() => {
     const m: Record<string, { verdict: 'accepted' | 'returned' }> = {}
     for (const s of rawSubmissions) {
@@ -399,9 +427,6 @@ export default function TeacherHomeworkReviewPage() {
     }
     return m
   }, [rawSubmissions])
-  // Предоценка ИИ по критериям ФИПИ (hw_ai_grades) — для химии и биологии.
-  const { byProgress: aiByProgress, reload: reloadAi } = useAiGrades(rawSubmissions.map(s => s.id))
-
   const idx = reviewIdx
   const prevIdxRef = useRef(reviewIdx)
   const [dir, setDir] = useState(0)
@@ -411,12 +436,15 @@ export default function TeacherHomeworkReviewPage() {
   }
   // Per-student draft: score (manual), taskScores (per-task), comment.
   // Mirrored into sessionStorage per hw+student so grading survives a reload.
-  const [drafts, setDrafts] = useState<Record<string, ReviewDraft>>({})
+  const [drafts, setDrafts] = useState<Partial<Record<string, ReviewDraft>>>({})
   const scrollRef = useRef<HTMLDivElement>(null)
   // Shared via the store — the dashboard hides the ReviewNavPill while the
   // docked bar shows its own arrows/counter on the same spot.
-  const docked = useTeacher(s => s.headerDocked)
-  const setDocked = useTeacher(s => s.setHeaderDocked)
+  const liveDocked = useTeacher(s => s.headerDocked)
+  const setLiveDocked = useTeacher(s => s.setHeaderDocked)
+  const [standDocked, setStandDocked] = useState(false)
+  const docked = embedded ? standDocked : liveDocked
+  const setDocked = embedded ? setStandDocked : setLiveDocked
 
   const dockGlass = {
     border: '1px solid var(--color-border-glass)',
@@ -432,12 +460,12 @@ export default function TeacherHomeworkReviewPage() {
         <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
           {hw && group ? t('Пока никто не сдал работу') : t('Домашка не найдена')}
         </p>
-        <button onClick={() => setActivePage('homework')} style={{ height: 40,
+        <button onClick={() => onBack()} style={{ height: 40,
           padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
           background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
           boxShadow: '0 4px 14px rgba(99,84,207,0.38)',
         }}>
-          {t('К списку ДЗ')}
+          {t(returnLabel)}
         </button>
       </div>
     )
@@ -470,14 +498,16 @@ export default function TeacherHomeworkReviewPage() {
     }
   })()
   const reviewed = currentSubmission?.verdict === 'accepted' || currentSubmission?.verdict === 'returned'
-  const aiGrade = currentSubmission ? aiByProgress.get(currentSubmission.id) : undefined
+  const aiGrade = currentSubmission ? aiByProgress?.get(currentSubmission.id) : undefined
   const draftKey = `hwReview:${hw.id}:${student.id}`
-  const draft = drafts[student.id] ?? readDraft<ReviewDraft>(draftKey) ?? {
+  const draft: ReviewDraft = {
     score: reviewed ? String(currentSubmission!.score) : '',
     taskScores: {},
     comment: currentSubmission?.reviewComment ?? '',
     photos: currentSubmission?.reviewPhotos ?? [],
     board: currentSubmission?.reviewBoard ?? null,
+    ...readDraft<Partial<ReviewDraft>>(draftKey),
+    ...drafts[student.id],
   }
 
   // If hw has tasks, compute total from task scores; otherwise use manual score.
@@ -530,7 +560,7 @@ export default function TeacherHomeworkReviewPage() {
     const comment = ai && !draft.comment.trim() ? ai.comment : draft.comment
     // Реальная запись в lesson_progress (та же строка, куда ученик сдал) —
     // вердикт/оценка/комментарий/фото/доска дойдут до ученика и переживут reload.
-    const ok = await reviewHomework(submissionId, verdict, score, comment, {
+    const ok = await onReview(submissionId, verdict, score, comment, {
       photos: draft.photos, board: draft.board,
     }, currentSubmission?.answers?.attemptId)
     if (!ok) {
@@ -542,15 +572,15 @@ export default function TeacherHomeworkReviewPage() {
     // Балл ушёл ученику прежним путём; здесь — отметка «ИИ → учитель»:
     // принял балл ИИ или поставил свой.
     if (verdict === 'accepted' && aiGrade && (aiGrade.status === 'graded' || aiGrade.status === 'dismissed')) {
-      await confirmAiGrade(aiGrade.id, score)
+      await onConfirmAi?.(aiGrade.id, score)
     }
-    void reloadAi()
+    void reloadAi?.()
     clearDraft(draftKey)
     setDrafts(d => {
       const { [student.id]: _gone, ...rest } = d
       return rest
     })
-    await reloadSubmissions()
+    await reloadSubmissions?.()
     setTimeout(advance, 260)
   }
 
@@ -561,7 +591,7 @@ export default function TeacherHomeworkReviewPage() {
     <div
       ref={scrollRef}
       onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
-      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100, paddingBottom: 110 }}
+      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: embedded ? 0 : -100, paddingTop: embedded ? 8 : 100, paddingBottom: 110 }}
     >
 
       {/* ── Rest-state header: Назад + title. Fades out (opacity only — NO height
@@ -576,7 +606,7 @@ export default function TeacherHomeworkReviewPage() {
       >
         <motion.button
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-          onClick={() => setActivePage('homework')}
+          onClick={() => onBack()}
           className="flex items-center cursor-pointer flex-shrink-0"
           style={{
             gap: 4, padding: '10px 16px 10px 12px', borderRadius: 999,
@@ -585,7 +615,7 @@ export default function TeacherHomeworkReviewPage() {
           }}
         >
           <ChevronLeft size={18} />
-          {t('Назад')}
+          {t(returnLabel)}
         </motion.button>
 
         <span style={{
@@ -605,7 +635,7 @@ export default function TeacherHomeworkReviewPage() {
       </motion.div>
 
       {/* ── Docked bar (appears on scroll): arrows + counter ── */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+      <div className="docked-pills-row" style={{ position: 'fixed', top: embedded ? 12 : 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div
@@ -619,7 +649,7 @@ export default function TeacherHomeworkReviewPage() {
           >
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={() => setActivePage('homework')}
+              onClick={() => onBack()}
               className="flex items-center cursor-pointer flex-shrink-0"
               style={{
                 gap: 4, padding: '10px 16px 10px 12px', borderRadius: 999,
@@ -627,7 +657,7 @@ export default function TeacherHomeworkReviewPage() {
               }}
             >
               <ChevronLeft size={18} />
-              Назад
+              {t(returnLabel)}
             </motion.button>
 
             <div style={{
@@ -710,7 +740,7 @@ export default function TeacherHomeworkReviewPage() {
                       снимка, их нет — там честно говорим, что показать нечего,
                       вместо прежних выдуманных «solution.pdf». */}
                   {currentAnswers
-                    ? <BasicAnswersList payload={currentAnswers} studentId={student.id} />
+                    ? <BasicAnswersList payload={currentAnswers} studentId={embedded ? undefined : student.id} teacherReviewed={currentSubmission?.verdict === 'accepted'} />
                     : !currentSubmission?.comment && (
                       <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)' }}>
                         {t('Ответы этой сдачи не сохранились — она сделана до того, как работа начала доезжать до преподавателя.')}
@@ -760,7 +790,7 @@ export default function TeacherHomeworkReviewPage() {
                         </div>
                         <div className="flex items-center" style={{ gap: 10 }}>
                           <input
-                            type="number" min={0} max={100} value={draft.score}
+                            aria-label={t('Итог ДЗ в процентах')} type="number" min={0} max={100} value={draft.score}
                             onChange={e => setDraft({ score: e.target.value })}
                             placeholder="—"
                             style={{
@@ -847,7 +877,7 @@ export default function TeacherHomeworkReviewPage() {
                   </div>
                   <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Send size={12} />
-                    {t('Решение и комментарий уйдут ученику в его кабинет.')}
+                    {embedded ? t('Учебный пример: результат сохранится только на стенде до обновления страницы.') : t('Решение и комментарий уйдут ученику в его кабинет.')}
                   </p>
                 </div>
 
@@ -874,13 +904,13 @@ export default function TeacherHomeworkReviewPage() {
                     </div>
                     <motion.button
                       whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                      onClick={() => setActivePage('homework')}
+                      onClick={() => onBack()}
                       style={{
                         flexShrink: 0, padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
                         background: 'var(--color-green-accent)', color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                       }}
                     >
-                      {t('К списку ДЗ')}
+                      {t(returnLabel)}
                     </motion.button>
                   </motion.div>
                 )}
