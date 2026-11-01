@@ -7,7 +7,7 @@
 // уроках курса и Конструкторе не рисуются (useTestlyModule().connected).
 import { create } from 'zustand'
 import { supabase } from './supabase'
-import { getAuthUser } from './owner'
+import { getOwnerId, getViewAs } from './owner'
 import { t } from './i18n'
 
 /** Сайт Тестли: по нему ученик проходит тест, учитель открывает его в редакторе. */
@@ -47,12 +47,17 @@ export const useTestlyModule = create<TestlyModuleState>(set => ({
   email: '',
   tests: 0,
   load: async () => {
-    const user = await getAuthUser()
-    if (!user) { set({ loaded: true, connected: false }); return }
+    const teacherId = await getOwnerId()
+    if (!teacherId) { set({ loaded: true, connected: false }); return }
+    if (getViewAs()) {
+      const meta = await bridge<{ connected: boolean; email: string; tests: number }>({ action: 'module' })
+      set({ loaded: true, teacherId, ...meta })
+      return
+    }
     const { data } = await supabase.from('teacher_modules').select('meta')
-      .eq('teacher_id', user.id).eq('module', 'testly').maybeSingle()
+      .eq('teacher_id', teacherId).eq('module', 'testly').maybeSingle()
     const meta = (data?.meta ?? {}) as { email?: string; tests?: number }
-    set({ loaded: true, teacherId: user.id, connected: !!data, email: meta.email ?? '', tests: meta.tests ?? 0 })
+    set({ loaded: true, teacherId, connected: !!data, email: meta.email ?? '', tests: meta.tests ?? 0 })
   },
 }))
 
@@ -63,6 +68,7 @@ const ERRORS: Record<string, string> = {
   not_configured: 'Модуль Тестли ещё не включён на сервере.',
   not_student: 'Сейчас выполнен вход в другой аккаунт. Войдите учеником, которому назначена домашка.',
   auth: 'Сессия истекла. Войдите учеником ещё раз, чтобы продолжить тест.',
+  view_only: 'В режиме просмотра нельзя изменять данные преподавателя.',
 }
 
 export class TestlyBridgeError extends Error {
@@ -74,7 +80,10 @@ export const needsStudentLogin = (error: unknown) => error instanceof TestlyBrid
 
 /** Вызов testly-bridge. Ошибку функции отдаём человеческим текстом. */
 async function bridge<T>(body: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('testly-bridge', { body })
+  const view = getViewAs()
+  const { data, error } = await supabase.functions.invoke('testly-bridge', {
+    body: { ...body, ...(view ? { viewTeacherId: view.id } : {}) },
+  })
   if (error) {
     // Response лежит в context только у FunctionsHttpError — см. googleFormsImport.ts.
     const context = (error as { context?: unknown }).context

@@ -6,8 +6,9 @@ import { startHomeworkRetake } from '../lib/homeworkAttempts'
 import type { BasicAnswersPayload } from '../lib/basicAnswers'
 import LessonSelfAssessment from './LessonSelfAssessment'
 
-export default function HomeworkAttemptPanel({ result, status, studentId, lessonRef, kind, onRetake }: {
+export default function HomeworkAttemptPanel({ result, status, studentId, lessonRef, kind, readOnly, onRetake }: {
   result?: HomeworkResult; status?: string; studentId: string; lessonRef: string; kind?: Lesson['kind'];
+  readOnly?: boolean
   onRetake?: (draft: BasicAnswersPayload) => void | Promise<void>
 }) {
   const t = useT()
@@ -32,7 +33,7 @@ export default function HomeworkAttemptPanel({ result, status, studentId, lesson
       {heading}
     </strong>
     {result.pending && <p>{t('Итоговый результат появится после проверки всей работы.')}</p>}
-    <LessonSelfAssessment key={`${lessonRef}:${result.attemptId}`} lessonId={lessonRef} studentId={studentId} status={status} result={result} />
+    <LessonSelfAssessment key={`${lessonRef}:${result.attemptId}`} readOnly={readOnly} lessonId={lessonRef} studentId={studentId} status={status} result={result} />
     {status !== 'returned' && !result.pending && !result.draft && score !== null && score < result.passingScore && <p>{t('Ниже проходного балла')} · {t('порог')} {result.passingScore}%</p>}
     {onRetake && canRetakeHomework(result,status) && <button type="button" onClick={retry} disabled={busy} style={{padding:'12px 18px',borderRadius:14,border:0,background:'var(--grad-purple)',color:'#fff',fontWeight:700,cursor:'pointer'}}>{busy ? t('Открываем попытку…') : t('Пройти заново')}</button>}
     {error && <p role="alert" style={{color:'var(--color-red-text)'}}>{error}</p>}

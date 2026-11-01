@@ -7,8 +7,8 @@ import { isSelfAssessmentValue } from '../lib/lessonSelfAssessment'
 import { saveLessonSelfAssessment } from '../lib/saveLessonSelfAssessment'
 import { isHomeworkSubmissionStatus, type HomeworkResult } from '../lib/homeworkResult'
 
-export default function LessonSelfAssessment({ lessonId, studentId, status, result }: {
-  lessonId: string; studentId: string; status: string | undefined; result?: HomeworkResult
+export default function LessonSelfAssessment({ lessonId, studentId, status, result, readOnly }: {
+  lessonId: string; studentId: string; status: string | undefined; result?: HomeworkResult; readOnly?: boolean
 }) {
   const t = useT()
   const local = useDashboard(s => s.lessonAssessments[lessonId])
@@ -20,9 +20,9 @@ export default function LessonSelfAssessment({ lessonId, studentId, status, resu
   const server = result?.selfAssessment
   const localIsNewer = !!local?.selfAssessedAt && (!server || local.selfAssessedAt > server.assessedAt)
   const sameAttempt = !local?.selfAssessmentAttemptId || local.selfAssessmentAttemptId === result?.attemptId
-  const value = localIsNewer && sameAttempt ? local.emojiIndex : server?.value ?? (sameAttempt ? local?.emojiIndex : undefined)
+  const value = readOnly ? server?.value : localIsNewer && sameAttempt ? local.emojiIndex : server?.value ?? (sameAttempt ? local?.emojiIndex : undefined)
   const step = isSelfAssessmentValue(value) ? EMOJI_STEPS[value] : null
-  const editable = !!studentId && !!result?.attemptId
+  const editable = !readOnly && !!studentId && !!result?.attemptId
 
   async function save(next: number) {
     if (busy || !result?.attemptId) return

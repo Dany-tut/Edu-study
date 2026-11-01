@@ -1,4 +1,6 @@
 import HomeworkAttemptPanel from '../../components/HomeworkAttemptPanel'
+import HomeworkAttemptHistorySection from '../../components/HomeworkAttemptHistorySection'
+import { getViewAs } from '../../lib/owner'
 import { homeworkResult } from '../../lib/homeworkResult'
 import { reviewHomework } from '../../lib/useHomework'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
@@ -639,6 +641,7 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherHomeworkPage() {
+  const viewOnly = !!getViewAs()
   const t = useT()
   const { tc, tn } = useTc()
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
@@ -770,10 +773,10 @@ export default function TeacherHomeworkPage() {
                   <div style={{ marginTop: 14 }}><BasicAnswersList payload={sub.payload} studentId={sub.studentId} /></div>
                   {sub.status !== 'returned' && (
                     <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
-                      <GrowTextarea aria-label={t('Комментарий преподавателя')} placeholder={t('Комментарий преподавателя')}
+                      <GrowTextarea disabled={viewOnly} aria-label={t('Комментарий преподавателя')} placeholder={t('Комментарий преподавателя')}
                         value={testlyComments[sub.id] ?? ''} onChange={value => setTestlyComments(c => ({ ...c, [sub.id]: value }))}
                         style={{ ...FIELD, minHeight: 64 }} />
-                      <button disabled={returningTestly !== null} style={{ ...btn('S', 'secondary'), justifySelf: 'start' }} onClick={async () => {
+                      <button disabled={viewOnly || returningTestly !== null} style={{ ...btn('S', 'secondary'), justifySelf: 'start' }} onClick={async () => {
                         setReturningTestly(sub.id); setTestlyReturnError('')
                         try { await reviewHomework(sub.id, 'returned', sub.score ?? 0, testlyComments[sub.id] ?? '', undefined, sub.payload.attemptId).then(ok => {if (!ok) throw new Error('Review failed')}); await reloadCourseTestly() }
                         catch (error) { setTestlyReturnError(error instanceof Error ? error.message : t('Не удалось сохранить изменения')) }
@@ -784,9 +787,9 @@ export default function TeacherHomeworkPage() {
                     </div>
                   )}
                   <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginTop:12}}>
-                    <label style={{fontSize:13}}>{t('ИТОГ ДЗ (0–100%)')} <input type="number" min={0} max={100} value={finalGrades[sub.id] ?? ''}
+                    <label style={{fontSize:13}}>{t('ИТОГ ДЗ (0–100%)')} <input disabled={viewOnly} type="number" min={0} max={100} value={finalGrades[sub.id] ?? ''}
                       onChange={e => setFinalGrades(v => ({...v,[sub.id]:e.target.value}))} style={{width:80,padding:8}} /></label>
-                    <button disabled={returningTestly === sub.id || !finalGrades[sub.id]?.trim()} style={btn('M','primary')}
+                    <button disabled={viewOnly || returningTestly === sub.id || !finalGrades[sub.id]?.trim()} style={btn('M','primary')}
                       onClick={async () => {
                         const grade=Number(finalGrades[sub.id]); if (!Number.isFinite(grade) || grade<0 || grade>100) return
                         setReturningTestly(sub.id); setTestlyReturnError('')
@@ -797,7 +800,10 @@ export default function TeacherHomeworkPage() {
                         finally { setReturningTestly(null) }
                       }}>{t('Завершить проверку')}</button>
                   </div>
-                  <HomeworkAttemptPanel result={homeworkResult(sub.payload,sub.score,sub.status,sub.attempts)} status={sub.status} studentId={sub.studentId} lessonRef={sub.lessonRef} />
+                  <HomeworkAttemptPanel readOnly result={homeworkResult(sub.payload,sub.score,sub.status,sub.attempts)} status={sub.status} studentId={sub.studentId} lessonRef={sub.lessonRef} />
+                  <HomeworkAttemptHistorySection authorName={sub.studentName}
+                    result={homeworkResult(sub.payload,sub.score,sub.status,sub.attempts)}
+                    studentId={sub.studentId} lessonRef={sub.lessonRef} />
                   {testlyReturnError && <p role="alert" style={{ color: 'var(--color-red-text)', marginTop: 10 }}>{testlyReturnError}</p>}
                 </details>
               </Card>

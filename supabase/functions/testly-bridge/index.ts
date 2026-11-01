@@ -20,9 +20,10 @@
 // Секреты функции: TESTLY_URL (https://<проект>.supabase.co) и
 // TESTLY_ISKRA_SECRET — тот же, что ISKRA_BRIDGE_SECRET у функции iskra в Тестли.
 
+import { teacherReadContext } from '../_shared/teacherView.ts'
 import { applyTestlyResult } from '../_shared/testlyProgress.ts'
 
-import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -59,7 +60,7 @@ Deno.serve(async (req) => {
   const caller = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } })
   const { data: userData, error: userErr } = await caller.auth.getUser()
   if (userErr || !userData.user) return json({ error: 'auth' }, 401)
-  const teacher = userData.user.id
+  let teacher = userData.user.id
   // Тестли показывает учителю, к какому аккаунту Искры он подключён.
   const iskraEmail = userData.user.email ?? ''
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
@@ -81,6 +82,11 @@ Deno.serve(async (req) => {
   }
   let body: Record<string, unknown>
   try { body = await req.json() } catch { return json({ error: 'bad_request' }, 400) }
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'bad_request' }, 400)
+  const context = teacherReadContext(userData.user, body)
+  if ('error' in context) return json({ error: context.error }, context.status)
+  teacher = context.teacher
+  const viewing = context.viewing
 
   const tokenOf = async () => {
     const { data } = await admin.from('teacher_module_secrets').select('token')
@@ -122,6 +128,12 @@ Deno.serve(async (req) => {
 
   try {
     switch (body.action) {
+      case 'module': {
+        const { data, error } = await admin.from('teacher_modules').select('meta')
+          .eq('teacher_id', teacher).eq('module', 'testly').maybeSingle()
+        if (error) throw error
+        return json({ connected: !!data, email: String(data?.meta?.email ?? ''), tests: Number(data?.meta?.tests ?? 0) })
+      }
       case 'start':
       case 'status': {
         const { name, owners } = await ownersOfStudent(body.owner)
@@ -236,7 +248,7 @@ Deno.serve(async (req) => {
         const got = (r.data.items ?? []) as Record<string, unknown>[]
         for (const x of got) {
           const student = asked.find(a => a.testId === x.testId && a.key === x.key)
-          if (student) await persistResult([student.studentId], student.testId, x, student.key)
+          if (student && !viewing) await persistResult([student.studentId], student.testId, x, student.key)
         }
         return json({ items: got.map(x => ({ ...x, studentId: asked.find(a => a.testId === x.testId && a.key === x.key)?.studentId })) })
       }
@@ -255,12 +267,12 @@ Deno.serve(async (req) => {
       case 'tests': {
         const token = await tokenOf()
         if (!token) return json({ error: 'not_connected' }, 409)
-        const r = await testly({ action: 'tests', token, iskraEmail })
+        const r = await testly({ action: 'tests', token, ...(!viewing ? { iskraEmail } : {}) })
         if (r.status === 401) return json({ error: 'revoked' }, 409)
         if (!r.ok) return json({ error: 'testly' }, 502)
         const tests = Array.isArray(r.data.tests) ? r.data.tests : []
         // Число тестов в карточке модуля держим свежим — без лишнего запроса из профиля.
-        await admin.from('teacher_modules').update({ meta: { ...(await metaOf(admin, teacher)), tests: tests.length } })
+        if (!viewing) await admin.from('teacher_modules').update({ meta: { ...(await metaOf(admin, teacher)), tests: tests.length } })
           .eq('teacher_id', teacher).eq('module', 'testly')
         return json({ tests })
       }
@@ -279,7 +291,7 @@ Deno.serve(async (req) => {
   }
 })
 
-async function metaOf(admin: ReturnType<typeof createClient>, teacher: string): Promise<Record<string, unknown>> {
+async function metaOf(admin: SupabaseClient, teacher: string): Promise<Record<string, unknown>> {
   const { data } = await admin.from('teacher_modules').select('meta').eq('teacher_id', teacher).eq('module', 'testly').maybeSingle()
   return (data?.meta as Record<string, unknown>) ?? {}
 }

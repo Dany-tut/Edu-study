@@ -7,6 +7,7 @@ import { EMOJI_STEPS } from './homeworkSteps'
 import './homeworkAttemptHistory.css'
 
 type Props = {
+  authorName?: string
   attempts: HomeworkAttempt[]
   attemptCount: number
   answers: Record<string, BasicAnswersPayload>
@@ -18,7 +19,7 @@ type Props = {
 }
 
 /** A submission and its teacher reply stay together, like a conversation. */
-export default function HomeworkAttemptHistory({ attempts, attemptCount, answers, reading, readErrors, loadingOlder, onRead, onLoadOlder }: Props) {
+export default function HomeworkAttemptHistory({ authorName, attempts, attemptCount, answers, reading, readErrors, loadingOlder, onRead, onLoadOlder }: Props) {
   const t = useT()
   const lang = useLang(s => s.lang)
   const id = useId()
@@ -56,7 +57,7 @@ export default function HomeworkAttemptHistory({ attempts, attemptCount, answers
           return <li key={attempt.id} className="hw-history-exchange">
             <div className="hw-history-message hw-history-message-student">
               <div className="hw-history-bubble hw-history-submission">
-                <div className="hw-history-meta"><span>{t('Моя работа')}</span><time dateTime={attempt.submitted_at}>{stamp(attempt.submitted_at)}</time></div>
+                <div className="hw-history-meta"><span>{authorName ?? t('Моя работа')}</span><time dateTime={attempt.submitted_at}>{stamp(attempt.submitted_at)}</time></div>
                 <div className="hw-history-result">
                   <strong>{t('Попытка')} {attempt.number}</strong>
                   <span className={`hw-history-score hw-history-score-${tone}`}>
