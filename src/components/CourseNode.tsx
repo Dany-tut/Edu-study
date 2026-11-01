@@ -89,7 +89,9 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
   const caption = step ? tr(trackStepLabel[step]) : null
   const statusText = tr(lessonStatusLabel(displayStatus, lesson.kind))
   const progressDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
-  const statusDescription = scheduleState?.isCurrent ? `${tr(scheduleState.label!)} · ${progressDescription}` : progressDescription
+  const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && (scheduleState.isCurrent || scheduleState.hasEnded || scheduleState.phase === 'cancelled')
+  const scheduleLabel = showScheduleStatus ? (scheduleState.recordingAvailable ? 'Запись доступна' : scheduleState.label) : null
+  const statusDescription = scheduleLabel && !progressDescription.includes(tr(scheduleLabel)) ? `${tr(scheduleLabel)} · ${progressDescription}` : progressDescription
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
   const seasonal = useSeason().on('track')
@@ -252,7 +254,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
       {/* Below label — lesson number */}
       <div
         className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
-        style={{ top: 'calc(100% + 7px)' }}
+        style={{ top: 'calc(100% + 7px)', maxWidth: 120, textAlign: 'center' }}
       >
         <span
           className={cn('season-node-label', displayStatus === 'completed' && 'season-node-label--done', seasonNode && 'season-node-label--now')}
@@ -261,7 +263,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
           {/* В теме под фонарём/конфетой — «Урок N · сейчас», как в макетах. */}
           {seasonNode ? `${tr('Урок')} ${lesson.number + 1} · ${tr('сейчас')}` : `#${lesson.number + 1}`}
         </span>
-        {scheduleState?.isCurrent && <ScheduleStatusBadge state={scheduleState} />}
+        {showScheduleStatus && scheduleState && <ScheduleStatusBadge state={scheduleState} />}
         {caption && (
           <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, whiteSpace: 'nowrap', marginTop: 2 }}>
             {caption}

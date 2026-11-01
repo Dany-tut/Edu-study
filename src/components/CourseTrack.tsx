@@ -403,7 +403,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                             )}
                           </span>
                         </div>
-                        {selectedScheduleState?.isCurrent && (
+                        {selectedScheduleState && selectedLessonStatus !== 'locked' && (selectedScheduleState.isCurrent || selectedScheduleState.hasEnded || selectedScheduleState.phase === 'cancelled') && (
                           <ScheduleStatusBadge state={selectedScheduleState} />
                         )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

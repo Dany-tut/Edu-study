@@ -382,7 +382,7 @@ function LessonCard({ lesson, status, scheduleState, index, focused, onOpen, pal
           </span>
         </div>
         <LessonWatchStatus lesson={lesson} />
-        {scheduleState?.isCurrent && <ScheduleStatusBadge state={scheduleState} />}
+        {scheduleState && !isLocked && (scheduleState.isCurrent || scheduleState.hasEnded || scheduleState.phase === 'cancelled') && <ScheduleStatusBadge state={scheduleState} />}
         {status === 'test_low' && <span style={{ fontSize: 11, color: v.tint }}>{t('Ниже проходного балла')} · {t('порог')} {lesson.result?.passingScore}%</span>}
       </div>
       {/* trailing */}

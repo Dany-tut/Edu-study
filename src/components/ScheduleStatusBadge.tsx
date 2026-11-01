@@ -1,7 +1,7 @@
 import type { ScheduleState } from '../lib/scheduleState'
 import { useT } from '../lib/i18n'
 
-export default function ScheduleStatusBadge({ state, label = state.label }: {
+export default function ScheduleStatusBadge({ state, label = state.recordingAvailable ? 'Запись доступна' : state.label }: {
   state: ScheduleState
   label?: string | null
 }) {
