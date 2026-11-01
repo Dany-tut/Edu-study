@@ -18,7 +18,7 @@ import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { useJournalPending } from '../../lib/useGroups'
 import ViewAsBanner from './ViewAsBanner'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
-import { usePersistentState, clearDrafts } from '../../lib/useDraft'
+import { usePersistentState, clearDrafts, readDraft } from '../../lib/useDraft'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import FeedbackModal from '../FeedbackModal'
@@ -163,7 +163,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
   useEffect(() => {
     getAuthUser().then(u => {
       if (!u) return
-      const name = u.user_metadata?.name ?? u.email?.split('@')[0] ?? ''
+      const name = readDraft<string>('profile.name') ?? u.user_metadata?.name ?? u.email?.split('@')[0] ?? ''
       const role: 'admin' | 'teacher' = u.app_metadata?.role === 'admin' ? 'admin' : 'teacher'
       setTeacherName(name)
       setTeacherEmail(u.email ?? '')
@@ -180,7 +180,12 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       setAvatarId(m.avatarId ?? 'flower')
       setAvatarPath(m.avatarPath ?? null)
     })
-    return () => sub.subscription.unsubscribe()
+    const syncDraftName = (event: Event) => setTeacherName((event as CustomEvent<string>).detail)
+    window.addEventListener('iskra:teacher-name-draft', syncDraftName)
+    return () => {
+      sub.subscription.unsubscribe()
+      window.removeEventListener('iskra:teacher-name-draft', syncDraftName)
+    }
   }, [])
 
   const [myPlan, setMyPlan] = useState<MyPlan | null>(null)

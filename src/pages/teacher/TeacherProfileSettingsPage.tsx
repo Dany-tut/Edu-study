@@ -306,7 +306,11 @@ export default function TeacherProfileSettingsPage() {
         <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <input
             value={name}
-            onChange={e => setName(e.target.value)}
+            onChange={e => {
+              const value = e.target.value
+              setName(value)
+              window.dispatchEvent(new CustomEvent('iskra:teacher-name-draft', { detail: value }))
+            }}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
             placeholder={t('Имя')}
             style={inputStyle}
