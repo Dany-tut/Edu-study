@@ -166,7 +166,7 @@ export default function WidgetTodayTasks() {
     <div style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
       {(editingTask||creating) && (
         <CreateTaskModal
-          initialTask={creating?null:editingTask}
+          initialTask={creating ? undefined : editingTask ?? undefined}
           onClose={() => { setCreating(false);setEditingTask(null); clearDrafts('createTask.') }}
           onSave={async saved => {
             const payload = {
