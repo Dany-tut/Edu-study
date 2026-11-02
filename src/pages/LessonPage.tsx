@@ -1,5 +1,6 @@
+import { useNow } from '../lib/useNow'
 import { textFadeStyle } from '../lib/textFades'
-import { homeworkNeedsVideo } from '../lib/homeworkAccess'
+import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
 import { publishVideoWatch } from '../store/studentDataStore'
 import { SubjectMark } from '../components/icons/SubjectMark'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -499,7 +500,7 @@ function readBasicProgress(lessonId: string, homework: LessonHomework): { unlock
   }
 }
 
-function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string; videoRequired?: boolean }) {
+function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false, timeLocked = false }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string; videoRequired?: boolean; timeLocked?: boolean }) {
   const t = useT()
   const [{ unlocked, score }, setProgress] = useState(() => readBasicProgress(lessonId, homework))
   const assessment = useDashboard(s => s.lessonAssessments[lessonId])
@@ -536,7 +537,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false
   const hardIconSize = (!hardUnlocked && !hardStatus) ? 18 : 20
 
   const rows = [
-    { id: 'base' as const, icon: videoRequired ? Lock : GraduationCap, iconSize: 20, title: videoRequired ? t('Сначала просмотрите видео') : title ?? t('Домашка') },
+    { id: 'base' as const, icon: timeLocked || videoRequired ? Lock : GraduationCap, iconSize: 20, title: timeLocked ? t('ДЗ откроется через 90 минут после начала урока') : videoRequired ? t('Сначала просмотрите видео') : title ?? t('Домашка') },
     ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: t('Сложный уровень') }] : []),
   ]
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
@@ -566,7 +567,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false
     >
       {rows.map(({ id, icon: Icon, iconSize, title }) => {
         const isActive = active === id
-        const locked = videoRequired || (id === 'hard' && !hardUnlocked && !hardStatus)
+        const locked = timeLocked || videoRequired || (id === 'hard' && !hardUnlocked && !hardStatus)
         const solidWhite = isActive && !locked
         const faintWash = (locked && hovered === id) || (id === 'base' && (unlocked || basicSubmitted) && hovered === 'base')
         const hasExtra = (id === 'base' && basicSubmitted) || (id === 'hard' && !!hardStatusLabel)
@@ -688,6 +689,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false
 }
 
 export default function LessonPage() {
+  const accessNow = useNow()
   const t = useT()
   // tContent, а не tc: ниже `tc` — переменная таймкода в map.
   const { tc: tContent } = useTc()
@@ -1320,13 +1322,13 @@ export default function LessonPage() {
         <MaterialsTile materials={detail.files.materials ?? []} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
-            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} videoRequired={homeworkNeedsVideo({ ...lesson, watch })} />
+            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} timeLocked={homeworkTimeLocked(lesson, accessNow)} videoRequired={homeworkNeedsVideo({ ...lesson, watch })} />
           </div>
         )}
         {/* Доп. домашки — такие же карточки, у каждой своя сдача (lib/extraHomework). */}
         {getExtraHomeworks(lesson).map(x => (
           <div key={x.id} style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
-            <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} videoRequired={homeworkNeedsVideo({ ...lesson, watch }, hwRef(lesson.id, x.id))} title={extraHwLabel(x.index, x.total, t)} />
+            <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} timeLocked={homeworkTimeLocked(lesson, accessNow)} videoRequired={homeworkNeedsVideo({ ...lesson, watch }, hwRef(lesson.id, x.id))} title={extraHwLabel(x.index, x.total, t)} />
           </div>
         ))}
       </div>
