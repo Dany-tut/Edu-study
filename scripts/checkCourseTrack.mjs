@@ -476,14 +476,14 @@ query = request => request.table === 'courses' ? { data: [courseRow], error: nul
     : { data: [], error: null }
 assert.equal((await m.fetchStudentTrack(session)).progress, null)
 m.useStudentData.setState({ progress: { lesson: progress('completed', 95) } })
-await m.useStudentData.getState().load()
+await m.useStudentData.getState().load({ afterTestlySync: true })
 assert.equal(localStorage.getItem(draftKey), draft)
 assert.equal(m.useStudentData.getState().progress.lesson.status, 'completed')
 
 // A successful empty progress response still reconciles an actual reset.
 query = () => ({ data: [], error: null })
 rpc = () => ({ data: payload([]), error: null })
-await m.useStudentData.getState().load()
+await m.useStudentData.getState().load({ afterTestlySync: true })
 assert.equal(localStorage.getItem(draftKey), null)
 assert.deepEqual(m.useStudentData.getState().progress, {})
 
@@ -498,9 +498,9 @@ rpc = name => {
   return fresh.promise
 }
 localStorage.setItem(draftKey, draft)
-const oldLoad = m.useStudentData.getState().load()
+const oldLoad = m.useStudentData.getState().load({ afterTestlySync: true })
 await started.promise
-const freshLoad = m.useStudentData.getState().load()
+const freshLoad = m.useStudentData.getState().load({ afterTestlySync: true })
 fresh.resolve({ data: payload([tuple('completed', 95)]), error: null })
 await freshLoad
 old.resolve({ data: payload([]), error: null })
@@ -510,3 +510,30 @@ assert.equal(m.useDashboard.getState().lessonAssessments.lesson.score, 95)
 assert.equal(localStorage.getItem(draftKey), draft)
 assert.deepEqual(m.useStudentData.getState().scopeStudentIds, [student])
 console.log('PASS: track status, module access, recording timing, server grades, test answers/write errors, failed sync/reset, out-of-order loads')
+
+// A slow external service cannot hold the initial cabinet, and the confirmed
+// second read must still apply its result before reconciling local answers.
+resetStore()
+localStorage.setItem('student_session', JSON.stringify(session))
+localStorage.setItem(draftKey,draft)
+const external = deferred()
+globalThis.__trackTestClient.functions.invoke = () => external.promise
+rpc = name => ({data:name === 'student_track' ? payload([]) : [],error:null})
+query = () => ({data:[],error:null})
+await m.useStudentData.getState().load()
+assert.equal(m.useStudentData.getState().loaded,true,'Cabinet must open before external sync')
+assert.equal(localStorage.getItem(draftKey),draft,'Unreconciled external answers must be retained')
+rpc = name => ({data:name === 'student_track' ? payload([tuple('completed',95)]) : [],error:null})
+external.resolve({data:{ok:true},error:null})
+for(let i=0;i<50 && m.useStudentData.getState().progress.lesson?.score !== 95;i++) await new Promise(r=>setTimeout(r,0))
+assert.equal(m.useStudentData.getState().progress.lesson.score,95,'External sync must trigger a fresh database read')
+assert.equal(localStorage.getItem(draftKey),draft)
+const switched = deferred()
+globalThis.__trackTestClient.functions.invoke = () => switched.promise
+await m.useStudentData.getState().load()
+localStorage.setItem('student_session',JSON.stringify({...session,id:owner}))
+const beforeSwitch = m.useStudentData.getState().progress
+switched.resolve({data:{ok:true},error:null})
+await new Promise(r=>setTimeout(r,0))
+assert.equal(m.useStudentData.getState().progress,beforeSwitch,'Old external response must not refresh another account')
+console.log('PASS: nonblocking external sync, preserved drafts, confirmed grade refresh and account isolation')
