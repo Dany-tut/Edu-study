@@ -92,7 +92,7 @@ export default function WidgetFinanceOverdue() {
       overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{
+      <div className="ww-header" style={{
         padding: '14px 16px 10px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '1px solid var(--color-border)',
@@ -127,7 +127,7 @@ export default function WidgetFinanceOverdue() {
       </div>
 
       {/* List */}
-      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
+      <div className="no-scrollbar ww-list" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
         {sorted.map(s => {
           const group = groups.find(g => g.id === s.groupId)
           const meta = getStatusMeta(s.paymentDue)
@@ -137,6 +137,7 @@ export default function WidgetFinanceOverdue() {
           return (
             <div
               key={s.id}
+              className="ww-row ww-debt-row"
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '10px 16px',
@@ -147,7 +148,7 @@ export default function WidgetFinanceOverdue() {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               {/* Avatar */}
-              <div style={{
+              <div className="ww-avatar" style={{
                 width: 34, height: 34, borderRadius: 11, flexShrink: 0,
                 background: meta.bg,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -157,17 +158,17 @@ export default function WidgetFinanceOverdue() {
               </div>
 
               {/* Name + group */}
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {tn(s.name).split(' ').slice(0, 2).join(' ')}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                   {group?.name ?? ''}
                 </div>
               </div>
 
               {/* Status chip */}
-              <div style={{
+              <div className="ww-status" style={{
                 display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
                 fontSize: 11, fontWeight: 600, color: meta.color,
                 background: meta.bg, borderRadius: 8, padding: '4px 8px',
@@ -178,13 +179,16 @@ export default function WidgetFinanceOverdue() {
 
               {/* Amount */}
               {s.paymentAmount ? (
-                <div style={{ fontSize: 12, fontWeight: 700, color: meta.color, flexShrink: 0, minWidth: 60, textAlign: 'right' }}>
+                <div className="ww-amount" style={{ fontSize: 12, fontWeight: 700, color: meta.color, flexShrink: 0, minWidth: 60, textAlign: 'right' }}>
                   {s.paymentAmount.toLocaleString('ru-RU')} ₽
                 </div>
               ) : null}
 
               {/* Pay button */}
               <button
+                className="ww-pay"
+                aria-label={isPaid ? t('Готово') : t('Оплачено')}
+                title={isPaid ? t('Готово') : t('Оплачено')}
                 onClick={() => handlePay(s.id, s.paymentAmount)}
                 disabled={isPaid || paying === s.id}
                 style={{
@@ -197,7 +201,7 @@ export default function WidgetFinanceOverdue() {
                   display: 'flex', alignItems: 'center', gap: 4,
                 } as React.CSSProperties}
               >
-                {isPaid ? <><Check size={12} /> {t('Готово')}</> : t('Оплачено')}
+                <Check size={14} className="ww-pay-icon" aria-hidden="true" /><span className="ww-pay-label">{isPaid ? t('Готово') : t('Оплачено')}</span>
               </button>
             </div>
           )

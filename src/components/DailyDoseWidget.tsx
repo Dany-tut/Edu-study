@@ -108,7 +108,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       display: 'flex', flexDirection: 'column', gap: 10,
       minHeight: 0, overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
+      <div className="ww-reading-header" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
         <Sunrise size={16} style={{ color: palette.accent }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Доза дня')}</span>
         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
@@ -125,6 +125,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       </div>
 
       <a
+        className="ww-reading-body"
         href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
         style={{
           display: 'block', padding: '12px 12px', borderRadius: 14,
@@ -149,7 +150,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       {/* Слов списком здесь нет: виджет живёт в ряду фиксированной высоты (180px
           на десктопе), и чипсы переносились на вторую строку — карточка вылезала
           за свою рамку на соседний ряд. Обещание «ровно три слова» держит кнопка. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
+      <div className="ww-reading-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
         <a
           href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
           style={{
