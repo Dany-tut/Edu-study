@@ -1,3 +1,5 @@
+import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropdownPosition'
+import FadeText from '../FadeText'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -53,10 +55,10 @@ export default function SubjectPicker({
     return (
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: 6, padding: size === 'sm' ? '6px 12px' : '8px 12px',
-        borderRadius: 10, background: accentBg, color: activeColor, fontSize: fs, fontWeight: 700, alignSelf: 'flex-start',
+        borderRadius: 10, background: accentBg, color: activeColor, fontSize: fs, fontWeight: 700, alignSelf: 'flex-start', minWidth: 0, maxWidth: '100%',
       }}>
-        {only.icon && <span aria-hidden><SubjectMark subject={only.value} size={16} /></span>}
-        {only.label}
+        {only.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={only.value} size={16} /></span>}
+        <FadeText style={{ flex: 1 }}>{only.label}</FadeText>
       </div>
     )
   }
@@ -74,7 +76,7 @@ export default function SubjectPicker({
                 fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 gap: 6, minWidth: 0, background: on ? accentBg : idleBg, color: on ? activeColor : idleColor,
               }}>
-              {o.icon && <span aria-hidden><SubjectMark subject={o.value} size={16} /></span>}
+              {o.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={o.value} size={16} /></span>}
               <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{o.label}</span>
             </button>
           )
@@ -97,7 +99,7 @@ function SubjectDropdown({
   const [open, setOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
-  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [rect, setRect] = useState<ReturnType<typeof viewportDropdownPosition> | null>(null)
 
   const current = options.find(o => o.value === value) ?? options[0]
   // Кегль тот же, что у соседних MultiSelectField, иначе строки в колонке
@@ -107,7 +109,7 @@ function SubjectDropdown({
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return
     const r = btnRef.current.getBoundingClientRect()
-    setRect({ top: r.bottom + 5, left: r.left, width: r.width })
+    setRect(viewportDropdownPosition(r, 284))
   }, [open])
 
   useEffect(() => {
@@ -117,9 +119,18 @@ function SubjectDropdown({
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    const onViewport = (e: Event) => {
+      if (e.target instanceof Node && popRef.current?.contains(e.target)) return
+      const rect = btnRef.current?.getBoundingClientRect()
+      if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) { setOpen(false); return }
+      setRect(viewportDropdownPosition(rect, 284))
+    }
+    const unwatchViewport = watchDropdownViewport(onViewport)
+    window.addEventListener('resize', onViewport)
+    window.addEventListener('scroll', onViewport, true)
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
-    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey) }
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); window.removeEventListener('resize', onViewport); window.removeEventListener('scroll', onViewport, true); unwatchViewport() }
   }, [open])
 
   return (
@@ -130,21 +141,21 @@ function SubjectDropdown({
           Рамка прозрачная, а не отсутствует: иначе на открытии коробка прыгает. */}
       <button ref={btnRef} onClick={() => setOpen(o => !o)} aria-haspopup="listbox" aria-expanded={open} aria-label={ariaLabel}
         style={{
-          width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8,
+          width: '100%', minWidth: 0, boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8,
           padding: size === 'sm' ? '6px 10px' : '8px 12px', minHeight: size === 'sm' ? 32 : 38,
           borderRadius: 11, ...dropdownRing(open, accent), cursor: 'pointer',
           background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: fs, fontWeight: 700, fontFamily: 'inherit',
         }}>
-        {current.icon && <span aria-hidden><SubjectMark subject={current.value} size={16} /></span>}
+        {current.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={current.value} size={16} /></span>}
         <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{current.label}</span>
         <ChevronDown size={14} style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
       </button>
       {open && rect && createPortal(
         <div ref={popRef} role="listbox" style={{
-          position: 'fixed', top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
+          position: 'fixed', ...(rect.up ? { bottom: rect.bottom } : { top: rect.top }), left: rect.left, width: rect.width, maxHeight: rect.maxHeight, zIndex: 3000,
           ...dropdownSurface,
         }}>
-          <ScrollFade maxHeight={272} bg={DROPDOWN_GLASS} overlayScrollbar
+          <ScrollFade maxHeight={Math.min(272, Math.max(0, rect.maxHeight - 14))} bg={DROPDOWN_GLASS} overlayScrollbar
             scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {options.map(o => {
             const on = o.value === value
@@ -156,8 +167,8 @@ function SubjectDropdown({
                   ...dropdownRow(on, { small: size === 'sm', accent: activeColor, accentBg }),
                   fontSize: fs,
                 }}>
-                {o.icon && <span aria-hidden><SubjectMark subject={o.value} size={16} /></span>}
-                <span style={{ flex: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{o.label}</span>
+                {o.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={o.value} size={16} /></span>}
+                <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{o.label}</FadeText>
                 {on && <Check size={14} strokeWidth={2.5} style={{ color: activeColor, flexShrink: 0 }} />}
               </button>
             )

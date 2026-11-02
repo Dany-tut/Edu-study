@@ -281,8 +281,8 @@ function IndividualCard({
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
             {group.name}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
-            <SubjectMark subject={group.subject} size={14} />{ICON_GAP}{[group.subject, ...(group.tracks ?? []).map(t => t.subject).filter(Boolean)].join(' · ')}
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            <SubjectMark subject={group.subject} size={14} /><span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{[group.subject, ...(group.tracks ?? []).map(t => t.subject).filter(Boolean)].join(' · ')}</span>
           </div>
         </div>
       </div>

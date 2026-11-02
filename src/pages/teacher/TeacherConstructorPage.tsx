@@ -1245,11 +1245,11 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
             <ScrollFade maxHeight={186} bg="rgba(var(--glass-rgb), 0.97)" fadeHeight={18} overlayScrollbar
               scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {access.map(s => (
-                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
+                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                   {enrolledIds.has(s.id)
                     ? <CheckCircle size={12} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                     : <Circle size={12} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
-                  <span style={{ overflow: 'hidden', ...textFadeStyle }}>{tn(s.name)}</span>
+                  <span style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tn(s.name)}</span>
                 </div>
               ))}
             </ScrollFade>

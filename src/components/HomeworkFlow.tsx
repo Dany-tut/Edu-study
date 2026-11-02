@@ -1,3 +1,4 @@
+import { HomeworkFacts } from './HomeworkFacts'
 import { textFadeStyle } from '../lib/textFades'
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
@@ -757,7 +758,6 @@ type LegacyHardRow = {
 
 const SPRING = { type: 'spring', stiffness: 240, damping: 26 } as const
 
-const formatEstimatedTime = (minutes: number) => `~${minutes} ${tStatic('мин')}`
 
 
 // ─── Части домашки ───────────────────────────────────────────────────────────
@@ -2008,9 +2008,6 @@ export default function HomeworkFlow({
 
   if (!basicLevel || !hardLevel) return null
 
-  const selectedEstimatedTime = formatEstimatedTime(
-    selectedLevel === 'basic' ? basicLevel.estimatedMinutes : hardLevel.estimatedMinutes
-  )
 
   /**
    * Снимок работы для преподавателя: что спрашивали, что ответил ученик, как
@@ -3312,16 +3309,7 @@ export default function HomeworkFlow({
               gap: 12,
             }}
           >
-            {basicLevel.dueDate?.trim() && <InfoRow label={t('Дедлайн')} value={basicLevel.dueDate} />}
-            <InfoRow label={t('Время')} value={selectedEstimatedTime} />
-            <InfoRow label={t('Формат')} value={selectedLevel === 'basic' ? t('Тест с автопроверкой') : t('Проверка преподавателем')} />
-            <InfoRow
-              label={t('% справившихся')}
-              value={`${selectedLevel === 'basic' ? basicLevel.peerCompletionRate : hardLevel.peerCompletionRate}%`}
-            />
-            {selectedLevel === 'basic' && basicLevel.peerAverageScore != null && (
-              <InfoRow label={t('Средний балл')} value={`${basicLevel.peerAverageScore}`} />
-            )}
+            <HomeworkFacts level={selectedLevel === 'basic' ? basicLevel : hardLevel} t={t} />
           </div>
 
           {selectedLevel === 'hard' && hardLevel.teacherTask?.acceptedFormats && (
@@ -4706,14 +4694,6 @@ export default function HomeworkFlow({
   )
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between" style={{ gap: 12 }}>
-      <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', textAlign: 'right' }}>{value}</span>
-    </div>
-  )
-}
 
 /**
  * Плитка метрики итогов. Все три одинаковой плотности: залитая «Верно» на

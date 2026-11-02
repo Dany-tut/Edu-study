@@ -405,7 +405,7 @@ export function BankQuestionCard({
       {/* Footer: source (full mode only) */}
       {!compact && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2 }}>
-          <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>
+          <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.section}</span><LoopUiChevronRight size={11} style={{ flexShrink: 0 }} /><span style={{ flex: 1, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.topic} · {task.source}</span></span>
         </div>
       )}
 

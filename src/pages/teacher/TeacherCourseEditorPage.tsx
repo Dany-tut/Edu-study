@@ -3992,9 +3992,8 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                     style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}
                   >
                     <Plus size={12} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-green-text)' }} />
-                    <span style={{ overflow: 'hidden',  ...textFadeLines(2) }}>
-                      {bt.questionTable ? <LoopUiTable size={13} style={{display:'inline-block',verticalAlign:'middle',marginRight:4}} /> : null}{bt.question || t('Без текста')}
-                    </span>
+                    {bt.questionTable && <LoopUiTable size={13} style={{ flexShrink: 0, marginTop: 2 }} />}
+                    <span style={{ minWidth: 0, overflow: 'hidden', ...textFadeLines(2) }}>{bt.question || t('Без текста')}</span>
                   </button>
                 ))}
                 {filtered.length === 0 && (

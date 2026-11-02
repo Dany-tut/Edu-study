@@ -5540,6 +5540,7 @@ export const EN: Record<string, string> = {
 
   'Не задана': 'Not set',
   'Дождитесь загрузки урока и попробуйте ещё раз.': 'Wait for the lesson to load and try again.',
+  'Очистить выбор': 'Clear selection',
 
   // Student work journal
   "Мой журнал": "My journal",
