@@ -719,3 +719,17 @@
 .jo-tile--3d .jo-detail { width:calc(100% + var(--report-object-size) - 16px); padding-top:8px; }
 .jo-bento > .jo-tile--3d:not(.jo-wide) { min-height:240px; }
 .jo-class-grid > .jo-tile--3d { min-height:220px; }
+
+/* Optical anchors measured on the opaque silhouette, excluding transparent padding. */
+.jo-report-object[data-object="goal"] { --art-top-inset:0.035417; --art-right-inset:0.081250; }
+.jo-report-object[data-object="lag"] { --art-top-inset:0.058333; --art-right-inset:0.266667; }
+.jo-report-object[data-object="mastery"] { --art-top-inset:0.216667; --art-right-inset:0.135417; }
+.jo-report-object[data-object="ontime"] { --art-top-inset:0.058333; --art-right-inset:0.058333; }
+.jo-report-object[data-object="overdue"] { --art-top-inset:0.120833; --art-right-inset:0.114583; }
+.jo-report-object[data-object="results"] { --art-top-inset:0.092708; --art-right-inset:0.095833; }
+.jo-report-object[data-object="rhythm"] { --art-top-inset:0.233333; --art-right-inset:0.033333; }
+.jo-report-object[data-object="topic"] { --art-top-inset:0.197917; --art-right-inset:0.187500; }
+.jo-report-object[data-object="trend"] { --art-top-inset:0.141667; --art-right-inset:0.022917; }
+.jo-tile--3d .jo-report-object { top:calc(-12px - var(--report-object-size)*var(--art-top-inset,0)); right:calc(12px - var(--report-object-size)*var(--art-right-inset,0)); }
+/* Supersede the older per-tone pixel nudges at the same selector specificity. */
+.jo-tile--3d.jo-topic-widget .jo-report-object,.jo-tile--3d.jo-mastery .jo-report-object,.jo-tile--3d.jo-rhythm .jo-report-object { top:calc(-12px - var(--report-object-size)*var(--art-top-inset,0)); }
