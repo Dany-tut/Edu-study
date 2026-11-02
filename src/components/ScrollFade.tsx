@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
  * Wraps a scrollable list with top/bottom gradient fades that appear only
  * when there is content hidden above/below (fade fades in on scroll).
  *
- * `bg` should match the container's background so the gradient blends in.
+ * `bg` is only used by the legacy explicit overlay mode. Alpha masks are the default.
  * For glass dropdowns pass `rgba(var(--glass-rgb), 0.96)`.
  * Defaults to `var(--color-bg)` (page background).
  *
@@ -18,7 +18,7 @@ export default function ScrollFade({
   maxHeight,
   bg = 'var(--color-bg)',
   fadeHeight = 24,
-  fadeMode = 'overlay',
+  fadeMode = 'mask',
   scrollClassName,
   style,
   scrollStyle,

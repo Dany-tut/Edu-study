@@ -1,0 +1,210 @@
+
+> student-dashboard@1.0.0 build
+> node scripts/guardProductionRelease.mjs --before-build && vite build && node scripts/guardProductionRelease.mjs --after-build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 2797 modules transformed.
+node_modules/lottie-web/build/player/lottie.js (14422:32): Use of eval in "node_modules/lottie-web/build/player/lottie.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /Users/dany/Cursor/student-dashboard/src/components/StickersWidget.tsx is dynamically imported by /Users/dany/Cursor/student-dashboard/src/components/WidgetCarousel.tsx but also statically imported by /Users/dany/Cursor/student-dashboard/src/components/MobileStickersRow.tsx, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /Users/dany/Cursor/student-dashboard/src/lib/lexicon.ts is dynamically imported by /Users/dany/Cursor/student-dashboard/src/main.tsx but also statically imported by /Users/dany/Cursor/student-dashboard/src/components/GlossedText.tsx, /Users/dany/Cursor/student-dashboard/src/components/LanguageTrainer.tsx, /Users/dany/Cursor/student-dashboard/src/components/trainer/FeedPost.tsx, /Users/dany/Cursor/student-dashboard/src/components/trainer/MyWords.tsx, /Users/dany/Cursor/student-dashboard/src/components/trainer/ScoreReader.tsx, /Users/dany/Cursor/student-dashboard/src/lib/pairing.ts, /Users/dany/Cursor/student-dashboard/src/lib/useGloss.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/registerSW.js                                   0.13 kB
+dist/index.html                                      6.26 kB │ gzip:   3.44 kB
+dist/assets/StudentDiaryPage-Ch82Xibr.css           19.32 kB │ gzip:   4.12 kB
+dist/assets/index-DmuEZs-K.css                     113.14 kB │ gzip:  22.18 kB
+dist/assets/JournalStand-Ds2juECe.css              120.71 kB │ gzip:  20.83 kB
+dist/assets/adaptEn-ByJlG20F.js                      0.03 kB │ gzip:   0.05 kB
+dist/assets/adaptJa-eeBSoN6c.js                      0.03 kB │ gzip:   0.05 kB
+dist/assets/adaptKo-CVaoQCul.js                      0.03 kB │ gzip:   0.05 kB
+dist/assets/PartyPopperLottie-Dnal64zL.js            0.13 kB │ gzip:   0.14 kB
+dist/assets/WidgetStatEarnings-CUSSCX0U.js           0.35 kB │ gzip:   0.30 kB
+dist/assets/web-CE2TnENE.js                          0.42 kB │ gzip:   0.28 kB
+dist/assets/widgetSizing-hAgF8DeE.js                 0.45 kB │ gzip:   0.23 kB
+dist/assets/TeacherSubjectsField-6umbpzTp.js         0.79 kB │ gzip:   0.55 kB
+dist/assets/unitFigures-CCYcSm4D.js                  0.81 kB │ gzip:   0.61 kB
+dist/assets/wordPackBooks-Db5abEWE.js                0.83 kB │ gzip:   0.44 kB
+dist/assets/web-v5ObVK5l.js                          0.88 kB │ gzip:   0.42 kB
+dist/assets/index-BIJxdxMt.js                        0.93 kB │ gzip:   0.60 kB
+dist/assets/WidgetFinanceExpected-CGPVfH_D.js        1.00 kB │ gzip:   0.65 kB
+dist/assets/WidgetStudentGroups-BRiRaJnN.js          1.00 kB │ gzip:   0.62 kB
+dist/assets/WidgetStatHW-Ub-KHNeX.js                 1.00 kB │ gzip:   0.63 kB
+dist/assets/WidgetFinanceForecast-CNFdJbnD.js        1.02 kB │ gzip:   0.65 kB
+dist/assets/WidgetFinanceReceived-BnSNGekS.js        1.02 kB │ gzip:   0.65 kB
+dist/assets/WidgetStatStudents-g63g01ZV.js           1.04 kB │ gzip:   0.65 kB
+dist/assets/WidgetStudentCount-MOrv7rtv.js           1.04 kB │ gzip:   0.65 kB
+dist/assets/WidgetStudentActive-BDzObDap.js          1.05 kB │ gzip:   0.66 kB
+dist/assets/WidgetStudentDebtors-Ddrfp0FK.js         1.06 kB │ gzip:   0.68 kB
+dist/assets/WidgetFinanceDebt-CUhQdd5g.js            1.09 kB │ gzip:   0.67 kB
+dist/assets/WidgetStatLessons-B4_y-2Qy.js            1.12 kB │ gzip:   0.72 kB
+dist/assets/languageGuides-3p5-zHPM.js               1.24 kB │ gzip:   0.58 kB
+dist/assets/WidgetTodaySchedule-DVRLqLaX.js          1.38 kB │ gzip:   0.77 kB
+dist/assets/svgSheet-CuwCyTNE.js                     1.61 kB │ gzip:   0.94 kB
+dist/assets/survivalFigures-CiG9so5A.js              1.63 kB │ gzip:   1.03 kB
+dist/assets/WidgetFinanceKpi-BDZu8IRj.js             1.97 kB │ gzip:   1.02 kB
+dist/assets/WidgetStudentStats-DRNNzssl.js           2.02 kB │ gzip:   1.09 kB
+dist/assets/WidgetTodayStats-DOJw9Wb0.js             2.29 kB │ gzip:   1.25 kB
+dist/assets/enSwear-DEcXeBMy.js                      2.54 kB │ gzip:   1.79 kB
+dist/assets/QuestionOfDayWidget-BB3v6nt1.js          2.69 kB │ gzip:   1.22 kB
+dist/assets/_MiniStatCard-C8MpLQIL.js                2.79 kB │ gzip:   1.28 kB
+dist/assets/SpeechHeard-CYwaZLWp.js                  2.90 kB │ gzip:   1.41 kB
+dist/assets/ScienceFactsWidget-BsX2Fykq.js           3.26 kB │ gzip:   1.41 kB
+dist/assets/languageVideos-D1PeZOuo.js               3.27 kB │ gzip:   1.47 kB
+dist/assets/FeedWidget-qRlGP0D2.js                   3.31 kB │ gzip:   1.45 kB
+dist/assets/GuestTrainerPage-BLO6IXJc.js             3.39 kB │ gzip:   1.76 kB
+dist/assets/MemesWidget-B55nTN2Y.js                  3.41 kB │ gzip:   1.41 kB
+dist/assets/StatsWidget-rzR3UdHC.js                  3.83 kB │ gzip:   1.64 kB
+dist/assets/DailyDoseWidget-D_vdlHTW.js              3.84 kB │ gzip:   1.75 kB
+dist/assets/WidgetGroupsList-DLI-mmPx.js             3.87 kB │ gzip:   1.51 kB
+dist/assets/ReactionsWidget-C59SFmj5.js              3.92 kB │ gzip:   1.66 kB
+dist/assets/ReviewSession-EYrmMXZg.js                3.93 kB │ gzip:   1.66 kB
+dist/assets/PomodoroWidget-DZeRb2l5.js               3.97 kB │ gzip:   1.79 kB
+dist/assets/WidgetFinanceActivity-Cg040dv_.js        4.06 kB │ gzip:   1.77 kB
+dist/assets/koreanEndings-CbBUb7hb.js                4.67 kB │ gzip:   2.20 kB
+dist/assets/WidgetAttentionStudents-BLrGyB0u.js      4.86 kB │ gzip:   1.95 kB
+dist/assets/spokenEn-CM8-T-pO.js                     4.88 kB │ gzip:   2.99 kB
+dist/assets/OAuthConsentPage-CPVFTU9w.js             4.94 kB │ gzip:   2.18 kB
+dist/assets/JoinPage-D4agFn81.js                     5.19 kB │ gzip:   2.28 kB
+dist/assets/transJa-CYmNinkY.js                      5.45 kB │ gzip:   3.28 kB
+dist/assets/VoiceRecorder-DHCF0mIw.js                5.49 kB │ gzip:   2.72 kB
+dist/assets/devStudentDemo-B4l_oaRb.js               5.54 kB │ gzip:   2.54 kB
+dist/assets/TrainerProgressWidget-BL7JkNlx.js        5.87 kB │ gzip:   1.90 kB
+dist/assets/WidgetTodayTasks-BVYhm4Xo.js             5.94 kB │ gzip:   2.46 kB
+dist/assets/koreanNumbers-7BjJQfyP.js                6.03 kB │ gzip:   3.26 kB
+dist/assets/WidgetFinanceOverdue-b9r5LmeM.js         6.27 kB │ gzip:   2.41 kB
+dist/assets/JoinTeacherPage-DI2r3RK3.js              6.46 kB │ gzip:   2.92 kB
+dist/assets/languageStoryJa-Dp_BfJ2Z.js              6.83 kB │ gzip:   4.37 kB
+dist/assets/languageStoryKo-D0-BpVt4.js              6.99 kB │ gzip:   4.42 kB
+dist/assets/MultiSelectField-B0aE7wWS.js             7.11 kB │ gzip:   2.75 kB
+dist/assets/TeacherLoginPage-JgIh7RdY.js             7.79 kB │ gzip:   3.19 kB
+dist/assets/screeningConfig-DU-bdQw1.js              8.00 kB │ gzip:   4.69 kB
+dist/assets/feedJa-CueIqcyY.js                       8.04 kB │ gzip:   5.91 kB
+dist/assets/wordPacksPt-YjukeXYh.js                  8.04 kB │ gzip:   4.32 kB
+dist/assets/languageStoryPt-BrI_r_h3.js              8.04 kB │ gzip:   4.84 kB
+dist/assets/languageStoryEn-C8M3bJkh.js              8.17 kB │ gzip:   5.00 kB
+dist/assets/WidgetTodayReminders-DcAwekrg.js         8.43 kB │ gzip:   3.19 kB
+dist/assets/enEveryday-BqfWct9M.js                   8.52 kB │ gzip:   4.04 kB
+dist/assets/languageStoryDe-C5-SeOAz.js              9.14 kB │ gzip:   5.49 kB
+dist/assets/languageStoryFigures-DhwH5cfj.js         9.30 kB │ gzip:   3.75 kB
+dist/assets/lessonFigures-CzVhM440.js                9.52 kB │ gzip:   3.38 kB
+dist/assets/languageStoryRu-S86TMQR0.js              9.72 kB │ gzip:   5.68 kB
+dist/assets/feedPt-wHbEtJsE.js                       9.76 kB │ gzip:   5.09 kB
+dist/assets/wordPacksJa-DP6WInuw.js                 10.16 kB │ gzip:   5.79 kB
+dist/assets/seedImages-CaRb9H5y.js                  10.53 kB │ gzip:   3.06 kB
+dist/assets/bioFigures-CrtPXLF9.js                  10.57 kB │ gzip:   3.94 kB
+dist/assets/languageVideosExtra-CRXytYaT.js         10.57 kB │ gzip:   3.67 kB
+dist/assets/wordPacksEn-BocpepLI.js                 10.99 kB │ gzip:   6.09 kB
+dist/assets/enPhrasal-BJLtVkW7.js                   11.44 kB │ gzip:   5.73 kB
+dist/assets/QuizWidget-CygVuzMK.js                  11.66 kB │ gzip:   4.39 kB
+dist/assets/transEn-lSCjbAeH.js                     11.98 kB │ gzip:   7.42 kB
+dist/assets/deMined-DgIb-1_B.js                     12.01 kB │ gzip:   5.58 kB
+dist/assets/taskMetaStore-CDoF4y-l.js               12.25 kB │ gzip:   5.13 kB
+dist/assets/ptMined-BYohzfA-.js                     13.56 kB │ gzip:   6.28 kB
+dist/assets/feedEn-DnPtb92i.js                      13.76 kB │ gzip:   6.48 kB
+dist/assets/transKo-BNflbtkm.js                     13.78 kB │ gzip:   7.23 kB
+dist/assets/artworks-uNgpRlb6.js                    13.95 kB │ gzip:   8.38 kB
+dist/assets/japaneseKana-CYjfgwZ0.js                14.53 kB │ gzip:   8.72 kB
+dist/assets/scenesPt-IQnFTSRf.js                    15.55 kB │ gzip:   8.61 kB
+dist/assets/StudentDiaryPage-BjB_H-B1.js            15.85 kB │ gzip:   6.17 kB
+dist/assets/enMined-HFNDGkz_.js                     16.63 kB │ gzip:   7.57 kB
+dist/assets/wordPacksKo-BAdMx_PV.js                 16.89 kB │ gzip:   9.07 kB
+dist/assets/autoJa-COXcoytT.js                      16.95 kB │ gzip:   5.18 kB
+dist/assets/koreanHangul-B4OVA_2-.js                18.34 kB │ gzip:   9.81 kB
+dist/assets/jaMined-r6WiYDMk.js                     19.72 kB │ gzip:  11.04 kB
+dist/assets/TaskTypePreviewCard-DmHG3DEH.js         20.71 kB │ gzip:   6.63 kB
+dist/assets/feedKo-DhQV23-U.js                      21.58 kB │ gzip:  12.82 kB
+dist/assets/pt-DRcdWIpb.js                          22.40 kB │ gzip:  11.69 kB
+dist/assets/wordRoots-DGNKA7Kn.js                   22.48 kB │ gzip:  10.89 kB
+dist/assets/homeworkVideos-CpaGWqnX.js              23.36 kB │ gzip:  11.56 kB
+dist/assets/russianFigures-DiTZR62z.js              23.41 kB │ gzip:  10.73 kB
+dist/assets/wordPacksRu-D1foOPBN.js                 24.35 kB │ gzip:  12.73 kB
+dist/assets/feed-outlets-BdM3KT-1.js                25.26 kB │ gzip:   8.74 kB
+dist/assets/scenesDe-Bq4dom4K.js                    26.49 kB │ gzip:  13.88 kB
+dist/assets/enGrammar-Ds3ijycy.js                   28.42 kB │ gzip:  10.90 kB
+dist/assets/autoKo-CXDU0rF3.js                      29.42 kB │ gzip:  13.36 kB
+dist/assets/transPt-D-sVH8eQ.js                     29.48 kB │ gzip:  15.56 kB
+dist/assets/wordPacksDe-B7LIumOt.js                 29.98 kB │ gzip:  14.37 kB
+dist/assets/sanitizeHtml-Bqer5y2l.js                30.63 kB │ gzip:  11.79 kB
+dist/assets/autoEn-D0MpOxD5.js                      30.75 kB │ gzip:  10.10 kB
+dist/assets/ja-CXL4pbxk.js                          31.75 kB │ gzip:  17.61 kB
+dist/assets/scenesRu-B2C0wxuc.js                    31.90 kB │ gzip:  16.05 kB
+dist/assets/survivalDialogs-DwA_gotz.js             33.51 kB │ gzip:  14.06 kB
+dist/assets/koMined-CTDkhYjM.js                     35.87 kB │ gzip:  18.99 kB
+dist/assets/enHome-kQG_zqBf.js                      38.28 kB │ gzip:  15.90 kB
+dist/assets/russianVoice-B1Fd6XPX.js                38.62 kB │ gzip:  17.49 kB
+dist/assets/languageDialogs-2NqZU1cm.js             39.56 kB │ gzip:  16.44 kB
+dist/assets/textbooks-CZGzh2OD.js                   39.81 kB │ gzip:  17.35 kB
+dist/assets/ko-mictvajR.js                          41.81 kB │ gzip:  24.07 kB
+dist/assets/kanaStrokes-B7i4EB9J.js                 44.33 kB │ gzip:  13.59 kB
+dist/assets/grammarDe-vr00pRuE.js                   45.11 kB │ gzip:  18.86 kB
+dist/assets/cardGroupSeeds-DPm_xFRU.js              46.38 kB │ gzip:  13.69 kB
+dist/assets/i18nContentEn-BTThXOXE.js               46.74 kB │ gzip:  22.89 kB
+dist/assets/russianLiterature-BuRP6KHh.js           49.19 kB │ gzip:  21.89 kB
+dist/assets/ProductMock-wE5kc4ru.js                 51.96 kB │ gzip:  14.45 kB
+dist/assets/HardConversation-BTqZU4V3.js            54.45 kB │ gzip:  15.75 kB
+dist/assets/grammarRu-ZrL8vkYD.js                   55.41 kB │ gzip:  22.64 kB
+dist/assets/spnEpisodes-BCUhfJPM.js                 57.53 kB │ gzip:  28.55 kB
+dist/assets/en1000-BZAUXIpU.js                      60.11 kB │ gzip:  20.86 kB
+dist/assets/en-Bg90OEIC.js                          60.22 kB │ gzip:  27.87 kB
+dist/assets/autoPt-Cei4uyoS.js                      61.85 kB │ gzip:  19.83 kB
+dist/assets/russianSpeech-CKzIY4UB.js               62.66 kB │ gzip:  28.33 kB
+dist/assets/TrainerPage-Bg0VgQv2.js                 63.46 kB │ gzip:  17.29 kB
+dist/assets/apChemistryLessons-CjemXQVd.js          64.21 kB │ gzip:  27.78 kB
+dist/assets/survivalPhrases-B68_75eB.js             65.01 kB │ gzip:  30.25 kB
+dist/assets/de-Dq2fFfRb.js                          66.43 kB │ gzip:  30.49 kB
+dist/assets/vocabImages-DjNTgV_9.js                 67.35 kB │ gzip:  16.36 kB
+dist/assets/DiagnosticTestPage-CKzfOyfn.js          76.13 kB │ gzip:  24.89 kB
+dist/assets/germanA1B1-CWgOsVK1.js                  77.05 kB │ gzip:  34.03 kB
+dist/assets/grammarJa-CO1zRlfH.js                   81.30 kB │ gzip:  38.61 kB
+dist/assets/japaneseJlptN3-BcVHL4IC.js              84.83 kB │ gzip:  42.17 kB
+dist/assets/portugueseIntermediate-nYqzj8ds.js      86.10 kB │ gzip:  38.17 kB
+dist/assets/bioCellLessons-TW8Qu7u8.js              96.26 kB │ gzip:  45.52 kB
+dist/assets/languageTaxonomy-CBT3yUSa.js            96.58 kB │ gzip:  42.62 kB
+dist/assets/portugueseCelpe--yUyKDTF.js            101.94 kB │ gzip:  46.68 kB
+dist/assets/japaneseJlpt-BPrsQxDP.js               104.52 kB │ gzip:  50.58 kB
+dist/assets/survivalDe-DHZ-r0kf.js                 104.81 kB │ gzip:  43.35 kB
+dist/assets/index-DBD8ye0D.js                      106.79 kB │ gzip:  45.53 kB
+dist/assets/listeningLibrary-Ddp-sE2k.js           123.22 kB │ gzip:  59.73 kB
+dist/assets/HomeworkFlow-DSNy0Zsh.js               123.36 kB │ gzip:  37.61 kB
+dist/assets/scenesJa-DP1O3Ce2.js                   130.16 kB │ gzip:  79.23 kB
+dist/assets/survivalPt-BY8jyCO4.js                 131.08 kB │ gzip:  54.40 kB
+dist/assets/englishDesignCareer-aY7reiPt.js        134.05 kB │ gzip:  58.94 kB
+dist/assets/koreanTopik-CqCRl_75.js                134.34 kB │ gzip:  66.67 kB
+dist/assets/survivalJa-BAzAeRuv.js                 143.58 kB │ gzip:  66.66 kB
+dist/assets/englishSprint-CBWDuLCf.js              146.64 kB │ gzip:  54.42 kB
+dist/assets/koreanTopik2-C5Mxl4EJ.js               152.71 kB │ gzip:  79.66 kB
+dist/assets/englishIelts-_O8eJT1b.js               153.94 kB │ gzip:  70.39 kB
+dist/assets/grammarEn-B3Wc_mxm.js                  169.43 kB │ gzip:  73.94 kB
+dist/assets/survivalEn-B0bHlbvR.js                 175.09 kB │ gzip:  73.59 kB
+dist/assets/grammarKo-C-1kpKuc.js                  195.37 kB │ gzip:  86.58 kB
+dist/assets/readingLibrary-1bkavDRL.js             203.41 kB │ gzip: 101.78 kB
+dist/assets/englishAdvanced-qF7iPG2c.js            203.66 kB │ gzip:  84.13 kB
+dist/assets/scenesKo-ByBbfShj.js                   216.71 kB │ gzip: 122.13 kB
+dist/assets/bioPreULessons-CEGws_-4.js             242.09 kB │ gzip: 105.43 kB
+dist/assets/i18nEn-bYaYIKAt.js                     282.63 kB │ gzip: 126.91 kB
+dist/assets/index.es-BI46-1wQ.js                   317.15 kB │ gzip:  82.12 kB
+dist/assets/survivalKo-DM_JSsC5.js                 326.48 kB │ gzip: 159.79 kB
+dist/assets/three-renderer-BiJDtRMc.js             525.59 kB │ gzip: 135.43 kB
+dist/assets/wordGloss-dGiSBOxv.js                  646.15 kB │ gzip: 317.91 kB
+dist/assets/LanguageTrainer-CePxjcWQ.js          1,011.80 kB │ gzip: 412.88 kB
+dist/assets/scenesEn-CVgO5epg.js                 1,147.31 kB │ gzip: 514.69 kB
+dist/assets/JournalStand-0Wf0SoiG.js             1,590.94 kB │ gzip: 435.82 kB
+dist/assets/index-CxQJLlyp.js                    1,636.55 kB │ gzip: 505.48 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 13.87s
+
+PWA v1.3.0
+mode      generateSW
+precache  15 entries (3180.91 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-7c1b01af.js

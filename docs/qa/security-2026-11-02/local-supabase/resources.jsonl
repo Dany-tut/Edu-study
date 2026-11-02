@@ -1,0 +1,5 @@
+{"time": 1793622613.439638, "memory_free_pct": 29, "disk_free_gib": 18.65, "containers": [], "limits_applied": 0}
+{"time": 1793622618.544245, "memory_free_pct": 28, "disk_free_gib": 18.61, "containers": ["supabase_db_iskra-local-security"], "limits_applied": 1}
+{"time": 1793622623.626718, "memory_free_pct": 29, "disk_free_gib": 18.61, "containers": ["supabase_db_iskra-local-security"], "limits_applied": 1}
+{"time": 1793622628.788299, "memory_free_pct": 27, "disk_free_gib": 18.6, "containers": ["supabase_db_iskra-local-security"], "limits_applied": 1}
+{"time": 1793622634.163018, "memory_free_pct": 27, "disk_free_gib": 17.61, "containers": ["supabase_db_iskra-local-security"], "limits_applied": 1}

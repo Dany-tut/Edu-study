@@ -1,0 +1,6 @@
+
+> student-dashboard@1.0.0 check:attendance
+> esbuild scripts/checkScheduleAttendance.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkScheduleAttendance.mjs --log-level=error && node node_modules/.cache/checkScheduleAttendance.mjs
+
+Calendar attendance: explicit marks, homework independence, late marking, past and future slots passed
+Course save: existing journal ids and session status preserved

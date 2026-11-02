@@ -1,11 +1,7 @@
 // Edge Function: reset a student's login password.
 //
-// The client-side "Сбросить пароль" button can only rewrite students.temp_password —
-// it has no way to change the actual Supabase Auth password, so the student could
-// never log in with the "new" password. Password changes require the service_role
-// admin API, which must never ship to the browser. This function runs server-side:
-// it verifies the caller owns the student (or is admin), generates a fresh password,
-// updates the Auth user, and mirrors it into students.temp_password for the teacher.
+// Authorizes the owner/admin, changes Auth, and returns the credential once.
+// The credential is never persisted in public tables.
 //
 // Request:  POST { studentId: string, password?: string }   (JWT in Authorization header)
 // Response: { password: string }  on success
@@ -21,13 +17,13 @@ const cors = {
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
+    headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   })
 }
 
-// Readable password, same family as the old client-side one (iskra####).
+// Generate an unpredictable credential with the platform CSPRNG.
 function genPassword() {
-  return 'iskra' + Math.floor(1000 + Math.random() * 9000)
+  return crypto.randomUUID().replace(/-/g, '')
 }
 
 Deno.serve(async (req) => {
@@ -48,13 +44,16 @@ Deno.serve(async (req) => {
   const { data: userData, error: userErr } = await caller.auth.getUser()
   if (userErr || !userData.user) return json({ error: 'Не авторизован' }, 401)
   const callerId = userData.user.id
-  const callerRole = (userData.user.user_metadata as { role?: string } | null)?.role
+  const callerRole = (userData.user.app_metadata as { role?: string } | null)?.role
 
   let studentId: string, password: string | undefined
   try {
     const body = await req.json()
     studentId = String(body.studentId ?? '')
-    password = body.password ? String(body.password) : undefined
+    if (body.password !== undefined && (typeof body.password !== 'string' || body.password.length < 12 || body.password.length > 128)) {
+      return json({ error: 'Пароль должен содержать от 12 до 128 символов' }, 400)
+    }
+    password = body.password
   } catch {
     return json({ error: 'Некорректный запрос' }, 400)
   }
@@ -81,15 +80,19 @@ Deno.serve(async (req) => {
     return json({ error: 'Ученик ещё не зарегистрировался — пароль выдать нельзя.' }, 409)
   }
 
-  const newPass = password && password.length >= 4 ? password : genPassword()
+  // An owned student row must never become a password-reset proxy for staff.
+  const { data: targetAuth, error: targetErr } = await admin.auth.admin.getUserById(authUserId)
+  const { data: targetProfile } = await admin.from('profiles').select('role').eq('id', authUserId).single()
+  if (targetErr || !targetAuth?.user || !targetProfile || targetProfile.role !== 'student' ||
+      ['teacher', 'admin'].includes(targetAuth.user.app_metadata?.role)) {
+    return json({ error: 'Это не аккаунт ученика' }, 409)
+  }
+
+  const newPass = password ?? genPassword()
 
   // 4) Change the real Auth password.
   const { error: updErr } = await admin.auth.admin.updateUserById(authUserId, { password: newPass })
   if (updErr) return json({ error: 'Не удалось сменить пароль: ' + updErr.message }, 500)
-
-  // 5) Mirror it into temp_password so the teacher can see/copy it. Apply to every
-  //    sibling card sharing this auth account (1:1 multi-subject students).
-  await admin.from('students').update({ temp_password: newPass }).eq('auth_user_id', authUserId)
 
   return json({ password: newPass })
 })

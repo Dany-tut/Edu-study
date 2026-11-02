@@ -1,5 +1,9 @@
 project_id = "igsdwvwiqnozgwczzycx"
 
+[functions.drive-video]
+# POST verifies the user JWT; GET/HEAD verify a short-lived media ticket.
+verify_jwt = false
+
 [auth]
 enable_manual_linking = true
 additional_redirect_urls = ["https://edu-study-app.vercel.app/**", "iskra://auth/callback"]
@@ -21,6 +25,3 @@ verify_jwt = false
 # JWT is verified inside the handler; cron uses its shared secret.
 verify_jwt = false
 
-[functions.drive-video]
-# POST verifies the user JWT; GET/HEAD verify a short-lived media ticket.
-verify_jwt = false

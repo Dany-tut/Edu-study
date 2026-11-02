@@ -1,38 +1,5 @@
-// Edge Function: завести ученику НАСТОЯЩИЙ аккаунт, ничего от него не требуя.
-//
-// ЗАЧЕМ. 26 из 32 учеников живут без `auth_user_id`: их кабинет ходит в базу
-// под ролью `anon`, а все anon-политики написаны через `is_legacy_student()` —
-// она истинна для ЛЮБОГО легаси-ученика. То есть «все видят всех»: с публичным
-// ключом из бандла читаются чужие ответы, комментарии и фотографии работ. Пока
-// такие ученики есть, нельзя ни снять публичное чтение курсов и домашек, ни
-// убить `student_login` со сравнением пароля в открытом виде.
-//
-// ПОЧЕМУ НЕ ССЫЛКА-ПРИГЛАШЕНИЕ. Она есть (`#/join?token=…`) и работает, но
-// требует, чтобы каждый ученик сам открыл её и придумал почту с паролем. На
-// детях это означает «половина не дойдёт», и переезд встаёт не по технической
-// причине. Между тем ученику здесь делать нечего вовсе: аккаунту нужно только
-// существовать. Создать его может service_role — тем же ключом, которым
-// соседняя функция уже меняет пароли.
-//
-// ЗАМЕР ПЕРЕД РАБОТОЙ (28.08.2026): из 26 легаси-учеников у 23 нет ни почты,
-// ни пароля — войти они сегодня не могут в принципе, и сохранять им нечего.
-// Это не переезд, а первая выдача доступа. Ещё у троих есть пара
-// email + temp_password: им она сохраняется как есть, и вход после перевода
-// работает теми же самыми логином и паролем.
-//
-// ПОЧТА, КОТОРОЙ НЕ СУЩЕСТВУЕТ. Supabase Auth требует email. У кого его нет —
-// синтезируем читаемый: `ivan-petrov-a1b2@uchenik.iskra`. Это логин, а не
-// почтовый ящик, и домен намеренно несуществующий, чтобы никто не ждал письма.
-// Плата — нет самостоятельного восстановления по почте; но его нет и сейчас:
-// пароль сбрасывает преподаватель кнопкой (reset-student-password).
-//
-// Request:  POST { studentId } — одному, либо POST { all: true } — всем своим
-//           (JWT преподавателя в заголовке; админ получает всех).
-// Response: { accounts: [{ studentId, name, email, password, status }] }
-//           status: 'created' | 'error'. Уже заведённые в выдачу не попадают:
-//           выборка идёт по `auth_user_id is null`, поэтому повторный вызов
-//           безопасен и просто вернёт пустой список.
-
+// Issue a synthetic-login account and return its random credential once.
+// Never read or persist plaintext passwords in public tables.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const cors = {
@@ -44,13 +11,13 @@ const cors = {
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
+    headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   })
 }
 
 /** Читаемый пароль — та же семья, что у reset-student-password. */
 function genPassword() {
-  return 'iskra' + Math.floor(1000 + Math.random() * 9000)
+  return crypto.randomUUID().replace(/-/g, '')
 }
 
 const TRANSLIT: Record<string, string> = {
@@ -113,7 +80,7 @@ Deno.serve(async (req) => {
   //    поэтому даже с `all: true` чужие ученики сюда не попадают.
   let q = admin
     .from('students')
-    .select('id, name, email, temp_password, person_id, group_id, auth_user_id, created_by')
+    .select('id, name, email, person_id, group_id, auth_user_id, created_by')
     .is('auth_user_id', null)
   if (studentId) q = q.eq('id', studentId)
   if (!isAdmin) q = q.eq('created_by', callerId)
@@ -137,7 +104,7 @@ Deno.serve(async (req) => {
     // Своя почта и пароль сохраняются: у троих они есть, и вход после перевода
     // должен работать теми же самыми, что человек уже знает.
     const email = ((s.email as string | null) || '').trim() || loginFromName(name, id)
-    const password = ((s.temp_password as string | null) || '').trim() || genPassword()
+    const password = genPassword()
 
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
@@ -152,17 +119,18 @@ Deno.serve(async (req) => {
     }
 
     // 4) Привязать аккаунт ко ВСЕМ карточкам человека.
-    const patch = { auth_user_id: created.user.id, email, temp_password: password }
+    const patch = { auth_user_id: created.user.id, email }
     const personId = s.person_id as string | null
-    const { error: linkErr } = personId
-      ? await admin.from('students').update(patch).eq('person_id', personId).is('auth_user_id', null)
-      : await admin.from('students').update(patch).eq('id', id)
+    let linkQuery = admin.from('students').update(patch).is('auth_user_id', null)
+    linkQuery = personId ? linkQuery.eq('person_id', personId) : linkQuery.eq('id', id)
+    if (!isAdmin) linkQuery = linkQuery.eq('created_by', callerId)
+    const { data: linked, error: linkErr } = await linkQuery.select('id')
 
-    if (linkErr) {
+    if (linkErr || !linked?.length) {
       // Аккаунт создан, а привязка не легла — убираем за собой, иначе почта
       // окажется занятой, а ученик так и останется легаси.
       await admin.auth.admin.deleteUser(created.user.id)
-      accounts.push({ studentId: id, name, email, status: 'error', error: linkErr.message })
+      accounts.push({ studentId: id, name, email, status: 'error', error: 'Не удалось связать аккаунт с карточкой' })
       continue
     }
 

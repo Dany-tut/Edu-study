@@ -1,5 +1,5 @@
 import type { HomeworkAttempt } from './homeworkResult'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { createSharedQuery, useSharedQuery } from './sharedQuery'
@@ -573,24 +573,34 @@ export function useHardSubmissions() {
 // (reviewHomework), поэтому homework_submissions больше не нужна.
 export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | null): {
   submissions: HwSubmission[]
+  loading: boolean
+  error: string
   reload: () => Promise<void>
 } {
   const [submissions, setSubmissions] = useState<HwSubmission[]>([])
 
+  const [loading, setLoading] = useState(!!hwId)
+  const [error, setError] = useState('')
+  const request = useRef(0)
   const load = useCallback(async () => {
-    if (!hwId) { setSubmissions([]); return }
+    const token = ++request.current
+    if (!hwId) { setSubmissions([]); setLoading(false); setError(''); return }
+    setLoading(true); setError('')
+    try {
     const uid = await getOwnerId()
     // ДЗ вне курса ученик решает на ноде `hw-<id>`, а ДЗ, привязанное к уроку, —
     // на самом уроке, и пишет туда же (lesson_ref = id урока). Читаем оба ключа:
     // иначе у курсовой домашки витрина проверки оставалась пустой.
     const refs = lessonId ? [`hw-${hwId}`, lessonId] : [`hw-${hwId}`]
-    const { data } = await supabase
+    const { data, error: queryError } = await supabase
       .from('lesson_progress')
       .select('id, student_id, status, score, comment, attachments, review_comment, review_attachments, updated_at, students!inner(name, created_by)')
       .in('lesson_ref', refs)
       .eq('students.created_by', uid)
       .in('status', ['submitted', 'returned', 'completed'])
       .order('updated_at', { ascending: false })
+    if (token !== request.current) return
+    if (queryError) throw queryError
     setSubmissions((data ?? []).map((s: any) => ({
       id: s.id,
       hwId,
@@ -605,11 +615,13 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
       reviewBoard: s.review_attachments?.board ?? null,
       answers: parseBasicAnswers(s.attachments),
     })))
+    } catch { if (token === request.current) setError('Не удалось загрузить работы. Попробуйте ещё раз.') }
+    finally { if (token === request.current) setLoading(false) }
   }, [hwId, lessonId])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { setSubmissions([]); void load(); return () => { request.current++ } }, [load])
 
-  return { submissions, reload: load }
+  return { submissions, loading, error, reload: load }
 }
 
 // Персист ревью обычного ДЗ — та же строка lesson_progress, что и сдача.

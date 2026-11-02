@@ -1,0 +1,41 @@
+{
+  "browser_steps_passed": 7,
+  "http_matrix": {
+    "pass": 102,
+    "fail": 0
+  },
+  "edge_auth": {
+    "pass": 14,
+    "fail": 0
+  },
+  "postgres_payment_regression": "PASS",
+  "synthetic_database_restore": "PASS; policies and row counts + answer hashes match",
+  "synthetic_storage_restore": "PASS; 2 objects, identical SHA256",
+  "typecheck": "PASS",
+  "ui_guards": "PASS",
+  "course_journal_regression": "PASS; includes legacy/invalid dates",
+  "advisors": {
+    "errors": 0,
+    "warnings": 4
+  },
+  "production_modified": false,
+  "scope": "Local schema-only historical baseline + forward migrations; synthetic records; assignment fixtures prepared via API, student signup/submit and teacher review via browser",
+  "limitations": [
+    "Draft persistence is current-browser localStorage, not cross-device server sync",
+    "Fresh-browser original submitted answers are visible through attempt history; main disabled input fields remain empty",
+    "Windows, actual paid AI/Testly integrations, exhaustive offline/timeouts and final complete dependency/XSS triage remain unverified",
+    "Shared working tree has unrelated uncommitted changes and is not a clean release candidate"
+  ],
+  "source_sha256": {
+    "src/components/teacher/journalStand/studentWorks.ts": "06f38ff2546ac638e5031011ab3590af7b2227941efd924418de1ad1c05988f8",
+    "scripts/checkCourseJournal.mjs": "bcf835f92b3c4c0ea942f8aeee1cf1154ac689b5d29a7b050015fe2bf9cb5771",
+    "src/tempFactsQA.tsx": "a550dcaacc53355690082f0b713ee04df942afe854480c1c3fcaf0b658680aa6",
+    "supabase/migrations/20261102124842_payment_staff_and_student_owner.sql": "ca90b340a8f63493fb571b6139c7524a1bfe9809f51f383db112059e3a6907d3",
+    "supabase/migrations/20261102132952_pin_schedule_helper_search_paths.sql": "c638dc5571ba15540b949e525f87101b4305a9b2bb6fe8d0426d5cb79b9348a1",
+    "scripts/security/checkLocalUserCycle.mjs": "c2db01d63b754ea55bd961600c50dfdf637452cb181970c5c4525486407c15b8",
+    "scripts/security/checkLocalSupabase.mjs": "30852f0c5ee1ebb08c29e3bb4d14dd911e843bed3c3a6afa9e2ff725e6d67990",
+    "scripts/security/checkLocalEdgeAuth.mjs": "089f3e33b685c93ba895c05963dc975946d4cc3f96a07b3021e31de0284d0174",
+    "scripts/security/checkLocalRestore.py": "631d783899e55bada28bab0ef676feb88f23ae5f5b8308a57b4f6773c598bda8",
+    "scripts/security/checkLocalStorageRestore.mjs": "5affe093e4fd5df5267a2016fafd8d1dc2bb3b0c382361cac35580feef012c96"
+  }
+}

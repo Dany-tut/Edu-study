@@ -166,3 +166,17 @@ assert.deepEqual([partial.stats.timely,partial.stats.due],[0,0])
 const group = groupOverview([report, partial, studentOverview([],end)])
 assert.deepEqual([group.average, group.checked, group.ungraded, group.debtors, group.focus.known], [70,5,1,1,1])
 console.log('Stand overview: period boundaries, weighted class result, zero vs missing scores, topic pairs and unknown submission dates passed.')
+
+// A lesson-linked assignment can lack assignedAt and retain a DD.MM.YYYY date.
+// Rendering one such legacy row must not crash the entire teacher workspace.
+const legacyDates = buildStandIndex({ ...lab,
+  lessons: [{ ...standLesson, scheduled_date: '01.01.2020' }],
+  assignments: [{ ...nativeWork, lesson_id: standLesson.id, assignedAt: null }],
+})
+assert.equal(legacyDates.slots.get('hw-' + nativeWork.id).date, '2020-01-01')
+const malformedDateWork = { ...combined[0], submitted: false, score: null, dates: [], status: 'Не сдано',
+  slot: { ...combined[0].slot, required: true, date: '2026-99-99', due: null } }
+assert.equal(workStats([malformedDateWork], '2027-01-01').weeks, 0)
+assert.equal(workStats([{ ...malformedDateWork, slot: { ...malformedDateWork.slot, date: '2026-02-31' } }], '2027-01-01').weeks, 0)
+assert.equal(workStats([{ ...malformedDateWork, slot: { ...malformedDateWork.slot, date: '2026-02-28' } }], '2027-01-01').weeks, 1)
+console.log('Journal dates: legacy lesson assignment date, invalid month/day and valid week aggregation passed.')

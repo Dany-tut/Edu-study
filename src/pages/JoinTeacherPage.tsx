@@ -88,7 +88,6 @@ export default function JoinTeacherPage() {
       password,
       options: {
         data: {
-          role: 'teacher',
           name: fullName || email.split('@')[0],
           first_name: firstName.trim(),
           last_name: lastName.trim(),

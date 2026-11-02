@@ -1,0 +1,3 @@
+{"concurrency":1,"requests":20,"p95ms":34,"requestsPerSecond":124}
+{"concurrency":4,"requests":80,"p95ms":7,"requestsPerSecond":1144}
+{"concurrency":12,"requests":240,"p95ms":37,"requestsPerSecond":1057}

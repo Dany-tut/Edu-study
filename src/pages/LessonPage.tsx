@@ -20,7 +20,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
 import { getSubject, ICON_GAP } from '../lib/subjects'
 import {
-  emptyWatch, loadVideoWatch, saveVideoWatch, type VideoWatch,
+  emptyWatch, loadVideoWatch, saveVideoWatch, watchedSeconds, type VideoWatch,
 } from '../lib/videoProgress'
 import LessonVideoProgress from '../components/LessonVideoProgress'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'

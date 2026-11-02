@@ -33,6 +33,7 @@ export default function MobileTeacherApp() {
     if (teacherPage === 'gradebook' || pendingJournal) setTab('gradebook')
   }, [teacherPage, pendingJournal])
   const [dayDetailOpen, setDayDetailOpen] = useState(false)
+  const [reviewDetailOpen, setReviewDetailOpen] = useState(false)
 
   // Admin-configured access — hide revoked tabs (mirrors the desktop gating).
   const canTab = useTeacherAccess(s => s.canTab)

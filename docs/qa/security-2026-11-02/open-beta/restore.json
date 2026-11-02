@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "Synthetic local DB domain/Auth/Storage metadata and DB-stored answers; separate restore; object binary storage not included",
+  "backup_bytes": 828980,
+  "fingerprints_match": true,
+  "counts": {
+    "students": 13,
+    "auth_users": 24,
+    "attempts": 7,
+    "progress": 11,
+    "payment_rows": 6,
+    "storage_objects": 3,
+    "policies": 171,
+    "progress_digest": "c1f3abdbed440f3859a74dc8a3da5553",
+    "attempt_digest": "c14c75ff7777a8e5476ff49ce7f7a6c8"
+  },
+  "productionModified": false
+}

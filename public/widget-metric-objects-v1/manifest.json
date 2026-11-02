@@ -1,0 +1,68 @@
+[
+  {
+    "file": "students.png",
+    "meaning": "Студентов: группа людей",
+    "sha256": "77598e85b1528a1578c834b1564c4b68278b9e6a0cd1eaa8d0e044939176d704",
+    "size": [
+      1254,
+      1254
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "student_cards.png",
+    "meaning": "Карточек учеников: профили",
+    "sha256": "336b7bc31e9f828f0e77f5a21b6216bb37ff2cd9dfb353b58efb7caed69776f5",
+    "size": [
+      1254,
+      1254
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "received.png",
+    "meaning": "Получено: кошелёк с подтверждением",
+    "sha256": "53f01d9421f66c5b0011df066dde8ff388043bea680d616fed20120a234109a7",
+    "size": [
+      1254,
+      1254
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "expected.png",
+    "meaning": "Ожидается: банкнота с песочными часами",
+    "sha256": "742e07b1526cdccb39220f7d1d4c9abf93b568ddfc429cdb089c0ed544dd8fce",
+    "size": [
+      1254,
+      1254
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "debt.png",
+    "meaning": "Долг: неоплаченный счёт с предупреждением",
+    "sha256": "2da977e14cbce9692386fe73c452623d2dcf766de1412f49cd0a5753ca13f799",
+    "size": [
+      1254,
+      1254
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "forecast.png",
+    "meaning": "Прогноз: календарь с прозрачной сферой",
+    "sha256": "8beb7b859c16bb0b7dea8f6a136ebc9aebd888b761be26be9cae639b19498035",
+    "size": [
+      1254,
+      1254
+    ],
+    "transparent": true,
+    "generated": true
+  }
+]

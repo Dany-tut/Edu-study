@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "scope": "Synthetic localhost homework photos, downloaded backup bytes and restored into a new private temporary bucket; hash validation",
+  "objects": 2,
+  "totalBytes": 136,
+  "productionModified": false
+}

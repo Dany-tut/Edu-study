@@ -151,7 +151,13 @@ export default function ExampleGroups() {
   const [reviewStudent, setReviewStudent] = useState(() => new URLSearchParams(window.location.hash.split('?')[1]).get('student') ?? 'example-group-0-0')
   const [reviewReturn, setReviewReturn] = useState<HomeworkPage>('journal')
   const fullReview = useMemo(() => fullReviewExample(data), [data])
-  const aiExample = useMemo(() => fullReviewAiExample(fullReview.submissions), [fullReview])
+  const [aiDemoState,setAiDemoState] = useState('original')
+  const aiExample = useMemo(() => {
+    const rows=fullReviewAiExample(fullReview.submissions)
+    if(aiDemoState==='original')return rows
+    for(const [id,grade] of rows)rows.set(id,{...grade,status:['pending','working'].includes(aiDemoState)?aiDemoState as 'pending'|'working':'error',error:aiDemoState,score:null,comment:'',tasks:[]})
+    return rows
+  }, [fullReview,aiDemoState])
   const reviewIdx = Math.max(0, fullReview.submitters.findIndex(s => s.id === reviewStudent))
   const pos = useRef({ top: 0, left: 0 })
   const today = wallDateTimeInTz(useNow(60_000).toISOString(), 'Europe/Moscow').day
@@ -223,7 +229,7 @@ export default function ExampleGroups() {
         <a className="sw-stand-link" href="#/student/widgets" onClick={event => {event.preventDefault();navigate('widgets')}}>Виджеты ученика</a>
         <a href="#/student/schedule" onClick={event => {event.preventDefault();navigate('schedule')}}>Расписание ученика</a>
         <a href="#/student/diary" onClick={event => {event.preventDefault();navigate('diary')}}>Дневник</a>
-        <a href="/journal-stand/#/teacher/gradebook">Мой журнал</a>
+        <a href="/journal-stand/?example=live#/teacher/gradebook">Мой журнал</a>
       </div>
       {page === 'widgets' || page === 'schedule' || page === 'diary' ? <div className="sw-backbar"><button type="button" className="cj-button" onClick={() => navigate('journal')}>← К журналу</button><span>{page === 'diary' ? 'Концепты дневника' : page === 'schedule' ? 'Концепты расписания' : 'Концепты ученика'}</span></div>
         : page !== 'full-review' && <HomeworkNavigation page={page} onChange={navigate}/>}
@@ -233,9 +239,10 @@ export default function ExampleGroups() {
           homework.openAssignment('hw-' + FULL_REVIEW_EXAMPLE_ID, fullReview.submitters.map(s => s.id))
         }}>Тестовая домашка · фото и доска</button><button type="button" className="cj-button" onClick={() => {setReviewStudent(fullReview.submitters[1].id);setReviewReturn(page === 'home' ? page : 'journal');navigate('full-review', fullReview.submitters[1].id)}}>✦ Концепт проверки ИИ</button><span style={{fontSize:11,color:'var(--color-text-3)'}}>3 сдачи · {FULL_REVIEW_EXAMPLE_TITLE}</span>
       </div>}
+      {page==='full-review'&&<label className="aic-demo-state">Учебный пример состояния ИИ<select aria-label="Состояние проверки ИИ" value={aiDemoState} onChange={e=>setAiDemoState(e.target.value)}><option value="original">Разбор готов</option><option value="pending">В очереди</option><option value="working">Проверяет</option><option value="unavailable">Сервис недоступен</option><option value="timeout">Долгая проверка</option><option value="rate_limit">Лимит запросов</option><option value="configuration">Ключ не настроен</option><option value="credentials">Неверный ключ</option><option value="balance">Недостаточно средств</option><option value="invalid_result">Неполный разбор</option><option value="missing_evidence">Фото недоступно</option></select></label>}
       <div className={'js-journal-host js-example-area' + (page === 'diary' ? ' ds-example-host' : '')}>
         {page === 'full-review' ? <Suspense fallback={<p role="status">Открываем полную проверку…</p>}>
-          <FullReviewEditor key={FULL_REVIEW_EXAMPLE_ID} {...fullReview} embedded aiConcept aiByProgress={aiExample} reviewIdx={reviewIdx}
+          <FullReviewEditor key={FULL_REVIEW_EXAMPLE_ID} {...fullReview} embedded aiConcept aiByProgress={aiExample} onRequestAi={async()=>{setAiDemoState('original');return {ok:true}}} reviewIdx={reviewIdx}
             setReviewIdx={i => {const student = fullReview.submitters[i];if(student){setReviewStudent(student.id);window.history.replaceState(null,'','#/teacher/homework-review?student='+encodeURIComponent(student.id))}}}
             returnLabel={reviewReturn === 'journal' ? 'В журнал' : reviewReturn === 'home' ? 'На главную' : 'В журнал'}
             onBack={() => navigate(reviewReturn)} onReview={async (id, verdict, score, comment, attachments, attemptId) => {

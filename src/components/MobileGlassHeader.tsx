@@ -11,7 +11,8 @@ export default function MobileGlassHeader(h: GlassHeader) {
   useEffect(() => onGlassHeaderBack(() => back.current?.()), [])
   useEffect(() => {
     setGlassHeader(h)
-    return () => removeGlassHeader()
   }, [h.leading, h.leadingSymbol, h.trailingText, h.trailingSymbol, !!h.onBack, h.backLabel])
+  // Updating a title must not tear down the native view between bridge calls.
+  useEffect(() => () => removeGlassHeader(), [])
   return null
 }

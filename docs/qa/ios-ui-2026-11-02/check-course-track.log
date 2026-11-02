@@ -1,0 +1,19 @@
+
+> student-dashboard@1.0.0 check:course-track
+> node scripts/checkCourseTrack.mjs
+
+[db:upsertLessonProgress] { message: 'simulated RLS failure', code: '42501' }
+[db:fetchStudentTrack.grading] { message: 'Error: simulated disconnect' }
+[db:homework_attempts] { message: 'Error: simulated disconnect' }
+[db:fetchStudentTrack.grading] { message: 'grading metadata unavailable' }
+[db:homework_attempts] { message: 'grading metadata unavailable' }
+[db:fetchStudentTrack] { message: 'RPC unavailable' }
+[db:fetchLessonProgress] { message: 'progress unavailable' }
+[db:fetchStudentTrack] { message: 'RPC unavailable' }
+[db:fetchLessonProgress] { message: 'progress unavailable' }
+[db:fetchPersonScope.rpc] { message: '(data ?? []) is not iterable' }
+PASS: track status, module access, recording timing, server grades, test answers/write errors, failed sync/reset, out-of-order loads
+[db:fetchScheduleDays] { message: 'calendar disconnected' }
+[db:fetchScheduleDays] { message: 'calendar disconnected' }
+PASS: stable calendar links, distinct same-title events and failed-calendar preservation
+PASS: dated material without a time is visible in the calendar

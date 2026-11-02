@@ -1,0 +1,27 @@
+{
+  "before": {
+    "studentA": "UNEXPECTED ALLOW",
+    "teacherB": "UNEXPECTED ALLOW"
+  },
+  "after": [
+    {
+      "actor": "studentA",
+      "allowed": false,
+      "expected_allowed": false,
+      "sqlstate": "42501"
+    },
+    {
+      "actor": "teacherB",
+      "allowed": false,
+      "expected_allowed": false,
+      "sqlstate": "42501"
+    },
+    {
+      "actor": "teacherA",
+      "allowed": true,
+      "expected_allowed": true,
+      "sqlstate": null
+    }
+  ],
+  "scope": "Real restored PostgreSQL and policies; SET ROLE/auth.uid claims; transaction rolled back"
+}

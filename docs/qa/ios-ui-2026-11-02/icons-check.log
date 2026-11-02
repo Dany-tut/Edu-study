@@ -1,0 +1,6 @@
+
+> student-dashboard@1.0.0 icons:check
+> node scripts/buildLoopIcons.mjs --check && node scripts/checkLoopIcons.mjs
+
+Verified 250 Loop drawings and 249 shared exports in /Users/dany/Cursor/student-dashboard/
+Loop coverage: 248 Figma glyphs + Heart, 277 icon imports, 6 native symbols (light/dark). No direct Lucide bypasses.

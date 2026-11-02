@@ -57,7 +57,8 @@ function AttendancePicker({ name, value, onChange, disabled }: { name: string; v
 
 /** The lesson workflow is mobile-only. All durable changes are owner-checked
  * transactions; the native title/back controls use the existing UIKit bridge. */
-export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
+export default function MobileTeacherDay({ onNavigate, onDetailChange, reviewCount }: {
+  reviewCount: number;
   onNavigate: (tab: MTab) => void; onDetailChange: (open: boolean) => void
 }) {
   const t = useT()
@@ -182,7 +183,6 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
   const list = (items ?? []).filter(i => i.date === day)
   const status = (item: SchedItem) => sessions[item.id]?.completed_at ? 'completed' : sessions[item.id]?.started_at ? 'live' : item.status ?? (item.cancelled ? 'cancelled' : 'upcoming')
   const next = list.find(i => status(i) === 'live') ?? list.find(i => status(i) === 'upcoming')
-  const reviewCount = homework.filter(h => h.status !== 'closed').reduce((n, h) => n + Math.max(0, h.submittedCount - h.reviewedCount), 0)
   const dateLabel = (value: string) => { const label = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', weekday: 'long' }).format(new Date(`${value}T12:00:00`)); return label.charAt(0).toUpperCase() + label.slice(1) }
   const selectedStatus = selected ? detail?.session?.completed_at ? 'completed' : detail?.session?.started_at ? 'live' : selected.status ?? 'upcoming' : 'upcoming'
   const presentCount = Object.values(detail?.attendance ?? {}).filter(v => v === true).length

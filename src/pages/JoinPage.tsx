@@ -100,7 +100,6 @@ export default function JoinPage() {
     const { error } = await supabase.rpc('claim_student_account', {
       p_token: token,
       p_email: email.trim(),
-      p_password: password,
     })
     if (error) {
       setErrorMsg(t(authErrorRu(error, 'Ошибка при сохранении. Попробуйте ещё раз.')))

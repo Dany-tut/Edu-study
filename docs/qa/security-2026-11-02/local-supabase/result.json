@@ -1,0 +1,40 @@
+{
+  "base_sha": "d24b14665d8f791517a4bb3cfbffd5ae5f1031ce",
+  "migration_files": 138,
+  "first_failed_migration": "0003_schedule_lessons_per_student.sql",
+  "error": "42P01: relation public.schedule_lessons does not exist",
+  "missing_create_table_candidates": [
+    "custom_diag_tests",
+    "diag_questions",
+    "diag_results",
+    "groups",
+    "homework",
+    "lesson_attendance",
+    "lesson_progress",
+    "profiles",
+    "review_cards",
+    "schedule_lessons",
+    "students",
+    "test_assignments"
+  ],
+  "memory_free_pct_min": 27,
+  "disk_free_gib_min": 17.61,
+  "project_id": "iskra-local-security",
+  "ports": {
+    "api": 55321,
+    "db": 55322,
+    "mailpit": 55324
+  },
+  "limits": {
+    "postgres_memory_mib": 1536,
+    "other_services_memory_mib": 512,
+    "cpus_per_container": 1,
+    "safety_disk_min_gib": 8,
+    "safety_memory_free_pct": 12,
+    "consecutive_low_samples_to_stop": 3
+  },
+  "production_modified": false,
+  "full_rls_matrix": "BLOCKED before schema bootstrap",
+  "full_user_cycle": "BLOCKED before schema bootstrap",
+  "disk_free_gib_after_shutdown": 15.26
+}
