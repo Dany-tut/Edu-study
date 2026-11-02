@@ -495,6 +495,6 @@ export const LoopArtworkToggleRight = <><g transform="translate(1.29779 0.95588)
 
 export const LoopArtworkTurtle = <><g transform="translate(-1.75000 2.62500) scale(1.00000)"><path d="M5 15Q4 1 17 3q10 0 10 13l-23 1zM6 18l-2 6 5-1 3-6M21 18l3 5 4-1-3-5M27 9q6-3 4 3l-4 2M12 6l6-1 5 7-5 4-8-3z" fill="none"/><path d="m12 6 6-1" fill="none" stroke="var(--loop-detail, #F4A55A)"/></g></>
 
-export const LoopArtworkHeart = <></>
+export const LoopArtworkHeart = <><g transform="translate(0.96442 1.42884) scale(0.92884)"><path d="M16 8Q5-5 2 9q-4 9 14 21 19-14 14-24-6-10-14 2z" fill="var(--loop-soft, #ECE5FF)"/><path d="M16 8Q5-5 2 9q-4 9 14 21 19-14 14-24-6-10-14 2z" fill="none"/></g></>
 
 export const LoopArtworkTeacherBook = <><g transform="translate(6 -1) scale(.6)"><path d="M10 4q8-2 7 5-1 7-7 5-7-2-3-8M3 29q-2-12 10-11 11 1 9 11" fill="none"/><circle cx="27" cy="5" r="1.8" fill="var(--loop-detail, #F4A55A)" stroke="none"/></g><g transform="translate(2 13) scale(.85 .6)"><path d="M5 5q6-3 11 1 5-4 12-2l-1 22q-7-2-12 2-4-3-11-2z" fill="var(--loop-soft, #ECE5FF)"/><path d="M5 5q6-3 11 1 5-4 12-2l-1 22q-7-2-12 2-4-3-11-2zM16 6l-1 22" fill="none"/><path d="m21 9 4-1M21 13l3-1" fill="none" stroke="var(--loop-detail, #F4A55A)"/></g></>

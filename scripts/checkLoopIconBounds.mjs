@@ -39,9 +39,12 @@ try {
     const image = new Resvg(expanded, { font: { loadSystemFonts: false } }).render()
     const pixels = image.pixels
     let outside = 0
+    let ink = 0
     for (let y = 0; y < 320; y++) for (let x = 0; x < 320; x++) {
+      ink += pixels[(y * 320 + x) * 4 + 3]
       if (x < 32 || x >= 288 || y < 32 || y >= 288) outside += pixels[(y * 320 + x) * 4 + 3]
     }
+    if (!ink) failures.push(`${name}: empty artwork`)
     if (outside) failures.push(`${name} at strokeWidth=${strokeWidth}: ink outside SVG`)
   }
   assert.equal(failures.length, 0, failures.join('\n'))
