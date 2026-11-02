@@ -29,6 +29,7 @@ export function checkLoopUiSource(source, filename = 'fixture.tsx') {
   function interactive(node) {
     for (let p = node.parent; p; p = p.parent) {
       if (['button', 'a'].includes(tag(p))) return true
+      if (ts.isJsxElement(p) && p.openingElement.attributes.properties.some(a => ts.isJsxAttribute(a) && a.name.getText(tree) === 'onClick')) return true
       if (ts.isJsxElement(p) && /^[A-Z]/.test(tag(p))) return false
     }
     return false

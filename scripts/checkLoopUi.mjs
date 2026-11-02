@@ -8,6 +8,7 @@ import { checkLoopUiSource } from './lib/loopUiPolicy.mjs'
 for (const sample of [
   `<select style={{backgroundImage: 'url(data:image/svg+xml,OLD)'}} />`,
   `<button>{t('Подробнее →')}</button>`,
+  `<span onClick={back}>{t('← Назад ко входу')}</span>`,
   `<button>{label} →</button>`,
   `<span>{timeout ? '⏱' : correct ? '✓' : '✕'}</span>`,
   `<span>📊</span>`,
