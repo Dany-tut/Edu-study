@@ -17,4 +17,5 @@ storage.set('student-dashboard:homework:check', JSON.stringify({ basicAnswers: {
 assert.equal(homeworkNeedsVideo(lesson), false)
 console.log('PASS: video prerequisite, seeking, attendance, existing work, unsupported embeds and drafts')
 
-assert.equal(homeworkNeedsVideo({ ...lesson, videoUrl: 'https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz/view' }), false, 'Drive embed cannot report progress')
+storage.clear()
+assert.equal(homeworkNeedsVideo({ ...lesson, videoUrl: 'https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz/view' }), true, 'Drive native player requires completion')

@@ -1,3 +1,4 @@
+import { resolveDriveVideo } from '../lib/driveVideo'
 // ─────────────────────────────────────────────────────────────────────────────
 // Плеер записи урока — свой корпус поверх чужого движка
 //
@@ -194,16 +195,17 @@ function loadYouTubeApi(): Promise<NonNullable<Window['YT']>> {
 }
 
 const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function LessonVideoPlayer(
-  { source, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick }, ref,
+  { source: originalSource, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick }, ref,
 ) {
   const t = useT()
   const touch = useCoarsePointer()
 
-  // Своих кнопок у чужой страницы быть не может — там нет API, чтобы они
-  // работали. Такой источник показываем как раньше, голым iframe. Google Диск
-  // (/preview) из той же породы: своего проигрывателя у него нет, управление —
-  // средствами самого Диска.
-  const custom = source.kind !== 'iframe' && source.kind !== 'gdrive'
+  const [driveUrl, setDriveUrl] = useState('')
+  const [driveError, setDriveError] = useState(false)
+  const [driveAttempt, setDriveAttempt] = useState(0)
+  const source: VideoSource = originalSource.kind === 'gdrive' && driveUrl
+    ? { kind: 'file', url: driveUrl } : originalSource
+  const custom = source.kind !== 'iframe'
   const canRate = source.kind !== 'rutube'   // у RuTube скорость не выставляется извне
   /** До какой ступени ускорение играет движком (со звуком), а не скольжением. */
   const engineMaxRate = source.kind === 'file' ? FILE_MAX_RATE : ENGINE_MAX_RATE
@@ -282,6 +284,17 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
    *  обратно нельзя — за время круга плеер уже уехал на пару тиков вперёд. */
   const lastEmitted = useRef<VideoWatch | null>(null)
 
+  useEffect(() => {
+    setDriveUrl('')
+    setDriveError(false)
+    if (!started || originalSource.kind !== 'gdrive') return
+    let alive = true
+    resolveDriveVideo(originalSource.id).then(url => {
+      if (alive) setDriveUrl(url)
+    }).catch(() => { if (alive) setDriveError(true) })
+    return () => { alive = false }
+  }, [started, originalSource.kind === 'gdrive' ? originalSource.id : '', driveAttempt])
+
   // Обработчики жеста живут в window-подписках и переживают ре-рендеры, поэтому
   // всё изменчивое читают из ссылок, а не из замыкания.
   const currentRef = useRef(0); currentRef.current = current
@@ -315,6 +328,21 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     lastEmitted.current = w
     onPersistRef.current(w)
   }, [])
+
+  const flushNativeSegment = (video: HTMLVideoElement) => {
+    const time = video.currentTime
+    const base = watchRef.current
+    // Credit the final continuous fragment before pause/ended stops the timer.
+    if (lastTick.current === null || segStart.current === null || time <= base.position || time - base.position > MAX_STEP) return
+    const next = withCompletion({ ...base, position: time,
+      duration: video.duration || base.duration,
+      ranges: addWatched(base.ranges, base.position, time) })
+    watchRef.current = next
+    lastEmitted.current = next
+    setWatch(next)
+    onWatchTickRef.current?.(next)
+    onPersistRef.current(next)
+  }
 
   // Сохраняем по таймеру, на паузе и при уходе со страницы. Вкладку закрывают
   // чаще, чем доводят ролик до конца, — без pagehide терялись бы последние
@@ -913,16 +941,22 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         <video
           ref={videoRef}
           src={source.url}
+          crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : undefined}
           autoPlay
           playsInline
           disablePictureInPicture
           onLoadedMetadata={e => {
             e.currentTarget.currentTime = startAt
+            e.currentTarget.playbackRate = rateRef.current
+            e.currentTarget.volume = volume
+            e.currentTarget.muted = muted
             setDuration(e.currentTarget.duration || 0)
           }}
+          onLoadedData={e => { void e.currentTarget.play().catch(() => setPaused(true)) }}
+          onError={() => { if (originalSource.kind === 'gdrive') { setDriveError(true); setPaused(true) } }}
           onPlay={() => { setPaused(false); setEnded(false) }}
-          onPause={() => setPaused(true)}
-          onEnded={() => { setPaused(true); setEnded(true) }}
+          onPause={e => { flushNativeSegment(e.currentTarget); setPaused(true) }}
+          onEnded={e => { flushNativeSegment(e.currentTarget); setPaused(true); setEnded(true) }}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', background: '#000' }}
         />
       )}
@@ -935,7 +969,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         </div>
       )}
 
-      {started && (source.kind === 'rutube' || source.kind === 'iframe' || source.kind === 'gdrive') && (
+      {started && (source.kind === 'rutube' || source.kind === 'iframe') && (
         <iframe
           ref={iframeRef}
           src={videoEmbedSrc(source, startAt)}
@@ -1305,6 +1339,16 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             </div>
           </motion.div>
         </>
+      )}
+
+      {started && originalSource.kind === 'gdrive' && (driveError || !driveUrl) && (
+        <div role={driveError ? 'alert' : 'status'} style={{ position: 'absolute', inset: 0, zIndex: 20, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 12, padding: 20, textAlign: 'center', background: 'var(--color-surface)', color: 'var(--color-text)' }}>
+          <p>{t(driveError ? 'Не удалось открыть запись.' : 'Открываем запись…')}</p>
+          {driveError && <>
+            <p>{t('Проверьте доступ к видео на Google Диске и попробуйте ещё раз.')}</p>
+            <button type="button" style={{ minHeight: 44 }} onClick={() => { setStartAt(currentRef.current); setDriveAttempt(n => n + 1) }}>{t('Попробовать ещё раз')}</button>
+          </>}
+        </div>
       )}
 
       {/* ── Заставка ── */}

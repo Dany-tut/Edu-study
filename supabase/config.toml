@@ -20,3 +20,7 @@ verify_jwt = false
 [functions.hw-grade-run]
 # JWT is verified inside the handler; cron uses its shared secret.
 verify_jwt = false
+
+[functions.drive-video]
+# POST verifies Auth; media GET/HEAD verify a short-lived signed ticket.
+verify_jwt = false

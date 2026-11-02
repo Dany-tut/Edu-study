@@ -10,6 +10,9 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Не удалось открыть запись.': 'Could not open the recording.',
+  'Открываем запись…': 'Opening the recording…',
+  'Проверьте доступ к видео на Google Диске и попробуйте ещё раз.': 'Check access to the video on Google Drive and try again.',
   'Сначала просмотрите видео': 'Watch the video first',
   'Прогресс сохранён на этом устройстве. Не удалось синхронизировать.': 'Progress is saved on this device. Could not sync.',
   'Занятия модуля': 'Module lessons',
