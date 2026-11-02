@@ -5493,4 +5493,5 @@ export const EN: Record<string, string> = {
 
   'На этот день заданий нет': 'No assignments for this day',
 
+  'Не задана': 'Not set',
 }
