@@ -68,3 +68,5 @@
 .ihw-object[data-object="reminders"] { --art-top-inset:0.066667; --art-right-inset:0.100000; }
 .ihw-object[data-object="stats"] { --art-top-inset:0.093750; --art-right-inset:0.147917; }
 .ihw-object[data-object="trainer"] { --art-top-inset:0.143750; --art-right-inset:0.022917; }
+
+.ihw-card-open{font:inherit;color:inherit;text-align:inherit;background:none;border:0;padding:0;cursor:pointer}.ihw-card-open:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
