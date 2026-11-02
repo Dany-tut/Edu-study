@@ -591,10 +591,9 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {(showDiary || diarySeen) && <div ref={mobileDiaryPane} style={{ display: showDiary ? 'block' : 'none', height: '100dvh', boxSizing: 'border-box', background: 'var(--color-bg)', paddingTop: MOBILE_TOP_INSET, paddingLeft: 16, paddingRight: 16, paddingBottom: 120, overflowX: 'clip', overflowY: 'auto' }}>
+        {(showDiary || diarySeen) && <><div ref={mobileDiaryPane} style={{ display: showDiary ? 'block' : 'none', height: '100dvh', boxSizing: 'border-box', background: 'var(--color-bg)', paddingTop: MOBILE_TOP_INSET, paddingLeft: 16, paddingRight: 16, paddingBottom: 120, overflowX: 'clip', overflowY: 'auto' }}>
           <Suspense fallback={<LessonLoading />}><StudentDiaryPage tab={diaryTab} setTab={setDiaryTab} /></Suspense>
-          {showDiary && <MobileBottomNav />}
-        </div>}
+        </div>{showDiary && <MobileBottomNav />}</>}
 
         {/* Вкладка «ДЗ» — каталог занятий со статусами (свой поиск/фильтр/
             сортировка в нижнем доке). Отдельная страница, а не 'homework': та
