@@ -119,6 +119,7 @@ function AddGroupModal({ onClose, onSave }: {
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
+        className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
           width: 420, boxShadow: 'var(--shadow-5)',
@@ -242,6 +243,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
+        className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
           width: 380, boxShadow: 'var(--shadow-5)',
@@ -387,9 +389,10 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
+        className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22,
-          width: 420, boxShadow: 'var(--shadow-5)',
+          width: 420, maxWidth:'calc(100vw - 24px)', boxShadow: 'var(--shadow-5)',
           maxHeight: '90dvh', overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
         }}
@@ -717,9 +720,10 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
+        className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22,
-          width: 420, boxShadow: 'var(--shadow-5)',
+          width: 420, maxWidth:'calc(100vw - 24px)', boxShadow: 'var(--shadow-5)',
           maxHeight: '90dvh', overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
         }}

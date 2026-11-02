@@ -567,7 +567,8 @@
   font-size: 11px;
 }
 .jo-share[open] {
-  display: block;
+  display: flex;
+  flex-direction: column;
   position: fixed;
   inset: 0;
   border: 0;
@@ -579,7 +580,7 @@
   max-height: none;
   margin: 0;
   padding: 16px;
-  overflow: auto;
+  overflow: hidden;
   color: var(--color-text);
   background: var(--color-bg);
 }
@@ -720,6 +721,8 @@
 .jo-bento > .jo-tile--3d:not(.jo-wide) { min-height:240px; }
 .jo-class-grid > .jo-tile--3d { min-height:220px; }
 
+.jo-share-tools { flex:none; width:100%; }
+.jo-share-scroll { padding-bottom:16px; }
 /* Optical anchors measured on the opaque silhouette, excluding transparent padding. */
 .jo-report-object[data-object="goal"] { --art-top-inset:0.035417; --art-right-inset:0.081250; }
 .jo-report-object[data-object="lag"] { --art-top-inset:0.058333; --art-right-inset:0.266667; }
