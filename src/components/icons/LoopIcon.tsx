@@ -1,19 +1,18 @@
 import { createContext, forwardRef, useContext, type ReactElement, type ReactNode, type SVGProps } from 'react'
 import type { LucideIcon, LucideProps } from 'lucide-react'
-import { useIsDesktop } from '../../lib/useIsDesktop'
 
-const LoopContext = createContext(false)
+const LoopContext = createContext(true)
 
 export function useLoopIcons() { return useContext(LoopContext) }
 
-/** Preserve legacy inline SVGs on desktop while replacing their mobile glyph. */
+/** Adapt legacy inline controls to the shared Loop family at every viewport. */
 export function LoopInlineIcon({ icon: Icon, children, color }: {
   icon: LucideIcon
   children: ReactElement<SVGProps<SVGSVGElement>>
   color?: string
 }) {
-  const mobile = useLoopIcons()
-  if (!mobile) return children
+  const loop = useLoopIcons()
+  if (!loop) return children
   const { width, height, viewBox: _viewBox, children: _children, ...props } = children.props
   return <Icon {...props} size={height ?? width ?? 16} color={color} />
 }
@@ -24,17 +23,16 @@ export function LoopTextIcon({ icon: Icon, children, size = '1em' }: { icon: Luc
     : <>{children}</>
 }
 
-/** Translated action labels keep their old desktop text; mobile uses a real glyph. */
+/** Keep translated labels while replacing trailing text symbols with Loop artwork. */
 export function LoopActionLabel({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return useLoopIcons()
     ? <>{label.replace(/\s*[→›✓]$/, '')} <Icon size="1em" style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /></>
     : <>{label}</>
 }
 
-/** One viewport subscription for the whole app; React portals retain this context. */
+/** React portals and standalone previews use the same family as the app. */
 export function LoopIconProvider({ enabled = true, children }: { enabled?: boolean; children: ReactNode }) {
-  const desktop = useIsDesktop()
-  return <LoopContext.Provider value={enabled && !desktop}>{children}</LoopContext.Provider>
+  return <LoopContext.Provider value={enabled}>{children}</LoopContext.Provider>
 }
 
 export const LoopSvg = forwardRef<SVGSVGElement, LucideProps & { name: string; artwork: ReactNode }>(
@@ -68,13 +66,10 @@ export const LoopSvg = forwardRef<SVGSVGElement, LucideProps & { name: string; a
   },
 )
 
-/** Same props, refs and events as Lucide; the desktop component remains the fallback. */
-export function createResponsiveIcon(name: string, Desktop: LucideIcon, artwork: ReactNode): LucideIcon {
-  const Icon = forwardRef<SVGSVGElement, LucideProps>(function ResponsiveIcon(props, ref) {
-    const mobile = useContext(LoopContext)
-    return mobile
-      ? <LoopSvg {...props} name={name} artwork={artwork} ref={ref} />
-      : <Desktop {...props} ref={ref} />
+/** Lucide-compatible props, refs and events; one family at every viewport. */
+export function createLoopIcon(name: string, artwork: ReactNode): LucideIcon {
+  const Icon = forwardRef<SVGSVGElement, LucideProps>(function AppLoopIcon(props, ref) {
+    return <LoopSvg {...props} name={name} artwork={artwork} ref={ref} />
   })
   Icon.displayName = `AppIcon(${name})`
   return Icon

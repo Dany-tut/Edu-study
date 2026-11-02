@@ -747,3 +747,13 @@
 }
 .jo-class-grid > .jo-lilac { --depth-color:var(--color-accent); }
 .jo-tile--3d .jo-report-object { filter:drop-shadow(-5px 9px 7px color-mix(in srgb,var(--depth-color) 13%,transparent)); }
+
+/* Small cards share an optical height; tall silhouettes need a smaller image box. */
+.jo-bento > .jo-tile--3d:is(.jo-delay,.jo-quiet,.jo-punctual) { --report-object-size:clamp(82px,7.3cqi,108px); }
+/* Contact shadow on the horizontal surface, separate from the contour shadow. */
+.jo-object-floor { display:none; position:absolute; pointer-events:none; height:16px; border-radius:50%; background:radial-gradient(ellipse at center,rgba(35,29,52,.24),rgba(35,29,52,.1) 38%,transparent 72%); filter:blur(3px); }
+.jo-object-floor[data-object="trend"] { display:block; width:calc(var(--report-object-size)*.78); right:14px; top:calc(-12px + var(--report-object-size)*.735); transform:rotate(-8deg); }
+.jo-object-floor[data-object="goal"] { display:block; width:calc(var(--report-object-size)*.59); right:calc(12px + var(--report-object-size)*.13); top:calc(-12px + var(--report-object-size)*.86); }
+.jo-object-floor[data-object="lag"] { display:block; width:calc(var(--report-object-size)*.47); right:12px; top:calc(-12px + var(--report-object-size)*.865); height:12px; }
+.jo-object-floor[data-object="ontime"] { display:block; width:calc(var(--report-object-size)*.77); right:12px; top:calc(-12px + var(--report-object-size)*.87); height:12px; }
+.jo-tile--3d .jo-report-object { filter:drop-shadow(-2px 3px 3px color-mix(in srgb,var(--depth-color) 9%,transparent)); }

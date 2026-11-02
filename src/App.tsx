@@ -104,12 +104,10 @@ function useHashRoute() {
 }
 
 export default function App() {
-  const hash = useHashRoute()
-  const cabinet = !hash.startsWith('#/landing') && (Boolean(getStudentSession()) || !['', '#', '#/'].includes(hash))
   // Хост подтверждений — один на всё приложение, выше любого роута: спросить
   // могут и из кабинета, и из лендинга, и во время редиректа.
   return (
-    <LoopIconProvider enabled={cabinet}>
+    <LoopIconProvider>
       <AppRoutes />
       <ConfirmHost />
     </LoopIconProvider>

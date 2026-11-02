@@ -27,20 +27,19 @@ emit('src/components/icons/loopArtwork.tsx', banner + artwork.map(g =>
   `export const LoopArtwork${g.name} = <>${jsx(g.svg)}</>\n`,
 ).join('\n'))
 emit('src/components/icons/appIcons.tsx', banner + `
-// Only the icons used by the app. The desktop constructor imports its full
-// picker namespace directly from Lucide, keeping that catalog in its lazy chunk.
+// Shared Loop artwork for desktop, mobile, overlays and the constructor picker.
 export type { LucideIcon, LucideProps, IconNode } from 'lucide-react'
 import { createLucideIcon as createDesktopIcon } from 'lucide-react'
 import type { IconNode } from 'lucide-react'
-import { createResponsiveIcon } from './LoopIcon'
-${glyphs.map(g => `import { ${g.name} as Desktop${g.name} } from 'lucide-react'\nimport { LoopArtwork${g.name} } from './loopArtwork'`).join('\n')}
+import { createLoopIcon } from './LoopIcon'
+${glyphs.map(g => `import { LoopArtwork${g.name} } from './loopArtwork'`).join('\n')}
 import { LoopArtworkTeacherBook } from './loopArtwork'
 
-${glyphs.map(g => `export const ${g.name} = /* @__PURE__ */ createResponsiveIcon('${g.name}', Desktop${g.name}, LoopArtwork${g.name})`).join('\n')}
+${glyphs.map(g => `export const ${g.name} = /* @__PURE__ */ createLoopIcon('${g.name}', LoopArtwork${g.name})`).join('\n')}
 
 export function createLucideIcon(name: string, iconNode: IconNode) {
   const Desktop = createDesktopIcon(name, iconNode)
-  return name === 'TeacherBook' ? createResponsiveIcon(name, Desktop, LoopArtworkTeacherBook) : Desktop
+  return name === 'TeacherBook' ? createLoopIcon(name, LoopArtworkTeacherBook) : Desktop
 }
 `)
-console.log(`${check ? 'Verified' : 'Generated'} ${artwork.length} Loop drawings and ${glyphs.length} responsive exports in ${fileURLToPath(root)}`)
+console.log(`${check ? 'Verified' : 'Generated'} ${artwork.length} Loop drawings and ${glyphs.length} shared exports in ${fileURLToPath(root)}`)
