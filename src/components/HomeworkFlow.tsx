@@ -2188,12 +2188,19 @@ export default function HomeworkFlow({
       | { v: 2; tasks: HardTaskStudentBlock[] }
       | BasicAnswersPayload,
   ) {
+    function retry() {
+      if (level === 'basic' && attachments && 'v' in attachments && attachments.v === 'basic-1') {
+        void submitBasic(attachments, score)
+      } else {
+        void submitToSupabase(level, score, comment, attachments)
+      }
+    }
     const session = getStudentSession()
     if (!session?.id) {
       // Без сессии записать некуда — но и «сдано» показывать нельзя.
       setSubmitFailed({
         text: tStatic('Ответы не отправлены — войдите в аккаунт ученика и повторите.'),
-        retry: () => { void (level === 'basic' ? submitBasic() : submitToSupabase(level, score, comment, attachments)) },
+        retry,
       })
       return false
     }
@@ -2242,7 +2249,7 @@ export default function HomeworkFlow({
       })
       setSubmitFailed({
         text: tStatic('Ответы не отправлены — проверьте связь и повторите.'),
-        retry: () => { void (level === 'basic' ? submitBasic() : submitToSupabase(level, score, comment, attachments)) },
+        retry,
       })
       return false
     }
@@ -2263,11 +2270,19 @@ export default function HomeworkFlow({
    * черновик с ответами. Теперь при сбое — красная плашка с повтором, окна нет,
    * черновик на месте.
    */
-  async function submitBasic() {
+  async function submitBasic(previous?: BasicAnswersPayload, score = basicScore) {
     if (submittingBasicRef.current) return
     submittingBasicRef.current = true
     try {
-      const ok = await submitToSupabase('basic', basicScore, '', buildBasicSnapshot())
+      const snapshot = previous ?? buildBasicSnapshot()
+      // Keep the first submission's identity even if the commit succeeds but
+      // the response is lost. Testly reconciles against its webhook separately.
+      if (!snapshot.attemptId && !onlyTestly) {
+        snapshot.attemptId = crypto.randomUUID()
+        const attemptId = snapshot.attemptId
+        setState(current => ({ ...current, attemptId }))
+      }
+      const ok = await submitToSupabase('basic', score, '', snapshot)
       if (ok) setShowResultModal('basic')
     } finally {
       submittingBasicRef.current = false

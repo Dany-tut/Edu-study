@@ -26,9 +26,9 @@ function json(body: unknown, status = 200) {
   })
 }
 
-// Readable password, same family as the student reset (iskra####).
+// Generate an unpredictable credential with the platform CSPRNG.
 function genPassword() {
-  return 'iskra' + Math.floor(1000 + Math.random() * 9000)
+  return crypto.randomUUID().replace(/-/g, '')
 }
 
 Deno.serve(async (req) => {
@@ -48,13 +48,16 @@ Deno.serve(async (req) => {
   })
   const { data: userData, error: userErr } = await caller.auth.getUser()
   if (userErr || !userData.user) return json({ error: 'Не авторизован' }, 401)
-  const callerRole = (userData.user.user_metadata as { role?: string } | null)?.role
+  const callerRole = (userData.user.app_metadata as { role?: string } | null)?.role
 
   let teacherId: string, password: string | undefined
   try {
     const body = await req.json()
     teacherId = String(body.teacherId ?? '')
-    password = body.password ? String(body.password) : undefined
+    if (body.password !== undefined && (typeof body.password !== 'string' || body.password.length < 12 || body.password.length > 128)) {
+      return json({ error: 'Пароль должен содержать от 12 до 128 символов' }, 400)
+    }
+    password = body.password
   } catch {
     return json({ error: 'Некорректный запрос' }, 400)
   }
@@ -63,12 +66,8 @@ Deno.serve(async (req) => {
   // 2) Service-role client for the privileged profile check + password change.
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
 
-  // 3) Authorize: only an admin may reset a teacher's password. Cross-check the
-  //    caller's role against profiles too (not just the JWT claim) so a stale/
-  //    forged metadata role can't unlock this.
-  const { data: callerProfile } = await admin
-    .from('profiles').select('role').eq('id', userData.user.id).single()
-  const isAdmin = callerRole === 'admin' || (callerProfile as { role?: string } | null)?.role === 'admin'
+  // Only server-managed metadata grants administrator access.
+  const isAdmin = callerRole === 'admin'
   if (!isAdmin) return json({ error: 'Только администратор может сбросить пароль учителя' }, 403)
 
   // 4) Target must be a real teacher/admin profile. Its id IS the Auth user id.
@@ -80,7 +79,7 @@ Deno.serve(async (req) => {
     return json({ error: 'Это не аккаунт учителя' }, 409)
   }
 
-  const newPass = password && password.length >= 4 ? password : genPassword()
+  const newPass = password ?? genPassword()
 
   // 5) Change the real Auth password.
   const { error: updErr } = await admin.auth.admin.updateUserById(teacherId, { password: newPass })

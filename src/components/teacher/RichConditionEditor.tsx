@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '../../lib/sanitizeHtml'
 import { useState, useEffect, useRef } from 'react'
 import Tooltip from '../Tooltip'
 import { createPortal } from 'react-dom'
@@ -131,7 +132,7 @@ export default function RichConditionEditor({
   useEffect(() => {
     if (!editorRef.current) return
     if (value !== lastHtmlRef.current && value !== editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = value
+      editorRef.current.innerHTML = sanitizeHtml(value)
       lastHtmlRef.current = value
     }
   }, [value])
@@ -208,11 +209,11 @@ export default function RichConditionEditor({
       const parsed = parseSmartPaste(text)
       if (parsed) {
         if (editorRef.current) {
-          editorRef.current.innerHTML = parsed.question
-          lastHtmlRef.current = parsed.question
-          onChange(parsed.question)
+          editorRef.current.textContent = parsed.question
+          lastHtmlRef.current = editorRef.current.innerHTML
+          onChange(lastHtmlRef.current)
         }
-        onSmartPaste(parsed.question, parsed.options)
+        onSmartPaste(editorRef.current?.innerHTML ?? sanitizeHtml(parsed.question), parsed.options)
         return
       }
     }

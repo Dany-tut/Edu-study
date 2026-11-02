@@ -1423,7 +1423,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
           {copiedField === 'login' ? <Check size={14} /> : <Copy size={14} />}
         </button>
       </div>
-      <div style={rowStyle}>
+      {password && <div style={rowStyle}>
         <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>{t('Пароль')}</span>
         {phase === 'revealed'
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{password}</span>
@@ -1434,7 +1434,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
         <button type="button" onClick={() => void handleCopy('password', password)} disabled={!password} title={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} aria-label={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} style={{ ...copyButtonStyle, opacity: password ? 1 : 0.4, cursor: password ? 'pointer' : 'default' }}>
           {copiedField === 'password' ? <Check size={14} /> : <Copy size={14} />}
         </button>
-      </div>
+      </div>}
       <div style={{ fontSize: 10, color: 'var(--color-text-3)', textAlign: 'center', marginTop: 2 }}>
         {phase === 'hidden' ? t('● ● ●  нажмите чтобы показать') : t('Нажмите значок, чтобы скопировать поле')}
       </div>
@@ -1927,8 +1927,16 @@ function StudentPanel({
   const [commentErr, setCommentErr] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [resetting, setResetting] = useState(false)
-  const [newPass, setNewPass] = useState<string | null>(null)
+  const [issuedCredential, setIssuedCredential] = useState<{ studentId: string; password: string } | null>(null)
+  const newPass = issuedCredential?.studentId === student.id ? issuedCredential.password : null
+  const setNewPass = (password: string | null) => setIssuedCredential(password ? { studentId: student.id, password } : null)
   const [resetErr, setResetErr] = useState<string | null>(null)
+  useEffect(() => { setNewPass(null); setResetErr(null) }, [student.id])
+  useEffect(() => {
+    if (!newPass) return
+    const timer = setTimeout(() => setNewPass(null), 120_000)
+    return () => clearTimeout(timer)
+  }, [newPass])
   async function resetPassword() {
     setResetting(true)
     setResetErr(null)
@@ -2012,21 +2020,24 @@ function StudentPanel({
       <OverlayScrollArea style={{ flex: 1 }} padding="16px 20px 0" scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Credentials */}
-        {(student.email || student.tempPassword) && (
+        {student.email && (
           <section>
             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
               {t('Доступ в кабинет')}
             </div>
             <CredentialsSpoiler
               login={student.email ?? ''}
-              password={newPass ?? student.tempPassword ?? ''}
+              password={newPass ?? ''}
             />
+            <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '8px 0 0', lineHeight: 1.45 }}>
+              {t(newPass ? 'Скопируйте новый пароль и передайте ученику. Он исчезнет из этой панели через две минуты.' : 'Пароль ученика не хранится. При необходимости выдайте новый.')}
+            </p>
             <button
               onClick={resetPassword}
               disabled={resetting}
               style={{ ...btn('S', 'secondary'), marginTop: 8, width: '100%' }}
             >
-              {resetting ? t('Сбрасываем…') : newPass ? `${t('Новый пароль:')} ${newPass}` : t('Сбросить пароль')}
+              {resetting ? t('Сбрасываем…') : t('Сбросить пароль')}
             </button>
             {resetErr && (
               <Alert tone="danger" text={resetErr} style={{ marginTop: 8 }} />
@@ -2535,7 +2546,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
           person: {
             name: s.name, phone: s.phone, telegramLink: s.telegramLink, parentContact: s.parentContact,
             desiredScore: s.desiredScore, paymentAmount: s.paymentAmount,
-            email: s.email, tempPassword: s.tempPassword, authUserId: s.authUserId, personId: s.personId,
+            email: s.email, authUserId: s.authUserId, personId: s.personId,
           },
           subjects: new Set(), registered: !!s.authUserId,
         }
@@ -2547,7 +2558,6 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
         e.registered = true
         e.person.authUserId = s.authUserId
         if (s.email) e.person.email = s.email
-        if (s.tempPassword) e.person.tempPassword = s.tempPassword
       }
     }
     return [...map.values()].map(e => ({ key: e.key, person: e.person, subjects: [...e.subjects], registered: e.registered }))
@@ -2940,7 +2950,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
               onAddToGroup={regularGroups.length > 0 ? () => setAddToGroupForStudent(true) : undefined}
               onResetPassword={async () => {
                 // Real password reset: the Edge Function changes the actual Supabase
-                // Auth password (needs service_role) and mirrors it into temp_password.
+                // Auth password and returns it once without persistence.
                 const { data, error } = await supabase.functions.invoke('reset-student-password', {
                   body: { studentId: activeStudentId },
                 })
@@ -3016,7 +3026,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
               name: activeStudent.name, phone: activeStudent.phone, telegramLink: activeStudent.telegramLink,
               parentContact: activeStudent.parentContact, desiredScore: activeStudent.desiredScore,
               paymentAmount: activeStudent.paymentAmount, email: activeStudent.email,
-              tempPassword: activeStudent.tempPassword, authUserId: activeStudent.authUserId,
+              authUserId: activeStudent.authUserId,
               personId: activeStudent.personId,
             })}
             onClose={() => setAddToGroupForStudent(false)}

@@ -13,7 +13,7 @@ import { levelOptionsForSubject } from '../../lib/courseLevels'
 // Identity a group-enrollment reuses. Any object carrying these fields works.
 export type PersonLike = Pick<
   Student,
-  'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'
+  'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'authUserId' | 'personId'
 >
 
 const overlay = {
