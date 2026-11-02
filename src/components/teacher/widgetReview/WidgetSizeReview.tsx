@@ -7,7 +7,7 @@ import WidgetBoundary from '../WidgetBoundary'
 import { reviewLimits as limits, reviewAllowed as allowed, reviewPresets as presets, type Grid, type Size } from '../../../lib/widgetReviewSizing'
 import './widgetSizeReview.css'
 
-const widgets = WIDGET_REGISTRY.filter(widget => !widget.legacy)
+const currentWidgets = WIDGET_REGISTRY.filter(widget => !widget.legacy)
 const screens = [[1440, 900], [1280, 720], [1920, 1080]] as const
 function Preview({ def, size, grid }: { def: WidgetDef; size: Size; grid: Grid }) {
   const root = useRef<HTMLDivElement>(null)
@@ -38,7 +38,8 @@ function Preview({ def, size, grid }: { def: WidgetDef; size: Size; grid: Grid }
 }
 
 /** Review the production components and bounds on the same discrete desk grid. */
-export default function WidgetSizeReview() {
+export default function WidgetSizeReview({ hiddenWidgets = [] }: { hiddenWidgets?: string[] }) {
+  const widgets = currentWidgets.filter(widget => !hiddenWidgets.includes(widget.type))
   const root = useRef<HTMLDivElement>(null)
   const pane = useRef<HTMLElement>(null)
   useScrollFades(root, true, '.size-review-scroll, .size-review-viewport')
@@ -47,6 +48,7 @@ export default function WidgetSizeReview() {
   const [all, setAll] = useState(true)
   const [selected, setSelected] = useState<Size | null>(null)
   const def = widgets.find(widget => widget.type === id) ?? widgets[0]
+  if (!def) return <div ref={root} className="widget-size-review"><header className="size-review-top"><h1>Нет доступных виджетов</h1><a href="/#/teacher">Вернуться в приложение</a></header></div>
   const [screenWidth, screenHeight] = screens[screen]
   const width = screenWidth - 2 * DESK_INSET
   const columns = deskColumns(width, 8)
@@ -56,13 +58,13 @@ export default function WidgetSizeReview() {
   const size = selected && allowed(def, grid, selected) ? selected : presets(def, grid)[0]
   const chooseWidget = (value: string) => { setId(value); setSelected(null); setAll(false); pane.current?.scrollTo({ top: 0 }) }
   return <div ref={root} className="widget-size-review">
-    <header className="size-review-top"><div><h1>Искра · сетка размеров</h1><p>19 текущих виджетов · настоящие компоненты и данные вашей сессии</p></div><a href="/#/teacher">Вернуться в приложение</a></header>
+    <header className="size-review-top"><div><h1>Искра · сетка размеров</h1><p>{widgets.length} текущих виджетов · настоящие компоненты и данные вашей сессии</p></div><a href="/#/teacher">Вернуться в приложение</a></header>
     <div className="size-review-layout">
       <nav className="size-review-nav size-review-scroll" aria-label="Выбор виджета">
         {widgets.map(widget => <button key={widget.type} aria-pressed={def.type === widget.type} onClick={() => chooseWidget(widget.type)}>{widget.label}</button>)}
       </nav>
       <main ref={pane} className="size-review-main size-review-scroll">
-        <div className="size-review-controls"><label>Экран <select value={screen} onChange={event => { setScreen(Number(event.target.value)); setSelected(null) }}>{screens.map(([w, h], index) => <option key={index} value={index}>{w} × {h}</option>)}</select></label><button aria-pressed={all} onClick={() => setAll(!all)}>{all ? 'Показать выбранный' : 'Показать все 19 виджетов'}</button></div>
+        <div className="size-review-controls"><label>Экран <select value={screen} onChange={event => { setScreen(Number(event.target.value)); setSelected(null) }}>{screens.map(([w, h], index) => <option key={index} value={index}>{w} × {h}</option>)}</select></label><button aria-pressed={all} onClick={() => setAll(!all)}>{all ? 'Показать выбранный' : `Показать все ${widgets.length} виджетов`}</button></div>
         <h2>{def.label}: все допустимые размеры</h2>
         <p>Ширина × высота в ячейках. Минимум: <b>{bounds.minW}×{bounds.minH}</b>. Сетка экрана: {grid.columns}×{grid.rows}. Нажмите размер — ниже появится виджет.</p>
         <div className="size-review-viewport"><div className="size-review-matrix" style={{ gridTemplateColumns: `44px repeat(${grid.columns}, minmax(38px, 1fr))` }}>

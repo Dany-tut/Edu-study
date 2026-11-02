@@ -126,8 +126,8 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     setTimeout(() => { wheelCooldown.current = false }, 450)
   }, [editMode, config.desks, activeDesk.id, setActiveDesk])
 
-  if (new URLSearchParams(window.location.search).get('widget-sizes') === '1') {
-    return <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}><WidgetSizeReview /></Suspense>
+  if (new URLSearchParams(window.location.search).get('widget-sizes') === '1' && accessLoaded && canPage('home')) {
+    return <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}><WidgetSizeReview hiddenWidgets={hiddenWidgets} /></Suspense>
   }
 
   return (
