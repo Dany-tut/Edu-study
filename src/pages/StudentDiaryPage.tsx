@@ -11,6 +11,7 @@ import {
 } from '../components/icons/appIcons'
 import { TaskliIcon, type TaskliIconName } from '../components/icons/TaskliIcon'
 import CoursesPage from './CoursesPage'
+import StudentWorkJournal from '../components/diary/StudentWorkJournal'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useTheme } from '../store/themeStore'
@@ -35,7 +36,7 @@ import { wallDateTimeInTz } from '../lib/teacherTz'
 import { useT, useLang } from '../lib/i18n'
 import '../components/diary/studentDiary.css'
 
-export type DiaryTab = 'work' | 'lessons'
+export type DiaryTab = 'journal' | 'work' | 'lessons'
 const tone = (status: StudentDiaryEntry['status']) => {
   const p = trackPalette(status)
   return { '--ds-tone': p.text, '--ds-tone-bg': p.bg, '--ds-tone-line': p.border } as CSSProperties
@@ -216,8 +217,9 @@ export default function StudentDiaryPage({
     weekday: 'long',
     timeZone: tz,
   }).format(now)
-  function open(entry: StudentDiaryEntry) {
-    if (entry.lesson.kind === 'test') openLesson(entry.lesson.id)
+  function open(entry: StudentDiaryEntry, hard = false) {
+    if (hard) openHomework(entry.id, 'hard')
+    else if (entry.lesson.kind === 'test') openLesson(entry.lesson.id)
     else openHomework(entry.id)
   }
   const empty = (label: string) => (
@@ -287,13 +289,17 @@ export default function StudentDiaryPage({
 
   return (
     <div className="student-diary">
-      <h1 className="sr-only">{t('Дневник')}</h1>
+      <h1 className={tab === 'journal' ? 'ds-journal-title' : 'sr-only'}>{t(tab === 'journal' ? 'Мой журнал' : 'Дневник')}</h1>
       <div className="ds-page-heading">
         <p>{dateLabel}</p>
       </div>
+      {tab !== 'lessons' ? <nav className="ds-diary-navigation" aria-label={t('Разделы дневника')}>
+        <button type="button" aria-pressed={tab === 'work'} onClick={() => setTab('work')}>{t('Задания')}</button>
+        <button type="button" aria-pressed={tab === 'journal'} onClick={() => setTab('journal')}>{t('Журнал работ')}</button>
+      </nav> : null}
       {tab === 'lessons' ? (
-        <button type="button" className="ds-secondary" onClick={() => setTab('work')}>
-          {t('Лента')}<ChevronRight size={15} />
+        <button type="button" className="ds-secondary" onClick={() => setTab('journal')}>
+          {t('Дневник')}<ChevronRight size={15} />
         </button>
       ) : null}
       {tab !== 'lessons' ? (
@@ -351,7 +357,9 @@ export default function StudentDiaryPage({
           </button>
         </div>
       ) : null}
-      {tab === 'lessons' ? (
+      {tab === 'journal' ? (
+        <StudentWorkJournal key={diaryOwner ?? 'guest'} entries={scoped} pending={pending} onOpen={open} />
+      ) : tab === 'lessons' ? (
         <CoursesPage />
       ) : (
         <>
