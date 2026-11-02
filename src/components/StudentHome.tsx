@@ -79,7 +79,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
       {error&&<button type="button" onClick={reload}>{t('Повторить')}</button>}</article>},
   ]
   return <div className="live-student-home" data-testid="live-student-home">
-    <SeasonBackdrop/><div className="lh-season-decor" aria-hidden><SeasonHero/></div><SeasonCornerPumpkin/>
+    <SeasonBackdrop/><div className="lh-season-decor" aria-hidden><SeasonHero portalDecor={false}/></div><SeasonCornerPumpkin/>
     <header className="lh-header">
       {desktop?<Sidebar/>:<><button type="button" className="lh-profile" aria-label={t('Профиль')} onClick={()=>dashboard.setActivePage('profile')}><User size={18}/></button><strong>{t('Главная')}</strong><MobileBell/></>}
 <div className="lh-assignments">{assignments}</div><button type="button" className="lh-appearance" aria-label={t('Оформление главной')} onClick={()=>setAppearance(true)}><Ghost size={18}/></button>
