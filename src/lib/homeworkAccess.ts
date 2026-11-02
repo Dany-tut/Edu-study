@@ -19,5 +19,5 @@ export function homeworkNeedsVideo(lesson: Lesson, ref = lesson.id): boolean {
   } catch { /* no saved draft */ }
   const source = parseVideoSource(lesson.videoUrl)
   // An external iframe cannot report coverage. Never trap the student behind it.
-  return !!source && source.kind !== 'iframe' && source.kind !== 'gdrive' && source.kind !== 'audio'
+  return !!source && source.kind !== 'iframe' && source.kind !== 'audio'
 }
