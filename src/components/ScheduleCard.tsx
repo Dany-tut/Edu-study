@@ -212,7 +212,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5" style={{ marginBottom: 4 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: (isEmphasized || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {tc(lesson.subject)}
+                        {tc(lesson.subject)}{mobile ? ` · #${lesson.lessonNumber + 1}` : ''}
                       </span>
                       {st.phase !== 'today' && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
                       {isMissed && (
@@ -234,14 +234,14 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                     </div>
                     <FadeText className="schedule-lesson-title" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-                      {`${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
+                      {mobile ? tc(lesson.lessonTitle) : `${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
                     </FadeText>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
-                    <div style={{ minWidth: 54, textAlign: 'right' }}>
+                    {lesson.time && <div style={{ minWidth: 54, textAlign: 'right' }}>
                       <span style={{ fontSize: 18, fontWeight: 600, color: isMissed ? pal.text : 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums', textDecoration: isCancelled ? 'line-through' : undefined }}>{lesson.time}</span>
                       {lesson.endTime && <p style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('до')} {lesson.endTime}</p>}
-                    </div>
+                    </div>}
                     <div aria-hidden="true" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {!isCancelled && (st.phase === 'available' ? <BookOpen size={18} color={pal.text} /> : <LoopSvg
                         name="Video"

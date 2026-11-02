@@ -598,3 +598,31 @@ console.log('PASS: stable calendar links, distinct same-title events and failed-
   assert.equal(row.startsAt, undefined)
 }
 console.log('PASS: dated material without a time is visible in the calendar')
+
+// A failed course calendar projection must not claim that dated materials are absent.
+{
+  query = request => request.table === 'courses'
+    ? { data: null, error: { message: 'course calendar projection disconnected' } }
+    : { data: [], error: null }
+  await assert.rejects(m.fetchScheduleDays(group, student))
+}
+
+// The reported lesson must resolve to the same November 2 date in track and calendar.
+{
+  const course = { id: 'c6177343-59bf-4a34-a441-c1259f4ac248', short_id: '1qwsds', title: 'Тыквенный спас', subject: 'Химия', student_ids: [student], group_ids: [],
+    course_modules: [{ position: 1, label: 'Уроки', lessons: [{ id: '12af15db-21cd-42b6-aa06-ded9f7e789f3', short_id: '1qwsds-5', title: 'Задания №31', lesson_number: 5, scheduled_date: '02.11.2026', scheduled_time: null }] }] }
+  query = request => ({ data: request.table === 'courses' ? [course] : [], error: null })
+  for (const tz of ['Europe/Moscow', 'Asia/Bangkok', 'America/New_York']) {
+    m.useStudentTz.setState({ tz })
+    const days = await m.fetchScheduleDays(group, student, { from: '2026-11-01', to: '2026-11-03' })
+    const item = days.find(day => day.date === '2026-11-02').lessons[0]
+    const node = { id: '1qwsds-5', dbId: item.lessonId, title: item.lessonTitle, number: 5, scheduledDate: '02.11.2026', status: 'current' }
+    const subjects = [{ id: '1qwsds', name: 'Тыквенный спас', modules: [{ id: 1, label: 'Уроки', lessons: [node] }] }]
+    m.useStudentData.setState({ subjects, scheduleDays: days })
+    assert.equal(m.resolveScheduleLesson(item, subjects).lesson.id, node.id)
+    assert.equal(m.lessonScheduleDate(node, 'long'), '2 ноября')
+    assert.equal(m.getLessonScheduleState(node, new Date('2026-11-02T12:00:00Z')).isToday, true)
+    assert.equal(m.getTrackLessonStatus(node, new Date('2026-11-02T12:00:00Z')), 'today')
+  }
+}
+console.log('PASS: reported November 2 lesson shares its calendar and track date in Moscow, Bangkok and New York')
