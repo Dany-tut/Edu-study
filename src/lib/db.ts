@@ -337,12 +337,19 @@ export async function upsertLessonProgress(
   }
 }
 
-async function hydrateAttemptHistory(studentIds: string[], progress: ProgressMap) {
+async function readAttemptHistory(studentIds: string[]) {
   try {
-  const [{ data, error }, totals] = await Promise.all([supabase.from('homework_attempts')
+    return await Promise.all([supabase.from('homework_attempts')
     .select('id,lesson_ref,number,status,score,passing_score,submitted_at,review_comment')
     .in('student_id', studentIds).order('number', { ascending: false }),
     supabase.from('homework_attempt_totals').select('lesson_ref,best_score,attempt_count').in('student_id',studentIds)])
+  } catch (error) { reportDbError('homework_attempts', {message: String(error)}); return null }
+}
+
+async function hydrateAttemptHistory(studentIds: string[], progress: ProgressMap, pending = readAttemptHistory(studentIds)) {
+  const result = await pending
+  if (!result) return
+  const [{ data, error }, totals] = result
   if (error) { reportDbError('homework_attempts', error); return }
   for (const [ref, p] of Object.entries(progress)) {
     if (!p.result) continue
@@ -355,7 +362,6 @@ async function hydrateAttemptHistory(studentIds: string[], progress: ProgressMap
     p.result.bestPercent = finals.length ? Math.max(...finals) : null
     p.result.passed = p.result.bestPercent !== null && p.result.bestPercent >= p.result.passingScore
   }
-  } catch (error) { reportDbError('homework_attempts', {message: String(error)}) }
 }
 
 // ─── Course structure from Supabase ──────────────────────────────────────────
@@ -570,31 +576,6 @@ export async function fetchStudentTrack(
     }
   }
 
-  // Fetch only grading metadata, never the full task/voice/photo attachments.
-  // The lightweight RPC deliberately omits attachments, but a score alone cannot
-  // distinguish a finished auto-test from work awaiting its teacher.
-  try {
-    const { data, error } = await supabase.from('lesson_progress')
-      .select('lesson_ref, status, score, snapshot:attachments->v, answer_rows:attachments->rows, review_required:attachments->reviewRequired, passing_score:attachments->recommendationScore, attempt_id:attachments->attemptId, testly_key:attachments->testlyKey, draft:attachments->draft, reviewed_at:attachments->reviewedAt, self_assessment:attachments->selfAssessment, video:attachments->video')
-      .in('student_id', scope.studentIds)
-    if (error) reportDbError('fetchStudentTrack.grading', error)
-    else for (const row of data ?? []) {
-      const p = progress[row.lesson_ref] ?? (row.video ? (progress[row.lesson_ref] = { status: row.status, score: row.score, comment: '', reviewComment: '', reviewAttachments: emptyAtt(), hardSubmitted: false, hardTaskBlocks: [], hardReviewBlocks: [] }) : undefined)
-      if (!p || row.lesson_ref.endsWith('-hard')) continue
-      if (row.video) p.watch = row.video as unknown as import('./videoProgress').VideoWatch
-      p.result = homeworkResult({ v: row.snapshot, rows: row.answer_rows,
-        reviewRequired: row.review_required, recommendationScore: row.passing_score,
-        attemptId: row.attempt_id, testlyKey: row.testly_key, draft: row.draft, reviewedAt: row.reviewed_at,
-        selfAssessment: row.self_assessment }, row.score, row.status)
-      p.status = row.status
-      p.score = row.score
-    }
-  } catch (error) {
-    reportDbError('fetchStudentTrack.grading', { message: String(error) })
-  }
-
-  await hydrateAttemptHistory(scope.studentIds, progress)
-
   const modes = payload.modes ?? {}
   const positions = payload.pos ?? {}
   const ownerFor = (studentIds: string[] | null, groupIds: string[] | null): string | undefined =>
@@ -650,7 +631,35 @@ export async function fetchStudentTrack(
     }
   })
 
-  return { scope, subjects: orderCourses(applyLessonParticipation(subjects, await fetchLessonParticipation(subjects)), positions), progress: Array.isArray(payload.progress) ? progress : null }
+  const participationP = fetchLessonParticipation(subjects)
+  const historyP = readAttemptHistory(scope.studentIds)
+
+  // Fetch only grading metadata, never the full task/voice/photo attachments.
+  // The lightweight RPC deliberately omits attachments, but a score alone cannot
+  // distinguish a finished auto-test from work awaiting its teacher.
+  try {
+    const { data, error } = await supabase.from('lesson_progress')
+      .select('lesson_ref, status, score, snapshot:attachments->v, answer_rows:attachments->rows, review_required:attachments->reviewRequired, passing_score:attachments->recommendationScore, attempt_id:attachments->attemptId, testly_key:attachments->testlyKey, draft:attachments->draft, reviewed_at:attachments->reviewedAt, self_assessment:attachments->selfAssessment, video:attachments->video')
+      .in('student_id', scope.studentIds)
+    if (error) reportDbError('fetchStudentTrack.grading', error)
+    else for (const row of data ?? []) {
+      const p = progress[row.lesson_ref] ?? (row.video ? (progress[row.lesson_ref] = { status: row.status, score: row.score, comment: '', reviewComment: '', reviewAttachments: emptyAtt(), hardSubmitted: false, hardTaskBlocks: [], hardReviewBlocks: [] }) : undefined)
+      if (!p || row.lesson_ref.endsWith('-hard')) continue
+      if (row.video) p.watch = row.video as unknown as import('./videoProgress').VideoWatch
+      p.result = homeworkResult({ v: row.snapshot, rows: row.answer_rows,
+        reviewRequired: row.review_required, recommendationScore: row.passing_score,
+        attemptId: row.attempt_id, testlyKey: row.testly_key, draft: row.draft, reviewedAt: row.reviewed_at,
+        selfAssessment: row.self_assessment }, row.score, row.status)
+      p.status = row.status
+      p.score = row.score
+    }
+  } catch (error) {
+    reportDbError('fetchStudentTrack.grading', { message: String(error) })
+  }
+
+  await hydrateAttemptHistory(scope.studentIds, progress, historyP)
+
+  return { scope, subjects: orderCourses(applyLessonParticipation(subjects, await participationP), positions), progress: Array.isArray(payload.progress) ? progress : null }
 }
 
 /**
