@@ -33,7 +33,7 @@ function WorkDue({ entry, today }: { entry: StudentDiaryEntry; today: string }) 
 
 /** Real student home: every work, course and schedule row comes from the session's stores. */
 export default function StudentHome({ assignments }: { assignments?: ReactNode }) {
-  const t = useT(), desktop = useIsDesktop()
+  const t = useT(), desktop = useIsDesktop(), lang = useLang(s=>s.lang)
   const subjects = useStudentData(s=>s.subjects), progress = useStudentData(s=>s.progress)
   const {metadata,pending,error,reload} = useStudentDiaryMetadata()
   const now = useNow(60_000), tz = useStudentTz(s=>s.tz)
@@ -74,6 +74,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
       title={status ?? (next?tc(next.lesson.title):t('Всё сдано'))}
       meta={ready&&next?`${tc(next.course.name)} · ${t('Модуль')} ${next.moduleOrder+1}`:!status?t('Преподаватель откроет новые задания'):undefined}
       due={ready&&next?<WorkDue entry={next} today={today}/>:undefined}
+      dueShort={ready&&next?(next.due?new Intl.DateTimeFormat(lang==='en'?'en-GB':'ru-RU',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(next.due+'T12:00:00Z')):t('Без срока')):undefined}
       overdue={!!next&&diaryOverdue(next,today)}
       action={error?t('Повторить'):ready&&next?t(next.status==='returned'?'Доработать ДЗ':next.lesson.kind==='test'&&!next.extraId?'Пройти тест':'Открыть ДЗ'):ready&&work.review.length?t('На проверке'):undefined}
       secondary={ready&&!next&&work.review.length>0}
