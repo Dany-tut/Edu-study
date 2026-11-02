@@ -29,7 +29,7 @@ const WidgetLibraryModal = lazy(() => retryImport(() => import('../../components
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore'
 import { useDeskStore } from '../../store/deskStore'
-import { useDeskLayouts } from '../../lib/useDeskLayouts'
+import { type LayoutItem, useDeskLayouts } from '../../lib/useDeskLayouts'
 import { useTeacherAccess, TEACHER_TABS } from '../../lib/teacherAccess'
 import { useTeacherTz } from '../../lib/teacherTz'
 import { useT } from '../../lib/i18n'
@@ -53,6 +53,8 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     setActiveDesk, addDesk, resetDesk,
     updateDeskItems, addWidget, removeWidget,
   } = useDeskLayouts()
+
+  const [widgetGrid, setWidgetGrid] = useState<{ deskId: string; width: number; items: LayoutItem[] } | null>(null)
 
   // Teacher is identified by their Supabase auth user id (matches notifications.recipient_id).
   const [teacherId, setTeacherId] = useState<string | null>(null)
@@ -152,7 +154,8 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
           onClose={() => setShowWidgetLibrary(false)}
           onAdd={item => addWidget(activeDesk.id, item)}
           existingTypes={activeDesk.items.map(i => i.type)}
-          existingItems={activeDesk.items}
+          existingItems={widgetGrid?.deskId === activeDesk.id ? widgetGrid.items : activeDesk.items}
+          gridWidth={widgetGrid?.deskId === activeDesk.id ? widgetGrid.width : undefined}
           hiddenWidgets={hiddenWidgets}
         />
       </Suspense>)}
@@ -210,6 +213,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
           <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <DeskCanvas
               desk={activeDesk}
+              onGridMeasure={setWidgetGrid}
               onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
               onAddWidget={() => setShowWidgetLibrary(true)}
               onRemoveWidget={id => removeWidget(activeDesk.id, id)}
