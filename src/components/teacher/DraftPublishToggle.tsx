@@ -7,6 +7,7 @@ import { useT } from '../../lib/i18n'
 // переводит в другое состояние. Активный черновик — жёлтый, опубликован —
 // фиолетовый; неактивная половина — приглушённая подпись.
 //
+// В черновике справа показано действие «Опубликовать», после записи — статус.
 // Подписи лежат поверх невидимой жирной копии себя (как в SegmentFilter):
 // иначе смена жирности при переключении меняла бы ширину и ряд дёргался.
 export default function DraftPublishToggle({ published, onPublish, onDraft, saving = false, style, publishLabel, publishedLabel }: {
@@ -61,7 +62,7 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
         {saving
           ? <Loader2 size={14} strokeWidth={2} style={{ animation: 'spin 0.9s linear infinite' }} />
           : <Send size={14} strokeWidth={2} />}
-        {label(published ? (publishedLabel ?? t('Опубликован')) : (publishLabel ?? t('Опубликован')))}
+        {label(published ? (publishedLabel ?? t('Опубликован')) : (publishLabel ?? t('Опубликовать')))}
       </button>
     </div>
   )
