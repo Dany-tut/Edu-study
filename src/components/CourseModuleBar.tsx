@@ -212,10 +212,12 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
 
 type ModuleId = Subject['modules'][number]['id']
 
-export function ModuleChain({ subject, activeId, onSelect }: {
+export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDebts }: {
   subject: Subject
   activeId: ModuleId | undefined
   onSelect: (id: ModuleId) => void
+  debtCounts?: Readonly<Record<number, number>>
+  onOpenDebts?: (id: ModuleId) => void
 }) {
   const t = useT()
   const { tc } = useTc()
@@ -232,6 +234,8 @@ export function ModuleChain({ subject, activeId, onSelect }: {
         const isActive = mod.id === activeId
         const name = tc(mod.label) || t('Уроки')
         const num = i + 1
+        const debts = debtCounts?.[mod.id] ?? 0
+        const debtBadge = debts > 0 && <button type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`} onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)} style={{ border: 0, borderRadius: 999, minWidth: 20, height: 20, padding: '0 5px', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700, cursor: 'pointer', position: 'relative', zIndex: 1 }}>{debts}</button>
 
         if (isActive) {
           return (
@@ -255,6 +259,7 @@ export function ModuleChain({ subject, activeId, onSelect }: {
               {pct > 0 && (
                 <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
               )}
+              {debtBadge}
             </div>
           )
         }
@@ -264,10 +269,11 @@ export function ModuleChain({ subject, activeId, onSelect }: {
           : pct > 0 && !isDone ? `${num} · ${name} · ${pct}%` : `${num} · ${name}`
 
         return (
-          <Tooltip key={mod.id} label={label}>
+          <div key={mod.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}><Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
             <motion.button
               type="button"
               data-module-tab={mod.id}
+              aria-label={label}
               disabled={isLocked}
               whileHover={isLocked ? undefined : { scale: 1.08 }}
               whileTap={isLocked ? undefined : { scale: 0.94 }}
@@ -287,7 +293,7 @@ export function ModuleChain({ subject, activeId, onSelect }: {
                 ? <Check size={14} strokeWidth={2.8} />
                 : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
             </motion.button>
-          </Tooltip>
+          </Tooltip>{debtBadge}</div>
         )
       })}
     </div>

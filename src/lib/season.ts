@@ -108,8 +108,12 @@ let started = false
  *  тема включена с этим вариантом без строки в базе (проверить вёрстку всех трёх).
  *  localStorage['season.devAsk'] = '1' — без предпросмотра, как у ученика: с модалкой. */
 function devSeason(): Season | null {
-  if (!import.meta.env.DEV) return null
-  const v = ls.get('season.dev') as SeasonVariant | null
+  const designPreview = window.location.pathname.replace(/\/+$/, '') === '/student-track-stand'
+  if (!import.meta.env.DEV && !designPreview) return null
+  // The public design stand uses fixtures even after the real season ends.
+  // It must not enable a holiday for the ordinary student home.
+  const requested = new URLSearchParams(window.location.search).get('season')
+  const v = designPreview ? (isVariant(requested) ? requested : 'candy') : ls.get('season.dev') as SeasonVariant | null
   if (!isVariant(v)) return null
   return { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: v, parts: ALL_ON, ask: true }
 }
@@ -126,16 +130,16 @@ function start() {
 const subscribe = (f: () => void) => { start(); subs.add(f); return () => { subs.delete(f) } }
 
 /** Админ: показать тему у себя до начала (или после конца) сезона. */
-export function setSeasonPreview(on: boolean) {
-  ls.set(PREVIEW_KEY, on ? '1' : null)
+export function setSeasonPreview(on: boolean, persist = true) {
+  if (persist) ls.set(PREVIEW_KEY, on ? '1' : null)
   state = { ...state, preview: on }
   emit()
 }
 
 /** Свой выбор: вариант из окна (ученик) или из админки (админ, только у себя), либо 'off'. */
-export function setSeasonChoice(choice: SeasonVariant | 'off') {
-  if (state.season) ls.set(choiceKey(state.season), choice)
-  ls.set(LEGACY_OFF_KEY, null)
+export function setSeasonChoice(choice: SeasonVariant | 'off', persist = true) {
+  if (persist && state.season) ls.set(choiceKey(state.season), choice)
+  if (persist) ls.set(LEGACY_OFF_KEY, null)
   state = { ...state, choice, picker: false }
   emit()
 }

@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MotionConfig } from 'framer-motion'
 import './index.css'
@@ -133,6 +133,9 @@ guardStylesheet()
   else setTimeout(warm, 2000)
 })()
 
+const StudentTrackStand = window.location.pathname.replace(/\/+$/, '') === '/student-track-stand'
+  ? lazy(() => import('./components/studentTrackStand/StudentTrackStand')) : null
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* Системная настройка «уменьшить движение» — для всего framer-motion
@@ -140,7 +143,7 @@ createRoot(document.getElementById('root')!).render(
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
       <ErrorBoundary>
-        <App />
+        {StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
       </ErrorBoundary>
     </MotionConfig>
   </StrictMode>,
