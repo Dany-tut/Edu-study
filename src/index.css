@@ -550,6 +550,10 @@ textarea:not([style*="background: transparent"]):not([style*="background: none"]
 
 /* Dashboard layout — fills the screen with no scroll when the viewport is tall
    enough, but falls back to scrolling instead of clipping on short windows. */
+/* Teacher pages own their scroll panes; a document scrollbar gutter would
+   add an extra strip to the right of every otherwise symmetric desk. */
+html:has(.teacher-dashboard-root) { scrollbar-gutter: auto; }
+
 .dashboard-root {
   height: 100vh;
   min-height: 100vh;

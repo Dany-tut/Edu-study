@@ -10,20 +10,28 @@ export type WidgetSizeLimits = {
 
 export const DESK_COLUMNS = 12
 export const DESK_GAP = 8
+export const DESK_INSET = 32
+export const DESK_TOP = 108
 
 /** All widgets share cells; a 1×1 card is readable even on a small desktop. */
-export function deskColumns(width: number): number {
-  return Math.max(1, Math.min(DESK_COLUMNS, Math.floor((width + DESK_GAP) / (156 + DESK_GAP))))
+export function deskColumns(width: number, preferred?: number): number {
+  const available = Math.max(1, Math.min(DESK_COLUMNS, Math.floor((width + DESK_GAP) / (156 + DESK_GAP))))
+  // Built-in desks share an eight-column template; narrow desktops use four.
+  return preferred === 8 ? (available >= 8 ? 8 : Math.min(4, available)) : available
 }
-export function deskRowHeight(_viewportHeight: number): number { return 116 }
+export function deskRowHeight(viewportHeight: number): number {
+  // Six whole rows fill a normal desktop with the same side and bottom inset.
+  // Short windows scroll rather than reducing cards below their readable size.
+  return Math.max(116, (viewportHeight - DESK_TOP - DESK_INSET - 5 * DESK_GAP) / 6)
+}
 /** Migration uses a fixed baseline, so changing window height cannot resize
  * an untouched saved desk before the teacher edits it. */
 export function legacyDeskRowHeight(_viewportHeight: number): number { return 64 }
 
 /** Registered types use today's rules, never stale limits from a saved desk. */
-export function widgetBounds(item: LayoutItem, definition: WidgetSizeLimits | undefined, width: number, rowHeight: number) {
+export function widgetBounds(item: LayoutItem, definition: WidgetSizeLimits | undefined, width: number, rowHeight: number, preferredColumns?: number) {
   const limits = definition ?? item
-  const columns = deskColumns(width)
+  const columns = deskColumns(width, preferredColumns)
   const columnPitch = (Math.max(1, width) + DESK_GAP) / columns
   const minW = Math.min(columns, Math.max(1, Math.ceil(limits.minW ?? 1), Math.ceil(((definition?.minWidthPx ?? 0) + DESK_GAP) / columnPitch)))
   const minH = Math.max(1, Math.ceil(limits.minH ?? 1), Math.ceil(((definition?.minHeightPx ?? 0) + DESK_GAP) / (rowHeight + DESK_GAP)))
@@ -31,9 +39,9 @@ export function widgetBounds(item: LayoutItem, definition: WidgetSizeLimits | un
   return { minW, minH, maxH }
 }
 
-export function clampDeskWidget(item: LayoutItem, definition: WidgetSizeLimits | undefined, width: number, rowHeight: number, legacyRowHeight = 64): LayoutItem {
-  const limits = widgetBounds(item, definition, width, rowHeight)
-  const columns = deskColumns(width)
+export function clampDeskWidget(item: LayoutItem, definition: WidgetSizeLimits | undefined, width: number, rowHeight: number, legacyRowHeight = 64, preferredColumns?: number): LayoutItem {
+  const limits = widgetBounds(item, definition, width, rowHeight, preferredColumns)
+  const columns = deskColumns(width, preferredColumns)
   // Normalize the old 12-column/fractional layout once, preserving its physical
   // proportions as closely as whole cells allow. No fractional sizes survive.
   const current = item.gridVersion === 2 ? item : {
@@ -65,12 +73,12 @@ export function compactDeskWidgets(items: LayoutItem[]): LayoutItem[] {
 }
 
 /** Pointer movement selects whole cells; it never changes the cell geometry. */
-export function resizeDeskWidget(item: LayoutItem, definition: WidgetSizeLimits | undefined, dx: number, dy: number, width: number, rowHeight: number): LayoutItem {
-  const columnPitch = (width + DESK_GAP) / deskColumns(width)
+export function resizeDeskWidget(item: LayoutItem, definition: WidgetSizeLimits | undefined, dx: number, dy: number, width: number, rowHeight: number, preferredColumns?: number): LayoutItem {
+  const columnPitch = (width + DESK_GAP) / deskColumns(width, preferredColumns)
   return clampDeskWidget({ ...item,
-    w: Math.min(deskColumns(width) - item.x, item.w + Math.round(dx / columnPitch)),
+    w: Math.min(deskColumns(width, preferredColumns) - item.x, item.w + Math.round(dx / columnPitch)),
     h: item.h + Math.round(dy / (rowHeight + DESK_GAP)),
-  }, definition, width, rowHeight)
+  }, definition, width, rowHeight, 64, preferredColumns)
 }
 
 /** The active card keeps its column; collisions only move its neighbours down.
