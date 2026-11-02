@@ -31,15 +31,15 @@ const urgencyLabel = (type: Reminder['type']) =>
   : type === 'check-hw' ? t('На проверке')
   : t('Срочно')
 
-function ReminderRow({ item, done, onAction, showChevron = true, style: styleOverride }: {
-  item: Reminder; done?: boolean; onAction?: () => void; showChevron?: boolean; style?: React.CSSProperties
+function ReminderRow({ item, done, onAction, showChevron = true, withCounter = false, style: styleOverride }: {
+  item: Reminder; done?: boolean; onAction?: () => void; showChevron?: boolean; withCounter?: boolean; style?: React.CSSProperties
 }) {
   const Icon = done ? CheckCircle2 : reminderIcons[item.type]
   const clickable = !done && !!onAction
   const accent = done ? 'var(--color-green-text)' : reminderAccent(item)
   return (
     <motion.div
-      className={`teacher-reminder-row ww-reminder-row${clickable && showChevron ? ' teacher-reminder-with-chevron' : ''}`} data-reminder-row={item.id}
+      className={`teacher-reminder-row ww-reminder-row${withCounter ? ' ww-reminder-front' : ''}${clickable && showChevron ? ' teacher-reminder-with-chevron' : ''}`} data-reminder-row={item.id}
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : undefined}
       onClick={clickable ? onAction : undefined}
@@ -191,7 +191,7 @@ const ReminderGroupStack = memo(function ReminderGroupStack({ items, getAction, 
           </span>
         </button>
         <div style={{ position: 'relative' }}>
-          <ReminderRow item={front} showChevron={false} done={isDone(front)} onAction={expanded ? getAction(front) : toggle} style={{ paddingRight: 70, background: 'rgba(var(--glass-rgb), 0.80)' }} />
+          <ReminderRow item={front} withCounter showChevron={false} done={isDone(front)} onAction={expanded ? getAction(front) : toggle} style={{ background: 'rgba(var(--glass-rgb), 0.80)' }} />
           <div style={{ position: 'absolute', inset: 0, borderRadius: 16, pointerEvents: 'none', background: `radial-gradient(70% 46% at 50% 100%, color-mix(in srgb, ${accent} 13%, transparent), transparent 70%)` }} />
           <div aria-label={summary} style={{ position: 'absolute', top: '50%', right: 14, transform: 'translateY(-50%)', minWidth: 26, height: 26, padding: '0 8px', borderRadius: 13, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, lineHeight: 1, pointerEvents: 'none', boxShadow: `0 4px 12px color-mix(in srgb, ${accent} 50%, transparent)` }}>{count}</div>
         </div>
