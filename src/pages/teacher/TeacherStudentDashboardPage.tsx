@@ -28,6 +28,7 @@ import BackCircle from '../../components/BackCircle'
 import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 import './studentProfile.css'
 import { useScrollFades } from '../../lib/useScrollFades'
+import { useIsDesktop } from '../../lib/useIsDesktop'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -319,6 +320,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
   const t = useT()
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
+  const isDesktop = useIsDesktop()
   const selectedStudentId = student?.id
   const example = exampleCourses !== undefined
   const cachedTrainerStats = useTeacher(s => s.studentTrainerStats)
@@ -467,7 +469,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
   return (
     <>
       {/* ── Docked pill row (fixed top, appears on scroll) ─────────────── */}
-      {!inDrawer && <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+      {!inDrawer && <div className="docked-pills-row student-profile-dock">
         <AnimatePresence>
           {docked && (
             <motion.div
@@ -476,9 +478,9 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
               animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
+              className="student-profile-dock-row"
             >
-              <BackCircle onClick={onBack ?? (() => setActivePage('groups'))} label="Назад" />
+              <BackCircle onClick={onBack ?? (() => setActivePage('groups'))} label="Назад" style={isDesktop ? undefined : { width: 44, height: 44 }} />
 
               <div style={{
                 flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden',
@@ -493,15 +495,18 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
 
               <motion.button
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+                className="student-profile-dock-download"
+                aria-label={t('Скачать PDF')}
+                title={t('Скачать PDF')}
                 onClick={() => printStudentCard(tn(student.name))}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-                  padding: '10px 18px 10px 14px', borderRadius: 999, ...dockGlass,
+                  borderRadius: 999, ...dockGlass,
                   color: group.color, fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   pointerEvents: 'auto', border: `1px solid ${group.color}40`,
                 }}
               >
-                <Download size={14} strokeWidth={2} /> {t('Скачать PDF')}
+                <Download size={14} strokeWidth={2} /> <span>{t('Скачать PDF')}</span>
               </motion.button>
             </motion.div>
           )}

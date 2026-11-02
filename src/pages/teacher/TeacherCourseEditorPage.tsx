@@ -6755,7 +6755,7 @@ export default function TeacherCourseEditorPage() {
                 transition={{ duration: 0.15 }}
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
                 onClick={() => setSelectedLessonId(null)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: '0 16px 0 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: '0 16px 0 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'none', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <ChevronLeft size={16} strokeWidth={2} /> {t('Курс')}
               </motion.button>
             )}
