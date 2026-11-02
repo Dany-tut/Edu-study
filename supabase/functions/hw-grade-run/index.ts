@@ -38,7 +38,7 @@ async function run(id: string) {
     const { data: progress } = await admin.from('lesson_progress').select('attachments,status').eq('id', snapshot!.progress_id).single()
     if (progress?.status !== 'submitted') return
     const graded = await gradeViaLinali(work, images, { key: providerKey(), model: Deno.env.get('LINALI_HW_MODEL') })
-    const { error } = await finish({ status: 'graded', result: { tasks: graded.tasks, teacher_note: graded.teacher_note, attempt_id: progress.attachments?.attemptId ?? null },
+    const { error } = await finish({ status: 'graded', result: { tasks: graded.tasks, teacher_note: graded.teacher_note, attempt_id: progress.attachments?.attemptId ?? null, token_usage: graded.tokenUsage ?? null },
       primary_score: graded.primary, max_score: graded.max, score: graded.score, comment: graded.comment,
       model: graded.model, graded_at: new Date().toISOString(), error: null, next_retry_at: null })
     if (error) throw error
