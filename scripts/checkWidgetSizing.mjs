@@ -2,14 +2,14 @@ import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { mkdirSync, writeFileSync } from 'node:fs'
 const result = await build({
-  stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'",resolveDir:process.cwd(),loader:'ts'},
+  stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'; export { studentBalanceStats } from './src/lib/studentWidgetStats'",resolveDir:process.cwd(),loader:'ts'},
   bundle:true,platform:'node',format:'esm',write:false,
   plugins:[{name:'unused-widget-renderers',setup(b){b.onResolve({filter:/^\.\/Widget/},a=>a.importer.endsWith('/registry.tsx')?{path:a.path,external:true}:null)}}],
   external:['react','react/jsx-runtime','framer-motion','lucide-react'],
 })
 mkdirSync('node_modules/.cache',{recursive:true})
 writeFileSync('node_modules/.cache/widget-sizing-check.mjs',result.outputFiles[0].text)
-const { registry, clampDeskWidget, compactDeskWidgets, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions } = await import('../node_modules/.cache/widget-sizing-check.mjs')
+const { registry, clampDeskWidget, compactDeskWidgets, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats } = await import('../node_modules/.cache/widget-sizing-check.mjs')
 const integral=item=>{for(const k of ['x','y','w','h','minW','minH'])assert.ok(Number.isInteger(item[k]),`${item.type}: fractional ${k}=${item[k]}`)}
 let cases=0
 for(const def of registry) for(const width of [900,1200,1600,2400]) for(const oldRow of [42,64,84]){
@@ -61,3 +61,7 @@ assert.equal(enlarged.find(i=>i.i==='tasks').x,0)
 assert.equal(enlarged.find(i=>i.i==='reminders').y,0)
 const restored=compactDeskWidgets(resolveDeskCollisions(enlarged.map(i=>i.i==='calendar'?{...i,h:3}:i),'calendar'))
 assert.deepEqual(restored,compactDeskWidgets(initial),'Reverse resize must restore neighbouring columns')
+
+// Widget extraction preserves the original balance-based meaning of the figures.
+assert.deepEqual(studentBalanceStats([{lessonBalance:2,paymentDue:'2000-01-01'}, {lessonBalance:-1,paymentDue:'2099-01-01'}, {lessonBalance:0}, {}]),{active:3,debtors:1})
+assert.deepEqual(studentBalanceStats([]),{active:0,debtors:0})

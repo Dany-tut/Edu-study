@@ -1,4 +1,5 @@
 import MiniStatCard from './_MiniStatCard'
+import { studentBalanceStats } from '../../../lib/studentWidgetStats'
 import type { LucideIcon } from '../../icons/appIcons'
 import { Users, Layers, CheckCircle2, AlertCircle } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
@@ -26,8 +27,7 @@ export default function WidgetStudentStats() {
 
   const totalStudents  = students.length
   const totalGroups    = groups.length
-  const activeStudents = students.filter(s => (s.lessonBalance ?? 0) >= 0).length
-  const debtStudents   = students.filter(s => (s.lessonBalance ?? 0) < 0).length
+  const { active: activeStudents, debtors: debtStudents } = studentBalanceStats(students)
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
