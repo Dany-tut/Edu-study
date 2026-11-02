@@ -16,9 +16,9 @@ export function deskColumns(width: number): number {
   return Math.max(1, Math.min(DESK_COLUMNS, Math.floor((width + DESK_GAP) / (156 + DESK_GAP))))
 }
 export function deskRowHeight(_viewportHeight: number): number { return 116 }
-export function legacyDeskRowHeight(viewportHeight: number): number {
-  return Math.max(42, Math.min(84, (viewportHeight - 108 - 16 - 10 * DESK_GAP) / 11))
-}
+/** Migration uses a fixed baseline, so changing window height cannot resize
+ * an untouched saved desk before the teacher edits it. */
+export function legacyDeskRowHeight(_viewportHeight: number): number { return 64 }
 
 /** Registered types use today's rules, never stale limits from a saved desk. */
 export function widgetBounds(item: LayoutItem, definition: WidgetSizeLimits | undefined, width: number, rowHeight: number) {
@@ -71,4 +71,22 @@ export function resizeDeskWidget(item: LayoutItem, definition: WidgetSizeLimits 
     w: Math.min(deskColumns(width) - item.x, item.w + Math.round(dx / columnPitch)),
     h: item.h + Math.round(dy / (rowHeight + DESK_GAP)),
   }, definition, width, rowHeight)
+}
+
+/** The active card keeps its column; collisions only move its neighbours down.
+ * Horizontal shoves leave unrelated cards stranded after a resize is reversed. */
+export function resolveDeskCollisions(items: LayoutItem[], activeId: string): LayoutItem[] {
+  const layout = items.map(item => ({ ...item }))
+  const overlaps = (a: LayoutItem, b: LayoutItem) => a.i !== b.i &&
+    a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
+  for (let pass = 0; pass < layout.length * 3; pass++) {
+    let changed = false
+    for (const item of layout) {
+      if (item.i === activeId) continue
+      const blocker = layout.find(other => overlaps(item, other))
+      if (blocker) { item.y = blocker.y + blocker.h; changed = true }
+    }
+    if (!changed) break
+  }
+  return layout
 }

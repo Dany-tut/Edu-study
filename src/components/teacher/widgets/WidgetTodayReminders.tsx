@@ -223,7 +223,6 @@ function RemindersScroll({ reminders, reminderAction, reminderDone }: {
   reminderAction: (r: Reminder) => (() => void) | undefined
   reminderDone: (r: Reminder) => boolean
 }) {
-  const [atBottom, setAtBottom] = useState(false)
   const groups = useMemo(() => Object.values(reminders.reduce((acc, r) => {
     ;(acc[r.type] ??= []).push(r)
     return acc
@@ -235,7 +234,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone }: {
   const { update, onScroll, setHover, thumb } = useOverlayThumb()
 
   const syncRef = useRef<(el: HTMLElement) => void>(() => {})
-  syncRef.current = el => { update(el); setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 4) }
+  syncRef.current = el => update(el)
   useLayoutEffect(() => {
     const sync = () => { if (scrollRef.current) syncRef.current(scrollRef.current) }
     sync()
@@ -247,13 +246,8 @@ function RemindersScroll({ reminders, reminderAction, reminderDone }: {
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget
-    setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 4)
     onScroll(el)
   }
-
-  const topFade = 'transparent 0%, black 12px'
-  const botFade = atBottom ? 'black 100%' : 'black calc(100% - 20px), transparent 100%'
-  const mask = `linear-gradient(to bottom, ${topFade}, ${botFade})`
 
   return (
     <>
@@ -266,7 +260,6 @@ function RemindersScroll({ reminders, reminderAction, reminderDone }: {
         style={{
           position: 'absolute', inset: 0, overflowY: 'auto', overflowX: 'hidden',
           display: 'flex', flexDirection: 'column', gap: 10,
-          maskImage: mask, WebkitMaskImage: mask,
           paddingBlock: 8, paddingLeft: 4, paddingRight: 12,
         }}
       >
