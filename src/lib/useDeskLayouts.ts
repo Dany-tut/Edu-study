@@ -9,6 +9,8 @@ export type LayoutItem = {
   y: number
   w: number
   h: number
+  /** Version 2 stores whole cells in the discrete widget grid. */
+  gridVersion?: 2
   minW?: number
   minH?: number
   maxH?: number
