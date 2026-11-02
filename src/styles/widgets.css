@@ -183,3 +183,17 @@
 .iskra-widget .iskra-mini-stat-label,.iskra-widget .iskra-mini-stat-sub{display:none!important}
 .iskra-widget .iskra-mini-stat-value{grid-column:2!important;grid-row:1!important;--metric-base-size:32px}
 }
+/* One-row cells show the title/icon and value. Secondary badges live in the
+   taller presets; they must not squeeze the primary data into narrow columns. */
+@container iskra-kpi (max-height:135px){
+.iskra-widget .iskra-mini-stat{grid-template-columns:30px minmax(0,1fr)!important;grid-template-rows:1fr!important;align-items:center!important;align-content:center}
+.iskra-widget .iskra-mini-stat-heading{display:block!important;grid-column:1!important;grid-row:1!important}
+.iskra-widget .iskra-mini-stat-value{grid-column:2!important;grid-row:1!important}
+.iskra-widget .iskra-mini-stat-label,.iskra-widget .iskra-mini-stat-sub{display:none!important}
+}
+
+@container iskra-kpi (min-width:320px) and (max-height:135px){
+.iskra-widget .iskra-mini-stat{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+.iskra-widget .iskra-mini-stat-heading{display:grid!important;grid-template-columns:30px minmax(0,1fr)!important}
+.iskra-widget .iskra-mini-stat-label{display:block!important}
+}
