@@ -48,7 +48,8 @@
 .lesson-player-rate-value {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   display: flex; align-items: center; justify-content: center; min-width: 44px; height: 24px; padding-inline: 8px;
-  border-radius: 999px; background: rgba(28,28,32,.64);
+  border-radius: 999px; background: rgba(28,28,32,.42);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   color: #fff; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
 }
 .lesson-player button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
