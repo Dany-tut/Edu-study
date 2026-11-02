@@ -73,7 +73,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
       <p>{status ?? t(work.overdue.length?'Есть просроченные работы':'Задолженностей нет')}</p>{error&&<button type="button" onClick={reload}>{t('Повторить')}</button>}</article>},
     {id:13,content:<article className="lh-work-card"><header><h2><ArrowRight size={18}/>{t(next&&diaryOverdue(next,today)?'Сначала — просроченное':'Следующий шаг')}</h2>{ready&&next&&<span>{t('Модуль')} {next.moduleOrder+1}</span>}</header>
       <h3>{status ?? (next?tc(next.lesson.title):t('Всё сдано'))}</h3>
-      {ready&&next?<p>{tc(next.course.name)} · <WorkDue entry={next} today={today}/></p>:<p>{!status&&t('Преподаватель откроет новые задания')}</p>}
+      {ready&&next?<p className="lh-next-meta"><span className="lh-next-course">{tc(next.course.name)}</span><WorkDue entry={next} today={today}/></p>:<p>{!status&&t('Преподаватель откроет новые задания')}</p>}
       {ready&&next&&<button type="button" className="lh-primary" onClick={()=>open(next)}>{t(next.status==='returned'?'Доработать ДЗ':next.lesson.kind==='test'&&!next.extraId?'Пройти тест':'Открыть ДЗ')}<ChevronRight size={14}/></button>}
       {error&&<button type="button" onClick={reload}>{t('Повторить')}</button>}</article>},
   ]

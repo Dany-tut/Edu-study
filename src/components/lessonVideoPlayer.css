@@ -1,0 +1,45 @@
+.lesson-player-volume { position: relative; flex-shrink: 0; }
+.lesson-player-volume-popover {
+  position: absolute; left: 0; bottom: 54px; z-index: 2;
+  display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 4px;
+  border-radius: 16px; background: rgba(20, 20, 22, .96);
+  border: 1px solid rgba(255, 255, 255, .14); box-shadow: var(--shadow-4);
+}
+.lesson-player-time {
+  margin-left: 4px; font-size: 12px; font-weight: 650;
+  color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.lesson-player-duration { color: rgba(255, 255, 255, .6); }
+.lesson-player-rate-title {
+  padding: 8px 10px 10px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.65);
+}
+.lesson-player-rate-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+.lesson-player-rate-option {
+  min-height: 44px; border: none; border-radius: 10px; padding: 6px;
+  background: transparent; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.lesson-player-rate-option:hover { background: rgba(255,255,255,.1); }
+.lesson-player-rate-option[aria-pressed="true"] { background: rgba(255,255,255,.2); }
+.lesson-player button:focus-visible, .lesson-player-rate-option:focus-visible {
+  outline: 2px solid #fff; outline-offset: -3px;
+}
+.lesson-player-message {
+  position: absolute; inset: 8px; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 12px; text-align: center; color: #fff;
+  background: rgba(16,16,18,.9); border-radius: 16px; font-size: 13px;
+}
+.lesson-player-message p { margin: 0; max-width: 380px; }
+.lesson-player-message-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.lesson-player-message-actions button, .lesson-player-message-actions a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 6px 14px; border-radius: 12px; border: none;
+  color: #fff; background: rgba(255,255,255,.14); font-size: 12px; cursor: pointer;
+}
+@media (max-width: 600px) { .lesson-player-chapter { display: none; } }
+@media (max-width: 400px) {
+  .lesson-player-time { font-size: 11px; line-height: 15px; }
+  .lesson-player-duration { display: block; font-size: 10px; }
+  .lesson-player-time-slash { display: none; }
+  .lesson-player-message { padding: 6px; gap: 4px; font-size: 11px; }
+}

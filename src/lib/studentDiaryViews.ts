@@ -1,12 +1,12 @@
-export type StudentDiaryView = 'today' | 'work' | 'courses'
+export type StudentDiaryView = 'work'
 type ViewStorage = Pick<Storage, 'getItem' | 'setItem'>
 const viewKey = (owner: string) => 'iskra:diary-view:' + encodeURIComponent(owner)
-const isView = (value: unknown): value is StudentDiaryView => value === 'today' || value === 'work' || value === 'courses'
+const isView = (value: unknown): value is StudentDiaryView => value === 'work'
 
 export function readStudentDiaryView(owner: string | null, storage?: ViewStorage): StudentDiaryView {
-  if (!owner) return 'today'
-  try { const saved = (storage ?? localStorage).getItem(viewKey(owner)); return isView(saved) ? saved : 'today' }
-  catch { return 'today' }
+  if (!owner) return 'work'
+  try { const saved = (storage ?? localStorage).getItem(viewKey(owner)); return isView(saved) ? saved : 'work' }
+  catch { return 'work' }
 }
 export function saveStudentDiaryView(owner: string | null, view: string, storage?: ViewStorage) {
   if (!owner || !isView(view)) return

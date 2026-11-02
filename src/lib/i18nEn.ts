@@ -25,6 +25,15 @@ export const EN: Record<string, string> = {
   "Все работы": "All assignments",
   "Нужно сдать": "To submit",
   "Не удалось загрузить работы": "Could not load assignments",
+  'Перемотка': 'Seek',
+  'Настройка громкости': 'Volume settings',
+  'Уровень громкости': 'Volume level',
+  'Скорость воспроизведения': 'Playback speed',
+  'Не удалось открыть запись.': 'Could not open the recording.',
+  'Открываем запись…': 'Opening recording…',
+  'Попробуйте ещё раз или откройте видео на Google Диске.': 'Try again or open the video in Google Drive.',
+  'Попробуйте ещё раз или откройте исходное видео.': 'Try again or open the original video.',
+  'Открыть на Google Диске': 'Open in Google Drive',
   'Сначала просмотрите видео': 'Watch the video first',
   'Прогресс сохранён на этом устройстве. Не удалось синхронизировать.': 'Progress is saved on this device. Could not sync.',
   'Занятия модуля': 'Module lessons',
@@ -5529,4 +5538,5 @@ export const EN: Record<string, string> = {
   'На этот день заданий нет': 'No assignments for this day',
 
   'Не задана': 'Not set',
+  'Дождитесь загрузки урока и попробуйте ещё раз.': 'Wait for the lesson to load and try again.',
 }

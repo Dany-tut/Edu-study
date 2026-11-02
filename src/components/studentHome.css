@@ -137,3 +137,9 @@
   .lh-work-card p { line-height:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .live-student-home:has(.lh-assignments button) .lh-content { grid-template-rows:minmax(60px,1fr) 104px 180px; }
 }
+.lh-next-meta { display:flex; align-items:center; gap:8px; }
+.lh-next-course { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lh-next-meta > span:last-child { flex-shrink:0; white-space:nowrap; }
+.lh-work-card header,.lh-work-card .lh-primary { flex-shrink:0; }
+@media(min-width:1024px) and (max-height:660px) { .lh-work-card h3 { -webkit-line-clamp:1; } }
+@media(max-width:1023px) and (max-height:600px) { .lh-work-card h2 svg { width:14px; height:14px; } }

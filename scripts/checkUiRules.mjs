@@ -29,7 +29,14 @@ assert.ok(!/overflowY:\s*'auto'/.test(pickers),'Do not reintroduce raw picker sc
 assert.match(read('src/components/teacher/journalStand/journalStand.css'),/font-size:16px!important; min-height:44px/,'Mobile person forms must keep readable inputs')
 
 assert.match(read('src/components/teacher/CourseJournal.tsx'),/className="cj-table-frame" ref=\{viewport\}/,'Alternate journal tables must retain sticky-column-aware fades')
+const scheduleCard = read('src/components/ScheduleCard.tsx')
+assert.ok(!/\btruncate\b|textOverflow:\s*['"]ellipsis['"]|line-clamp/.test(scheduleCard), 'Schedule labels must fade instead of showing ellipses')
+assert.equal((scheduleCard.match(/<FadeText className="schedule-lesson-title"/g) || []).length, 2, 'Both center and neighbour lesson titles must use the measured text fade')
+assert.match(read('src/components/MobileHome.tsx'), /<FadeText className="schedule-lesson-title"[^>]*>\{tc\(l.lessonTitle\)\}<\/FadeText>/, 'Mobile schedule titles must retain the shared text fade')
+
+assert.ok(!/\btruncate\b|textOverflow:\s*['"]ellipsis['"]/.test(read('src/components/MobileHome.tsx')), 'Single-line mobile home labels must fade instead of showing ellipses')
+
 const rules=read('docs/ui-rules.md')
-for(const id of ['SCROLL-01','MOBILE-01','ALERT-01','AI-01','BRAND-01']) assert.ok(rules.includes(id),`Missing UI rule ${id}`)
+for(const id of ['SCROLL-01','TEXT-01','MOBILE-01','ALERT-01','AI-01','BRAND-01']) assert.ok(rules.includes(id),`Missing UI rule ${id}`)
 assert.ok(read('AGENTS.md').includes('docs/ui-rules.md'))
-console.log('UI rules: scroll edges, mobile card integration and durable rule links passed')
+console.log('UI rules: scroll edges, schedule text fades, mobile card integration and durable rule links passed')

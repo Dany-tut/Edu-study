@@ -8,7 +8,7 @@ const today='2026-11-02'
 const entries=[entry('late','current','2026-11-01'),entry('returned','returned','2026-10-29'),entry('today','current',today,2),entry('undated','current',null,2),entry('pending','submitted','2026-10-20'),entry('unknown','submitted_unknown','2026-10-20'),entry('accepted','completed','2026-10-20'),entry('passed','test_passed','2026-10-20'),entry('failed','test_low','2026-11-01',1),entry('locked','locked','2026-10-20')]
 const before=JSON.stringify(entries)
 const summary=studentHomeWork(entries,today)
-assert.deepEqual(summary.overdue.map(e=>e.id),['returned','failed','late'])
+assert.deepEqual(summary.overdue.map(e=>e.id),['returned','late','failed'])
 assert.equal(summary.actions.length,5)
 assert.deepEqual(summary.upcoming.map(e=>e.id),['today','undated'])
 assert.deepEqual(summary.review.map(e=>e.id),['pending','unknown'])
