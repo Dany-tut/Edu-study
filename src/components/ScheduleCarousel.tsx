@@ -78,7 +78,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
   // the whole strip grow/shrink — keeping the tallest height avoids the jump.
   // Two full lesson rows must fit even on a laptop. Taller windows give the
   // calendar more room; longer lists scroll inside the card at every size.
-  const stripHeight = mobile ? 210 : 'var(--home-schedule-height, clamp(210px, 26vh, 260px))'
+  const stripHeight = mobile ? 'var(--live-mobile-schedule-height, 210px)' : 'var(--home-schedule-height, clamp(210px, 26vh, 260px))'
 
   const offsets = [-3, -2, -1, 0, 1, 2, 3]
   const slots = offsets.map(offset => {
