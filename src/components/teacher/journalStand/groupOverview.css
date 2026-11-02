@@ -757,3 +757,11 @@
 .jo-object-floor[data-object="lag"] { display:block; width:calc(var(--report-object-size)*.47); right:12px; top:calc(-12px + var(--report-object-size)*.865); height:12px; }
 .jo-object-floor[data-object="ontime"] { display:block; width:calc(var(--report-object-size)*.77); right:12px; top:calc(-12px + var(--report-object-size)*.87); height:12px; }
 .jo-tile--3d .jo-report-object { filter:drop-shadow(-2px 3px 3px color-mix(in srgb,var(--depth-color) 9%,transparent)); }
+
+/* These four assets contain their own rendered shadows; never stack CSS shadows. */
+.jo-object-floor:is([data-object="trend"],[data-object="goal"],[data-object="lag"],[data-object="ontime"]) { display:none; }
+.jo-tile--3d .jo-report-object:is([data-object="trend"],[data-object="goal"],[data-object="lag"],[data-object="ontime"]) { filter:none; }
+.jo-report-object[data-object="trend"] { --art-top-inset:0.147656; --art-right-inset:0.025000; }
+.jo-report-object[data-object="goal"] { --art-top-inset:0.034375; --art-right-inset:0.081250; }
+.jo-report-object[data-object="lag"] { --art-top-inset:0.061719; --art-right-inset:0.275000; }
+.jo-report-object[data-object="ontime"] { --art-top-inset:0.058594; --art-right-inset:0.059375; }

@@ -82,7 +82,7 @@ function Tile({
       </h3>
       <div className="jo-value">{value}</div>
       <span className="jo-object-floor" data-object={REPORT_OBJECTS[label]} aria-hidden="true" />
-      <img className="jo-report-object" data-object={REPORT_OBJECTS[label]} src={`/teacher-objects-v1/${REPORT_OBJECTS[label]}.png`} alt="" aria-hidden="true" width={200} height={200} decoding="async" draggable={false} />
+      <img className="jo-report-object" data-object={REPORT_OBJECTS[label]} src={`${['trend','goal','lag','ontime'].includes(REPORT_OBJECTS[label]) ? '/teacher-objects-v2-shadows/' : '/teacher-objects-v1/'}${REPORT_OBJECTS[label]}.png`} alt="" aria-hidden="true" width={200} height={200} decoding="async" draggable={false} />
       {graphic && <div className="jo-widget-graphic jo-report-data" aria-hidden={graphicLabel ? undefined : true}
         role={graphicLabel ? 'img' : undefined} aria-label={graphicLabel}>{graphic}</div>}
       <div className="jo-detail">{children}</div>
