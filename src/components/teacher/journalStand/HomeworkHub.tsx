@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Modal from '../../Modal'
+import { useScrollFades } from '../../../lib/useScrollFades'
 import BasicAnswersList from '../BasicAnswersList'
 import { ArrowLeft, ArrowRight, Check, ChevronRight, ClipboardList, Home, Maximize2, Minimize as Minimize2, Search, X } from '../../icons/appIcons'
 import type { CourseJournalData, JournalAttempt } from '../../../lib/courseJournal'
@@ -110,6 +111,7 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
   const aiDetails = useRef<HTMLDivElement>(null)
   const firstAiIssue = ai.grade?.tasks.find(task => task.points < task.max_points || task.elements.some(el => el.verdict !== 'yes'))?.n
   const active = !!target
+  useScrollFades(body, active)
   useEffect(() => {
     if (!active) return
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
