@@ -19,6 +19,9 @@ export function auditWidget(card:HTMLElement):string[]{
   if(button.closest('.ihw-footer')&&footer&&outside(r,footer))issues.add('Кнопка не помещается в подвал')
   if(button.closest('.ihw-body')&&footer&&overlaps(r,footer))issues.add('Кнопка перекрывает подвал')
  }
+ for(const due of card.querySelectorAll<HTMLElement>('.next-work-due')){
+  if(footer&&outside(due.getBoundingClientRect(),footer))issues.add('Срок не помещается в подвал')
+ }
  for(const el of card.querySelectorAll<HTMLElement>('.ihw-main,.next-work-copy,.ihw-task-copy,.ihw-stats,.ihw-metric,.ihw-task-mark')){
   if(!el.clientWidth||!el.clientHeight)continue
   if(el.scrollWidth>el.clientWidth+epsilon)issues.add(`Горизонтальное переполнение: ${el.classList[0]}`)

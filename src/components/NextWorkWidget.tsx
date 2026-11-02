@@ -34,7 +34,7 @@ export default function NextWorkWidget({ title, meta, due, dueShort, overdue, st
             <Skeleton w="78%" h={20}/><Skeleton w="58%" h={12}/>
           </div> : <>
             <h3 className="next-work-title"><FadeText lines={2} fadeMode="last-line">{title}</FadeText></h3>
-            {(meta || status === 'error') && <p className="next-work-meta"><FadeText lines={2}>{status === 'error' ? t('Попробуй ещё раз') : meta}</FadeText></p>}
+            {(meta || status === 'error') && <p className="next-work-meta"><FadeText lines={2} fadeMode="last-line">{status === 'error' ? t('Попробуй ещё раз') : meta}</FadeText></p>}
           </>}
         </div>
       </div>
@@ -44,8 +44,8 @@ export default function NextWorkWidget({ title, meta, due, dueShort, overdue, st
         {loading ? <Skeleton className="next-work-action-skeleton" w={110} h={32}/> : <>
           {action && <button type="button" className="next-work-action" data-secondary={secondary} onClick={onOpen}><FadeText>{action}</FadeText><ChevronRight size={16}/></button>}
           {due && <span className="next-work-due" data-overdue={overdue}>
-            <span className={dueShort ? 'next-work-due-full' : undefined}><FadeText>{due}</FadeText></span>
-            {dueShort && <span className="next-work-due-short">{overdue && <span className="sr-only">{t('Просрочено')} </span>}<FadeText>{!overdue && dueShort !== t('Без срока') ? `${t('До')} ${dueShort}` : dueShort}</FadeText></span>}
+            <span className={dueShort ? 'next-work-due-full' : undefined}><FadeText lines={2} fadeMode="last-line">{due}</FadeText></span>
+            {dueShort && <span className="next-work-due-short">{overdue && <span className="sr-only">{t('Просрочено')} </span>}<FadeText lines={2} fadeMode="last-line">{!overdue && dueShort !== t('Без срока') ? `${t('До')} ${dueShort}` : dueShort}</FadeText></span>}
           </span>}
         </>}
       </footer>}
