@@ -146,9 +146,9 @@ interface DashboardState {
   showAllSubjects: boolean
   setShowAllSubjects: (v: boolean) => void
   // How many widget blocks sit side-by-side per row in the widget carousel.
-  // Chosen from the avatar → Настройки → Виджеты menu. Default 1 (one wide card).
+  // Chosen from the avatar → Настройки menu: 2, 3 or 4. Default 2.
   widgetColumns: WidgetColumns
-  setWidgetColumns: (n: WidgetColumns) => void
+  setWidgetColumns: (n: number) => void
   // Display sequence of the carousel widgets, as an array of widget ids. Edited
   // graphically in the avatar → Настройки → "Настроить порядок" modal.
   widgetOrder: number[]
@@ -210,7 +210,11 @@ interface DashboardState {
   pomoSetTimerMode: (mode: PomoTimerMode) => void
 }
 
-export type WidgetColumns = 1 | 2 | 3 | 4
+export type WidgetColumns = 2 | 3 | 4
+
+function normalizeWidgetColumns(n: unknown): WidgetColumns {
+  return n === 3 || n === 4 ? n : 2
+}
 export type PomoMode = 'focus' | 'break'
 export type PomoTimerMode = 'timer' | 'stopwatch'
 export const POMO_DURATIONS: Record<PomoMode, number> = { focus: 25 * 60, break: 5 * 60 }
@@ -353,7 +357,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   showAllSubjects: false,
   setShowAllSubjects: (v) => set({ showAllSubjects: v }),
   widgetColumns: 2,
-  setWidgetColumns: (n) => set({ widgetColumns: n }),
+  setWidgetColumns: (n) => set({ widgetColumns: normalizeWidgetColumns(n) }),
   widgetOrder: DEFAULT_WIDGET_ORDER,
   knownWidgetIds: DEFAULT_WIDGET_ORDER,
   setWidgetOrder: (order) => set({ widgetOrder: order }),
@@ -480,6 +484,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     return {
       ...current,
       ...p,
+      widgetColumns: normalizeWidgetColumns(p?.widgetColumns),
       widgetOrder: mergeWidgetOrder(saved, known, DEFAULT_WIDGET_ORDER, 11),
       knownWidgetIds: DEFAULT_WIDGET_ORDER,
     }

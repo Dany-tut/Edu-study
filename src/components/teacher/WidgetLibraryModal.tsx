@@ -1,9 +1,10 @@
+import { clampDeskWidget, compactDeskWidgets, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
 import { useRef } from 'react'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from '../icons/appIcons'
-import { WIDGET_REGISTRY, type WidgetDef } from './widgets/registry'
+import { WIDGET_REGISTRY, getWidgetDef, type WidgetDef } from './widgets/registry'
 import type { LayoutItem } from '../../lib/useDeskLayouts'
 import { useT } from '../../lib/i18n'
 
@@ -79,14 +80,19 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
   const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !hiddenWidgets?.includes(def.type))
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
-    const pos = findFreePosition(existingItems, def.defaultW, def.defaultH)
+    const width = Math.max(1, document.documentElement.clientWidth - 64)
+    const rowHeight = deskRowHeight(window.innerHeight)
+    const existing = compactDeskWidgets(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight))))
+    const size = clampDeskWidget({i:id, type:def.type, x:0,y:0,w:def.defaultW,h:def.defaultH,gridVersion:2},def,width,rowHeight)
+    const pos = findFreePosition(existing, size.w, size.h, deskColumns(width))
     const item: LayoutItem = {
       i: id,
       type: def.type,
       x: pos.x,
       y: pos.y,
-      w: def.defaultW,
-      h: def.defaultH,
+      gridVersion: 2,
+      w: size.w,
+      h: size.h,
       minW: def.minW,
       minH: def.minH,
       maxH: def.maxH,
