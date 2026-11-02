@@ -14,7 +14,7 @@ import type { ScheduleDay } from '../data/mockData'
 const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
 const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 
-// Native horizontal scrolling also clips vertically. Reserve paint space for
+// The fixed date strip clips vertically too. Reserve paint space for
 // card shadows, then offset the viewport so the dashboard rows do not move.
 // Fade alpha rather than painting a solid overlay over the seasonal backdrop.
 const SHADOW_PAD = 96
@@ -104,7 +104,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
       // карточки прыгали: заглушка была ниже/уже и прижата к низу.
       return (
         <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Загрузка…')} className="relative" style={{ height: stripHeight }}>
-          <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
+          <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ overflowX: 'hidden', height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
           {offsets.map(offset => {
             const d = Math.abs(offset)
             const w = d === 0 ? (centerWidth ?? (mobile ? 300 : 480)) : slotWidth[d]
@@ -142,7 +142,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
     >
       <div ref={wrapRef} style={{ height: '100%' }}>
-      <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
+      <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ overflowX: 'hidden', height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
         {slots.map(slot =>
           slot.day ? (
             <ScheduleCard

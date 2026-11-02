@@ -15,6 +15,8 @@ export function useWheelHScroll(ref: RefObject<HTMLElement | null>) {
     const el = ref.current
     if (!el) return
     const onWheel = (e: WheelEvent) => {
+      // Programmatically centered strips must not move with wheel gestures.
+      if (!/^(auto|scroll)$/.test(getComputedStyle(el).overflowX)) return
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
       // A lesson list inside a day owns vertical wheel gestures, including at
       // its ends (overscroll-behavior: contain). Do not turn them into date changes.
