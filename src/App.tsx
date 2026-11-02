@@ -4,6 +4,7 @@ import { applyLessonParticipation, fetchLessonParticipation } from './lib/lesson
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
+import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
 const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
 import StudentLoginPage from './pages/StudentLoginPage'
 import NativeEntryPage from './pages/NativeEntryPage'
@@ -122,6 +123,7 @@ function AppRoutes() {
   const [consented, setConsented] = useState(hasStudentConsent())
   const loadStudentData = useStudentData(s => s.load)
   const progressScope = useStudentData(s => s.scopeStudentIds.join(','))
+  const studentWorkspace = isStudentWorkspaceRoute(hash, window.location.pathname)
 
   // Behavioural telemetry: init once, then log every route change.
   useEffect(() => { initAnalytics() }, [])
@@ -195,8 +197,9 @@ function AppRoutes() {
     return () => { subscription.unsubscribe(); dispose?.() }
   }, [])
 
-  // Load real Supabase data whenever a student session exists
+  // A saved student account must not hydrate behind the teacher cabinet.
   useEffect(() => {
+    if (!studentWorkspace) return
     const sess = getStudentSession()
     if (!sess) return
     // Спиннер снимается ДАЖЕ если загрузка упала.
@@ -251,10 +254,11 @@ function AppRoutes() {
       window.clearInterval(attendanceTimer)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [loadStudentData])
+  }, [loadStudentData, studentWorkspace])
 
-  // One person can own several student rows. Subscribe to every row loaded by the track.
+  // One person can own several student rows. Subscribe only in their cabinet.
   useEffect(() => {
+    if (!studentWorkspace) return
     const sess = getStudentSession()
     if (!sess) return
     const ids = progressScope ? progressScope.split(',') : [sess.id]
@@ -268,7 +272,7 @@ function AppRoutes() {
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.error('[realtime] lesson_progress subscription:', status)
     })
     return () => { void supabase.removeChannel(channel) }
-  }, [loadStudentData, progressScope])
+  }, [loadStudentData, progressScope, studentWorkspace])
 
   // Supabase Auth redirects MCP clients to the app's consent path (without a
   // hash fragment). Keep this route independent from the cabinet hash router.
