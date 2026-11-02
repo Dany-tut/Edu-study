@@ -33,7 +33,7 @@ export default function NextWorkWidget({ title, meta, due, dueShort, overdue, st
           {loading ? <div className="next-work-skeleton" role="status" aria-label={t('Загрузка')}>
             <Skeleton w="78%" h={20}/><Skeleton w="58%" h={12}/>
           </div> : <>
-            <h3 className="next-work-title"><FadeText lines={2}>{title}</FadeText></h3>
+            <h3 className="next-work-title"><FadeText lines={2} fadeMode="last-line">{title}</FadeText></h3>
             {(meta || status === 'error') && <p className="next-work-meta"><FadeText lines={2}>{status === 'error' ? t('Попробуй ещё раз') : meta}</FadeText></p>}
           </>}
         </div>
