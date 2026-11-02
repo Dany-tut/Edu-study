@@ -32,7 +32,6 @@ import {
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
 import { resolveDriveVideo } from '../lib/driveVideo'
-import ScrollFade from './ScrollFade'
 import FadeText from './FadeText'
 import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
@@ -402,7 +401,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     }
   }, [source.kind, ruSend])
 
-  const applyRate = useCallback((r: number) => {
+  const applyRate = useCallback((r: number, closeMenu = true) => {
     try {
       if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(r)
       else if (videoRef.current) {
@@ -414,7 +413,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       // Unsupported rates must not leave a misleading speed label.
       setRate(videoRef.current?.playbackRate ?? 1)
     }
-    setRateOpen(false)
+    if (closeMenu) setRateOpen(false)
   }, [source.kind])
 
   // Модуль субтитров грузится вместе с плеером (cc_load_policy), а кнопка лишь
@@ -615,12 +614,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     const btn = rateBtnRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
-    const h = Math.min(Math.ceil(rates.length / 4) * 44 + 48, window.innerHeight - 32)
+    const h = 54
     const gap = 8
     const top = r.top - gap - h >= 8 ? r.top - gap - h : Math.min(r.bottom + gap, window.innerHeight - h - 8)
     const left = Math.max(8, Math.min(r.right - RATE_MENU_W, window.innerWidth - RATE_MENU_W - 8))
     setRatePos({ left, top: Math.max(8, top) })
-  }, [rates.length])
+  }, [])
 
   useEffect(() => {
     if (!rateOpen) return
@@ -895,6 +894,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
   // должна стоять реальная скорость, а не та, что выбрана в меню.
+  const rateIndex = Math.max(0, rates.indexOf(rate))
   const liveRate = gesture === 'ff' && canRate && boost <= engineMaxRate ? boost : rate
 
   /** Стрелка в плашке ускорения и её прозрачное поле по бокам. Ink глифа идёт
@@ -1312,30 +1312,26 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   {rateOpen && ratePos && createPortal(
                     <div
                       data-rate-menu
+                      className="lesson-player-rate-popover"
                       onKeyDown={e => { if (e.key === 'Escape') { setRateOpen(false); rateBtnRef.current?.focus(); e.stopPropagation() } }}
                       style={{
                         position: 'fixed', left: ratePos.left, top: ratePos.top, zIndex: 4000,
-                        width: RATE_MENU_W, padding: 6, borderRadius: 14,
-                        background: 'rgba(20,20,22,0.94)', border: '1px solid rgba(255,255,255,0.14)',
-                        boxShadow: 'var(--shadow-4)',
+                        width: RATE_MENU_W,
                       }}
                     >
-                      <div className="lesson-player-rate-title">{t('Скорость воспроизведения')}</div>
-                      <ScrollFade maxHeight="calc(100dvh - 80px)" fadeMode="mask" bg="rgba(20,20,22,0.96)">
-                        <div className="lesson-player-rate-grid" role="group" aria-label={t('Скорость воспроизведения')}>
-                          {rates.map(r => (
-                            <button
-                              key={r}
-                              onClick={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
-                              aria-pressed={r === rate}
-                              aria-label={`${r}×`}
-                              className="lesson-player-rate-option"
-                            >
-                              {r}×
-                            </button>
-                          ))}
+                      <div className="lesson-player-rate-control">
+                        <div className="lesson-player-volume-level" aria-hidden="true">
+                          <div style={{ width: `${rateIndex / (rates.length - 1) * 100}%` }} />
+                          <span className="lesson-player-rate-value">{rate}×</span>
                         </div>
-                      </ScrollFade>
+                        <input type="range" min={0} max={rates.length - 1} step={1}
+                          value={rateIndex}
+                          onChange={e => { if (lockedRef.current) endBoost(); applyRate(rates[Number(e.target.value)], false) }}
+                          aria-label={t('Скорость воспроизведения')}
+                          aria-valuetext={`${rate}×`}
+                          className="video-volume lesson-player-volume-slider lesson-player-rate-slider"
+                        />
+                      </div>
                     </div>,
                     (fullscreen ? boxRef.current : null) ?? document.body,
                   )}
