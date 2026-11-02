@@ -1,3 +1,5 @@
+import { ArrowRight as LoopUiArrowRight } from '../../components/icons/appIcons'
+import { SubjectMark } from '../../components/icons/SubjectMark'
 import HomeworkAttemptPanel from '../../components/HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from '../../components/HomeworkAttemptHistorySection'
 import { getViewAs } from '../../lib/owner'
@@ -312,7 +314,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
             background: subject.color + '1E', border: `1px solid ${subject.color}3A`,
             borderRadius: 6, padding: '2px 8px',
           }}>
-            <span>{subject.icon}</span>{tc(subject.label)}
+            <span><SubjectMark subject={subject.label} size={13} /></span>{tc(subject.label)}
           </span>
         )}
       </td>
@@ -858,7 +860,7 @@ export default function TeacherHomeworkPage() {
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flex: 'none' }}>
                           {item.steps.map((s, i) => (
                             <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              {i > 0 && <span style={{ color: 'var(--color-text-3)', opacity: 0.7 }}>→</span>}
+                              {i > 0 && <LoopUiArrowRight size={12} style={{ color: 'var(--color-text-3)', opacity: 0.7 }} />}
                               <span
                                 title={s.kind === 'returned' ? t('Возвращено на доработку') : i === 0 ? t('Отправлено на проверку') : t('Отправлено повторно')}
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: s.kind === 'returned' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}

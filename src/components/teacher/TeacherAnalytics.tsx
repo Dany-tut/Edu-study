@@ -1,3 +1,4 @@
+import { Check as LoopUiCheck } from '../icons/appIcons'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import CountBadge from '../CountBadge'
 import Segmented from '../Segmented'
@@ -933,7 +934,7 @@ export default function TeacherAnalytics() {
           {/* Issue score */}
           <Card style={{ marginBottom:24, display:'flex', alignItems:'center', gap:16 }}>
             <div style={{ fontSize:36, fontWeight:800, color: issueScore===0?'var(--color-green-text)':issueScore<5?'var(--color-peach-text)':'var(--color-red-text)', lineHeight:1 }}>
-              {issueScore===0 ? '✓' : Math.round(issueScore)}
+              {issueScore===0 ? <LoopUiCheck size={20} /> : Math.round(issueScore)}
             </div>
             <div>
               <div style={{ fontSize:14, fontWeight:700, color:'var(--color-text)' }}>

@@ -1558,7 +1558,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
                   }}>
                     {item.cue}
                   </span>
-                  {!stacked && <span style={{ color: 'var(--color-muted)', flexShrink: 0 }}>→</span>}
+                  {!stacked && <span data-loop-content style={{ color: 'var(--color-muted)', flexShrink: 0 }}>→</span>}
                 </div>
                 <div className="flex items-center" style={{ gap: 10, flex: 1, minWidth: 0, width: stacked ? '100%' : undefined }}>
                   <input

@@ -1,3 +1,4 @@
+import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 import { useState } from 'react'
 import { AlertCircle, Clock, Check } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
@@ -122,7 +123,7 @@ export default function WidgetFinanceOverdue() {
             opacity: 0.85,
           }}
         >
-          {t('Все')} →
+          {t('Все')} <LoopUiArrowRight size={12} style={{display:'inline-block',verticalAlign:'middle'}} />
         </button>
       </div>
 

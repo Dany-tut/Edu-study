@@ -1,3 +1,4 @@
+import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Student } from '../../../data/teacherMockData'
 import {
@@ -202,7 +203,7 @@ function ReportSheet({
           {r.delta !== null ? (
             <>
               <b>
-                {percent(r.before)} → {percent(r.after)}
+                {percent(r.before)} <LoopUiArrowRight size={14} style={{display:'inline-block',verticalAlign:'middle'}} /> {percent(r.after)}
               </b>{' '}
               · средний результат.<br />
               Первые две недели — {quantity(r.beforeCount, 'работа', 'работы', 'работ')}, последние — {r.afterCount}.

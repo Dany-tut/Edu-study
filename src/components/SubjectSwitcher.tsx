@@ -1,3 +1,4 @@
+import { SubjectMark } from './icons/SubjectMark'
 import { useEffect, useRef, useState } from 'react'
 import { ICON_GAP } from '../lib/subjects'
 import { ChevronDown, Check } from './icons/appIcons'
@@ -14,7 +15,7 @@ import { tc } from '../lib/i18n'
 
 export type Card = { id: string; groupId: string; subject: string; level: string; icon: string; color: string }
 
-export const subjectCardLabel = (c: Card) => `${c.icon}${ICON_GAP}${tc(c.subject)}${c.level ? ` · ${tc(c.level)}` : ''}`
+export const subjectCardLabel = (c: Card) => `${tc(c.subject)}${c.level ? ` · ${tc(c.level)}` : ''}`
 
 // Карточки человека + переход между ними. Хук, а не только компонент: оболочек
 // две — выпадашка в сайдбаре (десктоп) и шторка из шапки профиля (телефон), а
@@ -106,7 +107,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
           color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
         }}
       >
-        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label(current)}</span>
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><SubjectMark subject={current.subject} size={16} />{ICON_GAP}{label(current)}</span>
         <ChevronDown size={16} style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
 
@@ -134,7 +135,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
               >
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label(c)}</span>
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><SubjectMark subject={c.subject} size={16} />{ICON_GAP}{label(c)}</span>
                 {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
               </button>
             )

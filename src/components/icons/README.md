@@ -70,3 +70,19 @@ node scripts/buildLoopNativeIcons.mjs --renderer=/tmp/iskra-loop-renderer/node_m
 npm run build
 npx cap copy ios
 ```
+
+## UI audit guard
+
+`icons:check` also runs `scripts/checkLoopUi.mjs`; `check:ui` invokes it in CI
+and release preflight. The AST guard rejects CSS-embedded SVG controls, raw
+subject emoji, emoji-bearing selector labels, text action arrows and literal
+status glyphs (including local aliases). Negative fixtures prove the audited
+bypasses are detected, while positive fixtures protect formulas and Loop adapters.
+
+Use `SubjectMark` for subject pictograms, the optional `TeacherSelect` icon slot
+for searchable labels, `LoopSelect` for native selects, and `LoopActionLabel` for
+translated forward/back actions. Preserve text-only labels for native menus.
+Instructional arrow notation can carry `data-loop-content`; it exempts only
+arrows, never status/subject emoji. Charts, branded logos, content illustrations,
+and DEV-only experimental stands remain outside this glyph guard. The guard
+is not an exhaustive visual audit or a type checker for arbitrary ReactNode slots.

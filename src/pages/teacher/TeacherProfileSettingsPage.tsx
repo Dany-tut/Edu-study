@@ -1,3 +1,4 @@
+import { LoopSelect } from '../../components/icons/LoopSelect'
 import { useState, useEffect } from 'react'
 import BackCircle from '../../components/BackCircle'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
@@ -351,10 +352,10 @@ export default function TeacherProfileSettingsPage() {
               <button type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
               <button type="button" onClick={() => chooseDisplayZone('manual')} style={tzChoiceStyle(teacherTzMode === 'manual')}>{t('Выбрать город')}</button>
             </div>
-            {teacherTzMode === 'manual' && <select value={teacherTz} onChange={e => changeTz(e.target.value)} style={{ ...inputStyle, cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', paddingRight: 36, marginTop: 4 }}>
+            {teacherTzMode === 'manual' && <LoopSelect value={teacherTz} onChange={e => changeTz(e.target.value)} style={{ ...inputStyle, cursor: 'pointer', marginTop: 4 }}>
               {!TZ_OPTIONS.some(o => o.value === teacherTz) && <option value={teacherTz}>{tzShortLabel(teacherTz)}</option>}
               {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>}
+            </LoopSelect>}
             <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 14 }}>{t('Часы в расписании:')} {teacherTzMode === 'auto' ? tzShortLabel(browserTz()) : tzShortLabel(teacherTz)}</div>
 
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для ввода времени урока')}</div>
@@ -362,10 +363,10 @@ export default function TeacherProfileSettingsPage() {
               <button type="button" onClick={() => chooseInputZone('local')} style={tzChoiceStyle(inputTz === 'local')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
               <button type="button" onClick={() => chooseInputZone('manual')} style={tzChoiceStyle(inputTz !== 'local')}>{t('Выбрать город')}</button>
             </div>
-            {inputTz !== 'local' && <select value={inputTz} onChange={e => { void setInputTz(e.target.value) }} style={{ ...inputStyle, cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', paddingRight: 36, marginTop: 8 }}>
+            {inputTz !== 'local' && <LoopSelect value={inputTz} onChange={e => { void setInputTz(e.target.value) }} style={{ ...inputStyle, cursor: 'pointer', marginTop: 8 }}>
               {!TZ_OPTIONS.some(o => o.value === inputTz) && <option value={inputTz}>{tzShortLabel(inputTz)}</option>}
               {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>}
+            </LoopSelect>}
             <div style={{ fontSize: 11, marginTop: 8, color: tzNote === 'error' ? 'var(--color-red-text)' : tzNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
               {tzNote === 'error' ? t('Не удалось сохранить. Попробуйте ещё раз.') : tzNote === 'saved' ? t('Сохранено') : t('Можно смотреть расписание по устройству, а время уроков задавать в любом городе')}
             </div>

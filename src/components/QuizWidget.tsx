@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, ChevronLeft, ChevronRight, Pause, Trophy } from './icons/appIcons'
+import { Clock, ChevronLeft, ChevronRight, Pause, Trophy, Check, X } from './icons/appIcons'
 import { quizTimeLimit, type QuizAnswer } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
@@ -370,7 +370,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             }}
           >
             <span style={{ fontSize: 18, flexShrink: 0, color: quizState === 'timeout' ? 'var(--color-red-text)' : results[current] === 'correct' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
-              {quizState === 'timeout' ? '⏱' : results[current] === 'correct' ? '✓' : '✕'}
+              {quizState === 'timeout' ? <Clock size={18} /> : results[current] === 'correct' ? <Check size={18} /> : <X size={18} />}
             </span>
             <p style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.3, color: quizState === 'timeout' ? 'var(--color-red-text)' : results[current] === 'correct' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
               {quizState === 'timeout'

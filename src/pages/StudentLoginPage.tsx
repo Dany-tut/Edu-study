@@ -1,3 +1,5 @@
+import { LoopActionLabel } from '../components/icons/LoopIcon'
+import { ArrowLeft as LoopBackArrow } from '../components/icons/appIcons'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from '../components/icons/appIcons'
@@ -223,7 +225,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
           >
             {loading ? t('Загрузка...') : mode === 'reset' ? t('Отправить письмо') : mode === 'newpassword' ? t('Сохранить пароль') : t('Войти')}
           </button>
-          {mode === 'reset' && <button type="button" onClick={() => { setMode('login'); setError('') }} style={{ border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}>{t('← Назад ко входу')}</button>}
+          {mode === 'reset' && <button type="button" onClick={() => { setMode('login'); setError('') }} style={{ border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
         </form>}
 
         {mode === 'login' && <SocialLoginButtons role="student" />}
@@ -237,7 +239,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
         {mode === 'login' && <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Если забыли пароль — обратитесь к учителю')}</div>}
         {Capacitor.isNativePlatform() && (
           <button type="button" onClick={() => { window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
-            {t('← Выбрать роль')}
+            <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
           </button>
         )}
       </motion.div>

@@ -1,3 +1,4 @@
+import { SubjectMark } from '../icons/SubjectMark'
 // ─────────────────────────────────────────────────────────────────────────────
 // Переключатель предмета в тренажёре
 //
@@ -93,7 +94,7 @@ export function SubjectList({ state, onPicked, accent }: {
               onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg-3)' }}
               onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
             >
-              <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{o.def.icon}</span>
+              <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}><SubjectMark subject={o.def.id} size={16} /></span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{
                   display: 'block', fontSize: 13, fontWeight: active ? 700 : 600,
@@ -187,7 +188,7 @@ export function SubjectHero({ state, subtitle, palette }: {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {current && <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{current.def.icon}</span>}
+          {current && <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}><SubjectMark subject={current.def.id} size={16} /></span>}
           <span style={{
             fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase',
             opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -312,7 +313,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
           boxShadow: 'var(--shadow-pill)',
         }}
       >
-        <span style={{ fontSize: compact ? 20 : 15, lineHeight: 1 }}>{current?.def.icon ?? '📚'}</span>
+        <span style={{ fontSize: compact ? 20 : 15, lineHeight: 1 }}><SubjectMark subject={current?.def.id} size={compact ? 22 : 16} /></span>
         {!compact && (
           <>
             <span style={{ whiteSpace: 'nowrap' }}>{current ? t(current.def.name) : t('Тренажёр')}</span>

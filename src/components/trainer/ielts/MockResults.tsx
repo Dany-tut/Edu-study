@@ -1,3 +1,4 @@
+import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 // ─────────────────────────────────────────────────────────────────────────────
 // Результат пробника IELTS: баллы по секциям, итог и разбор
 //
@@ -382,7 +383,7 @@ function LexisList({ lexis, accent }: { lexis: NonNullable<Grade['lexis']>; acce
           background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)', fontSize: 14, lineHeight: 1.45,
         }}>
           <span style={{ color: 'var(--color-text-3)' }}>{x.from}</span>
-          <span style={{ color: 'var(--color-text-3)' }}>→</span>
+          <LoopUiArrowRight size={14} style={{ color: 'var(--color-text-3)' }} />
           <b style={{ color: 'var(--color-text)' }}>{x.to}</b>
           {x.ru && <span style={{ color: 'var(--color-text-2)' }}>· {x.ru}</span>}
         </div>

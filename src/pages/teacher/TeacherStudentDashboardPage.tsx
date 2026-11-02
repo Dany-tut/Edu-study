@@ -1,3 +1,4 @@
+import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -461,7 +462,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
         <h1 style={{ fontSize: 24, marginBottom: 4 }}>{tn(student.name)}</h1>
         {workPanel}
-        <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · {group.icon}{ICON_GAP}{tc(group.subject)} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
+        <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · <SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
           <tbody>
             {[
@@ -535,7 +536,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
                 {!inDrawer && (profileGroupLabel || group.subject) && (
                   <div className="student-profile-context">
                     {profileGroupLabel && <span>{profileGroupLabel}</span>}
-                    {group.subject && <span>{group.icon}{ICON_GAP}{tc(group.subject)}</span>}
+                    {group.subject && <span><SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}</span>}
                   </div>
                 )}
                 <div className="student-profile-meta">

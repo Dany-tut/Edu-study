@@ -9,9 +9,10 @@ import { useT, tc } from '../../lib/i18n'
 import { GLASS, glassMenu } from '../../lib/nativeGlass'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 
-export type TeacherSelectOption = string | { value: string; label: string }
+type NamedOption = { value: string; label: string; icon?: React.ReactNode }
+export type TeacherSelectOption = string | NamedOption
 
-const norm = (o: TeacherSelectOption) => (typeof o === 'string' ? { value: o, label: o } : o)
+const norm = (o: TeacherSelectOption): NamedOption => (typeof o === 'string' ? { value: o, label: o } : o)
 
 // Рамка прозрачная, а не отсутствует (и на 1px меньше отступ) — на открытии она
 // красится в акцент, и коробка не должна дрогнуть. См. lib/dropdownStyle.ts.
@@ -196,6 +197,7 @@ export default function TeacherSelect({
           borderColor: open ? accent : restBorderColor,
         }}
       >
+        {current?.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}>{current.icon}</span>}
         {open && searchable ? (
           <input
             ref={inputRef}
@@ -338,7 +340,7 @@ export default function TeacherSelect({
                         onMouseLeave={e => { dropdownRowHover(selected).onMouseLeave(e); setHoverDel(p => p === o.value ? null : p) }}
                       >
                         <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                          {tc(t(o.label))}
+                          {o.icon && <span aria-hidden style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: 6 }}>{o.icon}</span>}{tc(t(o.label))}
                         </span>
                         {selected && !showDel && <Check size={small ? 12 : 14} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
                         {editable && onDeleteOption && (

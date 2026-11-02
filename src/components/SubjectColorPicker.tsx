@@ -1,3 +1,4 @@
+import { SubjectMark } from './icons/SubjectMark'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, RotateCcw } from './icons/appIcons'
@@ -62,7 +63,7 @@ export default function SubjectColorPicker({
               aria-expanded={open}
             >
               <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
-                <span style={{ fontSize: 18 }} aria-hidden>{s.icon}</span>
+                <span style={{ fontSize: 18 }} aria-hidden><SubjectMark subject={s.id} size={18} /></span>
                 {s.name}
               </span>
               <span className="flex items-center" style={{ gap: 8 }}>

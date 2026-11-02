@@ -1,3 +1,4 @@
+import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
 import { LoopInlineIcon } from '../icons/LoopIcon'
 import { Check as LoopInlineCheck } from '../icons/appIcons'
 import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
@@ -403,7 +404,7 @@ export function BankQuestionCard({
       {/* Footer: source (full mode only) */}
       {!compact && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2 }}>
-          <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.section} → {task.topic} · {task.source}</span>
+          <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>
         </div>
       )}
 

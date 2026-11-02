@@ -1,3 +1,5 @@
+import { LoopActionLabel } from './icons/LoopIcon'
+import { ArrowRight as LoopActionArrow } from './icons/appIcons'
 // Виджет «Стикеры» — коллекция наград за принятые задания.
 // В сетке рисуем дешёвые StickerBadge (canvas 2D), а голо-рендер (WebGL)
 // включаем только для выбранного стикера в модалке: контекстов WebGL мало.
@@ -30,7 +32,7 @@ export default function StickersWidget({ columns }: { columns: number }) {
         </div>
         {stickers.length > 0 && (
           <button onClick={() => setOpen(true)} style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-purple-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            {t('Вся коллекция →')}
+            <LoopActionLabel icon={LoopActionArrow} label={t('Вся коллекция →')} />
           </button>
         )}
       </div>

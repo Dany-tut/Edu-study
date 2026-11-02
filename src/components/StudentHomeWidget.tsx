@@ -1,3 +1,4 @@
+import { ArrowRight, ChevronRight, RotateCcw } from './icons/appIcons'
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
@@ -36,10 +37,11 @@ export function HomeWidgetCard({ id, title, extra, children, footer }: { id:numb
 }
 function Value({ children, label }: { children:ReactNode;label:string }) { return <div className="ihw-metric"><strong>{children}</strong><span>{label}</span></div> }
 function Copy({ title, text }: { title:string;text?:string }) { return <HomeWidgetFade className="ihw-copy"><div className="ihw-title-window"><HomeWidgetFade><h4>{title}</h4></HomeWidgetFade></div>{text && <p>{text}</p>}</HomeWidgetFade> }
-function Action({ label,onClick }: { label:string;onClick:()=>void }) { return <button type="button" className="ihw-action" onClick={onClick}>{label} →</button> }
+function HomeTaskMark({ returned }: { returned: boolean }) { const Icon = returned ? RotateCcw : ChevronRight; return <Icon size={14} /> }
+function Action({ label,onClick }: { label:string;onClick:()=>void }) { return <button type="button" className="ihw-action" onClick={onClick}>{label} <ArrowRight size={14} style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /></button> }
 export function HomeTaskRow({ task, onOpen }: { task:HomeWidgetTask;onOpen:()=>void }) {
   const t=useT()
-  return <button type="button" className={`ihw-task ${task.returned?'is-returned':''}`} onClick={onOpen}><span className="ihw-task-copy"><HomeWidgetFade><strong>{t(task.label)}</strong></HomeWidgetFade><HomeWidgetFade className="ihw-task-topic">{tc(task.subjectName)} · {tc(task.lesson.title)}</HomeWidgetFade></span><span className="ihw-task-mark">{task.returned?'↺':'›'}</span></button>
+  return <button type="button" className={`ihw-task ${task.returned?'is-returned':''}`} onClick={onOpen}><span className="ihw-task-copy"><HomeWidgetFade><strong>{t(task.label)}</strong></HomeWidgetFade><HomeWidgetFade className="ihw-task-topic">{tc(task.subjectName)} · {tc(task.lesson.title)}</HomeWidgetFade></span><span className="ihw-task-mark"><HomeTaskMark returned={task.returned} /></span></button>
 }
 function StatsSummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),subjects=useStudentData(s=>s.subjects),progress=useStudentData(s=>s.progress),loaded=useStudentData(s=>s.loaded),activeId=useDashboard(s=>s.activeSubjectId)

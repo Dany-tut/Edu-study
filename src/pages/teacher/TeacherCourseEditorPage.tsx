@@ -1,3 +1,4 @@
+import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, type CourseSlot } from '../../lib/courseScheduleSync'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
@@ -3990,7 +3991,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                   >
                     <Plus size={12} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-green-text)' }} />
                     <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {bt.questionTable ? '📊 ' : ''}{bt.question || t('Без текста')}
+                      {bt.questionTable ? <LoopUiTable size={13} style={{display:'inline-block',verticalAlign:'middle',marginRight:4}} /> : null}{bt.question || t('Без текста')}
                     </span>
                   </button>
                 ))}

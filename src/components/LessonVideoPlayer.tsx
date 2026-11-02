@@ -127,7 +127,7 @@ interface Props {
   /** Заголовок урока — уходит в title iframe и в подпись полноэкранного режима. */
   title: string
   /** Подпись на заставке: «🧪 Химия». Пустая — плашки нет. */
-  badge?: string
+  badge?: React.ReactNode
   /** Длительность из карточки урока — показывается на заставке до запуска. */
   durationLabel?: string
   timecodes?: LessonTimecode[]

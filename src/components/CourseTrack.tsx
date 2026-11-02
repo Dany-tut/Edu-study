@@ -1,3 +1,5 @@
+import { LoopActionLabel } from './icons/LoopIcon'
+import { ArrowRight as LoopUiArrowRight, ArrowLeft as LoopUiArrowLeft } from './icons/appIcons'
 import LessonWatchStatus from './LessonWatchStatus'
 import TrackHomeworkButton from './TrackHomeworkButton'
 import LessonSelfAssessment from './LessonSelfAssessment'
@@ -373,8 +375,8 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
             </div>
 
             {(edges.left || edges.right) && <div style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '4px 16px', padding: '0 32px', fontSize: 11, color: 'var(--color-text-3)' }}>
-              {edges.left && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}>{t('← Предыдущие занятия')}</button>}
-              {edges.right && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}>{t('Дальше есть ещё занятия →')}</button>}
+              {edges.left && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowLeft} position="start" label={t('← Предыдущие занятия')} /></button>}
+              {edges.right && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowRight} label={t('Дальше есть ещё занятия →')} /></button>}
             </div>}
 
             {/* ── Detail popover — overlay anchored to the selected node, rendered

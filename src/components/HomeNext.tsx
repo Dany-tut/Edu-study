@@ -1,3 +1,4 @@
+import { ArrowRight } from './icons/appIcons'
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { Play, ClipboardList, CalendarDays, Check, Flame, CheckCircle2, TrendingUp, Zap, BookOpen } from './icons/appIcons'
@@ -207,7 +208,7 @@ function HomeworkCard({ items }: { items: Array<{ lesson: Lesson; subject: Subje
       })}
       {items.length > HW_SHOWN && (
         <button type="button" onClick={() => openCourses()} style={{ alignSelf: 'flex-start', marginTop: 4, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-control-accent)' }}>
-          {t('Ещё')} {items.length - HW_SHOWN} →
+          {t('Ещё')} {items.length - HW_SHOWN} <ArrowRight size={14} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
         </button>
       )}
     </div>

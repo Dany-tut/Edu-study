@@ -162,7 +162,7 @@ function FormRow({ verb, ending, lang, accent, tone, reading }: {
         </div>
         {merged && (
           <div style={{ fontSize: 12, color: 'var(--color-muted)', ...proseWrap }}>
-            {verb.stem} + {ending.block} {'→'} {form.form} {t('— основа слилась с хвостом')}
+            {verb.stem} + {ending.block} <span data-loop-content>→</span> {form.form} {t('— основа слилась с хвостом')}
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>

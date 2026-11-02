@@ -1,3 +1,4 @@
+import { Check as LoopUiCheck } from '../icons/appIcons'
 // ─────────────────────────────────────────────────────────────────────────────
 // «Материалы» — весь тренажёр витриной, отбор в правой панели
 //
@@ -1474,7 +1475,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
                 color: j === q.answer ? MAT_COLOR : 'var(--color-text-2)',
                 fontWeight: j === q.answer ? 600 : 400,
               }}>
-                <span style={{ width: 10 }}>{j === q.answer ? '✓' : '·'}</span>
+                <span style={{ width: 10 }}>{j === q.answer ? <LoopUiCheck size={10} /> : '·'}</span>
                 <span>{o}</span>
               </div>
             ))}

@@ -150,7 +150,7 @@ function CoreTable({ lang, accent, reading }: { lang: string; accent: string; re
                 речи «두 개» встречается чаще, чем само 둘. */}
             {n.attr && (
               <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-                {'→'} {n.attr} + {t('счётное слово')}
+                <span data-loop-content>→</span> {n.attr} + {t('счётное слово')}
               </span>
             )}
             {reading && <span style={{ fontSize: 12, color: accent, opacity: 0.9 }}>{n.nativeReading}</span>}

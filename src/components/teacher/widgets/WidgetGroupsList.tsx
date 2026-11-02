@@ -1,3 +1,5 @@
+import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
+import { SubjectMark } from '../../icons/SubjectMark'
 import { Users, ChevronRight } from '../../icons/appIcons'
 import { useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
@@ -52,7 +54,7 @@ export default function WidgetGroupsList() {
             opacity: 0.85,
           }}
         >
-          {t('Все')} →
+          {t('Все')} <LoopUiArrowRight size={12} style={{display:'inline-block',verticalAlign:'middle'}} />
         </button>
       </div>
 
@@ -88,7 +90,7 @@ export default function WidgetGroupsList() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 18,
               }}>
-                {g.icon ?? '📚'}
+                <SubjectMark subject={g.subject} size={20} />
               </div>
 
               {/* Name */}

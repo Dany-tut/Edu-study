@@ -1,3 +1,4 @@
+import { SubjectMark } from '../icons/SubjectMark'
 import { LoopInlineIcon } from '../icons/LoopIcon'
 import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
 import { Check as LoopInlineCheck } from '../icons/appIcons'
@@ -453,7 +454,7 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
         // ряда. Куда нажать, подсказывает строка под рядом (PickSubjectHint).
         style={pillStyle(open, { fontWeight: on.length ? 700 : 600 })}>
         <span style={{ display: 'flex', fontSize: 12, color: 'var(--color-text-3)' }}>
-          {on.length === 1 ? getSubject(on[0])?.icon ?? <BookOpen size={12} /> : <BookOpen size={12} />}
+          {on.length === 1 ? <SubjectMark subject={on[0]} size={12} /> : <BookOpen size={12} />}
         </span>
         <span style={{ minWidth, textAlign: 'left', whiteSpace: 'nowrap' }}>{head}</span>
         <Caret open={open} />
@@ -478,7 +479,7 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
                   style={rowStyle(on.includes(val), soft)}
                   onMouseEnter={e => { e.currentTarget.style.background = soft }}
                   onMouseLeave={e => { e.currentTarget.style.background = on.includes(val) ? soft : 'transparent' }}>
-                  <MenuRowLabel label={<>{getSubject(val)?.icon ?? '📚'}{ICON_GAP}{label(val)}</>} on={on.includes(val)} accent={accent} />
+                  <MenuRowLabel label={<><SubjectMark subject={val} size={16} />{ICON_GAP}{label(val)}</>} on={on.includes(val)} accent={accent} />
                 </button>
               ))}
             </ScrollFade>

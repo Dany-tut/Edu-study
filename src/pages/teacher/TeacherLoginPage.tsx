@@ -1,3 +1,5 @@
+import { LoopActionLabel } from '../../components/icons/LoopIcon'
+import { ArrowLeft as LoopBackArrow } from '../../components/icons/appIcons'
 import { clearStudentSession } from '../../lib/studentSession'
 import { useEffect, useState } from 'react'
 import { Eye, EyeOff } from '../../components/icons/appIcons'
@@ -256,7 +258,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
             {mode === 'reset' ? (
               <span onClick={() => switchMode('login')} style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>
-                {t('← Назад ко входу')}
+                <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} />
               </span>
             ) : (
               t('Аккаунт создаётся по ссылке-приглашению от\u00a0администратора.')
@@ -265,7 +267,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         )}
         {Capacitor.isNativePlatform() && mode === 'login' && (
           <button type="button" onClick={() => { window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
-            {t('← Выбрать роль')}
+            <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
           </button>
         )}
       </div>

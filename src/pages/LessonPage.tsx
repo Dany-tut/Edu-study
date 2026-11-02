@@ -1,3 +1,4 @@
+import { SubjectMark } from '../components/icons/SubjectMark'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -870,7 +871,7 @@ export default function LessonPage() {
   // родной язык незачем.
   const glossLang = subjectDef?.isLanguage && !subjectDef.native ? subjectDef.langCode : undefined
   const glossAccent = resolveSubjectPalette(subjectDef?.id, dark).accent
-  const videoBadge = subjectDef ? `${subjectDef.icon}${ICON_GAP}${t(subjectDef.name)}` : undefined
+  const videoBadge = subjectDef ? <><SubjectMark subject={subjectDef.id} size={14} />{ICON_GAP}{t(subjectDef.name)}</> : undefined
 
   const studyProgress = lessonStudyProgress(lesson ?? {}, { ...watch, duration: videoDuration || watch.duration })
   const watchedPct = studyProgress.percent

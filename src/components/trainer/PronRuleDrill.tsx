@@ -126,7 +126,7 @@ function ExampleRow({ rule, ex, lang, accent, tone }: {
             {ex.written}
           </span>
           <span style={{ fontSize: 15, fontWeight: 700, color: accent }}>
-            → {spokenLabel(rule, ex.spoken)}
+            <span data-loop-content>→</span> {spokenLabel(rule, ex.spoken)}
           </span>
           {cyr && <span style={{ fontSize: 13, color: accent, opacity: 0.85 }}>{cyr}</span>}
           <span style={{ fontSize: 14, color: 'var(--color-text-2)' }}>{ex.ru}</span>
