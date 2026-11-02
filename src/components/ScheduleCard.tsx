@@ -178,7 +178,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 const pal = isMissed
                   ? missedPalette
                   : lesson.subject === 'Биология'
-                  ? subjectTheme(lesson.subject)
+                  ? subjectTheme(lesson.subject, dark)
                   : { text: PURPLE.text, soft: PURPLE.soft, accent: PURPLE.text, onAccent: '#FFFFFF', ring: PURPLE.ring }
                 return (
                 <motion.div
