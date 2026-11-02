@@ -4,6 +4,7 @@ import { captureScreen, paintSnapshot, STAGE_ATTR, type Snapshot } from './scree
 import { freezeDockLayer, viewportGap } from './dockLayer'
 import { markScrollSet } from './useNavCollapse'
 import { headerEntering } from './useEnterAfterPaint'
+import { measureWork } from './platformPerformance'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // useSwipeBack — «свайп назад» жестом от левого края экрана (как в iOS).
@@ -214,7 +215,7 @@ function scheduleCapture(delay = 400) {
     const run = () => {
       if (stageUp) return
       if (headerEntering()) { scheduleCapture(240); return }
-      current = captureScreen()
+      current = measureWork('swipe-snapshot', captureScreen)
     }
     const idle = (window as unknown as {
       requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number

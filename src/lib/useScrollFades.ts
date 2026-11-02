@@ -1,4 +1,5 @@
 import { useEffect, type RefObject } from 'react'
+import { measureWork } from './platformPerformance'
 
 export function scrollFadeMask(position: number, viewport: number, content: number, horizontal = false) {
   if (content <= viewport + 1) return 'none'
@@ -33,9 +34,9 @@ export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = tru
         }
       }
     }
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(update) }
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(() => measureWork('scroll-fades.update', update)) }
     const resize = new ResizeObserver(schedule)
-    const observe = () => { resize.observe(root); root.querySelectorAll(selector).forEach(el => { resize.observe(el); if(el.firstElementChild) resize.observe(el.firstElementChild) }); schedule() }
+    const observe = () => measureWork('scroll-fades.observe', () => { resize.observe(root); root.querySelectorAll(selector).forEach(el => { resize.observe(el); if(el.firstElementChild) resize.observe(el.firstElementChild) }); schedule() })
     const mutation = new MutationObserver(observe)
     mutation.observe(root, {subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['class']})
     root.addEventListener('scroll', schedule, {capture:true, passive:true})
