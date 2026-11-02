@@ -23,6 +23,7 @@ import {
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
+import { scheduleMove } from '../../lib/teacherSchedule'
 import BackCircle from '../../components/BackCircle'
 import { AlertStack } from '../../components/Alert'
 import { btn } from '../../lib/pillStyles'
@@ -1177,7 +1178,32 @@ export default function TeacherLessonEditorPage() {
       time_end: meta.endTime || null,
     }
     if (editingScheduleId) {
-      const { error } = await supabase.from('schedule_lessons').update(scheduleBase).eq('id', editingScheduleId)
+      // A move must update the course lesson, homework deadlines and audience
+      // duplicates together. Writing date/time directly leaves the track behind.
+      if (!source || !sourceDate) {
+        setPublishErr({ tone: 'info', text: t('Дождитесь загрузки урока и попробуйте ещё раз.') })
+        return
+      }
+      if (meta.date !== sourceDate || meta.startTime !== source.time) {
+        try {
+          await scheduleMove(editingScheduleId, isoDate, meta.startTime)
+          setSourceDate(meta.date)
+          setSource(previous => previous ? {
+            ...previous, time: meta.startTime, endTime: meta.endTime,
+            topic: meta.title, lessonNumber: Number(meta.lessonNumber) || 0,
+          } : previous)
+        } catch (error) {
+          console.error('[lesson-editor] schedule move failed', error)
+          setPublishErr({ tone: 'danger', text: t('Не удалось сохранить дату и время урока — попробуйте ещё раз.') })
+          return
+        }
+      }
+      // Timing belongs to schedule_move; only editor metadata is written here.
+      const { error } = await supabase.from('schedule_lessons').update({
+        lesson_title: scheduleBase.lesson_title,
+        lesson_number: scheduleBase.lesson_number,
+        time_end: scheduleBase.time_end,
+      }).eq('id', editingScheduleId)
       if (error) {
         console.error('[lesson-editor] schedule update failed', error)
         setPublishErr({ tone: 'danger', text: t('Не удалось сохранить дату и время урока — попробуйте ещё раз.') })
