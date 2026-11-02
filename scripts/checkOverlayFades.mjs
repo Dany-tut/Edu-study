@@ -41,3 +41,11 @@ assert.equal(maskedIcons('const x=<span><svg/><FadeText>label</FadeText><button>
 console.log('Overlay fades: explicit icons and controls stay outside marked text across all TSX sources')
 
 assert.ok(read('src/components/teacher/TeacherSelect.tsx').includes('(mobile || hoverDel === o.value)'), 'Delete actions must be visible without hover on phones')
+
+// A software keyboard can shrink and pan the visual viewport independently.
+for (const top of [0,120,260]) {
+ const p=position({left:350,top:400,bottom:438,width:200},{width:390,height:300,top,layoutHeight:844},284,320)
+ const start=p.up ? 844-p.bottom-p.maxHeight : p.top
+ assert.ok(start>=top+8-0.001 && start+p.maxHeight<=top+300-8+0.001)
+}
+console.log('Overlay geometry: software-keyboard height and viewport panning passed')

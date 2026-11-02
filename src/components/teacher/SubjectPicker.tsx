@@ -1,4 +1,4 @@
-import { viewportDropdownPosition } from '../../lib/dropdownPosition'
+import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropdownPosition'
 import FadeText from '../FadeText'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
@@ -120,11 +120,12 @@ function SubjectDropdown({
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     const onViewport = (e: Event) => { if (!(e.target instanceof Node) || !popRef.current?.contains(e.target)) setOpen(false) }
+    const unwatchViewport = watchDropdownViewport(onViewport)
     window.addEventListener('resize', onViewport)
     window.addEventListener('scroll', onViewport, true)
     document.addEventListener('mousedown', onDoc)
     document.addEventListener('keydown', onKey)
-    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); window.removeEventListener('resize', onViewport); window.removeEventListener('scroll', onViewport, true) }
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); window.removeEventListener('resize', onViewport); window.removeEventListener('scroll', onViewport, true); unwatchViewport() }
   }, [open])
 
   return (

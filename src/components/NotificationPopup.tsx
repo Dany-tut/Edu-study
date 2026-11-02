@@ -1,6 +1,6 @@
 import FadeText from './FadeText'
 import ScrollFade from './ScrollFade'
-import { viewportDropdownPosition } from '../lib/dropdownPosition'
+import { viewportDropdownPosition, watchDropdownViewport } from '../lib/dropdownPosition'
 import { useRef, useEffect, useState } from 'react'
 import EmptyState from './EmptyState'
 import CountBadge from './CountBadge'
@@ -122,9 +122,10 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
       if (rect) setPos(viewportDropdownPosition(rect, 440, 320, 12))
     }
     update()
+    const unwatchViewport = watchDropdownViewport(update)
     window.addEventListener('resize', update)
     window.addEventListener('scroll', update, true)
-    return () => { window.removeEventListener('resize', update); window.removeEventListener('scroll', update, true) }
+    return () => { window.removeEventListener('resize', update); window.removeEventListener('scroll', update, true); unwatchViewport() }
   }, [open, anchorRef])
 
   // Close on outside click / Escape

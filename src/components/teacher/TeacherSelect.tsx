@@ -1,4 +1,4 @@
-import { viewportDropdownPosition } from '../../lib/dropdownPosition'
+import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropdownPosition'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -169,11 +169,13 @@ export default function TeacherSelect({
     window.addEventListener('keydown', onKey)
     window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', onScroll)
+    const unwatchViewport = watchDropdownViewport(onScroll)
     return () => {
       window.removeEventListener('mousedown', onDown)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', onScroll)
+      unwatchViewport()
     }
   }, [open])
 

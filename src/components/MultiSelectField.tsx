@@ -1,5 +1,5 @@
 import FadeText from './FadeText'
-import { viewportDropdownPosition } from '../lib/dropdownPosition'
+import { viewportDropdownPosition, watchDropdownViewport } from '../lib/dropdownPosition'
 import { textFadeStyle } from '../lib/textFades'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -106,6 +106,14 @@ export default function MultiSelectField({
     const estH = Math.min((shown.length + (canCreate ? 1 : 0)) * (small ? 30 : 34) + 16, 248) + (creatable && createHint ? 38 : 0)
     setPos(viewportDropdownPosition(r, estH))
   }, [open, values.length, query, shown.length, small, canCreate])
+
+  useEffect(() => {
+    if (!open) return
+    return watchDropdownViewport(() => {
+      const rect = btnRef.current?.getBoundingClientRect()
+      if (rect) setPos(viewportDropdownPosition(rect, 300))
+    })
+  }, [open])
 
   const openDropdown = () => {
     setOpen(true); setQuery('')
