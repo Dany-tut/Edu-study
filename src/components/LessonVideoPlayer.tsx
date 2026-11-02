@@ -338,6 +338,21 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     onPersistRef.current(w)
   }, [])
 
+  const flushNativeSegment = (video: HTMLVideoElement) => {
+    const time = video.currentTime
+    const base = watchRef.current
+    // Credit the final continuous fragment before pause/ended stops the timer.
+    if (lastTick.current === null || segStart.current === null || time <= base.position || time - base.position > MAX_STEP) return
+    const next = withCompletion({ ...base, position: time,
+      duration: video.duration || base.duration,
+      ranges: addWatched(base.ranges, base.position, time) })
+    watchRef.current = next
+    lastEmitted.current = next
+    setWatch(next)
+    onWatchTickRef.current?.(next)
+    onPersistRef.current(next)
+  }
+
   // Сохраняем по таймеру, на паузе и при уходе со страницы. Вкладку закрывают
   // чаще, чем доводят ролик до конца, — без pagehide терялись бы последние
   // минуты просмотра.
@@ -961,8 +976,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           onSeeking={() => { lastTick.current = null; segStart.current = null }}
           onError={() => { setMediaError(true); setPaused(true) }}
           onPlay={() => { setPaused(false); setEnded(false) }}
-          onPause={() => setPaused(true)}
-          onEnded={() => { setPaused(true); setEnded(true) }}
+          onPause={e => { flushNativeSegment(e.currentTarget); setPaused(true) }}
+          onEnded={e => { flushNativeSegment(e.currentTarget); setPaused(true); setEnded(true) }}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', background: '#000' }}
         />
       )}
