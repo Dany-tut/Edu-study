@@ -31,8 +31,9 @@ import {
 } from './icons/appIcons'
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
+import { NativeVideoVolume } from '../lib/nativeVideoVolume'
 import { resolveDriveVideo } from '../lib/driveVideo'
-import ScrollFade from './ScrollFade'
+import FadeText from './FadeText'
 import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
 import { useT } from '../lib/i18n'
@@ -220,6 +221,14 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const [duration, setDuration] = useState(initialWatch.duration || 0)
   const [buffered, setBuffered] = useState(0)
   const [volume, setVolume] = useState(1)
+  const [boostAvailable, setBoostAvailable] = useState(true)
+  // Only CORS-readable media may be routed through Web Audio; opaque media would become silent.
+  const canBoostVolume = boostAvailable && typeof AudioContext !== 'undefined' && (
+    originalSource.kind === 'gdrive' || (source.kind === 'file' && (
+      source.crossOrigin === 'anonymous' || new URL(source.url, location.href).origin === location.origin
+    ))
+  )
+  const maxVolume = canBoostVolume ? 1.5 : 1
   const [muted, setMuted] = useState(false)
   const [rate, setRate] = useState(1)
   const [captions, setCaptions] = useState(false)
@@ -253,6 +262,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const rateBtnRef = useRef<HTMLButtonElement>(null)
   const volumeBoxRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const audioVolumeRef = useRef<NativeVideoVolume | null>(null)
+  useEffect(() => () => { audioVolumeRef.current?.dispose(); audioVolumeRef.current = null }, [])
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const ytHostRef = useRef<HTMLDivElement>(null)
   const ytRef = useRef<YTPlayer | null>(null)
@@ -380,7 +391,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const doPlay = useCallback(() => {
     if (source.kind === 'youtube') ytRef.current?.playVideo()
     else if (source.kind === 'rutube') ruSend('player:play')
-    else videoRef.current?.play()
+    else { void audioVolumeRef.current?.resume().catch(() => {}); void videoRef.current?.play() }
     setPaused(false); setEnded(false)
   }, [source.kind, ruSend])
 
@@ -411,12 +422,23 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       ruSend('player:setVolume', { volume: m ? 0 : v })
       ruSend(m || v === 0 ? 'player:mute' : 'player:unMute')
     } else if (videoRef.current) {
-      videoRef.current.volume = v
-      videoRef.current.muted = m || v === 0
+      if (audioVolumeRef.current && !audioVolumeRef.current.isFor(videoRef.current)) {
+        audioVolumeRef.current.dispose(); audioVolumeRef.current = null
+      }
+      if (v > 1 && !audioVolumeRef.current) audioVolumeRef.current = new NativeVideoVolume(videoRef.current)
+      if (audioVolumeRef.current) {
+        void audioVolumeRef.current.setLevel(v, m).catch(() => {
+          setBoostAvailable(false); setVolume(Math.min(1, v))
+          if (videoRef.current) videoRef.current.volume = Math.min(1, v)
+        })
+      } else {
+        videoRef.current.volume = Math.min(1, v)
+        videoRef.current.muted = m || v === 0
+      }
     }
   }, [source.kind, ruSend])
 
-  const applyRate = useCallback((r: number) => {
+  const applyRate = useCallback((r: number, closeMenu = true) => {
     try {
       if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(r)
       else if (videoRef.current) {
@@ -428,7 +450,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       // Unsupported rates must not leave a misleading speed label.
       setRate(videoRef.current?.playbackRate ?? 1)
     }
-    setRateOpen(false)
+    if (closeMenu) setRateOpen(false)
   }, [source.kind])
 
   // Модуль субтитров грузится вместе с плеером (cc_load_policy), а кнопка лишь
@@ -629,12 +651,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     const btn = rateBtnRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
-    const h = Math.min(Math.ceil(rates.length / 4) * 44 + 48, window.innerHeight - 32)
+    const h = 54
     const gap = 8
     const top = r.top - gap - h >= 8 ? r.top - gap - h : Math.min(r.bottom + gap, window.innerHeight - h - 8)
     const left = Math.max(8, Math.min(r.right - RATE_MENU_W, window.innerWidth - RATE_MENU_W - 8))
     setRatePos({ left, top: Math.max(8, top) })
-  }, [rates.length])
+  }, [])
 
   useEffect(() => {
     if (!rateOpen) return
@@ -696,7 +718,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       case ' ': case 'k': case 'K': e.preventDefault(); paused ? doPlay() : doPause(); break
       case 'ArrowLeft': e.preventDefault(); doSeek(current - step); break
       case 'ArrowRight': e.preventDefault(); doSeek(current + step); break
-      case 'ArrowUp': e.preventDefault(); { const v = Math.min(1, volume + 0.1); setVolume(v); setMuted(false); applyVolume(v, false) } break
+      case 'ArrowUp': e.preventDefault(); { const v = Math.min(maxVolume, volume + 0.1); setVolume(v); setMuted(false); applyVolume(v, false) } break
       case 'ArrowDown': e.preventDefault(); { const v = Math.max(0, volume - 0.1); setVolume(v); applyVolume(v, muted) } break
       case 'm': case 'M': { const m = !muted; setMuted(m); applyVolume(volume, m) } break
       case 'f': case 'F': toggleFullscreen(); break
@@ -901,9 +923,19 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   // Та же функция, что подсвечивает строку в панели «Таймкоды» справа: подпись
   // главы на шкале и подсветка в списке обязаны переключаться одновременно.
   const activeChapter = activeTimecodeIndex(timecodes, current)
+  const previewAt = scrubbing ? current : hoverAt
+  const previewChapter = previewAt === null ? -1 : activeTimecodeIndex(timecodes, previewAt)
+  const chapterBoundaries = [
+    0, ...new Set(timecodes.map(tc => tc.seconds).filter(seconds => seconds > 0 && seconds < duration)), duration,
+  ].sort((a, b) => a - b)
 
   // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
   // должна стоять реальная скорость, а не та, что выбрана в меню.
+  const rateIndex = Math.max(0, rates.indexOf(rate))
+  const volumeFill = (muted ? 0 : volume) / maxVolume
+  const rateFill = rateIndex / (rates.length - 1)
+  const volumeFillScale = Math.min(1, volumeFill / .2)
+  const rateFillScale = Math.min(1, rateFill / .2)
   const liveRate = gesture === 'ff' && canRate && boost <= engineMaxRate ? boost : rate
 
   /** Стрелка в плашке ускорения и её прозрачное поле по бокам. Ink глифа идёт
@@ -913,7 +945,6 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const chevSize = touch ? 14 : 17
   const chevBleed = chevSize / 3
 
-  const pct = duration ? Math.min(100, (current / duration) * 100) : 0
   const ratio = watchRatio({ ...watch, duration: duration || watch.duration })
   const resumeAt = hasResumePoint(watch) ? watch.position : 0
 
@@ -925,7 +956,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   const iconBtn = (extra?: React.CSSProperties): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: 44, height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
+    width: 'var(--player-button-size, 48px)', minWidth: 'var(--player-button-size, 48px)', height: 48, borderRadius: 14, border: 'none', cursor: 'pointer',
     background: 'transparent', color: '#fff', flexShrink: 0, ...extra,
   })
 
@@ -960,7 +991,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         <video
           ref={videoRef}
           src={source.url}
-          crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : undefined}
+          crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : source.crossOrigin}
           autoPlay
           playsInline
           disablePictureInPicture
@@ -968,8 +999,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             e.currentTarget.currentTime = startAt
             e.currentTarget.preservesPitch = true
             e.currentTarget.playbackRate = rateRef.current
-            e.currentTarget.volume = volume
-            e.currentTarget.muted = muted
+            applyVolume(volume, muted)
             setDuration(e.currentTarget.duration || 0)
           }}
           onLoadedData={e => { void e.currentTarget.play().catch(() => setPaused(true)) }}
@@ -1177,11 +1207,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           )}
 
           <motion.div
+            className="lesson-player-controls"
             initial={false}
             animate={{ opacity: barVisible || paused || !!gesture ? 1 : 0, y: barVisible || paused || !!gesture ? 0 : 12 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
-              position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 10px 8px',
+              position: 'absolute', left: 0, right: 0, bottom: 0,
               background: 'linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0.35) 55%, transparent)',
               pointerEvents: barVisible || paused ? 'auto' : 'none',
             }}
@@ -1199,75 +1230,53 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               onKeyDown={e => {
                 if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
                 e.preventDefault(); e.stopPropagation()
-                doSeek(e.key === 'Home' ? 0 : e.key === 'End' ? duration : current + (e.key === 'ArrowRight' ? 5 : -5))
+                const next = Math.max(0, Math.min(duration, e.key === 'Home' ? 0 : e.key === 'End' ? duration : current + (e.key === 'ArrowRight' ? 5 : -5)))
+                setHoverAt(next)
+                doSeek(next)
               }}
+              onFocus={() => { setHoverAt(current); wake() }}
+              onBlur={() => setHoverAt(null)}
               onPointerDown={startScrub}
               onPointerMove={e => setHoverAt(seekAtClientX(e.clientX))}
               onPointerLeave={() => setHoverAt(null)}
-              style={{ position: 'relative', height: 28, display: 'flex', alignItems: 'center', cursor: 'pointer', touchAction: 'none' }}
+              className="lesson-player-rail"
             >
-              {/* Комета: бегунка нет вовсе, положение держит светлая голова на
-                  конце заливки, а хвост за ней гаснет. */}
-              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 7 : 5, borderRadius: 999, background: 'rgba(255,255,255,0.22)', transition: 'height 0.15s ease' }}>
-                <div style={{ position: 'absolute', inset: 0, width: `${buffered * 100}%`, borderRadius: 999, background: 'rgba(255,255,255,0.28)' }} />
-                {/* Уже отсмотренные куски — видно, что осталось пересмотреть. */}
-                {duration > 0 && watch.ranges.map(([a, b], i) => (
-                  <div
-                    key={i}
-                    style={{
-                      position: 'absolute', top: 0, bottom: 0,
-                      left: `${(a / duration) * 100}%`, width: `${((b - a) / duration) * 100}%`,
-                      background: 'rgba(255,255,255,0.40)', borderRadius: 999,
-                    }}
-                  />
-                ))}
-                <div
-                  style={{
-                    position: 'absolute', inset: 0, width: `${pct}%`, borderRadius: 999,
-                    background: 'linear-gradient(90deg, rgba(var(--accent-rgb), 0.45), rgba(var(--accent-rgb), 1) 55%, rgba(var(--accent-rgb), 0.45) 86%, #FFFFFF)',
-                  }}
-                />
-                {/* Главы — прорези цветом корпуса, а не точки поверх линии. */}
-                {duration > 0 && timecodes.map(tc => (
-                  <span
-                    key={tc.seconds}
-                    title={tc.label}
-                    style={{
-                      position: 'absolute', top: -1, bottom: -1, width: 2,
-                      left: `${Math.min(99.8, (tc.seconds / duration) * 100)}%`,
-                      background: 'rgba(0,0,0,0.55)',
-                    }}
-                  />
-                ))}
-                <span
-                  style={{
-                    position: 'absolute', top: '50%', left: `max(0px, calc(${pct}% - 16px))`,
-                    width: 16, height: scrubbing ? 7 : 5, borderRadius: 999,
-                    transform: 'translateY(-50%)', background: '#fff',
-                    boxShadow: '0 0 10px rgba(var(--accent-rgb), 0.85)',
-                    transition: 'height 0.15s ease',
-                  }}
-                />
+              <div className="lesson-player-track">
+                {duration > 0 && chapterBoundaries.slice(0, -1).map((start, index) => {
+                  const end = chapterBoundaries[index + 1]
+                  const length = end - start
+                  const selected = previewAt !== null && previewAt >= start && (previewAt < end || end === duration)
+                  const coverage = (seconds: number) => Math.max(0, Math.min(100, (seconds - start) / length * 100))
+                  const leftGap = index === 0 ? 0 : 2
+                  const rightGap = end === duration ? 0 : 2
+                  return (
+                    <div key={start} className="lesson-player-segment" data-active={selected}
+                      style={{ left: `calc(${start / duration * 100}% + ${leftGap}px)`, width: `max(0px, calc(${length / duration * 100}% - ${leftGap + rightGap}px))` }}>
+                      <div className="lesson-player-segment-buffer" style={{ width: `${coverage(buffered * duration)}%` }} />
+                      {watch.ranges.map(([a, b], i) => b > start && a < end && (
+                        <div key={i} className="lesson-player-segment-watched" style={{ left: `${coverage(a)}%`, width: `${coverage(b) - coverage(a)}%` }} />
+                      ))}
+                      <div className="lesson-player-segment-played" style={{ width: `${coverage(current)}%` }} />
+                    </div>
+                  )
+                })}
+                {previewAt !== null && duration > 0 && (
+                  <span aria-hidden="true" className="lesson-player-hover-mark"
+                    style={{ left: `clamp(1px, ${previewAt / duration * 100}%, calc(100% - 1px))` }} />
+                )}
               </div>
 
-              {hoverAt !== null && duration > 0 && (
-                <span
-                  style={{
-                    position: 'absolute', bottom: 22, transform: 'translateX(-50%)',
-                    left: `${(hoverAt / duration) * 100}%`, whiteSpace: 'nowrap',
-                    padding: '4px 8px', borderRadius: 8, background: 'rgba(0,0,0,0.78)',
-                    color: '#fff', fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                    pointerEvents: 'none',
-                  }}
-                >
-                  {formatClock(hoverAt)}
+              {previewAt !== null && duration > 0 && (
+                <span className="lesson-player-preview" style={{ left: `${previewAt / duration * 100}%`, transform: `translateX(-${previewAt / duration * 100}%)` }}>
+                  <span className="lesson-player-preview-time">{formatClock(previewAt)}</span>
+                  <FadeText>{previewChapter >= 0 ? timecodes[previewChapter].label : title}</FadeText>
                 </span>
               )}
             </div>
 
-            <div className="flex items-center" style={{ gap: 2, marginTop: 2 }}>
+            <div className="lesson-player-controls-row flex items-center">
               <button onClick={() => (paused ? doPlay() : doPause())} style={iconBtn()} aria-label={paused ? t('Продолжить') : t('Пауза')}>
-                {paused ? <Play size={20} fill="#fff" /> : <Pause size={20} fill="#fff" />}
+                {paused ? <Play size={24} fill="#fff" /> : <Pause size={24} fill="#fff" />}
               </button>
               {/* Кнопок «−10 / +10» в строке нет НАМЕРЕННО. У длинного ролика
                   время занимает всю строку («5:41 / 1:26:56»), и первым из неё
@@ -1281,28 +1290,28 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   aria-label={t('Громкость')}
                   aria-expanded={volumeOpen}
                 >
-                  {muted || volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
+                  {muted || volume === 0 ? <VolumeX size={22} /> : volume < 0.5 ? <Volume1 size={22} /> : <Volume2 size={22} />}
                 </button>
                 {volumeOpen && (
                   <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
-                    <button
-                      onClick={() => { const m = !muted; setMuted(m); applyVolume(volume, m) }}
-                      style={iconBtn()}
-                      aria-label={muted ? t('Включить звук') : t('Выключить звук')}
-                    >
-                      {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                    </button>
-                    <input
-                      type="range" min={0} max={1} step={0.05}
-                      value={muted ? 0 : volume}
-                      onChange={e => {
-                        const v = Number(e.target.value)
-                        setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
-                      }}
-                      aria-label={t('Уровень громкости')}
-                      className="video-volume"
-                      style={{ width: 96, accentColor: '#fff' }}
-                    />
+                    <div className="lesson-player-volume-control">
+                      <div className="lesson-player-volume-level" aria-hidden="true">
+                        <div style={{ width: `${volumeFill * 100}%`, height: `${volumeFillScale * 100}%`, left: `calc(${volumeFillScale - 1} * var(--slider-inset, 12px))` }} />
+                        {canBoostVolume && <span className="lesson-player-volume-normal" style={{ left: `${100 / maxVolume}%` }} />}
+                        {volume > 1 && !muted && <span className="lesson-player-rate-value">{Math.round(volume * 100)}%</span>}
+                      </div>
+                      <input
+                        type="range" min={0} max={maxVolume} step={0.05}
+                        value={muted ? 0 : volume}
+                        onChange={e => {
+                          const v = Number(e.target.value)
+                          setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
+                        }}
+                        aria-label={t('Уровень громкости')}
+                        aria-valuetext={`${Math.round((muted ? 0 : volume) * 100)}%`}
+                        className="video-volume lesson-player-volume-slider"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -1312,8 +1321,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               </span>
 
               {activeChapter >= 0 && (
-                <span className="lesson-player-chapter text-fade" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
-                  {timecodes[activeChapter].label}
+                <span className="lesson-player-chapter" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
+                  <FadeText>{timecodes[activeChapter].label}</FadeText>
                 </span>
               )}
 
@@ -1325,49 +1334,46 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   style={iconBtn(captions ? { background: 'rgba(255,255,255,0.2)' } : undefined)}
                   aria-label={t('Субтитры')}
                 >
-                  <Subtitles size={18} />
+                  <Subtitles size={22} />
                 </button>
               )}
 
               {canRate && (
                 <div style={{ position: 'relative' }}>
                   <button
+                    className="lesson-player-rate-trigger"
                     ref={rateBtnRef}
                     onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o); setVolumeOpen(false) }}
                     style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 6 } : { width: 'auto', padding: '0 8px', gap: 6 })}
                     aria-label={t('Скорость')}
                     aria-expanded={rateOpen}
                   >
-                    <Gauge size={18} />
+                    <Gauge size={22} />
                     <span style={{ fontSize: 12, fontWeight: 700 }}>{liveRate}×</span>
                   </button>
                   {rateOpen && ratePos && createPortal(
                     <div
                       data-rate-menu
+                      className="lesson-player-rate-popover"
                       onKeyDown={e => { if (e.key === 'Escape') { setRateOpen(false); rateBtnRef.current?.focus(); e.stopPropagation() } }}
                       style={{
                         position: 'fixed', left: ratePos.left, top: ratePos.top, zIndex: 4000,
-                        width: RATE_MENU_W, padding: 6, borderRadius: 14,
-                        background: 'rgba(20,20,22,0.94)', border: '1px solid rgba(255,255,255,0.14)',
-                        boxShadow: 'var(--shadow-4)',
+                        width: RATE_MENU_W,
                       }}
                     >
-                      <div className="lesson-player-rate-title">{t('Скорость воспроизведения')}</div>
-                      <ScrollFade maxHeight="calc(100dvh - 80px)" fadeMode="mask" bg="rgba(20,20,22,0.96)">
-                        <div className="lesson-player-rate-grid" role="group" aria-label={t('Скорость воспроизведения')}>
-                          {rates.map(r => (
-                            <button
-                              key={r}
-                              onClick={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
-                              aria-pressed={r === rate}
-                              aria-label={`${r}×`}
-                              className="lesson-player-rate-option"
-                            >
-                              {r}×
-                            </button>
-                          ))}
+                      <div className="lesson-player-rate-control">
+                        <div className="lesson-player-volume-level" aria-hidden="true">
+                          <div style={{ width: `${rateFill * 100}%`, height: `${rateFillScale * 100}%`, left: `calc(${rateFillScale - 1} * var(--slider-inset, 12px))` }} />
+                          <span className="lesson-player-rate-value">{rate}×</span>
                         </div>
-                      </ScrollFade>
+                        <input type="range" min={0} max={rates.length - 1} step={1}
+                          value={rateIndex}
+                          onChange={e => { if (lockedRef.current) endBoost(); applyRate(rates[Number(e.target.value)], false) }}
+                          aria-label={t('Скорость воспроизведения')}
+                          aria-valuetext={`${rate}×`}
+                          className="video-volume lesson-player-volume-slider lesson-player-rate-slider"
+                        />
+                      </div>
                     </div>,
                     (fullscreen ? boxRef.current : null) ?? document.body,
                   )}
@@ -1375,7 +1381,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               )}
 
               <button onClick={toggleFullscreen} style={iconBtn()} aria-label={t('Во весь экран')}>
-                {fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                {fullscreen ? <Minimize size={22} /> : <Maximize size={22} />}
               </button>
             </div>
           </motion.div>
