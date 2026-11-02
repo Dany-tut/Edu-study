@@ -1,4 +1,4 @@
-# Loop mobile icon system
+# Loop icon system
 
 Original SVG paths from the approved Iskra Loop kit, including crosses,
 chevrons, selectors and editor/media controls. Source: `design/ios-concepts/loop-kit`.
@@ -7,21 +7,19 @@ Figma review: https://www.figma.com/design/y8qQ23hqFJtufp7gGdZTse/Iskra?node-id=
 ## Application boundary
 
 Import UI icons from `components/icons/appIcons`, with the same named exports,
-props and refs as Lucide. `LoopIconProvider` in `App.tsx` enables Loop below
-1024 px on cabinet, login and shared learning routes. Desktop renders the
-original Lucide components. The landing route is excluded.
+props and refs as Lucide. Loop is the default at every viewport, including
+cabinet, login, shared learning routes, landing and standalone previews.
 
 React context follows portals, so dialogs, sheets, notifications and lazy
-lesson/homework/trainer pages keep the same icon family. There is one viewport
-subscription, rather than a resize listener on each icon. The constructor's
-desktop-only full icon picker intentionally keeps its Lucide namespace import;
-its entire catalog must stay in the lazy desktop chunk.
+lesson/homework/trainer pages keep the same icon family. Icons do not subscribe
+to viewport changes. The constructor picker offers the approved Loop catalog;
+stored icon keys keep their names and unknown legacy keys use FileText.
 
 `TaskliIcon` is the legacy technical name of Iskra’s semantic wrapper for navigation and lesson states. It does not identify a separate product. Testly is a separate product connected through its own integration module.
-`LoopInlineIcon` and `LoopTextIcon` replace legacy inline SVG/text controls only
-inside the mobile boundary. Shared Checkbox/Radio marks and feed action glyphs
-also use the boundary, preserving their inputs, keyboard behavior and state.
-Subject marks use `SubjectMark` instead of emoji on mobile. Charts, lesson
+`LoopInlineIcon` and `LoopTextIcon` replace legacy inline SVG/text controls throughout
+the UI. Shared Checkbox/Radio marks and feed action glyphs
+also use Loop, preserving their inputs, keyboard behavior and state.
+Subject marks use `SubjectMark` instead of emoji at every viewport. Charts, lesson
 diagrams, brand logos and animation artwork retain their own drawing.
 
 ## Geometry and color
