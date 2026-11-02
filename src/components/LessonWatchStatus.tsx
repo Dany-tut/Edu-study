@@ -1,3 +1,4 @@
+import { watchedSeconds } from '../lib/videoProgress'
 import type { Lesson } from '../data/mockData'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { TRACK_STATUS } from '../lib/theme'
@@ -10,7 +11,7 @@ export default function LessonWatchStatus({ lesson }: { lesson: Lesson }) {
 
   return (
     <div style={{ fontSize: 12, color: TRACK_STATUS.unviewed.text, display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <span>{t('Просмотр урока')}: {percent > 0 ? `${percent}%` : t('Не начат')}</span>
+      <span>{t('Просмотр урока')}: {percent > 0 ? `${Math.floor(watchedSeconds(lesson.watch?.ranges ?? []) / 60)} ${t('мин')} / ${Math.ceil((lesson.watch?.duration ?? 0) / 60)} ${t('мин')} · ${percent}%` : t('Не начат')}</span>
       <div
         role="progressbar" aria-label={t('Просмотр урока')}
         aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}
