@@ -41,3 +41,34 @@ export function journalPaintTiming(started: number, ready: number) {
     requests: requests.filter(r => r.started >= started).length,
   }))
 }
+
+export function measureWork<T>(source: string, run: () => T): T {
+  if (!performanceDiagnostics) return run()
+  const started = performance.now()
+  try { return run() } finally {
+    const ms = Math.round(performance.now() - started)
+    if (ms >= 20) console.debug('[platform-work] ' + JSON.stringify({ source, started: Math.round(started), ms }))
+  }
+}
+
+if (performanceDiagnostics && typeof PerformanceObserver !== 'undefined') {
+  console.debug('[platform-environment] ' + JSON.stringify({ width: window.innerWidth,
+    touchPoints: navigator.maxTouchPoints, touchStart: 'ontouchstart' in window }))
+  for (const type of ['resource', 'longtask']) {
+    if (!PerformanceObserver.supportedEntryTypes.includes(type)) continue
+    new PerformanceObserver(list => {
+      for (const entry of list.getEntries()) {
+        if (type === 'longtask') {
+          console.debug('[platform-longtask] ' + JSON.stringify({ started: Math.round(entry.startTime), ms: Math.round(entry.duration) }))
+          continue
+        }
+        const resource = entry as PerformanceResourceTiming
+        const path = new URL(resource.name).pathname
+        if (!path.startsWith('/rest/v1/')) continue
+        console.debug('[platform-resource] ' + JSON.stringify({ source: path.slice('/rest/v1/'.length),
+          started: Math.round(resource.startTime), ms: Math.round(resource.duration), end: Math.round(resource.responseEnd),
+          encodedBytes: resource.encodedBodySize, decodedBytes: resource.decodedBodySize }))
+      }
+    }).observe({ type, buffered: true })
+  }
+}

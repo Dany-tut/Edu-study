@@ -1,3 +1,5 @@
+import { measureWork } from './platformPerformance'
+
 /** Apply edge fades to actual scroll regions, without adding layout wrappers. */
 export function installWidgetScrollFades(root: HTMLElement) {
   const observed = new Set<HTMLElement>()
@@ -48,7 +50,7 @@ export function installWidgetScrollFades(root: HTMLElement) {
         } else el.removeAttribute('data-scroll-fade')
       }
   }
-  const schedule = () => { if (!frame && !stopped) frame = requestAnimationFrame(scan) }
+  const schedule = () => { if (!frame && !stopped) frame = requestAnimationFrame(() => measureWork('widget-scroll-fades', scan)) }
   const resize = new ResizeObserver(schedule)
   const mutation = new MutationObserver(schedule)
   mutation.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] })

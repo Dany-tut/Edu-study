@@ -20,7 +20,7 @@ function fixture(withIntersection=true) {
   const context={module:{exports:{}},exports:{},HTMLElement:Element,ResizeObserver:Resize,MutationObserver:Mutation,
     ...(withIntersection?{IntersectionObserver:Intersection}:{}),
     document:{styleSheets:[],documentElement:new Element(),querySelectorAll:()=>items.filter(e=>e.isConnected),addEventListener(){},fonts:{addEventListener(){}}},
-    window:{addEventListener(){}},requestAnimationFrame:cb=>{frames.push(cb);return frames.length},getComputedStyle:e=>{reads++;return{getPropertyValue:()=>1,overflowX:'hidden',overflowY:'hidden',direction:'ltr'}},console}
+    URLSearchParams,window:{location:{search:''},addEventListener(){}},requestAnimationFrame:cb=>{frames.push(cb);return frames.length},getComputedStyle:e=>{reads++;return{getPropertyValue:()=>1,overflowX:'hidden',overflowY:'hidden',direction:'ltr'}},console}
   context.exports=context.module.exports
   vm.runInNewContext(result.outputFiles[0].text,context)
   const drain=()=>{while(frames.length)frames.shift()()}
