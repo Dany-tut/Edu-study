@@ -43,6 +43,7 @@ export interface StudentWork {
   dates: string[]
   returned: boolean
   resubmitted: boolean
+  grade?: number | null
   present: boolean | null
   watched: boolean
   studied: boolean
@@ -296,6 +297,7 @@ export function studentWorks(
         dates: dates.sort(),
         returned: returnedAttempts.length > 0 || status === 'На доработке',
         resubmitted,
+        grade: cell?.grade ?? null,
         present: cell?.present ?? null,
         watched: cell?.watched ?? false,
         studied: cell?.studied ?? false,
