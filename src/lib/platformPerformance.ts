@@ -13,7 +13,7 @@ export function withRequestTiming(fetcher: typeof fetch): typeof fetch {
     if (!performanceDiagnostics) return fetcher(input, init)
     const url = new URL(input instanceof Request ? input.url : String(input))
     const source = url.pathname.startsWith('/rest/v1/') ? url.pathname.slice('/rest/v1/'.length)
-      : url.pathname.startsWith('/auth/v1/') ? 'auth/' + url.pathname.split('/').at(-1) : null
+      : url.pathname.startsWith('/auth/v1/') ? 'auth/' + url.pathname.split('/').pop() : null
     if (!source) return fetcher(input, init)
     const started = performance.now()
     const concurrent = ++active
