@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
 import { FIELD } from '../../lib/fieldStyle'
@@ -1110,38 +1111,37 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
 }
 
 function ScrollFadeTable({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [fadeLeft, setFadeLeft] = useState(false)
-  const [fadeRight, setFadeRight] = useState(false)
+  return <div style={{ overflowX: 'auto' }}>{children}</div>
+}
 
-  function check() {
+// Keep course lists compact without losing access to the full assignment text.
+function RosterDescription({ text }: { text: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [expanded, setExpanded] = useState(false)
+  const [overflow, setOverflow] = useState(false)
+  const t = useT()
+  useEffect(() => {
     const el = ref.current
     if (!el) return
-    setFadeLeft(el.scrollLeft > 4)
-    setFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
-  }
-
-  useEffect(() => { check() }, [])
-
+    const check = () => setOverflow(el.scrollWidth > el.clientWidth + 1)
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    check()
+    return () => observer.disconnect()
+  }, [text, expanded])
   return (
-    <div style={{ position: 'relative' }}>
-      <div ref={ref} onScroll={check} style={{ overflowX: 'auto' }}>
-        {children}
-      </div>
-      <div style={{
-        position: 'absolute', top: 0, left: 0, bottom: 0, width: 56,
-        pointerEvents: 'none', zIndex: 2,
-        background: 'linear-gradient(to right, var(--color-bg-2), transparent)',
-        opacity: fadeLeft ? 1 : 0,
-        transition: 'opacity 0.22s ease',
-      }} />
-      <div style={{
-        position: 'absolute', top: 0, right: 0, bottom: 0, width: 72,
-        pointerEvents: 'none', zIndex: 2,
-        background: 'linear-gradient(to left, var(--color-bg-2), transparent)',
-        opacity: fadeRight ? 1 : 0,
-        transition: 'opacity 0.22s ease',
-      }} />
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, marginTop: 4, minWidth: 0, fontSize: 11, fontWeight: 400, color: 'var(--color-muted)' }}>
+      <span ref={ref} style={{
+        flex: 1, minWidth: 0, lineHeight: '16px',
+        whiteSpace: expanded ? 'normal' : 'nowrap', overflow: 'hidden', overflowWrap: 'anywhere',
+        maskImage: !expanded && overflow ? 'linear-gradient(to right, black calc(100% - 32px), transparent)' : undefined,
+      }}>{text}</span>
+      {(overflow || expanded) && <button
+        type="button" aria-expanded={expanded}
+        aria-label={t(expanded ? 'Свернуть' : 'Показать все')}
+        onClick={event => { event.stopPropagation(); setExpanded(value => !value) }}
+        style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: 0, marginTop: -14, marginBottom: -14, border: 0, borderRadius: 4, background: 'transparent', color: 'var(--color-muted)', cursor: 'pointer' }}
+      >{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>}
     </div>
   )
 }
@@ -2312,6 +2312,8 @@ type GroupRosterProps = {
   onStripChange?: (tab: 'groups' | 'students') => void
 }
 export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
+  const scrollRoot = useRef<HTMLDivElement>(null)
+  useScrollFades(scrollRoot)
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
@@ -2581,7 +2583,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
     : new Set<string>()
 
   return (
-    <div className={renderRoster ? 'js-journal-host' : undefined} style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
+    <div ref={scrollRoot} className={renderRoster ? 'js-journal-host' : undefined} style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <motion.div {...fadeUp(0.04)} className={renderRoster || onOpenStudent ? 'js-stand-strip' : undefined}>
           <GroupStrip
@@ -2745,7 +2747,17 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                 </div>
 
                 <ScrollFadeTable>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <table style={{ width: '100%', minWidth: 1000, tableLayout: 'fixed', borderCollapse: 'collapse' }}>
+                    <colgroup>
+                      <col style={{ width: '32%' }} />
+                      <col style={{ width: '13%' }} />
+                      <col style={{ width: '7%' }} />
+                      <col style={{ width: '7%' }} />
+                      <col style={{ width: '10%' }} />
+                      <col style={{ width: '9%' }} />
+                      <col style={{ width: '12%' }} />
+                      <col style={{ width: '10%' }} />
+                    </colgroup>
                     <thead>
                       <tr style={{ background: 'var(--color-bg-2)' }}>
                         <Th label={t('Студент')}        sortKey="name"       currentKey={sortKey} dir={sortDir} onSort={handleSort} />
@@ -2798,12 +2810,10 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                 }}>
                                   {initials}
                                 </div>
-                                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                                  {tn(student.name)}
-                                  {allRosterView && <span style={{ display: 'block', marginTop: 4, fontSize: 11, fontWeight: 400, color: 'var(--color-muted)', whiteSpace: 'normal' }}>
-                                    {studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel}
-                                  </span>}
-                                </span>
+                                <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
+                                  <div title={tn(student.name)} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(student.name)}</div>
+                                  {allRosterView && <RosterDescription text={studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel} />}
+                                </div>
                               </div>
                             </td>
                             {/* Last visit */}
@@ -2838,7 +2848,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                               </span>
                             </td>
                             {/* Debt */}
-                            <td style={{ padding: '12px 24px 12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
+                            <td style={{ padding: '12px 24px 12px 12px', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
                               {student.debt != null && student.debt > 0 ? (
                                 <span style={{
                                   fontSize: 12, fontWeight: 700,
@@ -2848,7 +2858,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                   borderRadius: 6,
                                   padding: '2px 8px',
                                 }}>
-                                  {student.debt.toLocaleString('ru-RU')} ₽
+                                  {student.debt.toLocaleString('ru-RU')}{'\u00a0₽'}
                                 </span>
                               ) : (
                                 <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>—</span>

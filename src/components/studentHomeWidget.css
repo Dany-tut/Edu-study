@@ -22,3 +22,30 @@
 @media(min-width:1024px) and (max-height:800px) { .ihw-card { --ihw-art-size:128px; --ihw-art-reserve:90px; } .ihw-card > .ihw-object { top:-27px; } }
 @media(min-width:1024px) and (max-height:660px) { .ihw-card { --ihw-art-size:96px; --ihw-art-reserve:64px; } .ihw-card > .ihw-object { top:-25px; } }
 @container(max-width:320px) { .ihw-card .ihw-stats { grid-template-columns:minmax(0,1fr); gap:2px; } .ihw-card .ihw-stats .ihw-metric:nth-child(2) { display:none; } }
+
+/* Optical anchors measured on the opaque silhouette, excluding transparent padding. */
+.ihw-object[data-object="awards"] { --art-top-inset:0.039062; --art-right-inset:0.089844; }
+.ihw-object[data-object="daily"] { --art-top-inset:0.125000; --art-right-inset:0.019531; }
+.ihw-object[data-object="fact"] { --art-top-inset:0.078125; --art-right-inset:0.054688; }
+.ihw-object[data-object="feed"] { --art-top-inset:0.089844; --art-right-inset:0.015625; }
+.ihw-object[data-object="focus"] { --art-top-inset:0.062500; --art-right-inset:0.085938; }
+.ihw-object[data-object="memes"] { --art-top-inset:0.078125; --art-right-inset:0.066406; }
+.ihw-object[data-object="practice"] { --art-top-inset:0.078125; --art-right-inset:0.144531; }
+.ihw-object[data-object="quiz"] { --art-top-inset:0.136719; --art-right-inset:0.039062; }
+.ihw-object[data-object="reaction"] { --art-top-inset:0.042969; --art-right-inset:0.140625; }
+.ihw-object[data-object="reminders"] { --art-top-inset:0.058594; --art-right-inset:0.089844; }
+.ihw-object[data-object="stats"] { --art-top-inset:0.058594; --art-right-inset:0.062500; }
+.ihw-object[data-object="trainer"] { --art-top-inset:0.144531; --art-right-inset:0.023438; }
+.ihw-card > .ihw-object { top:calc(-12px - var(--ihw-art-size)*var(--art-top-inset,0)); right:calc(-2px - var(--ihw-art-size)*var(--art-right-inset,0)); }
+/* Soft reflected light anchors each ceramic/acrylic object to its card. */
+.ihw-card {
+ --ihw-depth:var(--color-accent);
+ background:
+  radial-gradient(ellipse 60% 135% at 100% 0%,color-mix(in srgb,var(--ihw-depth) 15%,transparent),transparent 75%),
+  radial-gradient(ellipse 34% 75% at 83% 8%,color-mix(in srgb,var(--color-bg-card) 90%,transparent),transparent 72%),
+  var(--color-bg-card);
+}
+.ihw-card[data-home-widget="7"],.ihw-card[data-home-widget="1"] { --ihw-depth:var(--color-teal-pill-text); }
+.ihw-card[data-home-widget="3"],.ihw-card[data-home-widget="8"] { --ihw-depth:var(--color-amber-text); }
+.ihw-card[data-home-widget="2"],.ihw-card[data-home-widget="9"] { --ihw-depth:var(--color-blue-pill-text); }
+.ihw-card > .ihw-object { filter:drop-shadow(-4px 7px 6px color-mix(in srgb,var(--ihw-depth) 12%,transparent)); }
