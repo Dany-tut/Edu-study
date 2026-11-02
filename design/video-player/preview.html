@@ -23,7 +23,7 @@ const chapters=media?[{seconds:0,label:'Задание №22 · Обратимы
 function Preview(){
  const [watch,setWatch]=useState(sample);
  return React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:18}},
-  React.createElement(Player,{source:media?{kind:'file',url:media}:{kind:'gdrive',id},title:'Занятие №4 · Задания №22–№28',timecodes:chapters,initialWatch:sample,onPersist:()=>{},onWatchTick:w=>{latestWatch=w;setWatch(w)}}),
+  React.createElement(Player,{source:media?{kind:'file',url:media,crossOrigin:'anonymous'}:{kind:'gdrive',id},title:'Занятие №4 · Задания №22–№28',timecodes:chapters,initialWatch:sample,onPersist:()=>{},onWatchTick:w=>{latestWatch=w;setWatch(w)}}),
   React.createElement(Progress,{watch}),
   React.createElement('div',{style:{display:'flex',gap:8,flexWrap:'wrap',paddingInline:24}},...[0,61,70,100].map(p=>React.createElement('button',{key:p,onClick:()=>setWatch({...sample,ranges:[[0,p===61?2760:sample.duration*p/100]]}),style:{minHeight:44,border:0,borderRadius:12,padding:'8px 14px',background:'var(--color-bg)',color:'var(--color-text-2)'}},`Пример ${p}%`)))
  );

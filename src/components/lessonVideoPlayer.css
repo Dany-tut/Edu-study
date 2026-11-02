@@ -122,3 +122,8 @@
 }
 
 @media (max-width: 360px) { .lesson-player-rate-trigger > svg { display: none; } }
+
+.lesson-player-volume-normal {
+  position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(28,28,32,.5);
+  pointer-events: none;
+}

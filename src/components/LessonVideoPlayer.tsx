@@ -31,6 +31,7 @@ import {
 } from './icons/appIcons'
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
+import { NativeVideoVolume } from '../lib/nativeVideoVolume'
 import { resolveDriveVideo } from '../lib/driveVideo'
 import FadeText from './FadeText'
 import './lessonVideoPlayer.css'
@@ -220,6 +221,14 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const [duration, setDuration] = useState(initialWatch.duration || 0)
   const [buffered, setBuffered] = useState(0)
   const [volume, setVolume] = useState(1)
+  const [boostAvailable, setBoostAvailable] = useState(true)
+  // Only CORS-readable media may be routed through Web Audio; opaque media would become silent.
+  const canBoostVolume = boostAvailable && typeof AudioContext !== 'undefined' && (
+    originalSource.kind === 'gdrive' || (source.kind === 'file' && (
+      source.crossOrigin === 'anonymous' || new URL(source.url, location.href).origin === location.origin
+    ))
+  )
+  const maxVolume = canBoostVolume ? 1.5 : 1
   const [muted, setMuted] = useState(false)
   const [rate, setRate] = useState(1)
   const [captions, setCaptions] = useState(false)
@@ -253,6 +262,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const rateBtnRef = useRef<HTMLButtonElement>(null)
   const volumeBoxRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const audioVolumeRef = useRef<NativeVideoVolume | null>(null)
+  useEffect(() => () => { audioVolumeRef.current?.dispose(); audioVolumeRef.current = null }, [])
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const ytHostRef = useRef<HTMLDivElement>(null)
   const ytRef = useRef<YTPlayer | null>(null)
@@ -365,7 +376,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const doPlay = useCallback(() => {
     if (source.kind === 'youtube') ytRef.current?.playVideo()
     else if (source.kind === 'rutube') ruSend('player:play')
-    else videoRef.current?.play()
+    else { void audioVolumeRef.current?.resume().catch(() => {}); void videoRef.current?.play() }
     setPaused(false); setEnded(false)
   }, [source.kind, ruSend])
 
@@ -396,8 +407,19 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       ruSend('player:setVolume', { volume: m ? 0 : v })
       ruSend(m || v === 0 ? 'player:mute' : 'player:unMute')
     } else if (videoRef.current) {
-      videoRef.current.volume = v
-      videoRef.current.muted = m || v === 0
+      if (audioVolumeRef.current && !audioVolumeRef.current.isFor(videoRef.current)) {
+        audioVolumeRef.current.dispose(); audioVolumeRef.current = null
+      }
+      if (v > 1 && !audioVolumeRef.current) audioVolumeRef.current = new NativeVideoVolume(videoRef.current)
+      if (audioVolumeRef.current) {
+        void audioVolumeRef.current.setLevel(v, m).catch(() => {
+          setBoostAvailable(false); setVolume(Math.min(1, v))
+          if (videoRef.current) videoRef.current.volume = Math.min(1, v)
+        })
+      } else {
+        videoRef.current.volume = Math.min(1, v)
+        videoRef.current.muted = m || v === 0
+      }
     }
   }, [source.kind, ruSend])
 
@@ -681,7 +703,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       case ' ': case 'k': case 'K': e.preventDefault(); paused ? doPlay() : doPause(); break
       case 'ArrowLeft': e.preventDefault(); doSeek(current - step); break
       case 'ArrowRight': e.preventDefault(); doSeek(current + step); break
-      case 'ArrowUp': e.preventDefault(); { const v = Math.min(1, volume + 0.1); setVolume(v); setMuted(false); applyVolume(v, false) } break
+      case 'ArrowUp': e.preventDefault(); { const v = Math.min(maxVolume, volume + 0.1); setVolume(v); setMuted(false); applyVolume(v, false) } break
       case 'ArrowDown': e.preventDefault(); { const v = Math.max(0, volume - 0.1); setVolume(v); applyVolume(v, muted) } break
       case 'm': case 'M': { const m = !muted; setMuted(m); applyVolume(volume, m) } break
       case 'f': case 'F': toggleFullscreen(); break
@@ -950,7 +972,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         <video
           ref={videoRef}
           src={source.url}
-          crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : undefined}
+          crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : source.crossOrigin}
           autoPlay
           playsInline
           disablePictureInPicture
@@ -958,8 +980,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             e.currentTarget.currentTime = startAt
             e.currentTarget.preservesPitch = true
             e.currentTarget.playbackRate = rateRef.current
-            e.currentTarget.volume = volume
-            e.currentTarget.muted = muted
+            applyVolume(volume, muted)
             setDuration(e.currentTarget.duration || 0)
           }}
           onLoadedData={e => { void e.currentTarget.play().catch(() => setPaused(true)) }}
@@ -1256,10 +1277,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
                     <div className="lesson-player-volume-control">
                       <div className="lesson-player-volume-level" aria-hidden="true">
-                        <div style={{ width: `${(muted ? 0 : volume) * 100}%` }} />
+                        <div style={{ width: `${(muted ? 0 : volume) / maxVolume * 100}%` }} />
+                        {canBoostVolume && <span className="lesson-player-volume-normal" style={{ left: `${100 / maxVolume}%` }} />}
+                        {volume > 1 && !muted && <span className="lesson-player-rate-value">{Math.round(volume * 100)}%</span>}
                       </div>
                       <input
-                        type="range" min={0} max={1} step={0.05}
+                        type="range" min={0} max={maxVolume} step={0.05}
                         value={muted ? 0 : volume}
                         onChange={e => {
                           const v = Number(e.target.value)
