@@ -10,7 +10,7 @@ export const textFadeStyle = {
 export function textFadeLines(value: number | string | undefined): CSSProperties {
   const lines = Number(value)
   return Number.isFinite(lines) && lines > 0 ? {
-    [TEXT_FADE_PROPERTY]: lines, display: 'block', whiteSpace: 'normal', overflow: 'hidden',
+    [TEXT_FADE_PROPERTY]: lines, display: 'block', whiteSpace: lines === 1 ? 'nowrap' : 'normal', overflow: 'hidden',
     maxHeight: `calc(${lines} * 1lh)`,
   } as CSSProperties : {
     [TEXT_FADE_PROPERTY]: 0, display: 'block', maxHeight: 'none', overflow: 'visible',
