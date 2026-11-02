@@ -5,6 +5,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { fetchScheduleDays } from '../lib/db'
 import { getStudentSession } from '../lib/studentSession'
+import { personalDemoOwner } from '../lib/personalStudentDemo'
 import { useStudentTz } from '../lib/studentTz'
 import { wallDateTimeInTz } from '../lib/teacherTz'
 import { useNow } from '../lib/useNow'
@@ -55,6 +56,7 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
   const dialogId = useId()
   const session = getStudentSession()
   const studentId = session?.id, groupId = session?.groupId
+  const personalExample = !!personalDemoOwner(session)
   const selectedMonth = selected.slice(0, 7)
   const requestedMonths = [...new Set([selectedMonth, ...(open ? [month] : [])])].join('|')
 
@@ -64,6 +66,9 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
   useEffect(() => { setSelected(today); setMonth(today.slice(0, 7)) }, [today, timeZone])
   useEffect(() => {
     let active = true
+    // The explicitly selected browser-only example must remain browser-only.
+    // Remote empty days otherwise replace its filled cards after first paint.
+    if (personalExample) { setRemote([]); setPending(false); setFailed(false); return }
     if (!studentId) { setPending(false); return }
     setPending(true); setFailed(false)
     Promise.all(requestedMonths.split('|').map(value => fetchScheduleDays(groupId ?? '', studentId, monthRange(value))))
@@ -71,7 +76,7 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
       .catch(() => { if (active) setFailed(true) })
       .finally(() => { if (active) setPending(false) })
     return () => { active = false }
-  }, [requestedMonths, studentId, groupId, days, timeZone, retry])
+  }, [requestedMonths, studentId, groupId, days, timeZone, retry, personalExample])
   useEffect(() => {
     if (!open) return
     const dismiss = (event: PointerEvent) => { if (event.target instanceof Node && !picker.current?.contains(event.target)) setOpen(false) }
