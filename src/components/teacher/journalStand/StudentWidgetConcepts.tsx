@@ -68,7 +68,7 @@ export function FadeText({ children, className = '', lines }: { children: ReactN
 }
 
 export function WidgetObject({ kind, className = '' }: { kind: WidgetId; className?: string }) {
-  return <img className={`sw-object ${className}`} src={`/widget-objects-v1/${kind}.png`} alt="" aria-hidden="true" draggable={false} width={96} height={96} />
+  return <img className={`sw-object ${className}`} src={`/widget-objects-v2-shadows/ui/${kind}.png`} alt="" aria-hidden="true" draggable={false} width={96} height={96} />
 }
 function Card({ id, title, extra, children, footer }: { id: WidgetId; title?: string; extra?: ReactNode; children: ReactNode; footer: ReactNode }) {
   const meta = WIDGETS.find(item => item.id === id)!

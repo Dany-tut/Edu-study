@@ -106,7 +106,7 @@ export default function NativeEntryPage() {
           <span style={{ color: 'var(--color-text)', fontSize: 16, lineHeight: 1.2, fontWeight: 720 }}>{t(label)}</span>
           <span style={{ color: 'var(--color-muted)', fontSize: 12, lineHeight: 1.3 }}>{t(detail)}</span>
         </span>
-        <img src={`/widget-objects-v1/ui/${object}.png`} alt="" aria-hidden="true" width={58} height={58} draggable={false} style={{ width: 58, height: 58, objectFit: 'contain', flexShrink: 0, margin: '-8px -5px -8px 0' }} />
+        <img src={`/widget-objects-v2-shadows/ui/${object}.png`} alt="" aria-hidden="true" width={58} height={58} draggable={false} style={{ width: 58, height: 58, objectFit: 'contain', flexShrink: 0, margin: '-8px -5px -8px 0' }} />
         <ArrowRight size={18} style={{ flexShrink: 0, color: 'var(--color-purple)' }} />
       </span>
       {sample}

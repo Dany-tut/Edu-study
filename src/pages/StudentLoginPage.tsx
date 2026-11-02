@@ -149,7 +149,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
         }}
       >
         <div style={{ marginBottom: 28 }}>
-          <div style={{ textAlign: 'center', marginBottom: 18 }}><img src={`/widget-objects-v1/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'quiz'}.png`} alt="" aria-hidden="true" width={96} height={96} draggable={false} style={{ width: 96, height: 96, objectFit: 'contain' }} /></div>
+          <div style={{ textAlign: 'center', marginBottom: 18 }}><img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'quiz'}.png`} alt="" aria-hidden="true" width={96} height={96} draggable={false} style={{ width: 96, height: 96, objectFit: 'contain' }} /></div>
           <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{mode === 'sent' ? t('Проверьте почту') : mode === 'reset' ? t('Восстановить пароль') : mode === 'newpassword' ? t('Новый пароль') : t('Вход в кабинет')}</div>
           <div style={{ fontSize: 14, lineHeight: 1.45, color: 'var(--color-muted)', marginTop: 4 }}>{mode === 'login' ? t('Введите email и пароль') : mode === 'reset' ? t('Отправим ссылку для смены пароля') : mode === 'sent' ? t('Мы отправили ссылку для смены пароля.') : t('Придумайте пароль не короче 6 символов')}</div>
         </div>
