@@ -9,7 +9,7 @@ const result = await build({
 })
 mkdirSync('node_modules/.cache',{recursive:true})
 writeFileSync('node_modules/.cache/widget-sizing-check.mjs',result.outputFiles[0].text)
-const { registry, clampDeskWidget, compactDeskWidgets, deskRowHeight, deskColumns, resizeDeskWidget } = await import('../node_modules/.cache/widget-sizing-check.mjs')
+const { registry, clampDeskWidget, compactDeskWidgets, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions } = await import('../node_modules/.cache/widget-sizing-check.mjs')
 const integral=item=>{for(const k of ['x','y','w','h','minW','minH'])assert.ok(Number.isInteger(item[k]),`${item.type}: fractional ${k}=${item[k]}`)}
 let cases=0
 for(const def of registry) for(const width of [900,1200,1600,2400]) for(const oldRow of [42,64,84]){
@@ -42,3 +42,22 @@ for(const [w,h] of [[1,1],[1,2],[2,2],[2,3],[3,3]]){
  const preset=clampDeskWidget({i:'preset',type:indicator.type,x:0,y:0,w,h,gridVersion:2},indicator,1200,116)
  assert.deepEqual([preset.w,preset.h],[w,h],`Preset ${w}×${h} must be selectable`)
 }
+
+// Untouched legacy layouts must not grow/shrink when only window height changes.
+for (const def of registry) {
+ const old={i:def.type,type:def.type,x:0,y:2,w:6,h:5}
+ const migrate=height=>clampDeskWidget(old,def,1354,deskRowHeight(height),legacyDeskRowHeight(height))
+ assert.deepEqual(migrate(650),migrate(900),`${def.type}: viewport-height resize changed saved cells`)
+}
+
+// A resize round trip must not strand the right column or shift the task list sideways.
+const initial=[
+ {i:'calendar',type:'today-schedule',x:0,y:1,w:5,h:3,gridVersion:2},
+ {i:'reminders',type:'today-reminders',x:5,y:1,w:3,h:5,gridVersion:2},
+ {i:'tasks',type:'today-tasks',x:0,y:4,w:5,h:2,gridVersion:2},
+]
+const enlarged=compactDeskWidgets(resolveDeskCollisions(initial.map(i=>i.i==='calendar'?{...i,h:4}:i),'calendar'))
+assert.equal(enlarged.find(i=>i.i==='tasks').x,0)
+assert.equal(enlarged.find(i=>i.i==='reminders').y,0)
+const restored=compactDeskWidgets(resolveDeskCollisions(enlarged.map(i=>i.i==='calendar'?{...i,h:3}:i),'calendar'))
+assert.deepEqual(restored,compactDeskWidgets(initial),'Reverse resize must restore neighbouring columns')

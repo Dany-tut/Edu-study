@@ -1,4 +1,4 @@
-import { clampDeskWidget, compactDeskWidgets, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, DESK_GAP } from '../../lib/deskWidgetSizing'
+import { clampDeskWidget, compactDeskWidgets, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, resolveDeskCollisions, DESK_GAP } from '../../lib/deskWidgetSizing'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { Suspense, useCallback, useMemo, useState, useRef, useEffect } from 'react'
 import { X } from '../icons/appIcons'
@@ -20,41 +20,6 @@ function iw(w: number, cw: number) { return w * colW(cw) + (w - 1) * GAP }
 function ih(h: number, rh: number) { return h * rh + (h - 1) * GAP }
 function toGridDX(px: number, cw: number) { return Math.round(px / (colW(cw) + GAP)) }
 function toGridDY(py: number, rh: number) { return Math.round(py / (rh + GAP)) }
-// ── Collision resolution ────────────────────────────────────────────────
-function overlaps(a: LayoutItem, b: LayoutItem): boolean {
-  if (a.i === b.i) return false
-  return !(a.x + a.w <= b.x || b.x + b.w <= a.x ||
-           a.y + a.h <= b.y || b.y + b.h <= a.y)
-}
-
-function resolveCollisions(items: LayoutItem[], activeId: string, columns: number): LayoutItem[] {
-  const layout = items.map(it => ({ ...it }))
-  const activeIdx = layout.findIndex(it => it.i === activeId)
-
-  for (let pass = 0; pass < layout.length * 3; pass++) {
-    let changed = false
-    for (let i = 0; i < layout.length; i++) {
-      if (i === activeIdx) continue
-      for (let j = 0; j < layout.length; j++) {
-        if (i === j || !overlaps(layout[i], layout[j])) continue
-        const blocker = layout[j]
-        const item = layout[i]
-        // Try push right; fall back to push down
-        const rightX = blocker.x + blocker.w
-        if (rightX + item.w <= columns) {
-          layout[i] = { ...item, x: rightX, y: blocker.y }
-        } else {
-          layout[i] = { ...item, y: blocker.y + blocker.h }
-        }
-        changed = true
-        break
-      }
-    }
-    if (!changed) break
-  }
-  return layout
-}
-
 // ── WidgetShell ─────────────────────────────────────────────────────────
 type ShellProps = { item: LayoutItem; editMode: boolean; onRemove: (id: string) => void }
 
@@ -126,6 +91,7 @@ type Props = {
   onAddWidget: () => void
   onRemoveWidget: (id: string) => void
   hiddenWidgets?: string[]
+  onGridMeasure?: (grid: { deskId: string; width: number; items: LayoutItem[] }) => void
 }
 
 type DragState = {
@@ -141,7 +107,7 @@ type ResizeState = {
   curW: number;    curH: number
 }
 
-export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveWidget, hiddenWidgets }: Props) {
+export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveWidget, hiddenWidgets, onGridMeasure }: Props) {
   const editMode = useDeskStore(s => s.editMode)
   const t = useT()
 
@@ -189,13 +155,17 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
   // ── View-mode compaction ──────────────────────────────────────────────
   const viewItems = useMemo(() => compactDeskWidgets(items.map(clampItem)), [items, clampItem])
 
+  useEffect(() => {
+    onGridMeasure?.({ deskId: desk.id, width: cw, items: viewItems })
+  }, [desk.id, cw, viewItems, onGridMeasure])
+
   // ── Live layout with collision resolution ─────────────────────────────
   const liveItems = useMemo(() => {
     if (drag) {
       const withMoved = viewItems.map(it =>
         it.i === drag.id ? clampItem({ ...it, x: drag.curGx, y: drag.curGy }) : it
       )
-      return resolveCollisions(withMoved, drag.id, columns)
+      return resolveDeskCollisions(withMoved, drag.id)
     }
     if (resize) {
       const item = viewItems.find(it => it.i === resize.id)!
@@ -205,7 +175,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
           ? clampItem({ ...it, w: resize.curW, h: resize.curH, maxH: def?.maxH ?? it.maxH })
           : it
       )
-      return compactDeskWidgets(resolveCollisions(withMoved, resize.id, columns))
+      return compactDeskWidgets(resolveDeskCollisions(withMoved, resize.id))
     }
     return viewItems
   }, [viewItems, drag, resize, clampItem, columns])
@@ -245,7 +215,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     const withMoved = viewItems.map(it =>
       it.i === drag.id ? clampItem({ ...it, x: drag.curGx, y: drag.curGy }) : it
     )
-    const resolved = resolveCollisions(withMoved, drag.id, columns)
+    const resolved = resolveDeskCollisions(withMoved, drag.id)
     onUpdateItems(desk.items.map(saved => resolved.find(item => item.i === saved.i) ?? saved))
     setDrag(null)
   }, [drag, desk.items, viewItems, onUpdateItems, clampItem, columns])
@@ -281,7 +251,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     const withResized = viewItems.map(it =>
       it.i === resize.id ? clampItem({ ...it, w: resize.curW, h: resize.curH }) : it
     )
-    const resolved = compactDeskWidgets(resolveCollisions(withResized, resize.id, columns))
+    const resolved = compactDeskWidgets(resolveDeskCollisions(withResized, resize.id))
     onUpdateItems(desk.items.map(saved => resolved.find(item => item.i === saved.i) ?? saved))
     setResize(null)
   }, [resize, desk.items, viewItems, onUpdateItems, clampItem, columns])
@@ -346,6 +316,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
           ref={containerRef}
           onPointerMove={drag ? onItemPointerMove : resize ? onResizePointerMove : undefined}
           onPointerUp={drag ? onItemPointerUp : resize ? onResizePointerUp : undefined}
+          data-desk-grid data-grid-columns={columns} data-grid-row-height={rowH}
           style={{ position: 'relative', width: '100%', height: gridHeight, ...(editMode ? {backgroundImage:'linear-gradient(to right, var(--color-border-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border-soft) 1px, transparent 1px)', backgroundSize:`${colW(cw)+GAP}px ${rowH+GAP}px`} : {}) }}
         >
           {liveItems.map(item => {
