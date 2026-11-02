@@ -11,12 +11,13 @@ const glyphs = JSON.parse(readFileSync(new URL('design/ios-concepts/loop-kit/gly
 const out = new URL('public/icons/loop/', root)
 mkdirSync(out, { recursive: true })
 const symbols = { house: 'Home', calendar: 'CalendarCheck', 'person.2': 'Users', 'checkmark.rectangle.stack': 'CheckCircle2', checklist: 'NotebookPen', 'person.crop.circle': 'UserCircle' }
-const manifest = { pointSize: 24, scale: 3, symbols: {} }
+const manifest = { pointSize: 24, scale: 3, interiorFill: 'none', symbols: {} }
 for (const [symbol, name] of Object.entries(symbols)) {
   const svg = glyphs.find(g => g.name === name).svg
   manifest.symbols[symbol] = { name, sourceSha256: createHash('sha256').update(svg).digest('hex') }
   for (const theme of ['light', 'dark']) {
-    const source = theme === 'light' ? svg : svg.replaceAll('#5C47BD', '#C6B7FF').replaceAll('#F4A55A', '#FFBA78').replaceAll('#ECE5FF', '#382F55')
+    const transparent = svg.replaceAll('fill="#ECE5FF"', 'fill="none"')
+    const source = theme === 'light' ? transparent : transparent.replaceAll('#5C47BD', '#C6B7FF').replaceAll('#F4A55A', '#FFBA78').replaceAll('#ECE5FF', '#382F55')
     writeFileSync(new URL(`${name}-${theme}@3x.png`, out), new Resvg(source, { font: { loadSystemFonts: false }, fitTo: { mode: 'width', value: 72 } }).render().asPng())
   }
 }

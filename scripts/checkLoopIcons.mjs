@@ -44,6 +44,7 @@ for (const glyph of glyphs) {
   assert.equal(read(`design/ios-concepts/loop-kit/svg/${glyph.name}.svg`), glyph.svg, `SVG source drift: ${glyph.name}`)
 }
 const native = JSON.parse(read('public/icons/loop/native-manifest.json'))
+assert.equal(native.interiorFill, 'none', 'Native Loop interiors must be transparent')
 const swiftNames = read('ios/App/App/NativeGlassPlugin.swift').split('private static let names = [')[1].split(']')[0]
 const pairs = [...swiftNames.matchAll(/"([^"]+)": "([^"]+)"/g)].map(m => [m[1], m[2]])
 for (const [symbol, name] of pairs) {

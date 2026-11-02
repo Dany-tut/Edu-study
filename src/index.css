@@ -122,7 +122,7 @@
   --color-accent: #7E6EE6;
   --loop-ink: #5C47BD;
   --loop-detail: #F4A55A;
-  --loop-soft: #ECE5FF;
+  --loop-soft: transparent;
   --color-green-accent: #1a7a3f;
 
   /* ── Accent gradients (vivid; shared across themes) ───────── */
@@ -330,7 +330,7 @@
   --color-accent: #B3A6F7;
   --loop-ink: #C6B7FF;
   --loop-detail: #FFBA78;
-  --loop-soft: #382F55;
+  --loop-soft: transparent;
   /* В тёмной теме цветной ореол вокруг карточки читается грязным пятном —
      остаётся обычная тень. */
   --glow-accent: 0 12px 28px rgba(0,0,0,0.45);
