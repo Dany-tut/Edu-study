@@ -22,8 +22,7 @@ function scan(dir) {
       if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
         const spec = node.moduleSpecifier.text
         const clause = node.importClause
-        const desktopPicker = rel === 'src/pages/teacher/TeacherConstructorPage.tsx' && clause?.namedBindings && ts.isNamespaceImport(clause.namedBindings)
-        if (spec === 'lucide-react' && !clause?.isTypeOnly && !desktopPicker && !rel.startsWith('src/components/icons/')) errors.push(`${rel}: use appIcons instead of importing Lucide directly`)
+        if (spec === 'lucide-react' && !clause?.isTypeOnly && !rel.startsWith('src/components/icons/')) errors.push(`${rel}: use appIcons instead of importing Lucide directly`)
         if (spec.endsWith('/appIcons') && clause?.namedBindings && ts.isNamedImports(clause.namedBindings)) {
           imports++
           for (const item of clause.namedBindings.elements) {
@@ -41,7 +40,7 @@ scan(path.join(root, 'src'))
 const glyphs = JSON.parse(read('design/ios-concepts/loop-kit/glyphs.json'))
 assert.equal(new Set(glyphs.map(g => g.name)).size, glyphs.length, 'Loop names must be unique')
 for (const glyph of glyphs) {
-  assert(exported.has(glyph.name), `Missing responsive export: ${glyph.name}`)
+  assert(exported.has(glyph.name), `Missing Loop export: ${glyph.name}`)
   assert.equal(read(`design/ios-concepts/loop-kit/svg/${glyph.name}.svg`), glyph.svg, `SVG source drift: ${glyph.name}`)
 }
 const native = JSON.parse(read('public/icons/loop/native-manifest.json'))
@@ -59,4 +58,4 @@ for (const [symbol, name] of pairs) {
   }
 }
 assert.equal(errors.length, 0, errors.join('\n'))
-console.log(`Loop coverage: ${glyphs.length} Figma glyphs + Heart, ${imports} icon imports, ${pairs.length} native symbols (light/dark). No mobile Lucide bypasses.`)
+console.log(`Loop coverage: ${glyphs.length} Figma glyphs + Heart, ${imports} icon imports, ${pairs.length} native symbols (light/dark). No direct Lucide bypasses.`)

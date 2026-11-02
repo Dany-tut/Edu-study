@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, Plus, Trash2, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import FadeText from '../FadeText'
-import { useLoopIcons } from '../icons/LoopIcon'
+import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useT, tc } from '../../lib/i18n'
 import { GLASS, glassMenu } from '../../lib/nativeGlass'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
@@ -44,7 +44,7 @@ export default function TeacherSelect({
   onDeleteOption?: (value: string) => void
 }) {
   const t = useT()
-  const mobile = useLoopIcons()
+  const mobile = !useIsDesktop()
   const editable = !!onAddOption
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState('')
