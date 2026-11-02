@@ -305,7 +305,7 @@ export const LoopArtworkHash = <><path d="M12 2 7 31M25 1l-5 29M2 12l29-2M1 24l2
 
 export const LoopArtworkHighlighter = <><path d="m6 21 13-18 11 9-13 17-7-1zM10 28l-3 3H1l5-6" fill="none"/><path d="m1 31 10-1" fill="none" stroke="var(--loop-detail, #F4A55A)"/></>
 
-export const LoopArtworkLayers = <><path d="m2 11 14-9 15 7-14 10zM3 19l13 8 14-10M3 26l13 6 13-8" fill="none"/><path d="m17 19 7-5" fill="none" stroke="var(--loop-detail, #F4A55A)"/></>
+export const LoopArtworkLayers = <><g transform="translate(1.6 1.6) scale(.9)"><path d="m2 11 14-9 15 7-14 10zM3 19l13 8 14-10M3 26l13 6 13-8" fill="none"/><path d="m17 19 7-5" fill="none" stroke="var(--loop-detail, #F4A55A)"/></g></>
 
 export const LoopArtworkLink2 = <><path d="M14 9Q23-5 30 5t-8 16M18 23Q8 37 2 26-4 17 11 12M10 23 23 9" fill="none"/><path d="m17 16 6-7" fill="none" stroke="var(--loop-detail, #F4A55A)"/></>
 
