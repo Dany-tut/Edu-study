@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { personalDemoOwner } from '../lib/personalStudentDemo'
 import { supabase } from '../lib/supabase'
 import {
   fetchScheduleDays,
@@ -156,6 +157,21 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // First load after a (re)mount — used to seed the active subject/module from
     // the freshly-loaded data. Realtime re-syncs leave the user's current tab put.
     const firstLoad = !get().loaded
+
+    // Personal, opt-in fixture: no track/Testly reconciliation or DB progress reset.
+    const demoOwner = personalDemoOwner(session)
+    if (demoOwner) {
+      const { buildPersonalStudentDemo } = await import('../data/personalStudentDemoData')
+      if (!isCurrent() || personalDemoOwner() !== demoOwner) return
+      const preview = buildPersonalStudentDemo(demoOwner)
+      set({ ...preview, loaded: true, scopeStudentIds: [demoOwner], scienceFacts: [], scienceMemes: [], courseReactions: [] })
+      if (firstLoad) {
+        const dash = useDashboard.getState()
+        dash.setActiveSubject(preview.subjects[0].id)
+        dash.setScheduleIndex(preview.scheduleTodayIndex)
+      }
+      return
+    }
 
     // Всё, что не зависит от охвата, уходит СРАЗУ: расписание и внекурсовое ДЗ
     // знают группу из сессии, а викторина, факты, мемы и реакции вообще ничьи.

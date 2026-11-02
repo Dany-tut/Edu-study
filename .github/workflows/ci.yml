@@ -101,6 +101,9 @@ jobs:
       - name: Полнота и параллельная загрузка журнала
         run: npm run check:journal-loading && npm run check:journal-summary
 
+      - name: Изоляция личного учебного примера
+        run: node scripts/checkPersonalStudentDemo.mjs
+
       - name: Просмотр кабинета преподавателя (check:teacher-view)
         run: npm run check:teacher-view
 
