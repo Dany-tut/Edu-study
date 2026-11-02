@@ -15,6 +15,7 @@ import { getSessionUser } from './owner'
 import { useStudentTz } from './studentTz'
 import { convertWallTime, wallDateTimeInTz } from './teacherTz'
 import { getScheduleState, type ScheduleEventStatus } from './scheduleState'
+import { studentScheduleScope } from './studentScheduleScope'
 import type { BasicAnswersPayload } from './basicAnswers'
 import { homeworkResult, homeworkDisplayScore, type HomeworkAttempt, type HomeworkResult } from './homeworkResult'
 
@@ -54,6 +55,7 @@ import {
 // ─── Schedule ────────────────────────────────────────────────────────────────
 
 interface DbScheduleLesson {
+  lesson_id?: string | null
   id: string
   group_id: string
   date: string
@@ -86,9 +88,12 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
 
   // A lesson reaches the student either through their group OR a direct
   // (student-scoped) assignment. Match both.
-  const scope: string[] = []
-  if (groupId) scope.push(`group_id.eq.${groupId}`)
-  if (studentId) scope.push(`student_id.eq.${studentId}`)
+  // Resolve the entire person here so initial load, polling and month views
+  // cannot accidentally narrow the calendar back to the active login row.
+  const person = isUuid(studentId)
+    ? await fetchPersonScope({ id: studentId, groupId })
+    : { rows: [{ id: '', groupId }], studentIds: [] }
+  const scope = studentScheduleScope(person.rows)
   if (scope.length === 0) return []
 
   const { data, error } = await supabase
@@ -101,18 +106,36 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
     .order('time_start', { ascending: true })
 
   if (error) reportDbError('fetchScheduleDays', error)
-  if (error && range) throw error
-  if (error || !data) return []
+  if (error) throw error
+  if (!data) throw new Error('Schedule response unavailable')
+
+  // A dated material without a clock time is a calendar item too. It has no
+  // schedule row (the course editor only persists timed sessions). Project it
+  // from the same assigned catalog as the track, without inventing a start time.
+  const catalog = await fetchCourseStructure(person.rows)
+  for (const subject of catalog) for (const module of subject.modules) for (const lesson of module.lessons) {
+    if (!lesson.scheduledDate || lesson.scheduledTime) continue
+    const parts = lesson.scheduledDate.split('.')
+    const date = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : lesson.scheduledDate
+    if (date < fmt(from) || date > fmt(to) || data.some(row => row.lesson_id === lesson.dbId && (row.node_type ?? 'lesson') === (lesson.nodeType === 'rec' ? 'rec' : 'lesson'))) continue
+    data.push({ id: `material:${lesson.id}`, lesson_id: lesson.dbId, date, time_start: '', time_end: null,
+      subject: subject.subject ?? subject.name, lesson_title: lesson.title, lesson_number: lesson.number,
+      node_type: lesson.nodeType === 'rec' ? 'rec' : 'lesson', status: 'upcoming' })
+  }
 
   // The RPC projects only this student's attendance; private teacher state
   // never reaches the browser. If unavailable, leave every mark neutral.
   const attendance = new Map<string, boolean | null>()
-  if (studentId && data.length) {
-    const result = await supabase.rpc('student_schedule_attendance', {
-      p_student: studentId, p_schedules: data.map(row => row.id),
-    })
-    if (result.error) reportDbError('student_schedule_attendance', result.error)
-    else for (const mark of result.data ?? []) attendance.set(mark.schedule_id, mark.present)
+  if (data.length) {
+    await Promise.all(person.studentIds.filter(isUuid).map(async id => {
+      const result = await supabase.rpc('student_schedule_attendance', {
+        p_student: id, p_schedules: data.filter(row => isUuid(row.id)).map(row => row.id),
+      })
+      if (result.error) reportDbError('student_schedule_attendance', result.error)
+      else for (const mark of result.data ?? []) {
+        if (attendance.get(mark.schedule_id) == null) attendance.set(mark.schedule_id, mark.present)
+      }
+    }))
   }
 
   // Build ScheduleDay[] grouped by date. A student targeted via both their
@@ -120,7 +143,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
   const byDate = new Map<string, DbScheduleLesson[]>()
   const seen = new Set<string>()
   const localRows = (data as DbScheduleLesson[]).map(row => {
-    const local = convertWallTime(row.date, row.time_start, 'Europe/Moscow', viewerTz)
+    const local = row.time_start ? convertWallTime(row.date, row.time_start, 'Europe/Moscow', viewerTz) : { day: row.date, time: '' }
     let endDate = row.date
     if (row.time_end && row.time_end < row.time_start) {
       const next = new Date(`${row.date}T12:00:00Z`)
@@ -130,12 +153,13 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
     const end = row.time_end ? convertWallTime(endDate, row.time_end, 'Europe/Moscow', viewerTz) : null
     return {
       ...row, date: local.day, time_start: local.time, time_end: end?.time, endDate: end?.day,
-      startsAt: `${row.date}T${row.time_start.slice(0, 5)}:00+03:00`,
+      startsAt: row.time_start ? `${row.date}T${row.time_start.slice(0, 5)}:00+03:00` : undefined,
       endsAt: row.time_end ? `${endDate}T${row.time_end.slice(0, 5)}:00+03:00` : undefined,
     }
   })
   for (const row of localRows) {
-    const key = `${row.date}|${row.time_start}|${row.lesson_title}|${row.lesson_number}|${row.subject}`
+    const identity = row.lesson_id ?? `${row.lesson_title}|${row.lesson_number}|${row.subject}`
+    const key = `${row.date}|${row.time_start}|${identity}|${row.node_type ?? 'lesson'}`
     if (seen.has(key)) continue
     seen.add(key)
     if (!byDate.has(row.date)) byDate.set(row.date, [])
@@ -153,6 +177,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
       const event = row as DbScheduleLesson & { endDate?: string; startsAt?: string; endsAt?: string }
       const lesson: ScheduleLesson = {
         id: row.id,
+        lessonId: row.lesson_id ?? undefined,
         attendance: attendance.get(row.id) ?? null,
         subject: row.subject,
         lessonTitle: row.lesson_title,
@@ -602,6 +627,7 @@ export async function fetchStudentTrack(
                  schedDate, schedTime, recDate, recTime, schedManual, materials] = t
           const bankHard = hardByLessonId.get(lid)
           const base = {
+            dbId: lid,
             title: lTitle,
             number: num,
             status: 'locked' as LessonStatus,
@@ -814,6 +840,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
           .flatMap(l => {
             const bankHard = hardByLessonId.get(l.id)
             const base = {
+              dbId: l.id,
               title: l.title,
               number: l.lesson_number,
               status: 'locked' as LessonStatus,
@@ -1153,6 +1180,15 @@ export function resolveScheduleLesson(
   s: ScheduleLesson,
   subjects: Subject[],
 ): { subjectId: string | null; lesson: Lesson | null } {
+  // Linked events must never drift to a similarly named lesson in another course.
+  if (s.lessonId) {
+    for (const subject of subjects) {
+      const match = subject.modules.flatMap(module => module.lessons).find(lesson =>
+        lesson.dbId === s.lessonId && (s.kind === 'rec' ? lesson.nodeType === 'rec' || !lesson.nodeType : lesson.nodeType !== 'rec'))
+      if (match) return { subjectId: subject.id, lesson: match }
+    }
+    return { subjectId: null, lesson: null }
+  }
   // Several courses can share the same subject name (e.g. two "Химия"
   // courses), so a name→id map would collapse them and resolve to the wrong
   // course. Search every course whose name matches instead.
