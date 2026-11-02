@@ -1,6 +1,7 @@
 {
   "pointSize": 24,
   "scale": 3,
+  "interiorFill": "none",
   "symbols": {
     "house": {
       "name": "Home",

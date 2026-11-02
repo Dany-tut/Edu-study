@@ -30,7 +30,10 @@ diagrams, brand logos and animation artwork retain their own drawing.
 - Preserve curves, asymmetry and the small warm details on utility icons.
 - Main strokes inherit `currentColor`, preserving white button glyphs,
   destructive actions and subject/status colors. Semantic neutral/accent icons
-  use `--loop-ink`. Details and fills use `--loop-detail` / `--loop-soft`.
+  use `--loop-ink`. Small details use `--loop-detail`. Closed interiors use `--loop-soft`, which
+  is transparent in both themes and defaults to `none` even outside the app.
+  Explicit `fill` or `style.fill` reaches the closed body for selected stars,
+  hearts and media controls; never paint an interior white to imitate its surface.
   All three tokens have dark-theme values in `index.css`.
 - The SVG remains decorative by default. Label the button/link that owns its
   action. A standalone SVG with `aria-label` / `aria-labelledby` is exposed to
