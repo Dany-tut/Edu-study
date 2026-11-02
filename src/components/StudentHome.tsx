@@ -87,7 +87,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     <main className="lh-content">
       <section className="lh-schedule" aria-label={t('Расписание')}><ScheduleCarousel/></section>
       <section className="lh-widgets" aria-label={t('Задолженности и ближайшая работа')}><WidgetCarousel columnsOverride={desktop?2:1} leadingWidgets={workCards}/><SeasonCat/></section>
-      <section className="lh-course" aria-label={t('Трек курса')} style={{zIndex:trackPopoverOpen?30:5}}><CourseTrack homeWorks={ready?entries:[]} today={today} onOpenDebts={(course,module)=>setScope({filter:'overdue',course,module})}/></section>
+      <section className="lh-course" aria-label={t('Трек курса')} style={{zIndex:trackPopoverOpen?60:5}}><CourseTrack homeWorks={ready?entries:[]} today={today} onOpenDebts={(course,module)=>setScope({filter:'overdue',course,module})}/></section>
     </main>
     {!desktop&&<MobileBottomNav/>}
     {appearance&&<Modal title={t('Оформление главной')} onClose={()=>setAppearance(false)}>
