@@ -118,7 +118,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', margin: '0 auto 16px' }}>
-          <img src={`/widget-objects-v1/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'trainer'}.png`} alt="" aria-hidden="true" width={104} height={104} draggable={false} style={{ width: 104, height: 104, objectFit: 'contain' }} />
+          <img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'trainer'}.png`} alt="" aria-hidden="true" width={104} height={104} draggable={false} style={{ width: 104, height: 104, objectFit: 'contain' }} />
         </div>
         <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-.03em', fontWeight: 740, color: 'var(--color-text)', margin: '0 0 6px' }}>
           {mode === 'sent' ? t('Проверьте почту') : mode === 'newpassword' ? t('Придумайте новый пароль') : t('Вход для преподавателя')}

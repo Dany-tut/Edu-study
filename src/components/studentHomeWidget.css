@@ -53,4 +53,18 @@
   radial-gradient(ellipse calc(var(--ihw-art-size)*.65) calc(var(--ihw-art-size)*.75) at 95% 20%,color-mix(in srgb,var(--color-amber) 5%,transparent),transparent 72%),
   var(--color-bg-card);
 }
-.ihw-card > .ihw-object { filter:drop-shadow(-4px 7px 6px color-mix(in srgb,var(--ihw-depth) 12%,transparent)); }
+.ihw-card > .ihw-object { filter:none; }
+
+/* Opaque silhouette anchors exclude the generated soft cast shadow. */
+.ihw-object[data-object="awards"] { --art-top-inset:0.039583; --art-right-inset:0.089583; }
+.ihw-object[data-object="daily"] { --art-top-inset:0.122917; --art-right-inset:0.016667; }
+.ihw-object[data-object="fact"] { --art-top-inset:0.114583; --art-right-inset:0.112500; }
+.ihw-object[data-object="feed"] { --art-top-inset:0.089583; --art-right-inset:0.014583; }
+.ihw-object[data-object="focus"] { --art-top-inset:0.062500; --art-right-inset:0.106250; }
+.ihw-object[data-object="memes"] { --art-top-inset:0.079167; --art-right-inset:0.062500; }
+.ihw-object[data-object="practice"] { --art-top-inset:0.077083; --art-right-inset:0.143750; }
+.ihw-object[data-object="quiz"] { --art-top-inset:0.137500; --art-right-inset:0.039583; }
+.ihw-object[data-object="reaction"] { --art-top-inset:0.043750; --art-right-inset:0.143750; }
+.ihw-object[data-object="reminders"] { --art-top-inset:0.066667; --art-right-inset:0.100000; }
+.ihw-object[data-object="stats"] { --art-top-inset:0.093750; --art-right-inset:0.147917; }
+.ihw-object[data-object="trainer"] { --art-top-inset:0.143750; --art-right-inset:0.022917; }
