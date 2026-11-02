@@ -215,7 +215,8 @@ export function ProfileWorks({
       )}
       <History className="js-work-history">
         <Heading>
-          История работ <small>· {history.length}</small>
+          <span>История работ</span> <small>· {history.length}</small>
+          {collapsibleHistory && <ChevronRight className="js-history-chevron" size={16} aria-hidden="true" />}
         </Heading>
         {history.length ? (
           <div className="js-history">
@@ -698,6 +699,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
             <><div className="jo-group-report"><StudentOverviewCard student={entry.student} report={studentOverview(entry.works,today)}
               today={today} scopeLabel={scopeLabel} groupLabel={data.groups.find(g=>g.id===entry.student.groupId)?.name}/></div>
             <ProfileWorks
+              collapsibleHistory
               list={entry.works}
               today={today}
               scope={picker}
