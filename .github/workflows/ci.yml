@@ -151,7 +151,7 @@ jobs:
       - name: Стандарт урока (check:lesson)
         id: lesson
         continue-on-error: true
-        run: npm run check:lesson
+        run: npm run check:lesson && npm run check:video-access
 
       - name: Позиции верных ответов (check:choicepos)
         id: choicepos
