@@ -21,7 +21,7 @@ const READ_RPCS = new Set([
   'admin_tasks_list', 'admin_teacher_content', 'admin_teacher_list', 'admin_teacher_plans',
   'admin_teacher_usage', 'admin_user_activity', 'is_staff', 'my_plan', 'person_student_rows',
   'storage_stats', 'student_lesson_participation', 'student_schedule_attendance', 'student_track',
-  'subject_colors_for_student', 'teacher_finance_summary',
+  'subject_colors_for_student', 'teacher_finance_summary', 'teacher_journal_snapshot_v1',
 ])
 
 /** Prevent accidental changes while viewing. Authorization still belongs to
