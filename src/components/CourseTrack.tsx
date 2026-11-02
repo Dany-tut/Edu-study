@@ -261,7 +261,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
           поля сняты отрицательным отступом, чтобы строка не стала выше. Снизу
           не больше 12 — дальше уже кружки трека, и поле перехватывало бы клик. */}
       <div ref={moduleRowRef} style={{ flexShrink: 0, position: 'relative', zIndex: 2, margin: `-${ROW_SHADOW_TOP}px 0 -${ROW_SHADOW_BOTTOM}px` }}>
-      <HScrollFade padX={32} padTop={ROW_SHADOW_TOP} padBottom={ROW_SHADOW_BOTTOM} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
+      <HScrollFade fadeMode="mask" padX={32} padTop={ROW_SHADOW_TOP} padBottom={ROW_SHADOW_BOTTOM} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
         {courseSlot}
         {!(subject.modules.length === 1 && subject.modules[0].loose) && (
           <>

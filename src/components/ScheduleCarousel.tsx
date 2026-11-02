@@ -36,11 +36,15 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
   const storedSetIndex = useDashboard(s => s.setScheduleIndex)
   const storedDays = useStudentData(s => s.scheduleDays)
   const storedLoaded = useStudentData(s => s.loaded)
-  const scheduleIndex = props.index ?? storedIndex
+  const requestedIndex = props.index ?? storedIndex
   const setScheduleIndex = props.onSelect ?? storedSetIndex
   const scheduleDays = props.days ?? storedDays
   const loaded = props.loaded ?? storedLoaded
   const total = scheduleDays.length
+  // A resized view or refreshed date range can retain an index from a longer
+  // array. Keep a real selected day instead of rendering seven empty spacers.
+  const scheduleIndex = Number.isInteger(requestedIndex) && requestedIndex >= 0 && requestedIndex < total
+    ? requestedIndex : Math.max(0, scheduleDays.findIndex(day => day.isToday))
   const isDesktop = useIsDesktop()
   const mobile = !isDesktop
 
