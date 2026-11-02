@@ -17,7 +17,7 @@ for (const [symbol, name] of Object.entries(symbols)) {
   manifest.symbols[symbol] = { name, sourceSha256: createHash('sha256').update(svg).digest('hex') }
   for (const theme of ['light', 'dark']) {
     const source = theme === 'light' ? svg : svg.replaceAll('#5C47BD', '#C6B7FF').replaceAll('#F4A55A', '#FFBA78').replaceAll('#ECE5FF', '#382F55')
-    writeFileSync(new URL(`${name}-${theme}@3x.png`, out), new Resvg(source, { fitTo: { mode: 'width', value: 72 } }).render().asPng())
+    writeFileSync(new URL(`${name}-${theme}@3x.png`, out), new Resvg(source, { font: { loadSystemFonts: false }, fitTo: { mode: 'width', value: 72 } }).render().asPng())
   }
 }
 writeFileSync(new URL('native-manifest.json', out), JSON.stringify(manifest, null, 2) + '\n')
