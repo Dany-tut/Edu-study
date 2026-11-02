@@ -28,7 +28,7 @@ function maskedIcons(source,file){
  const sf=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),icons=new Set(),fail=[]
  sf.forEachChild(n=>{if(ts.isImportDeclaration(n)&&/icons\/(appIcons|SubjectMark|LoopIcon)$/.test(n.moduleSpecifier.text))n.importClause?.namedBindings?.elements?.forEach(x=>icons.add(x.name.text))})
  function visit(n){
-  if(ts.isJsxElement(n)&&(n.openingElement.getText(sf).includes('textFadeStyle')||n.openingElement.tagName.getText(sf)==='FadeText')){
+  if(ts.isJsxElement(n)&&(/textFadeStyle|textFadeLines|data-text-fade/.test(n.openingElement.getText(sf))||n.openingElement.tagName.getText(sf)==='FadeText')){
    function child(c){if((ts.isJsxSelfClosingElement(c)||ts.isJsxOpeningElement(c))&&(icons.has(c.tagName.getText(sf))||['svg','img','button','input','select'].includes(c.tagName.getText(sf))))fail.push(file+':'+(sf.getLineAndCharacterOfPosition(c.getStart(sf)).line+1));ts.forEachChild(c,child)}
    n.children.forEach(child)
   }
