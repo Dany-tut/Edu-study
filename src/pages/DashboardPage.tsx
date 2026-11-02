@@ -1,4 +1,5 @@
-import { homeworkNeedsVideo } from '../lib/homeworkAccess'
+import { useNow } from '../lib/useNow'
+import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
 import Sidebar from '../components/Sidebar'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import ScheduleCarousel from '../components/ScheduleCarousel'
@@ -291,7 +292,8 @@ export default function DashboardPage() {
   const diaryPane = useRef<HTMLElement>(null)
   const diaryScroll = useRef(0)
   useLayoutEffect(() => { if (showDiary && diaryPane.current) diaryPane.current.scrollTop = diaryScroll.current }, [showDiary])
-  const videoRequired = !!lesson && homeworkNeedsVideo(lesson, homeworkRef)
+  const accessNow = useNow()
+  const videoRequired = !!lesson && (homeworkTimeLocked(lesson, accessNow) || homeworkNeedsVideo(lesson, homeworkRef))
   useEffect(() => {
     if (activePage === 'homework' && videoRequired && !lessonPending) closeHomework()
   }, [activePage, videoRequired, lessonPending, closeHomework])

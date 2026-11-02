@@ -1,3 +1,4 @@
+import { homeworkTimeLocked } from './homeworkAccess'
 import type { Lesson, Subject } from '../data/mockData'
 import type { ProgressMap } from './db'
 import { getTrackLessonStatus, type TrackLessonStatus } from './lessonStatus'
@@ -57,7 +58,7 @@ export function buildStudentDiary(
     for (const [moduleOrder, module] of course.modules.entries()) {
       if (isCourseModuleLocked(course, moduleOrder)) continue
       for (const lesson of module.lessons) {
-        if (lesson.status === 'locked') continue
+        if (lesson.status === 'locked' || homeworkTimeLocked(lesson, now)) continue
         const base = lesson.id.replace(/~rec$/, '')
         const info =
           metadata.get(base) ?? (!lesson.heavyPending ? metadataFromHomework(lesson.homework) : null)
