@@ -1219,6 +1219,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     </div>
                   )
                 })}
+                {previewAt !== null && duration > 0 && (
+                  <span aria-hidden="true" className="lesson-player-hover-mark"
+                    style={{ left: `clamp(1px, ${previewAt / duration * 100}%, calc(100% - 1px))` }} />
+                )}
               </div>
 
               {previewAt !== null && duration > 0 && (

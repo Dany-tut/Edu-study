@@ -67,6 +67,11 @@
 .lesson-player-segment-watched { background: rgba(255,255,255,.40); }
 .lesson-player-segment-played { border-radius: 999px; background: rgb(var(--accent-rgb)); }
 @media (prefers-reduced-motion: reduce) { .lesson-player-segment { transition: none; } }
+.lesson-player-hover-mark {
+  position: absolute; top: 50%; z-index: 1; width: 2px; height: 24px;
+  transform: translate(-50%, -50%); border-radius: 999px; background: rgba(255,255,255,.95);
+  box-shadow: 0 1px 4px rgba(0,0,0,.4); pointer-events: none;
+}
 .lesson-player-preview {
   position: absolute; bottom: 40px; width: max-content; max-width: min(360px, 100%); box-sizing: border-box;
   display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px;
