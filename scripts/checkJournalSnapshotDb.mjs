@@ -66,28 +66,30 @@ try {
     grant select on all tables in schema public to authenticated;
   `)
   await sql(readFileSync('supabase/migrations/20261102045052_teacher_journal_snapshot.sql','utf8'))
+  await sql(readFileSync('supabase/migrations/20261102051629_journal_snapshot_json_transport.sql','utf8'))
   await sql(`set role authenticated;select set_config('test.uid',md5('owner-a')::uuid::text,false);
     do $$declare d jsonb;begin
-      d:=teacher_journal_snapshot_v1(md5('owner-a')::uuid,true);
+      d:=teacher_journal_snapshot_v2(md5('owner-a')::uuid,true);
+      if d is distinct from teacher_journal_snapshot_v1(md5('owner-a')::uuid,true) then raise exception 'JSON transport changed data';end if;
       if jsonb_array_length(d->'courses')<>2 or jsonb_array_length(d->'lessons')<>1610 or jsonb_array_length(d->'work')<>2107 then raise exception 'Snapshot truncated or ownership/shared scope wrong';end if;
       if jsonb_array_length(d->'events')<>2 or jsonb_array_length(d->'marks')<>2 or jsonb_array_length(d->'attempts')<>1 or jsonb_array_length(d->'legacy')<>1 then raise exception 'Related records missing';end if;
       if (d->'work'->0->>'score')::int<>42 or d->'work'->0->'attachments'->>'answer'<>'draft retained' then raise exception 'Grade/draft changed';end if;
       if d->'assignments'->0->'basicTasks'<>'[{"type":"write"},{"type":"testly"}]'::jsonb then raise exception 'Task types/order changed';end if;
       if d::text like '%xxxxx%' then raise exception 'Rich lesson body leaked';end if;
-      begin perform teacher_journal_snapshot_v1(md5('owner-b')::uuid,true);raise exception 'Foreign owner allowed';exception when insufficient_privilege then null;end;
+      begin perform teacher_journal_snapshot_v2(md5('owner-b')::uuid,true);raise exception 'Foreign owner allowed';exception when insufficient_privilege then null;end;
     end$$;
     reset role;update lesson_progress set score=77 where student_id=md5('student-a')::uuid;
     set role authenticated;
-    do $$begin if teacher_journal_snapshot_v1(md5('owner-a')::uuid,true)->'work'->0->>'score'<>'77' then raise exception 'Stale results';end if;end$$;
+    do $$begin if teacher_journal_snapshot_v2(md5('owner-a')::uuid,true)->'work'->0->>'score'<>'77' then raise exception 'Stale results';end if;end$$;
     reset role;select set_config('test.uid',md5('owner-b')::uuid::text,false);set role authenticated;
-    do $$declare d jsonb;begin d:=teacher_journal_snapshot_v1(md5('owner-b')::uuid);
+    do $$declare d jsonb;begin d:=teacher_journal_snapshot_v2(md5('owner-b')::uuid);
       if jsonb_array_length(d->'lessons')<>2 or jsonb_array_length(d->'work')<>1 then raise exception 'Second owner isolation failed';end if;end$$;
     reset role;set test.admin='true';set role authenticated;
-    do $$begin if jsonb_array_length(teacher_journal_snapshot_v1(md5('owner-a')::uuid)->'work')<>2107 then raise exception 'Admin view broken';end if;end$$;
+    do $$begin if json_array_length(teacher_journal_snapshot_v2(md5('owner-a')::uuid)->'work')<>2107 then raise exception 'Admin view broken';end if;end$$;
     reset role;set role anon;
-    do $$begin begin perform teacher_journal_snapshot_v1(md5('owner-a')::uuid);raise exception 'Anonymous RPC allowed';exception when insufficient_privilege then null;end;end$$;
+    do $$begin begin perform teacher_journal_snapshot_v2(md5('owner-a')::uuid);raise exception 'Anonymous RPC allowed';exception when insufficient_privilege then null;end;end$$;
     reset role;
-    do $$begin if exists(select 1 from pg_proc where proname='teacher_journal_snapshot_v1' and (prosecdef or provolatile<>'s')) then raise exception 'Snapshot must be stable invoker';end if;end$$;
+    do $$begin if exists(select 1 from pg_proc where proname='teacher_journal_snapshot_v2' and (prosecdef or provolatile<>'s')) then raise exception 'Snapshot must be stable invoker';end if;end$$;
   `)
   console.log('PASS: complete 1610 lessons/2107 progress, related records, grades/drafts, task order, fresh rereads, shared-course scope, two owners/admin, anon denial, invoker security')
 } catch(e) { console.error(e.stderr?.toString()||e);process.exitCode=1 }
