@@ -51,16 +51,16 @@ export function homeCase(id:number,state:string):HomeWidgetPresentationProps {
  return props
 }
 export function nextCase(state:string):NextWorkWidgetProps {
- const props:NextWorkWidgetProps={title:'Строение клетки',meta:'Биология · подготовка к экзамену · Модуль 1',due:'До 5 ноября',action:'Открыть ДЗ',onOpen:noop}
+ const props:NextWorkWidgetProps={title:'Строение клетки',meta:'Биология · подготовка к экзамену · Модуль 1',due:'До 5 ноября',dueShort:'5 нояб.',action:'Открыть ДЗ',onOpen:noop}
  if(state==='loading'||state==='placeholder')props.status='loading'
  if(state==='empty'||state==='complete'){props.status='empty';props.title='Всё сдано';props.meta='Преподаватель откроет новые задания';props.due=undefined;props.action=undefined}
  if(state==='error'){props.status='error';props.title='Не удалось загрузить работы';props.meta=undefined;props.due=undefined;props.action='Повторить'}
- if(state==='overdue'){props.due='Просрочено 29 октября';props.overdue=true}
+ if(state==='overdue'){props.due='Просрочено 29 октября';props.dueShort='29 окт.';props.overdue=true}
  if(state==='returned')props.action='Доработать ДЗ'
  if(state==='test')props.action='Пройти тест'
  if(state==='review'){props.title='Всё сдано';props.due=undefined;props.action='На проверке';props.secondary=true}
- if(state==='no-due')props.due='Без срока'
- if(state==='long'){props.title=longTitle;props.meta=longTitle;props.due='Просрочено 29 сентября 2026 года';props.overdue=true}
+ if(state==='no-due'){props.due='Без срока';props.dueShort='Без срока'}
+ if(state==='long'){props.title=longTitle;props.meta='Биология: углублённая подготовка к экзамену · Модуль 12';props.due='Просрочено 29 сентября 2026 года';props.dueShort='29 сент.';props.overdue=true}
  if(state==='large')props.meta='Биология · Модуль 999'
  return props
 }
