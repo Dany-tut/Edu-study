@@ -74,7 +74,7 @@ export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, 
       ) : (
         <div ref={valueRef} className="iskra-mini-stat-value" style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: dimmed ? 'var(--color-text-3)' : 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.01em' }}>
           {value}
-          <span ref={measureRef} aria-hidden="true" style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', fontSize: 'var(--metric-base-size,28px)' }} />
+          <span ref={measureRef} aria-hidden="true" style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', visibility: 'hidden', pointerEvents: 'none', fontSize: 'var(--metric-base-size,28px)' }} />
         </div>
       )}
       {loading ? (
