@@ -696,7 +696,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
           onBack={back}
           backLabel={selected.origin === 'groups' ? 'Назад к группам' : 'Назад в журнал'}
           workPanel={
-            <><div className="jo-group-report"><StudentOverviewCard student={entry.student} report={studentOverview(entry.works,today)}
+            <><div className="jo-group-report"><StudentOverviewCard embedded student={entry.student} report={studentOverview(entry.works,today)}
               today={today} scopeLabel={scopeLabel} groupLabel={data.groups.find(g=>g.id===entry.student.groupId)?.name}/></div>
             <ProfileWorks
               collapsibleHistory
