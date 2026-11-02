@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { useScrollFades } from '../../lib/useScrollFades'
 import { ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -317,6 +318,8 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
   const t = useT()
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
+  const profileScroll = useRef<HTMLDivElement>(null)
+  useScrollFades(profileScroll, !!student && !inDrawer, '.student-report-scroll-region')
   const selectedStudentId = student?.id
   const example = exampleCourses !== undefined
   const cachedTrainerStats = useTeacher(s => s.studentTrainerStats)
@@ -446,6 +449,8 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
       </div>}
 
       <motion.div
+        ref={profileScroll}
+        className="student-report-scroll-region"
         onScroll={inDrawer ? undefined : onScroll}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

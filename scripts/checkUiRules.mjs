@@ -29,6 +29,7 @@ assert.ok(!/overflowY:\s*'auto'/.test(pickers),'Do not reintroduce raw picker sc
 assert.match(read('src/components/teacher/journalStand/journalStand.css'),/font-size:16px!important; min-height:44px/,'Mobile person forms must keep readable inputs')
 
 assert.match(read('src/components/teacher/CourseJournal.tsx'),/className="cj-table-frame" ref=\{viewport\}/,'Alternate journal tables must retain sticky-column-aware fades')
+assert.match(read('src/pages/teacher/TeacherStudentDashboardPage.tsx'),/useScrollFades\(profileScroll, !!student && !inDrawer/, 'Standalone student reports need fades without double-masking the drawer')
 const rules=read('docs/ui-rules.md')
 for(const id of ['SCROLL-01','MOBILE-01','ALERT-01','AI-01','BRAND-01']) assert.ok(rules.includes(id),`Missing UI rule ${id}`)
 assert.ok(read('AGENTS.md').includes('docs/ui-rules.md'))
