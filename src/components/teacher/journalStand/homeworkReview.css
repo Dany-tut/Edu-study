@@ -97,3 +97,44 @@
 @media(max-width:1100px) { .jh-has-ai.jh-shell-has-stack .jh-review-body { grid-template-columns:170px minmax(0,1fr) 290px; } }
 @media(max-width:950px) { .jh-has-ai.jh-shell-has-stack .jh-review-body { grid-template-columns:minmax(0,1fr) 290px; } }
 @media(max-width:650px) { .jh-has-ai .jh-review-body { display:flex; }.jh-inspector-scroll>.aic-summary { margin:10px 13px; }.jh-ai-comment { margin:0 13px 10px; } }
+
+/* A phone has one reading surface: answers, AI feedback, then teacher actions. */
+@media(max-width:650px) {
+  .jh-review-body,.jh-has-ai .jh-review-body,.jh-shell-has-stack .jh-review-body {
+    display:block; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin;
+  }
+  .jh-review-document { display:block; overflow:visible; min-height:0; }
+  .jh-document-scroll { overflow:visible; padding:14px; }
+  .jh-document-identity { flex-wrap:wrap; padding:16px 14px 12px; }
+  .jh-document-identity>div { flex-basis:calc(100% - 48px); }
+  .jh-document-status { margin-left:39px; max-width:none; font-size:11px; }
+  .jh-document-tools { overflow-x:auto; padding-inline:14px; gap:16px; }
+  .jh-document-tools button { flex:none; min-height:44px; font-size:12px; }
+  .jh-task-answer>header { flex-wrap:wrap; }
+  .jh-task-answer h3 { font-size:13px; }
+  .jh-answer-verdict { margin-left:30px; max-width:none; font-size:10px; }
+  .jh-answer-comparison p { font-size:14px; }
+  .jh-review-inspector {
+    display:block; overflow:visible; height:auto; max-height:none; padding-top:8px;
+  }
+  .jh-inspector-form,.jh-inspector-scroll { display:block; overflow:visible; }
+  .jh-inspector-heading { padding:12px 14px; }
+  .jh-inspector-heading h3 { font-size:15px; }
+  .jh-inspector-scroll>.aic-summary { margin:0 14px 16px; }
+  .jh-inspector-form .jh-inspector-fields { display:flex; flex-direction:column; gap:14px; padding:0 14px 16px; }
+  .jh-final-grade,.jh-inspector-fields .jh-review-comment { font-size:12px; }
+  .jh-final-grade>div { max-width:130px; }
+  .jh-inspector-fields .jh-review-comment textarea { height:112px; min-height:112px; font-size:16px; padding:12px; }
+  .jh-inspector-form .jh-score-context { font-size:12px; }
+  .jh-inspector-actions { grid-template-columns:1fr; padding:14px; }
+  .jh-inspector-actions .cj-button { min-height:44px; font-size:13px; }
+  .jh-review-top { padding:12px 14px; }
+  .jh-review-title h2 { font-size:15px; }
+  .jh-review-footer { padding:10px 14px; }
+  .jh-footer-link { font-size:11px; }
+  .jh-review-shell .aic-heading { flex-wrap:wrap; }
+  .jh-review-shell .aic-summary-actions { flex-wrap:wrap; }
+  .jh-review-shell .aic-issue>div>div { gap:8px; }
+  .jh-review-shell .aic-issue [role] { font-size:13px; }
+  .jh-review-shell .aic-retry-button { min-height:44px; }
+}
