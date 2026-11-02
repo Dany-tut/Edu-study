@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto'
 import assert from 'node:assert/strict'
 import { buildSync } from 'esbuild'
 const name = `iskra-journal-snapshot-${randomUUID().slice(0,8)}`
-const run = (args,input) => execFileSync('docker',args,{input,encoding:'utf8',stdio:['pipe','pipe','pipe']})
+const run = (args,input) => execFileSync('docker',args,{input,encoding:'utf8',stdio:['pipe','pipe','pipe'],maxBuffer:16*1024*1024})
 let db
 try {
   let sql
