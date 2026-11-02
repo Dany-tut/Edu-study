@@ -1,0 +1,107 @@
+{
+  "public/teacher-objects-v1/goal.png": {
+    "visibleTopInset": 0.035416666666666666,
+    "visibleRightInset": 0.08125000000000004,
+    "alphaThreshold": 100
+  },
+  "public/teacher-objects-v1/lag.png": {
+    "visibleTopInset": 0.058333333333333334,
+    "visibleRightInset": 0.2666666666666667,
+    "alphaThreshold": 100
+  },
+  "public/teacher-objects-v1/mastery.png": {
+    "visibleTopInset": 0.21666666666666667,
+    "visibleRightInset": 0.13541666666666663,
+    "alphaThreshold": 100
+  },
+  "public/teacher-objects-v1/ontime.png": {
+    "visibleTopInset": 0.05833333333333335,
+    "visibleRightInset": 0.05833333333333335,
+    "alphaThreshold": 100
+  },
+  "public/teacher-objects-v1/overdue.png": {
+    "visibleTopInset": 0.12083333333333332,
+    "visibleRightInset": 0.11458333333333337,
+    "alphaThreshold": 100
+  },
+  "public/teacher-objects-v1/results.png": {
+    "visibleTopInset": 0.09270833333333335,
+    "visibleRightInset": 0.09583333333333333,
+    "alphaThreshold": 100
+  },
+  "public/teacher-objects-v1/rhythm.png": {
+    "visibleTopInset": 0.23333333333333334,
+    "visibleRightInset": 0.033333333333333326,
+    "alphaThreshold": 100
+  },
+  "public/teacher-objects-v1/topic.png": {
+    "visibleTopInset": 0.19791666666666669,
+    "visibleRightInset": 0.1875,
+    "alphaThreshold": 100
+  },
+  "public/teacher-objects-v1/trend.png": {
+    "visibleTopInset": 0.14166666666666666,
+    "visibleRightInset": 0.022916666666666696,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/awards.png": {
+    "visibleTopInset": 0.0390625,
+    "visibleRightInset": 0.08984375,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/daily.png": {
+    "visibleTopInset": 0.125,
+    "visibleRightInset": 0.01953125,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/fact.png": {
+    "visibleTopInset": 0.078125,
+    "visibleRightInset": 0.0546875,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/feed.png": {
+    "visibleTopInset": 0.08984375,
+    "visibleRightInset": 0.015625,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/focus.png": {
+    "visibleTopInset": 0.0625,
+    "visibleRightInset": 0.0859375,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/memes.png": {
+    "visibleTopInset": 0.078125,
+    "visibleRightInset": 0.06640625,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/practice.png": {
+    "visibleTopInset": 0.078125,
+    "visibleRightInset": 0.14453125,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/quiz.png": {
+    "visibleTopInset": 0.13671875,
+    "visibleRightInset": 0.0390625,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/reaction.png": {
+    "visibleTopInset": 0.04296875,
+    "visibleRightInset": 0.140625,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/reminders.png": {
+    "visibleTopInset": 0.05859375,
+    "visibleRightInset": 0.08984375,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/stats.png": {
+    "visibleTopInset": 0.05859375,
+    "visibleRightInset": 0.0625,
+    "alphaThreshold": 100
+  },
+  "public/widget-objects-v1/ui/trainer.png": {
+    "visibleTopInset": 0.14453125,
+    "visibleRightInset": 0.0234375,
+    "alphaThreshold": 100
+  }
+}

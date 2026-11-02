@@ -25,27 +25,15 @@ import {
 import { useT, t, useTc, tn } from '../../lib/i18n'
 import BackCircle from '../../components/BackCircle'
 import { AvatarPhotoFill } from '../../components/AvatarPhoto'
+import './studentProfile.css'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
 }
-function nameToHue(name: string) {
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h)
-  return Math.abs(h) % 360
-}
-
-function Avatar({ student, group, size = 56 }: { student: Student; group: Group; size?: number }) {
-  const hue = nameToHue(student.name)
+function Avatar({ student, size = 56 }: { student: Student; size?: number }) {
   return (
-    <div style={{
-      position: 'relative', width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      background: `linear-gradient(135deg, hsl(${hue} 70% 68%), hsl(${(hue + 40) % 360} 60% 54%))`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: size * 0.32, fontWeight: 700, color: '#fff',
-      boxShadow: `0 0 0 3px ${group.color}44`,
-    }}>
+    <div className="student-profile-avatar" aria-hidden="true" style={{ width: size, height: size, fontSize: size * 0.32 }}>
       {nameInitials(tn(student.name))}
       <AvatarPhotoFill path={student.avatarPath} />
     </div>
@@ -336,6 +324,8 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
 
   const group = assignedGroup ?? { id: '', name: t('Пока без занятий'), subject: '' as Group['subject'], icon: '', level: '', color: '#9B6DFF', colorSoft: '#EFE0FF', startDate: '', studentCount: 0, lessonsCompleted: 0, totalLessons: 0 }
 
+  const profileGroupLabel = group.name.trim().replace(/\s+/g, ' ').toLocaleLowerCase() === student?.name.trim().replace(/\s+/g, ' ').toLocaleLowerCase() ? '' : group.name
+
   const [docked, setDocked] = useState(false)
   const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setDocked((e.currentTarget as HTMLElement).scrollTop > 72)
@@ -505,7 +495,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
         <p style={{ color: '#999', fontSize: 11, marginTop: 24 }}>{t('Сформировано автоматически')} · {new Date().toLocaleDateString('ru-RU')}</p>
       </div>
 
-      <div style={{ padding: inDrawer ? '12px 12px 24px' : '0 64px 56px' }}>
+      <div className={'student-profile-content' + (inDrawer ? ' is-in-drawer' : '')}>
 
         {/* ── In-flow toolbar (fades when docked) ─────────────────────── */}
         {!inDrawer && <motion.div
@@ -531,66 +521,33 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
           </button>
         </motion.div>}
 
-        {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <div style={{
-          padding: inDrawer ? 14 : '24px 28px', borderRadius: inDrawer ? 16 : 24, marginBottom: inDrawer ? 12 : 20,
-          background: `linear-gradient(135deg, ${group.color}1A 0%, ${group.color}08 60%, transparent 100%)`,
-          border: `1.5px solid ${group.color}30`,
-          display: 'flex', alignItems: inDrawer ? 'flex-start' : 'center', gap: inDrawer ? 10 : 22, flexWrap: inDrawer ? 'wrap' : 'nowrap',
-          boxShadow: `0 0 0 1px ${group.color}10, 0 4px 24px rgba(0,0,0,0.10)`,
-        }}>
-          {!inDrawer && <Avatar student={student} group={group} size={68} />}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {!inDrawer && <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{tn(student.name)}</div>}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              {!inDrawer && <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: group.color + '20', borderRadius: 8, padding: '4px 10px',
-                border: `1px solid ${group.color}30`,
-              }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: group.color }}>{group.name}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon}{ICON_GAP}{tc(group.subject)}</span>
-              </div>}
-              {student.startedAt && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('c')} {student.startedAt}</span>}
-              <span style={{
-                fontSize: 12, color: 'var(--color-text-3)',
-                padding: '2px 8px', borderRadius: 7,
-                background: 'rgba(var(--glass-rgb),0.5)', border: '1px solid var(--color-border-soft)',
-              }}>{t('Цель:')} <b style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>{student.desiredScore} {t('б.')}</b></span>
-              {student.lastVisit && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{t('вход:')} {student.lastVisit}</span>}
-              {!inDrawer && studentCourses.map(c => (
-                <span key={c.id} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  fontSize: 12, color: group.color,
-                  padding: '2px 10px', borderRadius: 7,
-                  background: group.color + '18', border: `1px solid ${group.color}30`,
-                }}>
-                  <BookOpen size={12} />
-                  {tc(c.title)}
-                  <span style={{ fontSize: 11, opacity: 0.7 }}>{c.completedLessons}/{c.totalLessons}</span>
-                </span>
-              ))}
+        {/* The profile owns identity; the work report below owns goals and course progress. */}
+        {(!inDrawer || student.startedAt || student.lastVisit || !workPanel || student.phone || student.telegramLink || student.parentContact) && (
+          <section className="student-profile-hero" data-in-drawer={inDrawer || undefined}>
+            <div className="student-profile-identity">
+              {!inDrawer && <Avatar student={student} />}
+              <div className="student-profile-person">
+                {!inDrawer && <h1>{tn(student.name)}</h1>}
+                {!inDrawer && (profileGroupLabel || group.subject) && (
+                  <div className="student-profile-context">
+                    {profileGroupLabel && <span>{profileGroupLabel}</span>}
+                    {group.subject && <span>{group.icon}{ICON_GAP}{tc(group.subject)}</span>}
+                  </div>
+                )}
+                <div className="student-profile-meta">
+                  {student.startedAt && <span>{t('c')} {student.startedAt}</span>}
+                  {student.lastVisit && <span>{t('Последний вход')}: {student.lastVisit}</span>}
+                  {!workPanel && <span>{t('Цель:')} <b>{student.desiredScore > 0 ? student.desiredScore + ' ' + t('б.') : t('Не задана')}</b></span>}
+                </div>
+              </div>
             </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            {student.phone && (
-              <a href={`tel:${student.phone}`}
-                style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
-                title={student.phone}><Phone size={16} /></a>
-            )}
-            {student.telegramLink && (
-              <a href={contactHref(student.telegramLink)} target="_blank" rel="noreferrer"
-                style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
-                title={contactLabel(student.telegramLink)}><Send size={16} /></a>
-            )}
-            {student.parentContact && (
-              <a href={`tel:${student.parentContact}`}
-                style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
-                title={`${t('Родитель:')} ${student.parentContact}`}><User size={16} /></a>
-            )}
-          </div>
-        </div>
+            <div className="student-profile-contacts">
+              {student.phone && <a href={`tel:${student.phone}`} title={student.phone}><Phone size={18} /></a>}
+              {student.telegramLink && <a href={contactHref(student.telegramLink)} target="_blank" rel="noreferrer" title={contactLabel(student.telegramLink)}><Send size={18} /></a>}
+              {student.parentContact && <a href={`tel:${student.parentContact}`} title={`${t('Родитель:')} ${student.parentContact}`}><User size={18} /></a>}
+            </div>
+          </section>
+        )}
 
         {/* ── Priority: diagnostics-only student → show diag first ─────── */}
         {!hasStats && diagResults.length > 0 && (

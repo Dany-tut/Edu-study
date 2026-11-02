@@ -723,3 +723,27 @@
 
 .jo-share-tools { flex:none; width:100%; }
 .jo-share-scroll { padding-bottom:16px; }
+/* Optical anchors measured on the opaque silhouette, excluding transparent padding. */
+.jo-report-object[data-object="goal"] { --art-top-inset:0.035417; --art-right-inset:0.081250; }
+.jo-report-object[data-object="lag"] { --art-top-inset:0.058333; --art-right-inset:0.266667; }
+.jo-report-object[data-object="mastery"] { --art-top-inset:0.216667; --art-right-inset:0.135417; }
+.jo-report-object[data-object="ontime"] { --art-top-inset:0.058333; --art-right-inset:0.058333; }
+.jo-report-object[data-object="overdue"] { --art-top-inset:0.120833; --art-right-inset:0.114583; }
+.jo-report-object[data-object="results"] { --art-top-inset:0.092708; --art-right-inset:0.095833; }
+.jo-report-object[data-object="rhythm"] { --art-top-inset:0.233333; --art-right-inset:0.033333; }
+.jo-report-object[data-object="topic"] { --art-top-inset:0.197917; --art-right-inset:0.187500; }
+.jo-report-object[data-object="trend"] { --art-top-inset:0.141667; --art-right-inset:0.022917; }
+.jo-tile--3d .jo-report-object { top:calc(-12px - var(--report-object-size)*var(--art-top-inset,0)); right:calc(12px - var(--report-object-size)*var(--art-right-inset,0)); }
+/* Supersede the older per-tone pixel nudges at the same selector specificity. */
+.jo-tile--3d.jo-topic-widget .jo-report-object,.jo-tile--3d.jo-mastery .jo-report-object,.jo-tile--3d.jo-rhythm .jo-report-object { top:calc(-12px - var(--report-object-size)*var(--art-top-inset,0)); }
+/* Local light behind the object; the reading side remains quiet. */
+.jo-class-grid > .jo-tile--3d,.jo-bento > .jo-tile--3d {
+ --depth-color:var(--widget-ink,var(--color-accent));
+ background:
+  radial-gradient(ellipse 58% 100% at 100% 0%,color-mix(in srgb,var(--depth-color) 21%,transparent),transparent 76%),
+  radial-gradient(ellipse 38% 65% at 82% 9%,color-mix(in srgb,var(--color-bg-card) 88%,transparent),transparent 72%),
+  linear-gradient(120deg,color-mix(in srgb,var(--widget-wash,var(--color-purple-soft)) 42%,var(--color-bg-card)),color-mix(in srgb,var(--widget-wash,var(--color-purple-soft)) 20%,var(--color-bg-card)));
+ box-shadow:inset 0 1px 0 color-mix(in srgb,var(--color-bg-card) 85%,transparent),0 10px 28px -22px color-mix(in srgb,var(--depth-color) 35%,transparent);
+}
+.jo-class-grid > .jo-lilac { --depth-color:var(--color-accent); }
+.jo-tile--3d .jo-report-object { filter:drop-shadow(-5px 9px 7px color-mix(in srgb,var(--depth-color) 13%,transparent)); }
