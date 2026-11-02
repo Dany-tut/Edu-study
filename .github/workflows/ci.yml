@@ -157,6 +157,9 @@ jobs:
         continue-on-error: true
         run: npm run check:course-access
 
+      - name: Правила интерфейса (check:ui)
+        run: npm run check:ui
+
       - name: Сборка
         id: build
         continue-on-error: true
