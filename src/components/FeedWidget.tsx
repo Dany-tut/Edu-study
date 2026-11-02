@@ -75,7 +75,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
       display: 'flex', flexDirection: 'column', gap: 10,
       minHeight: 0, overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
+      <div className="ww-reading-header" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
         <Rows3 size={16} style={{ color: palette.accent }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Лента')}</span>
         {unread.length > 0 ? (
@@ -101,7 +101,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
         </a>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: '1 1 auto', minHeight: 0 }}>
+      <div className="ww-feed-items" style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: '1 1 auto', minHeight: 0 }}>
         {shown.map(item => {
           const outlet = outletById(item.outletId)
           const fresh = unread.includes(item)

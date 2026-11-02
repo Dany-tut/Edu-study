@@ -19,7 +19,7 @@ const STAT_ICONS: Record<string, string> = {
  *  прогресс потерян. */
 function PendingValue() {
   return (
-    <span aria-busy="true" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+    <span className="stat-pending" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
       <Skeleton w={34} h={28} radius={9} />
       <Skeleton w={58} h={11} />
     </span>
@@ -30,7 +30,7 @@ function EmptyValue({ icon }: { icon: string }) {
   const t = useT()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontSize: 28, opacity: 'var(--stat-empty-icon-opacity, 0.25)', filter: 'grayscale(1)' }}>{icon}</span>
+      <span className="stat-empty-icon" style={{ fontSize: 28, opacity: 'var(--stat-empty-icon-opacity, 0.25)', filter: 'grayscale(1)' }}>{icon}</span>
       <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--stat-empty-text, var(--color-text-4))', letterSpacing: 0.2 }}>
         {t('нет данных')}
       </span>

@@ -17,7 +17,7 @@ const fadeUp = (delay = 0) => ({
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{
+    <div className="ww-task-card" style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'var(--blur-glass)',
       WebkitBackdropFilter: 'var(--blur-glass)',
@@ -59,6 +59,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 
   return (
     <div
+      className="ww-task-row"
       ref={rowRef}
       onClick={onClick}
       onMouseMove={handleMouseMove}
@@ -76,12 +77,12 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
     >
       {/* Общий Checkbox: своя рамка #C4B0F0 не менялась с темой. Клик не
           доходит до строки — она открывает задачу. */}
-      <span onClick={e => e.stopPropagation()} style={{ display: 'flex', flexShrink: 0 }}>
+      <span className="ww-task-check" onClick={e => e.stopPropagation()} style={{ display: 'flex', flexShrink: 0 }}>
         <Checkbox checked={task.done} onChange={() => onToggle()} />
       </span>
 
       {task.typeLabel && task.typeBg && task.typeColor && (
-        <span style={{
+        <span className="ww-task-type" style={{
           fontSize: 11, fontWeight: 600,
           background: task.typeBg, color: task.typeColor,
           borderRadius: 8, padding: '2px 8px', flexShrink: 0,
@@ -90,7 +91,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         </span>
       )}
 
-      <span style={{
+      <span className="ww-task-title" style={{
         flex: 1, fontSize: 13, fontWeight: 500,
         color: task.done ? 'var(--color-text-3)' : 'var(--color-text)',
         textDecoration: task.done ? 'line-through' : 'none',
@@ -99,11 +100,12 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         {(task.title || (task.typeLabel ?? t('Задача'))).replace(/@/g, '')}
       </span>
 
-      <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
+      <span className="ww-task-date" style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
         {task.date}{task.time ? ` · ${task.time}` : ''}
       </span>
 
       <button
+        className="ww-task-remove" aria-label={t('Удалить')} title={t('Удалить')}
         onClick={e => { e.stopPropagation(); onRemove() }}
         onMouseEnter={() => setShowDelete(true)}
         onMouseLeave={e => {
@@ -212,7 +214,7 @@ export default function WidgetTodayTasks() {
             )}
           </CardTitle>
           <div
-            className="no-scrollbar"
+            className="no-scrollbar ww-task-list"
             onScroll={needsScroll ? e => {
               const el = e.currentTarget
               setTasksAtTop(el.scrollTop < 4)

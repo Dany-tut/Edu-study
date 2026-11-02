@@ -45,13 +45,13 @@ export default function StickersWidget({ columns }: { columns: number }) {
         </p>
       ) : (
         <>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="ww-sticker-items" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {top.map(s => (
               <StickerBadge key={s.id} score={s.score} label={stickerLabel(s, t)}
                 stickerId={s.id} emblem={emblems[s.id]} size={wide ? 66 : 56} onClick={() => setOpen(true)} />
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 'auto', flexWrap: 'wrap' }}>
+          <div className="ww-sticker-counts" style={{ display: 'flex', gap: 6, marginTop: 'auto', flexWrap: 'wrap' }}>
             {[5, 4, 3, 2, 1].filter(s => byScore[s]).map(s => {
               const tier = STICKER_TIERS[s as 1 | 2 | 3 | 4 | 5]
               return (

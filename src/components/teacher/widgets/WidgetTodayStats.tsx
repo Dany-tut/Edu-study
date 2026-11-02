@@ -1,3 +1,5 @@
+import MiniStatCard from './_MiniStatCard'
+import type { LucideIcon } from '../../icons/appIcons'
 import { motion } from 'framer-motion'
 import { Users, ClipboardCheck, Clock, TrendingUp } from '../../icons/appIcons'
 import { useHomeData } from '../../../lib/useHomeData'
@@ -10,82 +12,17 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.38, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
-function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{
-      background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'var(--blur-glass)',
-      WebkitBackdropFilter: 'var(--blur-glass)',
-      border: '1px solid var(--color-border-medium)',
-      borderRadius: 24,
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
-      padding: 20,
-      overflow: 'hidden',
-      ...style,
-    }}>
-      {children}
-    </div>
-  )
-}
-
 function EarningsCard({ delay }: { delay: number }) {
   const t = useT()
-  return (
-    <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>
-      <Card style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{t('За месяц')}</span>
-          <div style={{
-            width: 30, height: 30, borderRadius: 10,
-            background: 'var(--color-yellow-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <TrendingUp size={16} strokeWidth={2} style={{ color: 'var(--color-yellow-text)' }} />
-          </div>
-        </div>
-        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
-          {t('Нет данных')}
-        </div>
-        <div style={{
-          fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
-          background: 'var(--color-bg-4)', borderRadius: 8, padding: '4px 8px',
-          alignSelf: 'flex-start',
-        }}>
-          {t('будет позже')}
-        </div>
-      </Card>
-    </motion.div>
-  )
+  return <StatCard icon={TrendingUp} label={t('За месяц')} value={t('Нет данных')} sub={t('будет позже')}
+    accentBg="var(--color-yellow-soft)" accentColor="var(--color-yellow-text)" delay={delay} />
 }
-
-function StatCard({
-  icon: Icon, label, value, sub, accentBg, accentColor, delay,
-}: {
-  icon: React.ElementType; label: string; value: string | number
-  sub: string; accentBg: string; accentColor: string; delay: number
+function StatCard({ icon, label, value, sub, accentBg, accentColor, delay }: {
+  icon: LucideIcon; label: string; value: string | number; sub: string; accentBg: string; accentColor: string; delay: number
 }) {
-  return (
-    <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>
-      <Card style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{label}</span>
-          <div style={{
-            width: 30, height: 30, borderRadius: 10,
-            background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Icon size={15} strokeWidth={2} style={{ color: accentColor }} />
-          </div>
-        </div>
-        <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
-        <div style={{
-          fontSize: 11, fontWeight: 600, color: accentColor,
-          background: accentBg, borderRadius: 8, padding: '4px 8px',
-          alignSelf: 'flex-start',
-        }}>
-          {sub}
-        </div>
-      </Card>
-    </motion.div>
-  )
+  return <motion.div {...fadeUp(delay)} className="iskra-widget" data-stat style={{ flex: '1 1 0', minWidth: 0, height: '100%' }}>
+    <MiniStatCard icon={icon} label={label} value={value} sub={sub} accentBg={accentBg} accentColor={accentColor} />
+  </motion.div>
 }
 
 export default function WidgetTodayStats() {
@@ -94,7 +31,7 @@ export default function WidgetTodayStats() {
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-      <div style={{ display: 'flex', gap: 14, width: '100%' }}>
+      <div style={{ display: 'flex', gap: 10, width: '100%', height: '100%' }}>
         <StatCard
           icon={Users} label={t('Студентов')} value={totalStudents}
           sub={`${groups.length} ${t('группы')}`}

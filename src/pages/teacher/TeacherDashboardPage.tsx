@@ -153,6 +153,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
           onClose={() => setShowWidgetLibrary(false)}
           onAdd={item => addWidget(activeDesk.id, item)}
           existingTypes={activeDesk.items.map(i => i.type)}
+          existingItems={activeDesk.items}
           hiddenWidgets={hiddenWidgets}
         />
       </Suspense>)}

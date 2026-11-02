@@ -55,7 +55,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
       </div>
 
       {/* Question */}
-      <div className="flex flex-1 items-center" style={{ minHeight: 0 }}>
+      <div className="flex flex-1 items-center ww-question-body" style={{ minHeight: 0 }}>
         <h3 style={{ fontSize: 20 * scale, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>
           {q.title}
         </h3>
@@ -63,7 +63,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
 
       {/* Footer: reveal button → correct answer. Fixed height so the centered
           question above doesn't jump when the two states swap. */}
-      <div style={{ marginTop: 10 * scale, minHeight: 44 * scale, display: 'flex', alignItems: 'center' }}>
+      <div className="ww-question-footer" style={{ marginTop: 10 * scale, minHeight: 44 * scale, display: 'flex', alignItems: 'center' }}>
         <AnimatePresence mode="wait" initial={false}>
           {!revealed ? (
             <motion.button
