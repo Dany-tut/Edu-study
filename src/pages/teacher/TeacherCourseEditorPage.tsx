@@ -20,6 +20,7 @@ import {
   ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock,
 } from '../../components/icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
+import FadeText from '../../components/FadeText'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import { LessonLinkPanel } from '../../components/teacher/LessonLinkAttach'
 import { detectDisk, DiskLogo } from '../../components/teacher/DiskLink'
@@ -5839,6 +5840,8 @@ export default function TeacherCourseEditorPage() {
 
   const [savedFlash, setSavedFlash] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [autosaving, setAutosaving] = useState(0)
+  const [publicationPending, setPublicationPending] = useState(false)
   const [publishErr, setPublishErr] = useState<string | null>(null)
   // Отпечаток серверной версии, с которой открыли курс. Сравнивается перед
   // каждой записью — см. syncAccessToSupabase.
@@ -5864,7 +5867,7 @@ export default function TeacherCourseEditorPage() {
   useEffect(() => {
     // Курс ещё догружается — писать нечего: сохранение идёт целиком и затёрло
     // бы конспекты с домашками, которых пока нет в состоянии.
-    if (course.heavyPending) return
+    if (course.heavyPending || publicationPending) return
     if (!course.dbCourseId && !course.title.trim()) return
     if (!autosaveArmed.current) {
       autosaveArmed.current = true
@@ -5876,7 +5879,7 @@ export default function TeacherCourseEditorPage() {
       runAutosave(course)
     }, 900)
     return () => clearTimeout(t)
-  }, [course])
+  }, [course, publicationPending])
 
   // «Сохранено!» — только после ответа базы. Раньше подпись мигала сразу, до
   // записи, и при неудаче врала: учитель видел «Сохранено!», а в базе пусто.
@@ -5890,6 +5893,7 @@ export default function TeacherCourseEditorPage() {
   const latestSync = useRef(syncAccessToSupabase)
   latestSync.current = syncAccessToSupabase
   function runAutosave(c: CourseEdData) {
+    setAutosaving(n => n + 1)
     const seq = draftSeq.current
     return syncAccessToSupabase(c).then(ok => {
       clearCourseDraftAfterSync(seq, ok)
@@ -5897,7 +5901,7 @@ export default function TeacherCourseEditorPage() {
       if (ok) { setPublishErr(null); flash() }
       else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
       return ok
-    })
+    }).finally(() => setAutosaving(n => n - 1))
   }
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => { if (unsaved.current) { e.preventDefault(); e.returnValue = '' } }
@@ -6624,6 +6628,7 @@ export default function TeacherCourseEditorPage() {
   }
 
   function handlePublish() {
+    if (saving) return
     if (course.heavyPending) { setPublishErr(HEAVY_WAIT_MSG()); return }
     const blocker = publishBlocker(course)
     if (blocker) {
@@ -6632,30 +6637,36 @@ export default function TeacherCourseEditorPage() {
     }
     if (alertMissingAnswers(courseMissingAnswers(course))) return
     setPublishErr(null)
-    const updated = { ...course, status: 'published' as const }
-    setCourse(updated)
-    setCourseEdited(JSON.stringify(updated))
-    // setCourse above bumps draftSeq on the next render — capture seq+1 so the
-    // status flip itself doesn't block the post-save draft cleanup.
-    const seq = draftSeq.current + 1
-    setSaving(true)
-    Promise.all([syncAccessToSupabase(updated), new Promise(r => setTimeout(r, 550))]).then(([ok]) => {
-      setSaving(false)
-      clearCourseDraftAfterSync(seq, ok as boolean)
-      if (ok) flash()
-      else setPublishErr(t('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.'))
-    })
+    persistPublicationStatus('published')
   }
 
   function handleUnpublish() {
-    const updated = { ...course, status: 'draft' as const }
-    setCourse(updated)
-    setCourseEdited(JSON.stringify(updated))
-    const seq = draftSeq.current + 1
-    syncAccessToSupabase(updated).then(ok => {
-      clearCourseDraftAfterSync(seq, ok)
-      if (ok) { setPublishErr(null); flash() }
-      else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+    if (saving || course.heavyPending) return
+    setPublishErr(null)
+    persistPublicationStatus('draft')
+  }
+
+  // Не меняем локальный статус до ответа сервера. Пока запись в очереди,
+  // автосохранение приостановлено: оно не должно записать старый статус следом.
+  // Правки, внесённые во время публикации, сохранятся после её завершения.
+  function persistPublicationStatus(status: CourseEdData['status']) {
+    const updated = { ...course, status }
+    const seq = draftSeq.current
+    setPublicationPending(true)
+    setSaving(true)
+    Promise.all([syncAccessToSupabase(updated).catch(() => false), new Promise(r => setTimeout(r, 550))]).then(([ok]) => {
+      clearCourseDraftAfterSync(seq, ok as boolean)
+      if (ok) {
+        setCourse(c => ({ ...c, status }))
+        setCourseEdited(JSON.stringify({ ...latestCourse.current, status }))
+        flash()
+      } else {
+        setPublishErr(status === 'published'
+          ? t('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
+          : t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+      }
+      setSaving(false)
+      setPublicationPending(false)
     })
   }
 
@@ -6698,8 +6709,8 @@ export default function TeacherCourseEditorPage() {
       if (lab && lab.offsetWidth) seedLabelW.current = lab.offsetWidth
       // Меряем по РАЗВЁРНУТОЙ правой группе — иначе решение зависело бы от себя.
       const fullRight = rw + (lab ? 0 : seedLabelW.current)
-      const room = h.clientWidth - 2 * (Math.max(lw, fullRight) + 12)
-      const titleW = headTitleRef.current?.scrollWidth ?? 0
+      const room = h.clientWidth - 2 * (Math.max(lw, fullRight) + 36)
+      const titleW = headTitleRef.current?.firstElementChild?.scrollWidth ?? 0
       setSeedCompact(titleW + 16 > room)
     }
     measure()
@@ -6761,11 +6772,16 @@ export default function TeacherCourseEditorPage() {
             )}
           </AnimatePresence>
         </div>
-        {/* Название всегда ровно по центру страницы: абсолют + симметричные
-            отступы по ширине большей группы кнопок. Длинное название не уезжает
-            под кнопки — оно обрезается многоточием. */}
-        <div style={{ position: 'absolute', left: headSideW + 12, right: headSideW + 12, top: 0, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <span ref={headTitleRef} className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
+        {/* Статус сохранения под названием не меняет ширину ряда действий. */}
+        <div style={{ position: 'absolute', left: headSideW + 36, right: headSideW + 36, top: 0, height: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+          <span ref={headTitleRef} style={{ minWidth: 0, maxWidth: '100%' }}>
+            <FadeText style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</FadeText>
+          </span>
+          <span role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: 4, position: 'absolute', top: 34, height: 16, flexShrink: 0, fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+            {saving || autosaving > 0
+              ? <><Loader2 size={12} style={{ animation: 'spin 0.9s linear infinite' }} /> {t('Сохранение…')}</>
+              : savedFlash ? <><Check size={12} strokeWidth={2.5} /> {t('Сохранено!')}</> : null}
+          </span>
         </div>
         <div ref={headRightRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
@@ -6796,14 +6812,6 @@ export default function TeacherCourseEditorPage() {
               style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: '0 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
             </motion.button>
-          )}
-          {/* Черновик ⇄ опубликован одной деталью. Отдельная «Сохранить» не нужна:
-              сохранённый курс пишется автосохранением при любой правке; отклик
-              сохранения — тихая подпись слева, её раньше показывала кнопка. */}
-          {savedFlash && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, fontSize: 13, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
-              <Check size={14} strokeWidth={2.5} /> {t('Сохранено!')}
-            </span>
           )}
           <DraftPublishToggle
             published={course.status === 'published'}
