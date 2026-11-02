@@ -95,19 +95,19 @@ try {
   `)
   await sql(readFileSync('supabase/migrations/20261101164928_teacher_journal_lesson_summary.sql','utf8').split('-- Invoker security')[0])
   await sql(readFileSync('supabase/migrations/20261102082617_journal_compact_task_sources.sql','utf8'))
-  await sql("create or replace function pg_temp.unpack_journal_wire(p jsonb) returns jsonb\nlanguage sql immutable as $$\n  select (p - 'encoding' - array['courses','lessons','modules','work','events','assignments','legacy','attempts','marks']) ||\n    (select jsonb_object_agg(k,coalesce((\n      select jsonb_agg((select jsonb_object_agg(c.col #>> '{}',r.row->(c.n-1)::int)\n        from jsonb_array_elements(t->'columns') with ordinality c(col,n)) order by r.n)\n      from jsonb_array_elements(t->'rows') with ordinality r(row,n)\n    ),'[]'::jsonb))\n    from jsonb_each(p) e(k,t) where k in('courses','lessons','modules','work','events','assignments','legacy','attempts','marks'))\n$$;\n\n")
+  await sql("create or replace function public.test_unpack_journal_wire(p jsonb) returns jsonb\nlanguage sql immutable as $$\n  select (p - 'encoding' - array['courses','lessons','modules','work','events','assignments','legacy','attempts','marks']) ||\n    (select jsonb_object_agg(k,coalesce((\n      select jsonb_agg((select jsonb_object_agg(c.col #>> '{}',r.row->(c.n-1)::int)\n        from jsonb_array_elements(t->'columns') with ordinality c(col,n)) order by r.n)\n      from jsonb_array_elements(t->'rows') with ordinality r(row,n)\n    ),'[]'::jsonb))\n    from jsonb_each(p) e(k,t) where k in('courses','lessons','modules','work','events','assignments','legacy','attempts','marks'))\n$$;\n\n")
   await sql(`reset role;set test.admin='false';select set_config('test.uid',md5('owner-a')::uuid::text,false);set role authenticated;
     do $$declare old jsonb;fresh jsonb;begin
-      old:=teacher_journal_snapshot_v2(md5('owner-a')::uuid,true);fresh:=pg_temp.unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-a')::uuid,true)::jsonb);
+      old:=teacher_journal_snapshot_v2(md5('owner-a')::uuid,true);fresh:=public.test_unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-a')::uuid,true)::jsonb);
       if (old-'lessons') is distinct from (fresh-'lessons') then raise exception 'Non-task data changed';end if;
       if jsonb_array_length(fresh->'lessons')<>1610 then raise exception 'Compact lessons truncated';end if;
       if fresh->'lessons'->0->'hwTask' not in ('[{"type":"iskra"}]'::jsonb,'null'::jsonb) then raise exception 'Native source missing';end if;
       begin perform teacher_journal_snapshot_v3(md5('owner-b')::uuid);raise exception 'Foreign compact owner allowed';exception when insufficient_privilege then null;end;
     end$$;
     reset role;select set_config('test.uid',md5('owner-b')::uuid::text,false);set role authenticated;
-    do $$begin if jsonb_array_length(pg_temp.unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-b')::uuid)::jsonb)->'work')<>1 then raise exception 'Compact second-owner isolation failed';end if;end$$;
+    do $$begin if jsonb_array_length(public.test_unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-b')::uuid)::jsonb)->'work')<>1 then raise exception 'Compact second-owner isolation failed';end if;end$$;
     reset role;set test.admin='true';set role authenticated;
-    do $$begin if jsonb_array_length(pg_temp.unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-a')::uuid)::jsonb)->'work')<>2107 then raise exception 'Compact admin scope failed';end if;end$$;
+    do $$begin if jsonb_array_length(public.test_unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-a')::uuid)::jsonb)->'work')<>2107 then raise exception 'Compact admin scope failed';end if;end$$;
     reset role;set role anon;
     do $$begin begin perform teacher_journal_snapshot_v3(md5('owner-a')::uuid);raise exception 'Anonymous compact RPC allowed';exception when insufficient_privilege then null;end;end$$;
     reset role;
@@ -123,7 +123,7 @@ try {
   `)
   const query = `set test.admin='true';select set_config('test.uid',md5('owner-a')::uuid::text,false);
     with snapshot as materialized(select teacher_journal_snapshot_v3(md5('owner-a')::uuid,true)::jsonb wire)
-    select jsonb_build_object('wire',wire,'decoded',pg_temp.unpack_journal_wire(wire)) as fixture from snapshot;`
+    select jsonb_build_object('wire',wire,'decoded',public.test_unpack_journal_wire(wire)) as fixture from snapshot;`
   const fixture = db ? (await db.exec(query)).at(-1).rows[0].fixture
     : JSON.parse(run(['exec','-i',name,'psql','-h','127.0.0.1','-U','postgres','-At','-v','ON_ERROR_STOP=1'],query).split('\n').find(line=>line.startsWith('{')))
   const bundle = buildSync({entryPoints:['src/lib/journalSnapshot.ts'],bundle:true,platform:'node',format:'esm',write:false})
