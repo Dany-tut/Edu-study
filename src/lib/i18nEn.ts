@@ -1790,6 +1790,7 @@ export const EN: Record<string, string> = {
   "Сохранить пароль": "Save password",
   "Письмо для сброса пароля отправлено. Проверьте почту.": "A password reset email has been sent. Check your inbox.",
   "Пароль обновлён. Входим…": "Password updated. Signing in…",
+  "Пароль обновлён. Теперь войдите с новым паролем.": "Password updated. Now sign in with your new password.",
   "Платформа учителя": "Teacher Platform",
   "Забыли пароль?": "Forgot password?",
   "Восстановить пароль": "Reset password",
