@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useState, useEffect, useCallback } from 'react'
 import BackCircle from '../../components/BackCircle'
 import Skeleton from '../../components/Skeleton'
@@ -154,7 +155,7 @@ export default function TeacherStoragePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[...stats.tables].sort((a, b) => b.bytes - a.bytes).map(tbl => (
                 <div key={tbl.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 13, color: 'var(--color-text-2)', width: 160, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tbl.name}</span>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-2)', width: 160, flexShrink: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tbl.name}</span>
                   <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
                     <motion.div
                       initial={{ width: 0 }}

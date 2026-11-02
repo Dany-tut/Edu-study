@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -140,7 +141,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
           cursor: many ? 'pointer' : 'default', transition: 'border-color 0.15s',
         }}
       >
-        <span style={{ ...TEXT_LIFT, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(active.name)}</span>
+        <span style={{ ...TEXT_LIFT, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(active.name)}</span>
         <span style={{ ...TEXT_LIFT, fontSize: 12, fontWeight: 500, color: 'var(--color-purple)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{coursePct(active)}%</span>
         {many && (
           <ChevronDown size={14} strokeWidth={2.4} style={{ flexShrink: 0, color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />

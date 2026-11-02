@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { ArrowUp as LoopUiArrowUp, ArrowDown as LoopUiArrowDown } from '../icons/appIcons'
 import { SubjectMark } from '../icons/SubjectMark'
 // ─────────────────────────────────────────────────────────────────────────────
@@ -888,7 +889,7 @@ function SetCard({ set, group, checked, editMode, onCheck, onOpen, onDelete, onS
           <span
             onClick={e => { e.stopPropagation(); onShelf() }}
             title={t('Настройки полки')}
-            style={cardChip(MAT_COLOR, { cursor: 'pointer', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}
+            style={cardChip(MAT_COLOR, { cursor: 'pointer', maxWidth: 130, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' })}
           >
             {group.title}
           </span>

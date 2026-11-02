@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { Check as LoopUiCheck } from '../icons/appIcons'
 // ─────────────────────────────────────────────────────────────────────────────
 // «Материалы» — весь тренажёр витриной, отбор в правой панели
@@ -574,14 +575,14 @@ export default function TrainerMaterials({ createNonce = 0, subjects, onSubjects
                   <button key={`task-${x.task.id}`} onClick={() => tasks?.onOpenCard?.(x.task.id)}
                     style={{ ...ROW, border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-text)' }}>
                     <span style={cardChip(TASK_COLOR)}>{t('Задание')}</span>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.task.title}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{x.task.title}</span>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{x.task.chip}</span>
                   </button>
                 ) : x.kind === 'deck' ? (
                   <button key={`deck-${x.deck.id}`} onClick={x.deck.open}
                     style={{ ...ROW, border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-text)' }}>
                     <span style={cardChip(MAT_COLOR)}>{t('Подборка')}</span>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.deck.title}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{x.deck.title}</span>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{x.deck.cards} {t(plural(x.deck.cards, ['карточка', 'карточки', 'карточек']))}</span>
                   </button>
                 ) : (
@@ -670,7 +671,7 @@ function MaterialRow({ x, showLang, onOpen }: { x: Row; showLang: boolean; onOpe
       {x.level && <span style={{ ...cardChip(MAT_COLOR), minWidth: 54, textAlign: 'center' }}>{x.level}</span>}
       <span style={{
         flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
       }}>
         {x.title}
       </span>
@@ -1061,10 +1062,10 @@ export function MaterialPage({ target, onSwitch, onClose }: {
               <div style={{
                 padding: '10px 16px', borderRadius: 999, ...pageGlass, fontSize: 14, fontWeight: 700,
                 color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: 280,
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                overflow: 'hidden',  whiteSpace: 'nowrap',
               }}>
-                {item?.title ?? shelfTitle}
-              </div>
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{item?.title ?? shelfTitle}</span>
+            </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1095,7 +1096,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
             <span style={cardChip(MAT_COLOR)}>{t('Из кода')}</span>
             <span style={{
               fontFamily: 'ui-monospace, monospace', fontSize: 12, whiteSpace: 'nowrap',
-              overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260,
+              overflow: 'hidden', ...textFadeStyle, maxWidth: 260,
             }}>
               {copied ? t('Путь скопирован') : path}
             </span>
@@ -1309,7 +1310,7 @@ function ShelfRail({ groups, flat, loading, current, onPick }: {
                   }}
                 >
                   {open ? <ChevronDown size={14} style={{ color: 'var(--color-text-3)' }} /> : <ChevronRight size={14} style={{ color: 'var(--color-text-3)' }} />}
-                  <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name || t('Без темы')}</span>
+                  <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{g.name || t('Без темы')}</span>
                   <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>{g.items.length}</span>
                 </button>
               )}
@@ -1343,7 +1344,7 @@ function ShelfRail({ groups, flat, loading, current, onPick }: {
                     <span style={{
                       flex: 1, minWidth: 0, textAlign: 'left', fontSize: 13, fontWeight: 600,
                       color: on ? MAT_COLOR : 'var(--color-text)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
                     }}>
                       {x.title}
                     </span>

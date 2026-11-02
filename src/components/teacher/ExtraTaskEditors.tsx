@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 // ─── Редакторы новых типов заданий ───────────────────────────────────────────
 //
 // ЗАЧЕМ ОТДЕЛЬНЫЙ ФАЙЛ. Задание собирается в ДВУХ местах — в редакторе курса и
@@ -317,14 +318,14 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                               style={{
                                 padding: '6px 10px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
                                 fontSize: 12, fontWeight: 700, maxWidth: 92, overflow: 'hidden',
-                                textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                 whiteSpace: 'nowrap',
                                 border: `1.5px solid ${item.column === ci ? accent.color : 'var(--color-border-medium)'}`,
                                 background: item.column === ci ? accent.bg : 'var(--color-bg-2)',
                                 color: item.column === ci ? accent.color : 'var(--color-text-3)',
                               }}
                             >
-                              {col.trim() || ci + 1}
-                            </button>
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{col.trim() || ci + 1}</span>
+            </button>
                           ))}
                         </div>
                         {items.length > 1 && (

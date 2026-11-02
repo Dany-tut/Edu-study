@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../lib/textFades'
 import LessonWatchStatus from './LessonWatchStatus'
 import { homeworkDisplayScore } from '../lib/homeworkResult'
 import { useState, useMemo } from 'react'
@@ -135,7 +136,7 @@ export default function MobileCourses() {
           живой» иначе выдавливал уровень и колокольчик за край экрана. */}
       <GlassPill morph="lead" style={{ minWidth: 0, overflow: 'hidden' }}>
         <SubjectMark subject={subject?.subject} size={18} />
-        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{subject ? tc(subject.name) : t('Курс')}</span>
+        <span style={{ minWidth: 0, overflow: 'hidden', ...textFadeStyle }}>{subject ? tc(subject.name) : t('Курс')}</span>
       </GlassPill>
       <div className="flex items-center" style={{ gap: 8 }}>
         <GlassPill>
@@ -327,7 +328,7 @@ function ModuleRow({ label, total, done, active, onClick, pal }: { label: string
         background: active ? pal.soft : 'transparent' }}
     >
       <div className="flex-1 min-w-0">
-        <div className="truncate" style={{ fontSize: 15, fontWeight: 700, color: active ? pal.text : 'var(--color-text)' }}>{label}</div>
+        <div className="text-fade" style={{ fontSize: 15, fontWeight: 700, color: active ? pal.text : 'var(--color-text)' }}>{label}</div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>{done} {t('из')} {total} · {pct}%</div>
       </div>
       <div style={{ width: 40, height: 6, borderRadius: 99, background: 'var(--color-bg-3)', overflow: 'hidden', flexShrink: 0 }}>
@@ -366,7 +367,7 @@ function LessonCard({ lesson, status, scheduleState, index, focused, onOpen, pal
       {/* body */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start" style={{ gap: 6, marginBottom: 4 }}>
-          <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3,  ...textFadeLines(2),  overflow: 'hidden' }}>
             {tc(lesson.title)}
           </span>
           {status === 'completed' && lesson.points != null && (

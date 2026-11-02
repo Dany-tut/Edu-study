@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, type CourseSlot } from '../../lib/courseScheduleSync'
@@ -511,7 +512,7 @@ const ACCESS_SELECT_W = 168
  * ряд. Длинное имя обрезается многоточием, целиком его показывает title.
  */
 const oneLine: React.CSSProperties = {
-  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
 }
 
 function AccessModeSelect({
@@ -1678,7 +1679,7 @@ function CenterRecording({
               : <Video size={14} style={{ color: 'var(--color-green-text)' }} />}
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
               {lesson.videoUrl}
             </span>
             {disk && (
@@ -2302,12 +2303,12 @@ function CenterLesson({
                       overflow: 'hidden', color: err ? 'var(--color-red-text)' : (has || dragOver) ? 'var(--color-green-text)' : 'var(--color-muted)',
                     }}>
                       {busy ? <span>{t('Загружаем…')}</span>
-                        : err ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err}</span>
+                        : err ? <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{err}</span>
                         : dragOver ? <span>{t('Отпустите сюда')}</span>
                         : !has ? <span>{multiple ? t('Перетащите файлы') : t('Перетащите файл')}</span>
                         : multiple ? <span>{files.length === 1 ? t('1 файл') : `${files.length} ${t('файлов')}`}</span>
-                        : link ? <><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{files[0].name}</span><ExternalLink size={10} style={{ flexShrink: 0 }} /></>
-                        : <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{files[0].name} · {formatFileSize(files[0].size)}</span>}
+                        : link ? <><span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{files[0].name}</span><ExternalLink size={10} style={{ flexShrink: 0 }} /></>
+                        : <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{files[0].name} · {formatFileSize(files[0].size)}</span>}
                     </div>
                   </div>
                 </button>
@@ -2324,7 +2325,7 @@ function CenterLesson({
                         {isLinkFile(f)
                           ? <Link2 size={11} style={{ flexShrink: 0, color: 'var(--color-green-text)' }} />
                           : <FileText size={11} style={{ flexShrink: 0, color: 'var(--color-muted)' }} />}
-                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{f.name}</span>
                         {!isLinkFile(f) && <span style={{ flexShrink: 0, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>}
                         <button
                           onClick={() => removeFile(slot, f)}
@@ -2585,7 +2586,7 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
         }}
       >
         {Icon && <Icon size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />}
-        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {selected?.label ?? placeholder ?? '—'}
         </span>
         <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
@@ -2949,7 +2950,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
         }}>
           {index + 1}. {t(cfg.label)}
         </div>
-        <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {task.question || <span style={{ fontStyle: 'italic' }}>{t('без текста')}</span>}
         </div>
         <button
@@ -3991,7 +3992,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                     style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}
                   >
                     <Plus size={12} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-green-text)' }} />
-                    <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                    <span style={{ overflow: 'hidden',  ...textFadeLines(2) }}>
                       {bt.questionTable ? <LoopUiTable size={13} style={{display:'inline-block',verticalAlign:'middle',marginRight:4}} /> : null}{bt.question || t('Без текста')}
                     </span>
                   </button>
@@ -4500,7 +4501,7 @@ function StudentsLeftPanel({
               }}>
                 {tn(s.name).slice(0, 1).toUpperCase()}
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
+              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
                 {tn(s.name)}
               </span>
               {on ? <Check size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
@@ -4530,7 +4531,7 @@ function StudentsLeftPanel({
               }}>
                 <Users size={14} style={{ color: on ? '#fff' : 'var(--color-muted)' }} />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
+              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
                 {g.name}
               </span>
               {on ? <Check size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
@@ -4680,7 +4681,7 @@ function CenterLessonStudents({
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Users size={14} style={{ color: '#fff' }} />
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{g.name}</span>
                     <AccessModeSelect
                       value={gm === 'mixed' ? '' : gm}
                       onChange={v => setGroupMode(g.id, v)}
@@ -4697,7 +4698,7 @@ function CenterLessonStudents({
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     {tn(s.name).slice(0, 1).toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(s.name)}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tn(s.name)}</span>
                   <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
                 </div>
               ))}
@@ -4821,7 +4822,7 @@ function LessonRow({
       <span style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
         color: selected ? 'var(--color-green-text)' : 'var(--color-text)',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
       }}>
         {tc(lesson.title) || (lesson.kind === 'test' ? t('Тест без названия') : t('Урок без названия'))}
       </span>
@@ -5276,7 +5277,7 @@ function RightPanelLessons({
                     style={{
                       display: 'block', fontSize: 12, fontWeight: 700,
                       color: editingModuleId === mod.id ? 'transparent' : (isActive ? 'var(--color-green-text)' : 'var(--color-text)'),
-                      textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
                     }}
                   >
                     {tc(mod.label)}
@@ -7093,7 +7094,7 @@ export default function TeacherCourseEditorPage() {
                 {/* Lesson header: back + tabs */}
                 <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', flex: 1 }}>
                       {tc(selectedLesson.title) || t('Урок без названия')}
                     </span>
                     {course.dbCourseId && (() => {

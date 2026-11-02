@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Режим экзамена: пробник IELTS на весь экран
 //
@@ -228,7 +229,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
         <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
           <span style={{
             fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
           }}>
             {wide ? `IELTS Academic · ${t(mock.title)}` : t(mock.title)}
           </span>

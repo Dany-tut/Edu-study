@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { openJournalTask } from '../../../lib/journalTasks'
 import { useState, useRef } from 'react'
 import Checkbox from '../../Checkbox'
@@ -95,7 +96,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         flex: 1, fontSize: 13, fontWeight: 500,
         color: task.done ? 'var(--color-text-3)' : 'var(--color-text)',
         textDecoration: task.done ? 'line-through' : 'none',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
       }}>
         {(task.title || (task.typeLabel ?? t('Задача'))).replace(/@/g, '')}
       </span>

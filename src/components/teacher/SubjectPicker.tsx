@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -74,7 +75,7 @@ export default function SubjectPicker({
                 gap: 6, minWidth: 0, background: on ? accentBg : idleBg, color: on ? activeColor : idleColor,
               }}>
               {o.icon && <span aria-hidden><SubjectMark subject={o.value} size={16} /></span>}
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.label}</span>
+              <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{o.label}</span>
             </button>
           )
         })}
@@ -135,7 +136,7 @@ function SubjectDropdown({
           background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: fs, fontWeight: 700, fontFamily: 'inherit',
         }}>
         {current.icon && <span aria-hidden><SubjectMark subject={current.value} size={16} /></span>}
-        <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{current.label}</span>
+        <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{current.label}</span>
         <ChevronDown size={14} style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
       </button>
       {open && rect && createPortal(
@@ -156,7 +157,7 @@ function SubjectDropdown({
                   fontSize: fs,
                 }}>
                 {o.icon && <span aria-hidden><SubjectMark subject={o.value} size={16} /></span>}
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.label}</span>
+                <span style={{ flex: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{o.label}</span>
                 {on && <Check size={14} strokeWidth={2.5} style={{ color: activeColor, flexShrink: 0 }} />}
               </button>
             )

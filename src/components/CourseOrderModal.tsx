@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
 import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
 import { useState, useEffect, useRef } from 'react'
@@ -247,7 +248,7 @@ function CourseRow({ row, index }: { row: Row; index: number }) {
       }}>
         {index + 1}
       </span>
-      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
         {tc(row.name)}
       </span>
     </Reorder.Item>

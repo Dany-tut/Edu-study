@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useScrollFades } from '../../lib/useScrollFades'
@@ -1972,7 +1973,7 @@ function StudentPanel({
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
             <StudentAvatar student={student} group={group} />
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                 {tn(student.name)}
               </div>
               <div style={{
@@ -1980,7 +1981,7 @@ function StudentPanel({
                 background: group.color + '33', borderRadius: 7, padding: '2px 8px',
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{group.name}</span>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.subject ? <><SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}</> : null}</span>
               </div>
             </div>
@@ -2319,7 +2320,10 @@ type GroupRosterProps = {
 }
 export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const scrollRoot = useRef<HTMLDivElement>(null)
-  useScrollFades(scrollRoot)
+  // The journal, group strip and report drawer own their inner scroll fades.
+  // Observing every cell here duplicates their work and forces offscreen
+  // content to lay out. Only this wrapper's direct scroll container remains.
+  useScrollFades(scrollRoot, true, renderRoster ? ':scope > div' : '*')
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()

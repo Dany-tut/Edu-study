@@ -74,12 +74,10 @@ export interface BasicAnswersPayload {
   rows: BasicAnswerRow[]
 }
 
-const PROMPT_LIMIT = 220
-
-/** Обрезка формулировки: в разборе нужна узнаваемость, а не весь текст. */
+/** Полная формулировка; видимый объём задаётся текстовым фейдом в интерфейсе. */
 export function shortPrompt(text: string): string {
   const one = text.replace(/\s+/g, ' ').trim()
-  return one.length > PROMPT_LIMIT ? `${one.slice(0, PROMPT_LIMIT - 1)}…` : one
+  return one
 }
 
 /** Разбор attachments базовой строки. Старые сдачи снимка не содержат — null. */

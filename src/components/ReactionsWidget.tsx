@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { courseReactionInterval } from '../data/mockData'
@@ -130,7 +131,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
                 style={{
                   fontSize: 20 * sz.scale, fontWeight: 700, lineHeight: 1.3, color: 'var(--color-text)',
                   fontVariantNumeric: 'tabular-nums', letterSpacing: '0.01em',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
                 }}
               >
                 {reaction.equation}

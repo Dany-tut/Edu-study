@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -163,7 +164,7 @@ export default function MultiSelectField({
 
   const chip = (v: string) => (
     <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: field ? '4px 8px' : '2px 8px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(v)}</span>
+      <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(v)}</span>
       <span onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', cursor: 'pointer', opacity: 0.7 }}><X size={small ? 12 : 12} strokeWidth={2.5} /></span>
     </span>
   )
@@ -221,7 +222,7 @@ export default function MultiSelectField({
             {!field && values.map(chip)}
           </div>
         ) : isEmpty ? (
-          <span style={{ flex: 1, minWidth: 0, fontSize, color: field ? 'var(--color-muted)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+          <span style={{ flex: 1, minWidth: 0, fontSize, color: field ? 'var(--color-muted)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label}</span>
         ) : field ? (
           // В форме выбранного немного и прятать его за «+N» незачем — всё видно.
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>

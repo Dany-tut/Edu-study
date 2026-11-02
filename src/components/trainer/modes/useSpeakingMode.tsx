@@ -1,3 +1,4 @@
+import { textFadeLines } from '../../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Режим «Говорение» — записать и отправить
 //
@@ -370,7 +371,7 @@ function Speaking({ subjectId, subject, lang, accent, palette, themes, query, ki
             </span>
             <span style={{
               flex: 1, fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
-              overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3,
+              overflow: 'hidden',   ...textFadeLines(3),
             }}>
               {speakPrompt(x.prompt, t)}
             </span>

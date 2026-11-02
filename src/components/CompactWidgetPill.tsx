@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { SubjectMark } from './icons/SubjectMark'
 import { LoopTextIcon, LoopActionLabel } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
@@ -1107,7 +1108,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
         <div style={{ marginTop: 4 }}>
           <span style={{
             fontSize: 13, fontWeight: 500, color: 'var(--color-text-2)', lineHeight: 1.4,
-            overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',  ...textFadeLines(2),
           } as React.CSSProperties}>
             {dedupBodyS(latest.body)}
           </span>

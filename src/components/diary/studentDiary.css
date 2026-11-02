@@ -1054,7 +1054,7 @@
 .student-diary .ds-tabs button > span[aria-hidden='true'] { visibility: hidden; }
 .student-diary .ds-scope label:first-child { flex: 0 1 180px; }
 .student-diary .ds-scope label:nth-child(2) { flex: 0 1 260px; }
-.student-diary .ds-scope select { width: 100%; text-overflow: ellipsis; }
+
 @media (max-width: 760px) { .student-diary .ds-scope label:first-child, .student-diary .ds-scope label:nth-child(2) { flex: 1 1 150px; } }
 .student-diary .ds-lesson-catalog { font-size: 12px; padding: 10px 12px; }
 .student-diary .ds-lesson-catalog[aria-pressed='true'] { color: var(--ds-primary); background: var(--color-purple-soft); }

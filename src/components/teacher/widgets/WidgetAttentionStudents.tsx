@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { AlertCircle, ChevronRight, Clock } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
@@ -130,7 +131,7 @@ export default function WidgetAttentionStudents() {
 
                 {/* Info */}
                 <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                     {tn(s.name).split(' ').slice(0, 2).join(' ')}
                   </div>
                   <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>

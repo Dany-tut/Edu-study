@@ -2,6 +2,7 @@ import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MotionConfig } from 'framer-motion'
 import './index.css'
+import { startTextFades } from './lib/textFades'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
@@ -136,6 +137,8 @@ guardStylesheet()
 
 const StudentTrackStand = window.location.pathname.replace(/\/+$/, '') === '/student-track-stand'
   ? lazy(() => import('./components/studentTrackStand/StudentTrackStand')) : null
+
+startTextFades()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

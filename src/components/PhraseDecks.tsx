@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Наборы фраз — витрина разговорника внутри вкладки «Карточки»
 //
@@ -239,7 +240,7 @@ export default function PhraseDecks<T extends DeckCard>({ themes, states, accent
                 по трём строкам сразу видно и уровень, и содержимое. */}
             <span style={{
               flex: 1, fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
-              overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+              overflow: 'hidden',   ...textFadeLines(2),
             }}>
               {x.phrases.slice(0, 3).map(p => p.term).join(' · ')}
             </span>
