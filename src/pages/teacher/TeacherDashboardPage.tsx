@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { isWidgetReviewRoute } from '../../lib/widgetReviewRoute'
 import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPrompt'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
@@ -39,6 +40,7 @@ import { getOwnerId } from '../../lib/owner'
 
 export default function TeacherDashboardPage({ standContent }: { standContent?: React.ReactNode } = {}) {
   const t = useT()
+  const sizeReview = isWidgetReviewRoute(window.location)
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
   // читают палитру через реестр, поэтому карту достаточно поставить один раз.
   useTeacherSubjectColors()
@@ -101,11 +103,12 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   // Sync the URL hash when activePage changes (standalone pages only). Context-heavy
   // sub-pages have no hash — their restore is handled by the nav snapshot in the store.
   useEffect(() => {
+    if (sizeReview) return
     const hash = PAGE_TO_HASH[activePage]
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }
-  }, [activePage])
+  }, [activePage, sizeReview])
 
   // Horizontal wheel / trackpad swipe switches desks (Сегодня → Финансы → Ученики …).
   // Only a dominantly-horizontal gesture counts, so vertical scrolling of widgets is
@@ -126,7 +129,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     setTimeout(() => { wheelCooldown.current = false }, 450)
   }, [editMode, config.desks, activeDesk.id, setActiveDesk])
 
-  if (new URLSearchParams(window.location.search).get('widget-sizes') === '1' && accessLoaded && canPage('home')) {
+  if (sizeReview && accessLoaded && canPage('home')) {
     return <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}><WidgetSizeReview hiddenWidgets={hiddenWidgets} /></Suspense>
   }
 

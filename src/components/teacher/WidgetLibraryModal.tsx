@@ -1,4 +1,5 @@
-import { clampDeskWidget, compactDeskWidgets, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
+import { WIDGET_REVIEW_PATH, WIDGET_REVIEW_HASH } from '../../lib/widgetReviewRoute'
+import { clampDeskWidget, resolveDeskCollisions, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
 import { useRef } from 'react'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
@@ -85,7 +86,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
   const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:def.defaultW,h:def.defaultH,gridVersion:2},def,width,rowHeight,64,gridColumns)
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
-    const existing = compactDeskWidgets(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight),gridColumns)))
+    const existing = resolveDeskCollisions(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight),gridColumns)))
     const size = widgetSize(def)
     const pos = findFreePosition(existing, size.w, size.h, deskColumns(width,gridColumns))
     const item: LayoutItem = {
@@ -172,7 +173,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
               />
             ))}
           </div>
-          <a href="/?widget-sizes=1#/teacher" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '10px 18px', flexShrink: 0, borderTop: '1px solid var(--color-border-medium)', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>{t('Вся сетка размеров')}</a>
+          <a href={WIDGET_REVIEW_PATH} onClick={event => { event.preventDefault(); onClose(); window.location.hash = WIDGET_REVIEW_HASH }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '10px 18px', flexShrink: 0, borderTop: '1px solid var(--color-border-medium)', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>{t('Вся сетка размеров')}</a>
         </motion.div>
       </motion.div>
     </AnimatePresence>,
