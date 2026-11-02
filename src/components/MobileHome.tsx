@@ -1,5 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from 'react'
 import CountBadge from './CountBadge'
+import FadeText from './FadeText'
 import { motion } from 'framer-motion'
 import { Flame, Zap, Bell, SlidersHorizontal, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp, Layers } from './icons/appIcons'
 import NotificationPopup from './NotificationPopup'
@@ -441,7 +442,7 @@ export default function MobileHome() {
                   >
                     <span style={{ fontSize: 13, fontWeight: 800, color: st.isCurrent ? 'var(--color-accent)' : 'var(--color-text)', minWidth: 44, textDecoration: st.phase === 'cancelled' ? 'line-through' : undefined }}>{l.time}</span>
                     <span className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-                      <span className="truncate" style={{ maxWidth: '100%', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</span>
+                      <FadeText className="schedule-lesson-title" style={{ width: '100%', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</FadeText>
                       {st.label && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
                     </span>
                     {st.phase !== 'cancelled' && <ChevronRight size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
@@ -676,9 +677,9 @@ function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value:
     }}>
       <div className="flex items-center" style={{ gap: 4 }}>
         <Icon size={13} style={{ color: pair.text, flexShrink: 0 }} />
-        <div className="truncate" style={{ fontSize: 15, fontWeight: 800, color: pair.text, lineHeight: 1.2 }}>{value}</div>
+        <FadeText style={{ fontSize: 15, fontWeight: 800, color: pair.text, lineHeight: 1.2 }}>{value}</FadeText>
       </div>
-      <div className="truncate" style={{ fontSize: 10, fontWeight: 600, color: pair.text, opacity: 0.82 }}>{label}</div>
+      <FadeText style={{ fontSize: 10, fontWeight: 600, color: pair.text, opacity: 0.82 }}>{label}</FadeText>
     </div>
   )
 }
@@ -708,9 +709,9 @@ function HeroContinue({ lesson, subjectName, progress }: { lesson: Lesson; subje
       // оставлял бы её единственным фиолетовым пятном на перекрашенном экране.
       style={{ borderRadius: 20, padding: 14, color: '#fff', background: 'var(--grad-purple)', boxShadow: 'var(--glow-accent)', minHeight: HERO_MIN_H, boxSizing: 'border-box' }}
     >
-      <div className="truncate" style={{ fontSize: 10, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        {label} · {subjectName}
-      </div>
+      <FadeText style={{ fontSize: 10, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {`${label} · ${subjectName}`}
+      </FadeText>
       <div style={{
         // ПОД ЗАГОЛОВОК ВСЕГДА ДВЕ СТРОКИ, сколько бы он ни занимал.
         // Курс переключается лентой прямо под карточкой, и названия занятий у
@@ -798,7 +799,7 @@ function QuickTile({ icon, label, pair, badge, onClick }: {
         <span style={{ position: 'relative', display: 'flex' }}>{icon}</span>
         {badge != null && <CountBadge count={badge} ring="var(--color-bg)" style={{ position: 'absolute', top: -4, right: -4 }} />}
       </span>
-      <span className="truncate" style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', maxWidth: '100%' }}>{text}</span>
+      <FadeText style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', maxWidth: '100%' }}>{text}</FadeText>
     </motion.button>
   )
 }
