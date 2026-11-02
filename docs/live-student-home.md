@@ -29,5 +29,5 @@
 
 Если локальные тяжёлые проверки ограничены нагрузкой Mac, тот же чистый
 preflight можно выполнить в GitHub Actions: `gh workflow run ci.yml --ref
-<ветка-кандидат> -f release_preflight=true`. Он запускает `npm run release:check`
+<ветка-кандидат>`. Он запускает `npm run release:check`
 перед обычными типами, сторожами и сборкой; проверяется точный SHA кандидата.

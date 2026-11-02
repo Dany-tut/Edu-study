@@ -38,11 +38,6 @@ on:
   # самого workflow: GitHub изредка не заводит прогон на push, и без ручного
   # запуска коммит остаётся вообще без отметки — ни зелёной, ни красной.
   workflow_dispatch:
-    inputs:
-      release_preflight:
-        description: 'Run release:check on this exact candidate in the clean runner checkout'
-        type: boolean
-        default: false
 
 # Несколько сессий пушат в одну ветку подряд. Держать очередь из прогонов,
 # каждый из которых уже неактуален, смысла нет — оставляем последний.
@@ -86,10 +81,6 @@ jobs:
 
       - name: Связка трека и календаря
         run: npm run check:course-track && npm run check:schedule && npm run check:attendance
-
-      - name: Кандидат релиза (release:check)
-        if: github.event_name == 'workflow_dispatch' && inputs.release_preflight
-        run: npm run release:check
 
       - name: Типы (tsc --noEmit)
         id: types
