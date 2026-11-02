@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
-import { createSharedQuery, useSharedQuery } from './sharedQuery'
+import { createSharedQuery, readSharedQuery, useSharedQuery } from './sharedQuery'
 import { parseStudentLimitError, studentLimitMessage } from './plan'
 import { t } from './i18n'
 import { subjectIcon, resolveSubjectPalette } from './subjects'
@@ -121,6 +121,11 @@ const groupsQuery = createSharedQuery<Group[]>(async () => {
     tracks: Array.isArray(g.tracks) ? g.tracks : [],
   }))
 }, [])
+
+export async function readTeacherRoster() {
+  const [groups, students] = await Promise.all([readSharedQuery(groupsQuery), readSharedQuery(allStudentsQuery)])
+  return { groups, students }
+}
 
 export function useGroups() {
   const { value: groups, loading } = useSharedQuery(groupsQuery)
@@ -944,12 +949,10 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
         // groups / students, otherwise a new teacher sees every teacher's lessons.
         const uid = await getOwnerId()
         if (!uid) { if (!cancelled) setPending([]); return }
-        const [{ data: myGroups }, { data: myStudents }] = await Promise.all([
-          supabase.from('groups').select('id').eq('created_by', uid),
-          supabase.from('students').select('id').eq('created_by', uid),
-        ])
-        const groupIds = (myGroups ?? []).map((g: any) => g.id)
-        const studentIds = (myStudents ?? []).map((s: any) => s.id)
+        const { groups: myGroups, students: myStudents } = await readTeacherRoster()
+        if (cancelled || await getOwnerId() !== uid) return
+        const groupIds = myGroups.map(g => g.id)
+        const studentIds = myStudents.map(s => s.id)
         if (!groupIds.length && !studentIds.length) { setPending([]); return }
         const scope: string[] = []
         if (groupIds.length) scope.push(`group_id.in.(${groupIds.join(',')})`)

@@ -124,3 +124,18 @@ export function useSharedQuery<T>(q: SharedQuery<T>): Snapshot<T> {
   useEffect(() => { q.ensure() }, [q])
   return snap
 }
+
+/** Await the shared first load rather than send another ID-only roster read. */
+export function readSharedQuery<T>(q: SharedQuery<T>): Promise<T> {
+  if (!q.getSnapshot().loading) return Promise.resolve(q.getSnapshot().value)
+  return new Promise(resolve => {
+    let unsubscribe = () => {}
+    const check = () => {
+      const snapshot = q.getSnapshot()
+      if (!snapshot.loading) { unsubscribe(); resolve(snapshot.value) }
+    }
+    unsubscribe = q.subscribe(check)
+    q.ensure()
+    check()
+  })
+}

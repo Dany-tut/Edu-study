@@ -3,7 +3,7 @@ import type { ScheduleItem, Reminder } from '../data/teacherMockData'
 import { useTeacher } from '../store/teacherStore'
 import { useGroups, useAllStudents, useJournalPending } from './useGroups'
 import { useHomework, useHardSubmissions } from './useHomework'
-import { supabase } from './supabase'
+import { useTeacherTodaySchedule } from './teacherToday'
 import { useT } from './i18n'
 import { buildTeacherReminders } from './reminderContent'
 import { scheduleHasEnded, todayMsk } from './teacherSchedule'
@@ -55,47 +55,12 @@ export function useHomeData() {
   const { submissions: hardSubs } = useHardSubmissions()
   const allStudents = useAllStudents()
 
-  const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([])
+  const { schedule: todaySchedule } = useTeacherTodaySchedule()
   const [scheduleClock, setScheduleClock] = useState(() => Date.now())
   useEffect(() => {
     const timer = window.setInterval(() => setScheduleClock(Date.now()), 30_000)
     return () => window.clearInterval(timer)
   }, [])
-  useEffect(() => {
-    const today = todayMsk()
-    supabase
-      .from('schedule_lessons')
-      .select('*, groups(name, icon, color, color_soft, students(count))')
-      .eq('date', today)
-      .order('time_start')
-      .then(({ data }) => {
-        if (!data) return
-        const ownedGroups = new Set(groups.map(g => g.id))
-        const ownedStudents = new Set(allStudents.map(s => s.id))
-        const owned = data.filter((s: any) =>
-          (s.group_id && ownedGroups.has(s.group_id)) ||
-          (s.student_id && ownedStudents.has(s.student_id)))
-        setTodaySchedule(owned.map((s: any) => {
-          const stu = s.student_id ? allStudents.find((a: any) => a.id === s.student_id) : null
-          return {
-            id: String(s.id),
-            groupId: s.group_id ?? null,
-            studentId: s.student_id ?? null,
-            groupName: s.groups?.name ?? stu?.name ?? '',
-            icon: s.groups?.icon ?? '👤',
-            time: (s.time_start ?? '').slice(0, 5),
-            endTime: (s.time_end ?? '').slice(0, 5),
-            topic: s.lesson_title ?? '',
-            lessonNumber: s.lesson_number ?? 0,
-            subject: s.subject ?? '',
-            status: (s.status ?? 'upcoming') as ScheduleItem['status'],
-            studentCount: s.groups?.students?.[0]?.count ?? (stu ? 1 : 0),
-            color: s.groups?.color ?? 'var(--color-purple)',
-            colorSoft: s.groups?.color_soft ?? 'var(--color-bg-3)',
-          }
-        }))
-      })
-  }, [groups, allStudents])
 
   const pendingJournals = useJournalPending(null)
   const pendingHomework = allHomework.filter(hw => hw.status === 'active')
