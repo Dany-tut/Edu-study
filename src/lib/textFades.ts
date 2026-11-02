@@ -43,6 +43,7 @@ export function startTextFades() {
   const elements = new Map<HTMLElement, { original: string[]; written: string; title: boolean }>()
   const changed = new Set<HTMLElement>()
   const roots = new Set<ParentNode>()
+  const visible = new Set<HTMLElement>()
   let selector = BASE_SELECTOR
   let frame = 0
   let stylesDirty = true
@@ -81,6 +82,8 @@ export function startTextFades() {
     }
     if (entry.title) element.removeAttribute('title')
     resize.unobserve(element)
+    intersection?.unobserve(element)
+    visible.delete(element)
     elements.delete(element)
   }
   function collect(root: ParentNode) {
@@ -93,7 +96,8 @@ export function startTextFades() {
       if (!(item instanceof HTMLElement) || /^(INPUT|TEXTAREA|SELECT)$/.test(item.tagName) || item.isContentEditable) continue
       if (!elements.has(item)) {
         elements.set(item, { original: MASK_KEYS.map(key => item.style.getPropertyValue(key)), written: '', title: false })
-        resize.observe(item)
+        if (intersection) intersection.observe(item)
+        else { visible.add(item); resize.observe(item) }
       }
       changed.add(item)
     }
@@ -108,7 +112,9 @@ export function startTextFades() {
     const updates: Array<{ element: HTMLElement; mask: Fade; text: string; title: boolean }> = []
     for (const element of changed) {
       const entry = elements.get(element)
-      if (!entry || !element.isConnected) continue
+      // Measuring scrollWidth in a skipped content-visibility subtree forces
+      // its rendering. Large journals have thousands of offscreen labels.
+      if (!entry || !element.isConnected || !visible.has(element)) continue
       const css = getComputedStyle(element)
       const raw = element.dataset.textFade ?? css.getPropertyValue(TEXT_FADE_PROPERTY)
       const lines = Number(raw || (element.classList.contains('text-fade') ? 1 : 0))
@@ -144,6 +150,20 @@ export function startTextFades() {
     for (const entry of entries) changed.add(entry.target as HTMLElement)
     schedule()
   })
+  const intersection = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      const element = entry.target as HTMLElement
+      if (entry.isIntersecting) {
+        visible.add(element)
+        resize.observe(element)
+        changed.add(element)
+      } else {
+        visible.delete(element)
+        resize.unobserve(element)
+      }
+    }
+    schedule()
+  }, { rootMargin: '160px' })
   const mutations = new MutationObserver(records => {
     for (const record of records) {
       const target = record.target instanceof HTMLElement ? record.target : record.target.parentElement
