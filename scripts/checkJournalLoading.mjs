@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict'
 import { journalPages, journalParallelPages } from '../src/lib/journalPages.ts'
+import { journalSnapshotResult } from '../src/lib/journalSnapshot.ts'
+
+const snapshot = Object.fromEntries(['courses','lessons','modules','work','events','assignments','legacy','attempts','marks','warnings'].map(k=>[k,[]]))
+snapshot.lessons = Array.from({length:1609},(_,id)=>({id}))
+assert.equal(journalSnapshotResult({data:snapshot,error:null}).lessons.length,1609)
+for(const code of ['PGRST202','42883']) assert.equal(journalSnapshotResult({data:null,error:{code,message:'RPC missing'}}),null)
+for(const code of ['42501','57014','500']) assert.throws(()=>journalSnapshotResult({data:null,error:{code,message:'required snapshot failed'}}),/required snapshot failed/)
+assert.throws(()=>journalSnapshotResult({data:{...snapshot,work:null},error:null}),/неполон/)
+assert.throws(()=>journalSnapshotResult({data:null,error:null}),/неполон/)
 
 const signal = new AbortController().signal
 const source = Array.from({length: 113}, (_, id) => ({id}))
