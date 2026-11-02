@@ -140,6 +140,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
   load: async () => {
     const session = getStudentSession()
     if (!session) return
+    const loadStarted = performance.now()
     const sequence = ++loadSequence
     const isCurrent = () => sequence === loadSequence && getStudentSession()?.id === session.id
 
@@ -162,10 +163,12 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       return fetchStudentTrack({ id: session.id, groupId: session.groupId })
     })()
     const scheduleP = fetchScheduleDays(session.groupId, session.id)
-    const quizP = fetchQuizQuestions()
-    const factsP = fetchScienceFacts()
-    const memesP = fetchScienceMemes()
-    const reactionsP = fetchCourseReactions()
+    // Optional widgets must not hold the course/diary/home screen skeleton.
+    // Keep the previous value on failure and reject obsolete account responses.
+    void fetchQuizQuestions().then(quizQuestions => { if (isCurrent()) set({ quizQuestions }) }).catch(e => console.error('[studentData.quiz]', e))
+    void fetchScienceFacts().then(scienceFacts => { if (isCurrent()) set({ scienceFacts }) }).catch(e => console.error('[studentData.facts]', e))
+    void fetchScienceMemes().then(scienceMemes => { if (isCurrent()) set({ scienceMemes }) }).catch(e => console.error('[studentData.memes]', e))
+    void fetchCourseReactions().then(courseReactions => { if (isCurrent()) set({ courseReactions }) }).catch(e => console.error('[studentData.reactions]', e))
     const hwP = fetchStandaloneSubject(session.groupId)
 
     // Охват — все строки ученика и его группы: трек должен показать ВСЕ его
@@ -178,10 +181,6 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const results = await Promise.allSettled([
       trackP,
       scheduleP,
-      quizP,
-      factsP,
-      memesP,
-      reactionsP,
       hwP,
     ])
     const val = <T,>(i: number, fallback: T): T =>
@@ -193,11 +192,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const progress = track.progress ?? get().progress
     const schedule  = val(1, [] as Awaited<ReturnType<typeof fetchScheduleDays>>)
     const catalog   = track.subjects
-    const quizQ     = val(2, [] as Awaited<ReturnType<typeof fetchQuizQuestions>>)
-    const facts     = val(3, [] as Awaited<ReturnType<typeof fetchScienceFacts>>)
-    const memes     = val(4, [] as Awaited<ReturnType<typeof fetchScienceMemes>>)
-    const reactions = val(5, [] as Awaited<ReturnType<typeof fetchCourseReactions>>)
-    const hwSubject = val(6, null as Awaited<ReturnType<typeof fetchStandaloneSubject>>)
+    const hwSubject = val(2, null as Awaited<ReturnType<typeof fetchStandaloneSubject>>)
 
     // Standalone-ДЗ (вне курса) — отдельный предмет-трек «Домашние задания» со
     // своей нумерацией. Кладём в каталог ДО merge, чтобы прогресс/статусы
@@ -310,11 +305,9 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       stats,
       progress,
       scopeStudentIds: scope.studentIds,
-      quizQuestions: quizQ,
-      scienceFacts: facts,
-      scienceMemes: memes,
-      courseReactions: reactions,
     })
+
+    console.debug('[student-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), courses: withHeavy.length, lessons: withHeavy.reduce((n, s) => n + s.modules.reduce((sum, m) => sum + m.lessons.length, 0), 0), progress: Object.keys(progress).length }))
 
     // The dashboard store's active subject/module aren't persisted, so on every
     // refresh they reset to placeholder defaults (`activeModuleId: 1`, which —

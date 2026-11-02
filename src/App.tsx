@@ -4,7 +4,7 @@ import { applyLessonParticipation, fetchLessonParticipation } from './lib/lesson
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
-import DashboardPage from './pages/DashboardPage'
+const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
 import StudentLoginPage from './pages/StudentLoginPage'
 import NativeEntryPage from './pages/NativeEntryPage'
 import LandingPage from './pages/LandingPage'
@@ -358,7 +358,7 @@ function AppRoutes() {
   // behind it) so a fault in the gate can never blank the app.
   return (
     <>
-      <DashboardPage />
+      <Chunk><DashboardPage /></Chunk>
       {!consented && <ConsentOverlay onAccept={() => setConsented(true)} />}
       {/* Install banner shows only once consent is given (student) */}
       {consented && <InstallPrompt />}

@@ -4,7 +4,7 @@ import BasicAnswersList from '../BasicAnswersList'
 import { ArrowLeft, ArrowRight, Check, ChevronRight, ClipboardList, Home, Maximize2, Minimize as Minimize2, Search, X } from '../../icons/appIcons'
 import type { CourseJournalData, JournalAttempt } from '../../../lib/courseJournal'
 import { parseBasicAnswers } from '../../../lib/basicAnswers'
-import { sameLearner } from './studentWorks'
+import { sameLearner, type StandIndex } from './studentWorks'
 import { homeworkEntries, needsReview, reviewQueue, workDueLabel, type HomeworkEntry, type ReviewDecision, type SaveReview } from './homeworkStand'
 import type { ReviewHandoff } from './homeworkReviewHandoff'
 import { useHomeworkCardAi } from '../../../lib/useHomeworkCardAi'
@@ -43,8 +43,8 @@ function HomeworkHistory({ attempts }: { attempts: JournalAttempt[] }) {
 }
 
 export function useHomeworkHub(data: CourseJournalData | null, today: string, onSave: SaveReview, onLocate?: (entry: HomeworkEntry) => void,
-  onFullReview?: (entry: HomeworkEntry, draft: ReviewHandoff) => boolean) {
-  const items = useMemo(() => data ? homeworkEntries(data, today) : [], [data, today])
+  onFullReview?: (entry: HomeworkEntry, draft: ReviewHandoff) => boolean, index?: StandIndex | null) {
+  const items = useMemo(() => data ? homeworkEntries(data, today, index ?? undefined) : [], [data, today, index])
   const queue = useMemo(() => reviewQueue(items), [items])
   const [target, setTarget] = useState<Target | null>(null)
   function openStudent(studentId: string, workRef: string) {
