@@ -47,7 +47,7 @@
 .iskra-widget .ww-reminder-info{grid-column:2/4;min-width:0}
 .iskra-widget .ww-reminder-info>div{white-space:normal!important;overflow:visible!important;line-height:1.35}
 .iskra-widget .ww-reminder-row>span{grid-column:2/4;justify-self:start;max-width:100%;white-space:normal}
-.iskra-widget .ww-reminder-row[style*="padding-right: 70px"]{padding-right:54px!important}
+.iskra-widget .ww-reminder-front{padding-right:54px!important}
 .iskra-widget[data-widget="today-reminders"]>div{padding:14px!important}
 .iskra-widget[data-widget="today-schedule"] .calendar-widget-content{padding:12px;display:flex;min-height:0}
 .iskra-widget[data-widget="today-schedule"] .calendar-widget-schedule{flex:1;min-width:0;gap:8px!important}
@@ -196,4 +196,12 @@
 .iskra-widget .iskra-mini-stat{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
 .iskra-widget .iskra-mini-stat-heading{display:grid!important;grid-template-columns:30px minmax(0,1fr)!important}
 .iskra-widget .iskra-mini-stat-label{display:block!important}
+}
+/* Compact payment rows reserve a full line for the name and another for money
+   and date, rather than squeezing both primary values into adjacent columns. */
+@container iskra-widget (max-width:440px){
+.iskra-widget .ww-payment-row{grid-template-columns:30px minmax(0,1fr)}
+.iskra-widget .ww-payment-row .ww-avatar{grid-row:1/3}
+.iskra-widget .ww-payment-row .ww-info{grid-column:2;grid-row:1}
+.iskra-widget .ww-payment-row .ww-amount{grid-column:2;grid-row:2;text-align:left!important;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 }
