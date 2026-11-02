@@ -5576,4 +5576,6 @@ export const EN: Record<string, string> = {
   "Можно улучшить": "Room to improve",
   "Попытки": "Attempts",
   "Вся сетка размеров": "All widget sizes",
+  "Показано": "Showing",
+  "Загрузить ещё": "Load more",
 }

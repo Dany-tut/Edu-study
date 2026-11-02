@@ -106,3 +106,9 @@
   .swj-detail-summary .swj-state { margin-left: 0; }
   .ds-diary-navigation button { min-height: 44px; }
 }
+
+.swj-filters { width: max-content; max-width: 100%; gap: 4px; padding: 4px; margin: 0 0 16px; border: 1px solid var(--swj-line); border-radius: 28px; }
+.swj-filters button { min-height: 44px; border: 0; }
+.swj-filters button[aria-pressed='true'] { background: var(--color-accent-soft); color: var(--color-accent); }
+.swj-load-more { display: grid; justify-items: center; gap: 12px; padding: 20px; }
+.swj-load-more p { font-size: 12px; color: var(--color-text-3); }
