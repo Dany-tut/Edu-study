@@ -917,6 +917,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
   // должна стоять реальная скорость, а не та, что выбрана в меню.
   const rateIndex = Math.max(0, rates.indexOf(rate))
+  const volumeFill = (muted ? 0 : volume) / maxVolume
+  const rateFill = rateIndex / (rates.length - 1)
   const liveRate = gesture === 'ff' && canRate && boost <= engineMaxRate ? boost : rate
 
   /** Стрелка в плашке ускорения и её прозрачное поле по бокам. Ink глифа идёт
@@ -1277,7 +1279,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
                     <div className="lesson-player-volume-control">
                       <div className="lesson-player-volume-level" aria-hidden="true">
-                        <div style={{ width: `${(muted ? 0 : volume) / maxVolume * 100}%` }} />
+                        <div style={{ width: `${volumeFill * 100}%`, height: `${Math.min(1, volumeFill / .2) * 100}%` }} />
                         {canBoostVolume && <span className="lesson-player-volume-normal" style={{ left: `${100 / maxVolume}%` }} />}
                         {volume > 1 && !muted && <span className="lesson-player-rate-value">{Math.round(volume * 100)}%</span>}
                       </div>
@@ -1344,7 +1346,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     >
                       <div className="lesson-player-rate-control">
                         <div className="lesson-player-volume-level" aria-hidden="true">
-                          <div style={{ width: `${rateIndex / (rates.length - 1) * 100}%` }} />
+                          <div style={{ width: `${rateFill * 100}%`, height: `${Math.min(1, rateFill / .2) * 100}%` }} />
                           <span className="lesson-player-rate-value">{rate}×</span>
                         </div>
                         <input type="range" min={0} max={rates.length - 1} step={1}

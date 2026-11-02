@@ -11,7 +11,11 @@
   position: absolute; inset: 12px; transition: inset .12s ease;
   border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.22); pointer-events: none;
 }
-.lesson-player-volume-level > div { height: 100%; border-radius: 999px; background: #fff; }
+.lesson-player-volume-level > div {
+  position: absolute; top: 50%; left: 0; transform: translateY(-50%);
+  border-radius: 999px; background: #fff; transition: height .1s ease;
+}
+@media (prefers-reduced-motion: reduce) { .lesson-player-volume-level > div { transition: none; } }
 .lesson-player-volume-control:has(input:active) .lesson-player-volume-level { inset: 8px; }
 .lesson-player-volume-slider {
   position: relative; appearance: none; -webkit-appearance: none; width: 100%; height: 48px;
