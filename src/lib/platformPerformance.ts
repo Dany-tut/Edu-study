@@ -64,8 +64,10 @@ if (performanceDiagnostics && typeof PerformanceObserver !== 'undefined') {
         }
         const resource = entry as PerformanceResourceTiming
         const path = new URL(resource.name).pathname
-        if (!path.startsWith('/rest/v1/')) continue
-        console.debug('[platform-resource] ' + JSON.stringify({ source: path.slice('/rest/v1/'.length),
+        const source = path.startsWith('/rest/v1/') ? path.slice('/rest/v1/'.length)
+          : path.startsWith('/assets/') ? 'asset/' + path.split('/').pop() : null
+        if (!source) continue
+        console.debug('[platform-resource] ' + JSON.stringify({ source,
           started: Math.round(resource.startTime), ms: Math.round(resource.duration), end: Math.round(resource.responseEnd),
           encodedBytes: resource.encodedBodySize, decodedBytes: resource.decodedBodySize }))
       }

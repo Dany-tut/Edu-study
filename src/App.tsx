@@ -6,9 +6,9 @@ import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
 import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
 const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
-import StudentLoginPage from './pages/StudentLoginPage'
-import NativeEntryPage from './pages/NativeEntryPage'
-import LandingPage from './pages/LandingPage'
+const StudentLoginPage = lazy(() => retryImport(() => import('./pages/StudentLoginPage')))
+const NativeEntryPage = lazy(() => retryImport(() => import('./pages/NativeEntryPage')))
+const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
 
 // ── Кабинет учителя и разовые экраны — отдельными чанками ────────────────────
 //
@@ -279,11 +279,11 @@ function AppRoutes() {
   }
 
   if (IS_NATIVE && (hash.startsWith('#/entry') || hash === '' || hash === '#' || hash === '#/')) {
-    return <NativeEntryPage />
+    return <Chunk><NativeEntryPage /></Chunk>
   }
 
   // Лендинг доступен по явному адресу даже при активном входе (для просмотра)
-  if (hash.startsWith('#/landing')) return <LandingPage />
+  if (hash.startsWith('#/landing')) return <Chunk><LandingPage /></Chunk>
   if (hash.startsWith('#/join-teacher')) return <Chunk><JoinTeacherPage /></Chunk>
   if (hash.startsWith('#/join')) return <Chunk><JoinPage /></Chunk>
   if (hash.startsWith('#/diagnostic')) return <Chunk><DiagnosticTestPage /></Chunk>
@@ -306,11 +306,11 @@ function AppRoutes() {
   // /#error=access_denied&error_code=otp_expired… — ни один маршрут это не
   // ловил, и человек оказывался на лендинге без объяснений.
   if (hash.startsWith('#error=')) return localStorage.getItem('iskra:password-recovery-role') === 'student'
-    ? <StudentLoginPage linkExpired />
+    ? <Chunk><StudentLoginPage linkExpired /></Chunk>
     : <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher' }} linkExpired /></Chunk>
 
   if (recovery) return localStorage.getItem('iskra:password-recovery-role') === 'student'
-    ? <StudentLoginPage recovery onRecoveryComplete={() => { setRecovery(false); window.location.hash = '#/login' }} />
+    ? <Chunk><StudentLoginPage recovery onRecoveryComplete={() => { setRecovery(false); window.location.hash = '#/login' }} /></Chunk>
     : <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); localStorage.removeItem('iskra:password-recovery-role'); window.location.hash = '#/teacher' }} recovery /></Chunk>
 
   // Local previews allow a guest teacher cabinet. Keep the real sign-in form
@@ -328,7 +328,7 @@ function AppRoutes() {
     if (session === undefined && !import.meta.env.DEV) return null
     // A student's Supabase session must not unlock the teacher cabinet.
     const isStudentAccount = session?.user?.user_metadata?.role === 'student' && session?.user?.app_metadata?.role !== 'admin'
-    if (isStudentAccount && !import.meta.env.DEV) return <StudentLoginPage />
+    if (isStudentAccount && !import.meta.env.DEV) return <Chunk><StudentLoginPage /></Chunk>
     if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (
       <>
@@ -339,7 +339,7 @@ function AppRoutes() {
   }
 
   // Explicit reauthentication must be reachable even with a stale student card.
-  if (hash.startsWith('#/login')) return <StudentLoginPage />
+  if (hash.startsWith('#/login')) return <Chunk><StudentLoginPage /></Chunk>
 
   // Public landing (главная для гостя) + student routes
   const studentSession = getStudentSession()
@@ -358,7 +358,7 @@ function AppRoutes() {
     // В приложении пустой адрес уже уводится на #/teacher (эффект выше) —
     // здесь только пустой кадр, чтобы не мигнуть лендингом/студвходом.
     if (IS_NATIVE) return null
-    return <LandingPage />
+    return <Chunk><LandingPage /></Chunk>
   }
   // 152-ФЗ consent gate: overlay ON TOP of the cabinet (dashboard stays mounted
   // behind it) so a fault in the gate can never blank the app.
