@@ -25,7 +25,8 @@ export function textFadeMask(width: number, height: number, contentWidth: number
   const direction = rtl ? 'to left' : 'to right'
   const edge = Math.min(24, width / 3)
   const lastLine = `linear-gradient(${direction}, #000 calc(100% - ${edge}px), transparent)`
-  return lines > 1 || contentHeight > height + 1 ? {
+  // An unbroken word may overflow sideways even in a multi-line text window.
+  return contentHeight > height + 1 ? {
     image: `linear-gradient(to bottom, #000 calc(100% - ${Math.min(14, height / 3)}px), transparent)`,
     size: '', position: '', repeat: '',
   } : { image: lastLine, size: '', position: '', repeat: '' }

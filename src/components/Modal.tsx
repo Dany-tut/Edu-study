@@ -1,3 +1,4 @@
+import FadeText from './FadeText'
 import { useEffect, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -106,12 +107,12 @@ export default function Modal({
             // Шапка прижата к верху: крестик стоит против заголовка, а не против
             // середины двухстрочного подзаголовка.
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: `${padding - 4}px ${padding}px 12px`, flexShrink: 0 }}>
-              {icon}
+              {icon && <span style={{ display: 'flex', flexShrink: 0 }}>{icon}</span>}
               <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Строка заголовка высотой с крестик (36) и по центру его: иначе
                     заголовок висел у верхнего края, а крестик ниже. */}
-                <div style={{ minHeight: 36, display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>{title}</div>
-                {subtitle != null && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: -6, lineHeight: 1.3 }}>{subtitle}</div>}
+                <div style={{ minHeight: 36, display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3, minWidth: 0 }}>{typeof title === 'string' || typeof title === 'number' ? <FadeText lines={2} style={{ width: '100%', overflowWrap: 'anywhere' }}>{title}</FadeText> : title}</div>
+                {subtitle != null && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4, lineHeight: 1.3 }}>{typeof subtitle === 'string' || typeof subtitle === 'number' ? <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{subtitle}</FadeText> : subtitle}</div>}
               </div>
               <ModalClose onClose={onClose} />
             </div>
