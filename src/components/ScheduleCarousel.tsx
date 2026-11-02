@@ -20,6 +20,9 @@ const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 const SHADOW_PAD = 96
 const SCROLLER_STYLE = {
   height: `calc(100% + ${SHADOW_PAD * 2}px)`, top: -SHADOW_PAD,
+  // Shadow-only padding must not intercept controls in the neighbouring rows.
+  // ScheduleCard restores pointer events for the actual cards and their scrollers.
+  pointerEvents: 'none' as const,
 }
 
 export default function ScheduleCarousel() {
