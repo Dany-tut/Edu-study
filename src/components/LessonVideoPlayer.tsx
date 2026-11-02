@@ -1253,24 +1253,22 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 </button>
                 {volumeOpen && (
                   <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
-                    <button
-                      onClick={() => { const m = !muted; setMuted(m); applyVolume(volume, m) }}
-                      style={iconBtn()}
-                      aria-label={muted ? t('Включить звук') : t('Выключить звук')}
-                    >
-                      {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                    </button>
-                    <input
-                      type="range" min={0} max={1} step={0.05}
-                      value={muted ? 0 : volume}
-                      onChange={e => {
-                        const v = Number(e.target.value)
-                        setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
-                      }}
-                      aria-label={t('Уровень громкости')}
-                      className="video-volume"
-                      style={{ width: 96, accentColor: '#fff' }}
-                    />
+                    <div className="lesson-player-volume-control">
+                      <div className="lesson-player-volume-level" aria-hidden="true">
+                        <div style={{ width: `${(muted ? 0 : volume) * 100}%` }} />
+                      </div>
+                      <input
+                        type="range" min={0} max={1} step={0.05}
+                        value={muted ? 0 : volume}
+                        onChange={e => {
+                          const v = Number(e.target.value)
+                          setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
+                        }}
+                        aria-label={t('Уровень громкости')}
+                        aria-valuetext={`${Math.round((muted ? 0 : volume) * 100)}%`}
+                        className="video-volume lesson-player-volume-slider"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
