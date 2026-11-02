@@ -51,10 +51,10 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   const {
     config, activeDesk,
     setActiveDesk, addDesk, resetDesk,
-    updateDeskItems, addWidget, removeWidget,
+    updateDeskItems,
   } = useDeskLayouts()
 
-  const [widgetGrid, setWidgetGrid] = useState<{ deskId: string; width: number; items: LayoutItem[] } | null>(null)
+  const [widgetGrid, setWidgetGrid] = useState<{ deskId: string; width: number; items: LayoutItem[]; columns: number } | null>(null)
 
   // Teacher is identified by their Supabase auth user id (matches notifications.recipient_id).
   const [teacherId, setTeacherId] = useState<string | null>(null)
@@ -131,7 +131,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
     <TeacherSubjectsPrompt />
-    <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
+    <div className="dashboard-root teacher-dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
       {!editMode && <div aria-hidden className="edge-progressive-blur--top" />}
@@ -152,9 +152,10 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       {showWidgetLibrary && (<Suspense fallback={null}>
         <WidgetLibraryModal
           onClose={() => setShowWidgetLibrary(false)}
-          onAdd={item => addWidget(activeDesk.id, item)}
+          onAdd={item => updateDeskItems(activeDesk.id, [...(widgetGrid?.deskId === activeDesk.id ? [...widgetGrid.items, ...activeDesk.items.filter(saved => hiddenWidgets?.includes(saved.type))] : activeDesk.items), item])}
           existingTypes={activeDesk.items.map(i => i.type)}
           existingItems={widgetGrid?.deskId === activeDesk.id ? widgetGrid.items : activeDesk.items}
+          gridColumns={activeDesk.columns}
           gridWidth={widgetGrid?.deskId === activeDesk.id ? widgetGrid.width : undefined}
           hiddenWidgets={hiddenWidgets}
         />
@@ -216,7 +217,6 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
               onGridMeasure={setWidgetGrid}
               onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
               onAddWidget={() => setShowWidgetLibrary(true)}
-              onRemoveWidget={id => removeWidget(activeDesk.id, id)}
               hiddenWidgets={hiddenWidgets}
             />
           </div>

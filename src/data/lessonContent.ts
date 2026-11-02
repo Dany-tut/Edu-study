@@ -260,20 +260,7 @@ function lessonFiles(lesson: Lesson): LessonFiles {
   return lesson.files ?? {}
 }
 
-const pad2 = (n: number) => String(n).padStart(2, '0')
-
-/** Deterministic mock detail for a catalogue lesson — date, duration, timecodes
- *  and downloadable materials — so the lesson page (screen 2) is data-driven. */
-/** Deterministic + stable per lesson number (no Date.now()/random). */
-function lessonDateStr(lesson: Lesson): string {
-  const day = (lesson.number % 28) + 1
-  const month = ((lesson.number * 3) % 12) + 1
-  return `${pad2(day)}.${pad2(month)}`
-}
-
 export function getLessonDetail(lesson: Lesson): LessonDetail {
-  const dateStr = lessonDateStr(lesson)
-
   // Только видео и таймкоды из БД, без подставного набора.
   //
   // Раньше урок без своих таймкодов получал общий список («Введение», «Основные
@@ -289,7 +276,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   // «Домашки» tab (lessons.homework JSONB) → AP/generic fallback. Authored
   // homework always wins so the student sees the real tasks, not a placeholder.
   const authoredHw = lesson.homework?.hwTasks?.length
-    ? buildAuthoredHomework(lesson, dateStr)
+    ? buildAuthoredHomework(lesson)
     : null
 
   // Явно сохранённый пустой конспект тоже имеет приоритет над сидом.
@@ -304,7 +291,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
       // но в уже сохранённых курсах он лежит абзацем — и без фильтра ученик
       // увидел бы сырую разметку «- [ ] …» (см. lib/theoryChecklist).
       paragraphs: ap.paragraphs.filter(p => (p.text.trim() || p.image) && !isChecklistParagraph(p.text)),
-      homework: authoredHw ?? buildApHomework(lesson, dateStr, ap),
+      homework: authoredHw ?? buildApHomework(lesson, lesson.homework?.hwDate?.trim() || '', ap),
     }
   }
 
@@ -329,7 +316,7 @@ export function getExtraHomeworks(lesson: Lesson): Array<{ id: string; index: nu
       id: x.id,
       index: i,
       total: extras.length,
-      homework: buildAuthoredHomework(lesson, lessonDateStr(lesson), {
+      homework: buildAuthoredHomework(lesson, {
         tasks: x.tasks, date: x.date, title: `${label} · ${lesson.title}`,
       }),
     }]
@@ -468,7 +455,6 @@ export function lessonHasHardLevel(lesson: Lesson): boolean {
  *  level always exists (falling back to a generic prompt when none authored). */
 function buildAuthoredHomework(
   lesson: Lesson,
-  fallbackDate: string,
   src: { tasks: AuthoredHomeworkTask[]; date?: string | null; title?: string } = {
     tasks: lesson.homework?.hwTasks ?? [], date: lesson.homework?.hwDate,
   },
@@ -476,7 +462,7 @@ function buildAuthoredHomework(
   const all = src.tasks
   const basicTasks = all.filter(t => !t.isHard)
   const hardTasks = all.filter(t => t.isHard)
-  const dueDate = src.date?.trim() || fallbackDate
+  const dueDate = src.date?.trim() || ''
   const recommendationScore = 80
 
   // Each authored hard task → its own «Задание N» tab (NOT merged into one

@@ -15,6 +15,7 @@ type Props = {
   existingItems?: LayoutItem[]
   hiddenWidgets?: string[]
   gridWidth?: number
+  gridColumns?: number
 }
 
 function WidgetCard({ def, size, onAdd }: { def: WidgetDef; size: { w: number; h: number }; onAdd: () => void }) {
@@ -74,19 +75,19 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
   return { x: 0, y: maxY }
 }
 
-export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets, gridWidth }: Props) {
+export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets, gridWidth, gridColumns }: Props) {
   const t = useT()
   const dialogRef = useRef<HTMLDivElement>(null)
   useWidgetScrollFades(dialogRef)
   const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !hiddenWidgets?.includes(def.type))
   const width = gridWidth ?? Math.max(1, document.documentElement.clientWidth - 64)
   const rowHeight = deskRowHeight(window.innerHeight)
-  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:def.defaultW,h:def.defaultH,gridVersion:2},def,width,rowHeight)
+  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:def.defaultW,h:def.defaultH,gridVersion:2},def,width,rowHeight,64,gridColumns)
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
-    const existing = compactDeskWidgets(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight))))
+    const existing = compactDeskWidgets(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight),gridColumns)))
     const size = widgetSize(def)
-    const pos = findFreePosition(existing, size.w, size.h, deskColumns(width))
+    const pos = findFreePosition(existing, size.w, size.h, deskColumns(width,gridColumns))
     const item: LayoutItem = {
       i: id,
       type: def.type,

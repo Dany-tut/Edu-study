@@ -3312,7 +3312,7 @@ export default function HomeworkFlow({
               gap: 12,
             }}
           >
-            <InfoRow label={t('Дедлайн')} value={basicLevel.dueDate} />
+            {basicLevel.dueDate?.trim() && <InfoRow label={t('Дедлайн')} value={basicLevel.dueDate} />}
             <InfoRow label={t('Время')} value={selectedEstimatedTime} />
             <InfoRow label={t('Формат')} value={selectedLevel === 'basic' ? t('Тест с автопроверкой') : t('Проверка преподавателем')} />
             <InfoRow
