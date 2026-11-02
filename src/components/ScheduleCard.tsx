@@ -153,7 +153,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
               <div className="schedule-empty">
                 {seasonEmpty ? <SeasonEmptyDay /> : (
                   <div className="schedule-empty__content">
-                    <img className="schedule-empty__art" src="/schedule-objects-v1/calendar.webp" alt="" width={120} height={120} draggable={false} />
+                    <img className="schedule-empty__art" src="/schedule-objects-v2-shadows/calendar.png" alt="" width={120} height={120} draggable={false} />
                     <div className="schedule-empty__copy">
                       <p className="schedule-empty__title">{t('Время для себя')}</p>
                       <p className="schedule-empty__subtitle">{t('Занятий нет — можно выдохнуть')}</p>

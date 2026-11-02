@@ -75,7 +75,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
         return journalDemo()
       }
       if (!owner) throw new Error('Нужно войти в кабинет преподавателя')
-      const snapshot = await supabase.rpc('teacher_journal_snapshot_v1', { p_owner: owner, p_complete: completeWorkList })
+      const snapshot = await supabase.rpc('teacher_journal_snapshot_v2', { p_owner: owner, p_complete: completeWorkList })
         .abortSignal(signal).retry(false)
       signal.throwIfAborted()
       const next = journalSnapshotResult(snapshot)
