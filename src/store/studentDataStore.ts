@@ -50,7 +50,7 @@ interface StudentDataState {
   scienceFacts: ScienceFact[]
   scienceMemes: ScienceMeme[]
   courseReactions: CourseReaction[]
-  load: () => Promise<void>
+  load: (options?: { afterTestlySync: true }) => Promise<void>
   /**
    * Догрузить конспект и домашку конкретного урока — вызывается при его
    * открытии. Идемпотентно: уже приехавший или уже летящий урок второго
@@ -82,6 +82,15 @@ const defaultStats: StudentStats = {
 }
 
 let loadSequence = 0
+let testlySyncFlight: { owner: string; promise: Promise<unknown> } | null = null
+function syncTestlyInBackground(owner: string) {
+  if (testlySyncFlight?.owner === owner) return testlySyncFlight.promise
+  const promise = supabase.functions.invoke('testly-bridge', { body: { action: 'sync' } })
+    .catch(error => { console.error('[studentData.testly]', error) })
+    .finally(() => { if (testlySyncFlight?.promise === promise) testlySyncFlight = null })
+  testlySyncFlight = { owner, promise }
+  return promise
+}
 
 /** Publish the confirmed draft before the homework screen can mount with the old answers. */
 export async function startCourseHomeworkRetake(subjectId: string, lessonId: string, expectedId: string | null) {
@@ -137,7 +146,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     }
   }),
 
-  load: async () => {
+  load: async (options) => {
     const session = getStudentSession()
     if (!session) return
     const loadStarted = performance.now()
@@ -157,18 +166,18 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // доступа), см. fetchStudentTrack. Круг до базы стоит 320–400 мс независимо
     // от содержимого, так что два лишних круга — это две трети секунды пустого
     // ожидания.
-    const trackP = (async () => {
-      // Reconcile Testly before reading the track, including a missed completion notification.
-      await supabase.functions.invoke('testly-bridge', { body: { action: 'sync' } }).catch(() => undefined)
-      return fetchStudentTrack({ id: session.id, groupId: session.groupId })
-    })()
+    // The current database result is already authoritative. External Testly
+    // reconciliation must not delay every screen. Once it finishes, re-read the
+    // track under the same account before reconciling missing local answers.
+    const syncP = options?.afterTestlySync ? null : syncTestlyInBackground(session.id)
+    const trackP = fetchStudentTrack({ id: session.id, groupId: session.groupId })
     const scheduleP = fetchScheduleDays(session.groupId, session.id)
     // Optional widgets must not hold the course/diary/home screen skeleton.
     // Keep the previous value on failure and reject obsolete account responses.
-    void fetchQuizQuestions().then(quizQuestions => { if (isCurrent()) set({ quizQuestions }) }).catch(e => console.error('[studentData.quiz]', e))
-    void fetchScienceFacts().then(scienceFacts => { if (isCurrent()) set({ scienceFacts }) }).catch(e => console.error('[studentData.facts]', e))
-    void fetchScienceMemes().then(scienceMemes => { if (isCurrent()) set({ scienceMemes }) }).catch(e => console.error('[studentData.memes]', e))
-    void fetchCourseReactions().then(courseReactions => { if (isCurrent()) set({ courseReactions }) }).catch(e => console.error('[studentData.reactions]', e))
+    if (!options?.afterTestlySync) void fetchQuizQuestions().then(quizQuestions => { if (getStudentSession()?.id === session.id) set({ quizQuestions }) }).catch(e => console.error('[studentData.quiz]', e))
+    if (!options?.afterTestlySync) void fetchScienceFacts().then(scienceFacts => { if (getStudentSession()?.id === session.id) set({ scienceFacts }) }).catch(e => console.error('[studentData.facts]', e))
+    if (!options?.afterTestlySync) void fetchScienceMemes().then(scienceMemes => { if (getStudentSession()?.id === session.id) set({ scienceMemes }) }).catch(e => console.error('[studentData.memes]', e))
+    if (!options?.afterTestlySync) void fetchCourseReactions().then(courseReactions => { if (getStudentSession()?.id === session.id) set({ courseReactions }) }).catch(e => console.error('[studentData.reactions]', e))
     const hwP = fetchStandaloneSubject(session.groupId)
 
     // Охват — все строки ученика и его группы: трек должен показать ВСЕ его
@@ -229,7 +238,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
             || p.status === 'completed' || !!p.result?.draft || (p.score ?? 0) > 0)
           .map(([ref]) => ref),
       )
-      wiped.push(...reconcileLocalHomework(lessonIds, submittedRefs))
+      if (options?.afterTestlySync) wiped.push(...reconcileLocalHomework(lessonIds, submittedRefs))
       if (wiped.length > 0) useDashboard.getState().forgetLessons([...new Set(wiped)])
     }
 
@@ -269,7 +278,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const todayIdx = scheduleDays.findIndex(d => d.isToday)
 
     if (!isCurrent()) return
-    if (track.progress !== null) {
+    if (track.progress !== null && options?.afterTestlySync) {
       useDashboard.getState().syncLessonAssessments(session.id, progress,
         fullCatalog.flatMap(s => s.modules.flatMap(m => m.lessons.map(l => l.id))))
     }
@@ -307,7 +316,11 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       scopeStudentIds: scope.studentIds,
     })
 
-    console.debug('[student-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), courses: withHeavy.length, lessons: withHeavy.reduce((n, s) => n + s.modules.reduce((sum, m) => sum + m.lessons.length, 0), 0), progress: Object.keys(progress).length }))
+    console.debug('[student-ready] ' + JSON.stringify({ reconciled: !!options?.afterTestlySync, ms: Math.round(performance.now() - loadStarted), courses: withHeavy.length, lessons: withHeavy.reduce((n, s) => n + s.modules.reduce((sum, m) => sum + m.lessons.length, 0), 0), progress: Object.keys(progress).length }))
+
+    if (syncP) void syncP.then(() => {
+      if (isCurrent()) return get().load({ afterTestlySync: true })
+    }).catch(error => console.error('[studentData.testly.refresh]', error))
 
     // The dashboard store's active subject/module aren't persisted, so on every
     // refresh they reset to placeholder defaults (`activeModuleId: 1`, which —
