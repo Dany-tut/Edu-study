@@ -6709,8 +6709,8 @@ export default function TeacherCourseEditorPage() {
       if (lab && lab.offsetWidth) seedLabelW.current = lab.offsetWidth
       // Меряем по РАЗВЁРНУТОЙ правой группе — иначе решение зависело бы от себя.
       const fullRight = rw + (lab ? 0 : seedLabelW.current)
-      const room = h.clientWidth - 2 * (Math.max(lw, fullRight) + 12)
-      const titleW = headTitleRef.current?.scrollWidth ?? 0
+      const room = h.clientWidth - 2 * (Math.max(lw, fullRight) + 36)
+      const titleW = headTitleRef.current?.firstElementChild?.scrollWidth ?? 0
       setSeedCompact(titleW + 16 > room)
     }
     measure()
@@ -6773,7 +6773,7 @@ export default function TeacherCourseEditorPage() {
           </AnimatePresence>
         </div>
         {/* Статус сохранения под названием не меняет ширину ряда действий. */}
-        <div style={{ position: 'absolute', left: headSideW + 12, right: headSideW + 12, top: 0, height: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', left: headSideW + 36, right: headSideW + 36, top: 0, height: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <span ref={headTitleRef} style={{ minWidth: 0, maxWidth: '100%' }}>
             <FadeText style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</FadeText>
           </span>
