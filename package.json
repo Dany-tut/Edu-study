@@ -47,7 +47,7 @@
     "check:release": "node scripts/checkReleasePolicy.mjs",
     "check:feed-release": "node scripts/checkFeedRelease.mjs",
     "check:diary-views": "node scripts/checkStudentDiaryViews.mjs",
-    "check:ui": "node scripts/checkUiRules.mjs"
+    "check:ui": "node scripts/checkUiRules.mjs && node scripts/checkWidgetSizing.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
