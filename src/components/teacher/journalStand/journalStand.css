@@ -428,3 +428,8 @@
   .js-example-area { --journal-end-padding: 8px; padding: 0 8px 10px; }
   .js-example-label { margin-inline: 8px; font-size: 10px; }
 }
+
+/* Empty stretches still occupy their exact columns; their dash remains visible
+   when scrolling a long course matrix. Assigned cells are never collapsed. */
+.js-unassigned-run { text-align: left; }
+.js-unassigned-run > .js-stat-value { position: sticky; left: calc(var(--student-col) + 12px); width: 16px; }
