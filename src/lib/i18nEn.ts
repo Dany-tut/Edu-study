@@ -10,6 +10,8 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Сначала просмотрите видео': 'Watch the video first',
+  'Прогресс сохранён на этом устройстве. Не удалось синхронизировать.': 'Progress is saved on this device. Could not sync.',
   'Занятия модуля': 'Module lessons',
   '← Предыдущие занятия': '← Previous lessons',
   'Дальше есть ещё занятия →': 'More lessons ahead →',

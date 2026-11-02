@@ -1,3 +1,4 @@
+import { homeworkNeedsVideo } from '../lib/homeworkAccess'
 import Sidebar from '../components/Sidebar'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import ScheduleCarousel from '../components/ScheduleCarousel'
@@ -293,9 +294,13 @@ export default function DashboardPage() {
   const diaryPane = useRef<HTMLElement>(null)
   const diaryScroll = useRef(0)
   useLayoutEffect(() => { if (showDiary && diaryPane.current) diaryPane.current.scrollTop = diaryScroll.current }, [showDiary])
-  const showLesson = activePage === 'lesson'
+  const videoRequired = !!lesson && homeworkNeedsVideo(lesson, homeworkRef)
+  useEffect(() => {
+    if (activePage === 'homework' && videoRequired && !lessonPending) closeHomework()
+  }, [activePage, videoRequired, lessonPending, closeHomework])
+  const showLesson = activePage === 'lesson' || (activePage === 'homework' && videoRequired && !lessonPending)
   const showHomeworkWaiting = activePage === 'homework' && lessonWaiting
-  const showHomework = activePage === 'homework' && !!lesson && !!homework
+  const showHomework = activePage === 'homework' && !!lesson && !!homework && !videoRequired
   const showTrainer = activePage === 'trainer'
   // Тот же «остальное» из старой цепочки: 'courses', 'homeworkList', 'profile'
   // (десктопного профиля нет) и домашка, у которой не нашлось ни данных, ни
