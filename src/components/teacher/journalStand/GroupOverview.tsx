@@ -392,10 +392,12 @@ export function StudentOverviewCard({
                 Вернуться
               </button>
             </div>
+            <OverlayScrollArea className="jo-share-scroll" style={{flex:1}} showScrollbar={false}>
             <div className="jo-share-paper">
               <div className="jo-brand">✳ Искра</div>
               <ReportSheet {...props} embedded={false} />
             </div>
+            </OverlayScrollArea>
           </>
         )}
       </dialog>
