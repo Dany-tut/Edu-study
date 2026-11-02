@@ -1,3 +1,5 @@
+import HomeWidgetObject from './HomeWidgetObject'
+export { default as HomeWidgetObject } from './HomeWidgetObject'
 import { ArrowRight, ChevronRight, RotateCcw } from './icons/appIcons'
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useStudentData } from '../store/studentDataStore'
@@ -13,10 +15,6 @@ import { WIDGET_META } from '../data/widgets'
 import { homeWidgetTasks, type HomeWidgetTask } from '../lib/homeWidgetTasks'
 import './studentHomeWidget.css'
 
-const OBJECTS: Record<number, string> = { 0:'stats',1:'fact',2:'reaction',3:'focus',4:'memes',5:'practice',6:'quiz',7:'trainer',8:'awards',9:'daily',10:'feed',11:'reminders' }
-export function HomeWidgetObject({ id }: { id: number }) {
-  return <img className="ihw-object" data-object={OBJECTS[id] ?? 'reminders'} src={`/widget-objects-v2-shadows/ui/${OBJECTS[id] ?? 'reminders'}.png`} alt="" aria-hidden="true" draggable={false} width={168} height={168} decoding="async" />
-}
 export function HomeWidgetFade({ children, className = '' }: { children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const [overflow,setOverflow] = useState(false)

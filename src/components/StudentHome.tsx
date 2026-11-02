@@ -1,3 +1,5 @@
+import HomeWidgetObject from './HomeWidgetObject'
+import './studentHomeWidget.css'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import Sidebar from './Sidebar'
 import ScheduleCarousel from './ScheduleCarousel'
@@ -7,7 +9,7 @@ import MobileBottomNav from './MobileBottomNav'
 import MobileBell from './MobileBell'
 import Modal from './Modal'
 import FadeText from './FadeText'
-import { ChevronRight, ArrowRight, User, Ghost } from './icons/appIcons'
+import { ChevronRight, User, Ghost } from './icons/appIcons'
 import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from './season/Season'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
@@ -68,11 +70,22 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
   const status = pending ? t('Загружаем дела') : error ? t('Не удалось загрузить работы') : null
   const workCards = [
     {id:11},
-    {id:13,content:<article className="lh-work-card"><header><h2><ArrowRight size={18}/>{t(next&&diaryOverdue(next,today)?'Сначала — просроченное':'Следующий шаг')}</h2>{ready&&next&&<span>{t('Модуль')} {next.moduleOrder+1}</span>}</header>
-      <h3><FadeText>{status ?? (next?tc(next.lesson.title):t('Всё сдано'))}</FadeText></h3>
-      {ready&&next?<p className="lh-next-meta"><FadeText className="lh-next-course">{tc(next.course.name)}</FadeText><WorkDue entry={next} today={today}/></p>:<p>{!status&&t('Преподаватель откроет новые задания')}</p>}
-      {ready&&next&&<button type="button" className="lh-primary" onClick={()=>open(next)}>{t(next.status==='returned'?'Доработать ДЗ':next.lesson.kind==='test'&&!next.extraId?'Пройти тест':'Открыть ДЗ')}<ChevronRight size={14}/></button>}
-      {error&&<button type="button" onClick={reload}>{t('Повторить')}</button>}</article>},
+    {id:13,content:<article className="ihw-card lh-next-card" data-home-widget="13">
+      <header className="ihw-heading"><h2>{t('Следующий шаг')}</h2></header>
+      <div className="ihw-body"><div className="lh-next-copy">
+        <h3 className="lh-next-title"><FadeText>{status ?? (next?tc(next.lesson.title):t('Всё сдано'))}</FadeText></h3>
+        {ready&&next?<>
+          <p className="lh-next-meta"><FadeText>{`${tc(next.course.name)} · ${t('Модуль')} ${next.moduleOrder+1}`}</FadeText></p>
+          <span className="lh-next-due" data-overdue={diaryOverdue(next,today)}><WorkDue entry={next} today={today}/></span>
+        </>:<p className="lh-next-meta"><FadeText>{!status&&t('Преподаватель откроет новые задания')}</FadeText></p>}
+      </div></div>
+      <HomeWidgetObject id={13}/>
+      <footer className="ihw-footer lh-next-footer">
+        {ready&&next&&<button type="button" className="lh-next-action" onClick={()=>open(next)}>{t(next.status==='returned'?'Доработать ДЗ':next.lesson.kind==='test'&&!next.extraId?'Пройти тест':'Открыть ДЗ')}<ChevronRight size={18}/></button>}
+        {ready&&!next&&work.review.length>0&&<button type="button" className="lh-next-action is-secondary" onClick={()=>setScope({filter:'review'})}>{t('На проверке')}<ChevronRight size={18}/></button>}
+        {error&&<button type="button" className="lh-next-action" onClick={reload}>{t('Повторить')}</button>}
+      </footer>
+    </article>},
   ]
   return <div className="live-student-home" data-testid="live-student-home">
     <SeasonBackdrop/><div className="lh-season-decor" aria-hidden><SeasonHero portalDecor={false}/></div><SeasonCornerPumpkin/>
