@@ -1222,7 +1222,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               </div>
 
               {previewAt !== null && duration > 0 && (
-                <span className="lesson-player-preview" style={{ left: `clamp(0px, calc(${(previewAt / duration) * 100}% - 120px), max(0px, calc(100% - 240px)))` }}>
+                <span className="lesson-player-preview" style={{ left: `${previewAt / duration * 100}%`, transform: `translateX(-${previewAt / duration * 100}%)` }}>
                   <span className="lesson-player-preview-time">{formatClock(previewAt)}</span>
                   <FadeText>{previewChapter >= 0 ? timecodes[previewChapter].label : title}</FadeText>
                 </span>
