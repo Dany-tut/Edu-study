@@ -546,7 +546,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
 export default function JournalStand({ owner, production = false }: { owner: string; production?: boolean }) {
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
-  const journalActive = ['home', 'groups', 'gradebook', 'student'].includes(page)
+  const journalActive = ['groups', 'gradebook', 'student'].includes(page)
   const { data, loading, error, reload, setData } = useCourseJournal(true, journalActive)
   const storageKey = 'iskra:journal-stand:' + owner
   const [selected, setSelected] = useState<StandSelection>(() => {
@@ -602,7 +602,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
     handoffHomeworkReview(id, entry.student.id, draft)
     useTeacher.getState().openHomeworkReview(id,entry.student.id,page)
     return true
-  })
+  }, index)
   const entries = useMemo(
     () =>
       !index || !data
