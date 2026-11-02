@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { useT } from '../../lib/i18n'
 import type { CSSProperties } from 'react'
@@ -140,7 +141,7 @@ export default function ProductMock() {
               border: '1px solid color-mix(in srgb, var(--color-border) 80%, transparent)',
             }}>
               <ShieldCheck size={12} style={{ color: OK, flexShrink: 0 }} />
-              <span style={{ flex: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{url}</span>
+              <span style={{ flex: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{url}</span>
               <button onClick={reload} title={t('Обновить')} style={{ ...iconBtnBase, width: 18, height: 18 }}>
                 <RotateCw size={12} className={spinning ? 'lp-spin' : ''} />
               </button>
@@ -212,7 +213,7 @@ export default function ProductMock() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 2 }}>{t(sec.key)}</div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(sec.sub)}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(sec.sub)}</div>
                 </div>
                 <div className="lp-mock-search" style={{
                   marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, height: 30, padding: '0 10px',
@@ -362,7 +363,7 @@ function BrowserTabBtn({ on, onClick, title, favicon }: { on: boolean; onClick: 
     }}>
       {/* фавиконка вкладки — как у настоящих кабинетов: ученик фиолетовый, учитель ночной */}
       <img src={favicon} alt="" width={12} height={12} style={{ borderRadius: 3, flexShrink: 0, opacity: on ? 1 : 0.55 }} />
-      <span className="lp-tab-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(title)}</span>
+      <span className="lp-tab-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(title)}</span>
       {on && <X size={11} style={{ flexShrink: 0, opacity: 0.5 }} />}
     </button>
   )
@@ -470,7 +471,7 @@ function MockOverview({ query, accepted, onAccept, onGo }: {
               <Avatar name={r.n} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{t(r.n)}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(r.t)}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(r.t)}</div>
               </div>
               {ok
                 ? <span style={pill(true)}><Check size={11} /> {t('Принято')}</span>
@@ -505,8 +506,8 @@ function MockGroups({ query }: { query: string }) {
             <div className="lp-clickrow" onClick={() => setOpen(on ? null : g.n)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px' }}>
               <span style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: 15, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }}>{t(g.n)[0]}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(g.n)}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(g.s)}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(g.n)}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(g.s)}</div>
               </div>
               <div className="lp-stack" style={{ display: 'flex' }}>
                 {Array.from({ length: Math.min(g.cnt, 4) }).map((_, i) => (
@@ -609,8 +610,8 @@ function MockSchedule({ query }: { query: string }) {
               </div>
               <div style={{ width: 3, borderRadius: 999, background: on ? OK : `linear-gradient(180deg, ${ACCENT}, ${ACCENT_2})`, flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(s.who)}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(s.topic)}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(s.who)}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(s.topic)}</div>
               </div>
               <div className="lp-slot-btns" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 <button onClick={() => move(s.id)} title={t('Перенести на следующий день')} style={{
@@ -681,7 +682,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
     <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 12 }} className="lp-mock-hw">
       <div style={{ ...mockCard, padding: 0, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 12px', borderBottom: '1px solid var(--color-border)' }}>
-          <span style={{ fontSize: 12, fontWeight: 700, flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(cur.n)} · {t(cur.task)}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(cur.n)} · {t(cur.task)}</span>
           {[{ id: 'pen', icon: Pencil, label: 'Перо' }, { id: 'shape', icon: Circle, label: 'Фигура' }, { id: 'note', icon: MessageSquare, label: 'Комментарий' }].map(tool => {
             const on = tools.includes(tool.id)
             return (

@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Плитка витрины Конструктора
 //
@@ -116,18 +117,18 @@ export function ContentCard({ accentColor, accentBg, borderColor, isSelected, on
         <motion.div layout={pos} style={{ display: 'flex', alignItems: 'flex-start', gap: 4, opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.15s' }}>{badge}</motion.div>
       </motion.div>
       <motion.div layout={pos} style={{ flex: 1, minHeight: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, minHeight: '2.6em', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' }}>{title}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, minHeight: '2.6em',   ...textFadeLines(2), overflow: 'hidden' }}>{title}</div>
         {/* Подзаголовок обрезается на трёх строках: у курса это «предмет · уровень»
             в одну строку, а у набора карточек — описание абзацем, и без обрезки
             одна плитка вытягивала бы весь ряд сетки. */}
-        <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.45, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>{subtitle}</div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.45,   ...textFadeLines(3), overflow: 'hidden' }}>{subtitle}</div>
         {extra}
       </motion.div>
       {/* gap 10 обязателен: левая половина обрезается многоточием, и без зазора
           обрезанное слово вплотную упиралось в правую подпись — «2 вопрСвязка». */}
       {/* Линия подвала тянется вместе с фоном (layout), подписи — переезжают. */}
       <motion.div layout={morph || undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
-        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-muted)', fontSize: 12, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{footerLeft}</motion.div>
+        <motion.div layout={pos} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-muted)', fontSize: 12, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', ...textFadeStyle }}>{footerLeft}</motion.div>
         <motion.div layout={pos} style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-3)', fontSize: 11, flexShrink: 0, whiteSpace: 'nowrap' }}>{footerRight}</motion.div>
       </motion.div>
     </motion.div>

@@ -162,7 +162,7 @@ export default function TeacherCardSetEditorPage() {
           )}
         </div>
         <div style={{ position: 'absolute', left: 240, right: 240, top: 10, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <span className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{title}</span>
+          <span className="text-fade" style={{ display: 'block', maxWidth: '100%', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{title}</span>
         </div>
         {/* ПОЧЕМУ КНОПКА НЕ ЖМЁТСЯ — СТРОКОЙ РЯДОМ, а не подсказкой при наведении.
             Набор на полсотни карточек, собранный вставкой, упирался в серую

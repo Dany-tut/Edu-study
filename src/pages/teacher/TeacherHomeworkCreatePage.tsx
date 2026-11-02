@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { ChevronRight as LoopUiChevronRight } from '../../components/icons/appIcons'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { confirmDialog } from '../../components/ConfirmHost'
@@ -314,7 +315,7 @@ function TaskCard({
               {t('нет ответа')}
             </div>
           )}
-          <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
             {stripHtml(task.question) || <span style={{ fontStyle: 'italic' }}>{t('без текста')}</span>}
           </div>
           <button
@@ -1851,8 +1852,8 @@ function LessonPicker({
         <div style={{ flex: 1, minWidth: 0 }}>
           {selected ? (
             <>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(selected.lessonTitle)}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(selected.courseTitle)}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(selected.lessonTitle)}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(selected.courseTitle)}</div>
             </>
           ) : (
             <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Без привязки')}</div>
@@ -1986,8 +1987,8 @@ function LessonOption({ lesson, active, suggested, onClick }: {
         <BookOpen size={14} style={{ color: 'var(--color-accent)' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(lesson.lessonTitle)}</div>
-        <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(lesson.courseTitle)}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(lesson.lessonTitle)}</div>
+        <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(lesson.courseTitle)}</div>
       </div>
       {suggested && <Sparkles size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
       {active && <Check size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
@@ -2462,11 +2463,11 @@ export default function TeacherHomeworkCreatePage() {
             <BackCircle onClick={exitPage} label="Назад" />
 
             <div style={{
-              flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden',  whiteSpace: 'nowrap',
               padding: '10px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
-              {tc(meta.title) || (isEditing ? t('Редактировать домашку') : t('Создать домашнее задание'))}
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{tc(meta.title) || (isEditing ? t('Редактировать домашку') : t('Создать домашнее задание'))}</span>
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -2508,7 +2509,7 @@ export default function TeacherHomeworkCreatePage() {
           <div style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
             maxWidth: '44%', pointerEvents: 'none',
-            fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
+            fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle, textAlign: 'center',
           }}>
             {isEditing ? t('Редактировать домашку') : t('Создать домашнее задание')}
             {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {tc(meta.title)}</span>}

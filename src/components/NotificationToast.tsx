@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -202,12 +203,12 @@ export default function NotificationToastContainer() {
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2,
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                   {latest.title}
                 </div>
                 {!expanded && (
                   <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                     {dedupBody(latest.body)}
                   </div>
                 )}

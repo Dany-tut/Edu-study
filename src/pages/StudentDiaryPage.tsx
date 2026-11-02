@@ -1,3 +1,4 @@
+import TeacherSelect from '../components/teacher/TeacherSelect'
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import {
   ArrowRight,
@@ -300,38 +301,23 @@ export default function StudentDiaryPage({
         <div className="ds-scope">
           <label>
             <span className="ds-field-label">{t('Предмет')}</span>
-            <select
-              aria-label={t('Предмет дневника')}
+            <TeacherSelect
               value={subject}
-              onChange={(e) => {
-                setSubject(e.target.value)
-                setCourse('*')
-              }}
-            >
-              <option value="*">{t('Все предметы')}</option>
-              {[...new Set(subjects.map((c) => c.subject || '__none'))].map((name) => (
-                <option key={name} value={name}>
-                  {name === '__none' ? t('Предмет не указан') : name}
-                </option>
-              ))}
-            </select>
+              clearable={false}
+              onChange={(value) => { setSubject(value); setCourse('*') }}
+              options={[{ value: '*', label: t('Все предметы') }, ...[...new Set(subjects.map(c => c.subject || '__none'))].map(name => ({ value: name, label: name === '__none' ? t('Предмет не указан') : name }))]}
+              triggerStyle={{ borderRadius: 99, padding: '10px 15px', fontSize: 16, minHeight: 44 }}
+            />
           </label>
           <label>
             <span className="ds-field-label">{t('Курс / интенсив')}</span>
-            <select
-              aria-label={t('Курс дневника')}
+            <TeacherSelect
               value={course}
-              onChange={(e) => setCourse(e.target.value)}
-            >
-              <option value="*">{t('Все курсы и интенсивы')}</option>
-              {subjects
-                .filter((c) => subject === '*' || (c.subject || '__none') === subject)
-                .map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-            </select>
+              clearable={false}
+              onChange={setCourse}
+              options={[{ value: '*', label: t('Все курсы и интенсивы') }, ...subjects.filter(c => subject === '*' || (c.subject || '__none') === subject).map(c => ({ value: c.id, label: c.name }))]}
+              triggerStyle={{ borderRadius: 99, padding: '10px 15px', fontSize: 16, minHeight: 44 }}
+            />
           </label>
           <span className="ds-scope-summary">
             {pending

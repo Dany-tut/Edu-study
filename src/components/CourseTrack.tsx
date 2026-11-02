@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { LoopActionLabel } from './icons/LoopIcon'
 import { ArrowRight as LoopUiArrowRight, ArrowLeft as LoopUiArrowLeft } from './icons/appIcons'
 import LessonWatchStatus from './LessonWatchStatus'
@@ -468,9 +469,8 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                               fontSize: 15,
                               fontWeight: 600,
                               color: 'var(--color-text)',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
+                              ...textFadeLines(2),
+
                               overflow: 'hidden',
                               lineHeight: 1.3,
                             }}
@@ -609,9 +609,8 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                         fontSize: 15,
                         fontWeight: 600,
                         color: 'var(--color-text)',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
+                        ...textFadeLines(2),
+
                         overflow: 'hidden',
                         lineHeight: 1.3,
                       }}

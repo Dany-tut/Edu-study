@@ -1,3 +1,4 @@
+import './checkTextFades.mjs'
 import assert from 'node:assert/strict'
 import {readFileSync} from 'node:fs'
 import {build} from 'esbuild'

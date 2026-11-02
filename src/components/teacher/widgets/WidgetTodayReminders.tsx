@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -69,7 +70,7 @@ function ReminderRow({ item, done, onAction, showChevron = true, style: styleOve
           fontSize: 14, fontWeight: 700,
           color: done ? 'var(--color-green-text)' : 'var(--color-text)',
           textDecoration: done ? 'line-through' : 'none',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
         }}>
           {item.text}
         </div>

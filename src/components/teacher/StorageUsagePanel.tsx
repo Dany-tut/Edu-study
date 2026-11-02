@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useState, useEffect, useCallback } from 'react'
 import Skeleton from '../Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -176,7 +177,7 @@ export default function StorageUsagePanel() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {[...stats.tables].sort((a, b) => b.bytes - a.bytes).slice(0, 6).map(t => (
                         <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 12, color: 'var(--color-text-2)', width: 120, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                          <span style={{ fontSize: 12, color: 'var(--color-text-2)', width: 120, flexShrink: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t.name}</span>
                           <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${(t.bytes / maxTableBytes) * 100}%`, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.7 }} />
                           </div>

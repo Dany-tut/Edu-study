@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -294,7 +295,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
           }}
         >
           <Mic size={14} style={{ flexShrink: 0 }} />
-          <span style={{ flex: 1, minWidth: 0, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ flex: 1, minWidth: 0, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
             {t('Голос')}: {current?.label ?? t('разные')}
           </span>
           <ChevronDown
@@ -350,7 +351,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                       <span style={{
                         fontSize: 13, fontWeight: on ? 700 : 500,
                         color: on ? accent : 'var(--color-text)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
                       }}>
                         {r.label}
                       </span>
@@ -359,7 +360,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                       <span style={{
                         fontSize: 11, fontWeight: 500, lineHeight: 1.3,
                         color: on ? accent : 'var(--color-text-3)', opacity: on ? 0.8 : 1,
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
                       }}>
                         {r.note}
                       </span>

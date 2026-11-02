@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { CheckCircle2, Wallet } from '../../icons/appIcons'
 import { usePayments } from '../../../lib/useFinances'
 import { useAllStudents } from '../../../lib/useGroups'
@@ -100,7 +101,7 @@ export default function WidgetFinanceActivity() {
 
                 {/* Name + note */}
                 <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                     {student ? tn(student.name).split(' ').slice(0, 2).join(' ') : t('Ученик')}
                   </div>
                   {(p.note || p.lessonsPaid > 0) && (

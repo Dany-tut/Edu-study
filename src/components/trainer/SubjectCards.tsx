@@ -1,3 +1,4 @@
+import { textFadeLines } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Карточки предмета в банке заданий
 //
@@ -166,7 +167,7 @@ export default function SubjectCards({ subjectId, accent, soft }: {
                 больше, чем любое описание, и это же делает языковая плитка. */}
             <span style={{
               fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
-              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+               ...textFadeLines(2),  overflow: 'hidden',
             }}>
               {cards.slice(0, 4).map(c => c.term).join(' · ') || set.about}
             </span>

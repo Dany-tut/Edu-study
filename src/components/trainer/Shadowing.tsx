@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { Mic, Square, Play, Volume2, Repeat, Trash2, ChevronRight } from '../icons/appIcons'
 import { speak, stopSpeech, preferredVoice, type SpeechHandle } from '../../lib/speech'
@@ -380,7 +381,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
               flex: 1, fontSize: 13, lineHeight: 1.4,
               color: i === at ? 'var(--color-text)' : 'var(--color-text-2)',
               fontWeight: i === at ? 600 : 400,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
             }}>
               {l.text}
             </span>

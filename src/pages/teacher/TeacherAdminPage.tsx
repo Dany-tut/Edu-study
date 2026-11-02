@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useState, useEffect } from 'react'
 import BackCircle from '../../components/BackCircle'
 import { confirmDialog } from '../../components/ConfirmHost'
@@ -88,7 +89,7 @@ function StorageTile({ icon: Icon, label, value, pct: value_pct }: { icon: React
     <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '12px 14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-3)', fontSize: 12, fontWeight: 500 }}>
         <Icon size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+        <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{label}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '6px 0 8px' }}>
         <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
@@ -745,7 +746,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                 {row.kind === 'course' ? <BookOpen size={16} strokeWidth={2} /> : <Users size={16} strokeWidth={2} />}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                   {tc(row.title) || '—'}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
@@ -879,7 +880,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                     opacity: busyId === row.id ? 0.5 : (row.done ? 0.6 : 1),
                   }}>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: row.done ? 'line-through' : 'none' }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', textDecoration: row.done ? 'line-through' : 'none' }}>
                         {row.type_label ? `${row.type_label} · ` : ''}{row.title || '—'}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>

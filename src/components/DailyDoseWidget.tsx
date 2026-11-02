@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { useState } from 'react'
 import { Sunrise, ArrowRight, Layers, Check, Flame } from './icons/appIcons'
 import { useDashboard } from '../store/dashboardStore'
@@ -135,13 +136,13 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       >
         <div style={{
           fontSize: wide ? 16 : 15, fontWeight: 700, color: palette.text, lineHeight: 1.3,
-          overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 1,
+          overflow: 'hidden',   ...textFadeLines(1),
         }}>
           {text.title}
         </div>
         <div style={{
           fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.45, marginTop: 4,
-          overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+          overflow: 'hidden',   ...textFadeLines(2),
         }}>
           {preview(text.body)}
         </div>

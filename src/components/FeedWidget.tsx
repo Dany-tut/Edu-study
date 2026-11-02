@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { Rows3, ArrowRight } from './icons/appIcons'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
@@ -131,7 +132,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
                 flex: '1 1 auto', minWidth: 0,
                 fontSize: 13, fontWeight: fresh ? 700 : 600,
                 color: fresh ? 'var(--color-text)' : 'var(--color-text-2)',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
               }}>
                 {item.title}
               </span>

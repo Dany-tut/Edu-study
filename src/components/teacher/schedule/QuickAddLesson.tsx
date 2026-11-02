@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { SubjectMark } from '../../icons/SubjectMark'
 import { useEffect, useMemo, useState } from 'react'
 import { Pencil } from '../../icons/appIcons'
@@ -130,7 +131,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
                           fontFamily: 'inherit', textAlign: 'left', background: on ? 'var(--color-purple-soft)' : 'transparent',
                         }}
                       >
-                        <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                           {sub || t('Занятие')}
                         </span>
                         <span style={{

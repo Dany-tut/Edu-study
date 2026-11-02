@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { scienceMemeInterval } from '../data/mockData'
@@ -116,13 +117,13 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
             >
               <p style={{
                 fontSize: 13 * sz.scale, fontWeight: 500, color: '#9A9AA0', lineHeight: 1.3, marginBottom: 6,
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                 ...textFadeLines(2),  overflow: 'hidden',
               }}>
                 {meme.setup}
               </p>
               <p style={{
                 fontSize: 20 * sz.scale, fontWeight: 600, lineHeight: 1.3, color: 'var(--color-text)',
-                display: '-webkit-box', WebkitLineClamp: sz.clampLines, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                 ...textFadeLines(sz.clampLines),  overflow: 'hidden',
               }}>
                 {meme.punchline}
               </p>

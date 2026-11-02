@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { App } from '@capacitor/app'
@@ -122,7 +123,7 @@ export default function TeacherLoginMethods() {
           <span style={{ display: 'grid', placeItems: 'center' }}>{provider === 'google' ? <GoogleMark /> : <AppleMark />}</span>
           <div style={{ minWidth: 0, color: 'var(--color-text)', fontSize: 14 }}>
             <strong>{label}</strong>
-            {identity && <div title={identity.identity_data?.email} style={{ marginTop: 3, color: 'var(--color-muted)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{identity.identity_data?.email || t('Подключено')}</div>}
+            {identity && <div title={identity.identity_data?.email} style={{ marginTop: 3, color: 'var(--color-muted)', fontSize: 12, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{identity.identity_data?.email || t('Подключено')}</div>}
           </div>
           {identity ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, width: '100%', boxSizing: 'border-box', borderRadius: 14, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 650, whiteSpace: 'nowrap' }}><Check size={14} strokeWidth={2.2} />{t('Подключено')}</span>
             : <button type="button" onClick={() => void connect(provider)} disabled={!ready || !user || busy !== null || !available?.[provider]}
