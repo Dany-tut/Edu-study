@@ -38,6 +38,9 @@ export function installWidgetScrollFades(root: HTMLElement) {
     }
     for (const el of [root, ...root.querySelectorAll<HTMLElement>('*')]) {
         if (!observed.has(el)) { resize.observe(el); observed.add(el) }
+        // WeekStrip masks only partially clipped date cells. Its recycled
+        // buffer is navigation, not hidden text within a fully visible date.
+        if (el.dataset.scrollFadeOwner === 'week-strip') { el.removeAttribute('data-scroll-fade'); continue }
         const style = getComputedStyle(el)
         if (/auto|scroll/.test(style.overflowY + style.overflowX)) {
           regions.add(el)
