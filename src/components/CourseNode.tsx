@@ -20,6 +20,7 @@ import { SeasonCurrentNode } from './season/Season'
 import { useSeason } from '../lib/season'
 import type { ScheduleState } from '../lib/scheduleState'
 import ScheduleStatusBadge from './ScheduleStatusBadge'
+import type { LessonAssessment } from '../lib/lessonAssessments'
 
 type IconProps = { color?: string; size?: number }
 type CustomIcon = (props: IconProps) => ReactElement
@@ -56,6 +57,9 @@ export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: strin
 }
 
 interface Props {
+  /** Optional local preview; real nodes continue to use the student's assessment. */
+  assessmentOverride?: LessonAssessment
+  overdueLabel?: string
   lesson: Lesson
   status: TrackLessonStatus
   scheduleState?: ScheduleState | null
@@ -71,12 +75,13 @@ interface Props {
   seasonMark?: boolean
 }
 
-export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false }: Props) {
+export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false, assessmentOverride, overdueLabel }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
   const { tc } = useTc()
   const dark = useTheme(s => s.dark)
-  const assessment = useDashboard(s => s.lessonAssessments[lesson.id])
+  const storedAssessment = useDashboard(s => s.lessonAssessments[lesson.id])
+  const assessment = assessmentOverride ?? storedAssessment
 
   useEffect(() => {
     if (isHighlighted && scrollHighlight) {
@@ -199,7 +204,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
           ...(silhouette === 'screen' && { left: -4, right: -4 }),
           rotate: isDiamond ? '45deg' : '0deg',
         }}
-        aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lesson.number + 1}: ${tc(lesson.title)} · ${statusDescription}`}
+        aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lesson.number + 1}: ${tc(lesson.title)} · ${statusDescription}${overdueLabel ? ` · ${overdueLabel}` : ''}`}
         title={statusDescription}
       >
         {silhouette && <CourseNodeSilhouette shape={silhouette} tone={palette} active={isActive} highlighted={isHighlighted} />}
@@ -209,6 +214,8 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
       </motion.button>
 
       {seasonNode && <SeasonCurrentNode size={size} />}
+
+      {overdueLabel && <span title={overdueLabel} aria-label={overdueLabel} style={{ position: 'absolute', right: -6, top: -7, zIndex: 12, width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', border: '2px solid var(--color-bg)', pointerEvents: 'none' }}><CircleAlert size={14} /></span>}
 
       {/* Hard satellite circle — appears half-overlapping from the right */}
       {showHardSatellite && (
