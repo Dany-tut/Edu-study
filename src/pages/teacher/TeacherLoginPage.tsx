@@ -19,7 +19,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   // Свободной регистрации нет: аккаунт учителя создаётся только по ссылке-приглашению (#/join-teacher)
-  const [mode, setMode] = useState<'login' | 'reset' | 'newpassword'>(
+  const [mode, setMode] = useState<'login' | 'reset' | 'newpassword' | 'sent'>(
     recovery ? 'newpassword' : linkExpired ? 'reset' : 'login',
   )
   const [showPassword, setShowPassword] = useState(false)
@@ -61,7 +61,8 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         const redirectTo = `${window.location.origin}${window.location.pathname}`
         const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })
         if (error) throw error
-        setNotice(t('Письмо отправлено. Откройте ссылку из него — здесь же откроется форма нового пароля.'))
+        localStorage.setItem('iskra:password-recovery-role', 'teacher')
+        setMode('sent')
       } else if (mode === 'newpassword') {
         const { error } = await supabase.auth.updateUser({ password })
         if (error) throw error
@@ -80,11 +81,13 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     login: t('Войдите в аккаунт'),
     reset: t('Сброс пароля'),
     newpassword: t('Новый пароль'),
+    sent: t('Мы отправили ссылку для сброса пароля на вашу почту.'),
   }
   const buttonLabels: Record<typeof mode, string> = {
     login: t('Войти'),
     reset: t('Отправить письмо'),
     newpassword: t('Сохранить пароль'),
+    sent: t('Вернуться ко входу'),
   }
 
   return (
@@ -112,14 +115,23 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           <IskraMark size={36} />
           <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <img src={`/widget-objects-v1/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'trainer'}.png`} alt="" aria-hidden="true" width={104} height={104} draggable={false} style={{ width: 104, height: 104, objectFit: 'contain' }} />
+        </div>
         <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-.03em', fontWeight: 740, color: 'var(--color-text)', margin: '0 0 6px' }}>
-          {t('Вход для преподавателя')}
+          {mode === 'sent' ? t('Проверьте почту') : mode === 'newpassword' ? t('Придумайте новый пароль') : t('Вход для преподавателя')}
         </h1>
-        <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 22px' }}>
+        {mode !== 'sent' && <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 22px' }}>
           {titles[mode]}
-        </p>
+        </p>}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {mode === 'sent' ? (
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ color: 'var(--color-muted)', fontSize: 14, lineHeight: 1.5, margin: '0 0 24px' }}>{titles.sent}</p>
+            <button type="button" onClick={() => switchMode('login')} style={{ width: '100%', minHeight: 50, border: 0, borderRadius: 16, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t('Вернуться ко входу')}</button>
+            <p style={{ color: 'var(--color-muted)', fontSize: 13, lineHeight: 1.45, margin: '18px 0 0' }}>{t('Если письма нет, проверьте папку «Спам».')}</p>
+          </div>
+        ) : <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {(mode !== 'newpassword' || email) && (
             <input
               className="auth-input"
@@ -235,12 +247,12 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           >
             {loading ? t('Загрузка...') : buttonLabels[mode]}
           </button>
-        </form>
+        </form>}
 
         {mode === 'login' && <SocialLoginButtons role="teacher" />}
         {mode === 'login' && <TeacherEmailCodeLogin onLogin={() => { clearStudentSession(); onLogin() }} />}
 
-        {mode !== 'newpassword' && (
+        {mode !== 'newpassword' && mode !== 'sent' && (
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
             {mode === 'reset' ? (
               <span onClick={() => switchMode('login')} style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>

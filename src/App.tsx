@@ -303,9 +303,13 @@ function AppRoutes() {
   // Протухшая или уже использованная ссылка из письма: Supabase возвращает
   // /#error=access_denied&error_code=otp_expired… — ни один маршрут это не
   // ловил, и человек оказывался на лендинге без объяснений.
-  if (hash.startsWith('#error=')) return <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher' }} linkExpired /></Chunk>
+  if (hash.startsWith('#error=')) return localStorage.getItem('iskra:password-recovery-role') === 'student'
+    ? <StudentLoginPage linkExpired />
+    : <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher' }} linkExpired /></Chunk>
 
-  if (recovery) return <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); window.location.hash = '#/teacher' }} recovery /></Chunk>
+  if (recovery) return localStorage.getItem('iskra:password-recovery-role') === 'student'
+    ? <StudentLoginPage recovery onRecoveryComplete={() => { setRecovery(false); window.location.hash = '#/login' }} />
+    : <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); localStorage.removeItem('iskra:password-recovery-role'); window.location.hash = '#/teacher' }} recovery /></Chunk>
 
   // Local previews allow a guest teacher cabinet. Keep the real sign-in form
   // explicitly reachable so development can exercise authenticated RLS too.
