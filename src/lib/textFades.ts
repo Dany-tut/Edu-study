@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { measureWork } from './platformPerformance'
 
 export const TEXT_FADE_PROPERTY = '--iskra-text-fade-lines'
 /** The marker travels with reused style objects; only the text-bearing element is measured. */
@@ -70,7 +71,7 @@ export function startTextFades() {
     stylesDirty = false
   }
   function schedule() {
-    if (!frame) frame = requestAnimationFrame(flush)
+    if (!frame) frame = requestAnimationFrame(() => measureWork('text-fades', flush))
   }
   function restore(element: HTMLElement) {
     const entry = elements.get(element)
@@ -192,7 +193,7 @@ export function startTextFades() {
   }, true)
   document.fonts?.addEventListener('loadingdone', all)
   roots.add(document)
-  flush()
+  measureWork('text-fades.initial', flush)
 }
 
 /** Components mounted outside the main entry (isolated previews) still use the same observer. */
