@@ -157,6 +157,9 @@ jobs:
         continue-on-error: true
         run: npm run check:course-access
 
+      - name: Границы и покрытие иконок Loop
+        run: npm run icons:check
+
       - name: Правила интерфейса (check:ui)
         run: npm run check:ui
 
