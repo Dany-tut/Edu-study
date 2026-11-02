@@ -23,16 +23,17 @@ assert.equal(JSON.stringify(rows),snapshot,'Grouping must not reorder or modify 
 assert.deepEqual(diaryUpcomingDays('2026-12-29'),['2026-12-29','2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03','2027-01-04'])
 assert.deepEqual(diaryUpcomingDays('not-a-date'),[])
 const data=new Map();const storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value)}
-assert.equal(readStudentDiaryView(null,storage),'work')
+assert.equal(readStudentDiaryView(null,storage),'journal')
 saveStudentDiaryView('student:a','work',storage);saveStudentDiaryView('student:b','courses',storage)
-assert.equal(readStudentDiaryView('student:a',storage),'work');assert.equal(readStudentDiaryView('student:b',storage),'work')
+assert.equal(readStudentDiaryView('student:a',storage),'work');assert.equal(readStudentDiaryView('student:b',storage),'journal')
 saveStudentDiaryView('student:a','lessons',storage);assert.equal(readStudentDiaryView('student:a',storage),'work','Opening a lesson must not overwrite the preferred diary view')
 saveStudentDiaryView('student:a','unknown',storage);assert.equal(readStudentDiaryView('student:a',storage),'work')
-assert.equal(readStudentDiaryView('new-student',storage),'work')
+assert.equal(readStudentDiaryView('new-student',storage),'journal')
 for (const legacy of ['today', 'courses', 'lessons', 'unknown']) {
   data.set('iskra:diary-view:' + encodeURIComponent('legacy-student'), legacy)
-  assert.equal(readStudentDiaryView('legacy-student',storage),'work','Old saved modes must open the feed')
+  assert.equal(readStudentDiaryView('legacy-student',storage),'journal','Old saved modes must open the journal')
 }
+saveStudentDiaryView('student:a','journal',storage);assert.equal(readStudentDiaryView('student:a',storage),'journal')
 const blocked={getItem(){throw new Error('blocked')},setItem(){throw new Error('blocked')}}
-assert.equal(readStudentDiaryView('student:a',blocked),'work');assert.doesNotThrow(()=>saveStudentDiaryView('student:a','work',blocked))
+assert.equal(readStudentDiaryView('student:a',blocked),'journal');assert.doesNotThrow(()=>saveStudentDiaryView('student:a','work',blocked))
 console.log('PASS: complete timeline, selected days, descending dates, no source mutation, year boundary and account-scoped view preference with blocked storage.')
