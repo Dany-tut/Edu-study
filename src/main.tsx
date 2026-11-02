@@ -35,7 +35,8 @@ if (Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
   const route = pathname.replace(/\/+$/, '')
   if (import.meta.env.DEV && route === '/journal-stand') {
     if (!hash) window.history.replaceState(null, '', pathname + search + '#/teacher/gradebook')
-  } else if (route && route !== '/index.html') {
+  // The public design stand has its own entry point, outside hash routing.
+  } else if (route && route !== '/index.html' && route !== '/student-track-stand') {
     const rest = hash.replace(/^#\/?/, '')
     const target = `#${route}${rest ? '/' + rest : ''}`
     window.history.replaceState(null, '', `/${search}${target}`)

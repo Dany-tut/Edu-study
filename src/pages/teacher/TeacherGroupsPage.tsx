@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
+import FadeText from '../../components/FadeText'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
@@ -2631,24 +2632,21 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                   borderBottom: '1px solid var(--color-border-soft)',
                 }}>
                   {/* Single header row: name left, pills center, search right */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
+                  <div className="group-roster-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
                     {/* Left: group name */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto', minWidth: 0 }}>
                       <div style={{
                         width: 10, height: 10, borderRadius: '50%', background: activeGroup.color, flex: 'none',
                       }} />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
                         {activeGroup.name}
-                      </span>
+                      </FadeText>
                       {activeGroup.isIndividual && (
                         <span style={cardChip(activeGroup.color, { flex: 'none' })}>1:1</span>
                       )}
-                      <span style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flex: 'none' }}>
-                        · {groupStudents.length} {groupStudents.length === 1 ? t('студент') : t('студентов')}
-                      </span>
                     </div>
 
-                    {/* Center: filter pills (absolute so they're truly centered) */}
+                    {/* Student status filters */}
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: 6, margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center',
                     }}>
@@ -2666,7 +2664,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                             onClick={() => setRosterFilter(f.id)}
                             style={{
                               display: 'inline-flex', alignItems: 'center', gap: 6,
-                              padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+                              height: 40, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
                               fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
                               background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                               color: active ? 'var(--color-text)' : 'var(--color-muted)',
@@ -2689,7 +2687,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       <div style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
-                        borderRadius: 10, padding: '8px 12px', width: 180,
+                        borderRadius: 10, padding: '0 12px', width: 180, height: 40, boxSizing: 'border-box',
                       }}>
                         <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
                         <input
@@ -2815,7 +2813,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                   {initials}
                                 </div>
                                 <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
-                                  <div title={tn(student.name)} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(student.name)}</div>
+                                  <FadeText>{tn(student.name)}</FadeText>
                                   {allRosterView && <RosterDescription text={studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel} />}
                                 </div>
                               </div>

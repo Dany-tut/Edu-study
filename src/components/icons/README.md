@@ -70,3 +70,9 @@ node scripts/buildLoopNativeIcons.mjs --renderer=/tmp/iskra-loop-renderer/node_m
 npm run build
 npx cap copy ios
 ```
+
+Stroked artwork stays inside the SVG viewport through `strokeWidth={3}`.
+Source glyphs that touched the edge have a proportional fit transform with
+a 0.5-unit safety margin. Keep SVG sources, `glyphs.json`, and the fit transforms
+in `generate.cjs` in sync. `npm run icons:check` rasterizes all 250 React drawings
+at stroke widths 1, 2, 2.5 and 3 to detect clipped ink, including composites.
