@@ -1,12 +1,13 @@
 import { CheckCircle2 } from '../../icons/appIcons'
 import MiniStatCard from './_MiniStatCard'
+import { studentBalanceStats } from '../../../lib/studentWidgetStats'
 import { useAllStudents } from '../../../lib/useGroups'
 import { useT } from '../../../lib/i18n'
 
 export default function WidgetStudentActive() {
   const t = useT()
   const allStudents = useAllStudents()
-  const active = allStudents.filter(s => !s.paymentDue || new Date(s.paymentDue) >= new Date()).length
+  const { active } = studentBalanceStats(allStudents)
   return (
     <MiniStatCard
       icon={CheckCircle2} label={t('Активных')}
