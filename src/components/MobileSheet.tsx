@@ -1,3 +1,4 @@
+import FadeText from './FadeText'
 import { useEffect, useRef } from 'react'
 import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
@@ -248,7 +249,7 @@ export default function MobileSheet({
               </div>
               {title && (
                 <div style={{ padding: '4px 20px 10px', textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
-                  {title}
+                  <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{title}</FadeText>
                 </div>
               )}
             </div>

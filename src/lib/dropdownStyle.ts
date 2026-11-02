@@ -17,7 +17,7 @@ export const dropdownSurface: CSSProperties = {
   borderRadius: 14,
   boxShadow: 'var(--shadow-dropdown)',
   padding: 6,
-  overflow: 'hidden',
+  overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0,
 }
 
 /**

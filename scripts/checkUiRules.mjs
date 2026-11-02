@@ -1,3 +1,4 @@
+import './checkOverlayFades.mjs'
 import './checkTextFades.mjs'
 import './checkTextFadeVisibility.mjs'
 import assert from 'node:assert/strict'

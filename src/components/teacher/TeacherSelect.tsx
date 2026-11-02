@@ -1,3 +1,4 @@
+import { viewportDropdownPosition } from '../../lib/dropdownPosition'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -17,7 +18,7 @@ const norm = (o: TeacherSelectOption): NamedOption => (typeof o === 'string' ? {
 // Рамка прозрачная, а не отсутствует (и на 1px меньше отступ) — на открытии она
 // красится в акцент, и коробка не должна дрогнуть. См. lib/dropdownStyle.ts.
 const baseTrigger: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '8px 12px',
+  width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '8px 12px',
   borderRadius: 11, ...dropdownRing(false, ''),
   fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
@@ -53,7 +54,7 @@ export default function TeacherSelect({
   const [hoverDel, setHoverDel] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [pos, setPos] = useState<{ top: number; bottom: number; left: number; width: number; up: boolean } | null>(null)
+  const [pos, setPos] = useState<ReturnType<typeof viewportDropdownPosition> | null>(null)
   const btnRef = useRef<HTMLDivElement>(null)
   /** Когда список открылся: по нему отличают новый щелчок от того же самого. */
   const openedAt = useRef(0)
@@ -91,9 +92,7 @@ export default function TeacherSelect({
     if (!r) return
     const itemH = small ? 28 : 33
     const estH = Math.min(opts.length * itemH + 12, 232)
-    const up = r.bottom + estH + 12 > window.innerHeight && r.top - estH - 12 > 0
-    const left = Math.min(r.left, window.innerWidth - r.width - 8)
-    setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width, up })
+    setPos(viewportDropdownPosition(r, estH))
     setOpen(true)
     openedAt.current = Date.now()
     setQuery('')
@@ -107,11 +106,10 @@ export default function TeacherSelect({
     if (!open) return
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
-    const left = Math.min(r.left, window.innerWidth - r.width - 8)
     setPos(p => {
       if (!p) return p
-      const next = { ...p, top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width }
-      return (p.top === next.top && p.bottom === next.bottom && p.left === next.left && p.width === next.width) ? p : next
+      const next = viewportDropdownPosition(r, 232)
+      return (p.top === next.top && p.bottom === next.bottom && p.left === next.left && p.width === next.width && p.maxHeight === next.maxHeight && p.up === next.up) ? p : next
     })
   })
 
@@ -165,8 +163,7 @@ export default function TeacherSelect({
       if (tgt && menuRef.current?.contains(tgt)) return
       const r = btnRef.current?.getBoundingClientRect()
       if (!r || r.bottom < 0 || r.top > window.innerHeight) { closeDropdown(); return }
-      const left = Math.min(r.left, window.innerWidth - r.width - 8)
-      setPos(p => (p ? { ...p, top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width } : p))
+        setPos(viewportDropdownPosition(r, 232))
     }
     window.addEventListener('mousedown', onDown)
     window.addEventListener('keydown', onKey)
@@ -266,7 +263,7 @@ export default function TeacherSelect({
               transition={{ type: 'spring', stiffness: 460, damping: 26, mass: 0.7 }}
               style={{
                 position: 'fixed', zIndex: 2000,
-                left: pos.left, width: pos.width,
+                left: pos.left, width: pos.width, maxHeight: pos.maxHeight,
                 ...(pos.up ? { bottom: pos.bottom } : { top: pos.top }),
                 transformOrigin: pos.up ? 'bottom left' : 'top left',
                 ...dropdownSurface,
@@ -321,13 +318,13 @@ export default function TeacherSelect({
                   </button>
                 )
               )}
-              <ScrollFade maxHeight={220} bg={DROPDOWN_GLASS} overlayScrollbar>
+              <ScrollFade maxHeight={Math.min(220, Math.max(0, pos.maxHeight - (editable ? 54 : 14)))} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {filtered.length === 0 ? (
                     <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
                   ) : filtered.map(o => {
                     const selected = o.value === value
-                    const showDel = editable && hoverDel === o.value
+                    const showDel = editable && !!onDeleteOption && (mobile || hoverDel === o.value)
                     return (
                       <div
                         key={o.value || '∅'}
@@ -339,10 +336,9 @@ export default function TeacherSelect({
                         onMouseEnter={dropdownRowHover(selected).onMouseEnter}
                         onMouseLeave={e => { dropdownRowHover(selected).onMouseLeave(e); setHoverDel(p => p === o.value ? null : p) }}
                       >
-                        <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                          {o.icon && <span aria-hidden style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: 6 }}>{o.icon}</span>}{tc(t(o.label))}
-                        </span>
-                        {selected && !showDel && <Check size={small ? 12 : 14} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
+                        {o.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}>{o.icon}</span>}
+                        <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere', marginRight: editable && onDeleteOption && !selected ? 28 : 0 }}>{tc(t(o.label))}</FadeText>
+                        {selected && <Check size={small ? 12 : 14} strokeWidth={2.5} style={{ flexShrink: 0, marginRight: editable && onDeleteOption ? 28 : 0 }} />}
                         {editable && onDeleteOption && (
                           <>
                             {/* Right 1/3 hover zone — reveals the trash. Clearing is
@@ -355,7 +351,7 @@ export default function TeacherSelect({
                             <AnimatePresence>
                               {showDel && (
                                 <motion.button
-                                  type="button"
+                                  type="button" aria-label={`${t('Удалить')}: ${tc(t(o.label))}`}
                                   initial={{ opacity: 0, scale: 0.8 }}
                                   animate={{ opacity: 1, scale: 1 }}
                                   exit={{ opacity: 0, scale: 0.8 }}
