@@ -172,6 +172,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
               />
             ))}
           </div>
+          <a href="/?widget-sizes=1#/teacher" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '10px 18px', flexShrink: 0, borderTop: '1px solid var(--color-border-medium)', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>{t('Вся сетка размеров')}</a>
         </motion.div>
       </motion.div>
     </AnimatePresence>,

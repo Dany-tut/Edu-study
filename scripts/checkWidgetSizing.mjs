@@ -2,14 +2,14 @@ import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { mkdirSync, writeFileSync } from 'node:fs'
 const result = await build({
-  stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'; export * from './src/lib/defaultDeskLayout'; export { studentBalanceStats } from './src/lib/studentWidgetStats'",resolveDir:process.cwd(),loader:'ts'},
+  stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'; export * from './src/lib/defaultDeskLayout'; export * from './src/lib/widgetReviewSizing'; export { studentBalanceStats } from './src/lib/studentWidgetStats'",resolveDir:process.cwd(),loader:'ts'},
   bundle:true,platform:'node',format:'esm',write:false,
   plugins:[{name:'unused-widget-renderers',setup(b){b.onResolve({filter:/^\.\/Widget/},a=>a.importer.endsWith('/registry.tsx')?{path:a.path,external:true}:null)}}],
   external:['react','react/jsx-runtime','framer-motion','lucide-react'],
 })
 mkdirSync('node_modules/.cache',{recursive:true})
 writeFileSync('node_modules/.cache/widget-sizing-check.mjs',result.outputFiles[0].text)
-const { registry, clampDeskWidget, compactDeskWidgets, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP } = await import('../node_modules/.cache/widget-sizing-check.mjs')
+const { registry, clampDeskWidget, compactDeskWidgets, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP, reviewPresets, reviewAllowed } = await import('../node_modules/.cache/widget-sizing-check.mjs')
 const integral=item=>{for(const k of ['x','y','w','h','minW','minH'])assert.ok(Number.isInteger(item[k]),`${item.type}: fractional ${k}=${item[k]}`)}
 let cases=0
 for(const def of registry) for(const width of [900,1200,1600,2400]) for(const oldRow of [42,64,84]){
@@ -94,3 +94,17 @@ for(const height of [900,1000,1200]){
  assert.ok(Math.abs(height-bottom-DESK_INSET)<0.001,'Default bottom inset must match side inset')
 }
 console.log('Reset templates: equal cards, shared edges, no overlaps, equal desktop insets passed')
+
+// Every current widget has five real, distinct, permitted review sizes.
+for(const [screenWidth,screenHeight] of [[1440,900],[1280,720],[1920,1080]]){
+ const width=screenWidth-64,columns=deskColumns(width,8),rowHeight=deskRowHeight(screenHeight)
+ const grid={width,columns,rowHeight,rows:Math.floor((screenHeight-108-32+8)/(rowHeight+8)+0.001),cellWidth:(width-(columns-1)*8)/columns}
+ for(const def of registry.filter(d=>!d.legacy)){
+  const sizes=reviewPresets(def,grid)
+  assert.equal(sizes.length,5,`${def.type}: five presets required`)
+  assert.equal(new Set(sizes.map(s=>`${s.w}x${s.h}`)).size,5)
+  for(const size of sizes)assert.ok(reviewAllowed(def,grid,size))
+  if(def.type==='today-schedule')assert.equal(reviewAllowed(def,grid,{w:1,h:1}),false)
+ }
+}
+console.log('Full size review: 19 widgets × 5 presets × 3 screens use production bounds')
