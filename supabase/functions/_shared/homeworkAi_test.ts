@@ -1,8 +1,22 @@
 import { gradeViaLinali, parseGradeResult, GradeError, classifyProviderStatus } from './homeworkAi.ts'
 import { assertEquals, assertRejects, assertThrows } from 'jsr:@std/assert@1'
 import type { Work } from '../hw-grade/grader.ts'
+import atlas from './homeworkCriteria.json' with { type: 'json' }
 const work: Work = {kind:'basic',subject:'chemistry',exam:'ege',title:'Учебная проверка',note:'',tasks:[{n:1,type:'write',statement:'Объясните восстановление железа.',reference:'Железо принимает электроны.',answer:'Железо принимает электроны.',machine:'review'}]}
 const raw = () => ({tasks:[{n:1,kim_n:null,max_points:0,scale:[],elements:[{text:'Приём электронов',verdict:'yes',quote:'Железо принимает электроны.',from:'text',ref:'эталон преподавателя'}],comment:'Верно объяснено восстановление.',note:''}],comment:'Восстановление объяснено верно.',teacher_note:''})
+Deno.test('paid prompt omits machine-only catalogue, preserves all scoring criteria and records safe usage',async()=>{
+ for (const [key,items] of Object.entries(atlas)) {
+  const [exam,subject]=key.split('_') as ['ege'|'oge','chemistry'|'biology']
+  const graded=await gradeViaLinali({...work,exam,subject},[],{key:'test',fetcher:async(_input,init)=>{
+   const prompt=JSON.parse(String(init?.body)).messages[1].content[0].text as string
+   for (const item of items.filter(item=>'criteria' in item && item.criteria?.length)) assertEquals(prompt.includes(JSON.stringify(item)),true)
+   assertEquals(prompt.includes(JSON.stringify(items[0])),false)
+   assertEquals(prompt.length < JSON.stringify(items).length,true)
+   return new Response(JSON.stringify({usage:{prompt_tokens:1200,completion_tokens:220,total_tokens:1420,private_trace:'ignore'},choices:[{finish_reason:'stop',message:{content:JSON.stringify(raw())}}]}))
+  }})
+  assertEquals(graded.tokenUsage,{prompt_tokens:1200,completion_tokens:220,total_tokens:1420})
+ }
+})
 Deno.test('API key is server-only and images reach the provider; custom task has feedback without invented score',async()=>{
  const graded=await gradeViaLinali(work,[{name:'t1-board.png',mediaType:'image/png',data:'AAAA'}],{key:'test-private-key',fetcher:async(input,init)=>{
   assertEquals(input,'https://api.linaliapi.com/v1/chat/completions')
