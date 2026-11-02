@@ -919,6 +919,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const rateIndex = Math.max(0, rates.indexOf(rate))
   const volumeFill = (muted ? 0 : volume) / maxVolume
   const rateFill = rateIndex / (rates.length - 1)
+  const volumeFillScale = Math.min(1, volumeFill / .2)
+  const rateFillScale = Math.min(1, rateFill / .2)
   const liveRate = gesture === 'ff' && canRate && boost <= engineMaxRate ? boost : rate
 
   /** Стрелка в плашке ускорения и её прозрачное поле по бокам. Ink глифа идёт
@@ -1279,7 +1281,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
                     <div className="lesson-player-volume-control">
                       <div className="lesson-player-volume-level" aria-hidden="true">
-                        <div style={{ width: `${volumeFill * 100}%`, height: `${Math.min(1, volumeFill / .2) * 100}%` }} />
+                        <div style={{ width: `${volumeFill * 100}%`, height: `${volumeFillScale * 100}%`, left: `calc(${volumeFillScale - 1} * var(--slider-inset, 12px))` }} />
                         {canBoostVolume && <span className="lesson-player-volume-normal" style={{ left: `${100 / maxVolume}%` }} />}
                         {volume > 1 && !muted && <span className="lesson-player-rate-value">{Math.round(volume * 100)}%</span>}
                       </div>
@@ -1346,7 +1348,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     >
                       <div className="lesson-player-rate-control">
                         <div className="lesson-player-volume-level" aria-hidden="true">
-                          <div style={{ width: `${rateFill * 100}%`, height: `${Math.min(1, rateFill / .2) * 100}%` }} />
+                          <div style={{ width: `${rateFill * 100}%`, height: `${rateFillScale * 100}%`, left: `calc(${rateFillScale - 1} * var(--slider-inset, 12px))` }} />
                           <span className="lesson-player-rate-value">{rate}×</span>
                         </div>
                         <input type="range" min={0} max={rates.length - 1} step={1}

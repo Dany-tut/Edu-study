@@ -8,15 +8,15 @@
 }
 .lesson-player-volume-control { position: relative; width: 188px; height: 48px; }
 .lesson-player-volume-level {
-  position: absolute; inset: 12px; transition: inset .12s ease;
-  border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.22); pointer-events: none;
+  position: absolute; inset: var(--slider-inset, 12px); transition: inset .12s ease;
+  border-radius: 999px; overflow: visible; background: rgba(255,255,255,.22); pointer-events: none;
 }
 .lesson-player-volume-level > div {
   position: absolute; top: 50%; left: 0; transform: translateY(-50%);
-  border-radius: 999px; background: #fff; transition: height .1s ease;
+  border-radius: 999px; background: #fff; transition: height .1s ease, left .1s ease;
 }
 @media (prefers-reduced-motion: reduce) { .lesson-player-volume-level > div { transition: none; } }
-.lesson-player-volume-control:has(input:active) .lesson-player-volume-level { inset: 8px; }
+.lesson-player-volume-control:has(input:active) { --slider-inset: 8px; }
 .lesson-player-volume-slider {
   position: relative; appearance: none; -webkit-appearance: none; width: 100%; height: 48px;
   margin: 0; padding: 0; border: none; background: transparent; cursor: pointer;
@@ -47,7 +47,7 @@
   border: 1px solid rgba(255,255,255,.2); box-shadow: 0 4px 14px rgba(0,0,0,.22);
 }
 .lesson-player-rate-control { position: relative; width: 100%; height: 52px; }
-.lesson-player-rate-control:has(input:active) .lesson-player-volume-level { inset: 8px; }
+.lesson-player-rate-control:has(input:active) { --slider-inset: 8px; }
 .lesson-player-rate-slider { height: 52px; }
 .lesson-player-rate-value {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
