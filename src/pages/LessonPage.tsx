@@ -18,8 +18,9 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
 import { getSubject, ICON_GAP } from '../lib/subjects'
 import {
-  emptyWatch, loadVideoWatch, saveVideoWatch, watchedSeconds, type VideoWatch,
+  emptyWatch, loadVideoWatch, saveVideoWatch, type VideoWatch,
 } from '../lib/videoProgress'
+import LessonVideoProgress from '../components/LessonVideoProgress'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { lessonScheduleDate } from '../lib/lessonStatus'
 import { ownerStudentIdFor } from '../store/studentDataStore'
@@ -882,7 +883,6 @@ export default function LessonPage() {
   const videoBadge = subjectDef ? <><SubjectMark subject={subjectDef.id} size={14} />{ICON_GAP}{t(subjectDef.name)}</> : undefined
 
   const studyProgress = lessonStudyProgress(lesson ?? {}, { ...watch, duration: videoDuration || watch.duration })
-  const watchedPct = studyProgress.percent
 
   // Подтянуть активную строку в видимую часть списка. Скроллим сам контейнер, а
   // не через scrollIntoView: тот тянет за собой и страницу целиком.
@@ -1099,29 +1099,7 @@ export default function LessonPage() {
 
             {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не
                 попадает — считаются только отрезки, пройденные воспроизведением. */}
-            {(watchedPct > 0 || studyProgress.completed) && (
-              <div className="flex items-center" style={{ gap: 10 }}>
-                <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'var(--color-bg)', overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      height: '100%', width: `${Math.max(2, watchedPct)}%`, borderRadius: 999,
-                      background: studyProgress.completed ? 'var(--grad-green-bar)' : 'var(--grad-purple)',
-                      transition: 'width 0.38s ease',
-                    }}
-                  />
-                </div>
-                <span
-                  className="flex items-center flex-shrink-0"
-                  style={{ gap: 6, fontSize: 13, fontWeight: 600, color: studyProgress.completed ? 'var(--color-green-text)' : 'var(--color-text-3)' }}
-                >
-                  {studyProgress.attended
-                    ? <><CheckCircle2 size={14} /> {t('Урок засчитан — был на занятии')}</>
-                    : studyProgress.completed
-                    ? <><CheckCircle2 size={14} /> {t('Запись просмотрена')}</>
-                    : <>{t('Просмотрено')} {Math.floor(watchedSeconds(watch.ranges) / 60)} / {Math.ceil((videoDuration || watch.duration) / 60)} {t('мин')} · {watchedPct}%</>}
-                </span>
-              </div>
-            )}
+            <LessonVideoProgress watch={watch} duration={videoDuration || watch.duration} />
             {watchSyncFailed && <p role="status" style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Прогресс сохранён на этом устройстве. Не удалось синхронизировать.')} <button type="button" onClick={() => persistWatch(watch)} style={{ minHeight: 44 }}>{t('Повторить')}</button></p>}
             {studyProgress.attended && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Запись можно пересмотреть для повторения.')}</p>}
           </div>

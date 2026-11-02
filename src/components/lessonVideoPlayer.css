@@ -43,3 +43,26 @@
   .lesson-player-time-slash { display: none; }
   .lesson-player-message { padding: 6px; gap: 4px; font-size: 11px; }
 }
+
+/* Shared 24px radius/inset: the caption aligns with the straight edge of the frame. */
+.lesson-video-progress {
+  padding-inline: 24px; display: flex; align-items: center; gap: 12px;
+  min-width: 0; font-size: 13px; font-weight: 600;
+}
+.lesson-video-progress > span { flex-shrink: 0; white-space: nowrap; }
+.lesson-video-progress-track { flex: 1; min-width: 20px; height: 5px; border-radius: 999px; background: var(--color-bg); }
+.lesson-player-rail { position: relative; height: 44px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
+.lesson-player-rail:focus-visible { outline: 2px solid white; outline-offset: 2px; border-radius: 8px; }
+.lesson-player-track { position: relative; width: 100%; height: 8px; border-radius: 999px; background: rgba(255,255,255,.22); transition: height .15s ease; }
+.lesson-player-track[data-active="true"] { height: 10px; }
+.lesson-player-preview {
+  position: absolute; bottom: 40px; width: 240px; max-width: 100%; box-sizing: border-box;
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px;
+  background: rgba(20,20,22,.96); border: 1px solid rgba(255,255,255,.14);
+  color: white; font-size: 12px; font-weight: 600; pointer-events: none; box-shadow: var(--shadow-4);
+}
+.lesson-player-preview-time { flex-shrink: 0; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.65); }
+.lesson-player-chapter { min-width: 0; }
+@media (max-width: 400px) {
+  .lesson-video-progress { gap: 8px; font-size: 11px; }
+}

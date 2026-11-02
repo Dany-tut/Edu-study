@@ -33,6 +33,7 @@ import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
 import { resolveDriveVideo } from '../lib/driveVideo'
 import ScrollFade from './ScrollFade'
+import FadeText from './FadeText'
 import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
 import { useT } from '../lib/i18n'
@@ -886,6 +887,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   // Та же функция, что подсвечивает строку в панели «Таймкоды» справа: подпись
   // главы на шкале и подсветка в списке обязаны переключаться одновременно.
   const activeChapter = activeTimecodeIndex(timecodes, current)
+  const previewAt = scrubbing ? current : hoverAt
+  const previewChapter = previewAt === null ? -1 : activeTimecodeIndex(timecodes, previewAt)
 
   // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
   // должна стоять реальная скорость, а не та, что выбрана в меню.
@@ -1184,16 +1187,18 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               onKeyDown={e => {
                 if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
                 e.preventDefault(); e.stopPropagation()
-                doSeek(e.key === 'Home' ? 0 : e.key === 'End' ? duration : current + (e.key === 'ArrowRight' ? 5 : -5))
+                const next = Math.max(0, Math.min(duration, e.key === 'Home' ? 0 : e.key === 'End' ? duration : current + (e.key === 'ArrowRight' ? 5 : -5)))
+                setHoverAt(next)
+                doSeek(next)
               }}
+              onFocus={() => { setHoverAt(current); wake() }}
+              onBlur={() => setHoverAt(null)}
               onPointerDown={startScrub}
               onPointerMove={e => setHoverAt(seekAtClientX(e.clientX))}
               onPointerLeave={() => setHoverAt(null)}
-              style={{ position: 'relative', height: 28, display: 'flex', alignItems: 'center', cursor: 'pointer', touchAction: 'none' }}
+              className="lesson-player-rail"
             >
-              {/* Комета: бегунка нет вовсе, положение держит светлая голова на
-                  конце заливки, а хвост за ней гаснет. */}
-              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 7 : 5, borderRadius: 999, background: 'rgba(255,255,255,0.22)', transition: 'height 0.15s ease' }}>
+              <div className="lesson-player-track" data-active={scrubbing || hoverAt !== null}>
                 <div style={{ position: 'absolute', inset: 0, width: `${buffered * 100}%`, borderRadius: 999, background: 'rgba(255,255,255,0.28)' }} />
                 {/* Уже отсмотренные куски — видно, что осталось пересмотреть. */}
                 {duration > 0 && watch.ranges.map(([a, b], i) => (
@@ -1209,43 +1214,36 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 <div
                   style={{
                     position: 'absolute', inset: 0, width: `${pct}%`, borderRadius: 999,
-                    background: 'linear-gradient(90deg, rgba(var(--accent-rgb), 0.45), rgba(var(--accent-rgb), 1) 55%, rgba(var(--accent-rgb), 0.45) 86%, #FFFFFF)',
+                    background: 'linear-gradient(90deg, rgba(var(--accent-rgb), .65), rgb(var(--accent-rgb)))',
                   }}
                 />
-                {/* Главы — прорези цветом корпуса, а не точки поверх линии. */}
+                {/* Метки глав остаются на своих фактических таймкодах. */}
                 {duration > 0 && timecodes.map(tc => (
                   <span
                     key={tc.seconds}
                     title={tc.label}
                     style={{
-                      position: 'absolute', top: -1, bottom: -1, width: 2,
+                      position: 'absolute', top: '50%', width: 4, height: 4, borderRadius: '50%', transform: 'translate(-50%, -50%)',
                       left: `${Math.min(99.8, (tc.seconds / duration) * 100)}%`,
-                      background: 'rgba(0,0,0,0.55)',
+                      background: 'rgba(255,255,255,.8)', boxShadow: '0 0 0 2px rgba(0,0,0,.3)',
                     }}
                   />
                 ))}
                 <span
                   style={{
-                    position: 'absolute', top: '50%', left: `max(0px, calc(${pct}% - 16px))`,
-                    width: 16, height: scrubbing ? 7 : 5, borderRadius: 999,
-                    transform: 'translateY(-50%)', background: '#fff',
+                    position: 'absolute', top: '50%', left: `clamp(6px, ${pct}%, calc(100% - 6px))`,
+                    width: 12, height: 12, borderRadius: '50%',
+                    transform: 'translate(-50%, -50%)', background: '#fff',
                     boxShadow: '0 0 10px rgba(var(--accent-rgb), 0.85)',
                     transition: 'height 0.15s ease',
                   }}
                 />
               </div>
 
-              {hoverAt !== null && duration > 0 && (
-                <span
-                  style={{
-                    position: 'absolute', bottom: 22, transform: 'translateX(-50%)',
-                    left: `${(hoverAt / duration) * 100}%`, whiteSpace: 'nowrap',
-                    padding: '4px 8px', borderRadius: 8, background: 'rgba(0,0,0,0.78)',
-                    color: '#fff', fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                    pointerEvents: 'none',
-                  }}
-                >
-                  {formatClock(hoverAt)}
+              {previewAt !== null && duration > 0 && (
+                <span className="lesson-player-preview" style={{ left: `clamp(0px, calc(${(previewAt / duration) * 100}% - 120px), max(0px, calc(100% - 240px)))` }}>
+                  <span className="lesson-player-preview-time">{formatClock(previewAt)}</span>
+                  <FadeText>{previewChapter >= 0 ? timecodes[previewChapter].label : title}</FadeText>
                 </span>
               )}
             </div>
@@ -1297,8 +1295,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               </span>
 
               {activeChapter >= 0 && (
-                <span className="lesson-player-chapter truncate" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
-                  {timecodes[activeChapter].label}
+                <span className="lesson-player-chapter" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
+                  <FadeText>{timecodes[activeChapter].label}</FadeText>
                 </span>
               )}
 
