@@ -29,7 +29,7 @@ try {
     ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000011','own',jsonb_build_object('hwDate','2026-11-01','hwTasks',jsonb_build_array(jsonb_build_object('type','write','condition',repeat('x',500000),'isHard',false),jsonb_build_object('type','testly','isHard',true)),'extraHw',jsonb_build_array(jsonb_build_object('id','practice','date','2026-11-02','tasks',jsonb_build_array(jsonb_build_object('type','text','answer','secret')))))),
     ('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000022','other','{}');`)
   await sql(readFileSync('supabase/migrations/20261101164928_teacher_journal_lesson_summary.sql','utf8'))
-  await sql(`create temp table before_summary as select * from public.teacher_journal_lessons_v1;`)
+  await sql(`create table before_summary as select * from public.teacher_journal_lessons_v1;`)
   await sql(readFileSync('supabase/migrations/20261102013000_journal_stored_summary.sql','utf8'))
   await sql(`do $$ begin
     if exists((select * from before_summary except select * from teacher_journal_lessons_v1)
