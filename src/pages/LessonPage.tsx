@@ -935,7 +935,7 @@ export default function LessonPage() {
             // перетекает в таблетку соседнего экрана, и разница видна.
             // «Назад» — шеврон в круге везде, как BackCircle; подпись — в aria-label.
             height: MOBILE_PILL_H, width: MOBILE_PILL_H, boxSizing: 'border-box',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'none',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >

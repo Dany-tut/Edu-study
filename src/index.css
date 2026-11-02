@@ -594,6 +594,11 @@ textarea:not([style*="background: transparent"]):not([style*="background: none"]
 }
 /* Docked-pill rows (position:fixed) share the same spring feel */
 .docked-pills-row {
+  /* Все кнопки «Назад» в появляющейся при прокрутке шапке совпадают
+     с соседними таблетками. В обычной строке BackCircle остаётся без тени. */
+  --back-circle-border: var(--color-border-glass);
+  --back-circle-opacity: 0.86;
+  --back-circle-shadow: var(--shadow-lg);
   transform: translateY(var(--topbar-spring-y, 0px));
 }
 

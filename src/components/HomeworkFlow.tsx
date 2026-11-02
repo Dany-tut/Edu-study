@@ -3143,7 +3143,7 @@ export default function HomeworkFlow({
           style={{
             // «Назад» — шеврон в круге везде, как BackCircle.
             gap: 4, padding: 0, width: 40, height: 40, borderRadius: 999, border: '1px solid var(--color-border-soft)',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'none',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
