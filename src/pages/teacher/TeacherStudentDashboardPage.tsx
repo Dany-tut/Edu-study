@@ -6,7 +6,7 @@ import {
   ArrowLeft, Phone, Send, User, TrendingUp, ClipboardCheck, Clock,
   Award, Target, XCircle, CheckCircle2, Layers, BookOpen, Dumbbell,
   Star, Calendar, BarChart3, Download, CreditCard, MessageSquare,
-  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain, ChevronDown, Lightbulb,
+  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain, ChevronDown,
 } from '../../components/icons/appIcons'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
@@ -28,6 +28,7 @@ import BackCircle from '../../components/BackCircle'
 import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 import './studentProfile.css'
 import { useScrollFades } from '../../lib/useScrollFades'
+import { useIsDesktop } from '../../lib/useIsDesktop'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -44,17 +45,17 @@ function Avatar({ student, size = 56 }: { student: Student; size?: number }) {
 
 function SectionHeader({ icon: Icon, label, accent }: { icon: React.FC<{ size?: number; style?: React.CSSProperties }>; label: string; accent?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-      <Icon size={13} style={{ color: accent ?? 'var(--color-text-3)' }} />
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
-    </div>
+    <h2 className="student-profile-section-title">
+      <Icon size={16} style={{ color: accent ?? 'var(--color-text-3)', flexShrink: 0 }} />
+      <span>{label}</span>
+    </h2>
   )
 }
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
-      padding: 22, borderRadius: 20,
+      minWidth: 0, padding: 22, borderRadius: 20,
       background: 'var(--color-bg-card, rgba(var(--glass-rgb), 0.96))',
       border: '1px solid var(--color-border-soft)',
       boxShadow: 'var(--shadow-1)',
@@ -319,6 +320,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
   const t = useT()
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
+  const isDesktop = useIsDesktop()
   const selectedStudentId = student?.id
   const example = exampleCourses !== undefined
   const cachedTrainerStats = useTeacher(s => s.studentTrainerStats)
@@ -396,6 +398,65 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
   // Student has meaningful activity beyond diagnostics
   const hasStats = hwAvg > 0 || student.testScore > 0 || realAttendance > 0 || student.trialScore != null || correctTrainer > 0
 
+  const coursesCard = (
+    <Card>
+      <SectionHeader icon={BookOpen} label={t('Активные курсы')} accent={group.color} />
+      {studentCourses.length === 0 ? (
+        <div className="student-profile-empty">{t('Активных курсов пока нет.')}</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {studentCourses.map(c => {
+            const pct = c.totalLessons > 0 ? c.completedLessons / c.totalLessons : 0
+            const pctColor = pct >= 0.7 ? 'var(--color-green-text)' : pct >= 0.4 ? 'var(--color-yellow-text)' : group.color
+            return (
+              <div key={c.id} style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', border: `1px solid ${group.color}20` }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>{tc(c.title)}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{tc(c.subject)}</div>
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: pctColor, flexShrink: 0 }}>
+                    {Math.round(pct * 100)}%
+                  </span>
+                </div>
+                <div style={{ height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', marginBottom: 4 }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct * 100}%` }}
+                    transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ height: '100%', background: pctColor, borderRadius: 99 }}
+                  />
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+                  {c.completedLessons} {t('из')} {c.totalLessons} {t('уроков пройдено')}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </Card>
+  )
+
+  const activityCard = (
+    <Card>
+      <SectionHeader icon={Star} label={t(workPanel ? 'Активность тренажёра (28 дней)' : 'Активность (28 дней)')} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+        {activityHeat.map((heat, i) => {
+          const bg = heat === 0 ? 'var(--color-bg-5)' : heat === 1 ? 'rgba(52,200,119,0.18)' : heat === 2 ? 'rgba(52,200,119,0.45)' : 'var(--color-green-text)'
+          return <div key={i} style={{ height: 22, borderRadius: 5, background: bg }} />
+        })}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+        <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Меньше')}</span>
+        {['var(--color-bg-5)', 'rgba(52,200,119,0.18)', 'rgba(52,200,119,0.45)', 'var(--color-green-text)'].map(c => (
+          <div key={c} style={{ width: 12, height: 12, borderRadius: 3, background: c }} />
+        ))}
+        <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Больше')}</span>
+      </div>
+    </Card>
+  )
+
   const dockGlass: React.CSSProperties = {
     border: '1px solid var(--color-border-glass)',
     background: 'rgba(var(--glass-rgb), 0.86)',
@@ -408,7 +469,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
   return (
     <>
       {/* ── Docked pill row (fixed top, appears on scroll) ─────────────── */}
-      {!inDrawer && <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+      {!inDrawer && <div className="docked-pills-row student-profile-dock">
         <AnimatePresence>
           {docked && (
             <motion.div
@@ -417,9 +478,9 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
               animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
+              className="student-profile-dock-row"
             >
-              <BackCircle onClick={onBack ?? (() => setActivePage('groups'))} label="Назад" />
+              <BackCircle onClick={onBack ?? (() => setActivePage('groups'))} label="Назад" style={isDesktop ? undefined : { width: 44, height: 44 }} />
 
               <div style={{
                 flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden',
@@ -434,15 +495,18 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
 
               <motion.button
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+                className="student-profile-dock-download"
+                aria-label={t('Скачать PDF')}
+                title={t('Скачать PDF')}
                 onClick={() => printStudentCard(tn(student.name))}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-                  padding: '10px 18px 10px 14px', borderRadius: 999, ...dockGlass,
+                  borderRadius: 999, ...dockGlass,
                   color: group.color, fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   pointerEvents: 'auto', border: `1px solid ${group.color}40`,
                 }}
               >
-                <Download size={14} strokeWidth={2} /> {t('Скачать PDF')}
+                <Download size={14} strokeWidth={2} /> <span>{t('Скачать PDF')}</span>
               </motion.button>
             </motion.div>
           )}
@@ -568,8 +632,8 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
 
         {workPanel}
         {/* ── KPI summary row ───────────────────────────────────────────── */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: inDrawer ? 'repeat(auto-fit, minmax(98px, 1fr))' : workPanel ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: inDrawer ? 6 : 12,
+        <div className="student-profile-kpis" style={{
+          display: 'grid', gridTemplateColumns: inDrawer ? 'repeat(auto-fit, minmax(98px, 1fr))' : workPanel ? 'repeat(3, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(98px, 1fr))', gap: inDrawer ? 6 : 12,
           marginBottom: (hasStats && diagResults.length > 0) ? 0 : 20,
           opacity: !hasStats && diagResults.length > 0 ? 0.45 : 1,
           transition: 'opacity 0.22s',
@@ -581,8 +645,8 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
             { icon: Clock,          label: t('Посещаемость'), value: `${realAttendance}%`, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)', bg: realAttendance >= 90 ? 'var(--color-green-soft)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
             { icon: Target,         label: t('Тренажёр'), value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: 'rgba(109,155,255,0.14)' },
           ].filter(item => !workPanel || (item.icon !== ClipboardCheck && item.icon !== Clock)).map(({ icon: Icon, label, value, color, bg }) => (
-            <div key={label} style={{ padding: inDrawer ? '10px 6px' : '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div key={label} className="student-profile-kpi" style={{ borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="student-profile-kpi-label">
                 <Icon size={13} style={{ color }} />
                 <span style={{ fontSize: 11, color, opacity: 0.85, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
               </div>
@@ -646,10 +710,10 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
         )}
 
         {/* ── Two-column grid ───────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: inDrawer ? 'minmax(0, 1fr)' : '1fr 1fr', gap: inDrawer ? 12 : 20 }}>
+        <div className="student-profile-grid">
 
           {/* LEFT */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="student-profile-column">
 
             {!workPanel && <>
             {/* Показатели */}
@@ -732,10 +796,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
             {/* История занятий */}
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Calendar size={14} style={{ color: 'var(--color-muted)' }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('История занятий')}</span>
-                </div>
+                <SectionHeader icon={Calendar} label={t('История занятий')} />
                 <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{t('Посетил')} {attendedCount}/{lessonHistory.length}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -753,6 +814,8 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
             </Card>
 
             </>}
+            {workPanel && <>{coursesCard}{activityCard}</>}
+
             {/* Оплата и заметки */}
             {(student.paymentDue || student.debt || student.comment) && (
               <Card>
@@ -792,51 +855,14 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
           </div>
 
           {/* RIGHT */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="student-profile-column">
 
-            {/* Активные курсы */}
-            <Card>
-              <SectionHeader icon={BookOpen} label={t('Активные курсы')} accent={group.color} />
-              {studentCourses.length === 0 ? (
-                <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '4px 0' }}>{t('Курс не назначен')}</div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {studentCourses.map(c => {
-                    const pct = c.totalLessons > 0 ? c.completedLessons / c.totalLessons : 0
-                    const pctColor = pct >= 0.7 ? 'var(--color-green-text)' : pct >= 0.4 ? 'var(--color-yellow-text)' : group.color
-                    return (
-                      <div key={c.id} style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', border: `1px solid ${group.color}20` }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                          <div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>{tc(c.title)}</div>
-                            <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{tc(c.subject)}</div>
-                          </div>
-                          <span style={{ fontSize: 14, fontWeight: 800, color: pctColor, flexShrink: 0 }}>
-                            {Math.round(pct * 100)}%
-                          </span>
-                        </div>
-                        <div style={{ height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', marginBottom: 4 }}>
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${pct * 100}%` }}
-                            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                            style={{ height: '100%', background: pctColor, borderRadius: 99 }}
-                          />
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
-                          {c.completedLessons} {t('из')} {c.totalLessons} {t('уроков пройдено')}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </Card>
+            {!workPanel && coursesCard}
 
             {/* Тренажёр сводка */}
             <Card>
               <SectionHeader icon={Dumbbell} label={t('Тренажёр — сводка')} />
-              <div style={{ display: 'grid', gridTemplateColumns: inDrawer ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+              <div className="student-profile-trainer-stats">
                 {[
                   { val: totalTrainer, label: t('Задач'), color: 'var(--color-text)', bg: 'var(--color-bg)' },
                   { val: correctTrainer, label: t('Верно'), color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
@@ -851,7 +877,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {trainerSections.length === 0 && (
-                  <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Нет данных — ученик ещё не занимался в тренажёре')}</div>
+                  <div className="student-profile-empty">{t('Пока нет результатов тренажёра.')}</div>
                 )}
                 {trainerSections.map(s => <SectionRow key={s.section} {...s} />)}
               </div>
@@ -859,16 +885,10 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
 
             {/* Задания с ошибками */}
             <Card>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <XCircle size={14} style={{ color: 'var(--color-red-text)' }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Задания с ошибками')}</span>
-                </div>
-                <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Нажмите → дать похожие')}</span>
-              </div>
+              <SectionHeader icon={XCircle} label={t('Задания с ошибками')} accent="var(--color-red-text)" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {wrongTasks.length === 0 && (
-                  <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '4px 0' }}>{t('Нет ошибок — или ученик ещё не занимался в тренажёре')}</div>
+                  <div className="student-profile-empty">{t(totalTrainer > 0 ? 'Заданий с ошибками пока нет.' : 'Пока нет результатов тренажёра.')}</div>
                 )}
                 {wrongTasks.map(wt => (
                   <div key={wt.id}
@@ -882,31 +902,9 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
                   </div>
                 ))}
               </div>
-              {wrongTasks.length === 0 && (
-                <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 12, background: 'rgba(155,109,255,0.08)', border: '1px solid rgba(155,109,255,0.2)', fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                  <Lightbulb size={12} style={{ flexShrink: 0, marginTop: 1, color: 'rgba(155,109,255,0.7)' }} /> {t('Данные появятся автоматически, когда ученик занимается в тренажёре под своим аккаунтом.')}
-                </div>
-              )}
             </Card>
 
-
-            {/* Активность */}
-            <Card>
-              <SectionHeader icon={Star} label={t(workPanel ? 'Активность тренажёра (28 дней)' : 'Активность (28 дней)')} />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
-                {activityHeat.map((heat, i) => {
-                  const bg = heat === 0 ? 'var(--color-bg-5)' : heat === 1 ? 'rgba(52,200,119,0.18)' : heat === 2 ? 'rgba(52,200,119,0.45)' : 'var(--color-green-text)'
-                  return <div key={i} style={{ height: 22, borderRadius: 5, background: bg }} />
-                })}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
-                <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Меньше')}</span>
-                {['var(--color-bg-5)', 'rgba(52,200,119,0.18)', 'rgba(52,200,119,0.45)', 'var(--color-green-text)'].map(c => (
-                  <div key={c} style={{ width: 12, height: 12, borderRadius: 3, background: c }} />
-                ))}
-                <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Больше')}</span>
-              </div>
-            </Card>
+            {!workPanel && activityCard}
 
             {/* Слабые темы */}
             <Card>
@@ -922,9 +920,10 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
                     </div>
                   )
                 })}
-                {trainerSections.filter(s => s.total > 0 && s.correct / s.total < 0.5).length === 0 && (
+                {!trainerSections.some(s => s.total > 0) && <div className="student-profile-empty">{t('Для определения слабых тем пока недостаточно данных.')}</div>}
+                {totalTrainer > 0 && trainerSections.some(s => s.total > 0) && trainerSections.filter(s => s.total > 0 && s.correct / s.total < 0.5).length === 0 && (
                   <div style={{ padding: '10px 12px', borderRadius: 12, background: 'var(--color-green-soft)', fontSize: 12, color: 'var(--color-green-text)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <CheckCircle2 size={14} style={{ flexShrink: 0 }} /> {t('Нет явно слабых тем — отличная равномерная подготовка')}
+                    <CheckCircle2 size={14} style={{ flexShrink: 0 }} /> {t('По текущим результатам слабые темы не выявлены.')}
                   </div>
                 )}
               </div>

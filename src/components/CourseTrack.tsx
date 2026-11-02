@@ -51,7 +51,7 @@ function withAlpha(hex: string, alpha: number) {
 const detailStyles: Record<TrackLessonStatus, { badgeLabel?: string; icon: React.ElementType }> = {
   completed: { badgeLabel: 'выполнено', icon: CheckCircle2 },
   returned: { badgeLabel: 'возвращено на доработку', icon: RotateCcw },
-  unviewed: { badgeLabel: 'Запись доступна', icon: IconLessonRecording },
+  unviewed: { icon: IconLessonRecording },
   submitted: { badgeLabel: 'отправлено на проверку', icon: Upload },
   test_low: { icon: CircleAlert }, test_passed: { icon: CheckCircle2 },
   submitted_unknown: { badgeLabel: 'Работа отправлена', icon: Clock },
@@ -427,7 +427,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                   {/* Top row: content + points */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
                     <div className="flex flex-col flex-1 min-w-0" style={{ gap: 12 }}>
-                        <div
+                        {selectedLessonStatus !== 'unviewed' && <div
                           className="inline-flex items-center gap-1.5"
                           style={{
                             color: selectedDetail.palette.text,
@@ -442,8 +442,8 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                               <span style={{ whiteSpace: 'nowrap' }}> · {t('порог')} {selectedLesson.result.passingScore}%</span>
                             )}
                           </span>
-                        </div>
-                        {selectedScheduleState && selectedLessonStatus !== 'locked' && (selectedScheduleState.isCurrent || selectedScheduleState.hasEnded || selectedScheduleState.phase === 'cancelled') && (
+                        </div>}
+                        {selectedScheduleState && selectedLessonStatus !== 'locked' && !selectedScheduleState.recordingAvailable && (selectedScheduleState.isCurrent || selectedScheduleState.phase === 'cancelled') && (
                           <ScheduleStatusBadge state={selectedScheduleState} />
                         )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

@@ -24,3 +24,43 @@
   .student-profile-identity { align-items: flex-start; }
   .student-profile-contacts { margin-left: auto; }
 }
+
+/* Size columns by the actual profile width, including its drawer presentation. */
+.student-profile-content { container-type: inline-size; }
+.student-profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.student-profile-column { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.student-profile-section-title { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; color: var(--color-text); font-size: 14px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.student-profile-empty { color: var(--color-text-3); font-size: 12px; line-height: 1.6; }
+.student-profile-trainer-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+@container (max-width: 700px) {
+  .student-profile-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .student-profile-column { gap: 12px; }
+}
+@container (max-width: 380px) {
+  .student-profile-trainer-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.student-profile-kpi { min-width: 0; padding: 16px 18px; }
+.is-in-drawer .student-profile-kpi { padding: 10px 6px; }
+.student-profile-kpi > div { min-width: 0; }
+.student-profile-kpi > div > svg { flex-shrink: 0; }
+.student-profile-kpi > div > span { min-width: 0; overflow-wrap: anywhere; }
+@container (max-width: 380px) {
+  .student-profile-kpi { padding: 10px 6px; }
+}
+
+.student-profile-kpi-label { display: flex; align-items: center; gap: 6px; }
+@container (max-width: 380px) {
+  .student-profile-kpi-label { flex-direction: column; align-items: flex-start; }
+}
+
+/* The floating profile controls occupy their own row below the mobile menu. */
+.student-profile-dock { position: fixed; top: 30px; left: 32px; right: 32px; z-index: 80; pointer-events: none; }
+.student-profile-dock-row { display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.student-profile-dock-download { padding: 10px 18px 10px 14px; }
+@media (max-width: 1023px) {
+  .student-profile-dock { top: calc(env(safe-area-inset-top, 0px) + 72px); left: 16px; right: 16px; }
+  .student-profile-dock-row { gap: 8px; }
+  .student-profile-dock-download { width: 44px; height: 44px; padding: 0; justify-content: center; }
+  .student-profile-dock-download > span { display: none; }
+}

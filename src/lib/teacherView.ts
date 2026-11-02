@@ -1,3 +1,5 @@
+import { personalDemoResponse } from './personalStudentDemo'
+
 export const TEACHER_VIEW_KEY = 'iskra:viewAsTeacher'
 export const TEACHER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export interface ViewAsTeacher { id: string; name: string }
@@ -42,8 +44,10 @@ export function teacherViewRequestAllowed(path: string, method: string, body?: u
 }
 
 export const teacherViewFetch: typeof fetch = async (input, init) => {
-  if (!getViewAs()) return fetch(input, init)
   const request = new Request(input, init)
+  const preview = await personalDemoResponse(request)
+  if (preview) return preview
+  if (!getViewAs()) return fetch(request)
   const path = new URL(request.url).pathname
   const body = path === '/functions/v1/testly-bridge'
     ? await request.clone().json().catch(() => undefined) : undefined
