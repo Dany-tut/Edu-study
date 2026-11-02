@@ -48,7 +48,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
       }}
     >
       {/* Ring — vertically centered in its column */}
-      <div className="flex flex-shrink-0 items-center" style={{ height: '100%' }}>
+      <div className="flex flex-shrink-0 items-center ww-timer-ring" style={{ height: '100%' }}>
       <div className="relative flex-shrink-0" style={{ width: ringSize, height: ringSize }}>
         <svg width={ringSize} height={ringSize} viewBox="0 0 104 104" style={{ transform: 'rotate(-90deg)' }}>
           <circle cx="52" cy="52" r={46} fill="none" strokeWidth="8" style={{ stroke: 'var(--color-border-strong)' }} />
@@ -71,8 +71,8 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
       </div>
 
       {/* Controls — button anchored to the bottom like Question of Day */}
-      <div className="flex min-w-0 flex-1 flex-col" style={{ gap: 10 * sz.scale }}>
-        <div className="flex items-center justify-between gap-2">
+      <div className="flex min-w-0 flex-1 flex-col ww-timer-controls" style={{ gap: 10 * sz.scale }}>
+        <div className="flex items-center justify-between gap-2 ww-timer-heading">
           {/* Mode toggle */}
           <div className="flex" style={{ background: 'var(--color-bg-3)', borderRadius: 999, padding: 4 }}>
             {(['focus', 'break'] as PomoMode[]).map(m => (
@@ -97,7 +97,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
           </span>
         </div>
 
-        <div className="flex flex-1 items-center" style={{ minHeight: 0 }}>
+        <div className="flex flex-1 items-center ww-timer-hint" style={{ minHeight: 0 }}>
           <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.3 }}>
             {pomoMode === 'focus'
               ? t('Сосредоточься на работе без отвлечений.')
@@ -105,7 +105,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ww-timer-actions">
           <motion.button
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}

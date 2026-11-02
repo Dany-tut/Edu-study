@@ -39,6 +39,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
     // собственный счёт.
     return (
       <button
+        className="ww-trainer-entry" data-empty={todayMs===0 && doneCount===0 || undefined}
         onClick={() => setActivePage('trainer')}
         style={{
           width: '100%', height: '100%', padding: '20px 24px', textAlign: 'left',
@@ -91,7 +92,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
 
       {/* Big stat row. Время стоит первым: это единственная цифра, которая
           растёт на любом предмете и в любом режиме. */}
-      <div style={{ display: 'flex', gap: 10 }}>
+      <div className="ww-trainer-metrics" style={{ display: 'flex', gap: 10 }}>
         <div style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: `${accent}1F`, textAlign: 'center' }}>
           <div style={{ fontSize: wide ? 28 : 24, fontWeight: 700, color: palette.text, lineHeight: 1 }}>
             {Math.floor(todayMs / 60000)}
@@ -108,7 +109,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
           <div style={{ fontSize: wide ? 28 : 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>{totalCount}</div>
           <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('Всего')}</div>
         </div>
-        {wide && kind === 'bank' && (
+        {kind === 'bank' && (
           <div style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <Star size={16} style={{ color: 'var(--color-muted)' }} />
             <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>{favCount}</div>
@@ -119,7 +120,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
 
       {/* Progress bar */}
       {totalCount > 0 && (
-        <div>
+        <div className="ww-trainer-progress">
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
               {kind === 'lang' ? t('Выучено из разговорника') : t('Решено верно')}
@@ -136,7 +137,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
       )}
 
       {/* Today row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <div className="ww-trainer-today" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={12} /> {t('Сегодня')}
         </span>

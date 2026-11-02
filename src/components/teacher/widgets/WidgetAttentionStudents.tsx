@@ -63,7 +63,7 @@ export default function WidgetAttentionStudents() {
       overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{
+      <div className="ww-header" style={{
         padding: '14px 16px 10px',
         display: 'flex', alignItems: 'center', gap: 8,
         borderBottom: '1px solid var(--color-border)',
@@ -88,7 +88,7 @@ export default function WidgetAttentionStudents() {
       </div>
 
       {/* Content */}
-      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
+      <div className="no-scrollbar ww-list" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
         {atRisk.length === 0 ? (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -107,6 +107,7 @@ export default function WidgetAttentionStudents() {
             return (
               <div
                 key={s.id}
+                className="ww-row ww-attention-row"
                 onClick={() => openStudentDashboard(s.id, s.groupId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
@@ -118,7 +119,7 @@ export default function WidgetAttentionStudents() {
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >
                 {/* Avatar */}
-                <div style={{
+                <div className="ww-avatar" style={{
                   width: 34, height: 34, borderRadius: 11, flexShrink: 0,
                   background: reason.bg,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -128,17 +129,17 @@ export default function WidgetAttentionStudents() {
                 </div>
 
                 {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {tn(s.name).split(' ').slice(0, 2).join(' ')}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                  <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                     {group?.name ?? ''}
                   </div>
                 </div>
 
                 {/* Reason chip */}
-                <div style={{
+                <div className="ww-status" style={{
                   display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
                   fontSize: 11, fontWeight: 600, color: reason.color,
                   background: reason.bg, borderRadius: 8, padding: '4px 8px',

@@ -38,7 +38,7 @@ function ReminderRow({ item, done, onAction, showChevron = true, style: styleOve
   const accent = done ? 'var(--color-green-text)' : reminderAccent(item)
   return (
     <motion.div
-      className={`teacher-reminder-row${clickable && showChevron ? ' teacher-reminder-with-chevron' : ''}`} data-reminder-row={item.id}
+      className={`teacher-reminder-row ww-reminder-row${clickable && showChevron ? ' teacher-reminder-with-chevron' : ''}`} data-reminder-row={item.id}
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : undefined}
       onClick={clickable ? onAction : undefined}
@@ -64,7 +64,7 @@ function ReminderRow({ item, done, onAction, showChevron = true, style: styleOve
       }}>
         <Icon size={18} strokeWidth={2.2} style={{ color: accent }} />
       </div>
-      <div className="teacher-reminder-details" style={{ flex: 1, minWidth: 0 }}>
+      <div className="teacher-reminder-details ww-reminder-info" style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: 14, fontWeight: 700,
           color: done ? 'var(--color-green-text)' : 'var(--color-text)',

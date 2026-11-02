@@ -22,7 +22,7 @@ export default function WidgetGroupsList() {
       overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{
+      <div className="ww-header" style={{
         padding: '14px 16px 10px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderBottom: '1px solid var(--color-border)',
@@ -57,7 +57,7 @@ export default function WidgetGroupsList() {
       </div>
 
       {/* List */}
-      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
+      <div className="no-scrollbar ww-list" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
         {groups.length === 0 ? (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -70,6 +70,7 @@ export default function WidgetGroupsList() {
           groups.map((g, i) => (
             <div
               key={g.id}
+              className="ww-row ww-group-row"
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '10px 16px',
@@ -81,7 +82,7 @@ export default function WidgetGroupsList() {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               {/* Group chip */}
-              <div style={{
+              <div className="ww-avatar" style={{
                 width: 36, height: 36, borderRadius: 12, flexShrink: 0,
                 background: `${g.color}22`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -91,17 +92,17 @@ export default function WidgetGroupsList() {
               </div>
 
               {/* Name */}
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {g.name}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                   {tc(g.subject)}
                 </div>
               </div>
 
               {/* Student count */}
-              <div style={{
+              <div className="ww-status" style={{
                 display: 'flex', alignItems: 'center', gap: 4,
                 fontSize: 12, fontWeight: 700,
                 color: g.color ?? 'var(--color-accent)',

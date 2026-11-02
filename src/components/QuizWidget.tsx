@@ -206,7 +206,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
       style={{ ...cardStyle, padding: compact ? `${12 * scale}px ${18 * scale}px` : `${padY}px ${padX}px`, overflow: 'hidden', containerType: 'inline-size' }}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-4" style={{ marginBottom: compact ? 8 : 0, flexShrink: 0 }}>
+      <div className="flex items-start justify-between gap-4 ww-quiz-heading" style={{ marginBottom: compact ? 8 : 0, flexShrink: 0 }}>
         <div className="flex min-w-0 flex-1 flex-col items-start" style={{ gap: compact ? 6 : 8 }}>
           {!compact && (
             <span style={{ fontSize: 12 * scale, fontWeight: 600, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '6px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
@@ -254,7 +254,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
 
       {/* Centered spoiler — preview only */}
       {quizState === 'preview' && (
-        <div style={{ flex: 1, minHeight: 0 }}>
+        <div className="ww-quiz-preview" style={{ flex: 1, minHeight: 0 }}>
           <SpoilerText
             fill
             revealed={spoilerRevealed}
@@ -267,7 +267,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
 
       {/* Preview: start */}
       {quizState === 'preview' && (
-        <div className="flex items-center gap-3 flex-wrap" style={{ flexShrink: 0 }}>
+        <div className="flex items-center gap-3 flex-wrap ww-quiz-start" style={{ flexShrink: 0 }}>
           <motion.button
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
@@ -290,7 +290,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
 
       {/* Active: answers + pagination */}
       {quizState === 'active' && (
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="ww-quiz-active" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div className="quiz-answers" style={{ flex: 1, minHeight: 0 }}>
             {shuffledAnswers.map(ans => (
               <motion.button
