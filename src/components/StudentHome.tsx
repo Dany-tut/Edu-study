@@ -7,7 +7,7 @@ import MobileBottomNav from './MobileBottomNav'
 import MobileBell from './MobileBell'
 import Modal from './Modal'
 import FadeText from './FadeText'
-import { ChevronRight, ClipboardList, ArrowRight, User, Ghost } from './icons/appIcons'
+import { ChevronRight, ArrowRight, User, Ghost } from './icons/appIcons'
 import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from './season/Season'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
@@ -67,11 +67,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     (scope.module==null || entry.course.modules[entry.moduleOrder]?.id===scope.module)) : []
   const status = pending ? t('Загружаем дела') : error ? t('Не удалось загрузить работы') : null
   const workCards = [
-    {id:11,content:<article className="lh-work-card"><header><h2><ClipboardList size={18}/>{t('Твои дела')}</h2><button type="button" onClick={()=>setScope({filter:'actions'})}>{t('Все работы')} <ChevronRight size={13}/></button></header>
-      <div className="lh-work-counts">{([
-        ['overdue',work.overdue.length,'Просрочено'],['upcoming',work.upcoming.length,'Без просрочки'],['review',work.review.length,'На проверке'],
-      ] as const).map(([filter,count,label])=><button type="button" key={filter} data-kind={filter} onClick={()=>setScope({filter})}><strong>{ready?count:'—'}</strong><span>{t(label)}</span></button>)}</div>
-      <p>{status ?? t(work.overdue.length?'Есть просроченные работы':'Задолженностей нет')}</p>{error&&<button type="button" onClick={reload}>{t('Повторить')}</button>}</article>},
+    {id:11},
     {id:13,content:<article className="lh-work-card"><header><h2><ArrowRight size={18}/>{t(next&&diaryOverdue(next,today)?'Сначала — просроченное':'Следующий шаг')}</h2>{ready&&next&&<span>{t('Модуль')} {next.moduleOrder+1}</span>}</header>
       <h3><FadeText>{status ?? (next?tc(next.lesson.title):t('Всё сдано'))}</FadeText></h3>
       {ready&&next?<p className="lh-next-meta"><FadeText className="lh-next-course">{tc(next.course.name)}</FadeText><WorkDue entry={next} today={today}/></p>:<p>{!status&&t('Преподаватель откроет новые задания')}</p>}

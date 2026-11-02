@@ -56,8 +56,8 @@ function WidgetFrame({ id, children, style, adaptive }: { id: number; children: 
 
 export default function WidgetCarousel({ columnsOverride, previewWidgets, leadingWidgets }: {
   columnsOverride?: number
-  /** Live home work cards, followed by the student’s configured widgets. */
-  leadingWidgets?: { id: number; content: ReactNode }[]
+  /** Leading widget IDs use their original renderer unless custom content is supplied. */
+  leadingWidgets?: { id: number; content?: ReactNode }[]
   /** In-memory stand content, in the home page's original carousel geometry. */
   previewWidgets?: { id: number; content: ReactNode }[]
 } = {}) {
@@ -157,7 +157,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
 
   const renderWidget = (p: number, isActive: boolean, columns = perPage) => {
     const leading = leadingWidgets?.find(widget => widget.id === p)
-    if (leading) return leading.content
+    if (leading?.content !== undefined) return leading.content
     if (previewWidgets) return previewWidgets.find(widget => widget.id === p)?.content ?? null
     if (p === 6) return <QuizWidget active={isActive} columns={columns} />
     if (p === 0) return <StatsWidget columns={columns} />
@@ -217,7 +217,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
             {pageWidgets.map(idx => (
               <WidgetFrame
                 id={idx}
-                adaptive={!previewWidgets && !leadingWidgets?.some(widget => widget.id === idx)}
+                adaptive={!previewWidgets && !leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined)}
                 key={idx}
                 style={{
                   flex: pageWidgets.length < perPage
@@ -230,7 +230,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
                 {/* Пустая стойка на время чанка: своя на каждый виджет,
                     чтобы приехавший сосед не сбрасывал уже показанный. */}
                 <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
-                  {leadingWidgets?.some(widget => widget.id === idx) ? renderWidget(idx, true) : home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, true)}
+                  {leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined) ? renderWidget(idx, true) : home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, true)}
                 </Suspense>
               </WidgetFrame>
             ))}
