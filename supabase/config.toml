@@ -22,5 +22,5 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.drive-video]
-# POST verifies Auth; media GET/HEAD verify a short-lived signed ticket.
+# POST verifies the user JWT; GET/HEAD verify a short-lived media ticket.
 verify_jwt = false
