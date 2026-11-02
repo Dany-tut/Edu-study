@@ -7,7 +7,7 @@ export default function WidgetFinanceDebt() {
   const t = useT()
   const { debt } = useFinanceSummary()
   return (
-    <MiniStatCard
+    <MiniStatCard widgetId="finance-debt"
       icon={AlertCircle} label={t('Долг')}
       value={`${debt.toLocaleString('ru-RU')} ₽`}
       sub={debt > 0 ? t('просрочено') : t('долгов нет')}

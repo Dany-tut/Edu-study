@@ -28,7 +28,7 @@ function Preview({ def, size, grid }: { def: WidgetDef; size: Size; grid: Grid }
   return <section className="size-review-case">
     <header><b>{size.w}×{size.h}</b><span>{Math.round(width)} × {Math.round(height)} px</span></header>
     <div className="size-review-viewport">
-      <div ref={root} className="iskra-widget" data-widget={def.type} data-stat={def.stat || undefined} style={{ width, height, flexShrink: 0 }}
+      <div ref={root} className="iskra-widget desk-widget-shell" data-widget={def.type} data-grid-w={size.w} data-grid-h={size.h} data-stat={def.stat || undefined} style={{ width, height, flexShrink: 0 }}
         onClickCapture={event => { event.preventDefault(); event.stopPropagation() }} onPointerDownCapture={event => event.stopPropagation()} onContextMenuCapture={event => { event.preventDefault(); event.stopPropagation() }}>
         {visible ? <WidgetBoundary label={def.label}><Suspense fallback={<div className="size-review-loading">Загрузка виджета</div>}><Comp /></Suspense></WidgetBoundary>
           : <div className="size-review-loading">{def.label}</div>}
@@ -76,7 +76,7 @@ export default function WidgetSizeReview({ hiddenWidgets = [] }: { hiddenWidgets
         </div></div>
         <p className="size-review-hint">Серые размеры недоступны. Календарь 1×1 запрещён. Прокрутка карточек доступна; действия с данными в этом просмотре отключены.</p>
         <Preview key={def.type} def={def} grid={grid} size={size} />
-        <h2>{all ? 'Все виджеты · по пять размеров' : `${def.label} · пять размеров`}</h2>
+        <h2>{all ? 'Все виджеты · полезные размеры' : `${def.label} · полезные размеры`}</h2>
         {(all ? widgets : [def]).map(widget => <article className="size-review-article" key={widget.type}>
           <h3>{widget.label} <small>минимум {limits(widget, grid).minW}×{limits(widget, grid).minH}</small></h3>
           <div className="size-review-cases">{presets(widget, grid).map(preset => <Preview key={`${preset.w}-${preset.h}`} def={widget} size={preset} grid={grid} />)}</div>

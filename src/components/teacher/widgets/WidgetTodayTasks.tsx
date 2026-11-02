@@ -3,7 +3,7 @@ import { openJournalTask } from '../../../lib/journalTasks'
 import { useState, useRef } from 'react'
 import Checkbox from '../../Checkbox'
 import { motion } from 'framer-motion'
-import { CheckCircle2, X as XIcon } from '../../icons/appIcons'
+import { CheckCircle2, Plus, X as XIcon } from '../../icons/appIcons'
 import { useTeacher } from '../../../store/teacherStore'
 import type { TeacherTask } from '../../../store/teacherStore'
 import CreateTaskModal from '../CreateTaskModal'
@@ -131,6 +131,8 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 
 export default function WidgetTodayTasks() {
   const t = useT()
+  const [creating,setCreating]=useState(false)
+  const addTask=useTeacher(s=>s.addTask)
   const tasks = useTeacher(s => s.tasks)
   const toggleTask = useTeacher(s => s.toggleTask)
   const removeTask = useTeacher(s => s.removeTask)
@@ -149,24 +151,6 @@ export default function WidgetTodayTasks() {
   const [tasksAtTop, setTasksAtTop] = useState(true)
   const [tasksAtBottom, setTasksAtBottom] = useState(false)
 
-  if (!tasks.length) {
-    return (
-      <div style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
-        <motion.div {...fadeUp(0.26)} style={{ height: '100%' }}>
-          <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardTitle>
-              <CheckCircle2 size={14} strokeWidth={2} />
-              {t('Мои задачи')}
-            </CardTitle>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 13, color: 'var(--color-text-4)', fontWeight: 500 }}>{t('Нет задач')}</span>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-    )
-  }
-
   const pending = tasks.filter(t => !t.done)
   const done    = tasks.filter(t => t.done)
   const allTasks = [...pending, ...done]
@@ -180,12 +164,12 @@ export default function WidgetTodayTasks() {
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
-      {editingTask && (
+      {(editingTask||creating) && (
         <CreateTaskModal
-          initialTask={editingTask}
-          onClose={() => { setEditingTask(null); clearDrafts('createTask.') }}
+          initialTask={creating?null:editingTask}
+          onClose={() => { setCreating(false);setEditingTask(null); clearDrafts('createTask.') }}
           onSave={async saved => {
-            const { error } = await updateTask(editingTask.id, {
+            const payload = {
               typeId: saved.type?.id ?? null,
               typeLabel: saved.type?.label ?? null,
               typeBg: saved.type?.bg ?? null,
@@ -194,7 +178,8 @@ export default function WidgetTodayTasks() {
               date: saved.date,
               time: saved.time,
               comment: saved.comment,
-            })
+            }
+            const {error}=creating?await addTask(payload):await updateTask(editingTask!.id,payload)
             if (error) throw new Error(error)
           }}
         />
@@ -213,6 +198,7 @@ export default function WidgetTodayTasks() {
                 {pending.length}
               </span>
             )}
+            <button type="button" onClick={()=>setCreating(true)} aria-label={t('Добавить')} style={{marginLeft:'auto',width:30,height:30,border:0,borderRadius:9,background:'var(--color-bg-3)',color:'var(--color-accent)',cursor:'pointer'}}><Plus size={16}/></button>
           </CardTitle>
           <div
             className="no-scrollbar ww-task-list"
@@ -229,6 +215,7 @@ export default function WidgetTodayTasks() {
               } : {}),
             }}
           >
+            {!allTasks.length&&<div className="widget-panel-empty">{t('Нет задач')}</div>}
             {allTasks.map(task => (
               <TaskRow
                 key={task.id}

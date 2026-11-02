@@ -25,7 +25,7 @@ for(const def of registry) for(const width of [900,1200,1600,2400]) for(const ol
   assert.ok(min.h*(row+8)-8 >= def.minHeightPx-0.001)
   const grown=resizeDeskWidget(min,def,1000,450,width,row)
   integral(grown)
-  assert.ok(grown.h>2,'Old maxH:2 must not block growing')
+  if(def.stat)assert.equal(grown.h,1,'Metrics must never grow into empty tall panels');else assert.ok(grown.h>2,'Old maxH:2 must not block growing')
   for(const delta of [1,7,19,43,85,177]) integral(resizeDeskWidget(min,def,delta,delta,width,row))
   if(def.stat)assert.deepEqual([min.w,min.h],[1,1],'Independent indicators must allow 1×1')
   if(def.type==='today-schedule')assert.ok(min.h>1,'Calendar cannot be 1×1')
@@ -38,7 +38,7 @@ assert.deepEqual(resolveDeskCollisions(packed),packed)
 console.log(`${registry.length} types, ${cases} migrations and discrete resize scenarios passed; metrics support 1×1, calendar protected`)
 
 const indicator=registry.find(d=>d.stat)
-for(const [w,h] of [[1,1],[1,2],[2,2],[2,3],[3,3]]){
+for(const {w,h} of indicator.allowedSizes){
  const preset=clampDeskWidget({i:'preset',type:indicator.type,x:0,y:0,w,h,gridVersion:2},indicator,1200,116)
  assert.deepEqual([preset.w,preset.h],[w,h],`Preset ${w}×${h} must be selectable`)
 }
@@ -82,7 +82,7 @@ for (const width of [950, 1200, 1354, 1840, 2400]) {
   for(const a of reset)for(const b of reset)if(a.i!==b.i)assert.ok(!(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y),'Reset cards overlap')
   if(id==='today'&&cols===8){
    const calendar=reset.find(i=>i.type==='today-schedule'), reminders=reset.find(i=>i.type==='today-reminders'), tasks=reset.find(i=>i.type==='today-tasks')
-   assert.deepEqual(reset.filter(i=>i.type.startsWith('stat-')).map(i=>[i.x,i.y,i.w,i.h]),[[0,0,1,1],[1,0,1,1],[2,0,1,1],[3,0,1,1]])
+   assert.deepEqual(reset.slice(0,4).map(i=>[i.x,i.y,i.w,i.h]),[[0,0,2,1],[2,0,2,1],[4,0,2,1],[6,0,2,1]])
    assert.equal(calendar.y+calendar.h,tasks.y+tasks.h)
    assert.equal(reminders.y+reminders.h,tasks.y)
    assert.equal(calendar.w,tasks.w)
@@ -95,19 +95,19 @@ for(const height of [900,1000,1200]){
 }
 console.log('Reset templates: equal cards, shared edges, no overlaps, equal desktop insets passed')
 
-// Every current widget has five real, distinct, permitted review sizes.
+// Every current widget exposes only its agreed useful sizes, not five forced rectangles.
 for(const [screenWidth,screenHeight] of [[1440,900],[1280,720],[1920,1080]]){
  const width=screenWidth-64,columns=deskColumns(width,8),rowHeight=deskRowHeight(screenHeight)
  const grid={width,columns,rowHeight,rows:Math.floor((screenHeight-108-32+8)/(rowHeight+8)+0.001),cellWidth:(width-(columns-1)*8)/columns}
  for(const def of registry.filter(d=>!d.legacy)){
   const sizes=reviewPresets(def,grid)
-  assert.equal(sizes.length,5,`${def.type}: five presets required`)
-  assert.equal(new Set(sizes.map(s=>`${s.w}x${s.h}`)).size,5)
+  assert.ok(sizes.length>0,`${def.type}: no permitted preset`)
+  assert.equal(new Set(sizes.map(s=>`${s.w}x${s.h}`)).size,sizes.length)
   for(const size of sizes)assert.ok(reviewAllowed(def,grid,size))
   if(def.type==='today-schedule')assert.equal(reviewAllowed(def,grid,{w:1,h:1}),false)
  }
 }
-console.log('Full size review: 19 widgets × 5 presets × 3 screens use production bounds')
+console.log('Useful size review: 19 widgets, explicit pairs, no forced tall metrics, three screens')
 
 // Dragging into a free lower row survives rendering, serialization and resizing.
 const manuallyMoved=resolveDeskCollisions(initial.map(i=>i.i==='calendar'?{...i,x:0,y:7}:i),'calendar')
@@ -123,3 +123,14 @@ for(const location of [
 ])assert.equal(isWidgetReviewRoute(location),true)
 assert.equal(isWidgetReviewRoute({pathname:'/',search:'',hash:'#/teacher'}),false)
 console.log('Manual empty rows, reload/resize persistence, canonical and legacy matrix links passed')
+
+// Registered widgets share a whitelist; arbitrary saved/resized rectangles snap to it.
+for(const def of registry.filter(d=>!d.legacy)){
+ assert.ok(def.allowedSizes?.length,def.type)
+ for(let w=1;w<=8;w++)for(let h=1;h<=6;h++){
+  const item=clampDeskWidget({i:def.type,type:def.type,x:0,y:7,w,h,gridVersion:2},def,1376,120,64,8)
+  assert.ok(def.allowedSizes.some(s=>s.w===item.w&&s.h===item.h),def.type+': unsupported pair')
+  assert.equal(item.y,7,'Manual rows must survive migration to useful sizes')
+ }
+}
+console.log('All 19 widgets snap unsupported pairs while preserving manual rows')

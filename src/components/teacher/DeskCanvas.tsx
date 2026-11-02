@@ -40,7 +40,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
 
   const Comp = def.component
   return (
-    <div ref={shellRef} className="desk-widget-shell iskra-widget" data-widget={item.type} data-stat={def.stat || undefined}
+    <div ref={shellRef} className="desk-widget-shell iskra-widget" data-widget={item.type} data-grid-w={item.w} data-grid-h={item.h} data-stat={def.stat || undefined}
       style={{ position: 'relative', width: '100%', height: '100%', overflow: 'visible' }}
     >
       <WidgetBoundary label={item.type}>
@@ -114,7 +114,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
 
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-  useScrollFades(scrollRef, true, '[data-desk-grid]')
+  useScrollFades(scrollRef, true, ':scope')
   const [drag, setDrag] = useState<DragState | null>(null)
   const [resize, setResize] = useState<ResizeState | null>(null)
 
@@ -265,7 +265,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   }, [liveItems, rowH])
 
   return (
-    <div ref={scrollRef} data-desk-scroll style={editMode ? {
+    <div className="desk-scroll-region" ref={scrollRef} data-desk-scroll style={editMode ? {
       // Fixed overlay so it escapes dashboard-root's overflow:hidden → free scroll
       position: 'fixed', inset: 0, zIndex: 50,
       background: 'var(--color-bg)',

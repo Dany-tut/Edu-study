@@ -9,8 +9,8 @@ export default function WidgetStudentActive() {
   const allStudents = useAllStudents()
   const { active } = studentBalanceStats(allStudents)
   return (
-    <MiniStatCard
-      icon={CheckCircle2} label={t('Активных')}
+    <MiniStatCard widgetId="student-active"
+      icon={CheckCircle2} label={t('Без долга по занятиям')}
       value={active}
       sub={t('без задолженностей')}
       accentBg="var(--color-green-soft)" accentColor="var(--color-green-text)"

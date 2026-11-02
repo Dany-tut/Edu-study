@@ -1,6 +1,7 @@
 import type { LayoutItem } from './useDeskLayouts'
 
 export type WidgetSizeLimits = {
+  allowedSizes?: readonly {w:number;h:number}[]
   minW: number
   minH: number
   maxH?: number
@@ -30,7 +31,9 @@ export function legacyDeskRowHeight(_viewportHeight: number): number { return 64
 
 /** Registered types use today's rules, never stale limits from a saved desk. */
 export function widgetBounds(item: LayoutItem, definition: WidgetSizeLimits | undefined, width: number, rowHeight: number, preferredColumns?: number) {
-  const limits = definition ?? item
+  const base = definition ?? item
+  const pairs = definition?.allowedSizes
+  const limits = pairs?.length ? {...base,minW:Math.min(...pairs.map(s=>s.w)),minH:Math.min(...pairs.map(s=>s.h)),maxH:Math.max(...pairs.map(s=>s.h))} : base
   const columns = deskColumns(width, preferredColumns)
   const columnPitch = (Math.max(1, width) + DESK_GAP) / columns
   const minW = Math.min(columns, Math.max(1, Math.ceil(limits.minW ?? 1), Math.ceil(((definition?.minWidthPx ?? 0) + DESK_GAP) / columnPitch)))
@@ -51,8 +54,13 @@ export function clampDeskWidget(item: LayoutItem, definition: WidgetSizeLimits |
     y: item.y * (legacyRowHeight + DESK_GAP) / (rowHeight + DESK_GAP),
     h: (item.h * (legacyRowHeight + DESK_GAP)) / (rowHeight + DESK_GAP),
   }
-  const w = Math.max(limits.minW, Math.min(columns, Math.round(current.w)))
-  const h = Math.max(limits.minH, Math.min(limits.maxH ?? Infinity, Math.round(current.h)))
+  let w = Math.max(limits.minW, Math.min(columns, Math.round(current.w)))
+  let h = Math.max(limits.minH, Math.min(limits.maxH ?? Infinity, Math.round(current.h)))
+  const pairs = definition?.allowedSizes?.filter(s=>s.w<=columns && s.w>=limits.minW && s.h>=limits.minH)
+  if(pairs?.length){
+    const nearest=[...pairs].sort((a,b)=>(a.w-w)**2+(a.h-h)**2-((b.w-w)**2+(b.h-h)**2)||a.w*a.h-b.w*b.h)[0]
+    w=nearest.w;h=nearest.h
+  }
   return { ...current, ...limits, gridVersion: 2, w, h, x: Math.max(0, Math.min(columns - w, Math.round(current.x))), y: Math.max(0, Math.round(current.y)) }
 }
 
