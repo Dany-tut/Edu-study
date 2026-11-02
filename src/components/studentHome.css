@@ -155,3 +155,10 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
   .lh-work-counts button { min-height:0; padding:4px 8px; }
   .lh-work-counts span { line-height:12px; }
 }
+
+@media(max-width:1023px) and (max-height:700px) {
+  .live-student-home .schedule-card--center [data-schedule-state]:has(.schedule-open-icon) .schedule-row-media { display:none; }
+  .live-student-home .schedule-card--center .schedule-open-label { display:none; }
+  .live-student-home .schedule-card--center .schedule-open-icon { display:block; }
+  .live-student-home .schedule-card--center [data-schedule-state] > div:last-child > button { width:44px; display:grid; place-items:center; }
+}

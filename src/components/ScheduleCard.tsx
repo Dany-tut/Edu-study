@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { BookOpen } from './icons/appIcons'
+import { BookOpen, ChevronRight } from './icons/appIcons'
 import { LoopSvg } from './icons/LoopIcon'
 import { LoopArtworkVideo } from './icons/loopArtwork'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
@@ -242,7 +242,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       <span style={{ fontSize: 18, fontWeight: 600, color: isMissed ? pal.text : 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums', textDecoration: isCancelled ? 'line-through' : undefined }}>{lesson.time}</span>
                       {lesson.endTime && <p style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('до')} {lesson.endTime}</p>}
                     </div>}
-                    <div aria-hidden="true" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div aria-hidden="true" className="schedule-row-media" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {!isCancelled && (st.phase === 'available' ? <BookOpen size={18} color={pal.text} /> : <LoopSvg
                         name="Video"
                         artwork={LoopArtworkVideo}
@@ -254,10 +254,10 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   </div>
                   {!isCancelled && (isCurrent || isUpcoming || st.hasEnded || st.phase === 'available') && (
                     <div style={{ flexBasis: '100%' }}>
-                      <button type="button" onClick={e => { e.stopPropagation(); openScheduledLesson(lesson) }} style={{
+                      <button type="button" aria-label={t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')} onClick={e => { e.stopPropagation(); openScheduledLesson(lesson) }} style={{
                         border: 'none', borderRadius: 10, padding: '7px 11px', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                         background: isCurrent ? pal.text : 'var(--color-bg-card)', color: isCurrent ? pal.onAccent : pal.text,
-                      }}>{t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')}</button>
+                      }}><span className="schedule-open-label">{t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')}</span>{mobile && <ChevronRight size={16} className="schedule-open-icon hidden" aria-hidden/>}</button>
                     </div>
                   )}
                 </motion.div>
