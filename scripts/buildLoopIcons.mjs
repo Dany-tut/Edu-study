@@ -6,7 +6,7 @@ const root = new URL('../', import.meta.url)
 const glyphs = JSON.parse(readFileSync(new URL('design/ios-concepts/loop-kit/glyphs.json', root), 'utf8'))
 const body = svg => svg.replace(/^<svg\b[^>]*>/, '').replace(/<\/svg>$/, '')
 // The feed needs a plain like-heart, in addition to the curriculum's HeartPulse.
-glyphs.push({ name: 'Heart', svg: `<svg>${body(glyphs.find(g => g.name === 'HeartPulse').svg).replace(/<g\b[\s\S]*<\/g>/, '')}</svg>` })
+glyphs.push({ name: 'Heart', svg: `<svg>${body(glyphs.find(g => g.name === 'HeartPulse').svg).replace(/<g\b[^>]*>(?:(?!<\/?g\b)[\s\S])*<\/g>/g, '')}</svg>` })
 const teacher = `<svg><g transform="translate(6 -1) scale(.6)">${body(glyphs.find(g => g.name === 'User').svg)}</g><g transform="translate(2 13) scale(.85 .6)">${body(glyphs.find(g => g.name === 'BookOpen').svg)}</g></svg>`
 const artwork = [...glyphs, { name: 'TeacherBook', svg: teacher }]
 const jsx = svg => body(svg)

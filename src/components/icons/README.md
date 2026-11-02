@@ -86,3 +86,9 @@ Instructional arrow notation can carry `data-loop-content`; it exempts only
 arrows, never status/subject emoji. Charts, branded logos, content illustrations,
 and DEV-only experimental stands remain outside this glyph guard. The guard
 is not an exhaustive visual audit or a type checker for arbitrary ReactNode slots.
+
+Stroked artwork stays inside the SVG viewport through `strokeWidth={3}`.
+Source glyphs that touched the edge have a proportional fit transform with
+a 0.5-unit safety margin. Keep SVG sources, `glyphs.json`, and the fit transforms
+in `generate.cjs` in sync. `npm run icons:check` rasterizes all 250 React drawings
+at stroke widths 1, 2, 2.5 and 3 to detect clipped ink, including composites.
