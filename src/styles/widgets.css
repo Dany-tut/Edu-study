@@ -47,7 +47,7 @@
 .iskra-widget .ww-reminder-info{grid-column:2/4;min-width:0}
 .iskra-widget .ww-reminder-info>div{white-space:normal!important;overflow:visible!important;line-height:1.35}
 .iskra-widget .ww-reminder-row>span{grid-column:2/4;justify-self:start;max-width:100%;white-space:normal}
-.iskra-widget .ww-reminder-row[style*="padding-right: 70px"]{padding-right:54px!important}
+.iskra-widget .ww-reminder-front{padding-right:54px!important}
 .iskra-widget[data-widget="today-reminders"]>div{padding:14px!important}
 .iskra-widget[data-widget="today-schedule"] .calendar-widget-content{padding:12px;display:flex;min-height:0}
 .iskra-widget[data-widget="today-schedule"] .calendar-widget-schedule{flex:1;min-width:0;gap:8px!important}
