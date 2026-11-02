@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -26,6 +26,7 @@ import { useT, t, useTc, tn } from '../../lib/i18n'
 import BackCircle from '../../components/BackCircle'
 import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 import './studentProfile.css'
+import { useScrollFades } from '../../lib/useScrollFades'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -326,6 +327,8 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
 
   const profileGroupLabel = group.name.trim().replace(/\s+/g, ' ').toLocaleLowerCase() === student?.name.trim().replace(/\s+/g, ' ').toLocaleLowerCase() ? '' : group.name
 
+  const profileScroll = useRef<HTMLDivElement>(null)
+  useScrollFades(profileScroll, !inDrawer && !!student)
   const [docked, setDocked] = useState(false)
   const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setDocked((e.currentTarget as HTMLElement).scrollTop > 72)
@@ -446,6 +449,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
       </div>}
 
       <motion.div
+        ref={profileScroll}
         onScroll={inDrawer ? undefined : onScroll}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
