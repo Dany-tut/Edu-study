@@ -12,6 +12,7 @@ import { useNow } from '../../../lib/useNow'
 import TestlyMark from '../../TestlyMark'
 import { ArrowLeft, BookOpen, CalendarCheck, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
 import { useScrollEdges } from './useScrollEdges'
+import { matrixRuns } from './matrixRuns'
 import StudentReportDrawer from './StudentReportDrawer'
 import GroupOverview, { StudentOverviewCard } from './GroupOverview'
 import { studentOverview, type RosterEntry } from './overviewStats'
@@ -429,6 +430,9 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     const displayDate = !col.lesson && col.topic ? col.due ?? col.date : col.date
     return sources.size ? [{ col, displayDate, source: sources.size === 1 ? [...sources][0] : null, hasHomework, upcoming }] : []
   }).sort((a, b) => (a.displayDate ?? '9999').localeCompare(b.displayDate ?? '9999')), [slots, byStudent, today, withWork])
+  const rows = useMemo(() => new Map(entries.map(({ student }) => [student.id,
+    matrixRuns(columns, column => byStudent.get(student.id)?.has(column.col.ref) ?? false)
+  ])), [entries, columns, byStudent])
   const columnCount = columns.length
   const trackCount = Math.max(1, columnCount)
   // A per-student source needs a third line. Reserve it for the whole roster in every view.
@@ -510,10 +514,10 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     <span className="cj-avatar" aria-hidden>{monogram(student.name)}</span><span>{student.name}</span>
                   </button>
                 </th>
-                {columns.map(({ col, source, upcoming }) => {
+                {rows.get(student.id)?.map(({ item: { col, source, upcoming }, span }) => {
                   const w = byStudent.get(student.id)?.get(col.ref)
                   const active = selected.student === student.id && detail === col.ref
-                  return <td key={col.ref} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
+                  return <td key={col.ref} colSpan={span} className={!w ? 'js-unassigned-run' : undefined} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
                     <button type="button" data-selected-work={active || undefined} aria-pressed={active}
                       className="js-cell" aria-label={[student.name, col.title,
                         ...(withWork ? [w.source, w.status === 'На проверке' && onOpenWork ? 'Проверить' : w.score === null ? w.status : w.score + '% · ' + w.status] : []),
@@ -540,9 +544,10 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
   )
 }
 export default function JournalStand({ owner, production = false }: { owner: string; production?: boolean }) {
-  const { data, loading, error, reload, setData } = useCourseJournal(true)
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
+  const journalActive = ['home', 'groups', 'gradebook', 'student'].includes(page)
+  const { data, loading, error, reload, setData } = useCourseJournal(true, journalActive)
   const storageKey = 'iskra:journal-stand:' + owner
   const [selected, setSelected] = useState<StandSelection>(() => {
     try {
@@ -568,7 +573,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
       /* optional */
     }
   }, [storageKey, selected])
-  const index = useMemo(() => (data ? buildStandIndex(data) : null), [data])
+  const index = useMemo(() => (journalActive && data ? buildStandIndex(data) : null), [data, journalActive])
   const course =
     data?.courses.some((c) => c.id === selected.course) || [ALL_COURSES, OUTSIDE_COURSES].includes(selected.course)
       ? selected.course
@@ -586,7 +591,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
     setData(current => current?.work.includes(entry.work.submission!) ? applyStandReview(current, entry, decision) : current)
     reload()
   }
-  const homework = useHomeworkHub(data, today, saveReview, entry => {
+  const homework = useHomeworkHub(journalActive ? data : null, today, saveReview, entry => {
     set({course:entry.work.slot.course,module:'',strip:entry.student.groupId ? 'groups' : 'students',student:entry.student.id,workRef:entry.work.slot.ref,tab:'Работы',search:''})
     useTeacher.getState().setSelectedGroupId(entry.student.groupId || null)
     useTeacher.getState().setActivePage('gradebook')

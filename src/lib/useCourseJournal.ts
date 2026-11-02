@@ -21,18 +21,21 @@ async function byIds<T>(table: string, columns: string, field: string, ids: stri
       .in(field, batch).order(table === 'teacher_lesson_sessions' ? 'schedule_id' : 'id')
       .range(offset, offset + size - 1).abortSignal(signal).retry(false)
     // The invoker view returns task summaries, never rich lesson bodies.
-    if (table === 'teacher_journal_lessons_v1') return journalParallelPages<T>(build, signal, 500, 2)
-    if (table === 'lesson_progress') return journalParallelPages<T>(build, signal, 500, 2)
+    if (table === 'teacher_journal_lessons_v1') return journalParallelPages<T>(build, signal, 1000, 2)
+    if (table === 'lesson_progress') return journalParallelPages<T>(build, signal, 1000, 2)
     return adaptiveJournalPages<T>(build, signal)
   })
   console.debug('[journal-read] ' + JSON.stringify({ table, rows: rows.length, ms: Math.round(performance.now() - started) }))
   return rows
 }
-export function useCourseJournal(completeWorkList = false) {
+const idsCount = (ids: string) => (JSON.parse(ids) as string[]).length
+
+export function useCourseJournal(completeWorkList = false, enabled = true) {
   const { groups, loading: groupsLoading } = useGroups()
   const { value: students, loading: studentsLoading } = useAllStudentsSnapshot()
   const rosterReady = !groupsLoading && !studentsLoading
   const lastLoaded = useRef(0)
+  const loadedScope = useRef('')
   const [data, setData] = useState<CourseJournalData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -41,6 +44,12 @@ export function useCourseJournal(completeWorkList = false) {
   const studentIds = JSON.stringify(students.map(s => s.id).sort())
   const groupIds = JSON.stringify(groups.map(g => g.id).sort())
   useEffect(() => {
+    if (!enabled) return
+    const loadKey = JSON.stringify([studentIds, groupIds, completeWorkList, tick])
+    if (data && loadedScope.current === loadKey && Date.now() - lastLoaded.current < 30_000) {
+      setLoading(false)
+      return
+    }
     if (!rosterReady) {
       const timeout = setTimeout(() => {
         setError('Не удалось дождаться списка учеников. Проверьте соединение и нажмите «Обновить».')
@@ -76,21 +85,24 @@ export function useCourseJournal(completeWorkList = false) {
       const scope = [gids.length ? `group_id.in.(${gids.join(',')})` : '', ids.length ? `student_id.in.(${ids.join(',')})` : ''].filter(Boolean).join(',')
       const courseIds = courses.map(c => c.id)
       const warnings: string[] = []
-      const [lessons, modules, work, events, assignments, legacy, attempts] = await Promise.all([
+      const eventsAndMarks = (scope ? journalPages<CourseJournalData['events'][number]>(offset => supabase.from('schedule_lessons')
+          .select('id, lesson_id, node_type, group_id, student_id, date, time_start, time_end, lesson_title, subject, status')
+          .or(scope).order('id').range(offset, offset + 499).abortSignal(signal).retry(false), signal) : Promise.resolve([])).then(async events => {
+        const marks = await byIds<CourseJournalData['marks'][number]>('teacher_lesson_sessions', 'schedule_id, attendance', 'schedule_id', events.map(e => e.id), signal)
+          .catch(error => { if (signal.aborted) throw error; warnings.push('Не удалось загрузить отметки занятий. Посещаемость может быть неполной.'); return [] })
+        return { events, marks }
+      })
+      const [lessons, modules, work, { events, marks }, assignments, legacy, attempts] = await Promise.all([
         byIds<CourseJournalData['lessons'][number]>('teacher_journal_lessons_v1', 'id, short_id, course_id, module_id, title, kind, position, lesson_number, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, delivery_mode, youtube_url, hwTask:hw_tasks, recTask:rec_tasks, hwDate:hw_date, recHwDate:rec_hw_date' + (completeWorkList ? ',extraHw:extra_hw' : ''), 'course_id', courseIds, signal),
         byIds<CourseJournalData['modules'][number]>('course_modules', 'id, course_id, label, position', 'course_id', courseIds, signal),
         byIds<CourseJournalData['work'][number]>('lesson_progress', 'id, student_id, lesson_ref, status, score, attachments, updated_at, review_comment', 'student_id', ids, signal),
-        scope ? journalPages<CourseJournalData['events'][number]>(offset => supabase.from('schedule_lessons')
-          .select('id, lesson_id, node_type, group_id, student_id, date, time_start, time_end, lesson_title, subject, status')
-          .or(scope).order('id').range(offset, offset + 499).abortSignal(signal).retry(false), signal) : [],
+        eventsAndMarks,
         journalPages<CourseJournalData['assignments'][number]>(offset => supabase.from('homework')
           .select('id, lesson_id, group_id, title, due_date, status, basicTask:basic_tasks->0' + (completeWorkList ? ',assignedAt:assigned_at,basicTasks:basic_tasks' : '')).eq('created_by', owner).order('id').range(offset, offset + 499).abortSignal(signal).retry(false), signal),
         byIds<CourseJournalData['legacy'][number]>('lesson_attendance', 'id, student_id, lesson_date, lesson_title, present, grade', 'student_id', ids, signal),
         byIds<CourseJournalData['attempts'][number]>('homework_attempts', 'id, student_id, lesson_ref, number, status, score, passing_score, submitted_at, review_comment', 'student_id', ids, signal)
           .catch(error => { if (signal.aborted) throw error; warnings.push('История попыток недоступна. Показаны текущие результаты работ.'); return [] }),
       ])
-      const marks = await byIds<CourseJournalData['marks'][number]>('teacher_lesson_sessions', 'schedule_id, attendance', 'schedule_id', events.map(e => e.id), signal)
-        .catch(error => { if (signal.aborted) throw error; warnings.push('Не удалось загрузить отметки занятий. Посещаемость может быть неполной.'); return [] })
       return { courses, lessons, modules, work, events, assignments, legacy, marks, attempts, warnings, demo: false, students: [], groups: [] } as CourseJournalData
     }
     const timeout = setTimeout(() => {
@@ -101,11 +113,11 @@ export function useCourseJournal(completeWorkList = false) {
         setLoading(false)
       }
     }, 20_000)
-    void load().then(next => { if (active) { lastLoaded.current = Date.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), lessons: next.lessons.length, work: next.work.length })); setData(next) } }).catch(e => {
+    void load().then(next => { if (active) { loadedScope.current = loadKey; lastLoaded.current = Date.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); setData(next) } }).catch(e => {
       if (active) setError(e instanceof Error ? e.message : 'Не удалось загрузить журнал')
     }).finally(() => { clearTimeout(timeout); controller.abort(); if (active) setLoading(false) })
     return () => { active = false; clearTimeout(timeout); controller.abort() }
-  }, [studentIds, groupIds, tick, completeWorkList, rosterReady])
+  }, [studentIds, groupIds, tick, completeWorkList, rosterReady, enabled])
   useEffect(() => {
     const authDataChanged = createAuthDataChangeGuard()
     const focus = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoaded.current > 30_000) reload() }

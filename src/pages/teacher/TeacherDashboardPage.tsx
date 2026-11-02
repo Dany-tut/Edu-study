@@ -1,31 +1,32 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPrompt'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
 import NotificationToastContainer from '../../components/NotificationToast'
 import { useNotificationsInit } from '../../lib/notificationsSync'
-import TeacherHome from './TeacherHome'
-import TeacherGroupsPage from './TeacherGroupsPage'
-import TeacherHomeworkPage from './TeacherHomeworkPage'
-import TeacherGradebookPage from './TeacherGradebookPage'
-import TeacherConstructorPage from './TeacherConstructorPage'
-import TeacherHomeworkCreatePage from './TeacherHomeworkCreatePage'
-import TeacherHomeworkReviewPage from './TeacherHomeworkReviewPage'
-import TeacherHardReviewPage from './TeacherHardReviewPage'
-import TeacherLessonEditorPage from './TeacherLessonEditorPage'
+import { retryImport } from '../../lib/chunkError'
+import JournalSkeleton from '../../components/teacher/JournalSkeleton'
+const TeacherGroupsPage = lazy(() => retryImport(() => import('./TeacherGroupsPage')))
+const TeacherHomeworkPage = lazy(() => retryImport(() => import('./TeacherHomeworkPage')))
+const TeacherGradebookPage = lazy(() => retryImport(() => import('./TeacherGradebookPage')))
+const TeacherConstructorPage = lazy(() => retryImport(() => import('./TeacherConstructorPage')))
+const TeacherHomeworkCreatePage = lazy(() => retryImport(() => import('./TeacherHomeworkCreatePage')))
+const TeacherHomeworkReviewPage = lazy(() => retryImport(() => import('./TeacherHomeworkReviewPage')))
+const TeacherHardReviewPage = lazy(() => retryImport(() => import('./TeacherHardReviewPage')))
+const TeacherLessonEditorPage = lazy(() => retryImport(() => import('./TeacherLessonEditorPage')))
 import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
-import TeacherStudentDashboardPage from './TeacherStudentDashboardPage'
-import TeacherCourseEditorPage from './TeacherCourseEditorPage'
-import TeacherCardSetEditorPage from './TeacherCardSetEditorPage'
-import TeacherStoragePage from './TeacherStoragePage'
-import TeacherAdminPage from './TeacherAdminPage'
-import TeacherProfileSettingsPage from './TeacherProfileSettingsPage'
-import TeacherPaymentPage from './TeacherPaymentPage'
-import TeacherFinancesPage from './TeacherFinancesPage'
-import MobileTeacherApp from '../../components/teacher/mobile/MobileTeacherApp'
+const TeacherStudentDashboardPage = lazy(() => retryImport(() => import('./TeacherStudentDashboardPage')))
+const TeacherCourseEditorPage = lazy(() => retryImport(() => import('./TeacherCourseEditorPage')))
+const TeacherCardSetEditorPage = lazy(() => retryImport(() => import('./TeacherCardSetEditorPage')))
+const TeacherStoragePage = lazy(() => retryImport(() => import('./TeacherStoragePage')))
+const TeacherAdminPage = lazy(() => retryImport(() => import('./TeacherAdminPage')))
+const TeacherProfileSettingsPage = lazy(() => retryImport(() => import('./TeacherProfileSettingsPage')))
+const TeacherPaymentPage = lazy(() => retryImport(() => import('./TeacherPaymentPage')))
+const TeacherFinancesPage = lazy(() => retryImport(() => import('./TeacherFinancesPage')))
+const MobileTeacherApp = lazy(() => retryImport(() => import('../../components/teacher/mobile/MobileTeacherApp')))
 import DeskSwitcher from '../../components/teacher/DeskSwitcher'
-import DeskCanvas from '../../components/teacher/DeskCanvas'
-import WidgetLibraryModal from '../../components/teacher/WidgetLibraryModal'
+const DeskCanvas = lazy(() => retryImport(() => import('../../components/teacher/DeskCanvas')))
+const WidgetLibraryModal = lazy(() => retryImport(() => import('../../components/teacher/WidgetLibraryModal')))
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore'
 import { useDeskStore } from '../../store/deskStore'
@@ -147,14 +148,14 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       )}
 
       {/* Widget library modal */}
-      {showWidgetLibrary && (
+      {showWidgetLibrary && (<Suspense fallback={null}>
         <WidgetLibraryModal
           onClose={() => setShowWidgetLibrary(false)}
           onAdd={item => addWidget(activeDesk.id, item)}
           existingTypes={activeDesk.items.map(i => i.type)}
           hiddenWidgets={hiddenWidgets}
         />
-      )}
+      </Suspense>)}
 
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
       <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
@@ -204,6 +205,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         // by this wrapper, so their overflow stays visible.
         style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
       >
+        <Suspense fallback={<JournalSkeleton />} >
         {activePage === 'home' && (
           <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <DeskCanvas
@@ -231,12 +233,13 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}
+        </Suspense>
       </motion.div>
 
     </div>
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    {!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
+    <Suspense fallback={<JournalSkeleton />}>{!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
     </>
   )
 }
