@@ -9,6 +9,7 @@
 //   • YouTube — IFrame Player API (controls=0), команды через объект плеера;
 //   • RuTube  — postMessage API того же вида, что уже был на странице урока;
 //   • свой файл — обычный <video> без controls;
+//   • Google Диск — публичный видеофайл через подписанный медиа-шлюз;
 //   • чужая ссылка (teachstream и прочее) — оставляем как есть: у неё нет API,
 //     рисовать поверх кнопки, которые ничего не нажимают, — обман.
 // Поверх iframe лежит наш слой, а сам iframe получает pointer-events: none.
@@ -25,11 +26,14 @@ import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
   Play, Pause, RotateCcw, RotateCw, Volume2, Volume1, VolumeX,
-  Maximize, Minimize, Subtitles, Gauge, Check, Repeat,
+  Maximize, Minimize, Subtitles, Gauge, Repeat,
   ChevronLeft, ChevronRight, Lock, LockOpen,
 } from './icons/appIcons'
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
+import { resolveDriveVideo } from '../lib/driveVideo'
+import ScrollFade from './ScrollFade'
+import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
 import { useT } from '../lib/i18n'
 import {
@@ -38,10 +42,9 @@ import {
 } from '../lib/videoProgress'
 
 const RATES = [0.75, 1, 1.25, 1.5, 1.75, 2]
-/** Верхние ступени показываем только там, где движок правда так играет: свой
- *  <video> тянет до 4×, а YouTube выше 2× молча остаётся на 2× — предлагать
- *  ему 3× значит врать про скорость. */
-const FAST_RATES = [3, 4]
+/** Native video (including Drive via the media gateway) supports up to 10×.
+ * YouTube keeps its separate engine limit. */
+const FAST_RATES = [2.5, 3, 4, 5, 6, 7, 8, 9, 10]
 /** Через столько без движения мыши панель управления уезжает. */
 const IDLE_MS = 2600
 /** Опрос времени. rAF в превью не работает (см. AudioPlayer) — только таймер. */
@@ -68,10 +71,9 @@ const MAX_BOOST = 5
 /** Выше этого чужие движки скорость не принимают: YouTube молча игнорирует 3×
  *  и продолжает играть на 2× — плашка врала бы про ступень. */
 const ENGINE_MAX_RATE = 2
-/** А свой <video> (прямые ссылки — Диск, наш бакет) тянет и быстрее: держим
- *  до 4×, дальше Chrome сам глушит звук и смысл «слышного» ускорения пропадает.
- *  Safari глушит уже выше 2× — там 3–4× останется быстрой немой картинкой. */
-const FILE_MAX_RATE = 4
+/** Chromium preserves audible, pitch-corrected audio above 4× since Chrome 64.
+ * Other engines may still impose their own audio limits. */
+const FILE_MAX_RATE = 10
 /** Такт скольжения по ролику. Назад движки не играют, а вперёд выше потолка
  *  своей ступени не умеют — оба случая берём шагами перемотки. */
 const SKIM_TICK_MS = 120
@@ -92,18 +94,13 @@ const TAP_SLOP = 12
  * ровно MAX_VH·16/9. Так соотношение остаётся честным на любом экране, и полей
  * не появляется вовсе.
  */
-const MAX_VH = 68
+const MAX_VH = 74
 /** Предельная ширина колонки с видео — та, при которой 16:9 даёт MAX_VH высоты. */
 export const PLAYER_MAX_W = `calc(${MAX_VH}vh * 16 / 9)`
 /** Предельная высота плеера — по ней равняется и панель таймкодов рядом. */
 export const PLAYER_MAX_H = `${MAX_VH}vh`
 
-/**
- * Тач-экран. По нему прячем ползунок громкости: пальцем его не поймать, а
- * громкость на телефоне и так железная — кнопками сбоку. Проверяем именно
- * pointer, а не ширину: узкое окно на десктопе остаётся с мышью, и ползунок
- * там нужен.
- */
+/** Pointer type controls gestures independently of viewport width. */
 function useCoarsePointer(): boolean {
   const [coarse, setCoarse] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches,
@@ -194,22 +191,25 @@ function loadYouTubeApi(): Promise<NonNullable<Window['YT']>> {
 }
 
 const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function LessonVideoPlayer(
-  { source, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick }, ref,
+  { source: originalSource, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick }, ref,
 ) {
   const t = useT()
   const touch = useCoarsePointer()
+  const [driveUrl, setDriveUrl] = useState('')
+  const [driveError, setDriveError] = useState(false)
+  const [driveAttempt, setDriveAttempt] = useState(0)
+  const [mediaError, setMediaError] = useState(false)
+  const source: VideoSource = originalSource.kind === 'gdrive' && driveUrl
+    ? { kind: 'file', url: driveUrl } : originalSource
 
-  // Своих кнопок у чужой страницы быть не может — там нет API, чтобы они
-  // работали. Такой источник показываем как раньше, голым iframe. Google Диск
-  // (/preview) из той же породы: своего проигрывателя у него нет, управление —
-  // средствами самого Диска.
-  const custom = source.kind !== 'iframe' && source.kind !== 'gdrive'
+  // Unknown pages stay embedded. Drive is resolved lazily into a native video
+  // source through the authenticated media gateway.
+  const custom = source.kind !== 'iframe'
   const canRate = source.kind !== 'rutube'   // у RuTube скорость не выставляется извне
   /** До какой ступени ускорение играет движком (со звуком), а не скольжением. */
-  const engineMaxRate = source.kind === 'file' ? FILE_MAX_RATE : ENGINE_MAX_RATE
+  const engineMaxRate = source.kind === 'file' || source.kind === 'gdrive' ? FILE_MAX_RATE : ENGINE_MAX_RATE
   const canCaptions = source.kind === 'youtube'   // и только если дорожки нашлись, см. ccAvailable
-  /** Меню скорости не предлагает того, чего движок не сыграет: чужому плееру —
-   *  до 2×, своему <video> — вся лестница до 4×. */
+  /** The menu respects the engine: up to 2× for YouTube, 10× for native video. */
   const rates = engineMaxRate > 2 ? [...RATES, ...FAST_RATES] : RATES
 
   const [watch, setWatch] = useState<VideoWatch>(initialWatch)
@@ -228,6 +228,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const [fullscreen, setFullscreen] = useState(false)
   const [barVisible, setBarVisible] = useState(true)
   const [rateOpen, setRateOpen] = useState(false)
+  const [volumeOpen, setVolumeOpen] = useState(false)
   /** Координаты меню скорости: оно живёт в портале, см. placeRateMenu. */
   const [ratePos, setRatePos] = useState<{ left: number; top: number } | null>(null)
   const [scrubbing, setScrubbing] = useState(false)
@@ -250,6 +251,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   const boxRef = useRef<HTMLDivElement>(null)
   const rateBtnRef = useRef<HTMLButtonElement>(null)
+  const volumeBoxRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const ytHostRef = useRef<HTMLDivElement>(null)
@@ -261,6 +263,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const ruPlaying = useRef(false)
   /** Предыдущий тик: по разнице решаем, просмотр это или перемотка. */
   const lastTick = useRef<number | null>(null)
+  const lastTickWall = useRef(performance.now())
   /** Начало непрерывно отсматриваемого куска — от него растёт текущий отрезок. */
   const segStart = useRef<number | null>(null)
   /** Последняя секунда, отданная наружу. */
@@ -281,6 +284,25 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   /** Что мы сами только что отдали наверх: оно вернётся пропом, и принимать его
    *  обратно нельзя — за время круга плеер уже уехал на пару тиков вперёд. */
   const lastEmitted = useRef<VideoWatch | null>(null)
+
+  useEffect(() => {
+    if (!started || originalSource.kind !== 'gdrive') return
+    let alive = true
+    setDriveError(false)
+    resolveDriveVideo(originalSource.id).then(url => {
+      if (alive) { setDriveUrl(url); setMediaError(false) }
+    }).catch(() => { if (alive) setDriveError(true) })
+    return () => { alive = false }
+  }, [started, originalSource.kind === 'gdrive' ? originalSource.id : '', driveAttempt])
+
+  useEffect(() => {
+    if (!volumeOpen) return
+    const close = (e: PointerEvent) => {
+      if (!volumeBoxRef.current?.contains(e.target as Node)) setVolumeOpen(false)
+    }
+    document.addEventListener('pointerdown', close, true)
+    return () => document.removeEventListener('pointerdown', close, true)
+  }, [volumeOpen])
 
   // Обработчики жеста живут в window-подписках и переживают ре-рендеры, поэтому
   // всё изменчивое читают из ссылок, а не из замыкания.
@@ -380,14 +402,18 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   }, [source.kind, ruSend])
 
   const applyRate = useCallback((r: number) => {
-    setRate(r); setRateOpen(false)
-    if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(r)
-    else if (videoRef.current) {
-      // На верхних ступенях (3×, 4×) без этого голос уезжает в писк — тот же
-      // приём, что и у ускорения жестом.
-      videoRef.current.preservesPitch = true
-      videoRef.current.playbackRate = r
+    try {
+      if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(r)
+      else if (videoRef.current) {
+        videoRef.current.preservesPitch = true
+        videoRef.current.playbackRate = r
+      }
+      setRate(r)
+    } catch {
+      // Unsupported rates must not leave a misleading speed label.
+      setRate(videoRef.current?.playbackRate ?? 1)
     }
+    setRateOpen(false)
   }, [source.kind])
 
   // Модуль субтитров грузится вместе с плеером (cc_load_policy), а кнопка лишь
@@ -551,12 +577,16 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       // кусочки отбрасывались бы все до единого — просмотр не набирался вовсе.
       // Отрезки склеиваются при добавлении, так что растёт один и тот же.
       const prev = lastTick.current
+      const now = performance.now()
+      const elapsed = Math.max(0, (now - lastTickWall.current) / 1000)
+      lastTickWall.current = now
       lastTick.current = playing ? time : null
       if (!playing) { segStart.current = null; return }
       const step = prev === null ? Infinity : time - prev
       // Пауза, начало куска или перемотка — начинаем отрезок заново, пропуск
       // между ними отсмотренным не считается.
-      if (step <= 0 || step > MAX_STEP) { segStart.current = time; return }
+      const playingRate = videoRef.current?.playbackRate ?? rateRef.current
+      if (step <= 0 || step > Math.max(MAX_STEP, playingRate * Math.min(elapsed, 2) * 1.5)) { segStart.current = time; return }
       const from = segStart.current ?? prev!
 
       setWatch(base => withCompletion({
@@ -579,12 +609,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   // самого меню — раскрытый список обрезался сверху. Поэтому меню рисуется в
   // портале с position: fixed, а координаты считаем от кнопки: над ней, если
   // сверху есть место, иначе под ней; по горизонтали — не вылезая за экран.
-  const RATE_MENU_W = 112
+  const RATE_MENU_W = 248
   const placeRateMenu = useCallback(() => {
     const btn = rateBtnRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
-    const h = rates.length * 31 + 12
+    const h = Math.min(Math.ceil(rates.length / 4) * 44 + 48, window.innerHeight - 32)
     const gap = 8
     const top = r.top - gap - h >= 8 ? r.top - gap - h : Math.min(r.bottom + gap, window.innerHeight - h - 8)
     const left = Math.max(8, Math.min(r.right - RATE_MENU_W, window.innerWidth - RATE_MENU_W - 8))
@@ -619,9 +649,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     if (idleTimer.current) window.clearTimeout(idleTimer.current)
     idleTimer.current = window.setTimeout(() => {
       // Пока мышь в меню скорости или на ползунке — панель не прячем.
-      if (!scrubbing && !rateOpen) setBarVisible(false)
+      if (!scrubbing && !rateOpen && !volumeOpen) setBarVisible(false)
     }, IDLE_MS)
-  }, [scrubbing, rateOpen])
+  }, [scrubbing, rateOpen, volumeOpen])
 
   useEffect(() => {
     if (paused || !started) { setBarVisible(true); return }
@@ -645,6 +675,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   // ── Клавиши (когда фокус на плеере) ───────────────────────────────────────
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (!started || !custom) return
+    if (e.key !== 'Escape' && (e.target as HTMLElement).closest('button, input, a')) return
     const step = e.shiftKey ? 30 : 10
     switch (e.key) {
       case ' ': case 'k': case 'K': e.preventDefault(); paused ? doPlay() : doPause(); break
@@ -654,6 +685,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       case 'ArrowDown': e.preventDefault(); { const v = Math.max(0, volume - 0.1); setVolume(v); applyVolume(v, muted) } break
       case 'm': case 'M': { const m = !muted; setMuted(m); applyVolume(volume, m) } break
       case 'f': case 'F': toggleFullscreen(); break
+      case 'Escape': setRateOpen(false); setVolumeOpen(false); break
       default: return
     }
     wake()
@@ -706,7 +738,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   /** Пока ступень в пределах потолка движка — её играет сам плеер, и голос
    *  слышно. Всё, что выше, и любая отмотка назад идут скольжением: звука там
-   *  всё равно нет. Потолок разный: у YouTube 2×, у своего <video> — 4×. */
+   *  всё равно нет. Потолок разный: у YouTube 2×, у своего <video> — 10×. */
   const applyBoost = useCallback((dir: 1 | -1, mult: number) => {
     boostRef.current = mult
     setBoost(mult)
@@ -878,7 +910,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   const iconBtn = (extra?: React.CSSProperties): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: 34, height: 34, borderRadius: 10, border: 'none', cursor: 'pointer',
+    width: 44, height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
     background: 'transparent', color: '#fff', flexShrink: 0, ...extra,
   })
 
@@ -888,8 +920,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       tabIndex={0}
       onKeyDown={onKeyDown}
       onPointerMove={wake}
-      onPointerLeave={() => { if (started && !paused && !rateOpen) setBarVisible(false) }}
-      className="relative min-w-0 outline-none"
+      onPointerLeave={() => { if (started && !paused && !rateOpen && !volumeOpen) setBarVisible(false) }}
+      className="lesson-player relative min-w-0 outline-none"
       style={{
         width: '100%',
         // В полноэкранном режиме коробку растягивает браузер; в потоке страницы
@@ -913,13 +945,21 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         <video
           ref={videoRef}
           src={source.url}
+          crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : undefined}
           autoPlay
           playsInline
           disablePictureInPicture
           onLoadedMetadata={e => {
             e.currentTarget.currentTime = startAt
+            e.currentTarget.preservesPitch = true
+            e.currentTarget.playbackRate = rateRef.current
+            e.currentTarget.volume = volume
+            e.currentTarget.muted = muted
             setDuration(e.currentTarget.duration || 0)
           }}
+          onLoadedData={e => { void e.currentTarget.play().catch(() => setPaused(true)) }}
+          onSeeking={() => { lastTick.current = null; segStart.current = null }}
+          onError={() => { setMediaError(true); setPaused(true) }}
           onPlay={() => { setPaused(false); setEnded(false) }}
           onPause={() => setPaused(true)}
           onEnded={() => { setPaused(true); setEnded(true) }}
@@ -935,7 +975,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         </div>
       )}
 
-      {started && (source.kind === 'rutube' || source.kind === 'iframe' || source.kind === 'gdrive') && (
+      {started && (source.kind === 'rutube' || source.kind === 'iframe') && (
         <iframe
           ref={iframeRef}
           src={videoEmbedSrc(source, startAt)}
@@ -1126,7 +1166,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             animate={{ opacity: barVisible || paused || !!gesture ? 1 : 0, y: barVisible || paused || !!gesture ? 0 : 12 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
-              position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 14px 12px',
+              position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 10px 8px',
               background: 'linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0.35) 55%, transparent)',
               pointerEvents: barVisible || paused ? 'auto' : 'none',
             }}
@@ -1134,14 +1174,26 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             {/* Дорожка: буфер → отсмотренное → проигранное → метки глав. */}
             <div
               ref={railRef}
+              role="slider"
+              tabIndex={0}
+              aria-label={t('Перемотка')}
+              aria-valuemin={0}
+              aria-valuemax={duration || 0}
+              aria-valuenow={Math.round(current)}
+              aria-valuetext={`${formatClock(current)} / ${formatClock(duration)}`}
+              onKeyDown={e => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
+                e.preventDefault(); e.stopPropagation()
+                doSeek(e.key === 'Home' ? 0 : e.key === 'End' ? duration : current + (e.key === 'ArrowRight' ? 5 : -5))
+              }}
               onPointerDown={startScrub}
               onPointerMove={e => setHoverAt(seekAtClientX(e.clientX))}
               onPointerLeave={() => setHoverAt(null)}
-              style={{ position: 'relative', height: 18, display: 'flex', alignItems: 'center', cursor: 'pointer', touchAction: 'none' }}
+              style={{ position: 'relative', height: 28, display: 'flex', alignItems: 'center', cursor: 'pointer', touchAction: 'none' }}
             >
               {/* Комета: бегунка нет вовсе, положение держит светлая голова на
                   конце заливки, а хвост за ней гаснет. */}
-              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 6 : 3, borderRadius: 999, background: 'rgba(255,255,255,0.22)', transition: 'height 0.15s ease' }}>
+              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 7 : 5, borderRadius: 999, background: 'rgba(255,255,255,0.22)', transition: 'height 0.15s ease' }}>
                 <div style={{ position: 'absolute', inset: 0, width: `${buffered * 100}%`, borderRadius: 999, background: 'rgba(255,255,255,0.28)' }} />
                 {/* Уже отсмотренные куски — видно, что осталось пересмотреть. */}
                 {duration > 0 && watch.ranges.map(([a, b], i) => (
@@ -1207,36 +1259,45 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   выдавливалось ускорение — а оно нужнее: перемотка живёт в
                   жестах по кадру (двойной тап по краю, удержание), скорость же
                   нажимается только отсюда. */}
-              {/* Громкость: ползунок раскрывается при наведении на группу. */}
-              <div className="flex items-center group" style={{ gap: 2 }}>
+              <div ref={volumeBoxRef} className="lesson-player-volume">
                 <button
-                  onClick={() => { const m = !muted; setMuted(m); applyVolume(volume, m) }}
-                  style={iconBtn()}
-                  aria-label={muted ? t('Включить звук') : t('Выключить звук')}
+                  onClick={() => { setVolumeOpen(o => !o); setRateOpen(false) }}
+                  style={iconBtn(volumeOpen ? { background: 'rgba(255,255,255,0.16)' } : undefined)}
+                  aria-label={t('Громкость')}
+                  aria-expanded={volumeOpen}
                 >
                   {muted || volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
                 </button>
-                {!touch && (
-                  <input
-                    type="range" min={0} max={1} step={0.05}
-                    value={muted ? 0 : volume}
-                    onChange={e => {
-                      const v = Number(e.target.value)
-                      setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
-                    }}
-                    aria-label={t('Громкость')}
-                    className="video-volume"
-                    style={{ width: 72, accentColor: '#fff' }}
-                  />
+                {volumeOpen && (
+                  <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
+                    <button
+                      onClick={() => { const m = !muted; setMuted(m); applyVolume(volume, m) }}
+                      style={iconBtn()}
+                      aria-label={muted ? t('Включить звук') : t('Выключить звук')}
+                    >
+                      {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                    </button>
+                    <input
+                      type="range" min={0} max={1} step={0.05}
+                      value={muted ? 0 : volume}
+                      onChange={e => {
+                        const v = Number(e.target.value)
+                        setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
+                      }}
+                      aria-label={t('Уровень громкости')}
+                      className="video-volume"
+                      style={{ width: 96, accentColor: '#fff' }}
+                    />
+                  </div>
                 )}
               </div>
 
-              <span style={{ marginLeft: 8, fontSize: 13, fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                {formatClock(current)} <span style={{ color: 'rgba(255,255,255,0.6)' }}>/ {formatClock(duration)}</span>
+              <span className="lesson-player-time">
+                {formatClock(current)} <span className="lesson-player-duration"><span className="lesson-player-time-slash">/ </span>{formatClock(duration)}</span>
               </span>
 
               {activeChapter >= 0 && (
-                <span className="truncate" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
+                <span className="lesson-player-chapter truncate" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
                   {timecodes[activeChapter].label}
                 </span>
               )}
@@ -1257,9 +1318,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 <div style={{ position: 'relative' }}>
                   <button
                     ref={rateBtnRef}
-                    onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o) }}
+                    onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o); setVolumeOpen(false) }}
                     style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 6 } : { width: 'auto', padding: '0 8px', gap: 6 })}
                     aria-label={t('Скорость')}
+                    aria-expanded={rateOpen}
                   >
                     <Gauge size={18} />
                     <span style={{ fontSize: 12, fontWeight: 700 }}>{liveRate}×</span>
@@ -1267,6 +1329,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   {rateOpen && ratePos && createPortal(
                     <div
                       data-rate-menu
+                      onKeyDown={e => { if (e.key === 'Escape') { setRateOpen(false); rateBtnRef.current?.focus(); e.stopPropagation() } }}
                       style={{
                         position: 'fixed', left: ratePos.left, top: ratePos.top, zIndex: 4000,
                         width: RATE_MENU_W, padding: 6, borderRadius: 14,
@@ -1274,25 +1337,22 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         boxShadow: 'var(--shadow-4)',
                       }}
                     >
-                      {rates.map(r => (
-                        <button
-                          key={r}
-                          // Выбор из меню — это уже другая скорость: защёлкнутое
-                          // ускорение снимаем, иначе оно осталось бы поверх.
-                          // Работаем по pointerup: на телефоне click по пункту
-                          // в портале доезжает не всегда.
-                          onPointerUp={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
-                          className="flex items-center w-full cursor-pointer"
-                          style={{
-                            gap: 8, padding: '8px 10px', borderRadius: 9, border: 'none',
-                            background: r === rate ? 'rgba(255,255,255,0.14)' : 'transparent',
-                            color: '#fff', fontSize: 13, fontWeight: r === rate ? 700 : 500,
-                          }}
-                        >
-                          <Check size={14} style={{ opacity: r === rate ? 1 : 0 }} />
-                          {r === 1 ? t('Обычная') : `${r}×`}
-                        </button>
-                      ))}
+                      <div className="lesson-player-rate-title">{t('Скорость воспроизведения')}</div>
+                      <ScrollFade maxHeight="calc(100dvh - 80px)" fadeMode="mask" bg="rgba(20,20,22,0.96)">
+                        <div className="lesson-player-rate-grid" role="group" aria-label={t('Скорость воспроизведения')}>
+                          {rates.map(r => (
+                            <button
+                              key={r}
+                              onClick={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
+                              aria-pressed={r === rate}
+                              aria-label={`${r}×`}
+                              className="lesson-player-rate-option"
+                            >
+                              {r}×
+                            </button>
+                          ))}
+                        </div>
+                      </ScrollFade>
                     </div>,
                     (fullscreen ? boxRef.current : null) ?? document.body,
                   )}
@@ -1305,6 +1365,38 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             </div>
           </motion.div>
         </>
+      )}
+
+      {started && (driveError || mediaError || (originalSource.kind === 'gdrive' && !driveUrl)) && (
+        <div className="lesson-player-message" role={driveError || mediaError ? 'alert' : 'status'}>
+          <p>{driveError || mediaError
+            ? t('Не удалось открыть запись.') : t('Открываем запись…')}</p>
+          {(driveError || mediaError) && (
+            <>
+              <p>{originalSource.kind === 'gdrive'
+                ? t('Попробуйте ещё раз или откройте видео на Google Диске.')
+                : t('Попробуйте ещё раз или откройте исходное видео.')}</p>
+              <div className="lesson-player-message-actions">
+                <button onClick={() => {
+                  setStartAt(currentRef.current)
+                  setMediaError(false)
+                  if (originalSource.kind === 'gdrive') {
+                    setDriveUrl(''); setDriveError(false); setDriveAttempt(n => n + 1)
+                  } else {
+                    videoRef.current?.load()
+                    void videoRef.current?.play().catch(() => setPaused(true))
+                  }
+                }}>{t('Попробовать ещё раз')}</button>
+                <a href={originalSource.kind === 'gdrive'
+                  ? `https://drive.google.com/file/d/${originalSource.id}/view`
+                  : 'url' in originalSource ? originalSource.url : undefined}
+                  target="_blank" rel="noopener noreferrer">
+                  {originalSource.kind === 'gdrive' ? t('Открыть на Google Диске') : t('Открыть видео')}
+                </a>
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       {/* ── Заставка ── */}
@@ -1431,7 +1523,8 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
       />
     )
   }
-  return <LessonVideoPlayerInner {...props} ref={ref} />
+  const sourceKey = 'id' in props.source ? `${props.source.kind}:${props.source.id}` : `${props.source.kind}:${props.source.url}`
+  return <LessonVideoPlayerInner key={sourceKey} {...props} ref={ref} />
 })
 
 export default LessonVideoPlayer
