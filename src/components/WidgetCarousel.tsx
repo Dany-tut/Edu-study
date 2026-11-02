@@ -54,8 +54,10 @@ function WidgetFrame({ id, children, style, adaptive }: { id: number; children: 
   return <div ref={ref} className={adaptive ? "iskra-widget" : undefined} data-widget={adaptive ? `pupil-${WIDGET_TYPES[id]}` : undefined} style={style}>{children}</div>
 }
 
-export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
+export default function WidgetCarousel({ columnsOverride, previewWidgets, leadingWidgets }: {
   columnsOverride?: number
+  /** Live home work cards, followed by the student’s configured widgets. */
+  leadingWidgets?: { id: number; content: ReactNode }[]
   /** In-memory stand content, in the home page's original carousel geometry. */
   previewWidgets?: { id: number; content: ReactNode }[]
 } = {}) {
@@ -101,7 +103,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
   //   • уместность (чужой предмет / пустой контент) — lib/widgetVisibility.ts.
   // Ни один не переписывает настройки ученика: сменится курс — виджет вернётся.
   const relevant = useWidgetRelevance()
-  const widgetOrder = previewWidgets ? previewWidgets.map(widget => widget.id) : rawOrder.filter(id => (home || id !== 11) && !hiddenWidgets.includes(id) && relevant(id))
+  const widgetOrder = previewWidgets ? previewWidgets.map(widget => widget.id) : [...(leadingWidgets ?? []).map(widget => widget.id), ...rawOrder.filter(id => (home || id !== 11) && !hiddenWidgets.includes(id) && relevant(id))]
   // Page count follows the number of *visible* widgets (hidden ones are simply
   // absent from widgetOrder), so a hidden widget leaves no empty trailing page.
   const pageCount = Math.max(1, Math.ceil(widgetOrder.length / perPage))
@@ -154,6 +156,8 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
   }
 
   const renderWidget = (p: number, isActive: boolean, columns = perPage) => {
+    const leading = leadingWidgets?.find(widget => widget.id === p)
+    if (leading) return leading.content
     if (previewWidgets) return previewWidgets.find(widget => widget.id === p)?.content ?? null
     if (p === 6) return <QuizWidget active={isActive} columns={columns} />
     if (p === 0) return <StatsWidget columns={columns} />
@@ -213,7 +217,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
             {pageWidgets.map(idx => (
               <WidgetFrame
                 id={idx}
-                adaptive={!previewWidgets}
+                adaptive={!previewWidgets && !leadingWidgets?.some(widget => widget.id === idx)}
                 key={idx}
                 style={{
                   flex: pageWidgets.length < perPage
@@ -226,7 +230,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
                 {/* Пустая стойка на время чанка: своя на каждый виджет,
                     чтобы приехавший сосед не сбрасывал уже показанный. */}
                 <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
-                  {home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, true)}
+                  {leadingWidgets?.some(widget => widget.id === idx) ? renderWidget(idx, true) : home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, true)}
                 </Suspense>
               </WidgetFrame>
             ))}

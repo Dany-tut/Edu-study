@@ -10,6 +10,21 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Есть просроченные работы": "You have overdue assignments",
+  "Сначала — просроченное": "Overdue first",
+  "Следующий шаг": "Next step",
+  "Без просрочки": "Not overdue",
+  "ДЗ просрочено": "Homework overdue",
+  "Работ нет": "No assignments",
+  "Без праздника": "No seasonal theme",
+  "Трек курса": "Course track",
+  "Задолженности и ближайшая работа": "Outstanding assignments and next task",
+  "Оформление главной": "Home appearance",
+  "Преподаватель откроет новые задания": "Your teacher will unlock new assignments",
+  "Всё сдано": "Everything is submitted",
+  "Все работы": "All assignments",
+  "Нужно сдать": "To submit",
+  "Не удалось загрузить работы": "Could not load assignments",
   'Перемотка': 'Seek',
   'Настройка громкости': 'Volume settings',
   'Уровень громкости': 'Volume level',
