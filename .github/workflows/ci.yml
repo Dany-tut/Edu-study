@@ -97,7 +97,7 @@ jobs:
       # исходники приложения), поэтому идут в конце.
 
       - name: Виды дневника (check:diary-views)
-        run: npm run check:diary-views
+        run: npm run check:diary-views && npm run check:student-journal
 
       - name: Словарь слов (check:gloss)
         id: gloss
