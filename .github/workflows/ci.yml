@@ -74,6 +74,9 @@ jobs:
       - name: Зависимости
         run: npm ci
 
+      - name: Связка трека и календаря
+        run: npm run check:course-track && npm run check:schedule && npm run check:attendance
+
       - name: Типы (tsc --noEmit)
         id: types
         continue-on-error: true
