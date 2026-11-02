@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
+import FadeText from '../../components/FadeText'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
@@ -2637,9 +2638,9 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       <div style={{
                         width: 10, height: 10, borderRadius: '50%', background: activeGroup.color, flex: 'none',
                       }} />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
                         {activeGroup.name}
-                      </span>
+                      </FadeText>
                       {activeGroup.isIndividual && (
                         <span style={cardChip(activeGroup.color, { flex: 'none' })}>1:1</span>
                       )}
@@ -2815,7 +2816,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                   {initials}
                                 </div>
                                 <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
-                                  <div title={tn(student.name)} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(student.name)}</div>
+                                  <FadeText>{tn(student.name)}</FadeText>
                                   {allRosterView && <RosterDescription text={studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel} />}
                                 </div>
                               </div>
