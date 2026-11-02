@@ -66,6 +66,8 @@ export const EN: Record<string, string> = {
 
   'Материалы открыты': 'Materials are available',
   'Нет запланированных занятий': 'No scheduled lessons',
+  'Время для себя': 'Time for yourself',
+  'Занятий нет — можно выдохнуть': 'No lessons — take a breather',
   'Был на занятии': 'Attended the lesson',
   'Не был на занятии': 'Did not attend the lesson',
   'Задача добавлена в демопросмотре': 'Task added in the demo',
