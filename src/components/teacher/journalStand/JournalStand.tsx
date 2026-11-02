@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import JournalSkeleton from '../JournalSkeleton'
 import { useScrollFades } from '../../../lib/useScrollFades'
+import { useIsDesktop } from '../../../lib/useIsDesktop'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import TeacherStudentDashboardPage, { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
@@ -549,6 +550,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
 export default function JournalStand({ owner, production = false }: { owner: string; production?: boolean }) {
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
+  const isDesktop = useIsDesktop()
   const journalActive = ['groups', 'gradebook', 'student'].includes(page)
   const { data, loading, error, reload, setData } = useCourseJournal(true, journalActive)
   const storageKey = 'iskra:journal-stand:' + owner
@@ -599,7 +601,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
     useTeacher.getState().setSelectedGroupId(entry.student.groupId || null)
     useTeacher.getState().setActivePage('gradebook')
   }, (entry, draft) => {
-    if (!data || data.demo || !entry.work.submission) return false
+    if (!isDesktop || !data || data.demo || !entry.work.submission) return false
     const id = nativeHomeworkReviewId(data, entry)
     if (!id) return false
     handoffHomeworkReview(id, entry.student.id, draft)
