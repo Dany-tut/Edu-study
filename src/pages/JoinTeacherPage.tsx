@@ -161,6 +161,9 @@ export default function JoinTeacherPage() {
 
         {step === 'form' && (
           <>
+            <div style={{ display: 'flex', justifyContent: 'center', margin: '-4px 0 10px' }}>
+              <img src="/widget-objects-v1/ui/quiz.png" alt="" aria-hidden="true" width={92} height={92} draggable={false} style={{ width: 92, height: 92, objectFit: 'contain' }} />
+            </div>
             <div style={{ marginBottom: 24 }}>
               <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добро пожаловать в «Искру»!')}</div>
               <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{t('Создайте аккаунт преподавателя')}</div>
