@@ -141,3 +141,16 @@
 .lh-next-meta > span:last-child { flex-shrink:0; white-space:nowrap; }
 .lh-work-card header,.lh-work-card .lh-primary { flex-shrink:0; }
 @media(max-width:1023px) and (max-height:600px) { .lh-work-card h2 svg { width:14px; height:14px; } }
+
+/* The page itself never scrolls; do not reserve a blank scrollbar gutter. */
+html:has(.live-student-home) { scrollbar-gutter:auto; }
+.lh-work-card header > button { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+@media(max-width:1023px) {
+  /* The themed sky and track remain; hanging artwork must not cover lessons. */
+  .lh-season-decor { display:none; }
+}
+@media(max-width:1023px) and (max-height:700px) {
+  .lh-work-counts { gap:4px; min-height:0; }
+  .lh-work-counts button { min-height:0; padding:4px 8px; }
+  .lh-work-counts span { line-height:12px; }
+}
