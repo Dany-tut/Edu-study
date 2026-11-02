@@ -567,7 +567,8 @@
   font-size: 11px;
 }
 .jo-share[open] {
-  display: block;
+  display: flex;
+  flex-direction: column;
   position: fixed;
   inset: 0;
   border: 0;
@@ -579,7 +580,7 @@
   max-height: none;
   margin: 0;
   padding: 16px;
-  overflow: auto;
+  overflow: hidden;
   color: var(--color-text);
   background: var(--color-bg);
 }
@@ -719,3 +720,6 @@
 .jo-tile--3d .jo-detail { width:calc(100% + var(--report-object-size) - 16px); padding-top:8px; }
 .jo-bento > .jo-tile--3d:not(.jo-wide) { min-height:240px; }
 .jo-class-grid > .jo-tile--3d { min-height:220px; }
+
+.jo-share-tools { flex:none; width:100%; }
+.jo-share-scroll { padding-bottom:16px; }

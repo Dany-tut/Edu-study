@@ -1,5 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import JournalSkeleton from '../JournalSkeleton'
+import { useScrollFades } from '../../../lib/useScrollFades'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import TeacherStudentDashboardPage, { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
@@ -358,6 +359,7 @@ function StudentPill({ entry, work, open, close }: {
 export function Matrix(props: MatrixProps) {
   const { entries, selected, picker, groupLabel, scopeLabel, groups, set, today, example, renderReport, onReload, refreshing } = props
   const host = useRef<HTMLElement>(null)
+  useScrollFades(host, true, '.js-tabs, .js-filter-items, .jh-homework-list')
   const [reportHost, setReportHost] = useState<HTMLElement | null>(null)
   const [attention, setAttention] = useState(false)
   const [workView, setWorkView] = useState<'students' | 'assignments'>('students')
