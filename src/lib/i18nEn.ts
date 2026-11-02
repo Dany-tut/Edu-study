@@ -10,6 +10,9 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Проверка сохранена': 'Review saved',
+  'Не удалось сохранить черновик. Не закрывайте экран до отправки.': 'Could not save the draft. Keep this screen open until it is submitted.',
+  'Подробности': 'Details',
   "Не удалось загрузить данные": "Could not load data",
   "Попробуй ещё раз": "Try again",
   "Выбери ответ": "Choose an answer",
