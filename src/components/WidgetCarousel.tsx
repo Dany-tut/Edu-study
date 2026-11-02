@@ -173,7 +173,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
   const pageWidgets = widgetOrder.slice(start, start + perPage)
 
   return (
-    <div ref={carouselRef} className="widget-carousel relative" data-widget={page}>
+    <div ref={carouselRef} className="widget-carousel relative" data-widget={page} data-widget-columns={pageWidgets.length}>
       {/* Left nav */}
       <motion.button
         whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
