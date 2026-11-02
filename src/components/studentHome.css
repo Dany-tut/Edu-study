@@ -204,3 +204,11 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
 @media(max-width:360px) {
  .lh-next-card { --ihw-art-base:104px; --ihw-art-gutter:68px; }
 }
+
+/* Button padding and ink fit the reserved footer row at every viewport. */
+.lh-next-action{box-sizing:border-box;min-width:0;max-width:100%;height:100%;min-height:0;flex-shrink:0}
+.lh-next-footer{overflow:visible;align-items:stretch}
+.lh-next-copy{height:100%;min-height:0;overflow:hidden}
+.lh-next-copy>.lh-next-title,.lh-next-copy>.lh-next-meta,.lh-next-copy>.lh-next-due{flex-shrink:0}
+.lh-next-card .lh-next-footer{padding-top:0;border-top:0}
+.lh-next-card .lh-next-action{height:auto;min-height:0}

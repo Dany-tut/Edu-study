@@ -1,5 +1,7 @@
 import FadeText from './FadeText'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useId } from 'react'
+import { useT } from '../lib/i18n'
+import { X } from './icons/appIcons'
 import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { createPortal } from 'react-dom'

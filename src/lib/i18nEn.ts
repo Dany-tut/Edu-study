@@ -10,6 +10,8 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Не удалось загрузить данные": "Could not load data",
+  "Попробуй ещё раз": "Try again",
   "Выбери ответ": "Choose an answer",
   "Есть просроченные работы": "You have overdue assignments",
   "Сначала — просроченное": "Overdue first",

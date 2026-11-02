@@ -58,6 +58,7 @@ export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: strin
 
 interface Props {
   /** Optional local preview; real nodes continue to use the student's assessment. */
+  overdueLabel?: string
   assessmentOverride?: LessonAssessment
   lesson: Lesson
   status: TrackLessonStatus
@@ -74,7 +75,7 @@ interface Props {
   seasonMark?: boolean
 }
 
-export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false, assessmentOverride }: Props) {
+export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false, assessmentOverride, overdueLabel }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
   const { tc } = useTc()
