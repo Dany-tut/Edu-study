@@ -84,6 +84,8 @@ for (const table of ['students', 'lesson_progress', 'courses', 'payments', 'prof
   assert.equal(allowed(`/rest/v1/${table}`, 'GET'), true)
 }
 assert.equal(allowed('/rest/v1/rpc/teacher_finance_summary', 'POST'), true)
+assert.equal(allowed('/rest/v1/rpc/teacher_journal_snapshot_v1', 'POST'), true)
+assert.equal(allowed('/rest/v1/rpc/teacher_journal_snapshot_v2', 'POST'), true)
 assert.equal(allowed('/rest/v1/rpc/teacher_journal_save', 'POST'), false)
 assert.equal(allowed('/rest/v1/rpc/admin_delete_teacher', 'POST'), false)
 assert.equal(allowed('/rest/v1/rpc/start_homework_retake', 'POST'), false)
