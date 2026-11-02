@@ -8,7 +8,7 @@ export function scrollFadeMask(position: number, viewport: number, content: numb
 }
 
 /** Follow the actual scrolling element, including responsive layout changes. */
-export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = true) {
+export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = true, selector = '*') {
   useEffect(() => {
     const root = ref.current
     if (!enabled || !root) return
@@ -16,7 +16,7 @@ export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = tru
     const originals = new Map<HTMLElement, string>()
     const update = () => {
       frame = 0
-      for (const el of [root, ...root.querySelectorAll<HTMLElement>('*')]) {
+      for (const el of [root, ...root.querySelectorAll<HTMLElement>(selector)]) {
         const css = getComputedStyle(el)
         if (!/auto|scroll/.test(css.overflowX + css.overflowY)) continue
         const vertical = /auto|scroll/.test(css.overflowY) ? scrollFadeMask(el.scrollTop, el.clientHeight, el.scrollHeight) : 'none'
@@ -35,7 +35,7 @@ export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = tru
     }
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update) }
     const resize = new ResizeObserver(schedule)
-    const observe = () => { resize.observe(root); root.querySelectorAll('*').forEach(el => resize.observe(el)); schedule() }
+    const observe = () => { resize.observe(root); root.querySelectorAll(selector).forEach(el => { resize.observe(el); if(el.firstElementChild) resize.observe(el.firstElementChild) }); schedule() }
     const mutation = new MutationObserver(observe)
     mutation.observe(root, {subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['class']})
     root.addEventListener('scroll', schedule, {capture:true, passive:true})
@@ -46,5 +46,5 @@ export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = tru
       root.removeEventListener('scroll', schedule, true); window.removeEventListener('resize', schedule)
       originals.forEach((mask, el) => { el.style.maskImage = mask; el.style.removeProperty('mask-composite') })
     }
-  }, [ref, enabled])
+  }, [ref, enabled, selector])
 }

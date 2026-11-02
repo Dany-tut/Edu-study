@@ -29,3 +29,14 @@
 .js-col-title.jh-header-link { border:0; background:transparent; padding:0; color:inherit; text-align:left; font:inherit; font-weight:inherit; cursor:pointer; }.js-col-title.jh-header-link:hover { color:var(--color-accent); }.js-cell .jh-pending-action { display:inline-flex; align-items:center; background:var(--color-yellow-soft); color:var(--color-yellow-text); border-radius:7px; padding:4px 7px; font-size:11px; }
 @media(max-width:760px) { .jh-navigation { margin:0 8px; gap:6px; }.jh-navigation>strong { margin-right:6px; }.jh-review-layout { flex-direction:column; }.jh-stack { position:static; max-height:230px; flex-basis:auto; width:100%; }.jh-answer { width:100%; }.jh-homework-row { grid-template-columns:minmax(100px,1fr) 115px 85px; padding-left:16px; }.jh-work-source,.jh-homework-labels>span:nth-child(2) { display:none; }.jh-submitted { display:none; }.jh-queue-tools>label { max-width:100%; }.jh-queue-tools select { max-width:200px; }.jh-task { flex-wrap:wrap; }.jh-homework-group>header { gap:7px; padding:10px; }.jh-homework-group>header>.cj-button { padding:7px 9px; font-size:11px; } }
 @media(max-width:420px) { .jh-homework-row { grid-template-columns:minmax(0,1fr) 100px; padding:10px; gap:7px; }.jh-homework-labels { display:none; }.jh-homework-row>.jh-work-student { grid-row:1/3; }.jh-homework-row>.cj-badge,.jh-homework-row>.cj-button { grid-column:2; }.jh-homework-row>.cj-badge { white-space:normal; }.jh-navigation>strong { width:100%; }.jh-answer-heading { flex-wrap:wrap; }.jh-stack-pagination .cj-button { font-size:11px; padding:8px; } }
+
+@media(max-width:650px) {
+  .jh-homework-row .cj-button,.jh-assignment-title { min-height:44px; }
+  .jh-expand { min-height:44px; min-width:44px; }
+}
+@media(max-width:650px) {
+  .jh-homework-group>header { display:grid; grid-template-columns:44px minmax(0,1fr); }
+  .jh-homework-group>header>.jh-expand { grid-column:1; grid-row:1; }
+  .jh-homework-group>header>.jh-assignment-title { grid-column:2; grid-row:1; }
+  .jh-homework-group>header>.cj-button { grid-column:2; grid-row:2; justify-self:start; }
+}
