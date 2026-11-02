@@ -438,3 +438,20 @@
    when scrolling a long course matrix. Assigned cells are never collapsed. */
 .js-unassigned-run { text-align: left; }
 .js-unassigned-run > .js-stat-value { position: sticky; left: calc(var(--student-col) + 12px); width: 16px; }
+
+/* Mobile journal controls retain readable inputs and finger-sized targets. */
+@media(max-width:650px) {
+  .js-toolbar .js-search input,.js-scope select { font-size:16px; }
+  .js-toolbar .js-search,.js-filter-items .js-scope label { min-height:44px; height:auto; }
+  .js-tabs button,.js-filter-trigger,.js-filter-items .js-attention,
+  .js-report-drawer>header button,.jo-share-tools .cj-button,
+  .js-work-tabs button { min-height:44px; }
+  .js-report-drawer>header button { min-width:44px; }
+  .js-filter-items[data-open] { max-width:calc(100vw - 40px); max-height:50dvh; overflow:auto; }
+}
+
+@media(max-width:650px) {
+  .journal-person-dialog { max-width:calc(100vw - 24px); }
+  .journal-person-dialog input,.journal-person-dialog select { font-size:16px!important; min-height:44px; }
+  .journal-person-dialog button { min-height:44px; }
+}

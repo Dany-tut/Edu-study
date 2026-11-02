@@ -7,6 +7,7 @@ import MobileSheet from '../MobileSheet'
 import NativeSelectField from '../NativeSelectField'
 import FadeText from '../FadeText'
 import HScrollFade from '../HScrollFade'
+import { useScrollEdges } from './journalStand/useScrollEdges'
 import { Alert } from '../Alert'
 import { useT, useTc } from '../../lib/i18n'
 import { useCourseJournal } from '../../lib/useCourseJournal'
@@ -34,8 +35,11 @@ function JournalSelect({ mobile, displayValue, ...props }: SelectHTMLAttributes<
 function JournalTabScroll({ mobile, children }: { mobile: boolean; children: ReactNode }) {
   return mobile ? <HScrollFade fadeMode="mask" fadeWidth={24} padTop={0} padBottom={0} style={{ minWidth: 0, maxWidth: '100%' }}>{children}</HScrollFade> : children
 }
-function JournalTable({ mobile, children }: { mobile: boolean; children: ReactNode }) {
-  return <div className="cj-table-wrap">{mobile ? <HScrollFade fadeMode="mask" fadeWidth={24} padTop={0} padBottom={0} scrollStyle={{ display: 'block' }}>{children}</HScrollFade> : children}</div>
+function JournalTable({ children }: { mobile: boolean; children: ReactNode }) {
+  const {viewport,scroller}=useScrollEdges()
+  return <div className="cj-table-frame" ref={viewport}><div className="cj-table-wrap" ref={scroller}>{children}</div>
+    <i className="cj-table-fade cj-table-fade-left" aria-hidden="true"/><i className="cj-table-fade cj-table-fade-right" aria-hidden="true"/>
+  </div>
 }
 function dateLabel(value: string | null) {
   if (!value) return 'Без даты'

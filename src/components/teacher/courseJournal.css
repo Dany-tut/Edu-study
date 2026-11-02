@@ -140,3 +140,13 @@
 .cj-mobile .cj-pending-alert, .cj-mobile .cj-active-filter { flex-wrap: wrap; gap: 8px; }
 .cj-mobile .cj-pending-alert > span, .cj-mobile .cj-active-filter > span { flex: 1; min-width: 100px; overflow-wrap: anywhere; line-height: 1.5; }
 .cj-mobile .cj-pending-alert button, .cj-mobile .cj-active-filter button { flex-shrink: 0; padding: 4px 0; white-space: nowrap; }
+/* Native mobile journal obeys the same input and touch rules as the stand. */
+.cj-mobile .cj-search input,.cj-mobile .cj-filters .native-select-field { font-size:16px; }
+.cj-mobile .cj-tabs button,.cj-mobile .cj-heading-actions button,
+.cj-mobile .cj-filters .native-select-field,.cj-mobile .cj-search { min-height:44px; }
+
+.cj-table-frame { position:relative; min-width:0; max-width:100%; }
+.cj-table-fade { position:absolute; top:0; bottom:0; width:22px; pointer-events:none; z-index:3; opacity:0; }
+.cj-table-fade-left { left:var(--frozen-w,150px); background:linear-gradient(to right,var(--color-bg-2),transparent); }
+.cj-table-fade-right { right:0; background:linear-gradient(to left,var(--color-bg-2),transparent); }
+.cj-table-frame[data-edges~="left"]>.cj-table-fade-left,.cj-table-frame[data-edges~="right"]>.cj-table-fade-right { opacity:1; }
