@@ -14,9 +14,10 @@ type Props = {
   existingTypes: string[]
   existingItems?: LayoutItem[]
   hiddenWidgets?: string[]
+  gridWidth?: number
 }
 
-function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
+function WidgetCard({ def, size, onAdd }: { def: WidgetDef; size: { w: number; h: number }; onAdd: () => void }) {
   const t = useT()
   const Icon = def.icon
   return (
@@ -53,7 +54,7 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
         flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
         background: 'var(--color-bg-3)', borderRadius: 8, padding: '4px 8px',
       }}>
-        {def.defaultW}×{def.defaultH}
+        {size.w}×{size.h}
       </div>
     </button>
   )
@@ -73,17 +74,18 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
   return { x: 0, y: maxY }
 }
 
-export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets }: Props) {
+export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets, gridWidth }: Props) {
   const t = useT()
   const dialogRef = useRef<HTMLDivElement>(null)
   useWidgetScrollFades(dialogRef)
   const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !hiddenWidgets?.includes(def.type))
+  const width = gridWidth ?? Math.max(1, document.documentElement.clientWidth - 64)
+  const rowHeight = deskRowHeight(window.innerHeight)
+  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:def.defaultW,h:def.defaultH,gridVersion:2},def,width,rowHeight)
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
-    const width = Math.max(1, document.documentElement.clientWidth - 64)
-    const rowHeight = deskRowHeight(window.innerHeight)
     const existing = compactDeskWidgets(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight))))
-    const size = clampDeskWidget({i:id, type:def.type, x:0,y:0,w:def.defaultW,h:def.defaultH,gridVersion:2},def,width,rowHeight)
+    const size = widgetSize(def)
     const pos = findFreePosition(existing, size.w, size.h, deskColumns(width))
     const item: LayoutItem = {
       i: id,
@@ -164,6 +166,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
               <WidgetCard
                 key={def.type}
                 def={def}
+                size={widgetSize(def)}
                 onAdd={() => handleAdd(def)}
               />
             ))}

@@ -47,7 +47,7 @@
 .iskra-widget .ww-reminder-info{grid-column:2/4;min-width:0}
 .iskra-widget .ww-reminder-info>div{white-space:normal!important;overflow:visible!important;line-height:1.35}
 .iskra-widget .ww-reminder-row>span{grid-column:2/4;justify-self:start;max-width:100%;white-space:normal}
-.iskra-widget .ww-reminder-row[style*="padding-right: 48px"]{padding-right:44px!important}
+.iskra-widget .ww-reminder-row[style*="padding-right: 70px"]{padding-right:54px!important}
 .iskra-widget[data-widget="today-reminders"]>div{padding:14px!important}
 .iskra-widget[data-widget="today-schedule"] .calendar-widget-content{padding:12px;display:flex;min-height:0}
 .iskra-widget[data-widget="today-schedule"] .calendar-widget-schedule{flex:1;min-width:0;gap:8px!important}
@@ -63,7 +63,7 @@
 .iskra-widget .ww-debt-row{grid-template-columns:30px minmax(0,1fr) auto auto auto}.iskra-widget .ww-debt-row .ww-status{grid-column:3;grid-row:1}.iskra-widget .ww-debt-row .ww-amount{grid-column:4;grid-row:1}.iskra-widget .ww-debt-row .ww-pay{grid-column:5;grid-row:1;width:auto;padding:7px 10px!important}.iskra-widget .ww-pay-label{display:inline}
 .iskra-widget .ww-task-row{grid-template-columns:20px auto minmax(0,1fr) auto 24px}.iskra-widget .ww-task-check{grid-column:1;grid-row:1}.iskra-widget .ww-task-type{grid-column:2;grid-row:1}.iskra-widget .ww-task-title{grid-column:3;grid-row:1}.iskra-widget .ww-task-date{grid-column:4;grid-row:1}.iskra-widget .ww-task-remove{grid-column:5;grid-row:1}
 }
-@container iskra-widget (max-width:340px){.iskra-widget .ww-secondary{display:none}.iskra-widget .calendar-widget-metadata{display:none!important}.iskra-widget .ww-reminder-row{grid-template-columns:minmax(0,1fr)}.iskra-widget .ww-reminder-row>div:first-child{display:none}.iskra-widget .ww-reminder-info,.iskra-widget .ww-reminder-row>span{grid-column:1!important}}
+@container iskra-widget (max-width:340px){.iskra-widget .ww-secondary{display:none}.iskra-widget .calendar-widget-metadata{display:none!important}.iskra-widget .ww-reminder-row{grid-template-columns:minmax(0,1fr)}.iskra-widget .ww-reminder-row>div:first-child{display:none!important}.iskra-widget .ww-reminder-info,.iskra-widget .ww-reminder-row>span{grid-column:1!important}}
 /* Student strip: content owns a scrollable reading region; controls never shrink. */
 .iskra-widget[data-widget^="pupil-"]{border-radius:24px}
 .iskra-widget[data-widget^="pupil-"]>div,.iskra-widget[data-widget^="pupil-"]>button{min-width:0;min-height:0;box-sizing:border-box}
