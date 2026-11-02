@@ -1,4 +1,4 @@
-import { clampDeskWidget, compactDeskWidgets, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, resolveDeskCollisions, DESK_GAP, DESK_INSET, DESK_TOP } from '../../lib/deskWidgetSizing'
+import { clampDeskWidget, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, resolveDeskCollisions, DESK_GAP, DESK_INSET, DESK_TOP } from '../../lib/deskWidgetSizing'
 import { defaultDeskItems } from '../../lib/defaultDeskLayout'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
@@ -154,8 +154,8 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   const clampItem = useCallback((item: LayoutItem) =>
     clampDeskWidget(item, getWidgetDef(item.type), cw, rowH, legacyDeskRowHeight(winH), desk.columns), [cw, rowH, winH, desk.columns])
 
-  // ── View-mode compaction ──────────────────────────────────────────────
-  const viewItems = useMemo(() => compactDeskWidgets(items.map(clampItem)), [items, clampItem])
+  // ── Preserve saved rows; only resolve actual overlaps ──────────────────────────────────────────────
+  const viewItems = useMemo(() => resolveDeskCollisions(items.map(clampItem)), [items, clampItem])
 
   useEffect(() => {
     onGridMeasure?.({ deskId: desk.id, width: cw, items: viewItems, columns })
@@ -177,7 +177,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
           ? clampItem({ ...it, w: resize.curW, h: resize.curH, maxH: def?.maxH ?? it.maxH })
           : it
       )
-      return compactDeskWidgets(resolveDeskCollisions(withMoved, resize.id))
+      return resolveDeskCollisions(withMoved, resize.id)
     }
     return viewItems
   }, [viewItems, drag, resize, clampItem, columns])
@@ -253,7 +253,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     const withResized = viewItems.map(it =>
       it.i === resize.id ? clampItem({ ...it, w: resize.curW, h: resize.curH }) : it
     )
-    const resolved = compactDeskWidgets(resolveDeskCollisions(withResized, resize.id))
+    const resolved = resolveDeskCollisions(withResized, resize.id)
     onUpdateItems([...resolved, ...desk.items.filter(saved => !resolved.some(item => item.i === saved.i))])
     setResize(null)
   }, [resize, desk.items, viewItems, onUpdateItems, clampItem, columns])

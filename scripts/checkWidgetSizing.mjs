@@ -2,14 +2,14 @@ import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { mkdirSync, writeFileSync } from 'node:fs'
 const result = await build({
-  stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'; export * from './src/lib/defaultDeskLayout'; export * from './src/lib/widgetReviewSizing'; export { studentBalanceStats } from './src/lib/studentWidgetStats'",resolveDir:process.cwd(),loader:'ts'},
+  stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'; export * from './src/lib/defaultDeskLayout'; export * from './src/lib/widgetReviewSizing'; export * from './src/lib/widgetReviewRoute'; export { studentBalanceStats } from './src/lib/studentWidgetStats'",resolveDir:process.cwd(),loader:'ts'},
   bundle:true,platform:'node',format:'esm',write:false,
   plugins:[{name:'unused-widget-renderers',setup(b){b.onResolve({filter:/^\.\/Widget/},a=>a.importer.endsWith('/registry.tsx')?{path:a.path,external:true}:null)}}],
   external:['react','react/jsx-runtime','framer-motion','lucide-react'],
 })
 mkdirSync('node_modules/.cache',{recursive:true})
 writeFileSync('node_modules/.cache/widget-sizing-check.mjs',result.outputFiles[0].text)
-const { registry, clampDeskWidget, compactDeskWidgets, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP, reviewPresets, reviewAllowed } = await import('../node_modules/.cache/widget-sizing-check.mjs')
+const { registry, clampDeskWidget, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP, reviewPresets, reviewAllowed, isWidgetReviewRoute } = await import('../node_modules/.cache/widget-sizing-check.mjs')
 const integral=item=>{for(const k of ['x','y','w','h','minW','minH'])assert.ok(Number.isInteger(item[k]),`${item.type}: fractional ${k}=${item[k]}`)}
 let cases=0
 for(const def of registry) for(const width of [900,1200,1600,2400]) for(const oldRow of [42,64,84]){
@@ -32,9 +32,9 @@ for(const def of registry) for(const width of [900,1200,1600,2400]) for(const ol
   cases++
 }
 const metric=clampDeskWidget({i:'metric',type:'stat-students',x:0,y:0,w:1,h:1,gridVersion:2},registry.find(d=>d.stat),1200,116)
-const packed=compactDeskWidgets([metric,{i:'list',type:'groups-list',x:0,y:5,w:3,h:3,gridVersion:2}])
-assert.equal(packed[1].y,1)
-assert.deepEqual(compactDeskWidgets(packed),packed)
+const packed=resolveDeskCollisions([metric,{i:'list',type:'groups-list',x:0,y:5,w:3,h:3,gridVersion:2}])
+assert.equal(packed[1].y,5,'Intentional empty rows must remain')
+assert.deepEqual(resolveDeskCollisions(packed),packed)
 console.log(`${registry.length} types, ${cases} migrations and discrete resize scenarios passed; metrics support 1×1, calendar protected`)
 
 const indicator=registry.find(d=>d.stat)
@@ -56,11 +56,11 @@ const initial=[
  {i:'reminders',type:'today-reminders',x:5,y:1,w:3,h:5,gridVersion:2},
  {i:'tasks',type:'today-tasks',x:0,y:4,w:5,h:2,gridVersion:2},
 ]
-const enlarged=compactDeskWidgets(resolveDeskCollisions(initial.map(i=>i.i==='calendar'?{...i,h:4}:i),'calendar'))
+const enlarged=resolveDeskCollisions(initial.map(i=>i.i==='calendar'?{...i,h:4}:i),'calendar')
 assert.equal(enlarged.find(i=>i.i==='tasks').x,0)
-assert.equal(enlarged.find(i=>i.i==='reminders').y,0)
-const restored=compactDeskWidgets(resolveDeskCollisions(enlarged.map(i=>i.i==='calendar'?{...i,h:3}:i),'calendar'))
-assert.deepEqual(restored,compactDeskWidgets(initial),'Reverse resize must restore neighbouring columns')
+assert.equal(enlarged.find(i=>i.i==='reminders').y,1)
+const restored=resolveDeskCollisions(enlarged.map(i=>i.i==='calendar'?{...i,h:3}:i),'calendar')
+assert.equal(restored.find(i=>i.i==='tasks').y,5,'Shrinking a neighbour must not pull a manually placed card up')
 
 // Widget extraction preserves the original balance-based meaning of the figures.
 assert.deepEqual(studentBalanceStats([{lessonBalance:2,paymentDue:'2000-01-01'}, {lessonBalance:-1,paymentDue:'2099-01-01'}, {lessonBalance:0}, {}]),{active:3,debtors:1})
@@ -78,7 +78,7 @@ for (const width of [950, 1200, 1354, 1840, 2400]) {
    const clamped=clampDeskWidget(item,registry.find(d=>d.type===item.type),width,deskRowHeight(900),64,8)
    assert.deepEqual([clamped.x,clamped.y,clamped.w,clamped.h],[item.x,item.y,item.w,item.h])
   }
-  assert.deepEqual(compactDeskWidgets(reset).map(i=>[i.i,i.x,i.y]),reset.slice().sort((a,b)=>a.y-b.y||a.x-b.x).map(i=>[i.i,i.x,i.y]))
+  assert.deepEqual(resolveDeskCollisions(reset),reset)
   for(const a of reset)for(const b of reset)if(a.i!==b.i)assert.ok(!(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y),'Reset cards overlap')
   if(id==='today'&&cols===8){
    const calendar=reset.find(i=>i.type==='today-schedule'), reminders=reset.find(i=>i.type==='today-reminders'), tasks=reset.find(i=>i.type==='today-tasks')
@@ -108,3 +108,18 @@ for(const [screenWidth,screenHeight] of [[1440,900],[1280,720],[1920,1080]]){
  }
 }
 console.log('Full size review: 19 widgets × 5 presets × 3 screens use production bounds')
+
+// Dragging into a free lower row survives rendering, serialization and resizing.
+const manuallyMoved=resolveDeskCollisions(initial.map(i=>i.i==='calendar'?{...i,x:0,y:7}:i),'calendar')
+assert.equal(manuallyMoved.find(i=>i.i==='calendar').y,7)
+const reloaded=resolveDeskCollisions(JSON.parse(JSON.stringify(manuallyMoved)))
+assert.deepEqual(reloaded,manuallyMoved)
+const shrunk=resolveDeskCollisions(reloaded.map(i=>i.i==='calendar'?{...i,w:3,h:3}:i),'calendar')
+assert.equal(shrunk.find(i=>i.i==='calendar').y,7)
+for(const location of [
+ {pathname:'/teacher/widget-sizes',search:'',hash:''},
+ {pathname:'/',search:'',hash:'#/teacher/widget-sizes'},
+ {pathname:'/',search:'?widget-sizes=1',hash:'#/teacher'},
+])assert.equal(isWidgetReviewRoute(location),true)
+assert.equal(isWidgetReviewRoute({pathname:'/',search:'',hash:'#/teacher'}),false)
+console.log('Manual empty rows, reload/resize persistence, canonical and legacy matrix links passed')

@@ -56,22 +56,6 @@ export function clampDeskWidget(item: LayoutItem, definition: WidgetSizeLimits |
   return { ...current, ...limits, gridVersion: 2, w, h, x: Math.max(0, Math.min(columns - w, Math.round(current.x))), y: Math.max(0, Math.round(current.y)) }
 }
 
-/** Pack below the exact preceding edge, always at a whole-cell boundary. */
-export function compactDeskWidgets(items: LayoutItem[]): LayoutItem[] {
-  const sorted = [...items].sort((a, b) => a.y - b.y || a.x - b.x)
-  const placed: LayoutItem[] = []
-  for (const item of sorted) {
-    let y = 0
-    for (;;) {
-      const blocker = placed.find(p => item.x < p.x + p.w && item.x + item.w > p.x && y < p.y + p.h && y + item.h > p.y)
-      if (!blocker) break
-      y = blocker.y + blocker.h
-    }
-    placed.push({ ...item, y })
-  }
-  return placed
-}
-
 /** Pointer movement selects whole cells; it never changes the cell geometry. */
 export function resizeDeskWidget(item: LayoutItem, definition: WidgetSizeLimits | undefined, dx: number, dy: number, width: number, rowHeight: number, preferredColumns?: number): LayoutItem {
   const columnPitch = (width + DESK_GAP) / deskColumns(width, preferredColumns)
@@ -83,7 +67,7 @@ export function resizeDeskWidget(item: LayoutItem, definition: WidgetSizeLimits 
 
 /** The active card keeps its column; collisions only move its neighbours down.
  * Horizontal shoves leave unrelated cards stranded after a resize is reversed. */
-export function resolveDeskCollisions(items: LayoutItem[], activeId: string): LayoutItem[] {
+export function resolveDeskCollisions(items: LayoutItem[], activeId = ''): LayoutItem[] {
   const layout = items.map(item => ({ ...item }))
   const overlaps = (a: LayoutItem, b: LayoutItem) => a.i !== b.i &&
     a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
