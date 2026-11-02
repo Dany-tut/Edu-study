@@ -22,6 +22,19 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
   const reaction = courseReactions[index]
   const sz = getWidgetSizing(columns)
 
+
+  const goTo = (i: number) => {
+    setIndex(((i % courseReactions.length) + courseReactions.length) % courseReactions.length)
+  }
+
+  // Auto-advance to the next reaction every `courseReactionInterval` seconds.
+  // Pauses while the widget is swiped off-screen; restarts on manual nav.
+  useEffect(() => {
+    if (!active || courseReactions.length === 0) return
+    const id = setTimeout(() => goTo(index + 1), courseReactionInterval * 1000)
+    return () => clearTimeout(id)
+  }, [active, index, courseReactions.length])
+
   if (!reaction) return (
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
       style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', border: '1px solid var(--color-border-glass)' }}>
@@ -33,17 +46,6 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
 
   const openLesson = () => openLessonForReaction(reaction.id)
 
-  const goTo = (i: number) => {
-    setIndex(((i % courseReactions.length) + courseReactions.length) % courseReactions.length)
-  }
-
-  // Auto-advance to the next reaction every `courseReactionInterval` seconds.
-  // Pauses while the widget is swiped off-screen; restarts on manual nav.
-  useEffect(() => {
-    if (!active) return
-    const id = setTimeout(() => goTo(index + 1), courseReactionInterval * 1000)
-    return () => clearTimeout(id)
-  }, [active, index])
 
   return (
     <div
@@ -62,7 +64,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
         role="button"
         aria-label={`${t('Открыть урок')} «${reaction.lesson}»`}
         onClick={openLesson}
-        className="relative flex-shrink-0 cursor-pointer"
+        className="relative flex-shrink-0 cursor-pointer ww-art"
         style={{
           width: sz.mediaWidth,
           minWidth: sz.mediaMin,
@@ -98,8 +100,8 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
       </div>
 
       {/* Content */}
-      <div className="flex min-w-0 flex-1 flex-col" style={{ padding: `${sz.padY}px ${sz.padX}px` }}>
-        <div className="mb-2 flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 flex-col ww-media-content" style={{ padding: `${sz.padY}px ${sz.padX}px` }}>
+        <div className="mb-2 flex items-center gap-3 ww-media-heading">
           <span
             style={{
               fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '6px 12px', borderRadius: 999,
@@ -114,7 +116,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
           role="button"
           aria-label={`${t('Открыть урок')} «${reaction.lesson}»`}
           onClick={openLesson}
-          className="flex flex-1 flex-col justify-center cursor-pointer"
+          className="flex flex-1 flex-col justify-center cursor-pointer ww-primary-body"
           style={{ gap: 6 }}
         >
           {/* Ремоунт по key — причина та же, что у картинки выше. */}
@@ -142,7 +144,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
         </div>
 
         {/* Reaction dots */}
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2 ww-media-pages">
           {courseReactions.map((r, i) => (
             <button
               key={r.id}

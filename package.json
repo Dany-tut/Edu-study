@@ -43,10 +43,11 @@
     "check:homework-attempts": "node scripts/checkHomeworkAttempts.mjs",
     "check:lesson-participation": "node scripts/checkLessonParticipation.mjs",
     "check:course-access": "esbuild scripts/checkCourseAccess.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkCourseAccess.mjs --log-level=error && node node_modules/.cache/checkCourseAccess.mjs && node scripts/checkCourseAccessDb.mjs",
-    "release:check": "node scripts/guardProductionRelease.mjs --check",
+    "release:check": "npm run check:ui && node scripts/guardProductionRelease.mjs --check",
     "check:release": "node scripts/checkReleasePolicy.mjs",
     "check:feed-release": "node scripts/checkFeedRelease.mjs",
-    "check:diary-views": "node scripts/checkStudentDiaryViews.mjs"
+    "check:diary-views": "node scripts/checkStudentDiaryViews.mjs",
+    "check:ui": "node scripts/checkUiRules.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from '../icons/appIcons'
@@ -9,6 +11,7 @@ type Props = {
   onClose: () => void
   onAdd: (item: LayoutItem) => void
   existingTypes: string[]
+  existingItems?: LayoutItem[]
   hiddenWidgets?: string[]
 }
 
@@ -17,6 +20,7 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
   const Icon = def.icon
   return (
     <button
+      className="ww-gallery-card"
       onClick={onAdd}
       style={{
         display: 'flex', alignItems: 'center', gap: 14,
@@ -68,14 +72,14 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
   return { x: 0, y: maxY }
 }
 
-export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hiddenWidgets }: Props) {
+export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets }: Props) {
   const t = useT()
-  const registry = hiddenWidgets?.length
-    ? WIDGET_REGISTRY.filter(def => !hiddenWidgets.includes(def.type))
-    : WIDGET_REGISTRY
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useWidgetScrollFades(dialogRef)
+  const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !hiddenWidgets?.includes(def.type))
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
-    const pos = findFreePosition([], def.defaultW, def.defaultH)
+    const pos = findFreePosition(existingItems, def.defaultW, def.defaultH)
     const item: LayoutItem = {
       i: id,
       type: def.type,
@@ -104,6 +108,9 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
         }}
       >
         <motion.div
+          ref={dialogRef}
+          role="dialog" aria-modal="true" aria-label={t('Добавить виджет')}
+          className="ww-gallery-dialog"
           initial={{ scale: 0.9, opacity: 0, y: 16 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 16 }}
@@ -133,6 +140,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
               </div>
             </div>
             <button
+              aria-label={t('Закрыть')}
               onClick={onClose}
               style={{
                 width: 32, height: 32, borderRadius: '50%', border: 'none',
@@ -145,7 +153,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
           </div>
 
           {/* Widget list */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="ww-gallery-list" style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {registry.map(def => (
               <WidgetCard
                 key={def.type}

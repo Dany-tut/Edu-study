@@ -21,6 +21,19 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
   const meme = scienceMemes[index]
   const sz = getWidgetSizing(columns)
 
+
+  const goTo = (i: number) => {
+    setIndex(((i % scienceMemes.length) + scienceMemes.length) % scienceMemes.length)
+  }
+
+  // Auto-advance to the next meme every `scienceMemeInterval` seconds. Pauses
+  // while the widget is swiped off-screen; the timer restarts on manual nav.
+  useEffect(() => {
+    if (!active || scienceMemes.length === 0) return
+    const id = setTimeout(() => goTo(index + 1), scienceMemeInterval * 1000)
+    return () => clearTimeout(id)
+  }, [active, index, scienceMemes.length])
+
   if (!meme) return (
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
       style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', border: '1px solid var(--color-border-glass)' }}>
@@ -30,17 +43,6 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
     </div>
   )
 
-  const goTo = (i: number) => {
-    setIndex(((i % scienceMemes.length) + scienceMemes.length) % scienceMemes.length)
-  }
-
-  // Auto-advance to the next meme every `scienceMemeInterval` seconds. Pauses
-  // while the widget is swiped off-screen; the timer restarts on manual nav.
-  useEffect(() => {
-    if (!active) return
-    const id = setTimeout(() => goTo(index + 1), scienceMemeInterval * 1000)
-    return () => clearTimeout(id)
-  }, [active, index])
 
   return (
     <div
@@ -55,7 +57,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
     >
       {/* Emoji tile — rounded with slight inset from the card edge */}
       <div
-        className="relative flex-shrink-0"
+        className="relative flex-shrink-0 ww-art"
         style={{
           width: sz.mediaWidth,
           minWidth: sz.mediaMin,
@@ -91,8 +93,8 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
       </div>
 
       {/* Content */}
-      <div className="flex min-w-0 flex-1 flex-col" style={{ padding: `${sz.padY}px ${sz.padX}px` }}>
-        <div className="mb-2 flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 flex-col ww-media-content" style={{ padding: `${sz.padY}px ${sz.padX}px` }}>
+        <div className="mb-2 flex items-center gap-3 ww-media-heading">
           <span
             style={{
               fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '6px 12px', borderRadius: 999,
@@ -104,7 +106,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center" style={{ gap: 8 }}>
+        <div className="flex flex-1 flex-col justify-center ww-primary-body" style={{ gap: 8 }}>
           {/* Ремоунт по key — причина та же, что у картинки выше. */}
             <motion.div
               key={meme.id}
@@ -128,7 +130,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
         </div>
 
         {/* Meme dots */}
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2 ww-media-pages">
           {scienceMemes.map((m, i) => (
             <button
               key={m.id}
