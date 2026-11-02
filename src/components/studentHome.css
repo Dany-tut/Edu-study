@@ -148,6 +148,7 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
 @media(max-width:1023px) {
   /* The themed sky and track remain; hanging artwork must not cover lessons. */
   .lh-season-decor { display:none; }
+  html[data-season-variant="potions"] .lh-header > strong { color:#fff; }
 }
 @media(max-width:1023px) and (max-height:700px) {
   .lh-work-counts { gap:4px; min-height:0; }
