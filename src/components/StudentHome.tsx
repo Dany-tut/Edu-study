@@ -67,7 +67,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     (scope.module==null || entry.course.modules[entry.moduleOrder]?.id===scope.module)) : []
   const status = pending ? t('Загружаем дела') : error ? t('Не удалось загрузить работы') : null
   const workCards = [
-    {id:12,content:<article className="lh-work-card"><header><h2><ClipboardList size={18}/>{t('Нужно сдать')}</h2><button type="button" onClick={()=>setScope({filter:'actions'})}>{t('Все работы')} <ChevronRight size={13}/></button></header>
+    {id:11,content:<article className="lh-work-card"><header><h2><ClipboardList size={18}/>{t('Твои дела')}</h2><button type="button" onClick={()=>setScope({filter:'actions'})}>{t('Все работы')} <ChevronRight size={13}/></button></header>
       <div className="lh-work-counts">{([
         ['overdue',work.overdue.length,'Просрочено'],['upcoming',work.upcoming.length,'Без просрочки'],['review',work.review.length,'На проверке'],
       ] as const).map(([filter,count,label])=><button type="button" key={filter} data-kind={filter} onClick={()=>setScope({filter})}><strong>{ready?count:'—'}</strong><span>{t(label)}</span></button>)}</div>

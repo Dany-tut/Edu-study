@@ -35,6 +35,7 @@ export const EN: Record<string, string> = {
   'Попробуйте ещё раз или откройте исходное видео.': 'Try again or open the original video.',
   'Открыть на Google Диске': 'Open in Google Drive',
   'Сначала просмотрите видео': 'Watch the video first',
+  'ДЗ откроется через 90 минут после начала урока': 'Homework unlocks 90 minutes after the lesson starts',
   'Прогресс сохранён на этом устройстве. Не удалось синхронизировать.': 'Progress is saved on this device. Could not sync.',
   'Занятия модуля': 'Module lessons',
   '← Предыдущие занятия': '← Previous lessons',
