@@ -108,11 +108,11 @@
   .jh-document-identity { flex-wrap:wrap; padding:16px 14px 12px; }
   .jh-document-identity>div { flex-basis:calc(100% - 48px); }
   .jh-document-status { margin-left:39px; max-width:none; font-size:11px; }
-  .jh-document-tools { overflow-x:auto; padding-inline:14px; gap:16px; }
+  .jh-document-tools { overflow-x:auto; flex-wrap:nowrap; padding-inline:14px; gap:16px; }
   .jh-document-tools button { flex:none; min-height:44px; font-size:12px; }
-  .jh-task-answer>header { flex-wrap:wrap; }
+  .jh-task-answer>header { display:grid; grid-template-columns:21px minmax(0,1fr); }
   .jh-task-answer h3 { font-size:13px; }
-  .jh-answer-verdict { margin-left:30px; max-width:none; font-size:10px; }
+  .jh-answer-verdict { grid-column:2; justify-self:start; margin:0; max-width:none; font-size:10px; }
   .jh-answer-comparison p { font-size:14px; }
   .jh-review-inspector {
     display:block; overflow:visible; height:auto; max-height:none; padding-top:8px;
