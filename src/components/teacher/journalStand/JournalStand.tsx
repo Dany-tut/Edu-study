@@ -461,13 +461,17 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
   const showSourceLine = columns.some(({ source }) => source === null)
   const nearest = withWork ? columns.reduce<string | null>((min, { upcoming }) =>
     upcoming && (!min || upcoming < min) ? upcoming : min, null) : null
+  const pendingSelection = useRef(false)
   useLayoutEffect(() => {
+    pendingSelection.current = !!detail
     if (detail) window.reveal(columns.findIndex(c => c.col.ref === detail))
   }, [detail, selected.student, columns, window.reveal])
   useLayoutEffect(() => {
+    if (!pendingSelection.current) return
     const wrap = frame.current
     const el = wrap?.querySelector<HTMLElement>('[data-selected-work="true"]')
     if (!el || !wrap) return
+    pendingSelection.current = false
     const box = wrap.getBoundingClientRect(), cell = el.getBoundingClientRect()
     const pin = wrap.querySelector('tbody th')?.getBoundingClientRect().width ?? 0
     const head = wrap.querySelector('thead')?.getBoundingClientRect().height ?? 0
