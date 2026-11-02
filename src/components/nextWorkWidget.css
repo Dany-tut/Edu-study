@@ -5,11 +5,11 @@
  gap:8px 20px;padding:14px 18px;min-width:0;min-height:0;border-radius:24px;
  background:var(--color-bg-card);--ihw-art-reserve:0px;
 }
-.next-work-content{grid-area:1/1;display:flex;flex-direction:column;justify-content:flex-start;gap:8px;min-width:0;min-height:0}
+.next-work-content{grid-area:1/1;display:flex;flex-direction:column;justify-content:flex-start;gap:6px;min-width:0;min-height:0}
 .next-work-card .ihw-heading{grid-area:auto;padding:0;align-items:center;min-width:0;flex-shrink:0}
 .next-work-card .ihw-heading h2{margin:0;font-size:12px;line-height:16px;font-weight:550;color:var(--color-text-3)}
 .next-work-card .ihw-body{grid-area:auto;display:flex;align-items:center;flex:1;padding:0;min-width:0;min-height:0}
-.next-work-copy{display:flex;flex-direction:column;gap:5px;width:100%;min-width:0;min-height:0}
+.next-work-copy{display:flex;flex-direction:column;gap:4px;width:100%;min-width:0;min-height:0}
 .next-work-title{margin:0;font-size:20px;line-height:24px;font-weight:600;letter-spacing:-.3px;min-width:0}
 .next-work-title>[data-text-fade]{line-height:inherit}
 .next-work-meta{margin:0;min-width:0;font-size:12px;line-height:16px;color:var(--color-text-3)}
@@ -84,4 +84,9 @@
 }
 @container next-work (max-width:270px) and (max-height:140px){
  .next-work-card[data-state=ready] .next-work-meta{display:none}
+}
+
+/* Short cards retain a single context line so two-line titles keep their room. */
+@container next-work (max-height:140px){
+ .next-work-card[data-state=ready] .next-work-meta>[data-text-fade]{max-height:1lh!important;white-space:nowrap!important;--iskra-text-fade-lines:1!important}
 }
