@@ -53,8 +53,20 @@
 .lesson-video-progress-track { flex: 1; min-width: 20px; height: 5px; border-radius: 999px; background: var(--color-bg); }
 .lesson-player-rail { position: relative; height: 44px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
 .lesson-player-rail:focus-visible { outline: 2px solid white; outline-offset: 2px; border-radius: 8px; }
-.lesson-player-track { position: relative; width: 100%; height: 8px; border-radius: 999px; background: rgba(255,255,255,.22); transition: height .15s ease; }
-.lesson-player-track[data-active="true"] { height: 10px; }
+.lesson-player-track { position: relative; width: 100%; height: 12px; }
+.lesson-player-segment {
+  position: absolute; top: 50%; height: 12px; transform: translateY(-50%);
+  border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.22);
+  transition: height .15s ease;
+}
+.lesson-player-segment[data-active="true"] { height: 18px; }
+.lesson-player-segment-buffer, .lesson-player-segment-watched, .lesson-player-segment-played {
+  position: absolute; top: 0; bottom: 0; left: 0;
+}
+.lesson-player-segment-buffer { background: rgba(255,255,255,.28); }
+.lesson-player-segment-watched { background: rgba(255,255,255,.40); }
+.lesson-player-segment-played { border-radius: 999px; background: rgb(var(--accent-rgb)); }
+@media (prefers-reduced-motion: reduce) { .lesson-player-segment { transition: none; } }
 .lesson-player-preview {
   position: absolute; bottom: 40px; width: 240px; max-width: 100%; box-sizing: border-box;
   display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px;

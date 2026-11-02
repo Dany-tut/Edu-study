@@ -889,6 +889,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const activeChapter = activeTimecodeIndex(timecodes, current)
   const previewAt = scrubbing ? current : hoverAt
   const previewChapter = previewAt === null ? -1 : activeTimecodeIndex(timecodes, previewAt)
+  const chapterBoundaries = [
+    0, ...new Set(timecodes.map(tc => tc.seconds).filter(seconds => seconds > 0 && seconds < duration)), duration,
+  ].sort((a, b) => a - b)
 
   // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
   // должна стоять реальная скорость, а не та, что выбрана в меню.
@@ -901,7 +904,6 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const chevSize = touch ? 14 : 17
   const chevBleed = chevSize / 3
 
-  const pct = duration ? Math.min(100, (current / duration) * 100) : 0
   const ratio = watchRatio({ ...watch, duration: duration || watch.duration })
   const resumeAt = hasResumePoint(watch) ? watch.position : 0
 
@@ -1198,46 +1200,25 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               onPointerLeave={() => setHoverAt(null)}
               className="lesson-player-rail"
             >
-              <div className="lesson-player-track" data-active={scrubbing || hoverAt !== null}>
-                <div style={{ position: 'absolute', inset: 0, width: `${buffered * 100}%`, borderRadius: 999, background: 'rgba(255,255,255,0.28)' }} />
-                {/* Уже отсмотренные куски — видно, что осталось пересмотреть. */}
-                {duration > 0 && watch.ranges.map(([a, b], i) => (
-                  <div
-                    key={i}
-                    style={{
-                      position: 'absolute', top: 0, bottom: 0,
-                      left: `${(a / duration) * 100}%`, width: `${((b - a) / duration) * 100}%`,
-                      background: 'rgba(255,255,255,0.40)', borderRadius: 999,
-                    }}
-                  />
-                ))}
-                <div
-                  style={{
-                    position: 'absolute', inset: 0, width: `${pct}%`, borderRadius: 999,
-                    background: 'linear-gradient(90deg, rgba(var(--accent-rgb), .65), rgb(var(--accent-rgb)))',
-                  }}
-                />
-                {/* Метки глав остаются на своих фактических таймкодах. */}
-                {duration > 0 && timecodes.map(tc => (
-                  <span
-                    key={tc.seconds}
-                    title={tc.label}
-                    style={{
-                      position: 'absolute', top: '50%', width: 4, height: 4, borderRadius: '50%', transform: 'translate(-50%, -50%)',
-                      left: `${Math.min(99.8, (tc.seconds / duration) * 100)}%`,
-                      background: 'rgba(255,255,255,.8)', boxShadow: '0 0 0 2px rgba(0,0,0,.3)',
-                    }}
-                  />
-                ))}
-                <span
-                  style={{
-                    position: 'absolute', top: '50%', left: `clamp(6px, ${pct}%, calc(100% - 6px))`,
-                    width: 12, height: 12, borderRadius: '50%',
-                    transform: 'translate(-50%, -50%)', background: '#fff',
-                    boxShadow: '0 0 10px rgba(var(--accent-rgb), 0.85)',
-                    transition: 'height 0.15s ease',
-                  }}
-                />
+              <div className="lesson-player-track">
+                {duration > 0 && chapterBoundaries.slice(0, -1).map((start, index) => {
+                  const end = chapterBoundaries[index + 1]
+                  const length = end - start
+                  const selected = previewAt !== null && previewAt >= start && (previewAt < end || end === duration)
+                  const coverage = (seconds: number) => Math.max(0, Math.min(100, (seconds - start) / length * 100))
+                  const leftGap = index === 0 ? 0 : 2
+                  const rightGap = end === duration ? 0 : 2
+                  return (
+                    <div key={start} className="lesson-player-segment" data-active={selected}
+                      style={{ left: `calc(${start / duration * 100}% + ${leftGap}px)`, width: `max(0px, calc(${length / duration * 100}% - ${leftGap + rightGap}px))` }}>
+                      <div className="lesson-player-segment-buffer" style={{ width: `${coverage(buffered * duration)}%` }} />
+                      {watch.ranges.map(([a, b], i) => b > start && a < end && (
+                        <div key={i} className="lesson-player-segment-watched" style={{ left: `${coverage(a)}%`, width: `${coverage(b) - coverage(a)}%` }} />
+                      ))}
+                      <div className="lesson-player-segment-played" style={{ width: `${coverage(current)}%` }} />
+                    </div>
+                  )
+                })}
               </div>
 
               {previewAt !== null && duration > 0 && (
