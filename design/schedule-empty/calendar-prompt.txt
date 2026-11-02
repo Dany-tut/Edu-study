@@ -1,0 +1,5 @@
+Generated with the built-in imagegen tool; transparent background enabled.
+Reference: first card of the approved concept board.
+Asset: public/schedule-objects-v1/calendar.webp (384 × 384, transparent WebP).
+
+Create a single isolated 3D calendar asset for the Искра app. Reference image is a three concept board; extract/recreate ONLY the desk calendar illustration from FIRST card at top. No UI, no words, no card or background. Small elegant desk calendar in three-quarter view, translucent glossy lavender glass triangular stand and outer frame, warm ivory blank thick paper leaves, two translucent amber golden binding rings on top. Match exactly the first calendar's shape, style and materials. Transparent background, no backdrop, no ground plane, only very faint small contact shadow if any. Compact centered object filling 85% of square canvas, all edges completely within frame. No numbers, no letters, no checkmark, no cross, no extra objects. Crisp premium product render legible when displayed at 96px.
