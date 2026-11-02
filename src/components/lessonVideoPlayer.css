@@ -1,19 +1,20 @@
 .lesson-player-volume { position: relative; flex-shrink: 0; }
 .lesson-player-volume-popover {
   position: absolute; left: 0; bottom: 54px; z-index: 2;
-  display: flex; align-items: center; padding: 0 14px;
+  display: flex; align-items: center; padding: 0;
   border-radius: 999px; background: rgba(28,28,32,.52);
   backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
   border: 1px solid rgba(255,255,255,.2); box-shadow: 0 4px 14px rgba(0,0,0,.22);
 }
-.lesson-player-volume-control { position: relative; width: 160px; height: 44px; }
+.lesson-player-volume-control { position: relative; width: 188px; height: 48px; }
 .lesson-player-volume-level {
-  position: absolute; left: 0; right: 0; top: 50%; height: 12px; transform: translateY(-50%);
+  position: absolute; inset: 12px; transition: inset .12s ease;
   border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.22); pointer-events: none;
 }
-.lesson-player-volume-level > div { height: 100%; border-radius: inherit; background: #fff; }
+.lesson-player-volume-level > div { height: 100%; border-radius: 999px; background: #fff; }
+.lesson-player-volume-control:has(input:active) .lesson-player-volume-level { inset: 8px; }
 .lesson-player-volume-slider {
-  position: relative; appearance: none; -webkit-appearance: none; width: 100%; height: 44px;
+  position: relative; appearance: none; -webkit-appearance: none; width: 100%; height: 48px;
   margin: 0; padding: 0; border: none; background: transparent; cursor: pointer;
   border-radius: 999px;
 }
@@ -30,7 +31,7 @@
 }
 .lesson-player-volume-slider::-moz-range-progress { background: transparent; }
 .lesson-player-volume-slider::-moz-range-thumb { width: 0; height: 0; border: none; }
-.lesson-player-volume-slider:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+.lesson-player-volume-slider:focus-visible { outline: 2px solid white; outline-offset: -4px; }
 .lesson-player-time {
   margin-left: 4px; font-size: 12px; font-weight: 650;
   color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap;
@@ -110,3 +111,12 @@
 @media (max-width: 400px) {
   .lesson-video-progress { gap: 8px; font-size: 11px; }
 }
+
+.lesson-player-controls { padding: 28px 20px 16px; }
+.lesson-player-controls-row { gap: 4px; margin-top: 4px; }
+@media (max-width: 600px) {
+  .lesson-player-controls { padding: 24px 12px 12px; }
+  .lesson-player-controls-row { gap: 0; --player-button-size: 44px; }
+}
+
+@media (max-width: 360px) { .lesson-player-rate-trigger > svg { display: none; } }

@@ -915,7 +915,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   const iconBtn = (extra?: React.CSSProperties): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: 44, height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
+    width: 'var(--player-button-size, 48px)', minWidth: 'var(--player-button-size, 48px)', height: 48, borderRadius: 14, border: 'none', cursor: 'pointer',
     background: 'transparent', color: '#fff', flexShrink: 0, ...extra,
   })
 
@@ -1167,11 +1167,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           )}
 
           <motion.div
+            className="lesson-player-controls"
             initial={false}
             animate={{ opacity: barVisible || paused || !!gesture ? 1 : 0, y: barVisible || paused || !!gesture ? 0 : 12 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
-              position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 10px 8px',
+              position: 'absolute', left: 0, right: 0, bottom: 0,
               background: 'linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0.35) 55%, transparent)',
               pointerEvents: barVisible || paused ? 'auto' : 'none',
             }}
@@ -1233,9 +1234,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               )}
             </div>
 
-            <div className="flex items-center" style={{ gap: 2, marginTop: 2 }}>
+            <div className="lesson-player-controls-row flex items-center">
               <button onClick={() => (paused ? doPlay() : doPause())} style={iconBtn()} aria-label={paused ? t('Продолжить') : t('Пауза')}>
-                {paused ? <Play size={20} fill="#fff" /> : <Pause size={20} fill="#fff" />}
+                {paused ? <Play size={24} fill="#fff" /> : <Pause size={24} fill="#fff" />}
               </button>
               {/* Кнопок «−10 / +10» в строке нет НАМЕРЕННО. У длинного ролика
                   время занимает всю строку («5:41 / 1:26:56»), и первым из неё
@@ -1249,7 +1250,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   aria-label={t('Громкость')}
                   aria-expanded={volumeOpen}
                 >
-                  {muted || volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
+                  {muted || volume === 0 ? <VolumeX size={22} /> : volume < 0.5 ? <Volume1 size={22} /> : <Volume2 size={22} />}
                 </button>
                 {volumeOpen && (
                   <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
@@ -1291,20 +1292,21 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   style={iconBtn(captions ? { background: 'rgba(255,255,255,0.2)' } : undefined)}
                   aria-label={t('Субтитры')}
                 >
-                  <Subtitles size={18} />
+                  <Subtitles size={22} />
                 </button>
               )}
 
               {canRate && (
                 <div style={{ position: 'relative' }}>
                   <button
+                    className="lesson-player-rate-trigger"
                     ref={rateBtnRef}
                     onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o); setVolumeOpen(false) }}
                     style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 6 } : { width: 'auto', padding: '0 8px', gap: 6 })}
                     aria-label={t('Скорость')}
                     aria-expanded={rateOpen}
                   >
-                    <Gauge size={18} />
+                    <Gauge size={22} />
                     <span style={{ fontSize: 12, fontWeight: 700 }}>{liveRate}×</span>
                   </button>
                   {rateOpen && ratePos && createPortal(
@@ -1341,7 +1343,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               )}
 
               <button onClick={toggleFullscreen} style={iconBtn()} aria-label={t('Во весь экран')}>
-                {fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                {fullscreen ? <Minimize size={22} /> : <Maximize size={22} />}
               </button>
             </div>
           </motion.div>
