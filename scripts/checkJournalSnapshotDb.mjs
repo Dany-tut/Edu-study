@@ -1,6 +1,8 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
+import assert from 'node:assert/strict'
+import { buildSync } from 'esbuild'
 const name = `iskra-journal-snapshot-${randomUUID().slice(0,8)}`
 const run = (args,input) => execFileSync('docker',args,{input,encoding:'utf8',stdio:['pipe','pipe','pipe']})
 let db
@@ -17,7 +19,7 @@ try {
     if(!ready) throw new Error('Test PostgreSQL did not start')
     sql=text=>run(['exec','-i',name,'psql','-h','127.0.0.1','-U','postgres','-v','ON_ERROR_STOP=1'],text)
   }
-  await sql(`create role authenticated;create role anon;create schema auth;
+  await sql(`create role authenticated;create role anon;create role service_role;create schema auth;
     create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
     create function public.is_admin() returns boolean language sql stable as $$select coalesce(current_setting('test.admin',true),'false')::boolean$$;
     create table courses(id uuid primary key,created_by uuid,short_id text,title text,subject text,kind text,group_ids uuid[],student_ids uuid[]);
@@ -91,6 +93,49 @@ try {
     reset role;
     do $$begin if exists(select 1 from pg_proc where proname='teacher_journal_snapshot_v2' and (prosecdef or provolatile<>'s')) then raise exception 'Snapshot must be stable invoker';end if;end$$;
   `)
+  await sql(readFileSync('supabase/migrations/20261101164928_teacher_journal_lesson_summary.sql','utf8').split('-- Invoker security')[0])
+  await sql(readFileSync('supabase/migrations/20261102082617_journal_compact_task_sources.sql','utf8'))
+  await sql("create or replace function pg_temp.unpack_journal_wire(p jsonb) returns jsonb\nlanguage sql immutable as $$\n  select (p - 'encoding' - array['courses','lessons','modules','work','events','assignments','legacy','attempts','marks']) ||\n    (select jsonb_object_agg(k,coalesce((\n      select jsonb_agg((select jsonb_object_agg(c.col #>> '{}',r.row->(c.n-1)::int)\n        from jsonb_array_elements(t->'columns') with ordinality c(col,n)) order by r.n)\n      from jsonb_array_elements(t->'rows') with ordinality r(row,n)\n    ),'[]'::jsonb))\n    from jsonb_each(p) e(k,t) where k in('courses','lessons','modules','work','events','assignments','legacy','attempts','marks'))\n$$;\n\n")
+  await sql(`reset role;set test.admin='false';select set_config('test.uid',md5('owner-a')::uuid::text,false);set role authenticated;
+    do $$declare old jsonb;fresh jsonb;begin
+      old:=teacher_journal_snapshot_v2(md5('owner-a')::uuid,true);fresh:=pg_temp.unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-a')::uuid,true)::jsonb);
+      if (old-'lessons') is distinct from (fresh-'lessons') then raise exception 'Non-task data changed';end if;
+      if jsonb_array_length(fresh->'lessons')<>1610 then raise exception 'Compact lessons truncated';end if;
+      if fresh->'lessons'->0->'hwTask' not in ('[{"type":"iskra"}]'::jsonb,'null'::jsonb) then raise exception 'Native source missing';end if;
+      begin perform teacher_journal_snapshot_v3(md5('owner-b')::uuid);raise exception 'Foreign compact owner allowed';exception when insufficient_privilege then null;end;
+    end$$;
+    reset role;select set_config('test.uid',md5('owner-b')::uuid::text,false);set role authenticated;
+    do $$begin if jsonb_array_length(pg_temp.unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-b')::uuid)::jsonb)->'work')<>1 then raise exception 'Compact second-owner isolation failed';end if;end$$;
+    reset role;set test.admin='true';set role authenticated;
+    do $$begin if jsonb_array_length(pg_temp.unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-a')::uuid)::jsonb)->'work')<>2107 then raise exception 'Compact admin scope failed';end if;end$$;
+    reset role;set role anon;
+    do $$begin begin perform teacher_journal_snapshot_v3(md5('owner-a')::uuid);raise exception 'Anonymous compact RPC allowed';exception when insufficient_privilege then null;end;end$$;
+    reset role;
+    do $$begin
+      if public.teacher_journal_task_sources_v2('[]')<>'[]' or public.teacher_journal_task_sources_v2('[null,false,0,""]')<>'[null]' then raise exception 'Empty/invalid task semantics changed';end if;
+      if public.teacher_journal_task_sources_v2('[{"type":"testly","isHard":true}]')<>'[null]' then raise exception 'Hard tasks became basic';end if;
+      if public.teacher_journal_task_sources_v2('[{"isHard":false},true,"legacy"]')<>'[{}]' then raise exception 'Untyped basic task lost';end if;
+      if public.teacher_journal_task_sources_v2('[{"type":"write"},{"type":"write"},{"type":"testly"},{"type":"testly","isHard":true}]')<>'[{"type":"iskra"},{"type":"testly"}]' then raise exception 'Mixed sources changed';end if;
+      if public.teacher_journal_task_sources_v2('{"type":"write","isHard":true}')<>'{"type":"write","isHard":true}' then raise exception 'Legacy non-array semantics changed';end if;
+      if not (select reloptions @> array['security_invoker=true'] from pg_class where relname='teacher_journal_lessons_v2') then raise exception 'Compact view bypasses RLS';end if;
+      if exists(select 1 from pg_proc where proname='teacher_journal_snapshot_v3' and (prosecdef or provolatile<>'s')) then raise exception 'Compact RPC must be stable invoker';end if;
+    end$$;
+  `)
+  const query = `set test.admin='true';select set_config('test.uid',md5('owner-a')::uuid::text,false);
+    with snapshot as materialized(select teacher_journal_snapshot_v3(md5('owner-a')::uuid,true)::jsonb wire)
+    select jsonb_build_object('wire',wire,'decoded',pg_temp.unpack_journal_wire(wire)) as fixture from snapshot;`
+  const fixture = db ? (await db.exec(query)).at(-1).rows[0].fixture
+    : JSON.parse(run(['exec','-i',name,'psql','-h','127.0.0.1','-U','postgres','-At','-v','ON_ERROR_STOP=1'],query).split('\n').find(line=>line.startsWith('{')))
+  const bundle = buildSync({entryPoints:['src/lib/journalSnapshot.ts'],bundle:true,platform:'node',format:'esm',write:false})
+  const { journalSnapshotResult } = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'))
+  assert.deepEqual(journalSnapshotResult({data:fixture.wire,error:null}),fixture.decoded,'Client decoder must retain every value and row')
+  const truncated=structuredClone(fixture.wire);truncated.work.rows[0].pop()
+  assert.throws(()=>journalSnapshotResult({data:truncated,error:null}),/неполон/)
+  const wrongColumns=structuredClone(fixture.wire);wrongColumns.work.columns.reverse()
+  assert.throws(()=>journalSnapshotResult({data:wrongColumns,error:null}),/неполон/)
+  assert.throws(()=>journalSnapshotResult({data:{...fixture.wire,encoding:'future'},error:null}),/Формат/)
+  console.log('PASS: actual SQL wire decoded losslessly by browser code; truncated rows, reordered fields and incompatible encodings rejected')
+  console.log('PASS: compact task categories, complete grades/answers/attempts/attendance, two owners/admin, anon denial and invoker security')
   console.log('PASS: complete 1610 lessons/2107 progress, related records, grades/drafts, task order, fresh rereads, shared-course scope, two owners/admin, anon denial, invoker security')
 } catch(e) { console.error(e.stderr?.toString()||e);process.exitCode=1 }
 finally { if(db)await db.close();else try {run(['rm','-f',name])}catch{} }

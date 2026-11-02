@@ -70,12 +70,12 @@ console.log('Parallel journal: complete ordered rows, bounded concurrency, split
 const productionRows = Array.from({length: 2107}, (_, id) => ({id}))
 let inFlight = 0, maxInFlight = 0
 const bounded = await journalParallelPages(async (offset, size) => {
-  assert.equal(size, 500)
+  assert.equal(size, 1000)
   inFlight++;maxInFlight=Math.max(maxInFlight,inFlight)
   await new Promise(r=>setTimeout(r,1))
   inFlight--
   return {data:productionRows.slice(offset,offset+size),error:null}
-},signal,500,4)
+},signal,1000,2)
 assert.deepEqual(bounded,productionRows)
-assert.equal(maxInFlight,4)
-console.log('PASS: production page window retains all 2107 rows across windows with four bounded responses')
+assert.equal(maxInFlight,2)
+console.log('PASS: fallback retains all 2107 rows across windows with two bounded responses')

@@ -7,6 +7,7 @@ import { journalPages, journalBatches, journalRowsById } from './journalRequests
 import { journalPages as adaptiveJournalPages, journalParallelPages } from './journalPages'
 import { createAuthDataChangeGuard } from './authDataChange'
 import { journalPaintTiming } from './platformPerformance'
+import { journalSnapshotResult } from './journalSnapshot'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
@@ -22,8 +23,8 @@ async function byIds<T>(table: string, columns: string, field: string, ids: stri
       .in(field, batch).order(table === 'teacher_lesson_sessions' ? 'schedule_id' : 'id')
       .range(offset, offset + size - 1).abortSignal(signal).retry(false)
     // The invoker view returns task summaries, never rich lesson bodies.
-    if (table === 'teacher_journal_lessons_v1') return journalParallelPages<T>(build, signal, 500, 4)
-    if (table === 'lesson_progress') return journalParallelPages<T>(build, signal, 500, 4)
+    if (table === 'teacher_journal_lessons_v1') return journalParallelPages<T>(build, signal, 1000, 2)
+    if (table === 'lesson_progress') return journalParallelPages<T>(build, signal, 1000, 2)
     return adaptiveJournalPages<T>(build, signal)
   })
   console.debug('[journal-read] ' + JSON.stringify({ table, rows: rows.length, ms: Math.round(performance.now() - started) }))
@@ -74,9 +75,14 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
         return journalDemo()
       }
       if (!owner) throw new Error('Нужно войти в кабинет преподавателя')
-      // Keep large collections in bounded parallel responses. A single multi-MB
-      // snapshot delayed body delivery even after its headers arrived quickly.
-      // Read every page; no cached/partial response replaces fresh grades.
+      // The compact snapshot keeps complete grades/answers/attempts, but sends
+      // task-source presence once instead of thousands of repeated task types.
+      // Required failures never become a partial journal. Only a missing RPC
+      // falls back to the complete paginated reader during migration rollout.
+      const snapshot = journalSnapshotResult(await supabase.rpc('teacher_journal_snapshot_v3', {
+        p_owner: owner, p_complete: completeWorkList,
+      }).abortSignal(signal).retry(false))
+      if (snapshot) return snapshot
       const [owned, shares] = await Promise.all([
         journalPages<CourseJournalData['courses'][number]>(offset => supabase.from('courses')
         .select('id, short_id, title, subject, kind, group_ids, student_ids')
