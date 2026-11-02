@@ -119,7 +119,12 @@ function SubjectDropdown({
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    const onViewport = (e: Event) => { if (!(e.target instanceof Node) || !popRef.current?.contains(e.target)) setOpen(false) }
+    const onViewport = (e: Event) => {
+      if (e.target instanceof Node && popRef.current?.contains(e.target)) return
+      const rect = btnRef.current?.getBoundingClientRect()
+      if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) { setOpen(false); return }
+      setRect(viewportDropdownPosition(rect, 284))
+    }
     const unwatchViewport = watchDropdownViewport(onViewport)
     window.addEventListener('resize', onViewport)
     window.addEventListener('scroll', onViewport, true)
