@@ -1,0 +1,25 @@
+html:has(.widget-size-review){scrollbar-gutter:auto}
+.widget-size-review{position:fixed;inset:0;z-index:600;display:flex;flex-direction:column;background:var(--color-bg);color:var(--color-text)}
+.size-review-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 24px;border-bottom:1px solid var(--color-border-medium);flex-shrink:0;background:var(--color-bg-card)}
+.size-review-top h1{font-size:20px;font-weight:750;margin:0}.size-review-top p{font-size:12px;color:var(--color-text-3);margin:4px 0 0}.size-review-top a{font-size:13px;color:var(--color-accent);flex-shrink:0}
+.size-review-layout{display:grid;grid-template-columns:210px minmax(0,1fr);flex:1;min-height:0}
+.size-review-scroll{overflow:auto;overscroll-behavior:contain;min-height:0;min-width:0}
+.size-review-nav{padding:16px 12px;border-right:1px solid var(--color-border-medium);display:flex;flex-direction:column;gap:6px}
+.size-review-nav button{padding:10px 12px;min-height:40px;border:1px solid transparent;border-radius:10px;text-align:left;flex-shrink:0;font-size:13px;background:transparent;color:var(--color-text);cursor:pointer}
+.size-review-nav button[aria-pressed=true]{background:var(--color-purple-soft);border-color:var(--color-accent)}
+.size-review-main{padding:24px;scrollbar-gutter:stable}.size-review-main h2{font-size:20px;font-weight:700;margin:24px 0 12px}.size-review-main p{font-size:13px;line-height:1.6;color:var(--color-text-2);margin:10px 0}
+.size-review-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.size-review-controls label{font-size:13px;display:flex;align-items:center;gap:8px}
+.size-review-controls select,.size-review-controls button{font-size:14px;padding:9px 12px;min-height:40px;background:var(--color-bg-card);color:var(--color-text);border:1px solid var(--color-border-medium);border-radius:10px;cursor:pointer}
+.size-review-viewport{max-width:100%;overflow:auto;overscroll-behavior:contain;min-width:0}
+.size-review-matrix{display:grid;gap:5px;min-width:400px;padding:4px 0}.size-review-matrix>b,.size-review-matrix>span{display:grid;place-items:center;font-size:12px}
+.size-review-matrix button{height:34px;font-size:12px;border:1px solid var(--color-border-medium);background:var(--color-bg-card);border-radius:7px;color:var(--color-text);cursor:pointer}
+.size-review-matrix button:disabled{opacity:.3;cursor:not-allowed}.size-review-matrix button[aria-pressed=true]{border-color:var(--color-accent);background:var(--color-purple-soft);font-weight:700}
+.size-review-hint{font-size:12px!important}.size-review-case{border:1px solid var(--color-border-medium);border-radius:18px;padding:12px;min-width:0;background:var(--color-bg-2)}
+.size-review-case>header{display:flex;gap:12px;align-items:center;padding:0 0 12px;font-size:13px}.size-review-case>header>span{font-size:12px;color:var(--color-text-3)}
+.size-review-case>.size-review-viewport{padding:3px 3px 12px}.size-review-case .iskra-widget{position:relative}.size-review-loading{height:100%;display:grid;place-items:center;border-radius:22px;background:var(--color-bg-card);font-size:13px;color:var(--color-text-3)}
+.size-review-article{margin-top:24px}.size-review-article h3{font-size:18px;font-weight:700;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}.size-review-article h3 small{font-size:12px;font-weight:400;color:var(--color-text-3)}
+.size-review-cases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media(max-width:850px){.size-review-layout{grid-template-columns:150px minmax(0,1fr)}.size-review-main{padding:16px}.size-review-cases{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.size-review-layout{display:flex;flex-direction:column}.size-review-top{padding:12px 16px;align-items:flex-start;flex-wrap:wrap}.size-review-top h1{font-size:18px}.size-review-nav{max-height:124px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-right:0;border-bottom:1px solid var(--color-border-medium);padding:8px;flex-shrink:0}.size-review-nav button{min-height:44px;padding:8px;font-size:12px}.size-review-main{flex:1;padding:16px}.size-review-controls select{font-size:16px}.size-review-main h2{font-size:18px}}
+
+@media(max-width:600px){.size-review-matrix button,.size-review-controls button,.size-review-controls select{min-height:44px}.size-review-top a{min-height:32px;display:flex;align-items:center}}

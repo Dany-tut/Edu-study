@@ -160,3 +160,10 @@
   filter: grayscale(1);
   opacity: 0.65;
 }
+
+/* The static date and primary lesson text use the available card width. They
+   wrap instead of becoming single-line clipping/masking windows. */
+.calendar-widget-date { flex-shrink: 0; width: 100%; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.calendar-widget-name, .calendar-widget-subtitle { display: block; min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; flex-shrink: 0; }
+.calendar-widget-person { min-width: 0; }
+.calendar-widget-details { align-self: stretch; justify-content: center; }

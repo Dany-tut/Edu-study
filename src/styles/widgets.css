@@ -7,9 +7,16 @@
 .iskra-widget .iskra-mini-stat-label{white-space:normal;overflow-wrap:normal;font-size:11px!important;line-height:1.3;min-width:0}
 .iskra-widget .iskra-mini-stat-value{--metric-base-size:clamp(22px,12cqi,36px);font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important;line-height:1.1!important;white-space:nowrap;align-self:center;min-width:0}
 .iskra-widget .iskra-mini-stat-sub{justify-self:start;align-self:end!important;font-size:11px!important;line-height:1.35;max-width:100%;white-space:normal;padding:5px 8px!important;overflow-wrap:normal}
-@container iskra-kpi (max-height:135px){.iskra-widget .iskra-mini-stat{grid-template-rows:auto minmax(0,1fr)!important;gap:6px!important;padding:14px!important}.iskra-widget .iskra-mini-stat-sub{display:none!important}.iskra-widget .iskra-mini-stat-value{--metric-base-size:clamp(24px,13cqi,32px);font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important}}
-@container iskra-kpi (max-width:175px){.iskra-widget .iskra-mini-stat{grid-template-columns:30px minmax(0,1fr)!important;grid-template-rows:1fr!important;align-items:center;gap:10px!important;padding:12px!important;border-radius:18px!important}.iskra-widget .iskra-mini-stat-label,.iskra-widget .iskra-mini-stat-sub{display:none!important}.iskra-widget .iskra-mini-stat-heading{display:block!important}.iskra-widget .iskra-mini-stat-value{--metric-base-size:24px;font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important}}
-@container iskra-kpi (min-width:320px) and (max-height:150px){.iskra-widget .iskra-mini-stat{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:auto auto!important;column-gap:20px!important;row-gap:6px!important;padding:16px 20px!important;align-content:center}.iskra-widget .iskra-mini-stat-heading{grid-template-columns:30px minmax(0,1fr);justify-self:start;align-self:center;grid-column:1;grid-row:1}.iskra-widget .iskra-mini-stat-icon{grid-column:1;grid-row:1}.iskra-widget .iskra-mini-stat-label{grid-column:2;grid-row:1}.iskra-widget .iskra-mini-stat-value{grid-column:2;grid-row:1/3;--metric-base-size:32px;font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important}.iskra-widget .iskra-mini-stat-sub{display:block!important;grid-column:1;grid-row:2;margin-left:38px;max-width:calc(100% - 38px)}}
+/* Compact metrics keep a visible name, then icon + value. Only the secondary
+   badge disappears; a 1×1 card must explain what its number means. */
+@container iskra-kpi (max-height:150px){
+.iskra-widget .iskra-mini-stat{grid-template-columns:24px minmax(0,1fr)!important;grid-template-rows:auto minmax(0,1fr)!important;align-items:center;gap:4px 8px!important;padding:10px 12px!important}
+.iskra-widget .iskra-mini-stat-heading{display:contents!important}
+.iskra-widget .iskra-mini-stat-label{display:block!important;grid-column:1/3;grid-row:1;font-size:11px!important;line-height:1.25;letter-spacing:0!important;white-space:normal;text-transform:none!important;overflow-wrap:anywhere}
+.iskra-widget .iskra-mini-stat-icon{grid-column:1;grid-row:2;width:24px!important;height:24px!important;border-radius:8px!important}
+.iskra-widget .iskra-mini-stat-value{grid-column:2;grid-row:2;--metric-base-size:clamp(22px,13cqi,30px);font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important}
+.iskra-widget .iskra-mini-stat-sub{display:none!important}
+}
 .iskra-widget{--ww-gap:10px}
 .iskra-widget .ww-header{padding:12px 14px!important;min-height:48px;gap:8px!important;flex-wrap:wrap}
 .iskra-widget .ww-header>div{min-width:0;gap:6px!important}
@@ -174,28 +181,6 @@
 .iskra-widget[data-widget="pupil-stats"] .stat-card{padding:6px!important;gap:4px!important}
 .iskra-widget[data-widget="pupil-stats"] .stat-value{font-size:20px!important}
 .iskra-widget[data-widget="pupil-stats"] .stat-pending>*:last-child{display:none}
-}
-/* A short card uses the same icon/value layout at every width. Keeping the
-   title+icon above the value needs more height than the compact 88px frame. */
-@container iskra-kpi (max-height:110px){
-.iskra-widget .iskra-mini-stat{grid-template-columns:30px minmax(0,1fr)!important;grid-template-rows:1fr!important;align-items:center;gap:10px!important;padding:12px!important}
-.iskra-widget .iskra-mini-stat-heading{display:block!important;grid-column:1!important;grid-row:1!important}
-.iskra-widget .iskra-mini-stat-label,.iskra-widget .iskra-mini-stat-sub{display:none!important}
-.iskra-widget .iskra-mini-stat-value{grid-column:2!important;grid-row:1!important;--metric-base-size:32px}
-}
-/* One-row cells show the title/icon and value. Secondary badges live in the
-   taller presets; they must not squeeze the primary data into narrow columns. */
-@container iskra-kpi (max-height:135px){
-.iskra-widget .iskra-mini-stat{grid-template-columns:30px minmax(0,1fr)!important;grid-template-rows:1fr!important;align-items:center!important;align-content:center}
-.iskra-widget .iskra-mini-stat-heading{display:block!important;grid-column:1!important;grid-row:1!important}
-.iskra-widget .iskra-mini-stat-value{grid-column:2!important;grid-row:1!important}
-.iskra-widget .iskra-mini-stat-label,.iskra-widget .iskra-mini-stat-sub{display:none!important}
-}
-
-@container iskra-kpi (min-width:320px) and (max-height:135px){
-.iskra-widget .iskra-mini-stat{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
-.iskra-widget .iskra-mini-stat-heading{display:grid!important;grid-template-columns:30px minmax(0,1fr)!important}
-.iskra-widget .iskra-mini-stat-label{display:block!important}
 }
 /* Compact payment rows reserve a full line for the name and another for money
    and date, rather than squeezing both primary values into adjacent columns. */

@@ -25,6 +25,7 @@ const TeacherFinancesPage = lazy(() => retryImport(() => import('./TeacherFinanc
 const MobileTeacherApp = lazy(() => retryImport(() => import('../../components/teacher/mobile/MobileTeacherApp')))
 import DeskSwitcher from '../../components/teacher/DeskSwitcher'
 const DeskCanvas = lazy(() => retryImport(() => import('../../components/teacher/DeskCanvas')))
+const WidgetSizeReview = lazy(() => retryImport(() => import('../../components/teacher/widgetReview/WidgetSizeReview')))
 const WidgetLibraryModal = lazy(() => retryImport(() => import('../../components/teacher/WidgetLibraryModal')))
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore'
@@ -124,6 +125,10 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     setActiveDesk(desks[next].id)
     setTimeout(() => { wheelCooldown.current = false }, 450)
   }, [editMode, config.desks, activeDesk.id, setActiveDesk])
+
+  if (new URLSearchParams(window.location.search).get('widget-sizes') === '1' && accessLoaded && canPage('home')) {
+    return <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}><WidgetSizeReview hiddenWidgets={hiddenWidgets} /></Suspense>
+  }
 
   return (
     <>
