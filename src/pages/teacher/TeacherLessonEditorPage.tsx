@@ -1280,7 +1280,7 @@ export default function TeacherLessonEditorPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <DraftPublishToggle published={published} onPublish={handlePublish}
-              publishLabel={t('Опубликовать тему')} publishedLabel={t('Опубликовано')} />
+              publishLabel={t('Опубликовать')} publishedLabel={t('Опубликован')} />
           </div>
         </motion.div>
 
@@ -1315,7 +1315,7 @@ export default function TeacherLessonEditorPage() {
               <div style={{ flexGrow: 1, flexBasis: 0 }} />
 
               <DraftPublishToggle published={published} onPublish={handlePublish}
-                publishLabel={t('Опубликовать тему')} publishedLabel={t('Опубликовано')}
+                publishLabel={t('Опубликовать')} publishedLabel={t('Опубликован')}
                 style={{ ...dockGlass, pointerEvents: 'auto' }} />
             </motion.div>
           )}
