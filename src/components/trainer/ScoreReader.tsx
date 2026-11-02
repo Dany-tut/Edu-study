@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -1155,7 +1156,7 @@ function Seg({ icon: Icon, label, on, solid, iconOnly, grow, accent, soft, onCli
         ...(grow ? { flex: 1, minWidth: 0 } : null),
         borderRadius: 999, border: 'none', cursor: 'pointer',
         fontFamily: 'inherit', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
-        overflow: 'hidden', textOverflow: 'ellipsis',
+        overflow: 'hidden',
         background: on ? (solid ? accent : soft) : 'transparent',
         color: on ? (solid ? '#fff' : accent) : 'var(--color-text-3)',
         transition: 'background 0.15s ease, color 0.15s ease',
@@ -1163,7 +1164,7 @@ function Seg({ icon: Icon, label, on, solid, iconOnly, grow, accent, soft, onCli
       onMouseEnter={e => { if (!on) e.currentTarget.style.color = 'var(--color-text-2)' }}
       onMouseLeave={e => { if (!on) e.currentTarget.style.color = 'var(--color-text-3)' }}
     >
-      <Icon size={13} style={{ flexShrink: 0 }} /> {iconOnly ? null : label}
+      <Icon size={13} style={{ flexShrink: 0 }} /> {iconOnly ? null : <span data-text-fade="1" style={{ minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{label}</span>}
     </button>
   )
 }

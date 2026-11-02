@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { ICON_GAP } from '../../lib/subjects'
@@ -270,7 +271,7 @@ function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
                     return (
                       <div key={sec}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, color: 'var(--color-text-2)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>{sec}</span>
+                          <span style={{ fontSize: 12, color: 'var(--color-text-2)', fontWeight: 500, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', maxWidth: '75%' }}>{sec}</span>
                           <span style={{ fontSize: 12, fontWeight: 700, color: col, flexShrink: 0 }}>{c}/{t}</span>
                         </div>
                         <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
@@ -484,12 +485,12 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
 
               <div style={{
                 flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden',
-                textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                 whiteSpace: 'nowrap',
                 padding: '10px 16px', borderRadius: 999, ...dockGlass,
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
               }}>
-                {tn(student.name)}
-              </div>
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{tn(student.name)}</span>
+            </div>
 
               <div style={{ flexGrow: 1 }} />
 
@@ -777,7 +778,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
                         {hw.returned ? <AlertCircle size={12} style={{ color: 'var(--color-red-text)' }} /> : pct === 100 ? <CheckCheck size={12} style={{ color: 'var(--color-green-text)' }} /> : <CheckCircle2 size={12} style={{ color: 'var(--color-muted)' }} />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(hw.title)}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tc(hw.title)}</div>
                         <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{hw.date}</div>
                       </div>
                       <span style={{ padding: '4px 8px', borderRadius: 8, background: hw.returned ? 'var(--color-red-soft)' : pct >= 80 ? '#E8F7EF' : '#FFF3D6', color, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>

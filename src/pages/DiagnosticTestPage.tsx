@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import BackCircle from '../components/BackCircle'
 import { createPortal } from 'react-dom'
@@ -976,7 +977,7 @@ export default function DiagnosticTestPage() {
             }}>
               <Target size={14} style={{ color: theme.accent }} />
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
               {/* Во время прохождения — только тема: «Линия 1.» уже не нужна, на телефоне из-за неё резалось название */}
               {t(theme.label).replace(/^Линия\s+\d+\.\s*/, '')}
             </span>

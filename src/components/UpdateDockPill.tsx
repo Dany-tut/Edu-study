@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { motion } from 'framer-motion'
 import { ArrowDownToLine } from './icons/appIcons'
 import { useSmoothCollapse, glassBase } from './MobileDock'
@@ -39,7 +40,7 @@ export default function UpdateDockPill() {
   const label = (
     <>
       <ArrowDownToLine size={16} strokeWidth={2} />
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <span style={{ overflow: 'hidden', ...textFadeStyle }}>
         {updating ? `${t('Обновляем…')} ${pct}%` : `${t('Есть обновление')}${remote ? ` · ${remote}` : ''}`}
       </span>
     </>

@@ -1,3 +1,4 @@
+import { LoopSelect } from '../components/icons/LoopSelect'
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import {
   ArrowRight,
@@ -300,7 +301,7 @@ export default function StudentDiaryPage({
         <div className="ds-scope">
           <label>
             <span className="ds-field-label">{t('Предмет')}</span>
-            <select
+            <LoopSelect
               aria-label={t('Предмет дневника')}
               value={subject}
               onChange={(e) => {
@@ -314,11 +315,11 @@ export default function StudentDiaryPage({
                   {name === '__none' ? t('Предмет не указан') : name}
                 </option>
               ))}
-            </select>
+            </LoopSelect>
           </label>
           <label>
             <span className="ds-field-label">{t('Курс / интенсив')}</span>
-            <select
+            <LoopSelect
               aria-label={t('Курс дневника')}
               value={course}
               onChange={(e) => setCourse(e.target.value)}
@@ -331,7 +332,7 @@ export default function StudentDiaryPage({
                     {c.name}
                   </option>
                 ))}
-            </select>
+            </LoopSelect>
           </label>
           <span className="ds-scope-summary">
             {pending
@@ -358,22 +359,22 @@ export default function StudentDiaryPage({
           <div className="ds-work-toolbar">
             <label>
               {t('Состояние')}
-              <select aria-label={t('Состояние')} value={state} onChange={(e) => setState(e.target.value)}>
+              <LoopSelect aria-label={t('Состояние')} value={state} onChange={(e) => setState(e.target.value)}>
                 <option value="action">{t('Нужно сделать')}</option>
                 <option value="all">{t('Все задания')}</option>
                 <option value="pending">{t('На проверке')}</option>
                 <option value="passed">{t('Зачтено')}</option>
-              </select>
+              </LoopSelect>
             </label>
             <label>
               {t('Сортировка')}
-              <select aria-label={t('Сортировка')} value={sort} onChange={(e) => setSort(e.target.value)}>
+              <LoopSelect aria-label={t('Сортировка')} value={sort} onChange={(e) => setSort(e.target.value)}>
                 <option value="priority">{t('Сначала важное')}</option>
                 <option value="due">{t('По сроку')}</option>
                 <option value="number">{t('По номеру ДЗ')}</option>
                 <option value="subject">{t('По предмету')}</option>
                 <option value="course">{t('По курсу / интенсиву')}</option>
-              </select>
+              </LoopSelect>
             </label>
             <button
               type="button"

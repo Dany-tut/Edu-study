@@ -247,7 +247,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                 <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
                   {t('Конспект')}
                 </span>
-                <span className="truncate" style={{ display: 'block', fontSize: 12, color: 'var(--color-muted)' }}>
+                <span className="text-fade" style={{ display: 'block', fontSize: 12, color: 'var(--color-muted)' }}>
                   {lessonTitle}
                 </span>
               </span>

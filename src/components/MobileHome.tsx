@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { useRef, useState, useMemo, useEffect } from 'react'
 import CountBadge from './CountBadge'
 import FadeText from './FadeText'
@@ -725,7 +726,7 @@ function HeroContinue({ lesson, subjectName, progress }: { lesson: Lesson; subje
         // дробные em давали пол-пикселя расхождения.
         fontSize: 16, fontWeight: 800, margin: '4px 0 10px', lineHeight: '19px',
         minHeight: 38,
-        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+         ...textFadeLines(2),  overflow: 'hidden',
       }}>
         {t('Занятие')} #{lesson.number + 1} · {tc(lesson.title)}
       </div>
@@ -932,7 +933,7 @@ function WidgetCard({ tag, icon, accent, bg, text }: { tag: string; icon: React.
         {icon}
         <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tag}</span>
       </div>
-      <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text)', margin: 0, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text)', margin: 0,  ...textFadeLines(4),  overflow: 'hidden' }}>
         {text}
       </p>
     </div>

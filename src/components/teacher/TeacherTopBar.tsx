@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownSurface } from '../../lib/dropdownStyle'
 import CountBadge from '../CountBadge'
@@ -588,7 +589,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{teacherName || (teacherRole === 'admin' ? t('Админ') : t('Учитель'))}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teacherEmail}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.3, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{teacherEmail}</div>
               </div>
             </div>
 
@@ -600,7 +601,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: planPct != null ? 8 : 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                   <Zap size={14} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(planTier.name)}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(planTier.name)}</span>
                 </div>
                 {planDaysLeft != null && (
                   <span style={{ fontSize: 11, fontWeight: 600, flexShrink: 0, color: planEnding ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>
@@ -662,8 +663,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   <item.icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sub}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{item.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{item.sub}</div>
                 </div>
               </motion.button>
             ))}
@@ -681,8 +682,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 <Globe size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('Язык')}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lang === 'ru' ? 'Русский' : 'English'}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t('Язык')}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{lang === 'ru' ? 'Русский' : 'English'}</div>
               </div>
             </motion.button>
 

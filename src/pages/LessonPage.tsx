@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { homeworkNeedsVideo } from '../lib/homeworkAccess'
 import { publishVideoWatch } from '../store/studentDataStore'
 import { SubjectMark } from '../components/icons/SubjectMark'
@@ -325,7 +326,7 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
         {isLinkFile(file) ? 'URL' : fileChipLabel(file.name)}
       </div>
       <span className="min-w-0" style={{ flex: 1 }}>
-        <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+        <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{file.name}</span>
         {(err || file.size > 0) && (
           <span style={{ display: 'block', fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)' }}>
             {err ? t('не удалось скачать') : formatFileSize(file.size)}
@@ -374,8 +375,8 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
         <Icon size={16} strokeWidth={1.9} />
       </div>
       <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</p>
-        <p style={{ fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.2, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{label}</p>
+        <p style={{ fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)', marginTop: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {!active ? t('файл не прикреплён')
             : err ? t('не удалось скачать')
             : busy ? t('загружаем…')
@@ -951,7 +952,7 @@ export default function LessonPage() {
         </motion.button>
 
         <h1
-          className="flex-1 min-w-0 truncate text-center"
+          className="flex-1 min-w-0 text-fade text-center"
           style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
           {t('Занятие')} #{lesson.number + 1} {tContent(lesson.title)}
@@ -1014,7 +1015,7 @@ export default function LessonPage() {
 
             <div
               ref={dockTitleRef}
-              className="min-w-0 truncate"
+              className="min-w-0 text-fade"
               style={{
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1,
                 maxWidth: dockTitleMax,

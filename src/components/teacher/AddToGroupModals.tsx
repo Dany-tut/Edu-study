@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { OverlayScrollArea } from './OverlayScroll'
 import { useState, useMemo } from 'react'
 import { ModalClose } from '../Modal'
@@ -103,10 +104,10 @@ export function PickStudentModal({
                 fontSize: 13, fontWeight: 800, color: '#fff',
               }}>{initials(tn(person.name))}</div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                   {tn(person.name)}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                   {subjects.length ? subjects.map(s => tc(s)).join(' · ') : t('Без предметов')}
                   {registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
                 </div>
@@ -187,7 +188,7 @@ export function PickGroupModal({
                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: g.color,
                 }}><Users size={18} /></div>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                     {g.name}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>
@@ -302,8 +303,8 @@ export function AddExistingIndividualModal({
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff',
                   }}>{initials(tn(person.name))}</div>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(person.name)}</div>
-                    <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tn(person.name)}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                       {subjects.length ? subjects.map(s => tc(s)).join(' · ') : t('Без предметов')}{registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
                     </div>
                   </div>

@@ -1,3 +1,4 @@
+import { textFadeLines } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Мои слова — личный словарь ученика во вкладке «Карточки»
 //
@@ -161,7 +162,7 @@ export function MyWordsTile({ words, states, ready, accent, soft, onOpen }: {
       </span>
       <span style={{
         flex: 1, fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
-        overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+        overflow: 'hidden',   ...textFadeLines(2),
       }}>
         {!ready
           ? ''

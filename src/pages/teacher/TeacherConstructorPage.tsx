@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { RefreshCw as LoopUiRefreshCw } from '../../components/icons/appIcons'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
@@ -872,8 +873,8 @@ function TrainerEditor({
                   {i + 1}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(q.text)}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(q.answer)}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 2, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(q.text)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(q.answer)}</div>
                 </div>
                 <button onClick={() => removeQ(q.id)} style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
                   <X size={12} />
@@ -1129,7 +1130,7 @@ function WidgetEditor({
               {items.slice(0, 6).map((item, i) => (
                 <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: 'var(--color-bg-2)', borderRadius: 9 }}>
                   <div style={{ width: 18, height: 18, borderRadius: 5, background: WTYPE_BG[type], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: WTYPE_COLOR[type], flexShrink: 0 }}>{i + 1}</div>
-                  <div style={{ flex: 1, fontSize: 11, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ flex: 1, fontSize: 11, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                     {item.question ?? item.factTitle ?? item.emoji ?? item.memeEmoji ?? '—'}
                     {(item.factTitle || item.emoji || item.memeTitle) && (
                       <span style={{ color: 'var(--color-text-3)' }}> · {item.factText?.slice(0, 30) ?? item.quote?.slice(0, 30) ?? item.memeTitle?.slice(0, 30)}</span>
@@ -1244,11 +1245,11 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
             <ScrollFade maxHeight={186} bg="rgba(var(--glass-rgb), 0.97)" fadeHeight={18} overlayScrollbar
               scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {access.map(s => (
-                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                   {enrolledIds.has(s.id)
                     ? <CheckCircle size={12} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                     : <Circle size={12} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(s.name)}</span>
+                  <span style={{ overflow: 'hidden', ...textFadeStyle }}>{tn(s.name)}</span>
                 </div>
               ))}
             </ScrollFade>
@@ -1950,8 +1951,8 @@ function LessonNameInput({ value, onChange, onAdd }: {
                   <BookOpen size={14} style={{ color: 'var(--color-accent)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.lessonTitle}</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.courseTitle}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{l.lessonTitle}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{l.courseTitle}</div>
                 </div>
                 <Plus size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
               </button>
@@ -2064,7 +2065,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 24px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         <BackCircle onClick={onClose} label="Назад" />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lessonTitle || t('Урок')}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{lessonTitle || t('Урок')}</div>
           <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Связано с базой ·')} {shortId}</div>
         </div>
         {msg && <span style={{ fontSize: 12, fontWeight: 600, color: msg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{msg}</span>}
@@ -2195,7 +2196,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
               style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', padding: '10px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 background: i === lessonIndex ? 'var(--color-purple-soft)' : 'transparent' }}>
               <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-bg-3)', color: i === lessonIndex ? '#fff' : 'var(--color-muted)', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(l.title)}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(l.title)}</span>
             </button>
           ))}
         </div>
@@ -2782,11 +2783,11 @@ function CreatorView({
             <BackCircle onClick={handleCancel} label="Назад" />
 
             <div style={{
-              flexShrink: 1, minWidth: 0, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              flexShrink: 1, minWidth: 0, maxWidth: 160, overflow: 'hidden',  whiteSpace: 'nowrap',
               padding: '10px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
-              {currentName || createLabel}
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{currentName || createLabel}</span>
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -2820,7 +2821,7 @@ function CreatorView({
           <div style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
             maxWidth: '44%', pointerEvents: 'none',
-            fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
+            fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle, textAlign: 'center',
           }}>
             {createLabel}
             {mode !== 'trainer' && currentName && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {currentName}</span>}
@@ -3052,7 +3053,7 @@ function CreatorView({
               <div style={{ fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg, borderRadius: 7, padding: '2px 8px', flexShrink: 0 }}>
                 {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label ?? t('Задание')}
               </div>
-              <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                 {stripHtml(tkQuestion).trim() || <span style={{ fontStyle: 'italic' }}>{t('без текста условия')}</span>}
               </div>
             </div>
@@ -3610,7 +3611,7 @@ function CreatorView({
                   {wItems.slice(0, 6).map((item, i) => (
                     <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: 'var(--color-bg-2)', borderRadius: 9, marginBottom: 4 }}>
                       <div style={{ width: 18, height: 18, borderRadius: 5, background: WTYPE_BG[wType], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: WTYPE_COLOR[wType] }}>{i + 1}</div>
-                      <div style={{ flex: 1, fontSize: 11, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ flex: 1, fontSize: 11, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                         {item.question ?? item.factTitle ?? item.emoji ?? item.memeTitle ?? '—'}
                         {(item.factText || item.quote || item.memeCaption) && (
                           <span style={{ color: 'var(--color-text-3)' }}> · {(item.factText ?? item.quote ?? item.memeCaption ?? '').slice(0, 30)}</span>
@@ -3657,7 +3658,7 @@ function CreatorView({
                         </div>
                         <div style={{ minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: active ? v.color : 'var(--color-text)' }}>{label}</div>
-                          <div style={{ fontSize: 11, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</div>
+                          <div style={{ fontSize: 11, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{hint}</div>
                         </div>
                       </button>
                     )
@@ -4537,7 +4538,7 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
                 {tn(s.name).split(' ').map((w: string) => w[0]).slice(0, 2).join('')}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(s.name)}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tn(s.name)}</div>
               </div>
             </button>
           ))}
@@ -4592,7 +4593,7 @@ function DiagnosticStudentCard({
         }}>{initials || '?'}</div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
             {tn(result.name)}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
@@ -5832,9 +5833,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
               <BackCircle onClick={onClose} label="Назад" />
-              <div ref={dockTitleRef} style={{ padding: '10px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: dockTitleMax ?? 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {label}
-              </div>
+              <div ref={dockTitleRef} style={{ padding: '10px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', minWidth: 0, maxWidth: dockTitleMax ?? 280, overflow: 'hidden',  whiteSpace: 'nowrap' }}>
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{label}</span>
+            </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -6078,7 +6079,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                       style={{ padding: '10px 12px', borderRadius: 10, background: isExp ? soft : 'var(--color-bg-2)', border: `1px solid ${isExp ? accent : 'var(--color-border)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{a.title}</div>
                         <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 2, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           {aGroups.map(g => <span key={g.id} style={{ color: g.color }}>● {g.name}</span>)}
                           {aStudents.map(s => <span key={s.id}>{tn(s.name)}</span>)}
@@ -6099,7 +6100,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                           const col = pct >= 70 ? 'var(--color-green-text)' : pct >= 40 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
                           return (
                             <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'var(--color-bg)' }}>
-                              <span style={{ fontSize: 11, color: 'var(--color-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(r.name)}</span>
+                              <span style={{ fontSize: 11, color: 'var(--color-text)', flex: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tn(r.name)}</span>
                               <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{pct}%</span>
                             </div>
                           )
@@ -6265,7 +6266,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
                       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                       <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
-                      <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{diagListLabel(q) || t('Без текста')}</div>
+                      <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{diagListLabel(q) || t('Без текста')}</div>
                     </button>
                   ))}
                 </div>
@@ -6547,7 +6548,7 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
           ) : (
             <button onClick={() => startEdit(it)} style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
               <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: `${SCR_ACC}22`, color: SCR_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
-              <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                 {it.a} <span data-loop-content>→</span> {it.b} | {it.c} <span data-loop-content>→</span> <b>{it.answer || '?'}</b>
               </div>
               <span style={{ fontSize: 10, fontWeight: 700, color: SCR_ACC, background: SCR_SOFT, borderRadius: 6, padding: '2px 8px', flexShrink: 0 }}>{t('Ур.')} {it.level}</span>
@@ -6632,7 +6633,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
         <div key={task.id} style={{ borderRadius: 12, border: `1px solid ${openId === task.id ? SCR_ACC : 'var(--color-border)'}`, background: 'var(--color-bg-2)', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer' }} onClick={() => setOpenId(openId === task.id ? null : task.id)}>
             <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: `${SCR_ACC}22`, color: SCR_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{ti + 1}</div>
-            <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title || t('Без названия')}</div>
+            <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.title || t('Без названия')}</div>
             <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{task.pairs.length} {t('пар')}</span>
             {openId === task.id ? <ChevronUp size={16} style={{ color: SCR_ACC, flexShrink: 0 }} /> : <ChevronDown size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
           </div>
@@ -6727,9 +6728,9 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
               <BackCircle onClick={onClose} label="Назад" />
-              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '10px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
-                {cfg.title || t('Скрининг мышления')}
-              </div>
+              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, overflow: 'hidden',  whiteSpace: 'nowrap', padding: '10px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{cfg.title || t('Скрининг мышления')}</span>
+            </div>
               <div style={{ flexGrow: 1 }} />
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSave}
                 style={{ ...savePillStyle, flexShrink: 0, pointerEvents: 'auto' }}>
@@ -6787,7 +6788,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                   >
                     {(() => { const DomIcon = DOMAIN_ICONS[key]; return <DomIcon size={17} strokeWidth={2} style={{ flexShrink: 0, color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text-2)' : 'var(--color-text-3)' }} /> })()}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: isSel ? 700 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(d.info.short)}</div>
+                      <div style={{ fontSize: 12, fontWeight: isSel ? 700 : 500, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(d.info.short)}</div>
                       <div style={{ fontSize: 10, color: d.enabled ? (isSel ? SCR_ACC : 'var(--color-muted)') : 'var(--color-text-3)', marginTop: 1 }}>{d.enabled ? t('активен') : t('выключен')}</div>
                     </div>
                     {isSel && <div style={{ width: 6, height: 6, borderRadius: '50%', background: SCR_ACC, flexShrink: 0 }} />}
@@ -7063,9 +7064,9 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
               <BackCircle onClick={onCancel} label="Назад" />
-              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, padding: '10px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {title || t('Новый тест')}
-              </div>
+              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, padding: '10px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', overflow: 'hidden',  whiteSpace: 'nowrap' }}>
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{title || t('Новый тест')}</span>
+            </div>
               <div style={{ flexGrow: 1 }} />
               <motion.button whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }} onClick={handleSave}
                 style={{ ...savePillStyle, flexShrink: 0, pointerEvents: 'auto' }}>
@@ -7356,7 +7357,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                   <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                     <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
-                    <div style={{ flex: 1, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: editIdx === idx ? 600 : 400 }}>{q.text || t('Без текста')}</div>
+                    <div style={{ flex: 1, fontSize: 11, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', fontWeight: editIdx === idx ? 600 : 400 }}>{q.text || t('Без текста')}</div>
                   </button>
                 ))}
               </div>

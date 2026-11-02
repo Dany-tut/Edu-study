@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { scienceFactInterval } from '../data/mockData'
@@ -119,7 +120,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
               transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 fontSize: 18 * sz.scale, fontWeight: 500, lineHeight: sz.bodyLeading, color: 'var(--color-text)',
-                display: '-webkit-box', WebkitLineClamp: sz.clampLines, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                 ...textFadeLines(sz.clampLines),  overflow: 'hidden',
               }}
             >
               {fact.text}
