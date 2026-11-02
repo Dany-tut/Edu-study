@@ -1,3 +1,4 @@
+import { getLessonScheduleState } from './lessonStatus'
 import type { Lesson } from '../data/mockData'
 import { lessonStudyProgress } from './lessonStudyProgress'
 import { parseVideoSource } from './videoSource'
@@ -20,4 +21,13 @@ export function homeworkNeedsVideo(lesson: Lesson, ref = lesson.id): boolean {
   const source = parseVideoSource(lesson.videoUrl)
   // An external iframe cannot report coverage. Never trap the student behind it.
   return !!source && source.kind !== 'iframe' && source.kind !== 'audio'
+}
+
+/** Scheduled live lessons release homework 90 minutes after their start.
+ * This gate precedes video credit and saved drafts: neither releases work early.
+ */
+export function homeworkTimeLocked(lesson: Lesson, now = new Date()): boolean {
+  if (lesson.kind === 'test') return false
+  const event = getLessonScheduleState(lesson, now)
+  return event?.phase === 'cancelled' || (event?.startMs != null && now.getTime() < event.startMs + (lesson.deliveryMode === 'recording' ? 0 : 90 * 60_000))
 }

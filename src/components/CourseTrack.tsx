@@ -31,7 +31,7 @@ import { playTransitionDrop } from '../lib/sound'
 import HardStarLottie from './HardStarLottie'
 import { useT, useTc } from '../lib/i18n'
 import { TRACK_STATUS, trackPalette } from '../lib/theme'
-import { diaryOverdue, type StudentDiaryEntry } from '../lib/studentDiary'
+import type { StudentDiaryEntry } from '../lib/studentDiary'
 import { homeModuleDebts } from '../lib/studentHomeWork'
 
 type HomeWorkProps = { homeWorks?: readonly StudentDiaryEntry[]; today?: string; onOpenDebts?: (course: string, module: number) => void }
@@ -181,7 +181,6 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
   const todayIndex = statuses.indexOf('today')
   const seasonMarkIndex = todayIndex >= 0 ? todayIndex : statuses.indexOf('current')
   const debtCounts = useMemo(() => homeModuleDebts(homeWorks ?? [], subject.id, today ?? ''), [homeWorks, subject.id, today])
-  const overdueLessons = useMemo(() => new Set(homeWorks?.filter(entry => entry.course.id === subject.id && diaryOverdue(entry, today ?? '')).map(entry => entry.lesson.id)), [homeWorks, subject.id, today])
   const selectedLesson = allLessons.find(lesson => lesson.id === selectedLessonId) ?? null
   const selectedScheduleState = selectedLesson ? scheduleStates[allLessons.indexOf(selectedLesson)] : null
 
@@ -367,7 +366,6 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                       scrollHighlight={false}
                       isCurrent={resume.lessonId === lesson.id}
                       seasonMark={i === seasonMarkIndex}
-                      overdueLabel={overdueLessons.has(lesson.id) ? t('ДЗ просрочено') : undefined}
                       onSelect={(clickedLesson) => {
                         setSelectedHardLessonId(null)
                         setSelectedLessonId(prev => prev === clickedLesson.id ? null : clickedLesson.id)

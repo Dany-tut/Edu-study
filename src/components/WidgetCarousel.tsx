@@ -103,7 +103,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
   //   • уместность (чужой предмет / пустой контент) — lib/widgetVisibility.ts.
   // Ни один не переписывает настройки ученика: сменится курс — виджет вернётся.
   const relevant = useWidgetRelevance()
-  const widgetOrder = previewWidgets ? previewWidgets.map(widget => widget.id) : [...(leadingWidgets ?? []).map(widget => widget.id), ...rawOrder.filter(id => (home || id !== 11) && !hiddenWidgets.includes(id) && relevant(id))]
+  const widgetOrder = previewWidgets ? previewWidgets.map(widget => widget.id) : [...(leadingWidgets ?? []).map(widget => widget.id), ...rawOrder.filter(id => (home || id !== 11) && !leadingWidgets?.some(widget => widget.id === id) && !hiddenWidgets.includes(id) && relevant(id))]
   // Page count follows the number of *visible* widgets (hidden ones are simply
   // absent from widgetOrder), so a hidden widget leaves no empty trailing page.
   const pageCount = Math.max(1, Math.ceil(widgetOrder.length / perPage))
