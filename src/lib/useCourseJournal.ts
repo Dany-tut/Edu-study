@@ -7,7 +7,6 @@ import { journalPages, journalBatches, journalRowsById } from './journalRequests
 import { journalPages as adaptiveJournalPages, journalParallelPages } from './journalPages'
 import { createAuthDataChangeGuard } from './authDataChange'
 import { journalPaintTiming } from './platformPerformance'
-import { journalSnapshotResult } from './journalSnapshot'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
@@ -75,16 +74,9 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
         return journalDemo()
       }
       if (!owner) throw new Error('Нужно войти в кабинет преподавателя')
-      const snapshot = await supabase.rpc('teacher_journal_snapshot_v2', { p_owner: owner, p_complete: completeWorkList })
-        .abortSignal(signal).retry(false)
-      signal.throwIfAborted()
-      const next = journalSnapshotResult(snapshot)
-      if (next) {
-        console.debug('[journal-snapshot] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted) }))
-        return next
-      }
-      // Only an older database without the RPC may use the compatibility path.
-      // Auth/network/SQL errors must not turn into a second burst of requests.
+      // Keep large collections in bounded parallel responses. A single multi-MB
+      // snapshot delayed body delivery even after its headers arrived quickly.
+      // Read every page; no cached/partial response replaces fresh grades.
       const [owned, shares] = await Promise.all([
         journalPages<CourseJournalData['courses'][number]>(offset => supabase.from('courses')
         .select('id, short_id, title, subject, kind, group_ids, student_ids')
