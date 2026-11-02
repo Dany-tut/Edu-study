@@ -2632,7 +2632,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                   borderBottom: '1px solid var(--color-border-soft)',
                 }}>
                   {/* Single header row: name left, pills center, search right */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
+                  <div className="group-roster-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
                     {/* Left: group name */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto', minWidth: 0 }}>
                       <div style={{
@@ -2644,12 +2644,9 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       {activeGroup.isIndividual && (
                         <span style={cardChip(activeGroup.color, { flex: 'none' })}>1:1</span>
                       )}
-                      <span style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flex: 'none' }}>
-                        · {groupStudents.length} {groupStudents.length === 1 ? t('студент') : t('студентов')}
-                      </span>
                     </div>
 
-                    {/* Center: filter pills (absolute so they're truly centered) */}
+                    {/* Student status filters */}
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: 6, margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center',
                     }}>
@@ -2667,7 +2664,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                             onClick={() => setRosterFilter(f.id)}
                             style={{
                               display: 'inline-flex', alignItems: 'center', gap: 6,
-                              padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+                              height: 40, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
                               fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
                               background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                               color: active ? 'var(--color-text)' : 'var(--color-muted)',
@@ -2690,7 +2687,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       <div style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
-                        borderRadius: 10, padding: '8px 12px', width: 180,
+                        borderRadius: 10, padding: '0 12px', width: 180, height: 40, boxSizing: 'border-box',
                       }}>
                         <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
                         <input

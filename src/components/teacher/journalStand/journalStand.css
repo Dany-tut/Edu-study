@@ -455,3 +455,25 @@
   .journal-person-dialog input,.journal-person-dialog select { font-size:16px!important; min-height:44px; }
   .journal-person-dialog button { min-height:44px; }
 }
+
+/* The roster uses one compact row for scope, status and student actions. */
+.group-roster-toolbar .js-scope {
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+.group-roster-toolbar .js-scope label {
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 10px;
+}
+.group-roster-toolbar .js-scope select { max-width: 170px; font: inherit; }
+@media (max-width: 767px) {
+  .group-roster-toolbar .js-scope { flex-wrap: wrap; font-size: 16px; }
+  .group-roster-toolbar .js-scope label,
+  .group-roster-toolbar button { min-height: 44px; }
+  .group-roster-toolbar input { font-size: 16px !important; }
+}
