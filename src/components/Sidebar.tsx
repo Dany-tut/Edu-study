@@ -678,7 +678,7 @@ export default function Sidebar() {
                         {/* Columns picker */}
                         <div style={{ ...labelStyle, marginBottom: 8, padding: '0 8px' }}>{t('Блоков в строке')}</div>
                         <div style={{ display: 'flex', gap: 8, marginBottom: 4, padding: '0 8px' }}>
-                          {([1, 2, 3, 4] as WidgetColumns[]).map(n => {
+                          {([2, 3, 4] as WidgetColumns[]).map(n => {
                             const selected = widgetColumns === n
                             return (
                               <motion.button
