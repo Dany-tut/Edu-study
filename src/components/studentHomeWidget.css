@@ -13,7 +13,7 @@
 
 /* Shared approved art placement on the student home, within its existing 180px row. */
 .ihw-card { position:relative; overflow:visible; --ihw-art-size:168px; --ihw-art-reserve:122px; }
-.ihw-card > .ihw-object { position:absolute; top:-30px; right:-3px; width:var(--ihw-art-size); height:var(--ihw-art-size); z-index:1; }
+.ihw-card > .ihw-object { position:absolute; top:-30px; right:-13px; width:var(--ihw-art-size); height:var(--ihw-art-size); z-index:1; }
 .ihw-card .ihw-heading { padding-right:var(--ihw-art-reserve); }
 .ihw-card .ihw-meta { display:none; }
 .ihw-card .ihw-body { display:block; padding-right:var(--ihw-art-reserve); }
