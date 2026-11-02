@@ -45,6 +45,7 @@ export const PARTS: { key: SeasonPart; title: string }[] = [
 const ALL_ON: SeasonParts = { hero: true, decor: true, track: true, empty: true }
 
 const PREVIEW_KEY = 'season.preview'
+const PERSONAL_KEY = 'season.personal-halloween'
 /** Старый выключатель (до модалки) — читаем как ответ «не надо». */
 const LEGACY_OFF_KEY = 'season.off'
 const THEME_WAS = 'season.themeWas'
@@ -121,9 +122,20 @@ function devSeason(): Season | null {
 function start() {
   if (started) return
   started = true
+  const personal = ls.get(PERSONAL_KEY)
+  if (isVariant(personal)) {
+    state = { ...state, season: { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: personal, parts: ALL_ON, ask: false }, preview: true, choice: personal }
+    queueMicrotask(emit)
+    return
+  }
   const dev = devSeason()
   if (dev) { state = { ...state, season: dev, preview: ls.get('season.devAsk') !== '1', choice: readChoice(dev) }; queueMicrotask(emit); return }
-  loadSeason().then(s => { state = { ...state, season: s, choice: readChoice(s) }; emit() }).catch(() => { /* нет связи — без темы */ })
+  loadSeason().then(s => {
+    const latestPersonal = ls.get(PERSONAL_KEY)
+    if (isVariant(latestPersonal)) return // A personal choice made while loading wins.
+    state = { ...state, season: s, choice: latestPersonal === 'off' ? 'off' : readChoice(s) }
+    emit()
+  }).catch(() => { /* нет связи — без темы */ })
   // Граница дат проходит, пока вкладка открыта: раз в минуту сверяем часы.
   setInterval(() => { const was = isOn(state); state = { ...state, now: Date.now() }; if (isOn(state) !== was) emit() }, 60_000)
 }
@@ -141,6 +153,18 @@ export function setSeasonChoice(choice: SeasonVariant | 'off', persist = true) {
   if (persist && state.season) ls.set(choiceKey(state.season), choice)
   if (persist) ls.set(LEGACY_OFF_KEY, null)
   state = { ...state, choice, picker: false }
+  emit()
+}
+
+/** Explicit personal appearance; never changes the school's seasonal settings. */
+export function setPersonalHalloween(choice: SeasonVariant | 'off') {
+  ls.set(PERSONAL_KEY, choice)
+  ls.set(PREVIEW_KEY, null)
+  if (choice === 'off') {
+    state = { ...state, preview: false, choice: 'off', picker: false }
+  } else {
+    state = { ...state, season: { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: choice, parts: ALL_ON, ask: false }, preview: true, choice, picker: false }
+  }
   emit()
 }
 

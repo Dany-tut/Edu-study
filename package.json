@@ -48,6 +48,7 @@
     "check:feed-release": "node scripts/checkFeedRelease.mjs",
     "check:diary-views": "node scripts/checkStudentDiaryViews.mjs",
     "check:video-access": "node scripts/checkHomeworkVideoAccess.mjs",
+    "check:student-home": "node scripts/checkStudentHomeWork.mjs",
     "check:ui": "node scripts/checkUiRules.mjs && node scripts/checkWidgetSizing.mjs && npm run icons:check"
   },
   "dependencies": {

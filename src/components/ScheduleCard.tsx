@@ -270,7 +270,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             // scrolling is needed: the compact seasonal card cannot fit two rows.
             return (
                 <ScrollFade
-                  maxHeight="100%" fadeMode="mask" fadeHeight={22} scrollClassName="no-scrollbar"
+                  maxHeight="100%" fadeMode="mask" fadeHeight={mobile ? 10 : 22} scrollClassName="no-scrollbar"
                   style={{ flex: 1, minHeight: 0, marginInline: -8, marginBlock: -8 }}
                   scrollStyle={{ height: '100%', paddingInline: 8, paddingBlock: 8 }}
                 >

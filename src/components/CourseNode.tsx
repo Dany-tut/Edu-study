@@ -133,7 +133,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
   const isActive = isSelected || isToday || !!scheduleState?.isCurrent
   // Праздничная тема: текущий урок — фонарь, конфета или шарик зелья поверх кружка.
   // Кружок прячем, но кнопка остаётся на месте: по ней кликают.
-  const seasonNode = seasonal && seasonMark && isToday && !isDiamond
+  const seasonNode = seasonal && seasonMark && isOpen && !isDiamond
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
