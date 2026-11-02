@@ -1,3 +1,4 @@
+import QuizDialogContent from './QuizDialogContent'
 import { textFadeLines } from '../lib/textFades'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -42,9 +43,9 @@ const cardStyle: React.CSSProperties = {
   boxShadow: '0 4px 32px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
 }
 
-type Props = { active?: boolean; columns?: number }
+type Props = { active?: boolean; columns?: number; dialog?: boolean }
 
-export default function QuizWidget({ active = true, columns = 1 }: Props) {
+export default function QuizWidget({ active = true, columns = 1, dialog = false }: Props) {
   const t = useT()
   const scale = columns >= 3 ? 0.82 : columns >= 2 ? 0.9 : 1
   const padX = 22 * scale
@@ -89,12 +90,12 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
       }
     }, RESULT_DELAY)
     return () => clearTimeout(id)
-  }, [quizState, current, setQuizResumeIndex])
+  }, [quizState, current, setQuizResumeIndex, TOTAL])
 
   const handleStart = () => {
     setSpoilerRevealed(true)
     if (quizResumeIndex === 0) setResults(Array(TOTAL).fill(undefined))
-    setCurrent(quizResumeIndex)
+    setCurrent(Math.min(Math.max(0, quizResumeIndex), TOTAL - 1))
     setSelectedAnswer(null)
     setTimeLeft(quizTimeLimit)
     setQuizState('active')
@@ -112,11 +113,11 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
     setSelectedAnswer(answerId)
     setResults(r => {
       const n = [...r]
-      n[current] = quizQuestions[current].answers.find(a => a.id === answerId)?.correct ? 'correct' : 'wrong'
+      n[current] = question.answers.find(a => a.id === answerId)?.correct ? 'correct' : 'wrong'
       return n
     })
     setQuizState('answered')
-  }, [quizState, current])
+  }, [quizState, current, question.answers])
 
   const goToQuestion = useCallback((index: number) => {
     if (index < 0 || index >= TOTAL) return
@@ -124,7 +125,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
     setSelectedAnswer(null)
     setTimeLeft(quizTimeLimit)
     setQuizState('active')
-  }, [])
+  }, [TOTAL])
 
   const handleRestart = () => {
     setResults(Array(TOTAL).fill(undefined))
@@ -147,6 +148,8 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
     if (results[i] === 'wrong' || results[i] === 'timeout') return '#F48B91'
     return 'var(--color-border-medium)'
   }
+
+  if (dialog) return <QuizDialogContent state={quizState} question={question} answers={shuffledAnswers} current={current} questions={quizQuestions} timeLeft={timeLeft} selected={selectedAnswer} results={results} resumeIndex={quizResumeIndex} onStart={handleStart} onStop={handleStop} onAnswer={handleAnswer} onNavigate={goToQuestion} onRestart={handleRestart}/>
 
   // Done state — score summary
   if (quizState === 'done') {

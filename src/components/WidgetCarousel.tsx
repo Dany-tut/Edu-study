@@ -1,3 +1,4 @@
+import './quizDialog.css'
 import { useWidgetScrollFades } from '../lib/useWidgetScrollFades'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useCallback, useRef, useEffect, useLayoutEffect, lazy, Suspense, type ReactNode } from 'react'
@@ -155,11 +156,11 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
     scheduleHide()
   }
 
-  const renderWidget = (p: number, isActive: boolean, columns = perPage) => {
+  const renderWidget = (p: number, isActive: boolean, columns = perPage, dialog = false) => {
     const leading = leadingWidgets?.find(widget => widget.id === p)
     if (leading?.content !== undefined) return leading.content
     if (previewWidgets) return previewWidgets.find(widget => widget.id === p)?.content ?? null
-    if (p === 6) return <QuizWidget active={isActive} columns={columns} />
+    if (p === 6) return <QuizWidget active={isActive} columns={columns} dialog={dialog} />
     if (p === 0) return <StatsWidget columns={columns} />
     if (p === 7) return <TrainerProgressWidget columns={columns} />
     if (p === 8) return <StickersWidget columns={columns} />
@@ -277,7 +278,25 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
           />
         ))}
       </div>
-      {openWidget !== null && <Modal title={t(WIDGET_META.find(w => w.id === openWidget)?.label ?? 'Виджеты')} width={760} onClose={() => setOpenWidget(null)}><Suspense fallback={<div className="ihw-detail-empty">{t('Загрузка')}</div>}>{openWidget === 11 ? <HomeTasksDetail onTask={openTask} /> : <div className="ihw-detail"><WidgetFrame id={openWidget} adaptive style={{ height: '100%', minWidth: 0 }}>{renderWidget(openWidget, true, 1)}</WidgetFrame></div>}</Suspense></Modal>}
+      {openWidget !== null && (
+        <Modal
+          title={t(WIDGET_META.find(w => w.id === openWidget)?.label ?? 'Виджеты')}
+          width={openWidget === 6 ? 720 : 760}
+          cardStyle={openWidget === 6 ? { height: 'min(600px, calc(100dvh - 32px))', maxHeight: 'calc(100dvh - 32px)' } : undefined}
+          bodyStyle={openWidget === 6 ? { display: 'flex', flexDirection: 'column', overflow: 'hidden' } : undefined}
+          onClose={() => setOpenWidget(null)}
+        >
+          <Suspense fallback={<div className={openWidget === 6 ? 'quiz-dialog-host quiz-dialog-loading' : 'ihw-detail-empty'} role="status">{t('Загрузка')}</div>}>
+            {openWidget === 6 ? (
+              <div className="quiz-dialog-host">{renderWidget(6, true, 1, true)}</div>
+            ) : openWidget === 11 ? (
+              <HomeTasksDetail onTask={openTask} />
+            ) : (
+              <div className="ihw-detail"><WidgetFrame id={openWidget} adaptive style={{ height: '100%', minWidth: 0 }}>{renderWidget(openWidget, true, 1)}</WidgetFrame></div>
+            )}
+          </Suspense>
+        </Modal>
+      )}
 
     </div>
   )

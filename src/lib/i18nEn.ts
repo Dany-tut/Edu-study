@@ -10,6 +10,7 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Выбери ответ": "Choose an answer",
   "Есть просроченные работы": "You have overdue assignments",
   "Сначала — просроченное": "Overdue first",
   "Следующий шаг": "Next step",
