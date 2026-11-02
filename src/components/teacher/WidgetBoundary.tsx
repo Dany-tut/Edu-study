@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from 'react'
+import { Component, Fragment, type ReactNode } from 'react'
 import { trackEvent } from '../../lib/analytics'
 import { isChunkError, recoverFromChunkError } from '../../lib/chunkError'
 import { t } from '../../lib/i18n'
@@ -32,9 +32,9 @@ export default class WidgetBoundary extends Component<Props, State> {
 
   render() {
     if (!this.state.error) {
-      // key на обёртке: «Повторить» должно пересоздать поддерево, а не просто
-      // перерисовать тот же инстанс со всем его сломанным состоянием.
-      return <div key={this.state.attempt} style={{ width: '100%', height: '100%' }}>{this.props.children}</div>
+      // A keyed fragment resets the subtree on retry without inserting a
+      // layout box between the size container and the actual widget card.
+      return <Fragment key={this.state.attempt}>{this.props.children}</Fragment>
     }
     const msg = String(this.state.error.message ?? '')
     const chunk = isChunkError(msg)

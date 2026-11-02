@@ -1,3 +1,4 @@
+import { clampDeskWidget, compactDeskWidgets, deskRowHeight, widgetBounds, DESK_COLUMNS, DESK_GAP } from '../../lib/deskWidgetSizing'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { Suspense, useCallback, useMemo, useState, useRef, useEffect } from 'react'
 import { X } from '../icons/appIcons'
@@ -8,13 +9,8 @@ import Skeleton from '../Skeleton'
 import { useDeskStore } from '../../store/deskStore'
 import { useT } from '../../lib/i18n'
 
-const ROW_H = 64          // base row height (edit mode + fallback)
-const ROW_H_MIN = 42      // floor when shrinking to fit a short monitor
-const ROW_H_MAX = 84      // cap when growing to fill a tall monitor
-const TOP_PAD = 108       // paddingTop of the scroll container
-const BOTTOM_BREATH = 16  // small gap so the last row isn't flush to the edge
-const COLS = 12
-const GAP = 8
+const COLS = DESK_COLUMNS
+const GAP = DESK_GAP
 
 // ── Grid math ──────────────────────────────────────────────────────────
 // Y-axis math takes an explicit rowH so the grid can scale to the viewport.
@@ -25,23 +21,6 @@ function iw(w: number, cw: number) { return w * colW(cw) + (w - 1) * GAP }
 function ih(h: number, rh: number) { return h * rh + (h - 1) * GAP }
 function toGridDX(px: number, cw: number) { return Math.round(px / (colW(cw) + GAP)) }
 function toGridDY(py: number, rh: number) { return Math.round(py / (rh + GAP)) }
-function itemMinW(it: LayoutItem) {
-  return Math.max(it.minW ?? 0, getWidgetDef(it.type)?.minW ?? 2)
-}
-function itemMinH(it: LayoutItem) {
-  return Math.max(it.minH ?? 0, getWidgetDef(it.type)?.minH ?? 2)
-}
-
-function clampItem(it: LayoutItem): LayoutItem {
-  const minW = itemMinW(it)
-  const w = Math.max(minW, Math.min(COLS, it.w))
-  const maxH = getWidgetDef(it.type)?.maxH ?? it.maxH
-  const h = Math.max(itemMinH(it), maxH ? Math.min(maxH, it.h) : it.h)
-  const x = Math.max(0, Math.min(COLS - w, it.x))
-  const y = Math.max(0, it.y)
-  return { ...it, x, y, w, h, minW, minH: itemMinH(it), maxH }
-}
-
 // ── Collision resolution ────────────────────────────────────────────────
 function overlaps(a: LayoutItem, b: LayoutItem): boolean {
   if (a.i === b.i) return false
@@ -198,38 +177,15 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // ── View-mode compaction ──────────────────────────────────────────────
-  const viewItems = useMemo(() => {
-    const sorted = [...items].map(it => clampItem(it)).sort((a, b) =>
-      a.y !== b.y ? a.y - b.y : a.x - b.x)
-    const placed: LayoutItem[] = []
-    return sorted.map(item => {
-      let y = 0
-      outer: while (true) {
-        for (const p of placed) {
-          if (item.x < p.x + p.w && item.x + item.w > p.x &&
-              y < p.y + p.h && y + item.h > p.y) { y++; continue outer }
-        }
-        break
-      }
-      const out = { ...item, y }
-      placed.push(out)
-      return out
-    })
-  }, [items])
+  // Content and saved limits never determine the grid's scale. A compact
+  // widget keeps its dimensions when the same viewport reloads the desk.
+  const rowH = deskRowHeight(winH)
 
-  // Fit each desk once when it opens. Editing its contents must not rescale
-  // every other widget on pointer-up. Viewport changes still adapt the grid.
-  const baselineRows = useRef({ deskId: desk.id, rows: 0 })
-  if (baselineRows.current.deskId !== desk.id || !baselineRows.current.rows) {
-    baselineRows.current = { deskId: desk.id, rows: viewItems.reduce((m, it) => Math.max(m, it.y + it.h), 0) }
-  }
-  const rows = baselineRows.current.rows
-  const rowH = useMemo(() => {
-    if (!rows) return ROW_H
-    const avail = winH - TOP_PAD - BOTTOM_BREATH
-    return Math.max(ROW_H_MIN, Math.min(ROW_H_MAX, (avail - (rows - 1) * GAP) / rows))
-  }, [rows, winH])
+  const clampItem = useCallback((item: LayoutItem) =>
+    clampDeskWidget(item, getWidgetDef(item.type), cw, rowH), [cw, rowH])
+
+  // ── View-mode compaction ──────────────────────────────────────────────
+  const viewItems = useMemo(() => compactDeskWidgets(items.map(clampItem)), [items, clampItem])
 
   // ── Live layout with collision resolution ─────────────────────────────
   const liveItems = useMemo(() => {
@@ -247,10 +203,10 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
           ? clampItem({ ...it, w: resize.curW, h: resize.curH, maxH: def?.maxH ?? it.maxH })
           : it
       )
-      return resolveCollisions(withMoved, resize.id)
+      return compactDeskWidgets(resolveCollisions(withMoved, resize.id))
     }
     return viewItems
-  }, [viewItems, drag, resize])
+  }, [viewItems, drag, resize, clampItem])
 
   // ── Pointer drag handlers ─────────────────────────────────────────────
   const onItemPointerDown = useCallback((e: React.PointerEvent, item: LayoutItem) => {
@@ -289,7 +245,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     )
     onUpdateItems(resolveCollisions(withMoved, drag.id))
     setDrag(null)
-  }, [drag, desk.items, viewItems, onUpdateItems])
+  }, [drag, desk.items, viewItems, onUpdateItems, clampItem])
 
   // ── Pointer resize handlers ───────────────────────────────────────────
   const onResizePointerDown = useCallback((e: React.PointerEvent, item: LayoutItem) => {
@@ -308,31 +264,29 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     if (!resize) return
     const dx = e.clientX - resize.startMx
     const dy = e.clientY - resize.startMy
-    const item = desk.items.find(it => it.i === resize.id)!
+    const item = viewItems.find(it => it.i === resize.id)!
     const def = getWidgetDef(item.type)
-    const minW = itemMinW(item)
-    const minH = itemMinH(item)
-    const maxH = def?.maxH ?? item.maxH
-    const newW = Math.max(minW, Math.min(COLS - item.x, resize.startW + Math.round(dx / (colW(cw) + GAP))))
-    const newH = Math.max(minH, maxH ? Math.min(maxH, resize.startH + Math.round(dy / (rowH + GAP))) : resize.startH + Math.round(dy / (rowH + GAP)))
+    const { minW, minH, maxH } = widgetBounds(item, def, cw, rowH)
+    const newW = Math.max(minW, Math.min(COLS - item.x, resize.startW + dx / (colW(cw) + GAP)))
+    const newH = Math.max(minH, maxH ? Math.min(maxH, resize.startH + dy / (rowH + GAP)) : resize.startH + dy / (rowH + GAP))
     if (newW !== resize.curW || newH !== resize.curH) {
       setResize(r => r ? { ...r, curW: newW, curH: newH } : r)
     }
-  }, [resize, desk.items, cw, rowH])
+  }, [resize, viewItems, cw, rowH])
 
   const onResizePointerUp = useCallback(() => {
     if (!resize) return
     const withResized = desk.items.map(saved => viewItems.find(it => it.i === saved.i) ?? saved).map(it =>
       it.i === resize.id ? clampItem({ ...it, w: resize.curW, h: resize.curH }) : it
     )
-    onUpdateItems(resolveCollisions(withResized, resize.id))
+    onUpdateItems(compactDeskWidgets(resolveCollisions(withResized, resize.id)))
     setResize(null)
-  }, [resize, desk.items, viewItems, onUpdateItems])
+  }, [resize, desk.items, viewItems, onUpdateItems, clampItem])
 
   // ── Render ────────────────────────────────────────────────────────────
   const gridHeight = useMemo(() => {
     const maxY = liveItems.reduce((m, it) => Math.max(m, it.y + it.h), 0)
-    return ih(maxY, rowH) || 0
+    return maxY > 0 ? ih(maxY, rowH) : 0
   }, [liveItems, rowH])
 
   // Number of snap pages needed in view mode (iOS-style paging)
