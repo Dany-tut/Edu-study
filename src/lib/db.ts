@@ -112,7 +112,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
   // A dated material without a clock time is a calendar item too. It has no
   // schedule row (the course editor only persists timed sessions). Project it
   // from the same assigned catalog as the track, without inventing a start time.
-  const catalog = await fetchCourseStructure(person.rows)
+  const catalog = await fetchCourseStructure(person.rows, { strict: true })
   for (const subject of catalog) for (const module of subject.modules) for (const lesson of module.lessons) {
     if (!lesson.scheduledDate || lesson.scheduledTime) continue
     const parts = lesson.scheduledDate.split('.')
@@ -756,7 +756,7 @@ function orderCourses(subjects: Subject[], positions: Record<string, number | nu
     .map(([s]) => s)
 }
 
-export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
+export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>, options: { strict?: boolean } = {}): Promise<Subject[]> {
   // Guard: битые id (undefined / "undefined") в orParts дают 400 invalid uuid.
   const studentIds = [...new Set(rows.map(r => r.id))].filter(isUuid)
   const groupIds = [...new Set(rows.map(r => r.groupId))].filter(isUuid)
@@ -787,6 +787,8 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
     .order('created_at', { ascending: true })
 
   if (error) reportDbError('fetchCourseStructure', error)
+  // The calendar must distinguish a failed material projection from a free day.
+  if (options.strict && (error || !data)) throw error ?? new Error('Course calendar response unavailable')
   if (error || !data || data.length === 0) return []
 
   const hardByLessonId = await hardTasksP
