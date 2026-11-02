@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 import { SubjectMark } from '../../icons/SubjectMark'
 import { Users, ChevronRight } from '../../icons/appIcons'
@@ -95,7 +96,7 @@ export default function WidgetGroupsList() {
 
               {/* Name */}
               <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                   {g.name}
                 </div>
                 <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>

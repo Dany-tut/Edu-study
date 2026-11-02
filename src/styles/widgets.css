@@ -1,7 +1,7 @@
 /* Shared widget layout: container dimensions drive content, never viewport guesses. */
 .iskra-widget{container:iskra-widget / size;min-width:0;min-height:0}
 .iskra-widget[data-stat]{container:iskra-kpi / size}
-.iskra-widget [style*="text-overflow: ellipsis"]{text-overflow:clip!important;white-space:normal!important;overflow:visible!important;overflow-wrap:anywhere;min-width:0}.iskra-widget [style*="-webkit-line-clamp"]{-webkit-line-clamp:unset!important;max-height:none!important}.iskra-widget .calendar-widget-subtitle{-webkit-line-clamp:unset!important;white-space:normal!important;overflow:visible!important}
+.iskra-widget [style*="--iskra-text-fade-lines"]{--iskra-text-fade-lines:0!important;white-space:normal!important;overflow:visible!important;max-height:none!important;overflow-wrap:anywhere;min-width:0}.iskra-widget .calendar-widget-subtitle{--iskra-text-fade-lines:0!important;white-space:normal!important;overflow:visible!important;max-height:none!important}
 .iskra-widget .iskra-mini-stat{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto minmax(0,1fr) auto!important;gap:10px!important;padding:16px!important;min-width:0;border-radius:22px!important}
 .iskra-widget .iskra-mini-stat-heading{display:grid!important;grid-template-columns:minmax(0,1fr) 30px;align-items:center!important;gap:8px;min-width:0}
 .iskra-widget .iskra-mini-stat-label{white-space:normal;overflow-wrap:normal;font-size:11px!important;line-height:1.3;min-width:0}

@@ -136,9 +136,9 @@ html[data-season-variant=potions] .st-track:before { background:#d8cff1; }
   .st-widget p,.st-widget .st-muted { font-size:10px; line-height:13px; }
   .st-widget .sw-button { padding-block:6px; }
 }
-.st-track-scroll.is-compact .st-node-status { max-width:70px; overflow:hidden; text-overflow:ellipsis; }
+.st-track-scroll.is-compact .st-node-status { max-width:70px; overflow:hidden; text-overflow:clip; --iskra-text-fade-lines:1; }
 .st-track-scroll.is-compact .season-node-wrap > div:last-child { width:72px!important; }
-.st-track-scroll.is-compact .season-node-wrap > div:last-child > span { max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+.st-track-scroll.is-compact .season-node-wrap > div:last-child > span { max-width:100%; overflow:hidden; text-overflow:clip; --iskra-text-fade-lines:1; }
 /* Corner artwork stays behind the last track labels on a narrow screen. */
 @media(max-width:750px) { .st-root .season-corner { width:90px; opacity:.7; } }
 html[data-season-variant=potions] .st-scenario :is(span,select) { color:#D9D2FF; }

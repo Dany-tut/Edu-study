@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, ChevronLeft, ChevronRight, Pause, Trophy, Check, X } from './icons/appIcons'
@@ -220,9 +221,8 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                 fontWeight: 700,
                 color: 'var(--color-text)',
                 lineHeight: 1.2,
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical' as const,
-                WebkitLineClamp: 3,
+
+                ...textFadeLines(3),
                 maxHeight: '3.6em',
                 overflow: 'hidden',
                 ...balancedWrap,
@@ -305,7 +305,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                   minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', overflow: 'hidden',
                 }}
               >
-                <span style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical' as const, WebkitLineClamp: 2, maxHeight: '2.4em', overflow: 'hidden', ...balancedWrap }}>
+                <span style={{   ...textFadeLines(2), maxHeight: '2.4em', overflow: 'hidden', ...balancedWrap }}>
                   {bindShortWords(ans.text)}
                 </span>
               </motion.button>

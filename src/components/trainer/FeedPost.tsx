@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { ChevronDown } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -112,7 +113,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
   const text = ru ? full!.body : body
 
   const long = text.length > 420
-  const shown = long && !expanded ? text.slice(0, 380).trimEnd() + '…' : text
+  const shown = text
 
   const toggleTranslate = () => { setTranslated(v => !v); touched() }
 
@@ -242,13 +243,13 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
           >
             <span style={{
               fontSize: 15, fontWeight: 700, color: 'var(--color-text)',
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
             }}>
               {outlet.name}
             </span>
             <span style={{
               fontSize: 13, color: 'var(--color-muted)',
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
             }}>
               {outletHandle(outlet)}
             </span>
@@ -377,22 +378,25 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               ))}
             </div>
           )}
-          {ru ? (
-            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch', ...proseWrap }}>
-              {shown.split('\n\n').map((para, i) => (
-                <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(para)}</p>
-              ))}
-            </div>
-          ) : (
-            <GlossedText
-              text={shown}
-              lang={lang}
-              extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
-              accent={accent}
-              subject={subjectId}
-              style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}
-            />
-          )}
+          <div style={{ fontSize: 15, lineHeight: 1.6, ...(long && !expanded ? textFadeLines(6) : {}) }}>
+            {ru ? (
+              <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch', ...proseWrap }}>
+                {shown.split('\n\n').map((para, i) => (
+                  <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(para)}</p>
+                ))}
+              </div>
+            ) : (
+              <GlossedText
+                text={shown}
+                lang={lang}
+                extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
+                accent={accent}
+                subject={subjectId}
+                style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}
+              />
+            )}
+
+          </div>
 
           {long && !expanded && (
             <button

@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Скелет тренажёра: рейл слева, строка управления сверху, содержимое справа
 //
@@ -775,9 +776,8 @@ function NavSheetBody({ nav, onDone }: { nav: TrainerNav; onDone: () => void }) 
  * но уже после того, как смысл прочитан.
  */
 const clamp2: CSSProperties = {
-  display: '-webkit-box',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
+
+  ...textFadeLines(2),
   overflow: 'hidden',
   // break-word, а не anywhere: последний резал транскрипцию посреди слова
   // («оджоноджон / хада») ради узкой колонки, хотя колонке есть куда расти.
@@ -970,7 +970,7 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
                 // Одна строка, а не clamp2: активная подпись занимает
                 // освободившееся место, но при нехватке ширины должна
                 // обрезаться многоточием, а не ломаться пополам («Шэдо/уинг»).
-                <span style={{ lineHeight: 1.2, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+                <span style={{ lineHeight: 1.2, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle, minWidth: 0 }}>
                   {t(o.label)}
                 </span>
               )}
@@ -1047,7 +1047,7 @@ export function RailList({ items, value, onChange, accent, soft }: {
           fontSize: 11, lineHeight: 1.3, color: on ? accent : 'var(--color-text-3)',
           fontVariantNumeric: 'tabular-nums',
           ...clamp2,
-          ...(wide ? { WebkitLineClamp: 3 } : null),
+          ...(wide ? { ...textFadeLines(3) } : null),
         }
         return (
           <button
@@ -1491,7 +1491,7 @@ function DrillRow({ g, onClick }: { g: SheetGroup; onClick: () => void }) {
     >
       <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t(g.title)}</span>
       <span style={{
-        marginLeft: 'auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        marginLeft: 'auto', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
         fontSize: 13, fontWeight: chosen.length ? 700 : 500,
         color: chosen.length ? tint : 'var(--color-text-3)',
       }}>{summary}</span>
@@ -1520,7 +1520,7 @@ function OptionRows({ g }: { g: SheetGroup }) {
               fontSize: 14, fontWeight: on ? 700 : 500,
             }}
           >
-            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
               {t(o.label)}
             </span>
             {o.count != null && (

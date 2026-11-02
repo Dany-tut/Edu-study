@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
 import { isStoredTestlySubmission } from '../lib/testlySubmission'
@@ -3154,7 +3155,7 @@ export default function HomeworkFlow({
           className={`flex-1 min-w-0 flex items-center ${isMobile ? '' : 'text-center justify-center'}`}
           style={{ gap: 10, fontSize: isMobile ? 18 : 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
-          <span className="truncate">{hwTitle(homework.title, t)}</span>
+          <span className="text-fade">{hwTitle(homework.title, t)}</span>
           {!isMobile && levelPill(false)}
         </h1>
 
@@ -3204,7 +3205,7 @@ export default function HomeworkFlow({
                 ...dockGlass, pointerEvents: 'auto',
               }}
             >
-              <span className="truncate" style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+              <span className="text-fade" style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                 <motion.span
                   initial={false}
                   animate={{ maxWidth: topBarCompact ? 200 : 0, opacity: topBarCompact ? 1 : 0 }}
@@ -3213,7 +3214,7 @@ export default function HomeworkFlow({
                 >
                   {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
                 </motion.span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                   {tcStatic(extraTitle ? extraTitle[2] : homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
                 </span>
                 <motion.span
@@ -4525,7 +4526,7 @@ export default function HomeworkFlow({
                       {/* Подтверждение длиннее обычной подписи, и по умолчанию
                           оно разрывалось на вторую строку — кнопка прыгала в
                           высоту прямо под пальцем. Держим в одну строку. */}
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                         {confirmSubmitAsIs
                           ? `${t('Точно сдать?')} ${basicUnanswered.length} ${t('без ответа')}`
                           : t('Сдать как есть')}

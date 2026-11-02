@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
 import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
@@ -189,7 +190,7 @@ function GroupMiniCard({
           <span style={{ fontSize: 12, fontWeight: 600 }}>{group.studentCount}</span>
         </div>
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 4 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle, marginBottom: 4 }}>
         {group.name}
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
@@ -277,10 +278,10 @@ function IndividualCard({
           {initials}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
             {group.name}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
             <SubjectMark subject={group.subject} size={14} />{ICON_GAP}{[group.subject, ...(group.tracks ?? []).map(t => t.subject).filter(Boolean)].join(' · ')}
           </div>
         </div>
@@ -385,7 +386,7 @@ function PersonCard({
           {initials}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
             {tn(person.name)}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 4 }}>
@@ -404,7 +405,7 @@ function PersonCard({
             background: s.color + '1E', border: `1px solid ${s.color}3A`,
           }}>
             <span style={{ fontSize: 10, lineHeight: 1 }}><SubjectMark subject={s.subject} size={12} /></span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(s.subject)}</span>
+            <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(s.subject)}</span>
           </span>
         ))}
         {hiddenCount > 0 && (

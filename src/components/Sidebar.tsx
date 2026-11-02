@@ -749,7 +749,7 @@ export default function Sidebar() {
                           >
                             <Ghost size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                             <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}>{t('Хэллоуин-тема')}</span>
-                            <span className="truncate" style={{ maxWidth: 104, fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
+                            <span className="text-fade" style={{ maxWidth: 104, fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
                               {t(season.active ? (VARIANTS.find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
                             </span>
                           </motion.button>

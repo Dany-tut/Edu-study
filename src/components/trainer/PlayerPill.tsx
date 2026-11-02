@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // PlayerPill — СТРОКА ПЛЕЕРА. Одна на весь тренажёр.
 //
@@ -201,7 +202,7 @@ export default function PlayerPill({
           }}
         >
           {lead !== undefined && lead !== null && lead !== '' && (
-            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
               {lead}
             </span>
           )}
@@ -246,10 +247,10 @@ export default function PlayerPill({
 }
 
 /** Короткая шапка отрывка для списка: длинная строка в кнопке всё равно
- *  обрежется многоточием браузера, но по своему месту, а не по слову. */
+ *  плавно исчезает у края; полный текст остаётся доступен. */
 function head(line: string): string {
   const clean = line.trim()
-  return clean.length > 28 ? `${clean.slice(0, 27)}…` : clean
+  return clean
 }
 
 /**
@@ -287,7 +288,7 @@ export function CueList({ items, active, playing, accent, soft, onPick }: {
             }}
           >
             <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 14 }}>{i + 1}</span>
-            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
               {head(l)}
             </span>
             {on && playing && <Volume2 size={14} style={{ marginLeft: 'auto', flexShrink: 0 }} />}

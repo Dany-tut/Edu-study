@@ -1,3 +1,4 @@
+import { textFadeLines } from '../../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Половина «Карточек» — журнал «Не смог сказать»
 //
@@ -128,7 +129,7 @@ export function useGapJournal({
       </span>
       <span style={{
         flex: 1, fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
-        overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+        overflow: 'hidden',   ...textFadeLines(2),
       }}>
         {!ready ? '' : openGaps.length > 0
           ? openGaps.slice(0, 3).map(g => g.ru).join(' · ')

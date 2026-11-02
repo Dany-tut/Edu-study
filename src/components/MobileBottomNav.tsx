@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { motion, useReducedMotion } from 'framer-motion'
 import { createPortal } from 'react-dom'
 import { TaskliIcon, type TaskliIconName } from './icons/TaskliIcon'
@@ -217,7 +218,7 @@ export default function MobileBottomNav() {
                   overflow: 'hidden',
                   maxWidth: '100%',
                   whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
+                  ...textFadeStyle,
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
                 }}>

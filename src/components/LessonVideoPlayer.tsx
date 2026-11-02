@@ -1312,7 +1312,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               </span>
 
               {activeChapter >= 0 && (
-                <span className="lesson-player-chapter truncate" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
+                <span className="lesson-player-chapter text-fade" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
                   {timecodes[activeChapter].label}
                 </span>
               )}

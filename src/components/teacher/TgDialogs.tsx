@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import BackCircle from '../BackCircle'
 import { Send, MessageCircle, RefreshCw } from '../icons/appIcons'
@@ -84,10 +85,10 @@ export default function TgDialogs() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {unread && <span style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--color-purple)', flexShrink: 0 }} />}
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{threadName(th)}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{threadName(th)}</span>
                   <span style={{ marginLeft: 'auto', flexShrink: 0, padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: sm.bg, color: sm.color }}>{t(sm.label)}</span>
                 </div>
-                <div style={{ fontSize: 12, color: unread ? 'var(--color-text-2)' : 'var(--color-text-3)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: unread ? 600 : 400 }}>
+                <div style={{ fontSize: 12, color: unread ? 'var(--color-text-2)' : 'var(--color-text-3)', marginTop: 4, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', fontWeight: unread ? 600 : 400 }}>
                   {th.last_message_text ?? '—'}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{fmtWhen(th.last_message_at)}</div>

@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { createPortal } from 'react-dom'
 import { Eye, X } from '../icons/appIcons'
 import { getViewAs, setViewAs } from '../../lib/owner'
@@ -40,7 +41,7 @@ export default function ViewAsBanner() {
       <div style={{ minWidth: 0, lineHeight: 1.3 }}>
         <div style={{
           fontSize: 13, fontWeight: 700, color: 'var(--color-text)',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
         }}>
           {t('Кабинет')}: {tn(view.name)}
         </div>
