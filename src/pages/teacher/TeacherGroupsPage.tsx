@@ -2320,7 +2320,10 @@ type GroupRosterProps = {
 }
 export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const scrollRoot = useRef<HTMLDivElement>(null)
-  useScrollFades(scrollRoot)
+  // The journal, group strip and report drawer own their inner scroll fades.
+  // Observing every cell here duplicates their work and forces offscreen
+  // content to lay out. Only this wrapper's direct scroll container remains.
+  useScrollFades(scrollRoot, true, renderRoster ? ':scope > div' : '*')
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
