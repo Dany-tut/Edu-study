@@ -5,7 +5,6 @@ import TeacherTopBar from '../../components/teacher/TeacherTopBar'
 import NotificationToastContainer from '../../components/NotificationToast'
 import { useNotificationsInit } from '../../lib/notificationsSync'
 import { retryImport } from '../../lib/chunkError'
-import JournalSkeleton from '../../components/teacher/JournalSkeleton'
 const TeacherGroupsPage = lazy(() => retryImport(() => import('./TeacherGroupsPage')))
 const TeacherHomeworkPage = lazy(() => retryImport(() => import('./TeacherHomeworkPage')))
 const TeacherGradebookPage = lazy(() => retryImport(() => import('./TeacherGradebookPage')))
@@ -206,7 +205,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         // by this wrapper, so their overflow stays visible.
         style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
       >
-        <Suspense fallback={<JournalSkeleton />} >
+        <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>} >
         {activePage === 'home' && (
           <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <DeskCanvas
@@ -240,7 +239,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     </div>
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    <Suspense fallback={<JournalSkeleton />}>{!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
+    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
     </>
   )
 }
