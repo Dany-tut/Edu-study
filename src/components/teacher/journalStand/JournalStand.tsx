@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import AttendanceEditor from './AttendanceEditor'
 import JournalSkeleton from '../JournalSkeleton'
 import { useScrollFades } from '../../../lib/useScrollFades'
@@ -12,10 +12,13 @@ import { OUTSIDE_COURSES, buildJournalIndex, journalCell, type JournalCell, type
 import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
+import { performanceDiagnostics } from '../../../lib/platformPerformance'
 import TestlyMark from '../../TestlyMark'
 import { ArrowLeft, BookOpen, CalendarCheck, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
 import { useScrollEdges } from './useScrollEdges'
 import { matrixRuns } from './matrixRuns'
+import { columnSpacers } from './columnWindow'
+import { useColumnWindow } from './useColumnWindow'
 import StudentReportDrawer from './StudentReportDrawer'
 import GroupOverview, { StudentOverviewCard } from './GroupOverview'
 import { studentOverview, type RosterEntry } from './overviewStats'
@@ -438,9 +441,20 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     const displayDate = !col.lesson && col.topic ? col.due ?? col.date : col.date
     return sources.size ? [{ col, displayDate, source: sources.size === 1 ? [...sources][0] : null, hasHomework, upcoming }] : []
   }).sort((a, b) => (a.displayDate ?? '9999').localeCompare(b.displayDate ?? '9999')), [slots, byStudent, today, withWork])
+  const columnPositions = useMemo(() => new Map(columns.map((c, i) => [c.col.ref, i])), [columns])
+  const window = useColumnWindow(frame, columns.length, position)
+  const mountedColumns = useMemo(() => columns.slice(window.start, window.end), [columns, window.start, window.end])
+  const before = columnSpacers(window.start), after = columnSpacers(columns.length - window.end)
   const rows = useMemo(() => new Map(entries.map(({ student }) => [student.id,
-    matrixRuns(columns, column => byStudent.get(student.id)?.has(column.col.ref) ?? false)
-  ])), [entries, columns, byStudent])
+    matrixRuns(mountedColumns, column => byStudent.get(student.id)?.has(column.col.ref) ?? false)
+  ])), [entries, mountedColumns, byStudent])
+  useEffect(() => {
+    if (!performanceDiagnostics || !withWork) return
+    const refs = new Set(columns.map(c => c.col.ref))
+    const all = entries.flatMap(e => e.works.filter(w => refs.has(w.slot.ref)))
+    const grades = all.flatMap(w => w.score === null || ['На проверке', 'На доработке'].includes(w.status) ? [] : [w.score + '%']).sort()
+    console.debug('[journal-matrix] ' + JSON.stringify({ students: entries.length, columns: columns.length, cells: all.length, grades }))
+  }, [entries, columns, withWork])
   const columnCount = columns.length
   const trackCount = Math.max(1, columnCount)
   // A per-student source needs a third line. Reserve it for the whole roster in every view.
@@ -448,11 +462,8 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
   const nearest = withWork ? columns.reduce<string | null>((min, { upcoming }) =>
     upcoming && (!min || upcoming < min) ? upcoming : min, null) : null
   useLayoutEffect(() => {
-    if (frame.current) {
-      frame.current.scrollTop = position.current.top
-      frame.current.scrollLeft = position.current.left
-    }
-  }, [frame, position])
+    if (detail) window.reveal(columns.findIndex(c => c.col.ref === detail))
+  }, [detail, selected.student, columns, window.reveal])
   useLayoutEffect(() => {
     const wrap = frame.current
     const el = wrap?.querySelector<HTMLElement>('[data-selected-work="true"]')
@@ -466,13 +477,36 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     else if (cell.left < box.left + pin) wrap.scrollLeft += cell.left - box.left - pin - 10
     if (cell.bottom > bottom) wrap.scrollTop += cell.bottom - bottom + 6
     else if (cell.top < box.top + head) wrap.scrollTop += cell.top - box.top - head - 6
-  }, [detail, selected.student, work?.slot.ref, frame, viewport])
-  const jumpToNearest = () => {
-    const wrap = frame.current
-    const next = wrap?.querySelector<HTMLElement>('th[data-upcoming]')
-    if (wrap && next) {
-      const nameWidth = wrap.querySelector('th')!.getBoundingClientRect().width
-      wrap.scrollLeft += next.getBoundingClientRect().left - wrap.getBoundingClientRect().left - nameWidth
+  }, [detail, selected.student, work?.slot.ref, frame, viewport, window.start, window.end])
+  const jumpToNearest = () => window.reveal(columns.findIndex(c => c.upcoming === nearest))
+
+  function columnTab(event: KeyboardEvent<HTMLTableElement>) {
+    if (event.key !== 'Tab' || !(event.target instanceof HTMLElement)) return
+    const cell = event.target.closest<HTMLTableCellElement>('td[aria-colindex], th[aria-colindex]')
+    const row = cell?.parentElement
+    if (!cell || !row) return
+    const current = Number(cell.getAttribute('aria-colindex')) - 2
+    const id = row.getAttribute('data-student-id')
+    const step = event.shiftKey ? -1 : 1
+    for (let i = current + step; i >= 0 && i < columns.length; i += step) {
+      if (id ? !byStudent.get(id)?.has(columns[i].col.ref) : !(withWork ? onOpenAssignment : onOpenAttendance)) continue
+      if (i >= window.start && i < window.end) return
+      event.preventDefault()
+      window.reveal(i)
+      requestAnimationFrame(() => row.querySelector<HTMLButtonElement>(`[aria-colindex="${i + 2}"] button`)?.focus({ preventScroll: true }))
+      return
+    }
+    if (event.shiftKey && id && current === -1) {
+      const previous = row.previousElementSibling ?? row.closest('table')?.querySelector('thead tr')
+      const previousId = previous?.getAttribute('data-student-id')
+      for (let i = columns.length - 1; previous && i >= 0; i--) {
+        if (previousId ? !byStudent.get(previousId)?.has(columns[i].col.ref) : !(withWork ? onOpenAssignment : onOpenAttendance)) continue
+        if (i >= window.start && i < window.end) return
+        event.preventDefault()
+        window.reveal(i)
+        requestAnimationFrame(() => previous.querySelector<HTMLButtonElement>(`[aria-colindex="${i + 2}"] button`)?.focus({ preventScroll: true }))
+        return
+      }
     }
   }
   const close = () => {
@@ -488,17 +522,18 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
         }}>
           <div className="js-grid-content" data-source-line={showSourceLine || undefined}
             style={{ '--columns': columnCount, '--grid-tracks': trackCount } as CSSProperties}>
-          <table>
+          <table aria-colcount={columnCount + 1} onKeyDown={columnTab}>
             <colgroup>
               <col className="js-student-col" />
-              {columnCount > 0 && <col className="js-data-col" span={columnCount} />}
+              {columnSpacers(columnCount).map((span, i) => <col key={i} className="js-data-col" span={span} />)}
             </colgroup>
             <thead><tr>
-              <th scope="col"><div className="js-head-slots"><span className="js-col-student">Ученик <small>{visible.length}</small></span>
+              <th scope="col" aria-colindex={1}><div className="js-head-slots"><span className="js-col-student">Ученик <small>{visible.length}</small></span>
                 {nearest && <button className="js-next-link" type="button" onClick={jumpToNearest}>К ближайшей работе <ChevronRight size={11}/></button>}
               </div></th>
-              {columns.map(({ col, displayDate, source, hasHomework, upcoming }) => (
-                <th scope="col" key={col.ref} data-upcoming={!!nearest && upcoming === nearest || undefined}>
+              {before.map((span, i) => <th key={"before-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
+              {mountedColumns.map(({ col, displayDate, source, hasHomework, upcoming }, i) => (
+                <th scope="col" aria-colindex={window.start + i + 2} key={col.ref} data-upcoming={!!nearest && upcoming === nearest || undefined}>
                   <div className="js-head-slots">
                   <div className="js-col-meta">
                     <time dateTime={displayDate ?? undefined}>{shortDate(displayDate)}</time>
@@ -513,19 +548,21 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                   </div>
                 </th>
               ))}
+              {after.map((span, i) => <th key={"after-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
             </tr></thead>
             <tbody>{visible.map(({ student }) => (
-              <tr key={student.id}>
-                <th scope="row">
+              <tr key={student.id} data-student-id={student.id}>
+                <th scope="row" aria-colindex={1}>
                   <button type="button" className="js-name" title={student.name} aria-label={student.name}
                     aria-pressed={entry?.student.id === student.id} onClick={() => set({ student: student.id, workRef: '' })}>
                     <span className="cj-avatar" aria-hidden>{monogram(student.name)}</span><span>{student.name}</span>
                   </button>
                 </th>
+                {before.map((span, i) => <td key={"before-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
                 {rows.get(student.id)?.map(({ item: { col, source, upcoming }, span }) => {
                   const w = byStudent.get(student.id)?.get(col.ref)
                   const active = selected.student === student.id && detail === col.ref
-                  return <td key={col.ref} colSpan={span} className={!w ? 'js-unassigned-run' : undefined} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
+                  return <td key={col.ref} aria-colindex={(columnPositions.get(col.ref) ?? 0) + 2} colSpan={span} className={!w ? 'js-unassigned-run' : undefined} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
                     <button type="button" data-selected-work={active || undefined} aria-pressed={active}
                       className="js-cell" aria-label={[student.name, col.title,
                         ...(withWork ? [w.source, w.status === 'На проверке' && onOpenWork ? 'Проверить' : w.score === null ? w.status : w.score + '% · ' + w.status] : []),
@@ -538,6 +575,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     </button>
                   ) : <span className="js-stat-value" title="Не назначено">—</span>}</td>
                 })}
+                {after.map((span, i) => <td key={"after-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
               </tr>
             ))}</tbody>
           </table>

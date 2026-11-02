@@ -22,8 +22,8 @@ async function byIds<T>(table: string, columns: string, field: string, ids: stri
       .in(field, batch).order(table === 'teacher_lesson_sessions' ? 'schedule_id' : 'id')
       .range(offset, offset + size - 1).abortSignal(signal).retry(false)
     // The invoker view returns task summaries, never rich lesson bodies.
-    if (table === 'teacher_journal_lessons_v1') return journalParallelPages<T>(build, signal, 1000, 2)
-    if (table === 'lesson_progress') return journalParallelPages<T>(build, signal, 1000, 2)
+    if (table === 'teacher_journal_lessons_v1') return journalParallelPages<T>(build, signal, 500, 4)
+    if (table === 'lesson_progress') return journalParallelPages<T>(build, signal, 500, 4)
     return adaptiveJournalPages<T>(build, signal)
   })
   console.debug('[journal-read] ' + JSON.stringify({ table, rows: rows.length, ms: Math.round(performance.now() - started) }))

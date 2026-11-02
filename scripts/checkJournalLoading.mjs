@@ -66,3 +66,16 @@ await assert.rejects(journalParallelPages(async () => {
   return {data: [], error: null}
 }, cancelled.signal), {name: 'AbortError'})
 console.log('Parallel journal: complete ordered rows, bounded concurrency, split timeout retries, required failures, tail and cancellation passed.')
+
+const productionRows = Array.from({length: 2107}, (_, id) => ({id}))
+let inFlight = 0, maxInFlight = 0
+const bounded = await journalParallelPages(async (offset, size) => {
+  assert.equal(size, 500)
+  inFlight++;maxInFlight=Math.max(maxInFlight,inFlight)
+  await new Promise(r=>setTimeout(r,1))
+  inFlight--
+  return {data:productionRows.slice(offset,offset+size),error:null}
+},signal,500,4)
+assert.deepEqual(bounded,productionRows)
+assert.equal(maxInFlight,4)
+console.log('PASS: production page window retains all 2107 rows across windows with four bounded responses')
