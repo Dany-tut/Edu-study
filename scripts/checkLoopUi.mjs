@@ -32,6 +32,8 @@ for (const sample of [
   `<div>{status === '✓' ? <Check/> : null}</div>`,
   `<span data-loop-content>→</span>`,
 ]) assert.equal(checkLoopUiSource(sample).length, 0, `Expected allowed content: ${sample}`)
+assert(checkLoopUiSource(`<span>{s.icon}</span>`, 'src/components/SubjectColorPicker.tsx').length)
+assert(checkLoopUiSource(`<span>{current.icon}</span>`, 'src/components/teacher/SubjectPicker.tsx').length)
 assert(checkLoopUiSource(`.arrow::after{content:'→'}`, 'fixture.css').length)
 const root = fileURLToPath(new URL('../', import.meta.url))
 const errors = []

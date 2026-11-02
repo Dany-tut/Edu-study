@@ -74,7 +74,7 @@ export function checkLoopUiSource(source, filename = 'fixture.tsx') {
       rendered(node.arguments[0], inAction, seen)
     } else if (ts.isPropertyAccessExpression(node) && node.name.text === 'icon') {
       const owner = node.expression.getText(tree).replaceAll('?', '')
-      if (subjectOwner.test(owner) || owner.startsWith('getSubject(')) report(node, 'subject-emoji')
+      if (subjectOwner.test(owner) || owner.startsWith('getSubject(') || (/\/(?:SubjectColorPicker|SubjectPicker)\.tsx$/.test(filename) && /^(s|o|only|current)$/.test(owner))) report(node, 'subject-emoji')
     }
   }
   function visit(node) {
