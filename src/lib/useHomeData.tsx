@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import type { Reminder } from '../data/teacherMockData'
+import type { ScheduleItem, Reminder } from '../data/teacherMockData'
 import { useTeacher } from '../store/teacherStore'
 import { useGroups, useAllStudents, useJournalPending } from './useGroups'
 import { useHomework, useHardSubmissions } from './useHomework'
