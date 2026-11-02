@@ -96,8 +96,8 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
   const caption = step ? tr(trackStepLabel[step]) : null
   const statusText = tr(lessonStatusLabel(displayStatus, lesson.kind))
   const progressDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
-  const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && (scheduleState.isCurrent || scheduleState.hasEnded || scheduleState.phase === 'cancelled')
-  const scheduleLabel = showScheduleStatus ? (scheduleState.recordingAvailable ? 'Запись доступна' : scheduleState.label) : null
+  const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && !scheduleState.recordingAvailable && (scheduleState.isCurrent || scheduleState.phase === 'cancelled')
+  const scheduleLabel = showScheduleStatus ? scheduleState.label : null
   const statusDescription = scheduleLabel && !progressDescription.includes(tr(scheduleLabel)) ? `${tr(scheduleLabel)} · ${progressDescription}` : progressDescription
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
