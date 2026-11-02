@@ -11,6 +11,7 @@ try {
     db = new PGlite(); sql = text => db.exec(text)
   } else {
     run(['run','-d','--name',name,'-e','POSTGRES_HOST_AUTH_METHOD=trust','postgres:16-alpine'])
+    // Docker's initialization server uses only a Unix socket; wait for the final TCP server.
     let ready=false
     for(let i=0;i<50;i++) { try {run(['exec',name,'pg_isready','-h','127.0.0.1','-U','postgres']);ready=true;break} catch {await new Promise(r=>setTimeout(r,100))} }
     if(!ready) throw new Error('Test PostgreSQL did not start')
