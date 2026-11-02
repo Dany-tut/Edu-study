@@ -37,7 +37,7 @@ await build({
   stdin: { contents: `
     export { courseTrackWidth, courseResumeTarget } from './src/lib/courseTrackLayout';
     export { baseNodeShape } from './src/components/CourseNodeSilhouette';
-    export { fetchStudentTrack, mergeSubjectsWithProgress, upsertLessonProgress, fetchScheduleDays, computeStats, computeSubjectStats } from './src/lib/db';
+    export { fetchStudentTrack, mergeSubjectsWithProgress, upsertLessonProgress, fetchScheduleDays, resolveScheduleLesson, computeStats, computeSubjectStats } from './src/lib/db';
     export { getDisplayLessonStatus, getTrackLessonStatus, getLessonScheduleState, getStudentScheduleState, lessonTrackStep, lessonScheduleDate } from './src/lib/lessonStatus';
     export { homeworkResult, homeworkDisplayScore, canRetakeHomework, gradedTrackResult } from './src/lib/homeworkResult';
     export { useStudentData, startCourseHomeworkRetake } from './src/store/studentDataStore';
@@ -537,3 +537,64 @@ switched.resolve({data:{ok:true},error:null})
 await new Promise(r=>setTimeout(r,0))
 assert.equal(m.useStudentData.getState().progress,beforeSwitch,'Old external response must not refresh another account')
 console.log('PASS: nonblocking external sync, preserved drafts, confirmed grade refresh and account isolation')
+
+// Stable schedule links win over duplicate titles/numbers and stale display names.
+{
+  const first = { ...scheduledSubject, id: 'first', modules: [{ id: 1, label: 'One', lessons: [{ ...scheduled, dbId: 'uuid-first' }] }] }
+  const target = { ...scheduledSubject, id: 'second', modules: [{ id: 1, label: 'One', lessons: [{ ...scheduled, id: 'second-node', dbId: 'uuid-second' }] }] }
+  const event = { ...slot, lessonId: 'uuid-second' }
+  assert.equal(m.resolveScheduleLesson(event, [first, target]).lesson.id, 'second-node')
+  assert.equal(m.resolveScheduleLesson({ ...event, lessonId: 'deleted-uuid' }, [first, target]).lesson, null)
+  const split = { ...target, modules: [{ id: 1, label: 'One', lessons: [
+    { ...target.modules[0].lessons[0], nodeType: 'lesson' },
+    { ...target.modules[0].lessons[0], id: 'second-node~rec', nodeType: 'rec' },
+  ] }] }
+  assert.equal(m.resolveScheduleLesson({ ...event, kind: 'rec' }, [split]).lesson.id, 'second-node~rec')
+  assert.equal(m.resolveScheduleLesson({ ...event, kind: 'lesson' }, [split]).lesson.id, 'second-node')
+  assert.equal(m.resolveScheduleLesson({ ...event, kind: 'rec' }, [target]).lesson.id, 'second-node')
+  assert.equal(m.resolveScheduleLesson(slot, [first]).lesson.id, scheduled.id)
+}
+// Deduplicate group/direct copies, retaining distinct linked lessons and node kinds.
+{
+  const base = { date: today, time_start: '12:00', subject: 'Course', lesson_title: 'same', lesson_number: 1 }
+  query = request => ({ data: request.table === 'schedule_lessons' ? [
+    { ...base, id: 'one', lesson_id: 'uuid-one', node_type: 'lesson' },
+    { ...base, id: 'copy', lesson_id: 'uuid-one', node_type: 'lesson' },
+    { ...base, id: 'two', lesson_id: 'uuid-two', node_type: 'lesson' },
+    { ...base, id: 'rec', lesson_id: 'uuid-one', node_type: 'rec' },
+  ] : [], error: null })
+  const rows = (await m.fetchScheduleDays(group, student)).flatMap(day => day.lessons)
+  assert.deepEqual(rows.map(row => row.id), ['one', 'two', 'rec'])
+  assert.equal(rows[0].lessonId, 'uuid-one')
+}
+
+// A failed calendar request must not erase the last confirmed schedule.
+{
+  const saved = m.useStudentData.getState().scheduleDays
+  rpc = name => ({ data: name === 'student_track' ? payload([]) : [], error: null })
+  query = request => request.table === 'schedule_lessons'
+    ? { data: null, error: { message: 'calendar disconnected' } }
+    : { data: [], error: null }
+  await assert.rejects(m.fetchScheduleDays(group, student))
+  await m.useStudentData.getState().load({ afterTestlySync: true })
+  assert.deepEqual(m.useStudentData.getState().scheduleDays, saved)
+}
+console.log('PASS: stable calendar links, distinct same-title events and failed-calendar preservation')
+
+// Screenshot regression: a course date without a time still appears on its day.
+{
+  rpc = () => ({ data: [], error: null })
+  query = request => ({ data: request.table === 'courses' ? [{
+    id: 'course-uuid', short_id: 'dated-course', title: 'Chemistry', subject: 'Chemistry', student_ids: [student], group_ids: [],
+    course_modules: [{ position: 1, label: 'Module', lessons: [{
+      id: 'dated-uuid', short_id: 'dated', title: 'Task 31', lesson_number: 5,
+      scheduled_date: today.split('-').reverse().join('.'), scheduled_time: null,
+    }] }],
+  }] : [], error: null })
+  const days = await m.fetchScheduleDays(group, student)
+  const row = days.find(day => day.date === today).lessons[0]
+  assert.equal(row.lessonId, 'dated-uuid')
+  assert.equal(row.time, '')
+  assert.equal(row.startsAt, undefined)
+}
+console.log('PASS: dated material without a time is visible in the calendar')

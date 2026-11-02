@@ -83,7 +83,7 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
   useEffect(() => {
     if (visible && expanded) expandedDialog.current?.showModal()
   }, [visible, expanded])
-  const byDate = new Map([...remote, ...days].map(day => [day.date, day]))
+  const byDate = new Map([...days, ...remote].map(day => [day.date, day]))
   const loading = !byDate.has(selected) && !failed && (pending || !loaded)
   const label = (key: string, options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' }) => dateOf(key).toLocaleDateString(locale, { ...options, timeZone: 'UTC' })
   function choose(key: string) {
@@ -126,11 +126,11 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
         </div>
       </div>}
     </header>
-    {loading ? children([], 0, () => {}, false) : byDate.has(selected) ? children([-3, -2, -1, 0, 1, 2, 3].map(offset => {
+    {failed ? (
+      <div className="ssr-load-error" role="alert">{t('Не удалось загрузить расписание')} <button type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Повторить загрузку')}</button></div>
+    ) : loading ? children([], 0, () => {}, false) : byDate.has(selected) ? children([-3, -2, -1, 0, 1, 2, 3].map(offset => {
       const date = shift(selected, offset)
       return { ...(byDate.get(date) ?? { date, label: label(date), lessons: [] }), isToday: date === today }
-    }), 3, next => choose(shift(selected, next - 3)), loaded) : failed ? (
-      <div className="ssr-load-error" role="alert">{t('Не удалось загрузить расписание')} <button type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Повторить загрузку')}</button></div>
-    ) : children([], 0, () => {}, !pending && loaded)}
+    }), 3, next => choose(shift(selected, next - 3)), loaded) : children([], 0, () => {}, !pending && loaded)}
   </section>
 }

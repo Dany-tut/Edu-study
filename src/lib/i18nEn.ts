@@ -5523,4 +5523,5 @@ export const EN: Record<string, string> = {
   'На этот день заданий нет': 'No assignments for this day',
 
   'Не задана': 'Not set',
+  'Дождитесь загрузки урока и попробуйте ещё раз.': 'Wait for the lesson to load and try again.',
 }

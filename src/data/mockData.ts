@@ -11,6 +11,8 @@ export type TestTaskType = StoredTaskType
 export type TestTask = TaskPayload
 
 export interface Lesson {
+  /** Stable UUID of the backing lessons row, shared by split nodes. */
+  dbId?: string
   id: string
   title: string
   number: number
@@ -135,6 +137,8 @@ export interface Subject {
 }
 
 export type ScheduleLesson = {
+  /** Stable UUID of the backing lessons row. */
+  lessonId?: string
   /** Only a teacher's explicit mark; homework progress is independent. */
   attendance?: boolean | null
   id: string
