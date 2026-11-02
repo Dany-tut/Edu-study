@@ -9,9 +9,9 @@
 export type VideoSource =
   | { kind: 'rutube'; id: string; key?: string } // key — ?p= приватного видео
   | { kind: 'youtube'; id: string }
-  | { kind: 'file'; url: string }   // raw media → native <video>
+  | { kind: 'file'; url: string; crossOrigin?: 'anonymous' }   // raw media → native <video>
   | { kind: 'audio'; url: string }  // raw audio → native <audio controls>
-  | { kind: 'gdrive'; id: string }  // Google Drive file → /preview в iframe
+  | { kind: 'gdrive'; id: string }  // Google Drive file → signed media gateway
   | { kind: 'iframe'; url: string } // own page (teachstream /watch, …) → iframe
 
 const FILE_RE = /\.(webm|mp4|m4v|mov|ogg|ogv|m3u8)(\?.*)?$/i

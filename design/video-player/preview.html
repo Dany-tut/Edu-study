@@ -3,47 +3,30 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Искра · Плеер записи</title>
 <style>body{margin:0;background:#f5f5f6;color:#27252d;font:15px system-ui}main{max-width:1260px;margin:0 auto;padding:28px 24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:24px}h1{font-size:19px;margin:0}header p{margin:6px 0 0;color:#777}#root{margin:auto}footer{margin-top:20px;font-size:13px;color:#777}footer button{min-height:44px;border:0;padding:8px 14px;border-radius:12px;background:#e8e5ef;cursor:pointer;color:#494052}pre{white-space:pre-wrap;font-size:12px}a{color:#6c55ae}@media(max-width:600px){main{padding:16px 8px}h1{font-size:15px}header p{font-size:12px}}</style>
 </head>
-<body><main><header><div><h1>Занятие №4 · Задания №22–№28</h1><p>Искра · Запись занятия</p></div><span>31.10</span></header><div id="root"></div><footer>Локальный просмотр. Прогресс ученика не изменяется.<br><button id="audio-check">Проверить звук: 3×, 4×, 5×, 10×</button><pre id="result"></pre><a id="recording" hidden download="iskra-player-audio-check.webm">Запись звука проверки</a></footer></main>
+<body><main><header><div><h1>Занятие №4 · Задания №22–№28</h1><p>Искра · Запись занятия</p></div><span>31.10</span></header><div id="root"></div><footer>Локальный просмотр. Прогресс и названия частей демонстрационные; данные ученика не изменяются.</footer></main>
 <script type="module">
 import RefreshRuntime from '/@react-refresh'; RefreshRuntime.injectIntoGlobalHook(window); window.$RefreshReg$=()=>{}; window.$RefreshSig$=()=>type=>type; window.__vite_plugin_react_preamble_installed__=true;
 </script>
 <script type="module">
-import React from 'react';
+import React,{useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import Player,{PLAYER_MAX_W} from '/src/components/LessonVideoPlayer.tsx';
+import Progress from '/src/components/LessonVideoProgress.tsx';
 import '/src/index.css';
 let latestWatch;
 const id=new URLSearchParams(location.search).get('fileId')??'14a4-X5uWvPFMV5AANald10nC--XUWWin';
 document.getElementById('root').style.maxWidth=PLAYER_MAX_W;
-createRoot(document.getElementById('root')).render(React.createElement(Player,{source:{kind:'gdrive',id},title:'Занятие №4 · Задания №22–№28',initialWatch:{position:0,duration:0,ranges:[],completed:false,updatedAt:''},onPersist:()=>{},onWatchTick:w=>{latestWatch=w}}));
-let context,analyser,recorder,chunks=[];
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
-document.getElementById('audio-check').onclick=async()=>{
- const button=document.getElementById('audio-check'),result=document.getElementById('result');
- const v=document.querySelector('video');
- if(!v||v.readyState<2){result.textContent='Сначала запустите запись и дождитесь загрузки.';return}
- button.disabled=true;
- try{
-  if(!context){context=new AudioContext();const input=context.createMediaElementSource(v);analyser=context.createAnalyser();analyser.fftSize=2048;input.connect(analyser);analyser.connect(context.destination);const out=context.createMediaStreamDestination();analyser.connect(out);recorder=new MediaRecorder(out.stream);recorder.ondataavailable=e=>chunks.push(e.data)}
-  await context.resume();chunks=[];recorder.start();
-  const results=[];
-  for(const r of [3,4,5,10]){
-   result.textContent=`Проверяем звук на ${r}×…`;
-   const speedButton=document.querySelector('[aria-label="Скорость"]');
-   if(speedButton.getAttribute('aria-expanded')!=='true')speedButton.click();
-   await wait(60);
-   document.querySelector(`[data-rate-menu] [aria-label="${r}×"]`).click();
-   v.currentTime=900;
-   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Seek timed out')),20000);v.addEventListener('seeked',()=>{clearTimeout(timer);resolve()},{once:true})});
-   await v.play();await wait(700);
-   const samples=new Float32Array(analyser.fftSize);let sum=0,peak=0,n=0;
-   const from=v.currentTime,start=performance.now();
-   for(let i=0;i<40;i++){analyser.getFloatTimeDomainData(samples);for(const x of samples){sum+=x*x;peak=Math.max(peak,Math.abs(x));n++}await wait(50)}
-   results.push({rate:v.playbackRate,preservesPitch:v.preservesPitch,rms:Math.sqrt(sum/n),peak,mediaSeconds:v.currentTime-from,wallSeconds:(performance.now()-start)/1000,error:v.error?.message??null,watchedSeconds:latestWatch?.ranges.reduce((sum,[a,b])=>sum+b-a,0)});
-  }
-  recorder.onstop=()=>{const a=document.getElementById('recording');a.href=URL.createObjectURL(new Blob(chunks,{type:recorder.mimeType}));a.hidden=false};recorder.stop();
-  result.textContent=JSON.stringify(results,null,2);v.pause();
- }catch(e){result.textContent=e.message;if(recorder?.state==='recording')recorder.stop()}
- finally{button.disabled=false}
-};
+const media=new URLSearchParams(location.search).get('media');
+const sample={position:0,duration:4509.632867,ranges:[[0,2760]],completed:false,updatedAt:''};
+// Demo chapter labels exercise long text and marker placement without editing lesson content.
+const chapters=media?[{seconds:0,label:'Задание №22 · Обратимые реакции'},{seconds:600,label:'Задание №23 · Химическое равновесие и влияние концентрации веществ'},{seconds:1200,label:'Задание №24'},{seconds:1800,label:'Задание №25'},{seconds:2600,label:'Задание №26'},{seconds:3300,label:'Задание №27'},{seconds:3900,label:'Задание №28'}]:[];
+function Preview(){
+ const [watch,setWatch]=useState(sample);
+ return React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:18}},
+  React.createElement(Player,{source:media?{kind:'file',url:media,crossOrigin:'anonymous'}:{kind:'gdrive',id},title:'Занятие №4 · Задания №22–№28',timecodes:chapters,initialWatch:sample,onPersist:()=>{},onWatchTick:w=>{latestWatch=w;setWatch(w)}}),
+  React.createElement(Progress,{watch}),
+  React.createElement('div',{style:{display:'flex',gap:8,flexWrap:'wrap',paddingInline:24}},...[0,61,70,100].map(p=>React.createElement('button',{key:p,onClick:()=>setWatch({...sample,ranges:[[0,p===61?2760:sample.duration*p/100]]}),style:{minHeight:44,border:0,borderRadius:12,padding:'8px 14px',background:'var(--color-bg)',color:'var(--color-text-2)'}},`Пример ${p}%`)))
+ );
+}
+createRoot(document.getElementById('root')).render(React.createElement(Preview));
 </script></body></html>
