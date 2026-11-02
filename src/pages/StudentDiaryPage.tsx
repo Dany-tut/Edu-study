@@ -1,4 +1,4 @@
-import TeacherSelect from '../components/teacher/TeacherSelect'
+import { LoopSelect } from '../components/icons/LoopSelect'
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import {
   ArrowRight,
@@ -301,23 +301,38 @@ export default function StudentDiaryPage({
         <div className="ds-scope">
           <label>
             <span className="ds-field-label">{t('Предмет')}</span>
-            <TeacherSelect
+            <LoopSelect
+              aria-label={t('Предмет дневника')}
               value={subject}
-              clearable={false}
-              onChange={(value) => { setSubject(value); setCourse('*') }}
-              options={[{ value: '*', label: t('Все предметы') }, ...[...new Set(subjects.map(c => c.subject || '__none'))].map(name => ({ value: name, label: name === '__none' ? t('Предмет не указан') : name }))]}
-              triggerStyle={{ borderRadius: 99, padding: '10px 15px', fontSize: 16, minHeight: 44 }}
-            />
+              onChange={(e) => {
+                setSubject(e.target.value)
+                setCourse('*')
+              }}
+            >
+              <option value="*">{t('Все предметы')}</option>
+              {[...new Set(subjects.map((c) => c.subject || '__none'))].map((name) => (
+                <option key={name} value={name}>
+                  {name === '__none' ? t('Предмет не указан') : name}
+                </option>
+              ))}
+            </LoopSelect>
           </label>
           <label>
             <span className="ds-field-label">{t('Курс / интенсив')}</span>
-            <TeacherSelect
+            <LoopSelect
+              aria-label={t('Курс дневника')}
               value={course}
-              clearable={false}
-              onChange={setCourse}
-              options={[{ value: '*', label: t('Все курсы и интенсивы') }, ...subjects.filter(c => subject === '*' || (c.subject || '__none') === subject).map(c => ({ value: c.id, label: c.name }))]}
-              triggerStyle={{ borderRadius: 99, padding: '10px 15px', fontSize: 16, minHeight: 44 }}
-            />
+              onChange={(e) => setCourse(e.target.value)}
+            >
+              <option value="*">{t('Все курсы и интенсивы')}</option>
+              {subjects
+                .filter((c) => subject === '*' || (c.subject || '__none') === subject)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+            </LoopSelect>
           </label>
           <span className="ds-scope-summary">
             {pending
@@ -344,22 +359,22 @@ export default function StudentDiaryPage({
           <div className="ds-work-toolbar">
             <label>
               {t('Состояние')}
-              <select aria-label={t('Состояние')} value={state} onChange={(e) => setState(e.target.value)}>
+              <LoopSelect aria-label={t('Состояние')} value={state} onChange={(e) => setState(e.target.value)}>
                 <option value="action">{t('Нужно сделать')}</option>
                 <option value="all">{t('Все задания')}</option>
                 <option value="pending">{t('На проверке')}</option>
                 <option value="passed">{t('Зачтено')}</option>
-              </select>
+              </LoopSelect>
             </label>
             <label>
               {t('Сортировка')}
-              <select aria-label={t('Сортировка')} value={sort} onChange={(e) => setSort(e.target.value)}>
+              <LoopSelect aria-label={t('Сортировка')} value={sort} onChange={(e) => setSort(e.target.value)}>
                 <option value="priority">{t('Сначала важное')}</option>
                 <option value="due">{t('По сроку')}</option>
                 <option value="number">{t('По номеру ДЗ')}</option>
                 <option value="subject">{t('По предмету')}</option>
                 <option value="course">{t('По курсу / интенсиву')}</option>
-              </select>
+              </LoopSelect>
             </label>
             <button
               type="button"

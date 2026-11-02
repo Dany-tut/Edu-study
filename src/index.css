@@ -1196,3 +1196,8 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 /* Text windows are measured by textFades; mask only when their content overflows. */
 .text-fade { overflow:hidden; text-overflow:clip; white-space:nowrap; min-width:0; --iskra-text-fade-lines:1; }
 .text-fade-2 { display:block; overflow:hidden; max-height:2lh; --iskra-text-fade-lines:2; }
+.loop-select option { -webkit-text-fill-color: var(--color-text); color: var(--color-text); background: var(--color-bg); }
+@media (forced-colors: active) {
+  .loop-select select { -webkit-text-fill-color: currentColor !important; }
+  .loop-select-label { display: none !important; }
+}

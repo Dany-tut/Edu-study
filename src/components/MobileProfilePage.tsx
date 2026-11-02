@@ -527,8 +527,9 @@ export default function MobileProfilePage() {
                   border: `1px solid ${active ? c.color + '44' : 'var(--color-border-soft)'}`,
                 }}
               >
-                <span className="min-w-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
-                  <SubjectMark subject={c.subject} size={16} /> {subjectCardLabel(c)}
+                <span className="min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <SubjectMark subject={c.subject} size={16} />
+                  <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{subjectCardLabel(c)}</span>
                 </span>
                 {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
               </button>

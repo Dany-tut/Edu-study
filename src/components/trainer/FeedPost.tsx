@@ -378,23 +378,23 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               ))}
             </div>
           )}
-          <div style={long && !expanded ? textFadeLines(6) : undefined}>
-          {ru ? (
-            <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch', ...proseWrap }}>
-              {shown.split('\n\n').map((para, i) => (
-                <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(para)}</p>
-              ))}
-            </div>
-          ) : (
-            <GlossedText
-              text={shown}
-              lang={lang}
-              extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
-              accent={accent}
-              subject={subjectId}
-              style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}
-            />
-          )}
+          <div style={{ fontSize: 15, lineHeight: 1.6, ...(long && !expanded ? textFadeLines(6) : {}) }}>
+            {ru ? (
+              <div style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', maxWidth: '68ch', ...proseWrap }}>
+                {shown.split('\n\n').map((para, i) => (
+                  <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{bindShortWords(para)}</p>
+                ))}
+              </div>
+            ) : (
+              <GlossedText
+                text={shown}
+                lang={lang}
+                extra={item.glossary.map(g => ({ term: g.term, ru: g.ru }))}
+                accent={accent}
+                subject={subjectId}
+                style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)' }}
+              />
+            )}
 
           </div>
 
