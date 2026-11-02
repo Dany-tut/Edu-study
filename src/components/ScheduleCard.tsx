@@ -15,6 +15,7 @@ import { getStudentScheduleState } from '../lib/lessonStatus'
 import { useStudentTz } from '../lib/studentTz'
 import ScheduleStatusBadge from './ScheduleStatusBadge'
 import ScrollFade from './ScrollFade'
+import FadeText from './FadeText'
 import './scheduleEmpty.css'
 import { useT, useTc } from '../lib/i18n'
 import { SeasonEmptyDay } from './season/Season'
@@ -211,7 +212,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5" style={{ marginBottom: 4 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: (isEmphasized || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {tc(lesson.subject)}
+                        {tc(lesson.subject)}{mobile ? ` · #${lesson.lessonNumber + 1}` : ''}
                       </span>
                       {st.phase !== 'today' && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
                       {isMissed && (
@@ -232,9 +233,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                         )
                       )}
                     </div>
-                    <p className={mobile ? 'line-clamp-2' : 'truncate'} style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-                      {t('Занятие')} #{lesson.lessonNumber + 1} {tc(lesson.lessonTitle)}
-                    </p>
+                    <FadeText className="schedule-lesson-title" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
+                      {mobile ? tc(lesson.lessonTitle) : `${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
+                    </FadeText>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
                     {lesson.time && <div style={{ minWidth: 54, textAlign: 'right' }}>
@@ -303,9 +304,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {tc(lesson.subject)}
                   </p>
-                  <p className="truncate" style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>
+                  <FadeText className="schedule-lesson-title" style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>
                     {tc(lesson.lessonTitle)}
-                  </p>
+                  </FadeText>
                   <p style={{ fontSize: 11, color: 'var(--color-muted)' }}>{lesson.time}</p>
                 </div>
               ))}
