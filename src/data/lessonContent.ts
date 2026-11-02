@@ -196,9 +196,8 @@ export interface HomeworkLevel {
   unlockScore?: number
   motivation: string
   dueDate: string
-  estimatedMinutes: number
-  peerCompletionRate: number
-  peerAverageScore?: number
+  estimatedMinutes?: number
+  taskTypes?: StoredTaskType[]
   questions?: HomeworkQuizQuestion[]
   teacherTask?: HomeworkTeacherTask
   /** Per-task hard definitions (course-editor «Домашки» + назначенный хард из
@@ -500,8 +499,9 @@ function buildAuthoredHomework(
         kind: 'quiz',
         motivation: 'Проверим, насколько тема уложилась после урока, без лишней перегрузки.',
         dueDate,
-        estimatedMinutes: Math.max(5, basicTasks.length * 3),
-        peerCompletionRate: 78,
+        estimatedMinutes: basicTasks.length && basicTasks.every(task => task.type === 'testly' && Number.isFinite(task.testly?.minutes) && (task.testly?.minutes ?? 0) > 0)
+          ? basicTasks.reduce((sum, task) => sum + task.testly!.minutes!, 0)
+          : undefined,
         questions: basicTasks.map(authoredTaskToQuestion),
       },
       {
@@ -513,8 +513,7 @@ function buildAuthoredHomework(
         unlockScore: recommendationScore,
         motivation: 'Необязательный уровень с проверкой преподавателем — для тех, кто уверенно прошёл базу.',
         dueDate,
-        estimatedMinutes: Math.max(10, Math.max(hardTasks.length, 1) * 8),
-        peerCompletionRate: 31,
+        taskTypes: hardTasks.map(task => normalizeTaskType(task.type)),
         teacherTask: hardTeacherTask,
         authoredHardDefs: authoredHardDefs.length > 0 ? authoredHardDefs : undefined,
       },
@@ -538,9 +537,6 @@ function buildApHomework(lesson: Lesson, dueDate: string, ap: ApLessonContent): 
         kind: 'quiz',
         motivation: 'Проверим, насколько тема уложилась после урока, без лишней перегрузки.',
         dueDate,
-        estimatedMinutes: 10,
-        peerCompletionRate: 78,
-        peerAverageScore: 74,
         questions: ap.quiz,
       },
       {
@@ -552,8 +548,6 @@ function buildApHomework(lesson: Lesson, dueDate: string, ap: ApLessonContent): 
         unlockScore: recommendationScore,
         motivation: 'Хард не обязателен, но отлично подойдёт тем, кто хочет добрать глубину и получить комментарий преподавателя.',
         dueDate,
-        estimatedMinutes: 20,
-        peerCompletionRate: 31,
         teacherTask: ap.hardTask,
       },
     ],
@@ -667,9 +661,6 @@ function buildHomework(lesson: Lesson, dueDate: string): LessonHomework {
           ? 'Соберём опорные понятия и быстро поймём, что уже держится уверенно.'
           : 'Проверим, насколько тема уложилась после урока, без лишней перегрузки.',
         dueDate,
-        estimatedMinutes: 10,
-        peerCompletionRate: 78,
-        peerAverageScore: 74,
         questions: basics,
       },
       {
@@ -683,8 +674,6 @@ function buildHomework(lesson: Lesson, dueDate: string): LessonHomework {
           ? 'Этот уровень для тех, кто уверенно прошёл базу и хочет получить развёрнутый фидбек от преподавателя.'
           : 'Хард не обязателен, но отлично подойдёт тем, кто хочет добрать глубину и получить комментарий преподавателя.',
         dueDate,
-        estimatedMinutes: 20,
-        peerCompletionRate: 31,
         teacherTask: isBiology
           ? {
               topic: 'Мини-кейс: адаптация вида',

@@ -156,7 +156,6 @@ const homework: LessonHomework = {
       id: 'basic', title: 'Базовый', shortLabel: 'Базовый', kind: 'quiz',
       motivation: 'Пять заданий на слова урока.',
       dueDate: '2026-08-20', estimatedMinutes: 6,
-      peerCompletionRate: 0.8, peerAverageScore: 4.2,
       questions,
     },
     // Хард-уровень пустой, но существовать обязан: без него HomeworkFlow не
@@ -166,7 +165,6 @@ const homework: LessonHomework = {
       optional: true, unlockScore: 4,
       motivation: 'Развёрнутый ответ.',
       dueDate: '2026-08-20', estimatedMinutes: 10,
-      peerCompletionRate: 0.3,
       teacherTask: {
         topic: 'Еда', prompt: 'Расскажите о любимом блюде.',
         teacherNote: 'Три предложения.', placeholder: 'Напишите ответ…',
