@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict'
 import { scheduleRowStatus } from '../src/lib/scheduleAttendance.ts'
 import { planCourseSchedule } from '../src/lib/courseScheduleSync.ts'
+import { studentScheduleScope } from '../src/lib/studentScheduleScope.ts'
+const studentA = '00000000-0000-4000-8000-000000000001'
+const studentB = '00000000-0000-4000-8000-000000000002'
+const groupA = '00000000-0000-4000-8000-000000000003'
+const groupB = '00000000-0000-4000-8000-000000000004'
+assert.deepEqual(studentScheduleScope([
+  { id: studentA, groupId: groupA }, { id: studentB, groupId: groupB },
+  { id: studentA, groupId: groupA }, { id: 'undefined', groupId: 'bad,filter' },
+]), [`group_id.eq.${groupA}`, `group_id.eq.${groupB}`, `student_id.eq.${studentA}`, `student_id.eq.${studentB}`])
+assert.deepEqual(studentScheduleScope([]), [])
+assert.deepEqual(studentScheduleScope([{ id: '', groupId: groupA }]), [`group_id.eq.${groupA}`])
 const now = new Date('2026-10-31T18:00:00+03:00')
 const opts = { dayDate: '2026-10-31', isToday: true }
 const row = { id: 'event', time: '14:00', endTime: '15:00', lessonTitle: 'Telegram', subject: 'Химия', lessonNumber: 1 }

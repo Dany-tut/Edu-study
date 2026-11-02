@@ -215,7 +215,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const track = results[0].value
     const scope = track.scope
     const progress = track.progress ?? get().progress
-    const schedule  = val(1, [] as Awaited<ReturnType<typeof fetchScheduleDays>>)
+    const schedule  = val(1, get().scheduleDays)
     const catalog   = track.subjects
     const hwSubject = val(2, null as Awaited<ReturnType<typeof fetchStandaloneSubject>>)
 
