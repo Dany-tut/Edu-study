@@ -6,6 +6,8 @@ import type { CourseJournalData } from './courseJournal'
 import { journalPages, journalBatches, journalRowsById } from './journalRequests'
 import { journalPages as adaptiveJournalPages, journalParallelPages } from './journalPages'
 import { createAuthDataChangeGuard } from './authDataChange'
+import { journalPaintTiming } from './platformPerformance'
+import { journalSnapshotResult } from './journalSnapshot'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
@@ -36,6 +38,8 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
   const rosterReady = !groupsLoading && !studentsLoading
   const lastLoaded = useRef(0)
   const loadedScope = useRef('')
+  const traceStart = useRef(0)
+  const traceReady = useRef(0)
   const [data, setData] = useState<CourseJournalData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -62,6 +66,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
     const { signal } = controller
     lastLoaded.current = Date.now()
     const loadStarted = performance.now()
+    traceStart.current = loadStarted
     setLoading(true); setError(null)
     async function load() {
       const owner = await getOwnerId()
@@ -70,6 +75,16 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
         return journalDemo()
       }
       if (!owner) throw new Error('Нужно войти в кабинет преподавателя')
+      const snapshot = await supabase.rpc('teacher_journal_snapshot_v1', { p_owner: owner, p_complete: completeWorkList })
+        .abortSignal(signal).retry(false)
+      signal.throwIfAborted()
+      const next = journalSnapshotResult(snapshot)
+      if (next) {
+        console.debug('[journal-snapshot] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted) }))
+        return next
+      }
+      // Only an older database without the RPC may use the compatibility path.
+      // Auth/network/SQL errors must not turn into a second burst of requests.
       const [owned, shares] = await Promise.all([
         journalPages<CourseJournalData['courses'][number]>(offset => supabase.from('courses')
         .select('id, short_id, title, subject, kind, group_ids, student_ids')
@@ -113,11 +128,19 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
         setLoading(false)
       }
     }, 20_000)
-    void load().then(next => { if (active) { loadedScope.current = loadKey; lastLoaded.current = Date.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); setData(next) } }).catch(e => {
+    void load().then(next => { if (active) { loadedScope.current = loadKey; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); setData(next) } }).catch(e => {
       if (active) setError(e instanceof Error ? e.message : 'Не удалось загрузить журнал')
     }).finally(() => { clearTimeout(timeout); controller.abort(); if (active) setLoading(false) })
     return () => { active = false; clearTimeout(timeout); controller.abort() }
   }, [studentIds, groupIds, tick, completeWorkList, rosterReady, enabled])
+  useEffect(() => {
+    if (!data || !enabled) return
+    let second = 0
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => journalPaintTiming(traceStart.current, traceReady.current))
+    })
+    return () => { cancelAnimationFrame(first); cancelAnimationFrame(second) }
+  }, [data, enabled])
   useEffect(() => {
     const authDataChanged = createAuthDataChangeGuard()
     const focus = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoaded.current > 30_000) reload() }
