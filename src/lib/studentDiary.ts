@@ -22,6 +22,8 @@ export type StudentDiaryEntry = {
   suffix?: string
   due: string | null
   status: TrackLessonStatus
+  /** An assignment from the hard-task bank can exist without a basic homework. */
+  hardOnly?: boolean
 }
 export function diaryDay(value: unknown): string | null {
   if (typeof value !== 'string') return null
@@ -76,6 +78,7 @@ export function buildStudentDiary(
             moduleOrder,
             due: recording ? (info?.recordingDate ?? null) : (info?.mainDate ?? null),
             status: visual,
+            hardOnly: !recording && info?.hasMain === false && lesson.kind !== 'test' && !!lesson.bankHard?.length,
           })
         if (recording) continue
         for (const extra of info?.extras ?? []) {

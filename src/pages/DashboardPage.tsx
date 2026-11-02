@@ -10,6 +10,7 @@ import MobileBottomNav from '../components/MobileBottomNav'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import type { DiaryTab } from './StudentDiaryPage'
+import { useScrollFades } from '../lib/useScrollFades'
 import { readStudentDiaryView, saveStudentDiaryView } from '../lib/studentDiaryViews'
 import { useDiaryRemindersInit } from '../lib/diaryReminders'
 import LessonPage from './LessonPage'
@@ -289,6 +290,9 @@ export default function DashboardPage() {
   const [diarySeen, setDiarySeen] = useState(false)
   useEffect(() => { if (showDiary) setDiarySeen(true) }, [showDiary])
   const diaryPane = useRef<HTMLElement>(null)
+  const mobileDiaryPane = useRef<HTMLDivElement>(null)
+  useScrollFades(diaryPane, showDiary, ':scope > *')
+  useScrollFades(mobileDiaryPane, showDiary, ':scope > *')
   const diaryScroll = useRef(0)
   useLayoutEffect(() => { if (showDiary && diaryPane.current) diaryPane.current.scrollTop = diaryScroll.current }, [showDiary])
   const videoRequired = !!lesson && homeworkNeedsVideo(lesson, homeworkRef)
@@ -587,10 +591,9 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {(showDiary || diarySeen) && <div style={{ display: showDiary ? 'block' : 'none', minHeight: '100dvh', background: 'var(--color-bg)', paddingTop: MOBILE_TOP_INSET, paddingLeft: 16, paddingRight: 16, paddingBottom: 120, overflowX: 'clip' }}>
+        {(showDiary || diarySeen) && <><div ref={mobileDiaryPane} style={{ display: showDiary ? 'block' : 'none', height: '100dvh', boxSizing: 'border-box', background: 'var(--color-bg)', paddingTop: MOBILE_TOP_INSET, paddingLeft: 16, paddingRight: 16, paddingBottom: 120, overflowX: 'clip', overflowY: 'auto' }}>
           <Suspense fallback={<LessonLoading />}><StudentDiaryPage tab={diaryTab} setTab={setDiaryTab} /></Suspense>
-          {showDiary && <MobileBottomNav />}
-        </div>}
+        </div>{showDiary && <MobileBottomNav />}</>}
 
         {/* Вкладка «ДЗ» — каталог занятий со статусами (свой поиск/фильтр/
             сортировка в нижнем доке). Отдельная страница, а не 'homework': та
