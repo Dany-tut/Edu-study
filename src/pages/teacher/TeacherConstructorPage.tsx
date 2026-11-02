@@ -8,7 +8,7 @@ import { SortDropdown, FacetDropdown, SubjectFacet, useShelfSubjects, PickSubjec
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BookOpen, Zap, Layers, Plus, Clock, GraduationCap, Brain, FileText, X, Check, Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown, CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh, Image as ImageIcon, Key, Maximize2, ListChecks, Eye, EyeOff, CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon, AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp, CheckCircle, Circle, Globe, Copy, Search, LayoutGrid, Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette, ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette, Calculator, Star, Lightbulb, Microscope, Music, Sigma, Lock, Loader2, Library, AlertTriangle, ExternalLink as ExternalLinkIcon } from '../../components/icons/appIcons'
-import * as LucideIcons from 'lucide-react'
+import * as AppIcons from '../../components/icons/appIcons'
 import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
@@ -3741,9 +3741,9 @@ const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
   logic: Target,
   'ap-chem-ru': FlaskConical,
   'ap-chem-en': Globe,
-  'eng-placement': LucideIcons.Languages,
-  'kor-placement': LucideIcons.Languages,
-  'eng-restore': LucideIcons.Gauge,
+  'eng-placement': AppIcons.Languages,
+  'kor-placement': AppIcons.Languages,
+  'eng-restore': AppIcons.Gauge,
 }
 
 // Runtime meta for custom user-created tests
@@ -3825,12 +3825,12 @@ const CREATOR_ACCENTS = [
   { hex: '#f59e0b', soft: 'rgba(245,158,11,0.11)'    },
 ]
 
-// All lucide icons for search, computed once at module level.
-// Lucide icons are React.forwardRef wrappers: objects with $$typeof === Symbol(react.forward_ref).
+// Approved Loop icons for search, computed once at module level.
+// Loop icons are React.forwardRef wrappers: objects with $$typeof === Symbol(react.forward_ref).
 const _REACT_FORWARD_REF = Symbol.for('react.forward_ref')
 const _REACT_MEMO = Symbol.for('react.memo')
-const ALL_LUCIDE_ENTRIES: [string, React.ElementType][] = (
-  Object.entries(LucideIcons as Record<string, unknown>)
+const ALL_LOOP_ENTRIES: [string, React.ElementType][] = (
+  Object.entries(AppIcons as Record<string, unknown>)
     .filter(([name, val]) => {
       if (!/^[A-Z][a-zA-Z0-9]+$/.test(name) || name === 'createLucideIcon') return false
       if (typeof val === 'function') return true
@@ -3865,7 +3865,7 @@ function isLucideIcon(val: unknown): val is React.ElementType {
 }
 function getIconByKey(key?: string): React.ElementType {
   if (!key) return FileText
-  const icons = LucideIcons as Record<string, unknown>
+  const icons = AppIcons as Record<string, unknown>
   if (isLucideIcon(icons[key])) return icons[key] as React.ElementType
   const mapped = LEGACY_ICON_MAP[key]
   if (mapped && isLucideIcon(icons[mapped])) return icons[mapped] as React.ElementType
@@ -3898,12 +3898,12 @@ function IconPickerField({ iconKey, onChange, accent }: {
   const searchResults = useMemo(() => {
     const q = search.toLowerCase().replace(/[\s\-_]/g, '')
     if (!q) return null
-    return ALL_LUCIDE_ENTRIES.filter(([n]) => n.toLowerCase().replace(/[\s\-_]/g, '').includes(q)).slice(0, 60)
+    return ALL_LOOP_ENTRIES.filter(([n]) => n.toLowerCase().replace(/[\s\-_]/g, '').includes(q)).slice(0, 60)
   }, [search])
 
-  // "All" section = ALL_LUCIDE_ENTRIES minus the popular 8 (shown in quick row), first 150
+  // "All" section = ALL_LOOP_ENTRIES minus the popular 8 (shown in quick row), first 150
   const allIcons = useMemo(() =>
-    ALL_LUCIDE_ENTRIES.filter(([n]) => !DEFAULT_ICON_KEYS.slice(0, 8).includes(n)).slice(0, 150)
+    ALL_LOOP_ENTRIES.filter(([n]) => !DEFAULT_ICON_KEYS.slice(0, 8).includes(n)).slice(0, 150)
   , [])
 
   // Barrel + fades via direct DOM (no re-render on scroll)
@@ -4051,7 +4051,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 4, marginBottom: 6 }}>
                       {DEFAULT_ICON_KEYS.map(k => {
-                        const Ic = (LucideIcons as Record<string, unknown>)[k] as React.ElementType
+                        const Ic = (AppIcons as Record<string, unknown>)[k] as React.ElementType
                         return iconBtn(k, Ic)
                       })}
                     </div>

@@ -5,7 +5,7 @@ import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, Che
 import Modal, { ModalClose } from '../../Modal'
 import MobileSheet from '../../MobileSheet'
 import FadeText from '../../FadeText'
-import { useLoopIcons } from '../../icons/LoopIcon'
+import { useIsDesktop } from '../../../lib/useIsDesktop'
 import DateTimeField from '../../DateTimeField'
 import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../../lib/teacherTz'
 import QuickAddLesson from './QuickAddLesson'
@@ -381,7 +381,7 @@ function useLiveLesson(item: SchedItem) {
 
 function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; lifted?: boolean; preview?: boolean }) {
   const t = useT()
-  const mobile = useLoopIcons()
+  const mobile = !useIsDesktop()
   const { live, ended } = useLiveLesson(item)
   const viewTz = useTeacherTz(s => s.tz)
   const localStart = isMsk(viewTz) ? null : convertWallTime(item.date, item.time, 'Europe/Moscow', viewTz)
