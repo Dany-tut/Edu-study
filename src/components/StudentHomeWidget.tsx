@@ -32,8 +32,8 @@ export function HomeWidgetFade({ children, className = '' }: { children: ReactNo
   },[children])
   return <div ref={ref} className={`ihw-fade ${className}`} data-overflow={overflow}>{children}</div>
 }
-export function HomeWidgetCard({ id, title, extra, children, footer }: { id:number;title:string;extra?:ReactNode;children:ReactNode;footer:ReactNode }) {
-  return <section className="ihw-card" data-home-widget={id}><header className="ihw-heading"><h3><HomeWidgetFade>{title}</HomeWidgetFade></h3>{extra}</header><div className="ihw-body"><div className="ihw-main">{children}</div></div><HomeWidgetObject id={id}/><footer className="ihw-footer">{footer}</footer></section>
+export function HomeWidgetCard({ id, title, extra, children, footer, onOpen }: { onOpen?:()=>void;id:number;title:string;extra?:ReactNode;children:ReactNode;footer:ReactNode }) {
+  return <section className="ihw-card" data-home-widget={id} onClick={onOpen ? event => { if (!(event.target as Element).closest('button, a, input, select')) onOpen() } : undefined} style={onOpen ? { cursor: 'pointer' } : undefined}><header className="ihw-heading"><h3><HomeWidgetFade>{onOpen ? <button type="button" className="ihw-card-open" onClick={onOpen}>{title}</button> : title}</HomeWidgetFade></h3>{extra}</header><div className="ihw-body"><div className="ihw-main">{children}</div></div><HomeWidgetObject id={id}/><footer className="ihw-footer">{footer}</footer></section>
 }
 function Value({ children, label }: { children:ReactNode;label:string }) { return <div className="ihw-metric"><strong>{children}</strong><span>{label}</span></div> }
 function Copy({ title, text }: { title:string;text?:string }) { return <HomeWidgetFade className="ihw-copy"><div className="ihw-title-window"><HomeWidgetFade><h4>{title}</h4></HomeWidgetFade></div>{text && <p>{text}</p>}</HomeWidgetFade> }
@@ -74,7 +74,7 @@ function FeedSummary({ onOpen }: { onOpen:()=>void }) {
 }
 function TasksSummary({ onOpen,onTask }: { onOpen:()=>void;onTask:(task:HomeWidgetTask)=>void }) {
   const t=useT(),subjects=useStudentData(s=>s.subjects),loaded=useStudentData(s=>s.loaded),tasks=homeWidgetTasks(subjects)
-  return <HomeWidgetCard id={11} title={t('Твои дела')} extra={<span className="ihw-meta">{t('Все курсы')}</span>} footer={<Action label={t('Все дела')+(tasks.length?` · ${tasks.length}`:'')} onClick={onOpen}/>}>
+  return <HomeWidgetCard id={11} onOpen={onOpen} title={t('Твои дела')} extra={<span className="ihw-meta">{t('Все курсы')}</span>} footer={<Action label={t('Все дела')+(tasks.length?` · ${tasks.length}`:'')} onClick={onOpen}/>}>
     {!loaded?<Copy title={t('Загружаем дела')} />:tasks.length?<div className="ihw-task-list">{tasks.slice(0,2).map(task=><HomeTaskRow key={task.key} task={task} onOpen={()=>onTask(task)}/>)}</div>:<Copy title={t('Новых дел нет')} text={t('Практика — по желанию')}/>}</HomeWidgetCard>
 }
 function ContentSummary({ id,onOpen }: { id:number;onOpen:()=>void }) {
