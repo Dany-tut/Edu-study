@@ -3,7 +3,7 @@ import { LoopSelect } from './icons/LoopSelect'
 import { motion } from 'framer-motion'
 import { SubjectMark } from './icons/SubjectMark'
 import { useState, useMemo, useEffect } from 'react'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks, Camera, X } from './icons/appIcons'
+import { Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks, Camera, X } from './icons/appIcons'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import HScrollFade from './HScrollFade'
@@ -14,11 +14,11 @@ import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
 import { CourseOrderSheet } from './CourseOrderModal'
 import FeedGesturesSheet, { ACTION_LABEL } from './FeedGesturesSheet'
 import { useFeedGestures } from '../store/feedGesturesStore'
-import { getStudentSession, clearStudentSession } from '../lib/studentSession'
+import { getStudentSession } from '../lib/studentSession'
 import MobileSheet from './MobileSheet'
 import { useSubjectCards, subjectCardLabel } from './SubjectSwitcher'
 import { supabase } from '../lib/supabase'
-import { trackNow } from '../lib/analytics'
+import StudentLogoutButton from './StudentLogoutButton'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { subjectRank, subjectIcon, resolveSubjectPalette } from '../lib/subjects'
@@ -134,15 +134,6 @@ export default function MobileProfilePage() {
   // не говорят (lib/subjects.ts).
   const rankSubject = scopeSubject ?? subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
   const rank = t(subjectRank(rankSubject?.subject, level))
-
-  const logout = () => {
-    tactile()
-    clearStudentSession()
-    void trackNow('logout', { role: 'student' })
-    void supabase.auth.signOut()
-    window.location.hash = '#/'
-    window.location.reload()
-  }
 
   const topZone = (
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
@@ -488,15 +479,10 @@ export default function MobileProfilePage() {
               <AppVersionRow />
             </div>
 
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={logout}
-              className="flex items-center justify-center cursor-pointer"
-              style={{ gap: 8, padding: '12px', borderRadius: 16, background: 'transparent', color: PAIR.error.text, border: 'none', fontSize: 15, fontWeight: 600 }}
-            >
-              <LogOut size={18} />
-              {t('Выйти из аккаунта')}
-            </motion.button>
+            <StudentLogoutButton onComplete={() => {
+              window.location.hash = '#/'
+              window.location.reload()
+            }} />
           </div>
         </div>
       </MobileScreen>

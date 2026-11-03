@@ -5615,4 +5615,17 @@ export const EN: Record<string, string> = {
   "Можно улучшить": "Room to improve",
   "Попытки": "Attempts",
   "Вся сетка размеров": "All widget sizes",
+  "Не удалось выйти из аккаунта": "Could not sign out",
+  "Проверьте подключение и попробуйте ещё раз.": "Check your connection and try again.",
+  "Выходим…": "Signing out…",
+  "Нет доступа к кабинету преподавателя": "No access to the teacher workspace",
+  "Не удалось проверить доступ": "Could not verify access",
+  "Войдите под другой учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.": "Sign in with a different teacher account. For a student account, choose the student role.",
+  "Проверьте подключение и попробуйте ещё раз или войдите под другой учётной записью.": "Check your connection and try again, or sign in with a different account.",
+  "Проверяем доступ…": "Checking access…",
+  "Повторите проверку доступа, чтобы продолжить работу.": "Verify your access again to continue.",
+  "Проверить доступ ещё раз": "Check access again",
+  "Войдите под учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.": "Sign in with a teacher account. For a student account, choose the student role.",
+  "Не удалось проверить доступ. Проверьте подключение и попробуйте ещё раз.": "Could not verify access. Check your connection and try again.",
+
 }
