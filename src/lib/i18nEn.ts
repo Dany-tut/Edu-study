@@ -3447,6 +3447,7 @@ export const EN: Record<string, string> = {
   'Дата урока': 'Lesson date',
   'Начало': 'Start',
   'м': 'min',
+  'Сначала укажите название курса.': 'Enter a course name first.',
   'Ссылка на запись': 'Link to the recording',
   'Вставьте ссылку RuTube / YouTube': 'Paste a RuTube / YouTube link',
   'Вставьте ссылку RuTube / YouTube / Google Диск': 'Paste a RuTube / YouTube / Google Drive link',

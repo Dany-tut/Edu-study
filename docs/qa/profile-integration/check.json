@@ -1,0 +1,282 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "light",
+    "frames": 106,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        23,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        46,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 533.265625,
+      "y": 31,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 254,
+      "y": 35.90625,
+      "width": 261.265625,
+      "height": 44.1875
+    }
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "dark",
+    "frames": 78,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        23,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        46,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 533.265625,
+      "y": 31,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 254,
+      "y": 35.90625,
+      "width": 261.265625,
+      "height": 44.1875
+    }
+  },
+  {
+    "width": 768,
+    "height": 680,
+    "theme": "light",
+    "frames": 85,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        133,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        266,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 197.265625,
+      "y": 31,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 35.90625,
+      "width": 155.265625,
+      "height": 44.1875
+    }
+  },
+  {
+    "width": 768,
+    "height": 680,
+    "theme": "dark",
+    "frames": 80,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        133,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        266,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 197.265625,
+      "y": 31,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 35.90625,
+      "width": 155.265625,
+      "height": 44.1875
+    }
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "theme": "light",
+    "frames": 79,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        271,
+        18,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        542,
+        35,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 19,
+      "y": 87.1875,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 28,
+      "width": 342,
+      "height": 44.1875
+    }
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "theme": "dark",
+    "frames": 83,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        271,
+        18,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        542,
+        35,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 19,
+      "y": 87.1875,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 28,
+      "width": 342,
+      "height": 44.1875
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "theme": "light",
+    "frames": 80,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        480,
+        53,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        960,
+        105,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 26,
+      "y": 87.1875,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 28,
+      "width": 272,
+      "height": 44.1875
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "theme": "dark",
+    "frames": 103,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        480,
+        53,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        960,
+        105,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 26,
+      "y": 87.1875,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 28,
+      "width": 272,
+      "height": 44.1875
+    }
+  }
+]

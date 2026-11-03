@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AudioLines } from '../icons/appIcons'
+import { AudioLines, Download } from '../icons/appIcons'
 import Modal from '../Modal'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
@@ -37,12 +37,31 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
     } catch (error) { setMessage((error as Error).message) }
     finally { setBusy(false) }
   }
-  return <section style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 18, marginBottom: 12 }}>
-    <strong><AudioLines size={20} /> Расшифровка уроков</strong>
-    <p>{connected ? 'Подключено на этом компьютере. Откройте урок в конструкторе курса и выберите «Запись».' : 'Для Mac с Apple Silicon. Распакуйте архив, запустите start.command и подключите компьютер. При первом запуске загрузятся модели.'}</p>
-    {!connected && <a href="/downloads/iskra-transcription-mac.zip" download style={{...btn('M', 'secondary'), marginRight: 8}}>Скачать для Mac</a>}
-    <button disabled={busy || !owner} style={btn('M', connected ? 'secondary' : 'primary')} onClick={change}>{connected ? 'Отключить компьютер' : 'Подключить компьютер'}</button>
-    {message && <p role="alert">{message}</p>}
+  return <section className="transcription-module" aria-label="Расшифровка уроков">
+    <header className="transcription-module-header">
+      <span className="transcription-module-icon"><AudioLines size={22} aria-hidden /></span>
+      <div className="transcription-module-title">
+        <h3>Расшифровка уроков</h3>
+        <p>Текст записи и таймкоды глав · Mac с Apple Silicon</p>
+      </div>
+      <span className="transcription-module-status" data-connected={connected}>
+        {connected ? 'Подключён' : 'Не подключён'}
+      </span>
+    </header>
+    <div className="transcription-module-body">
+      <p>{connected
+        ? 'Чтобы расшифровать урок, откройте вкладку «Запись» в конструкторе курса.'
+        : <>Распакуйте архив и запустите <code>start.command</code>. При первом запуске Mac загрузит модели. Затем подключите компьютер к Искре.</>}</p>
+      <div className="transcription-module-actions">
+        {!connected && <a href="/downloads/iskra-transcription-mac.zip" download style={btn('M', 'secondary')}>
+          <Download size={15} aria-hidden /> Скачать для Mac
+        </a>}
+        <button disabled={busy || !owner} onClick={change} style={btn('M', connected ? 'secondary' : 'primary')}>
+          {busy ? (connected ? 'Отключаем…' : 'Подключаем…') : (connected ? 'Отключить компьютер' : 'Подключить компьютер')}
+        </button>
+      </div>
+      {message && <p className="transcription-module-error" role="alert">{message}</p>}
+    </div>
   </section>
 }
 

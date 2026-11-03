@@ -1,3 +1,5 @@
+import './teacherProfileHeader.css'
+import FadeText from '../../components/FadeText'
 import ProfileChips from '../../components/ProfileChips'
 import HScrollFade from '../../components/HScrollFade'
 import { FriendsContent, FriendsTabs } from '../../components/DesktopFriends'
@@ -245,22 +247,24 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
       <TeacherPageScroll>
       <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
-          <BackCircle onClick={() => setActivePage('home')} label="На главную" />
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Профиль')}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{name}</div>
+        <header className="teacher-profile-header">
+          <div className="teacher-profile-identity">
+            <BackCircle onClick={() => setActivePage('home')} label="На главную" />
+            <div style={{ minWidth: 0 }}>
+              <h1>{t('Профиль')}</h1>
+              <FadeText className="teacher-profile-name">{name}</FadeText>
+            </div>
           </div>
-        </div>
-
-        <HScrollFade fadeWidth={22} padX={2} gap={12} style={{ marginBottom: 20 }}>
-          <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {
-            if (id === 'friends') friends.setTab('contacts')
-            else { friends.setTab(null); setPage(id) }
-          }}/>
-          {section === 'friends' && <FriendsTabs model={friends}/>}
-        </HScrollFade>
+          <HScrollFade padX={2} padTop={3} padBottom={3} fadeWidth={22} style={{ minWidth: 0, maxWidth: '100%', justifySelf: 'center' }}>
+            <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {
+              if (id === 'friends') friends.setTab('contacts')
+              else { friends.setTab(null); setPage(id) }
+            }}/>
+          </HScrollFade>
+        </header>
+        {section === 'friends' && <HScrollFade padX={2} fadeWidth={22} style={{ width: 'fit-content', maxWidth: '100%', margin: '0 auto 16px' }}>
+          <FriendsTabs model={friends}/>
+        </HScrollFade>}
         {section === 'friends' && <FriendsContent model={friends}/>}
         {section === 'main' && <>
         {/* Avatar preview + picker */}
