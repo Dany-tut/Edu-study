@@ -1,3 +1,4 @@
+import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
@@ -106,6 +107,8 @@ type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
 
 export interface CELesson {
   id: string
+  /** Authoritative lesson reference; copied courses may use a random short_id. */
+  persistedShortId?: string
   title: string
   number: number
   /** Node kind: a normal lesson, or a final test that opens a quiz. */
@@ -282,32 +285,7 @@ function earliestCourseDate(lessons: CELesson[]): Date | null {
   return min
 }
 
-// Map each editor lesson → the short_id it is (or will be) persisted under.
-// A lesson's short_id must be STABLE across reorders/renames: it's the key that
-// ties lesson_progress rows and calendar events to the lesson. We therefore
-// derive it from the lesson's identity, NOT from its position or `number`:
-//   • a lesson loaded from the DB already carries its short_id as `id`
-//     (`${courseShortId}-N`) — reuse it verbatim.
-//   • a brand-new lesson (uuid id) gets the next free numeric suffix, never a
-//     position-derived one, so it can't collide with / clobber an existing ref.
-// The old scheme (`${courseShortId}-${lesson.number}`) renumbered short_ids
-// whenever `number`/position drifted, orphaning progress rows → lessons the
-// teacher had opened showed up locked in the student track.
-export function lessonShortIdMap(courseShortId: string, lessons: CELesson[]): Record<string, string> {
-  const prefix = `${courseShortId}-`
-  const map: Record<string, string> = {}
-  let maxN = -1
-  for (const l of lessons) {
-    if (l.id.startsWith(prefix)) {
-      const suffix = l.id.slice(prefix.length)
-      if (/^\d+$/.test(suffix)) { map[l.id] = l.id; maxN = Math.max(maxN, Number(suffix)) }
-    }
-  }
-  for (const l of lessons) {
-    if (!map[l.id]) { maxN += 1; map[l.id] = `${prefix}${maxN}` }
-  }
-  return map
-}
+export { lessonShortIdMap } from '../../lib/lessonReferences'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
@@ -3031,6 +3009,9 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       return (
                       <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <button
+                          type="button"
+                          aria-label={`${t('Верный ответ')} ${letter}`}
+                          aria-pressed={isCorrect}
                           onClick={() => {
                             if (task.type === 'single') {
                               onUpdate({ ...task, correctChoices: [ci] })
@@ -3062,6 +3043,8 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         </div>
                         {choices.length > 2 && (
                           <button
+                            type="button"
+                            aria-label={`${t('Удалить вариант')} ${letter}`}
                             onClick={() => {
                               const next = choices.filter((_, i) => i !== ci)
                               const correct = correctChoices.filter(i => i !== ci).map(i => i > ci ? i - 1 : i)
@@ -6351,7 +6334,7 @@ export default function TeacherCourseEditorPage() {
       if (idChanged) {
         setCourse(prev => ({
           ...prev,
-          lessons: prev.lessons.map(l => shortIdByLessonId[l.id] ? { ...l, id: shortIdByLessonId[l.id] } : l),
+          lessons: prev.lessons.map(l => shortIdByLessonId[l.id] ? { ...l, id: shortIdByLessonId[l.id], persistedShortId: shortIdByLessonId[l.id] } : l),
           modules: prev.modules.map(m => ({
             ...m,
             lessonIds: m.lessonIds.map(id => shortIdByLessonId[id] ?? id),
@@ -6845,7 +6828,18 @@ export default function TeacherCourseEditorPage() {
           // «Взять из базы» — перезагрузка: несохранённые правки этой вкладки
           // пропадут, зато версия станет ровно серверной. Черновик гасим, иначе
           // F5-восстановление вернёт ту же устаревшую копию.
-          onReload={() => { clearDrafts(draftNs); window.location.reload() }}
+          onReload={() => {
+            // F5 also restores ce-session, independently from the draft. Do not
+            // let that snapshot resurrect the version the teacher discarded.
+            const fresh: CourseEdData = {
+              ...latestCourse.current, lessons: [], modules: [], accessChanges: undefined,
+              metadataPending: true, heavyPending: true,
+            }
+            unsaved.current = false
+            clearDrafts(draftNs)
+            useTeacher.getState().openCourseEditor(JSON.stringify(fresh))
+            window.location.reload()
+          }}
           // «Оставить моё» — усыновляем серверный отпечаток (сторож теперь
           // пропустит) и перезаписываем курс целиком своей версией.
           onOverwrite={() => {
