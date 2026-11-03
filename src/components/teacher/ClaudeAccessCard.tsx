@@ -5,7 +5,7 @@ import { useT } from '../../lib/i18n'
 import { btn } from '../../lib/pillStyles'
 import { confirmDialog } from '../ConfirmHost'
 import { Alert } from '../Alert'
-import { Copy, Sparkles } from '../icons/appIcons'
+import { Copy, ExternalLink, Sparkles } from '../icons/appIcons'
 import './profileIntegrations.css'
 
 type Grant = { owner: string; client: { id: string; name: string } }
@@ -114,10 +114,12 @@ export default function ClaudeAccessCard() {
       <p role="status">{service === 'ready' ? t('Сервис MCP доступен') : service === 'loading' ? t('Проверяем доступность MCP…') : t('Сервис MCP пока недоступен')}</p>
       </div>
     </header>
-    <p>{t('В Claude откройте Settings → Connectors → Add custom connector и вставьте адрес Искры.')}</p>
+    <p>{t('Скопируйте адрес Искры и вставьте его в поле MCP server URL в Claude. Форма также доступна в Customize → Connectors → Add custom connector.')}</p>
     <code>{endpoint}</code>
     <div className="claude-access-actions">
       <button type="button" style={btn('S','secondary')} disabled={acting} onClick={copy}><Copy size={15}/>{t('Скопировать адрес')}</button>
+      <a href="https://claude.ai/customize/connectors/yours?modal=add-custom-connector" target="_blank" rel="noopener noreferrer"
+        style={{ ...btn('S','secondary'), minHeight:44, textDecoration:'none' }}><ExternalLink size={15}/>{t('Открыть Claude')}</a>
       <button type="button" style={btn('S','secondary')} disabled={acting || status === 'loading'} onClick={() => { setNotice(''); void refresh() }}>{t('Обновить статус')}</button>
     </div>
     <div><strong>{t('Подключённые приложения')}</strong>
