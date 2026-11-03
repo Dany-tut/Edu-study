@@ -13,7 +13,7 @@ const errors=[];p.on('pageerror',e=>errors.push(e.message))
 await p.addInitScript(({user,theme})=>{
 localStorage.setItem('sb-fixture-auth-token',JSON.stringify({access_token:'fixture',refresh_token:'fixture',expires_at:Math.floor(Date.now()/1000)+3600,token_type:'bearer',user}))
 },{user,theme})
-await p.route('http://fixture.invalid/**',r=>r.fulfill({json:r.request().url().includes('/oauth/grants')?[{client:{id:'fixture-claude',name:'Claude'}}]:r.request().url().includes('/teacher_modules')?[{meta:{email:'fixture@test.local',tests:25}}]:r.request().url().includes('/auth/v1/user')?user:r.request().url().includes('desktop_friends')?{handle:'teacher',contacts:[],searchable:false}:[]}))
+await p.route('http://fixture.invalid/**',r=>r.fulfill({json:r.request().url().includes('/oauth/grants')?[{client:{id:'fixture-claude',name:'Claude'}}]:r.request().url().includes('/teacher_modules')?[{meta:{email:'fixture@test.local',tests:25}}]:r.request().url().includes('/auth/v1/user')?user:r.request().url().includes('desktop_friends')?{handle:'teacher',contacts:[],searchable:true}:[]}))
 let fail=true
 await p.route('http://127.0.0.1:18764/**',async r=>{await new Promise(ok=>setTimeout(ok,220));await r.fulfill({status:fail?403:200,json:{token:'demo'}})})
 await p.goto('http://localhost:4201/qa/profile-integration/')
@@ -21,6 +21,10 @@ await p.evaluate(th=>document.documentElement.dataset.theme=th,theme)
 const nav=p.getByRole('navigation',{name:'Разделы профиля'})
 const click=async name=>{const btn=nav.getByRole('button',{name,exact:true});await btn.click();assert.equal(await btn.getAttribute('aria-pressed'),'true')}
 await nav.getByRole('button',{name:'Друзья'}).waitFor()
+await p.context().grantPermissions(['clipboard-read','clipboard-write'], {origin:'http://localhost:4201'})
+await p.getByRole('button',{name:'Скопировать ник teacher',exact:true}).click()
+assert.equal(await p.evaluate(()=>navigator.clipboard.readText()),'teacher')
+
 await p.evaluate(()=>{
  window.navFrames=[]
  function frame(){const nav=document.querySelector('nav[aria-label="Разделы профиля"]'); if(!nav)return;const r=nav.getBoundingClientRect(); window.navFrames.push([r.x+r.width/2,r.y+r.height/2]);requestAnimationFrame(frame)}frame()

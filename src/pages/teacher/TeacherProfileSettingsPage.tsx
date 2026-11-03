@@ -77,8 +77,12 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
     const timer = window.setTimeout(() => setCopyResult(''), 1800)
     return () => window.clearTimeout(timer)
   }, [copyResult])
-  async function copyName() {
-    const copied = await copyToClipboard(name)
+  const handle = friends.snapshot?.handle
+  const canShareHandle = Boolean(handle && friends.snapshot?.searchable && !friends.error)
+  const [savedName, setSavedName] = useState('')
+  async function copyHandle() {
+    if (!handle || !canShareHandle) return
+    const copied = await copyToClipboard(handle)
     setCopyResult(copied ? t('Скопировано') : t('Не удалось скопировать ник'))
   }
   const nameInput = useRef<HTMLInputElement>(null)
@@ -97,6 +101,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
     getAuthUser().then(u => {
       if (!mounted || !u) return
       setProfileOwner(u.id)
+      setSavedName(u.user_metadata?.name ?? '')
       if (!hadDraft.name) setName(u.user_metadata?.name ?? u.email?.split('@')[0] ?? '')
       setEmail(u.email ?? '')
       setRole(u.app_metadata?.role === 'admin' ? 'admin' : 'teacher')
@@ -233,6 +238,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
     })
     setSaving(false)
     if (err) { setError(t(authErrorRu(err, 'Не удалось сохранить профиль. Попробуйте ещё раз.'))); return }
+    setSavedName(name.trim())
     clearDrafts('profile.')
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
@@ -263,10 +269,16 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
             <BackCircle onClick={() => setActivePage('home')} label="На главную" />
             <div style={{ minWidth: 0, position: 'relative' }}>
               <h1>{t('Профиль')}</h1>
-              <button type="button" className="teacher-profile-name" disabled={!name.trim()}
-                aria-label={t('Скопировать ник') + ' ' + name} onClick={copyName}>
-                <FadeText>{name}</FadeText>
-              </button>
+              {canShareHandle ? (
+                <button type="button" className="teacher-profile-name"
+                  aria-label={t('Скопировать ник') + ' ' + handle} onClick={copyHandle}>
+                  <FadeText>{handle}</FadeText>
+                </button>
+              ) : friends.account && (friends.snapshot || friends.error) ? (
+                <button type="button" className="teacher-profile-name" onClick={() => friends.setTab('profile')}>
+                  <FadeText>{friends.error ? t('Ник и видимость') : handle ? handle + ' · ' + t('Включить поиск') : t('Выбрать ник')}</FadeText>
+                </button>
+              ) : null}
               <span className="teacher-profile-copy-status" role="status">{copyResult}</span>
             </div>
           </div>
@@ -277,7 +289,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
             }}/>
           </HScrollFade>
         </header>
-        {section === 'friends' && <FriendsContent model={friends} overview/>}
+        {section === 'friends' && <FriendsContent model={friends} overview suggestedName={friends.account === profileOwner ? savedName : ''}/>}
         {section === 'main' && <>
         {/* Avatar preview + picker */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
@@ -357,18 +369,21 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
 
         {/* Form */}
         <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <input
-            ref={nameInput}
-            value={name}
-            onChange={e => {
-              const value = e.target.value
-              setName(value)
-              window.dispatchEvent(new CustomEvent('iskra:teacher-name-draft', { detail: value }))
-            }}
-            onKeyDown={e => e.key === 'Enter' && handleSave()}
-            placeholder={t('Имя')}
-            style={inputStyle}
-          />
+          <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--color-text-2)' }}>
+            {t('Имя в профиле')}
+            <input
+              ref={nameInput}
+              value={name}
+              onChange={e => {
+                const value = e.target.value
+                setName(value)
+                window.dispatchEvent(new CustomEvent('iskra:teacher-name-draft', { detail: value }))
+              }}
+              onKeyDown={e => e.key === 'Enter' && handleSave()}
+              placeholder={t('Имя')}
+              style={inputStyle}
+            />
+          </label>
 
           {role !== 'admin' && (
             <div>

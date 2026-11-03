@@ -57,7 +57,7 @@ export function FriendsTabs({ model }: { model: FriendsModel }) {
     }))}/>
 }
 
-export function FriendsContent({ model, overview = false }: { model: FriendsModel; overview?: boolean }) {
+export function FriendsContent({ model, overview = false, suggestedName = '' }: { model: FriendsModel; overview?: boolean; suggestedName?: string }) {
   const t = useT()
   const { account, snapshot, tab } = model
   if (!account || !tab) return null
@@ -70,17 +70,19 @@ export function FriendsContent({ model, overview = false }: { model: FriendsMode
     <div className={overview ? "desktop-friends friends-overview" : "desktop-friends"}>
       {model.error && <p role="alert">{t(model.error)} <button onClick={model.refresh}>{t('Повторить')}</button></p>}
       {snapshot ? panes.map(pane =>
-        <FriendsPane key={account + pane} model={model} account={account} tab={pane} overview={overview}/>
+        <FriendsPane key={account + pane} model={model} account={account} tab={pane} overview={overview} suggestedHandle={valid(suggestedName) ? clean(suggestedName) : ''}/>
       ) : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
     </div>
   )
 }
 
-function FriendsPane({ model, account, tab, overview }: { model: FriendsModel; account: string; tab: FriendsTab; overview: boolean }) {
+function FriendsPane({ model, account, tab, overview, suggestedHandle }: { model: FriendsModel; account: string; tab: FriendsTab; overview: boolean; suggestedHandle: string }) {
   const t = useT()
   const snapshot = model.snapshot!
-  const [nick,setNick] = useState(tab === 'profile' ? snapshot.handle ?? '' : '')
-  const [visible,setVisible] = useState(snapshot.searchable)
+  const [nickDraft,setNick] = useState<string | null>(null)
+  const nick = nickDraft ?? (tab === 'profile' ? snapshot.handle ?? suggestedHandle : '')
+  const [visibilityDraft,setVisible] = useState<boolean | null>(null)
+  const visible = visibilityDraft ?? (snapshot.handle ? snapshot.searchable : overview)
   const [result,setResult] = useState<SearchResult | null>(null)
   const [message,setMessage] = useState('')
   const [busy,setBusy] = useState(false)
@@ -108,7 +110,7 @@ function FriendsPane({ model, account, tab, overview }: { model: FriendsModel; a
   return <section aria-label={t(titles[tab])}>
     {tab === 'profile' ? <form onSubmit={e => { e.preventDefault(); void run(async () => {
       await friendsAction(account,'save',{ handle:clean(nick),searchable:visible }); await model.refresh()
-      if (active.current) setMessage('Настройки сохранены.')
+      if (active.current) { setNick(null); setVisible(null); setMessage('Настройки сохранены.') }
     }) }}>
       <h3>{t('Ник и видимость')}</h3><label>{t('Твой ник')}<input value={nick} onChange={e=>setNick(e.target.value)} placeholder="@luna_7" maxLength={21} disabled={busy} /></label>
       <p>{t('От 4 до 20 символов. Начни с латинской буквы. Можно добавить цифры и нижнее подчёркивание.')}</p>

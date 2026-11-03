@@ -575,6 +575,8 @@ export const EN: Record<string, string> = {
   "Ничего не найдено": "Nothing found",
   "Сначала сохрани свой ник.": "Save your nickname first.",
   "Заявка отправлена.": "Request sent.",
+  "Включить поиск": "Enable discovery",
+  "Имя в профиле": "Display name",
   "Скопировать ник": "Copy nickname",
   "Не удалось скопировать ник": "Could not copy nickname",
   "Скопировать номер": "Copy number",
