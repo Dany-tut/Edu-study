@@ -87,7 +87,17 @@ await help.locator('summary').click()
 assert(!await settings.isVisible())
 assert.equal(await card.locator('.transcription-setup li').count(),3)
 await card.getByRole('button',{name:/Подключить компьютер/}).click();await card.getByText('Подключаем…').waitFor();await card.getByRole('alert').waitFor();assert.equal(await card.getByText('Готово',{exact:true}).count(),0);fail=false
-await card.getByRole('button',{name:/Подключить компьютер/}).click();await card.getByText('Отключить компьютер').waitFor();await card.getByRole('button',{name:'Готово'}).waitFor();assert.equal(await guide.count(),0);await card.getByText('Отключить компьютер').click();await card.getByText('Не подключён',{exact:true}).waitFor()
+await card.getByRole('button',{name:/Подключить компьютер/}).click()
+const disconnect=card.getByRole('button',{name:'Отключить компьютер'})
+await disconnect.waitFor()
+const ready=await card.getByRole('button',{name:'Готово'}).boundingBox(), off=await disconnect.boundingBox()
+const row=await card.locator('.transcription-steps').boundingBox()
+assert(ready.width===ready.height && ready.width<=32)
+assert(Math.abs(ready.y+ready.height/2-off.y-off.height/2)<1 && Math.abs(off.x+off.width-row.x-row.width)<1)
+assert(off.height>=44 && off.x>=ready.x+ready.width+4)
+assert.equal(await guide.count(),0)
+if(shots)await card.screenshot({path:output+'/connected-'+width+'.png'})
+await disconnect.click();await card.getByText('Не подключён',{exact:true}).waitFor()
 if(shots) {
  for(const [i,f] of [0,.5,1].entries()) {
   await p.evaluate(f=>{for(const [sel,key] of [['.teacher-page-scroll','scrollTop'],['.teacher-profile-header .no-scrollbar','scrollLeft']]){const el=document.querySelector(sel);el[key]=(key==='scrollTop'?el.scrollHeight-el.clientHeight:el.scrollWidth-el.clientWidth)*f}},f)
