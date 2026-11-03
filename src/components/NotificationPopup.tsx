@@ -87,12 +87,14 @@ function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notifica
 }
 
 type Props = {
+  requests?: import('../lib/desktopFriends').Contact[]
+  onRequests?: () => void
   open: boolean
   anchorRef: React.RefObject<HTMLElement | null>
   onClose: () => void
 }
 
-export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
+export default function NotificationPopup({ requests = [], onRequests, open, anchorRef, onClose }: Props) {
   const t = useT()
   const notifications = useNotificationsStore(s => s.notifications)
   const markRead      = useNotificationsStore(s => s.markRead)
@@ -173,7 +175,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <Bell size={16} style={{ color: 'var(--color-muted)' }} />
               <FadeText style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Уведомления')}</FadeText>
-              <CountBadge count={unread} tone="danger" />
+              <CountBadge count={unread + requests.length} tone="danger" />
             </div>
             {unread > 0 && (
               <button onClick={markAllRead} style={{
@@ -186,7 +188,10 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
           </div>
 
           <ScrollFade maxHeight={Math.min(380, Math.max(0, pos.maxHeight - 70))} fadeMode="mask" scrollStyle={{ padding: 6 }}>
-            {notifications.length === 0 ? (
+            {requests.map(request => <button key={request.id} onClick={onRequests} style={{ display:'flex', alignItems:'center', gap:12, width:'100%', minHeight:48, padding:'10px 14px', background:'var(--color-bg-3)', color:'var(--color-text)', border:0, borderRadius:12, textAlign:'left', cursor:'pointer' }}>
+              <UserPlus size={18} style={{ flexShrink:0 }}/><span><b>@{request.handle}</b> · {t('Заявка в друзья')}</span>
+            </button>)}
+            {notifications.length === 0 && requests.length === 0 ? (
               <EmptyState icon={BellOff} title={t('Нет уведомлений')} style={{ background: 'transparent', border: 'none', padding: '28px 12px' }} />
             ) : notifications.map(n => <NotifRow key={n.id} n={n} onActivate={activate} />)}
           </ScrollFade>
