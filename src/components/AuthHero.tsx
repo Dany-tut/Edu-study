@@ -1,12 +1,13 @@
 import './authLayout.css'
 
-export default function AuthHero({ title, subtitle, object, hideArt = false }: {
+export default function AuthHero({ title, subtitle, object, hideArt = false, compactTitle = false }: {
   title: string
   subtitle?: string
   object: 'reminders' | 'practice' | 'feed' | 'focus'
   hideArt?: boolean
+  compactTitle?: boolean
 }) {
-  return <div className="auth-hero">
+  return <div className={compactTitle ? 'auth-hero auth-hero--compact-title' : 'auth-hero'}>
     <div className="auth-hero-copy">
       <h1>{title}</h1>
       {subtitle && <p>{subtitle}</p>}
