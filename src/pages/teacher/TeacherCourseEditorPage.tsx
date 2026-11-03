@@ -1795,10 +1795,9 @@ function CenterRecording({
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      {!loading && <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} published={published}
+      {loading ? content : <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
-        onApply={({ transcript, timecodes }) => { onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }} />}
-      {content}
+        onApply={({ transcript, timecodes }) => { onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }}>{content}</TranscriptionAction>}
     </div>
   )
 }
