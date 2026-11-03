@@ -12,3 +12,18 @@ console.log('Server monitor: fixed targets, public privacy, failure publication,
 
 await assert.rejects(()=>probe(async (url,init)=>String(url).includes('/assets/')?new Response('<html>fallback</html>',{headers:{'Content-Type':'text/html'}}):fake(url,init),'fixture'));
 console.log('External monitor rejects missing entry/MIME fallback even when HTML and manifests are200');
+// Execute the real publisher against a fake GitHub API, never touching a remote ref.
+const {build}=await import('esbuild');const calls=[];let blobN=0;
+globalThis.__publisherFixture={readFileSync:()=>JSON.stringify(good),execFileSync:(cmd,args,opts)=>{
+ assert.equal(cmd,'gh');assert.equal(args[0],'api');const path=args[1];const body=opts?.input?JSON.parse(opts.input):null;calls.push({path,body});
+ if(path.includes('/git/ref/heads/'))return JSON.stringify({object:{sha:'previous'}});
+ if(path.endsWith('/git/blobs'))return JSON.stringify({sha:'blob'+(++blobN)});
+ if(path.endsWith('/git/trees'))return JSON.stringify({sha:'tree'});
+ if(path.endsWith('/git/commits'))return JSON.stringify({sha:'commit'});
+ if(path.endsWith('/git/refs/heads/codex/monitor-status'))return JSON.stringify({object:{sha:'commit'}});
+ throw Error('Unexpected publication target');
+}};
+const bundle=await build({entryPoints:['scripts/monitor/publish.mjs'],bundle:true,write:false,platform:'node',format:'esm',plugins:[{name:'fake-api',setup(b){b.onResolve({filter:/^node:(fs|child_process)$/},a=>({path:a.path,namespace:'fake'}));b.onLoad({filter:/.*/,namespace:'fake'},a=>({contents:a.path==='node:fs'?'export default globalThis.__publisherFixture':'export const execFileSync=globalThis.__publisherFixture.execFileSync'}))}}]});
+await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+const tree=calls.find(x=>x.path.endsWith('/git/trees')).body.tree;assert.deepEqual(tree.map(x=>x.path),['iskra.json','vercel.json']);const guard=calls.filter(x=>x.path.endsWith('/git/blobs'))[1].body.content;assert.equal(JSON.parse(guard).git.deploymentEnabled,false);assert(calls.filter(x=>x.path.includes('/git/refs/')).every(x=>x.path.endsWith('/codex/monitor-status')&&x.body.force===false));
+console.log('Publisher: aggregate-only branch, fixed no-deploy guard and no main/force mutation passed');
