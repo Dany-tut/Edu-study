@@ -20,7 +20,8 @@ try{
   page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(6000)
   try{
    await page.addInitScript(t=>{localStorage.setItem('theme',t);document.addEventListener('DOMContentLoaded',()=>document.documentElement.dataset.theme=t,{once:true})},theme)
-   await page.goto(base+'/qa/shelf-filters/',{waitUntil:'domcontentloaded'})
+   // Cold Vite compilation on CI can exceed action timeouts; retain 6 s for interactions.
+   await page.goto(base+'/qa/shelf-filters/',{waitUntil:'domcontentloaded',timeout:30000})
    const sort=page.locator('[data-qa=sort]'),facet=page.locator('[data-qa=facet]'),subjects=page.locator('[data-qa=subjects]')
    const activate=async(button,key)=>{await button.focus();await page.keyboard.press(key)}
    await activate(sort.getByRole('button',{name:'Новые',exact:true}),'Enter')
