@@ -1,0 +1,170 @@
+[
+  {
+    "type": "stat-students",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "stat-hw",
+    "grown": {
+      "h": "1",
+      "image": 480,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "stat-lessons",
+    "grown": {
+      "h": "1",
+      "image": 480,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "stat-earnings",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "finance-received",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "finance-expected",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "finance-debt",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "finance-forecast",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "student-count",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "student-groups",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "student-active",
+    "grown": {
+      "h": "1",
+      "image": 480,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  },
+  {
+    "type": "student-debtors",
+    "grown": {
+      "h": "1",
+      "image": 1254,
+      "inside": true,
+      "visible": true,
+      "w": "2"
+    },
+    "small": {
+      "h": "1",
+      "w": "1"
+    }
+  }
+]

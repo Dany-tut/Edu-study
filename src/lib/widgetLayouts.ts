@@ -4,7 +4,7 @@ export const WIDGET_LAYOUTS: Record<string,readonly WidgetCellSize[]> = {
   "stat-students": [{w:1,h:1},{w:2,h:1}],
   "stat-hw": [{w:1,h:1},{w:2,h:1}],
   "stat-lessons": [{w:1,h:1},{w:2,h:1}],
-  "stat-earnings": [{w:1,h:1}],
+  "stat-earnings": [{w:1,h:1},{w:2,h:1}],
   "finance-received": [{w:1,h:1},{w:2,h:1}],
   "finance-expected": [{w:1,h:1},{w:2,h:1}],
   "finance-debt": [{w:1,h:1},{w:2,h:1}],
