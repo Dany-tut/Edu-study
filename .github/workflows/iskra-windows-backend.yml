@@ -1,7 +1,7 @@
 name: Windows full classroom
 on:
   push:
-    branches: [codex/beta-invite-privacy-1103]
+    branches: [codex/verify-published-b35fae6b]
     paths:
       - '.github/workflows/iskra-windows-backend.yml'
       - '.gitattributes'
@@ -21,6 +21,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: b35fae6b78145ad821ae77bce1446fd0675a65e5
+      - name: Verify published source revision
+        shell: pwsh
+        run: |
+          $sha = (git rev-parse HEAD).Trim()
+          if ($sha -ne "b35fae6b78145ad821ae77bce1446fd0675a65e5") { throw "Unexpected source revision" }
+          Write-Host "Published checkout $sha"
       - uses: actions/setup-node@v4
         with:
           node-version: 24
