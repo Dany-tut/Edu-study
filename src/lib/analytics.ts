@@ -128,9 +128,14 @@ async function flush(final = false) {
 // а не «/»: иначе пульсы и ошибки с главной ложились отдельной строкой «/»,
 // где ноль визитов (визит-то записан роутером как «#/»), и на вкладке
 // «Проблемы» она выглядела страницей-призраком.
+function analyticsPath(path: string): string {
+  if (path.startsWith('#') && !path.startsWith('#/')) return '#/'
+  return path.split('?', 1)[0]
+}
+
 function currentPath(): string | null {
   if (typeof location === 'undefined') return null
-  if (location.hash) return location.hash
+  if (location.hash) return analyticsPath(location.hash)
   return location.pathname === '/' ? '#/' : location.pathname
 }
 
@@ -141,7 +146,7 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   if (!TELEMETRY_ON) return
   buffer.push({
     event,
-    path: path ?? currentPath(),
+    path: path ? analyticsPath(path) : currentPath(),
     meta,
     created_at: new Date().toISOString(),
   })
@@ -181,7 +186,6 @@ function recordDwell() {
 let lastPath = ''
 /** Call on every route change — records dwell time for the previous page. */
 export function trackPath(path: string, meta: Record<string, unknown> = {}) {
-  if (path === lastPath) return
   // Якорь внутри страницы («#modes», «#tariffs» в навигации лендинга) — не
   // переход: адрес меняется, а экран тот же. Роутер их и так не разбирает —
   // маршруты все вида «#/…». А телеметрия считала каждый такой клик уходом:
@@ -190,6 +194,8 @@ export function trackPath(path: string, meta: Record<string, unknown> = {}) {
   // висели в bounce-риске.
   if (path.startsWith('#') && !path.startsWith('#/')) return
 
+  path = analyticsPath(path)
+  if (path === lastPath) return
   recordDwell()
 
   lastPath = path
@@ -344,7 +350,7 @@ export function initAnalytics() {
     let tz: string | null = null
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null } catch { /**/ }
     trackEvent('session_start', {
-      ref: document.referrer || null,
+      ref: document.referrer ? new URL(document.referrer).origin : null,
       w: window.innerWidth,
       h: window.innerHeight,
       tz,
