@@ -1,3 +1,4 @@
+import { telemetrySource } from './telemetrySource'
 // Lightweight behavioural telemetry beacon. Automatic — no consent gate.
 // Records ids + behaviour only (no names/emails/PII). RLS enforces admin-only read.
 import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
@@ -194,7 +195,7 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   buffer.push({
     event,
     path: eventPath,
-    meta: { ...(isIncident ? sanitizeIncidentMeta(meta) : meta), ...(isIncident ? incidentContext() : {}), app_version: __APP_VERSION__, online: navigator.onLine, viewport: `${window.innerWidth}×${window.innerHeight}` },
+    meta: { ...(isIncident ? sanitizeIncidentMeta(meta) : meta), ...(isIncident ? incidentContext() : {}), ...telemetrySource(), app_version: __APP_VERSION__, online: navigator.onLine, viewport: `${window.innerWidth}×${window.innerHeight}` },
     created_at: new Date().toISOString(),
     identity: { ...identity },
     session_id: getSessionId(),

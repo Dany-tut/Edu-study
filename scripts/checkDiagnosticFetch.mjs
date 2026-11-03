@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { build } from 'esbuild'
-import { writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
+mkdirSync('node_modules/.cache', { recursive: true })
 const out = await build({ entryPoints: ['src/lib/diagnosticFetch.ts'], bundle: true, platform: 'node', format: 'esm', write: false })
 writeFileSync('node_modules/.cache/diagnosticFetch.mjs', out.outputFiles[0].text)
 const { diagnosticFetch, setRequestReporter } = await import('../node_modules/.cache/diagnosticFetch.mjs')
@@ -24,7 +25,8 @@ await assert.rejects(diagnosticFetch(async () => { throw failure }, 'https://db.
 assert.equal(events.at(-1).status, 0)
 const count = events.length
 await assert.rejects(diagnosticFetch(async () => { throw new DOMException('cancel', 'AbortError') }, 'https://db.example')('https://db.example/rest/v1/test'))
-assert.equal(events.length, count)
+assert.equal(events.length, count + 1)
+assert.equal(events.at(-1).event, 'api_cancelled')
 setRequestReporter(() => { throw new Error('telemetry') })
 assert.equal(await wrapped(url), response, 'broken telemetry cannot break requests')
 console.log('Diagnostic fetch: response/error identity, privacy, exclusions, cancellation and reporter isolation passed')
