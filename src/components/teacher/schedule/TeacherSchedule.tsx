@@ -63,13 +63,14 @@ const fromIso = (iso: string) => wallDateTimeInTz(iso, 'Europe/Moscow')
 
 type Toast = { text: string; undo?: SchedUndo; tone?: 'danger' }
 
-export default function TeacherSchedule({ mobile = false, embedded = false, readOnly = false, useWeek = useTeacherWeek, onOpen, onAttendance }: {
+export default function TeacherSchedule({ mobile = false, embedded = false, readOnly = false, useWeek = useTeacherWeek, onOpen, onAttendance, onExplore }: {
   mobile?: boolean
   readOnly?: boolean
   useWeek?: typeof useTeacherWeek
   /** На Главной: своя рамка снаружи, лента скроллится внутри фиксированной высоты. */
   embedded?: boolean
   /** Нет — тап по занятию открывает меню (на телефоне редактора урока нет). */
+  onExplore?: () => void
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
 }) {
@@ -237,7 +238,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
                 event.preventDefault()
                 event.currentTarget.focus({ preventScroll: true })
               }}
-              onClick={() => go(d, false)}
+              onClick={() => { go(d, false); onExplore?.() }}
               animate={{ scale: hot ? 1.08 : 1 }}
               transition={SPRING}
               style={{
@@ -290,7 +291,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
                 item={item}
                 ghost={drag?.item.id === item.id}
                 onTap={el => readOnly ? undefined : onOpen ? onOpen(item) : overlays.current?.openMenu(item, el.getBoundingClientRect(), el)}
-                onMenu={el => { if (readOnly) return; haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect(), el) }}
+                onMenu={el => { if (readOnly) return; haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect(), el); onExplore?.() }}
                 onDragStart={(el, x, y) => { if (readOnly) return; haptic(10); startDrag(item, el, x, y) }}
                 onDragMove={moveDrag}
                 onDragEnd={endDrag}

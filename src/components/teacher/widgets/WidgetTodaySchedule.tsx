@@ -1,4 +1,5 @@
 import type { useTeacherWeek } from '../../../lib/teacherSchedule'
+import { useTeacherGuides } from '../guides/TeacherGuides'
 import TeacherSchedule from '../schedule/TeacherSchedule'
 import { useTeacher } from '../../../store/teacherStore'
 import './calendarWidget.css'
@@ -8,6 +9,7 @@ import './calendarWidget.css'
 // (на ПК правая кнопка) — меню переноса. Отдельной вкладки «Расписание» больше
 // нет, перенос делается прямо отсюда.
 export default function WidgetTodaySchedule({ useWeek, readOnly }: { useWeek?: typeof useTeacherWeek; readOnly?: boolean } = {}) {
+  const teacherGuides = useTeacherGuides()
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
   const openGradebook = useTeacher(s => s.openGradebook)
   return (
@@ -24,6 +26,7 @@ export default function WidgetTodaySchedule({ useWeek, readOnly }: { useWeek?: t
     }}>
       <div className="calendar-widget-content">
         <TeacherSchedule
+          onExplore={readOnly ? undefined : () => teacherGuides?.enter('schedule')}
           embedded
           useWeek={useWeek}
           readOnly={readOnly}

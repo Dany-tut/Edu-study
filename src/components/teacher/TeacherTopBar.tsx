@@ -1,3 +1,4 @@
+import { useTeacherGuides } from './guides/TeacherGuides'
 import type { FriendsModel, FriendsTab } from '../../lib/desktopFriends'
 import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -87,6 +88,8 @@ export default function TeacherTopBar({ friends }: { friends: FriendsModel }) {
   const [collapsed, setCollapsed]     = useState(false)
   const [addOpen, setAddOpen]         = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const teacherGuides = useTeacherGuides()
+  useEffect(() => { if (profileOpen) teacherGuides?.enter('profile') }, [profileOpen, teacherGuides?.enter])
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
   const pendingJournals = useJournalPending(null)

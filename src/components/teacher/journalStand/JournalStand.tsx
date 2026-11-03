@@ -5,6 +5,11 @@ import AttendanceEditor from './AttendanceEditor'
 import JournalSkeleton from '../JournalSkeleton'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
+import type { User } from '@supabase/supabase-js'
+import { TeacherGuides, useTeacherGuides } from '../guides/TeacherGuides'
+import type { GuideId } from '../../../../design/contextual-onboarding/guides.mjs'
+import { getViewAs } from '../../../lib/teacherView'
+import { useTeacherAccess } from '../../../lib/teacherAccess'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
@@ -386,6 +391,8 @@ export function Matrix(props: MatrixProps) {
   useEffect(() => {
     if (!drawerHash) return
     const previous = window.location.hash
+  const teacherGuides = useTeacherGuides()
+  useEffect(() => { if (drawerOpen) teacherGuides?.enter('learner') }, [drawerOpen, teacherGuides?.enter])
     window.history.replaceState(null, '', drawerHash)
     return () => {
       if (window.location.hash === drawerHash) window.history.replaceState(null, '', previous)
@@ -620,7 +627,13 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     </div>
   )
 }
-export default function JournalStand({ owner, production = false }: { owner: string; production?: boolean }) {
+const pageGuides: Partial<Record<ReturnType<typeof useTeacher.getState>['activePage'], GuideId>> = {
+  groups:'roster', constructor:'course', 'course-editor':'course', student:'learner', finances:'finance',
+  homework:'work', 'homework-review':'work', 'homework-create':'work', 'hard-review':'work',
+  'lesson-editor':'schedule'
+}
+
+export default function JournalStand({ owner, user, production = false }: { owner: string; user?: User; production?: boolean }) {
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
   const isDesktop = useIsDesktop()
@@ -635,6 +648,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
     const editable = works.flatMap(w => {
       const student = data.students.find(s => s.id === w.studentId)
       if (!student || !w.slot.lesson) return []
+  const allowed = useTeacherAccess(s => s.loaded && s.canPage(page))
       const cell = journalCell(data, journal, student, w.slot.lesson, today)
       return cell.event && !cell.cancelled && cell.column.lesson?.kind !== 'test' && !cell.column.recording && cell.column.lesson?.delivery_mode !== 'recording' ? [cell] : []
     })
@@ -887,7 +901,9 @@ export default function JournalStand({ owner, production = false }: { owner: str
       )
   }
   return (
-    <><TeacherDashboardPage
+    <TeacherGuides user={user} enabled={production && isDesktop && allowed && !getViewAs()}
+      section={page === 'gradebook' ? (selected.tab === 'Работы' ? 'work' : 'journal') : pageGuides[page]}>
+    <TeacherDashboardPage
       standContent={
         content && (
           <>
@@ -901,6 +917,6 @@ export default function JournalStand({ owner, production = false }: { owner: str
           </>
         )
       }
-    />{homework.dialog}{attendanceCells && <AttendanceEditor cells={attendanceCells} onSaved={reload} onClose={() => setAttendanceCells(null)} />}</>
+    />{homework.dialog}{attendanceCells && <AttendanceEditor cells={attendanceCells} onSaved={reload} onClose={() => setAttendanceCells(null)} />}</TeacherGuides>
   )
 }
