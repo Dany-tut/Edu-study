@@ -32,10 +32,14 @@ storage.set(key, JSON.stringify(pending))
 const incidentId=pending[0].meta.incident_id
 fail=false
 session.delete('iskra:telemetry-source')
+user={id:'reload-owner',app_metadata:{role:'teacher'}}
+session.set('iskra:diagnostic-journeys',JSON.stringify([{id:'reload-fixture',scope:'page',at:Date.now(),retry:'reload'}]))
 const second=await import('../node_modules/.cache/incidentDelivery.mjs?restart')
 second.initAnalytics()
 await second.trackNow('marker')
 assert.ok(batches.flat().some(e=>e.meta.incident_id===incidentId && e.meta.event_source==='qa'),'retry preserves incident identity and original QA provenance')
+const recovered = batches.flat().find(e => e.event === 'diagnostic_recovery' && e.meta.failure_id==='reload-fixture')
+assert.equal(recovered?.user_id,'reload-owner','reload recovery waits for restored actor instead of emitting anon')
 const sessionStart = batches.flat().find(e => e.event === 'session_start')
 assert.equal(sessionStart.meta.ref, 'https://school.example')
 assert.ok(!JSON.stringify(batches).includes('REF_SECRET'))
