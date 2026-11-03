@@ -8,4 +8,4 @@ PASS: Teacher opens the new attempt and sees the revised answer
 PASS: Teacher publishes 90 percent and a comment through UI
 PASS: Fresh student login shows published result, comment and historical answers
 PASS: Reload keeps the new result and both distinct historical attempts
-Evidence: /tmp/iskra-local-security/evidence/browser-return-1793678475674
+Evidence: /tmp/iskra-local-security/evidence/browser-return-1793679307572

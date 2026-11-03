@@ -50,12 +50,9 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     setError(''); setNotice('')
     const normalizedEmail = email.trim().toLowerCase()
     void action.run(async signal => {
+      signal.throwIfAborted()
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
-        if (error) throw error
-        void trackNow('login', { role: 'teacher', method: 'auth' })
-        clearStudentSession()
-        onLogin()
+        await passwordSignIn(normalizedEmail, password, signal)
       } else if (mode === 'reset') {
         // Без #/teacher: Supabase дописывает токен решёткой, и второй «#» в
         // адресе ломал разбор. Форму нового пароля App показывает сам.
@@ -63,18 +60,17 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         const redirectTo = `${window.location.origin}${window.location.pathname}`
         const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })
         if (error) throw error
-        localStorage.setItem('iskra:password-recovery-role', 'teacher')
-        setMode('sent')
       } else if (mode === 'newpassword') {
         const { error } = await supabase.auth.updateUser({ password })
         if (error) throw error
-        setNotice(t('Пароль обновлён. Входим…'))
-        clearStudentSession()
-        onLogin()
       }
     }, () => {
-      if (mode === 'reset') setNotice(t('Письмо отправлено. Откройте ссылку из него — здесь же откроется форма нового пароля.'))
+      if (mode === 'reset') {
+        localStorage.setItem('iskra:password-recovery-role', 'teacher')
+        setMode('sent')
+      }
       else {
+        if (mode === 'newpassword') setNotice(t('Пароль обновлён. Входим…'))
         if (mode === 'login') void trackNow('login', { role: 'teacher', method: 'auth' })
         clearStudentSession(); onLogin()
       }
@@ -192,7 +188,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
                 boxSizing: 'border-box',
                 minHeight: 54,
                 lineHeight: '22px',
-                padding: '12px 44px 12px 16px',
+                padding: '12px 52px 12px 16px',
                 borderRadius: 16,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,
@@ -206,16 +202,17 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               type="button"
               onClick={() => setShowPassword(v => !v)}
               aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
+              aria-pressed={showPassword}
               style={{
                 position: 'absolute',
-                right: 10,
+                right: 4,
                 top: '50%',
                 transform: 'translateY(-50%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 32,
-                height: 32,
+                width: 44,
+                height: 44,
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
@@ -229,12 +226,12 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           )}
 
           {mode === 'login' && (
-            <span
+            <button type="button"
               onClick={() => switchMode('reset')}
-              style={{ alignSelf: 'flex-end', color: 'var(--color-purple)', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginTop: -4 }}
+              style={{ alignSelf: 'flex-end', minHeight: 44, padding: 0, border: 0, background: 'none', color: 'var(--color-purple)', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginTop: -4 }}
             >
               {t('Забыли пароль?')}
-            </span>
+            </button>
           )}
 
           <AlertStack items={[
@@ -259,6 +256,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           >
             {loading ? t('Загрузка...') : buttonLabels[mode]}
           </button>
+          {loading && <button type="button" onClick={() => { action.cancel(); setError('') }} style={{ minHeight: 44, border: 0, background: 'transparent', color: 'var(--color-text)', cursor: 'pointer' }}>{t('Отмена')}</button>}
         </form>}
 
         {mode === 'login' && <SocialLoginButtons role="teacher" />}
@@ -267,16 +265,16 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         {mode !== 'newpassword' && mode !== 'sent' && (
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
             {mode === 'reset' ? (
-              <span onClick={() => switchMode('login')} style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>
+              <button type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, border: 0, padding: 0, background: 'none', color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>
                 <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} />
-              </span>
+              </button>
             ) : (
               t('Аккаунт создаётся по ссылке-приглашению от\u00a0администратора.')
             )}
           </p>
         )}
         {Capacitor.isNativePlatform() && mode === 'login' && (
-          <button type="button" onClick={() => { window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
+          <button type="button" onClick={() => { action.cancel(); window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
             <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
           </button>
         )}

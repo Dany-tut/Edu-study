@@ -1,0 +1,11 @@
+
+> student-dashboard@1.0.0 check:scenes
+> node scripts/checkScenes.mjs
+
+✓ en: в файле 279
+✓ ja: в файле 46
+✓ ko: в файле 82
+✓ de: в файле 7
+✓ ru: в файле 10
+✓ pt: в файле 4
+SCENE_COUNTS совпадает с файлами.

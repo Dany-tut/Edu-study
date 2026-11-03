@@ -1,0 +1,15 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: student/light/1024/start wrong fade edges [{"top":0,"scrollHeight":760,"clientHeight":600,"mask":"linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))","actualTop":true,"actualBottom":true,"expectedTop":false,"expectedBottom":true}]
+    at file:///Users/dany/Cursor/student-dashboard/docs/qa/readiness-fixes-2026-11-03/student-login-followup/research-followup/auth-form-edges.mjs:15:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

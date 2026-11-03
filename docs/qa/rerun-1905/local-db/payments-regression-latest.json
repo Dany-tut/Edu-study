@@ -1,0 +1,20 @@
+{
+  "scope": "Real restored PostgreSQL, transactional SET ROLE regression",
+  "results": [
+    {
+      "actor": "studentA",
+      "allowed": false,
+      "expected_allowed": false
+    },
+    {
+      "actor": "teacherB",
+      "allowed": false,
+      "expected_allowed": false
+    },
+    {
+      "actor": "teacherA",
+      "allowed": true,
+      "expected_allowed": true
+    }
+  ]
+}

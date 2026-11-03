@@ -1,0 +1,2 @@
+be2856235cf70db9008e30288a7d40ecb3636ccb68efd159042ec13eed4f073b  src/components/CourseModuleBar.tsx
+2af552acbc730517a55c6025761132f0c016e0a9b86b43209d1fcaac6304cbfc  src/components/CourseNode.tsx

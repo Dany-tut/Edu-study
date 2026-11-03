@@ -1,0 +1,11 @@
+Checking 1280 820 light
+Checking 1280 820 dark
+Checking 390 844 light
+Checking 390 844 dark
+Checking 320 568 light
+Checking 320 568 dark
+Checking 768 1024 light
+Checking 768 1024 dark
+Checking 1280 600 light
+Checking 1280 600 dark
+PASS: 150 calendar checks, exact date identities, empty/overflow/status days, 20 rapid clicks, weeks, keyboard, both themes, five viewports

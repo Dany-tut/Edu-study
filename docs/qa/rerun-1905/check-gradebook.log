@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:gradebook
+> esbuild scripts/checkGradebook.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkGradebook.mjs --log-level=error && node node_modules/.cache/checkGradebook.mjs
+
+Gradebook: course results, ungrouped students, Testly points, pending review, zero scores, service rows, attendance and isolation checks passed

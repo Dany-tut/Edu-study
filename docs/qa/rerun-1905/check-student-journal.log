@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:student-journal
+> node scripts/checkStudentWorkJournal.mjs
+
+PASS: journal scores, archived attempts, pending reviews, scoped comments, hard/extra independence, full pagination and query failures.
