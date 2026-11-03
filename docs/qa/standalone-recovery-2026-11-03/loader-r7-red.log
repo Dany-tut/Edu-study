@@ -1,0 +1,23 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: status 503 must retain same-context definitions
++ actual - expected
+
++ []
+- [
+-   'Homework A'
+- ]
+
+    at file:///private/tmp/iskra-standalone-fix-r7/scripts/checkStandaloneHomeworkRecovery.mjs:64:82
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [],
+  expected: [ 'Homework A' ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

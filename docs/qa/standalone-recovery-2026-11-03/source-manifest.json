@@ -1,0 +1,8 @@
+{
+  "baseSHA": "1bca7601d798abe9edd965a3eb20639804e4cfb4",
+  "files": {
+    "src/lib/standaloneHomework.ts": "21b10b9da0363ad3eab4736b0d1accaba9eeabf5a92ac982b322e9104b862973",
+    "src/store/studentDataStore.ts": "7a288ce0e1105f0fdd5be5cb6428fda26e5592cbd9e08655565220f1652ae251"
+  },
+  "testSHA256": "643eb141b9c4e92235306212bc7e191f3936fbfdca83de49a98eec5c6be024ec"
+}

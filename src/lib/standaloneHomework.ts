@@ -58,18 +58,33 @@ export function standaloneHomeworkNumber(title: string | null | undefined, index
   return Number.isSafeInteger(number) && number > 0 ? number - 1 : index
 }
 
+/** Carry the HTTP status: an unavailable read must not look like 200 []. */
+export class StandaloneHomeworkReadError extends Error {
+  constructor(readonly status: number, readonly cause: unknown) {
+    super('Standalone homework read failed')
+  }
+}
+
+export function isTransientStandaloneReadError(error: unknown): boolean {
+  if (error instanceof StandaloneHomeworkReadError) {
+    return error.status === 0 || error.status === 408 || error.status === 429 || (error.status >= 500 && error.status < 600)
+  }
+  return error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError'
+    || (error instanceof TypeError && /fetch|network|load failed/i.test(error.message)))
+}
+
 /** Активные standalone-ДЗ для группы ученика (lesson_id IS NULL). */
 export async function fetchStandaloneHomework(groupId: string): Promise<DbStandaloneHw[]> {
   if (!groupId) return []
-  const { data, error } = await supabase
+  const { data, error, status } = await supabase
     .from('homework')
     .select('id, title, task_ids, hard_tasks, basic_tasks, due_date, assigned_at')
     .eq('group_id', groupId)
     .is('lesson_id', null)
     .eq('status', 'active')
     .order('assigned_at', { ascending: true })
-  if (error || !data) return []
-  return data as DbStandaloneHw[]
+  if (error) throw new StandaloneHomeworkReadError(status, error)
+  return (data ?? []) as DbStandaloneHw[]
 }
 
 /** Определения заданий банка по id (напрямую из task_bank — не зависит от того,
