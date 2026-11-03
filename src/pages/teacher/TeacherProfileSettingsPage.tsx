@@ -1,5 +1,6 @@
 import ProfileChips from '../../components/ProfileChips'
-import { FriendsContent } from '../../components/DesktopFriends'
+import HScrollFade from '../../components/HScrollFade'
+import { FriendsContent, FriendsTabs } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
@@ -240,12 +241,13 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
           </div>
         </div>
 
-        <div style={{ marginBottom: 20 }}>
+        <HScrollFade fadeWidth={22} padX={2} gap={12} style={{ marginBottom: 20 }}>
           <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {
             if (id === 'friends') friends.setTab('contacts')
             else { friends.setTab(null); setPage(id) }
           }}/>
-        </div>
+          {section === 'friends' && <FriendsTabs model={friends}/>}
+        </HScrollFade>
         {section === 'friends' && <FriendsContent model={friends}/>}
         {section === 'main' && <>
         {/* Avatar preview + picker */}
