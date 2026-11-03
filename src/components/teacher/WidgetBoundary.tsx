@@ -1,3 +1,4 @@
+import { diagnosticFailure, diagnosticRetry, diagnosticRecovered } from '../../lib/diagnosticJourney'
 import { Component, Fragment, type ReactNode } from 'react'
 import { trackEvent } from '../../lib/analytics'
 import { isChunkError, recoverFromChunkError } from '../../lib/chunkError'
@@ -20,14 +21,19 @@ export default class WidgetBoundary extends Component<Props, State> {
     return { error, attempt: 0 }
   }
 
+  private failureId = ''
+  componentDidUpdate(_: Props, previous: State) {
+    if (previous.error && !this.state.error && this.failureId) diagnosticRecovered(this.failureId, 'subtree_rendered')
+  }
   componentDidCatch(error: Error) {
+    this.failureId = diagnosticFailure('widget', 'render_failed')
     const msg = String(error?.message ?? '')
     const chunk = isChunkError(msg)
     try { trackEvent('widget_crash', { label: this.props.label ?? null, msg: msg.slice(0, 200), chunk }) } catch { /**/ }
     // Свежий index.html забираем сами: ждать, пока человек догадается нажать
     // кнопку, незачем — тем более что после деплоя так падают ВСЕ виджеты
     // разом и стол превращается в поле одинаковых серых плашек.
-    if (chunk) recoverFromChunkError(msg)
+    if (chunk && recoverFromChunkError(msg)) diagnosticRetry(this.failureId, 'automatic')
   }
 
   render() {
@@ -49,6 +55,7 @@ export default class WidgetBoundary extends Component<Props, State> {
         </span>
         <button
           onClick={() => {
+            diagnosticRetry(this.failureId, chunk ? 'reload' : 'retry')
             if (chunk) window.location.reload()
             else this.setState(s => ({ error: null, attempt: s.attempt + 1 }))
           }}

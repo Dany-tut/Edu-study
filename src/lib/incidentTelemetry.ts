@@ -1,6 +1,6 @@
 // Diagnostic context contains technical breadcrumbs, never form values or OAuth URLs.
 export const INCIDENT_EVENTS = new Set(['js_error', 'promise_rejection', 'react_crash', 'widget_crash',
-  'api_slow', 'api_stalled', 'ui_freeze', 'ui_loading_stalled', 'ui_blank', 'operation_failed', 'auth_failed', 'auth_stalled', 'resource_error'])
+  'native_crash', 'bootstrap_error', 'api_slow', 'api_stalled', 'ui_freeze', 'ui_loading_stalled', 'ui_blank', 'operation_failed', 'auth_failed', 'auth_stalled', 'resource_error'])
 type Breadcrumb = { at: string; event: string; path: string | null; endpoint?: string; status?: number }
 const breadcrumbs: Breadcrumb[] = []
 export function rememberDiagnosticEvent(event: string, path: string | null, meta: Record<string, unknown>) {

@@ -1,4 +1,6 @@
 import { initialRouteTarget } from './lib/initialRoute'
+import { initNativeCrashReporting } from './lib/nativeCrashReporting'
+import { initAnalytics } from './lib/analytics'
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MotionConfig } from 'framer-motion'
@@ -136,6 +138,9 @@ const StudentWidgetStand = window.location.pathname.replace(/\/+$/, '') === '/st
 
 startTextFades()
 
+// Install diagnostics before rendering; App's later call is idempotent.
+initAnalytics()
+void initNativeCrashReporting()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* Системная настройка «уменьшить движение» — для всего framer-motion
