@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict'
 import { build } from 'esbuild'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 const result = await build({
-  stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'; export * from './src/lib/defaultDeskLayout'; export * from './src/lib/widgetReviewSizing'; export * from './src/lib/widgetReviewRoute'; export { studentBalanceStats } from './src/lib/studentWidgetStats'",resolveDir:process.cwd(),loader:'ts'},
+  stdin: {contents:"export { metricObjects } from './src/lib/widgetMetricObjects'; export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'; export * from './src/lib/defaultDeskLayout'; export * from './src/lib/widgetReviewSizing'; export * from './src/lib/widgetReviewRoute'; export { studentBalanceStats } from './src/lib/studentWidgetStats'",resolveDir:process.cwd(),loader:'ts'},
   bundle:true,platform:'node',format:'esm',write:false,
   plugins:[{name:'unused-widget-renderers',setup(b){b.onResolve({filter:/^\.\/Widget/},a=>a.importer.endsWith('/registry.tsx')?{path:a.path,external:true}:null)}}],
   external:['react','react/jsx-runtime','framer-motion','lucide-react'],
 })
 mkdirSync('node_modules/.cache',{recursive:true})
 writeFileSync('node_modules/.cache/widget-sizing-check.mjs',result.outputFiles[0].text)
-const { registry, clampDeskWidget, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP, reviewPresets, reviewAllowed, isWidgetReviewRoute } = await import('../node_modules/.cache/widget-sizing-check.mjs')
+const { metricObjects, registry, clampDeskWidget, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP, reviewPresets, reviewAllowed, isWidgetReviewRoute } = await import('../node_modules/.cache/widget-sizing-check.mjs')
 const integral=item=>{for(const k of ['x','y','w','h','minW','minH'])assert.ok(Number.isInteger(item[k]),`${item.type}: fractional ${k}=${item[k]}`)}
 let cases=0
 for(const def of registry) for(const width of [900,1200,1600,2400]) for(const oldRow of [42,64,84]){
@@ -142,3 +142,18 @@ for(const width of [760,1024,1376]){
  assert.deepEqual([min.w,min.h],[1,1],'Attention summary must shrink to a useful 1×1 instead of a dead 2×1 stop')
 }
 console.log('Attention summary: 1×1 resize is reachable on all desk widths')
+
+// Every independent indicator has both useful widths and a real semantic asset.
+for (const def of registry.filter(d => d.stat)) {
+ assert.ok(metricObjects[def.type], `${def.type}: missing expanded illustration`)
+ assert.ok(existsSync(`public${metricObjects[def.type]}`), `${def.type}: illustration file missing`)
+ for (const width of [760,1024,1376]) {
+  const small={i:def.type,type:def.type,x:0,y:0,w:1,h:1,gridVersion:2}
+  const large=resizeDeskWidget(small,def,10000,0,width,120,8)
+  assert.deepEqual([large.w,large.h],[2,1],`${def.type}: cannot expand to illustrated 2×1`)
+  assert.ok(reviewAllowed(def,{width,columns:deskColumns(width,8),rowHeight:120,rows:6,cellWidth:156},{w:2,h:1}),`${def.type}: review rejects 2×1`)
+  const restored=resizeDeskWidget(large,def,-10000,0,width,120,8)
+  assert.deepEqual([restored.w,restored.h],[1,1],`${def.type}: cannot shrink back to 1×1`)
+ }
+}
+console.log('All independent metrics: 1×1 ↔ illustrated 2×1 at three desk widths')
