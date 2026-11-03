@@ -38,7 +38,14 @@ const ref='hw-'+homework.id,answer='Я сложил две тройки. <img sr
 const results=[];let browser,context,page,submission
 const dir=root+'/evidence/browser-replay-'+stamp;mkdirSync(dir,{recursive:true})
 async function step(name,fn){await fn();results.push({name,status:'PASS'});console.log('PASS:',name)}
-async function newContext(){if(context)await context.close();context=await browser.newContext({viewport:{width:1440,height:900},serviceWorkers:'block'});await context.route('**/*',r=>['127.0.0.1','localhost'].includes(new URL(r.request().url()).hostname)?r.continue():r.abort());page=await context.newPage();page.setDefaultTimeout(25000)}
+async function newContext(){
+  if(context)await context.close()
+  context=await browser.newContext({viewport:{width:1440,height:900},serviceWorkers:'block'})
+  await context.addInitScript(() => { if (window === window.top) sessionStorage.setItem('iskra:telemetry-source', 'qa') })
+  await context.route('**/*',r=>['127.0.0.1','localhost'].includes(new URL(r.request().url()).hostname)?r.continue():r.abort())
+  page=await context.newPage()
+  page.setDefaultTimeout(25000)
+}
 async function consent(){await page.getByText('Согласен(а) на обработку данных.',{exact:true}).click();await page.getByRole('button',{name:'Принимаю и продолжаю',exact:true}).click()}
 async function openHomework(){await page.goto(`${base}/#/homework/${ref}`,{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'})}
 async function pollProgress(predicate){for(let i=0;i<50;i++){const r=await ok(teacher.from('lesson_progress').select('id,status,score,attachments,review_comment').eq('student_id',student.id).eq('lesson_ref',ref).maybeSingle());if(r&&predicate(r))return r;await new Promise(r=>setTimeout(r,200))}throw Error('Expected server state not reached')}
