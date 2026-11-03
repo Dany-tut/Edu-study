@@ -57,7 +57,8 @@
     "check:homework-facts": "esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkHomeworkFacts.mjs",
     "check:student-widgets": "node scripts/checkStudentWidgetMatrix.mjs",
     "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs",
-    "check:calendar-browser": "node scripts/checkTeacherCalendarDay.mjs"
+    "check:calendar-browser": "node scripts/checkTeacherCalendarDay.mjs",
+    "check:diagnostics": "node scripts/checkDiagnosticFetch.mjs && node scripts/checkTelemetryH1.mjs && node scripts/checkIncidentTelemetry.mjs && node scripts/checkIncidentDelivery.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
