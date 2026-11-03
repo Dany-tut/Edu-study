@@ -102,6 +102,32 @@ end $$;
 revoke all on function public.iskra_monitor_update_state(text,text,text) from public,anon;
 grant execute on function public.iskra_monitor_update_state(text,text,text) to authenticated;
 
+-- A scoped worker gets technical evidence only; service key stays inside Edge runtime.
+create function public.iskra_monitor_agent_context() returns jsonb language sql security definer set search_path='' as $$
+ with candidate as (
+   select * from iskra_monitor.signals where triage_state in ('needs_review','investigating')
+     and source in ('browser_unclassified','legacy_unclassified') and host_kind in ('canonical_production','native')
+   order by first_event_id desc limit 1
+ ), chain as (
+   select e.* from public.analytics_events e join candidate c on e.session_id=c.session_id
+     and e.id between c.first_event_id-100 and c.first_event_id+100
+     order by abs(e.id-(select first_event_id from candidate)),e.id limit 20
+ )
+ select jsonb_build_object('schema_version',1,'project','iskra','evidence',coalesce((select jsonb_agg(jsonb_build_object(
+   'event',case when event in ('js_error','promise_rejection','react_crash','widget_crash','native_crash','bootstrap_error','operation_failed','api_request','auth_failed','auth_stalled','auth_cancelled','login','logout','page_view','session_start','diagnostic_recovery') then event else 'context' end,
+   'role',case when role in ('admin','teacher','student','anon','system') then role else 'unknown' end,
+   'screen',case when path like '#/teacher%' then 'teacher' when path like '#/lesson%' then 'lesson' when path like '#/homework%' then 'homework' when path like '#/login%' then 'login' else 'other' end,
+   'version',case when meta->>'app_version' ~ '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,9}(·[a-f0-9]{7,40})?$' then meta->>'app_version' else null end,
+   'endpoint',case when meta->>'endpoint' ~ '^/(rest/v1/(rpc/)?[a-zA-Z0-9_]+|auth/v1/[a-zA-Z/]+|functions/v1/[a-zA-Z0-9_-]+)$' then meta->>'endpoint' else null end,
+   'asset',case when meta->>'asset' ~ '^[a-zA-Z0-9_.-]{1,120}\.(js|css)$' then meta->>'asset' else null end,
+   'status',case when meta->>'status' ~ '^[0-9]{1,3}$' then (meta->>'status')::int else null end,
+   'reason',case when meta->>'reason' in ('no_rows_updated','server_error','save_failed','load_failed','render_failed','entry_error','entry_rejection','bootstrap_stalled') then meta->>'reason' else null end,
+   'recovery',case when meta->>'stage' in ('attempted','observed','boot_observed') then meta->>'stage' else null end
+ ) order by id) from chain),'[]'::jsonb));
+$$;
+revoke all on function public.iskra_monitor_agent_context() from public,anon,authenticated;
+grant execute on function public.iskra_monitor_agent_context() to service_role;
+
 -- pg_cron is already used by Iskra; no new secret, network service or grant to cron callers.
 select cron.schedule('iskra-monitor-heartbeat','* * * * *',$$select iskra_monitor.tick()$$);
 select iskra_monitor.tick();

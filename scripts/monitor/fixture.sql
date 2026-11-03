@@ -1,4 +1,4 @@
-create role anon; create role authenticated;
+create role anon; create role authenticated; create role service_role;
 create schema auth; create schema cron;
 create function auth.uid() returns uuid language sql as $$select nullif(current_setting('fixture.uid',true),'')::uuid$$;
 create function public.is_admin() returns boolean language sql as $$select coalesce(current_setting('fixture.admin',true),'')='true'$$;

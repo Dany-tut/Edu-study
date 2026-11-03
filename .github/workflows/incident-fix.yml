@@ -30,6 +30,7 @@ jobs:
         id: context
         env:
           ISKRA_PUBLISHABLE_KEY: ${{ vars.ISKRA_PUBLISHABLE_KEY }}
+          ISKRA_MONITOR_WORKER_SECRET: ${{ secrets.ISKRA_MONITOR_WORKER_SECRET }}
         run: node scripts/monitor/prepare-context.mjs
       - uses: actions/cache@v4
         id: attempted

@@ -36,3 +36,16 @@ insert into analytics_events(event,session_id,meta) values('diagnostic_recovery'
 do $$begin
  if (select recovery_evidence from iskra_monitor.signals where delivery_id='late-failure')<>'module_loaded' then raise exception 'out-of-order recovery lost';end if;
 end$$;
+insert into analytics_events(event,meta,session_id,user_id,path) values('operation_failed','{"incident_id":"privacy","event_source":"browser_unclassified","app_host_kind":"canonical_production","app_version":"private@example.com","msg":"private@example.com","token":"private"}','private-session','22222222-2222-2222-2222-222222222222','#/lesson/private-learner');
+set role anon;
+do $$begin
+ begin perform public.iskra_monitor_agent_context();raise exception 'anon worker context allowed';exception when insufficient_privilege then null;end;
+end$$;
+reset role;
+set role service_role;
+do $$declare payload text;begin
+ payload:=public.iskra_monitor_agent_context()::text;
+ if payload ~ '(private|22222222|msg|token|user_id|session_id)' then raise exception 'private context leaked';end if;
+ if payload not like '%operation_failed%' then raise exception 'technical event evidence absent';end if;
+end$$;
+reset role;

@@ -59,7 +59,7 @@
     "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs",
     "check:calendar-browser": "node scripts/checkTeacherCalendarDay.mjs",
     "check:diagnostics": "node scripts/checkDiagnosticFetch.mjs && node scripts/checkTelemetryH1.mjs && node scripts/checkIncidentTelemetry.mjs && node scripts/checkIncidentDelivery.mjs",
-    "check:server-monitor": "node scripts/checkServerMonitor.mjs && node scripts/checkDiagnosticJourney.mjs && node scripts/checkRecoveryImports.mjs && node scripts/checkBootDiagnostics.mjs && node scripts/checkNativeCrashWebhook.mjs && node scripts/checkMutationEvidence.mjs",
+    "check:server-monitor": "node scripts/checkServerMonitor.mjs && node scripts/checkDiagnosticJourney.mjs && node scripts/checkRecoveryImports.mjs && node scripts/checkBootDiagnostics.mjs && node scripts/checkNativeCrashWebhook.mjs && node scripts/checkMutationEvidence.mjs && node scripts/checkWorkerContext.mjs",
     "check:monitor-db": "node scripts/checkMonitorDb.mjs"
   },
   "dependencies": {

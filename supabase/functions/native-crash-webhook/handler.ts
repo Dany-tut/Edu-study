@@ -20,6 +20,6 @@ export async function nativeCrashWebhook(request: Request, options: { secret: st
   const row={event:'native_crash',role:'system',session_id:'server:sentry',user_id:null,student_id:null,path:null,
     meta:{incident_id:'sentry:'+hash,event_source:'browser_unclassified',app_host_kind:'native',provider:'sentry',
       provider_issue_id:/^[0-9]{1,30}$/.test(String(payload?.data?.issue?.id))?String(payload.data.issue.id):null,
-      app_version:typeof release==='string' && /^[a-zA-Z0-9.@+_-]{1,80}$/.test(release)?release:null}}
+      app_version:typeof release==='string' && /^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,9}(·[a-f0-9]{7,40})?$/.test(release)?release:null}}
   try { return new Response(null,{status:await options.store(row)?202:503}) } catch { return new Response(null,{status:503}) }
 }
