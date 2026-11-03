@@ -1,0 +1,4 @@
+PASS Profile 503 retains login and inputs without committing Auth or routing as teacher
+PASS Retry after profile error enters the real student account
+PASS Cancel after actual profile response: no late shared session, including reload
+PASS Teacher login through student form still enters the teacher cabinet

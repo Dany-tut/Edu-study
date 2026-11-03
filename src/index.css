@@ -1121,6 +1121,13 @@ input::-webkit-contacts-auto-fill-button {
    а inline `-webkit-text-fill-color` при этом остаётся светлым — в тёмной теме
    получается «ввожу и ничего не видно». Перекрываем фон inset-тенью и явно
    задаём цвет текста и плейсхолдера. */
+.teacher-login-layout { align-items: center; }
+.teacher-login-art:not([hidden]) { display: flex; justify-content: center; margin: 0 auto 16px; }
+@media (pointer: coarse) {
+  .teacher-login-layout:has(input:focus) { align-items: flex-start; }
+  .teacher-login-layout:has(input:focus) .teacher-login-art { display: none; }
+}
+
 .auth-input::placeholder {
   color: var(--color-muted);
   -webkit-text-fill-color: var(--color-muted);

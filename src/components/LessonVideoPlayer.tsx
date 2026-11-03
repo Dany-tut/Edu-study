@@ -384,7 +384,16 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ type, data }), '*')
   }, [])
 
+  // A frame tap waits for a possible double tap. An explicit control supersedes
+  // that pending action; otherwise its late toggle can undo Play or Pause.
+  const cancelFrameTap = useCallback(() => {
+    if (tapTimer.current !== null) window.clearTimeout(tapTimer.current)
+    tapTimer.current = null
+    lastTap.current = null
+  }, [])
+
   const doPlay = useCallback(() => {
+    cancelFrameTap()
     if (source.kind === 'youtube') ytRef.current?.playVideo()
     else if (source.kind === 'rutube') ruSend('player:play')
     else {
@@ -398,16 +407,18 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       })
     }
     // Native onPlay and embedded state events confirm the actual state.
-  }, [source.kind, ruSend])
+  }, [source.kind, ruSend, cancelFrameTap])
 
   const doPause = useCallback(() => {
+    cancelFrameTap()
     if (source.kind === 'youtube') ytRef.current?.pauseVideo()
     else if (source.kind === 'rutube') ruSend('player:pause')
     else videoRef.current?.pause()
     setPaused(true)
-  }, [source.kind, ruSend])
+  }, [source.kind, ruSend, cancelFrameTap])
 
   const doSeek = useCallback((sec: number) => {
+    cancelFrameTap()
     const s = Math.max(0, duration ? Math.min(sec, duration - 0.3) : sec)
     // Разрываем накопление: перемотанный кусок отсмотренным не считается.
     lastTick.current = null
@@ -417,7 +428,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     if (source.kind === 'youtube') ytRef.current?.seekTo(s, true)
     else if (source.kind === 'rutube') { ruTime.current = s; ruSend('player:setCurrentTime', { time: s }) }
     else if (videoRef.current) videoRef.current.currentTime = s
-  }, [source.kind, duration, ruSend])
+  }, [source.kind, duration, ruSend, cancelFrameTap])
 
   const applyVolume = useCallback((v: number, m: boolean) => {
     if (source.kind === 'youtube') {
@@ -707,11 +718,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   // ── Полный экран ──────────────────────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
+    cancelFrameTap()
     const el = boxRef.current
     if (!el) return
     if (document.fullscreenElement) document.exitFullscreen()
     else el.requestFullscreen?.()
-  }, [])
+  }, [cancelFrameTap])
   useEffect(() => {
     const onFs = () => setFullscreen(document.fullscreenElement === boxRef.current)
     document.addEventListener('fullscreenchange', onFs)
@@ -829,6 +841,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       window.setTimeout(() => setSkipFlash(f => (f && f.n === n ? null : f)), 520)
       return
     }
+    // A second tap in another zone replaces the pending single tap too.
+    // Otherwise its timer is orphaned when tapTimer is overwritten, so even an
+    // explicit Play cannot cancel it and that older toggle fires afterwards.
+    if (tapTimer.current !== null) window.clearTimeout(tapTimer.current)
     lastTap.current = { at: now, zone }
     tapTimer.current = window.setTimeout(() => {
       tapTimer.current = null
@@ -1218,6 +1234,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
           <motion.div
             className="lesson-player-controls"
+            onPointerDownCapture={cancelFrameTap}
             initial={false}
             animate={{ opacity: barVisible || paused || !!gesture ? 1 : 0, y: barVisible || paused || !!gesture ? 0 : 12 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}

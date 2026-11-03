@@ -8,11 +8,11 @@ import { trackNow } from '../../lib/analytics'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { AlertStack } from '../../components/Alert'
-import IskraMark from '../../components/landing/IskraMark'
+import AuthRoleHeader from '../../components/AuthRoleHeader'
 import SocialLoginButtons from '../../components/SocialLoginButtons'
 import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogin'
 import ScrollFade from '../../components/ScrollFade'
-import { Capacitor } from '@capacitor/core'
+import { useKeyboardState } from '../../lib/useKeyboardInset'
 import { useAsyncTask } from '../../lib/useAsyncTask'
 import { passwordSignIn } from '../../lib/authActions'
 
@@ -92,17 +92,18 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     sent: t('Вернуться ко входу'),
   }
 
-  const formHeight = 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))'
+  const keyboard = useKeyboardState()
+  const bottomInset = `max(env(safe-area-inset-bottom, 0px), ${keyboard.inset}px)`
+  const formHeight = `calc(100dvh - env(safe-area-inset-top, 0px) - ${bottomInset})`
   return (
     <ScrollFade maxHeight={formHeight} fadeHeight={24} style={{
       position: 'fixed',
-      inset: 'env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px)',
+      inset: `env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) ${bottomInset} env(safe-area-inset-left, 0px)`,
       background: 'var(--color-bg)',
     }}>
-    <div style={{
+    <div className="teacher-login-layout" style={{
       minHeight: formHeight,
       display: 'flex',
-      alignItems: 'center',
       justifyContent: 'center',
       background: 'var(--color-bg)',
       padding: 24,
@@ -117,17 +118,12 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         border: '1px solid var(--color-border-glass)',
         boxSizing: 'border-box',
       }}>
-        {/* Знак Искры вместо эмодзи 👩‍🏫: вход учителя — такой же экран бренда,
-            как лендинг, а эмодзи-«учительница» говорит за всех, кто входит. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-          <IskraMark size={36} />
-          <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '0 auto 16px' }}>
-          <img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'trainer'}.png`} alt="" aria-hidden="true" width={104} height={104} draggable={false} style={{ width: 104, height: 104, objectFit: 'contain' }} />
+        {mode !== 'newpassword' && <AuthRoleHeader onLeave={() => action.cancel()} />}
+        <div className="teacher-login-art" hidden={keyboard.open}>
+          <img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'reminders'}.png`} alt="" aria-hidden="true" width={104} height={104} draggable={false} style={{ width: 104, height: 104, objectFit: 'contain' }} />
         </div>
         <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-.03em', fontWeight: 740, color: 'var(--color-text)', margin: '0 0 6px' }}>
-          {mode === 'sent' ? t('Проверьте почту') : mode === 'newpassword' ? t('Придумайте новый пароль') : t('Вход для преподавателя')}
+          {mode === 'sent' ? t('Проверьте почту') : mode === 'newpassword' ? t('Придумайте новый пароль') : mode === 'reset' ? t('Восстановить пароль') : t('Вход для препода')}
         </h1>
         {mode !== 'sent' && <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 22px' }}>
           {titles[mode]}
@@ -200,6 +196,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
             />
             <button
               type="button"
+              onMouseDown={event => event.preventDefault()}
               onClick={() => setShowPassword(v => !v)}
               aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
               aria-pressed={showPassword}
@@ -272,11 +269,6 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               t('Аккаунт создаётся по ссылке-приглашению от\u00a0администратора.')
             )}
           </p>
-        )}
-        {Capacitor.isNativePlatform() && mode === 'login' && (
-          <button type="button" onClick={() => { action.cancel(); window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
-            <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
-          </button>
         )}
       </div>
     </div>

@@ -1,0 +1,6 @@
+ISKRA_MEASURED (304.0, 442.0, 45.0, 45.0)
+Test Case '-[IskraUITests.BrowserTests testTeacherPasswordAndRecovery]' passed (7.678 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.678 (7.684) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.678 (7.685) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.678 (7.686) seconds
+** TEST SUCCEEDED **

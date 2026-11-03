@@ -1,0 +1,5 @@
+PASS: Student opens invitation and registers through UI
+PASS: Fresh login with profile 503 shows error, preserves inputs, commits no shared Auth
+PASS: Retry uses the expected synthetic student ID
+Evidence: /tmp/iskra-final-classroom-1103/evidence/browser-replay-1793682665640
+PASS fixture cleanup

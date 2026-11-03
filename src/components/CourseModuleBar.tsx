@@ -223,6 +223,23 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
   const t = useT()
   const { tc } = useTc()
   const reduceMotion = useReducedMotion()
+  const labelRefs = useRef(new Map<number, HTMLSpanElement>())
+  const [labelWidths, setLabelWidths] = useState<Record<number, number>>({})
+  useLayoutEffect(() => {
+    let live = true
+    const measure = () => {
+      if (!live) return
+      const widths = Object.fromEntries(Array.from(labelRefs.current, ([id, el]) => [id, el.getBoundingClientRect().width]))
+      setLabelWidths(previous => Object.keys(widths).length === Object.keys(previous).length
+        && Object.keys(widths).every(id => widths[Number(id)] === previous[Number(id)]) ? previous : widths)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    labelRefs.current.forEach(el => observer.observe(el))
+    void document.fonts.ready.then(measure)
+    return () => { live = false; observer.disconnect() }
+  }, [subject.modules, tc])
+
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -252,7 +269,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                 aria-label={label}
                 aria-pressed={isActive}
                 disabled={isLocked}
-                whileTap={isLocked || reduceMotion ? undefined : { scale: 0.96 }}
+                whileTap={isLocked || reduceMotion ? undefined : { opacity: 0.85 }}
                 initial={false}
                 animate={{ height: isActive ? BAR_H : DOT }}
                 transition={transition}
@@ -275,9 +292,9 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                     {isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
                   </span>
                 </motion.span>
-                <motion.span initial={false} animate={{ width: isActive ? 'auto' : 0, opacity: isActive ? 1 : 0 }} transition={transition}
+                <motion.span initial={false} animate={{ width: isActive ? (labelWidths[mod.id] ?? 'auto') : 0, opacity: isActive ? 1 : 0 }} transition={transition}
                   style={{ display: 'inline-flex', overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, paddingLeft: debts ? 18 : 8, paddingRight: 14 }}>
+                  <span ref={el => { if (el) labelRefs.current.set(mod.id, el); else labelRefs.current.delete(mod.id) }} style={{ display: 'inline-flex', flexShrink: 0, alignItems: 'center', gap: 8, paddingLeft: debts ? 18 : 8, paddingRight: 14 }}>
                     <span style={{ ...TEXT_LIFT, fontSize: 13, fontWeight: 600, color: isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}>{name}</span>
                     {pct > 0 && <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>}
                   </span>
