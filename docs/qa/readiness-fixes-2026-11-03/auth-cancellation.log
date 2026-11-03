@@ -1,0 +1,4 @@
+PASS Cancellation at token: late response cannot persist session or emit SIGNED_IN
+PASS Cancellation at user: late response cannot persist session or emit SIGNED_IN
+PASS Successful password login commits the real session
+PASS Real one-time email code verification commits the intended session

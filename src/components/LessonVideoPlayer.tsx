@@ -387,8 +387,17 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const doPlay = useCallback(() => {
     if (source.kind === 'youtube') ytRef.current?.playVideo()
     else if (source.kind === 'rutube') ruSend('player:play')
-    else { void audioVolumeRef.current?.resume().catch(() => {}); void videoRef.current?.play() }
-    setPaused(false); setEnded(false)
+    else {
+      const video = videoRef.current
+      if (!video) return
+      void audioVolumeRef.current?.resume().catch(() => {})
+      // Keep Play available until the media engine confirms playback. A rejected
+      // or interrupted play() must not leave a paused video with Pause controls.
+      void video.play().catch(() => {
+        if (videoRef.current === video) setPaused(video.paused)
+      })
+    }
+    // Native onPlay and embedded state events confirm the actual state.
   }, [source.kind, ruSend])
 
   const doPause = useCallback(() => {
@@ -968,6 +977,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       onPointerMove={wake}
       onPointerLeave={() => { if (started && !paused && !rateOpen && !volumeOpen) setBarVisible(false) }}
       className="lesson-player relative min-w-0 outline-none"
+      data-fullscreen={fullscreen}
       style={{
         width: '100%',
         // В полноэкранном режиме коробку растягивает браузер; в потоке страницы
@@ -1214,8 +1224,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             style={{
               position: 'absolute', left: 0, right: 0, bottom: 0,
               background: 'linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0.35) 55%, transparent)',
-              pointerEvents: barVisible || paused ? 'auto' : 'none',
+              // The transparent gradient must not intercept the centre Play
+              // button on short/landscape screens. Only actual controls hit-test.
+              pointerEvents: 'none',
             }}
+            data-interactive={barVisible || paused}
           >
             {/* Дорожка: буфер → отсмотренное → проигранное → метки глав. */}
             <div

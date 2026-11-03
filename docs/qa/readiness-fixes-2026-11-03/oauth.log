@@ -1,0 +1,5 @@
+PASS Native browser opened, then closed without callback; foreground return
+PASS Native browser refuses to open
+PASS Provider returns access_denied in native callback
+PASS Native browser open never resolves; user cancels after two minutes
+PASS Native browser open never resolves; timeout after 181 seconds

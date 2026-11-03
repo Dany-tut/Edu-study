@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useT } from '../../../lib/i18n'
 import { useAsyncTask } from '../../../lib/useAsyncTask'
 import Modal from '../../Modal'
 import { Alert } from '../../Alert'
@@ -7,14 +8,16 @@ import type { JournalCell } from '../../../lib/courseJournal'
 import './attendanceEditor.css'
 
 type Mark = { present: boolean | null; grade: number | null }
+const drafts = new Map<string, { base: Mark; value: Mark }>()
 export default function AttendanceEditor({ cells, onClose, onSaved }: {
   cells: JournalCell[]; onClose: () => void; onSaved: () => void
 }) {
+  const t = useT()
   const { saveLesson } = useAttendance(null)
   const key = (i: number) => `iskra:attendance-draft:${cells[i].event!.id}:${cells[i].student.id}`
   const original = cells.map(c => ({ present: c.present, grade: c.grade }))
   const [draft, setDraft] = useState(() => original.map((mark, i) => {
-    try { const saved = JSON.parse(sessionStorage.getItem(key(i)) || 'null'); return saved && JSON.stringify(saved.base) === JSON.stringify(mark) ? saved.value as Mark : mark } catch { return mark }
+    try { const saved = drafts.get(key(i)) ?? JSON.parse(sessionStorage.getItem(key(i)) || 'null'); return saved && JSON.stringify(saved.base) === JSON.stringify(mark) ? saved.value as Mark : mark } catch { return mark }
   }))
   const baseline = useRef(original)
   const action = useAsyncTask()
@@ -22,7 +25,9 @@ export default function AttendanceEditor({ cells, onClose, onSaved }: {
   const [error, setError] = useState('')
   const dirty = draft.some((m, i) => m.present !== baseline.current[i].present || m.grade !== baseline.current[i].grade)
   function remember(i: number, mark: Mark) {
-    try { sessionStorage.setItem(key(i), JSON.stringify({ base: baseline.current[i], value: mark })) } catch { /* Keep the in-memory draft if storage is unavailable. */ }
+    const value = { base: baseline.current[i], value: mark }
+    drafts.set(key(i), value)
+    try { sessionStorage.setItem(key(i), JSON.stringify(value)) } catch { /* Keep the in-memory draft if storage is unavailable. */ }
   }
   function update(i: number, mark: Mark) { remember(i, mark); setDraft(v => v.map((m, n) => n === i ? mark : m)) }
   function close() { action.cancel(); onSaved(); onClose() }
@@ -41,11 +46,11 @@ export default function AttendanceEditor({ cells, onClose, onSaved }: {
         await saveLesson(event.group_id, event.date, indices.map(i => ({ studentId: cells[i].student.id, ...draft[i] })), event.lesson_title, event.id, signal)
         signal.throwIfAborted()
         baseline.current = baseline.current.map((m, i) => indices.includes(i) ? draft[i] : m)
-        for (const i of indices) { try { sessionStorage.removeItem(key(i)) } catch { /* storage unavailable */ } }
+        for (const i of indices) { drafts.delete(key(i)); try { sessionStorage.removeItem(key(i)) } catch { /* storage unavailable */ } }
       }
     }, () => { onSaved(); onClose() }, () => {
       onSaved()
-      setError('Не удалось подтвердить сохранение всех отметок.\nЧерновик сохранён. Проверьте журнал и повторите оставшиеся изменения.')
+      setError(t('Не удалось подтвердить сохранение всех отметок.\nЧерновик сохранён. Проверьте журнал и повторите оставшиеся изменения.'))
     })
   }
   return <Modal title={cells.length === 1 ? cells[0].student.name : 'Оценки за урок'}
