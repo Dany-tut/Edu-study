@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict'
+import {initialRouteTarget} from '../src/lib/initialRoute'
+const path=(pathname,search='',hash='',dev=false)=>initialRouteTarget({pathname,search,hash},dev)
+assert.equal(path('/oauth/consent','?authorization_id=abc&scope=read','#state'),null)
+assert.equal(path('/oauth/consent/','?authorization_id=abc&scope=read','#state'),'/oauth/consent?authorization_id=abc&scope=read#state')
+assert.equal(path('/teacher','?invite=abc'),'/?invite=abc#/teacher')
+assert.equal(path('/teacher/','?invite=abc','#groups'),'/?invite=abc#/teacher/groups')
+assert.equal(path('/'),null)
+assert.equal(path('/index.html'),null)
+assert.equal(path('/student-track-stand','?theme=dark'),null)
+assert.equal(path('/student-widget-stand'),null)
+assert.equal(path('/journal-stand','?fixture=one','',true),'/journal-stand?fixture=one#/teacher/gradebook')
+assert.equal(path('/journal-stand','','#/teacher/groups',true),null)
+console.log('PASS: OAuth system path/query, canonical slash, teacher deep links and design stands')
