@@ -80,7 +80,7 @@ export default function ClaudeAccessCard() {
     <p>{t('В Claude откройте Settings → Connectors → Add custom connector и вставьте адрес Искры.')}</p>
     <code>{endpoint}</code>
     <div className="claude-access-actions">
-      <button type="button" style={btn('S','secondary')} onClick={copy}><Copy size={15}/>{t('Скопировать адрес для Claude')}</button>
+      <button type="button" style={btn('S','secondary')} onClick={copy}><Copy size={15}/>{t('Скопировать адрес')}</button>
       <button type="button" style={btn('S','secondary')} disabled={acting || status === 'loading'} onClick={() => { setNotice(''); void refresh() }}>{t('Обновить статус')}</button>
     </div>
     <div><strong>{t('Подключённые приложения')}</strong>

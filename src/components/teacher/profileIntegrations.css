@@ -1,4 +1,4 @@
-.claude-access {display:grid;gap:16px;min-width:0;margin-top:12px;padding:18px;background:var(--color-bg-2);color:var(--color-text);border:1px solid var(--color-border-medium);border-radius:20px}
+.claude-access {display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;margin-top:12px;padding:18px;background:var(--color-bg-2);color:var(--color-text);border:1px solid var(--color-border-medium);border-radius:20px}
 .claude-access header,.claude-access-actions,.claude-access-grant,.integration-code-row {display:flex;align-items:center;gap:10px}
 .claude-access header svg {color:var(--color-accent);flex:none}
 .claude-access p,.claude-access header div div {margin:0;font-size:13px;line-height:1.5;color:var(--color-text-2)}
@@ -8,3 +8,6 @@
 .profile-integrations button {min-height:44px}
 @media(max-width:600px){.integration-code-row {flex-direction:column;align-items:stretch}.profile-integrations input {width:100%;font-size:16px!important}}
 .claude-access-grant code {display:inline-block;padding:3px 6px;font-size:11px}
+
+.claude-access-actions button,.claude-access-grant button {max-width:100%;white-space:normal}
+.claude-access strong,.claude-access-grant span {min-width:0;overflow-wrap:anywhere}
