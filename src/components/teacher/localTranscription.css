@@ -50,7 +50,7 @@
 .transcription-step[data-phase=connecting]::before {transform:scaleX(.86);transition:transform 1.6s ease-out}
 .transcription-step[data-phase=done]::before {transform:scaleX(1);background:var(--color-green-soft);transition:transform .45s ease-out,background .35s}
 .transcription-step[data-phase=done]:disabled {color:var(--color-green-text);cursor:default}
-.transcription-step-label,.transcription-step-complete {cursor:default}
+.transcription-step-complete {cursor:default}
 .transcription-step-label[data-active=true] {background:var(--color-purple-soft);color:var(--color-purple-text)}
 .transcription-step-complete {color:var(--color-green-text)}
 .transcription-setup:not(:empty) {animation:transcription-guide-in .28s ease-out}
@@ -66,7 +66,7 @@
 .transcription-blocked > summary {width:fit-content;padding-block:12px;font-weight:650;color:var(--color-purple-text);cursor:pointer}
 .transcription-blocked[open] > :not(summary) {margin-block:0 10px}
 .transcription-blocked .integration-action {width:auto;background:var(--color-purple-soft);color:var(--color-purple-text)}
-.transcription-blocked p a {color:var(--color-purple-text);text-decoration:underline}
+.transcription-blocked video {display:block;width:100%;max-width:640px;aspect-ratio:16/9;border-radius:12px;background:var(--color-bg-2)}
 
 .transcription-steps[data-connected=true] {flex-direction:row;align-items:center;gap:5px}
 .transcription-step-complete,.transcription-steps .transcription-step[data-phase=done] {

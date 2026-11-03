@@ -24,6 +24,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   const [connected, setConnected] = useState(() => !!localStorage.getItem(tokenKey(owner)))
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
+  const blockedHelp = useRef<HTMLDetailsElement>(null)
   const [downloading, setDownloading] = useState(false)
   useEffect(() => {
     if (!downloading) return
@@ -83,9 +84,14 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           </a>}
         {connected ? <span className="transcription-step-complete" role="img" aria-label="Запуск на Mac" title="Запуск на Mac"><Check size={16} aria-hidden/></span> : <>
           <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
-          <span className="integration-action transcription-step-label" data-active={downloadStarted && !downloading}>
+          <button type="button" className="integration-action transcription-step-label" disabled={!downloadStarted || downloading}
+            data-active={downloadStarted && !downloading} onClick={() => {
+              if (!blockedHelp.current) return
+              blockedHelp.current.open = true
+              blockedHelp.current.querySelector('summary')?.focus()
+            }}>
             <span className="integration-step-number">2</span> Запуск на Mac
-          </span>
+          </button>
           <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
         </>}
         <button className="integration-action transcription-step" data-phase={connected ? 'done' : busy ? 'connecting' : 'idle'}
@@ -106,13 +112,15 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <ol>
             <li>Когда загрузка закончится, откройте папку «Загрузки» в Finder. Дважды нажмите на <code>iskra-transcription-mac.zip</code>. Если уже появилась папка <code>Iskra</code>, откройте её.</li>
             <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. При первом запуске в Терминале начнётся загрузка моделей.
-              <details className="transcription-blocked">
+              <details ref={blockedHelp} className="transcription-blocked" onToggle={event => {
+                if (!event.currentTarget.open) event.currentTarget.querySelector('video')?.pause()
+              }}>
                 <summary>Mac пишет «Файл не был открыт»?</summary>
                 <p>Если Apple не удалось проверить файл, нажмите «Готово». Продолжайте, только если вы сами скачали этот архив из Искры и доверяете ему.</p>
                 <a className="integration-action" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Security">Открыть настройки Mac</a>
+                <video controls playsInline preload="none" poster="/guides/mac-launch.jpg" aria-label="Как разрешить запуск start.command на Mac" src="/guides/mac-launch.mp4" />
                 <p>Если настройки не открылись, в меню Apple выберите «Системные настройки», затем «Конфиденциальность и безопасность».</p>
                 <p>В разделе <strong>«Безопасность»</strong> (внизу страницы) проверьте имя файла. Найдите сообщение о блокировке <code>start.command</code> и нажмите рядом с ним <strong>«Все равно открыть»</strong>. В следующем окне ещё раз выберите «Все равно открыть» или «Открыть». Если Mac попросит, введите пароль или используйте Touch ID.</p>
-                <p><a href="https://support.apple.com/ru-ru/102445" target="_blank" rel="noreferrer">Посмотреть, где находится кнопка, на снимке Apple</a></p>
                 <p>Когда откроется Терминал, переходите к следующему пункту.</p>
               </details>
             </li>
