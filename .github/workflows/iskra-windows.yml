@@ -1,7 +1,6 @@
 name: Iskra Windows
 on:
-  push:
-    branches: [qa/iskra-windows-beta]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'node:url'
 // Напоминание сверить заявления курсов об экзаменах с официальными источниками.
 //
 // ЗАЧЕМ. Курс, готовящий к экзамену, утверждает вещи о внешнем мире, а мир их
@@ -21,7 +20,7 @@ import { fileURLToPath } from 'node:url'
 
 import { readFileSync } from 'node:fs'
 
-const SRC = fileURLToPath(new URL('../src/data/examClaims.ts', import.meta.url))
+const SRC = new URL('../src/data/examClaims.ts', import.meta.url).pathname
 const src = readFileSync(SRC, 'utf8')
 
 const FRESH_DAYS = Number(src.match(/CLAIM_FRESH_DAYS = (\d+)/)?.[1] ?? 183)
