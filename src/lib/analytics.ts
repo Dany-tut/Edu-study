@@ -130,7 +130,7 @@ async function flush(final = false) {
 // «Проблемы» она выглядела страницей-призраком.
 function analyticsPath(path: string): string {
   if (path.startsWith('#') && !path.startsWith('#/')) return '#/'
-  return path.split('?', 1)[0]
+  return path.replace(/(?!^)[?#&].*$/s, '')
 }
 
 function currentPath(): string | null {
