@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, AudioLines, Check, Eye, RotateCcw, X } from '../icons/appIcons'
+import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import './profileIntegrations.css'
@@ -107,7 +107,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
             <li>Когда загрузка закончится, откройте папку «Загрузки» в Finder. Дважды нажмите на <code>iskra-transcription-mac.zip</code>. Если уже появилась папка <code>Iskra</code>, откройте её.</li>
             <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. При первом запуске в Терминале начнётся загрузка моделей.
               <details className="transcription-blocked">
-                <summary>Mac пишет «Файл не был открыт»?</summary>
+                <summary><ChevronRight size={16} aria-hidden />Mac пишет «Файл не был открыт»?</summary>
                 <p>Если Apple не удалось проверить файл, нажмите «Готово». Продолжайте, только если вы сами скачали этот архив из Искры и доверяете ему.</p>
                 <a className="integration-action" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Security">Открыть настройки Mac</a>
                 <p>Если настройки не открылись, в меню Apple выберите «Системные настройки», затем «Конфиденциальность и безопасность».</p>
