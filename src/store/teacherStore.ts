@@ -1,3 +1,4 @@
+import { useDeskStore } from './deskStore'
 import { create } from 'zustand'
 import { confirmDialog } from '../components/ConfirmHost'
 import { t } from '../lib/i18n'
@@ -96,6 +97,7 @@ type TeacherStore = {
   clearPendingGradebookLesson: () => void
   // Course editor — JSON-serialized course data passed between constructor and editor pages
   editingCourseJson: string | null
+  openDeskEditor: () => void
   openCourseEditor: (courseJson: string) => void
   courseEditedJson: string | null
   setCourseEdited: (json: string | null) => void
@@ -283,6 +285,11 @@ export const useTeacher = create<TeacherStore>(set => ({
   openGradebook: scheduleId => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) }),
   clearPendingGradebookLesson: () => set({ pendingGradebookLessonId: null }),
   editingCourseJson: readEditorSession(),
+  openDeskEditor: () => whenMayLeave(() => {
+    clearEditorSession(); clearCardsSession()
+    set({ activePage: 'home', headerDocked: false, pendingGroupForm: null })
+    useDeskStore.getState().setEditMode(true)
+  }),
   openCourseEditor: courseJson => {
     clearCardsSession()
     try { sessionStorage.setItem(EDITOR_SESSION_KEY, courseJson) } catch { /* non-fatal */ }
