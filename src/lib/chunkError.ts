@@ -1,4 +1,4 @@
-import { diagnosticFailure, diagnosticRetry, diagnosticRecovered } from './diagnosticJourney'
+import { diagnosticFailure, diagnosticRetry, diagnosticRecovered, markProfileReload } from './diagnosticJourney'
 /**
  * Опознание и лечение «чанк пропал после деплоя».
  *
@@ -33,6 +33,8 @@ export function isChunkError(msg: string): boolean {
  * сносим воркер и ВСЕ кеши, включая app-chunks, — то же, что «удалить данные
  * сайта», только без выхода из аккаунта (localStorage не трогаем).
  */
+let pendingProfileImport: string | undefined
+
 export function recoverFromChunkError(msg: string): boolean {
   if (!isChunkError(msg)) return false
   const now = Date.now()
@@ -44,13 +46,13 @@ export function recoverFromChunkError(msg: string): boolean {
   }
   if (now - read('chunk_reload_at') >= 10_000) {
     mark('chunk_reload_at')
-    void hardReload()
+    void hardReload({ automatic: true })
     return true
   }
   if (now - read('chunk_purge_at') >= 60_000) {
     mark('chunk_purge_at')
     mark('chunk_reload_at')
-    void hardReload({ full: true })
+    void hardReload({ full: true, automatic: true })
     return true
   }
   return false
@@ -64,7 +66,7 @@ export function recoverFromChunkError(msg: string): boolean {
  * хешем в имени не трогаем, они не устаревают. Воркер встанет заново при загрузке.
  * `full` — снести все кеши сайта (вторая ступень, см. recoverFromChunkError).
  */
-export async function hardReload({ full = false }: { full?: boolean } = {}): Promise<void> {
+export async function hardReload({ full = false, automatic = false }: { full?: boolean; automatic?: boolean } = {}): Promise<void> {
   const purge = async () => {
     const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? []
     await Promise.all(regs.map(r => r.unregister()))
@@ -73,6 +75,7 @@ export async function hardReload({ full = false }: { full?: boolean } = {}): Pro
   }
   // Зависший воркер не должен запереть человека на экране ошибки: 2 с — и перезагрузка.
   try { await Promise.race([purge(), new Promise(r => setTimeout(r, 2000))]) } catch { /* просто перезагрузка */ }
+  if (automatic && pendingProfileImport) markProfileReload(pendingProfileImport)
   window.location.reload()
 }
 
@@ -82,14 +85,16 @@ export async function hardReload({ full = false }: { full?: boolean } = {}): Pro
  * ВНУТРИ фабрики: React.lazy кэширует отказ навсегда, и после того, как промис
  * отклонён, ни ремоунт, ни «Повторить» второго import() уже не вызовут.
  */
-export function retryImport<T>(factory: () => Promise<T>, attempts = 3): Promise<T> {
+export function retryImport<T>(factory: () => Promise<T>, attempts = 3, target?: 'teacher_profile'): Promise<T> {
   return factory().catch(async (err: unknown) => {
     const failure = diagnosticFailure('lazy_module', 'load_failed')
+    if (target === 'teacher_profile') pendingProfileImport = failure
     for (let i = 1; i < attempts; i++) {
       await new Promise(r => setTimeout(r, 250 * 2 ** (i - 1)))
       try {
         diagnosticRetry(failure, 'automatic')
         const value = await factory()
+        if (pendingProfileImport === failure) pendingProfileImport = undefined
         diagnosticRecovered(failure, 'module_loaded')
         return value
       } catch { /* следующая попытка */ }

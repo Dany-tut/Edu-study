@@ -406,7 +406,7 @@ export function initAnalytics() {
   started = true
   getSessionId()
   restoreIncidents()
-  setJourneyReporter(trackEvent)
+  setJourneyReporter(trackEvent, () => identity.user_id)
   setRequestReporter(({ event, ...meta }) => trackEvent(typeof event === 'string' ? event : 'api_request', meta))
   installRuntimeDiagnostics(trackEvent)
   window.dispatchEvent(new Event('iskra:diagnostics-ready'))
