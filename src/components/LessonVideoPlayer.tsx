@@ -943,8 +943,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const rateIndex = Math.max(0, rates.indexOf(rate))
   const volumeFill = (muted ? 0 : volume) / maxVolume
   const rateFill = rateIndex / (rates.length - 1)
-  const volumeFillScale = Math.min(1, volumeFill / .2)
-  const rateFillScale = Math.min(1, rateFill / .2)
+  const volumeFillScale = Math.sqrt(Math.min(1, volumeFill / .15))
+  const rateFillScale = Math.sqrt(Math.min(1, rateFill / .15))
   const liveRate = gesture === 'ff' && canRate && boost <= engineMaxRate ? boost : rate
 
   /** Стрелка в плашке ускорения и её прозрачное поле по бокам. Ink глифа идёт
