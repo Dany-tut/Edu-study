@@ -332,6 +332,7 @@ function mapRow(h: any, counts?: { submitted: number; reviewed: number; oldest?:
 // каждый слал свою пару запросов (см. lib/sharedQuery.ts).
 const homeworkQuery = createSharedQuery<HwAssignment[]>(async () => {
   const uid = await getOwnerId()
+  if (!uid) return []
   const { data } = await supabase
     .from('homework')
     .select('*, groups(name, icon, color, is_individual)')
@@ -450,6 +451,7 @@ const hardQuery = createSharedQuery<HardSub[]>(async () => {
   // Fetch hard submissions: new format (lesson_ref ends with '-hard')
   // OR old format (comment non-empty, no '-hard' suffix)
   const uid = await getOwnerId()
+  if (!uid) return []
   const { data: rows } = await supabase
     .from('lesson_progress')
     .select('*, students!inner(name, created_by)')
