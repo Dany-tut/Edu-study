@@ -32,6 +32,52 @@ export type DeskConfig = {
   activeDeskId: string
 }
 
+<<<<<<< HEAD
+=======
+export const DEFAULT_DESKS: Desk[] = [
+  {
+    id: 'today',
+    name: 'Сегодня',
+    icon: 'layout-dashboard',
+    items: [
+      { i: 'stat-students',   type: 'stat-students',   x: 0,  y: 0, w: 3, h: 2 },
+      { i: 'stat-hw',         type: 'stat-hw',         x: 3,  y: 0, w: 3, h: 2 },
+      { i: 'stat-lessons',    type: 'stat-lessons',    x: 6,  y: 0, w: 3, h: 2 },
+      { i: 'stat-earnings',   type: 'stat-earnings',   x: 9,  y: 0, w: 3, h: 2 },
+      { i: 'today-schedule',  type: 'today-schedule',  x: 0,  y: 2, w: 7, h: 5 },
+      { i: 'today-reminders', type: 'today-reminders', x: 7,  y: 2, w: 5, h: 9 },
+      { i: 'today-tasks',     type: 'today-tasks',     x: 0,  y: 7, w: 7, h: 4 },
+    ],
+  },
+  {
+    id: 'finances',
+    name: 'Финансы',
+    icon: 'wallet',
+    items: [
+      { i: 'finance-received',  type: 'finance-received',  x: 0, y: 0, w: 3, h: 2 },
+      { i: 'finance-expected',  type: 'finance-expected',  x: 3, y: 0, w: 3, h: 2 },
+      { i: 'finance-debt',      type: 'finance-debt',      x: 6, y: 0, w: 3, h: 2 },
+      { i: 'finance-forecast',  type: 'finance-forecast',  x: 9, y: 0, w: 3, h: 2 },
+      { i: 'finance-overdue',   type: 'finance-overdue',   x: 0, y: 2, w: 6, h: 5 },
+      { i: 'finance-activity',  type: 'finance-activity',  x: 6, y: 2, w: 6, h: 5 },
+    ],
+  },
+  {
+    id: 'students',
+    name: 'Ученики',
+    icon: 'users',
+    items: [
+      { i: 'student-count',      type: 'student-count',      x: 0, y: 0, w: 3, h: 2 },
+      { i: 'student-groups',     type: 'student-groups',     x: 3, y: 0, w: 3, h: 2 },
+      { i: 'student-active',     type: 'student-active',     x: 6, y: 0, w: 3, h: 2 },
+      { i: 'student-debtors',    type: 'student-debtors',    x: 9, y: 0, w: 3, h: 2 },
+      { i: 'groups-list',        type: 'groups-list',        x: 0, y: 2, w: 6, h: 5 },
+      { i: 'attention-students', type: 'attention-students', x: 6, y: 2, w: 6, h: 5 },
+    ],
+  },
+]
+
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 export const DEFAULT_CONFIG: DeskConfig = {
   desks: DEFAULT_DESKS,
   activeDeskId: 'today',

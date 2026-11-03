@@ -146,6 +146,13 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
       if (verdict === 'accepted' && ai.grade && ['graded', 'dismissed'].includes(ai.grade.status)) {
         // Final teacher review has already succeeded; an AI bookkeeping error must not undo it.
         void confirmAiGrade(ai.grade.id, score).catch(() => {})
+<<<<<<< HEAD
+=======
+      }
+      if (target?.queue) {
+        const next = stack.find(e => e.key !== entry.key && needsReview(e))
+        setTarget(prev => prev && (next ? {...prev, selected:next.key} : null))
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       }
     } catch(e) {setError(e instanceof Error ? e.message : 'Не удалось сохранить проверку. Попробуйте ещё раз.')}
     finally {setBusy(false)}
@@ -157,7 +164,11 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
     || ai.grade?.tasks.some(task => task.n === r.n && (task.points < task.max_points || task.elements.some(el => el.verdict !== 'yes'))))
   const shownPayload = payload && {...payload, rows: answerFilter === 'manual' ? manual : answerFilter === 'errors' ? errors : payload.rows}
   const allAssignment = entry ? items.filter(e => e.work.slot.ref === entry.work.slot.ref && e.student.groupId === entry.student.groupId) : []
+<<<<<<< HEAD
   const showAll = () => {if(entry)setTarget({...target,keys:allAssignment.map(e=>e.key),title:entry.work.slot.title})}
+=======
+  const showAll = () => {if(entry)setTarget({...target,keys:allAssignment.map(e=>e.key),queue:false,title:entry.work.slot.title})}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   function showAiDetails() {
     setAnswerFilter('all')
     requestAnimationFrame(() => aiDetails.current?.scrollIntoView({block:'start', behavior:'smooth'}))
@@ -181,7 +192,11 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
     cardStyle={{height:expanded ? 'calc(100dvh - 32px)' : !pending && target.keys.length===1 ? 'min(580px, calc(100dvh - 64px))' : 'min(780px, calc(100dvh - 64px))', ...(expanded ? {maxHeight:'calc(100dvh - 32px)'} : {}), borderRadius:24}}
     bodyStyle={{overflow:'hidden',display:'flex',flexDirection:'column'}} onClose={() => {if(!busy)setTarget(null)}}>
     <div className={'course-journal jh-review-shell' + (target.keys.length > 1 ? ' jh-shell-has-stack' : '') + (expanded ? ' jh-shell-expanded' : '') + (aiEnabled ? ' jh-has-ai' : '')} ref={body}>
+<<<<<<< HEAD
       <header className="jh-review-top"><div className="jh-review-emblem"><ClipboardList size={20}/></div><div className="jh-review-title"><span>{'Домашняя работа'}</span><h2 title={target.title}>{target.title}</h2></div>
+=======
+      <header className="jh-review-top"><div className="jh-review-emblem"><ClipboardList size={20}/></div><div className="jh-review-title"><span>{target.queue ? 'Проверка работ' : 'Домашняя работа'}</span><h2 title={target.title}>{target.title}</h2></div>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
         <button type="button" className="jh-full-review" aria-label={expanded?'Свернуть':'Открыть полную проверку'} disabled={busy || !entry} onClick={fullReview}>{expanded ? <Minimize2 size={15}/> : <Maximize2 size={15}/>}<span>{expanded ? 'Свернуть' : 'Открыть полную проверку'}</span></button>
         <button type="button" className="jh-review-close" disabled={busy} aria-label="Закрыть" onClick={() => setTarget(null)}><X size={19}/></button>
       </header>
@@ -224,7 +239,11 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
               </div>{ai.grade?.comment && <div className="jh-ai-comment"><AiCommentDraft key={draftKey} comment={ai.grade.comment}
                 busy={busy || draft.comment.includes(ai.grade.comment)}
                 onUse={() => updateDraft({comment: draft.comment.trim() ? draft.comment + '\n\n' + ai.grade!.comment : ai.grade!.comment})}/></div>}
+<<<<<<< HEAD
               {history}</div><div className="jh-inspector-actions">{error&&<p className="jh-error" role="alert">{error}</p>}<button type="submit" className="cj-button cj-primary" disabled={busy}>{busy?'Сохраняем…':'Завершить проверку'}</button><button type="button" className="cj-button" disabled={busy} onClick={()=>void save('returned')}>На доработку</button></div>
+=======
+              {history}</div><div className="jh-inspector-actions">{error&&<p className="jh-error" role="alert">{error}</p>}<button type="submit" className="cj-button cj-primary" disabled={busy}>{busy?'Сохраняем…':target.queue?'Сохранить и продолжить':'Завершить проверку'}</button><button type="button" className="cj-button" disabled={busy} onClick={()=>void save('returned')}>На доработку</button></div>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
             </form> : <>
               <div className="jh-inspector-heading"><h3>{(entry.work.attempts?.length??0)>1?'Лучший итог':'Результат работы'}</h3><p>{entry.work.source}</p></div><div className="jh-inspector-scroll" key={draftKey}>{aiSummary}<div className="jh-inspector-result"><div className={'jh-final-result '+(entry.work.status==='Зачтено'?'jh-result-passed':entry.work.status==='Ниже порога'?'jh-result-low':'')}><strong>{entry.work.score===null||['На доработке','Пересдача'].includes(entry.work.status)?'—':entry.work.score}<small>{entry.work.score!==null&&!['На доработке','Пересдача'].includes(entry.work.status)?'%':''}</small></strong><span>{entry.work.status}</span></div>
                 {payload && <div className="jh-score-context">{entry.work.source!=='Тестли'&&autoPercent!==null&&<span>Автопроверка <b>{autoPercent}%</b></span>}<span>Порог зачёта <b>{entry.work.threshold}%</b></span></div>}

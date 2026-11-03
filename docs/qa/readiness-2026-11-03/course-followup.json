@@ -1,0 +1,25 @@
+{
+  "scope": "Frozen local frontend snapshot; teacher UI publication; fresh student context",
+  "checks": [
+    {
+      "name": "Publication persists after reload",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh student sees published course",
+      "status": "PASS"
+    },
+    {
+      "name": "Student opens lesson from schedule",
+      "status": "PASS",
+      "url": "http://127.0.0.1:5291/#/lesson/0xogs1-0"
+    }
+  ],
+  "homeGeometry": {
+    "viewport": 900,
+    "scrollHeight": 900,
+    "body": 900
+  },
+  "knownIssue": "Conflicting group/date/start returns HTTP409 but UI suggests network/login problem",
+  "productionModified": false
+}

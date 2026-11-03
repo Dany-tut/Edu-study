@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
+=======
+import { SubjectMark } from '../icons/SubjectMark'
+import { textFadeStyle } from '../../lib/textFades'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { ICON_GAP } from '../../lib/subjects'
@@ -404,7 +409,11 @@ function PersonCard({
             color: s.color,
             background: s.color + '1E', border: `1px solid ${s.color}3A`,
           }}>
+<<<<<<< HEAD
             <span style={{ fontSize: 10, lineHeight: 1 }}><SubjectMark subject={s.subject} size={12} /></span>
+=======
+            <span style={{ fontSize: 10, lineHeight: 1 }}>{s.icon}</span>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
             <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(s.subject)}</span>
           </span>
         ))}

@@ -24,4 +24,7 @@ verify_jwt = false
 [functions.hw-grade-run]
 # JWT is verified inside the handler; cron uses its shared secret.
 verify_jwt = false
+<<<<<<< HEAD
 
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

@@ -1,7 +1,13 @@
 import FadeText from './FadeText'
 import { useEffect, useRef, useId } from 'react'
+<<<<<<< HEAD
 import { useT } from '../lib/i18n'
 import { X } from './icons/appIcons'
+=======
+import { X } from './icons/appIcons'
+import { useT } from '../lib/i18n'
+import './mobileInteraction.css'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { createPortal } from 'react-dom'
@@ -81,7 +87,11 @@ export default function MobileSheet({
     if (!open) return
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const isTop = () => {
+<<<<<<< HEAD
       const sheets = document.querySelectorAll('.mobile-sheet')
+=======
+      const sheets = document.querySelectorAll('[role="dialog"][aria-modal="true"]')
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       return sheets[sheets.length - 1] === sheetRef.current
     }
     const frame = requestAnimationFrame(() => {
@@ -115,7 +125,8 @@ export default function MobileSheet({
     let id: number | null = null
     let startY = 0
     let startX = 0
-    let mode: 'wait' | 'pull' | 'scroll' = 'wait'
+    let mode: 'wait' | 'pull' | 'scroll' | 'horizontal' = 'wait'
+    let passthrough = false
     let lastY = 0
     let lastT = 0
     let vy = 0
@@ -123,18 +134,33 @@ export default function MobileSheet({
     const finger = (e: TouchEvent) => Array.from(e.touches).find(t => t.identifier === id)
       ?? Array.from(e.changedTouches).find(t => t.identifier === id)
 
+    const isTop = () => {
+      const dialogs = document.querySelectorAll('[role="dialog"][aria-modal="true"]')
+      return dialogs[dialogs.length - 1] === sheetRef.current
+    }
+    const resetPull = () => {
+      id = null
+      mode = 'wait'
+      vy = 0
+      if (y.get() > 0) animate(y, 0, { type: 'spring', stiffness: 500, damping: 42 })
+    }
     const onStart = (e: TouchEvent) => {
+      if (!isTop()) return
+      passthrough = false
+      // A second finger or an interrupted touch must cancel, never commit a dismissal.
+      resetPull()
+      if (e.touches.length !== 1) { passthrough = true; return }
       const t = e.touches[0]
-      // Второй палец посреди жеста (щипок, случайное касание) — не наш случай.
-      if (e.touches.length !== 1 || !sheetRef.current?.contains(t.target as Node)) { id = null; return }
-      // Ручка перетаскивания строки (порядок курсов, ленты) — жест её, а не
-      // шторки: иначе строку тянешь вниз, а уезжает вся шторка.
-      if ((t.target as Element).closest?.('[data-sheet-nodrag]')) { id = null; return }
+      if (!sheetRef.current?.contains(t.target as Node)) return
+      // Editing, selection, drawing and explicit drag handles own their touch.
+      if ((t.target as Element).closest?.('button, a, input, textarea, select, [contenteditable], canvas, audio, video, [data-sheet-nodrag], [role="slider"]')) {
+        passthrough = true
+        return
+      }
       id = t.identifier
       startY = lastY = t.clientY
       startX = t.clientX
       lastT = e.timeStamp
-      vy = 0
       mode = 'wait'
     }
 
@@ -153,11 +179,12 @@ export default function MobileSheet({
     }
 
     const onMove = (e: TouchEvent) => {
+      if (!isTop() || passthrough) return
       const scrollers = scrollersAt(e.target as Node)
       const canScroll = scrollers.length > 0
       if (id === null) {
         // Касание мимо шторки (фон, страница под ней) — глушим целиком.
-        if (!canScroll) e.preventDefault()
+        if (!canScroll && e.cancelable) e.preventDefault()
         return
       }
       const t = finger(e)
@@ -165,16 +192,18 @@ export default function MobileSheet({
       const dy = t.clientY - startY
       const dx = t.clientX - startX
       if (mode === 'wait') {
-        if (Math.abs(dy) < 4 && Math.abs(dx) < 4) { if (!canScroll) e.preventDefault(); return }
+        if (Math.abs(dy) < 4 && Math.abs(dx) < 4) { if (!canScroll && e.cancelable) e.preventDefault(); return }
         // Вниз шторку тянет только палец, под которым всё уже в самом верху:
         // иначе это прокрутка вложенного списка обратно к началу.
-        const atTop = scrollers.every(el => el.scrollTop <= 0)
+        if (Math.abs(dx) > Math.abs(dy)) { mode = 'horizontal'; return }
+        const atTop = scrollers.every(el => el.scrollTop <= 1)
         mode = dy > 0 && Math.abs(dy) > Math.abs(dx) && atTop ? 'pull' : 'scroll'
       }
+      if (mode === 'horizontal') return
       if (mode === 'pull') {
         // Гасим ДО того, как Safari начнёт скроллить: иначе он заберёт жест и
         // пришлёт нам pointercancel вместо движений.
-        e.preventDefault()
+        if (e.cancelable) e.preventDefault()
         const now = e.timeStamp
         if (now > lastT) vy = ((t.clientY - lastY) / (now - lastT)) * 1000
         lastY = t.clientY
@@ -183,11 +212,12 @@ export default function MobileSheet({
         return
       }
       // Скролл: списку — его прокрутка, всему остальному — замок.
-      if (!canScroll) e.preventDefault()
+      if (!canScroll && e.cancelable) e.preventDefault()
     }
 
-    const onEnd = () => {
-      if (id === null) return
+    const onEnd = (e: TouchEvent) => {
+      if (!isTop() || id === null) return
+      if (Array.from(e.touches).some(t => t.identifier === id)) return
       const pulled = mode === 'pull'
       const offset = y.get()
       id = null
@@ -195,19 +225,20 @@ export default function MobileSheet({
       if (!pulled) return
       // Решительный рывок или длинная протяжка закрывают; всё, что меньше, —
       // пружиной обратно.
-      if (offset > 110 || vy > 600) closeRef.current()
+      const releasedSpeed = e.timeStamp - lastT <= 100 ? vy : 0
+      if (offset > 110 || releasedSpeed > 600) closeRef.current()
       else animate(y, 0, { type: 'spring', stiffness: 500, damping: 42 })
     }
 
     document.addEventListener('touchstart', onStart, { passive: false })
     document.addEventListener('touchmove', onMove, { passive: false })
     document.addEventListener('touchend', onEnd)
-    document.addEventListener('touchcancel', onEnd)
+    document.addEventListener('touchcancel', resetPull)
     return () => {
       document.removeEventListener('touchstart', onStart)
       document.removeEventListener('touchmove', onMove)
       document.removeEventListener('touchend', onEnd)
-      document.removeEventListener('touchcancel', onEnd)
+      document.removeEventListener('touchcancel', resetPull)
     }
   }, [open, y])
 
@@ -248,7 +279,7 @@ export default function MobileSheet({
               background: 'rgba(var(--glass-rgb), 0.98)',
               backdropFilter: 'var(--blur-solid)',
               WebkitBackdropFilter: 'var(--blur-solid)',
-              borderRadius: '28px 28px 0 0',
+              borderRadius: '32px 32px 0 0',
               boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
               // Низа у шторки нет: контент уходит под край экрана, как на
               // главной и в курсах. Отступ под safe-area живёт внутри —
@@ -283,7 +314,11 @@ export default function MobileSheet({
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)' }} />
               </div>
               {title && (
+<<<<<<< HEAD
                 <div style={{ padding: '4px 20px 10px', textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
+=======
+                <div id={titleId} style={{ padding: '4px 60px 14px', textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                   <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{title}</FadeText>
                 </div>
               )}

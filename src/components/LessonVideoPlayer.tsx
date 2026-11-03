@@ -31,9 +31,14 @@ import {
 } from './icons/appIcons'
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
+<<<<<<< HEAD
 import { NativeVideoVolume } from '../lib/nativeVideoVolume'
 import { resolveDriveVideo } from '../lib/driveVideo'
 import FadeText from './FadeText'
+=======
+import { resolveDriveVideo } from '../lib/driveVideo'
+import ScrollFade from './ScrollFade'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
 import { useT } from '../lib/i18n'
@@ -434,7 +439,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     }
   }, [source.kind, ruSend])
 
+<<<<<<< HEAD
   const applyRate = useCallback((r: number, closeMenu = true) => {
+=======
+  const applyRate = useCallback((r: number) => {
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     try {
       if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(r)
       else if (videoRef.current) {
@@ -446,7 +455,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       // Unsupported rates must not leave a misleading speed label.
       setRate(videoRef.current?.playbackRate ?? 1)
     }
+<<<<<<< HEAD
     if (closeMenu) setRateOpen(false)
+=======
+    setRateOpen(false)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   }, [source.kind])
 
   // Модуль субтитров грузится вместе с плеером (cc_load_policy), а кнопка лишь
@@ -622,7 +635,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       const step = prev === null ? Infinity : time - prev
       // Пауза, начало куска или перемотка — начинаем отрезок заново, пропуск
       // между ними отсмотренным не считается.
+<<<<<<< HEAD
       const playingRate = rateRef.current
+=======
+      const playingRate = videoRef.current?.playbackRate ?? rateRef.current
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       if (step <= 0 || step > Math.max(MAX_STEP, playingRate * Math.min(elapsed, 2) * 1.5)) { segStart.current = time; return }
       const from = segStart.current ?? prev!
 
@@ -651,7 +668,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     const btn = rateBtnRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
+<<<<<<< HEAD
     const h = 54
+=======
+    const h = Math.min(Math.ceil(rates.length / 4) * 44 + 48, window.innerHeight - 32)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     const gap = 8
     const top = r.top - gap - h >= 8 ? r.top - gap - h : Math.min(r.bottom + gap, window.innerHeight - h - 8)
     const left = Math.max(8, Math.min(r.right - RATE_MENU_W, window.innerWidth - RATE_MENU_W - 8))
@@ -956,7 +977,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   const iconBtn = (extra?: React.CSSProperties): React.CSSProperties => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
+<<<<<<< HEAD
     width: 'var(--player-button-size, 48px)', minWidth: 'var(--player-button-size, 48px)', height: 48, borderRadius: 14, border: 'none', cursor: 'pointer',
+=======
+    width: 44, height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     background: 'transparent', color: '#fff', flexShrink: 0, ...extra,
   })
 
@@ -991,7 +1016,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         <video
           ref={videoRef}
           src={source.url}
+<<<<<<< HEAD
           crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : source.crossOrigin}
+=======
+          crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : undefined}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
           autoPlay
           playsInline
           disablePictureInPicture
@@ -999,7 +1028,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             e.currentTarget.currentTime = startAt
             e.currentTarget.preservesPitch = true
             e.currentTarget.playbackRate = rateRef.current
+<<<<<<< HEAD
             applyVolume(volume, muted)
+=======
+            e.currentTarget.volume = volume
+            e.currentTarget.muted = muted
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
             setDuration(e.currentTarget.duration || 0)
           }}
           onLoadedData={e => { void e.currentTarget.play().catch(() => setPaused(true)) }}
@@ -1212,7 +1246,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             animate={{ opacity: barVisible || paused || !!gesture ? 1 : 0, y: barVisible || paused || !!gesture ? 0 : 12 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
+<<<<<<< HEAD
               position: 'absolute', left: 0, right: 0, bottom: 0,
+=======
+              position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 10px 8px',
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
               background: 'linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0.35) 55%, transparent)',
               pointerEvents: barVisible || paused ? 'auto' : 'none',
             }}
@@ -1230,6 +1268,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               onKeyDown={e => {
                 if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
                 e.preventDefault(); e.stopPropagation()
+<<<<<<< HEAD
                 const next = Math.max(0, Math.min(duration, e.key === 'Home' ? 0 : e.key === 'End' ? duration : current + (e.key === 'ArrowRight' ? 5 : -5)))
                 setHoverAt(next)
                 doSeek(next)
@@ -1264,6 +1303,57 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   <span aria-hidden="true" className="lesson-player-hover-mark"
                     style={{ left: `clamp(1px, ${previewAt / duration * 100}%, calc(100% - 1px))` }} />
                 )}
+=======
+                doSeek(e.key === 'Home' ? 0 : e.key === 'End' ? duration : current + (e.key === 'ArrowRight' ? 5 : -5))
+              }}
+              onPointerDown={startScrub}
+              onPointerMove={e => setHoverAt(seekAtClientX(e.clientX))}
+              onPointerLeave={() => setHoverAt(null)}
+              style={{ position: 'relative', height: 28, display: 'flex', alignItems: 'center', cursor: 'pointer', touchAction: 'none' }}
+            >
+              {/* Комета: бегунка нет вовсе, положение держит светлая голова на
+                  конце заливки, а хвост за ней гаснет. */}
+              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 7 : 5, borderRadius: 999, background: 'rgba(255,255,255,0.22)', transition: 'height 0.15s ease' }}>
+                <div style={{ position: 'absolute', inset: 0, width: `${buffered * 100}%`, borderRadius: 999, background: 'rgba(255,255,255,0.28)' }} />
+                {/* Уже отсмотренные куски — видно, что осталось пересмотреть. */}
+                {duration > 0 && watch.ranges.map(([a, b], i) => (
+                  <div
+                    key={i}
+                    style={{
+                      position: 'absolute', top: 0, bottom: 0,
+                      left: `${(a / duration) * 100}%`, width: `${((b - a) / duration) * 100}%`,
+                      background: 'rgba(255,255,255,0.40)', borderRadius: 999,
+                    }}
+                  />
+                ))}
+                <div
+                  style={{
+                    position: 'absolute', inset: 0, width: `${pct}%`, borderRadius: 999,
+                    background: 'linear-gradient(90deg, rgba(var(--accent-rgb), 0.45), rgba(var(--accent-rgb), 1) 55%, rgba(var(--accent-rgb), 0.45) 86%, #FFFFFF)',
+                  }}
+                />
+                {/* Главы — прорези цветом корпуса, а не точки поверх линии. */}
+                {duration > 0 && timecodes.map(tc => (
+                  <span
+                    key={tc.seconds}
+                    title={tc.label}
+                    style={{
+                      position: 'absolute', top: -1, bottom: -1, width: 2,
+                      left: `${Math.min(99.8, (tc.seconds / duration) * 100)}%`,
+                      background: 'rgba(0,0,0,0.55)',
+                    }}
+                  />
+                ))}
+                <span
+                  style={{
+                    position: 'absolute', top: '50%', left: `max(0px, calc(${pct}% - 16px))`,
+                    width: 16, height: scrubbing ? 7 : 5, borderRadius: 999,
+                    transform: 'translateY(-50%)', background: '#fff',
+                    boxShadow: '0 0 10px rgba(var(--accent-rgb), 0.85)',
+                    transition: 'height 0.15s ease',
+                  }}
+                />
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
               </div>
 
               {previewAt !== null && duration > 0 && (
@@ -1294,6 +1384,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 </button>
                 {volumeOpen && (
                   <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
+<<<<<<< HEAD
                     <div className="lesson-player-volume-control">
                       <div className="lesson-player-volume-level" aria-hidden="true">
                         <div style={{ width: `${volumeFill * 100}%`, height: `${volumeFillScale * 100}%`, left: `calc(${volumeFillScale - 1} * var(--slider-inset, 12px))` }} />
@@ -1312,6 +1403,26 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         className="video-volume lesson-player-volume-slider"
                       />
                     </div>
+=======
+                    <button
+                      onClick={() => { const m = !muted; setMuted(m); applyVolume(volume, m) }}
+                      style={iconBtn()}
+                      aria-label={muted ? t('Включить звук') : t('Выключить звук')}
+                    >
+                      {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                    </button>
+                    <input
+                      type="range" min={0} max={1} step={0.05}
+                      value={muted ? 0 : volume}
+                      onChange={e => {
+                        const v = Number(e.target.value)
+                        setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
+                      }}
+                      aria-label={t('Уровень громкости')}
+                      className="video-volume"
+                      style={{ width: 96, accentColor: '#fff' }}
+                    />
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                   </div>
                 )}
               </div>
@@ -1321,8 +1432,13 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               </span>
 
               {activeChapter >= 0 && (
+<<<<<<< HEAD
                 <span className="lesson-player-chapter" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
                   <FadeText>{timecodes[activeChapter].label}</FadeText>
+=======
+                <span className="lesson-player-chapter text-fade" style={{ marginLeft: 12, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.72)' }}>
+                  {timecodes[activeChapter].label}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                 </span>
               )}
 
@@ -1354,13 +1470,17 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   {rateOpen && ratePos && createPortal(
                     <div
                       data-rate-menu
+<<<<<<< HEAD
                       className="lesson-player-rate-popover"
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                       onKeyDown={e => { if (e.key === 'Escape') { setRateOpen(false); rateBtnRef.current?.focus(); e.stopPropagation() } }}
                       style={{
                         position: 'fixed', left: ratePos.left, top: ratePos.top, zIndex: 4000,
                         width: RATE_MENU_W,
                       }}
                     >
+<<<<<<< HEAD
                       <div className="lesson-player-rate-control">
                         <div className="lesson-player-volume-level" aria-hidden="true">
                           <div style={{ width: `${rateFill * 100}%`, height: `${rateFillScale * 100}%`, left: `calc(${rateFillScale - 1} * var(--slider-inset, 12px))` }} />
@@ -1374,6 +1494,24 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                           className="video-volume lesson-player-volume-slider lesson-player-rate-slider"
                         />
                       </div>
+=======
+                      <div className="lesson-player-rate-title">{t('Скорость воспроизведения')}</div>
+                      <ScrollFade maxHeight="calc(100dvh - 80px)" fadeMode="mask" bg="rgba(20,20,22,0.96)">
+                        <div className="lesson-player-rate-grid" role="group" aria-label={t('Скорость воспроизведения')}>
+                          {rates.map(r => (
+                            <button
+                              key={r}
+                              onClick={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
+                              aria-pressed={r === rate}
+                              aria-label={`${r}×`}
+                              className="lesson-player-rate-option"
+                            >
+                              {r}×
+                            </button>
+                          ))}
+                        </div>
+                      </ScrollFade>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                     </div>,
                     (fullscreen ? boxRef.current : null) ?? document.body,
                   )}

@@ -46,6 +46,7 @@
     "release:check": "npm run check:ui && node scripts/guardProductionRelease.mjs --check",
     "check:release": "node scripts/checkReleasePolicy.mjs",
     "check:feed-release": "node scripts/checkFeedRelease.mjs",
+<<<<<<< HEAD
     "check:diary-views": "node scripts/checkStudentDiaryViews.mjs",
     "check:student-journal": "node scripts/checkStudentWorkJournal.mjs",
     "check:drive-video": "deno test --no-lock --node-modules-dir=auto --allow-env supabase/functions/_shared/driveVideo_test.ts supabase/functions/drive-video/index_test.ts",
@@ -55,6 +56,12 @@
     "check:text-fades": "node scripts/checkTextFades.mjs && node scripts/checkTextFadeVisibility.mjs",
     "check:homework-facts": "esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkHomeworkFacts.mjs",
     "check:student-widgets": "node scripts/checkStudentWidgetMatrix.mjs"
+=======
+    "check:video-access": "node scripts/checkHomeworkVideoAccess.mjs",
+    "check:ui": "node scripts/checkUiRules.mjs && npm run check:homework-facts && npm run check:mobile",
+    "check:homework-facts": "esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkHomeworkFacts.mjs",
+    "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs"
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

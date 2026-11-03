@@ -53,6 +53,7 @@
 @container (max-width: 380px) {
   .student-profile-kpi-label { flex-direction: column; align-items: flex-start; }
 }
+<<<<<<< HEAD
 
 /* The floating profile controls occupy their own row below the mobile menu. */
 .student-profile-dock { position: fixed; top: 30px; left: 32px; right: 32px; z-index: 80; pointer-events: none; }
@@ -64,3 +65,5 @@
   .student-profile-dock-download { width: 44px; height: 44px; padding: 0; justify-content: center; }
   .student-profile-dock-download > span { display: none; }
 }
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

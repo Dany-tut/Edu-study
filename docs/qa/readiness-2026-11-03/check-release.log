@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:release
+> node scripts/checkReleasePolicy.mjs
+
+PASS: 34 release policy checks — stale/diverged source, version regressions, unknown production and network failures are blocked.

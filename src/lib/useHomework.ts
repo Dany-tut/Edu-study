@@ -1,3 +1,5 @@
+import { trackEvent } from './analytics'
+import { latestHomeworkSubmissions } from './mobileHomeworkReviewState'
 import type { HomeworkAttempt } from './homeworkResult'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
@@ -601,7 +603,11 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
       .order('updated_at', { ascending: false })
     if (token !== request.current) return
     if (queryError) throw queryError
+<<<<<<< HEAD
     setSubmissions((data ?? []).map((s: any) => ({
+=======
+    setSubmissions(latestHomeworkSubmissions((data ?? []).map((s: any) => ({
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       id: s.id,
       hwId,
       studentId: s.student_id,
@@ -614,7 +620,11 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
       reviewPhotos: Array.isArray(s.review_attachments?.photos) ? s.review_attachments.photos : [],
       reviewBoard: s.review_attachments?.board ?? null,
       answers: parseBasicAnswers(s.attachments),
+<<<<<<< HEAD
     })))
+=======
+    }))))
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     } catch { if (token === request.current) setError('Не удалось загрузить работы. Попробуйте ещё раз.') }
     finally { if (token === request.current) setLoading(false) }
   }, [hwId, lessonId])
@@ -655,8 +665,8 @@ export async function reviewHomework(
   }).eq('id', progressRowId)
   if (expectedAttemptId) update = update.eq('attachments->>attemptId', expectedAttemptId)
   const { data: saved, error } = await update.select('id')
-  if (!saved?.length && !error) return false
-  if (error) { console.error('[reviewHomework]', error); return false }
+  if (!saved?.length && !error) { trackEvent('operation_failed', { operation: 'review_homework', reason: 'no_rows_updated', resource_id: progressRowId }); return false }
+  if (error) { trackEvent('operation_failed', { operation: 'review_homework', code: error.code, resource_id: progressRowId }); console.error('[reviewHomework]', error); return false }
   return true
 }
 

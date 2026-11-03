@@ -124,3 +124,7 @@ export async function loadWork(admin: SupabaseClient, gradeId: string): Promise<
     images,
   }
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

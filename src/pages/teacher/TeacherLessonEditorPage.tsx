@@ -1,5 +1,8 @@
 import { textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { SubjectMark } from '../../components/icons/SubjectMark'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'

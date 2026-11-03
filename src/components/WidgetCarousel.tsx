@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import './quizDialog.css'
 import WidgetFrame from './WidgetFrame'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
@@ -5,6 +6,11 @@ import { useState, useCallback, useRef, useEffect, useLayoutEffect, lazy, Suspen
 import Modal from './Modal'
 import { WIDGET_META } from '../data/widgets'
 import { type HomeWidgetTask } from '../lib/homeWidgetTasks'
+=======
+import { useWidgetScrollFades } from '../lib/useWidgetScrollFades'
+import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
+import { useState, useCallback, useRef, useEffect, useLayoutEffect, lazy, Suspense, type ReactNode } from 'react'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { retryImport } from '../lib/chunkError'
 import { ChevronLeft, ChevronRight } from './icons/appIcons'
 // ── Виджеты — по одному чанку на виджет ─────────────────────────────────────
@@ -47,7 +53,19 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? '-130%' : '130%', opacity: 0 }),
 }
 
+<<<<<<< HEAD
 export default function WidgetCarousel({ columnsOverride, previewWidgets, leadingWidgets }: {
+=======
+const WIDGET_TYPES = ['stats', 'facts', 'reactions', 'focus', 'memes', 'question', 'quiz', 'trainer', 'stickers', 'dose', 'feed']
+
+function WidgetFrame({ id, children, style, adaptive }: { id: number; children: ReactNode; style: React.CSSProperties; adaptive: boolean }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useWidgetScrollFades(ref)
+  return <div ref={ref} className={adaptive ? "iskra-widget" : undefined} data-widget={adaptive ? `pupil-${WIDGET_TYPES[id]}` : undefined} style={style}>{children}</div>
+}
+
+export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   columnsOverride?: number
   /** Leading widget IDs use their original renderer unless custom content is supplied. */
   leadingWidgets?: { id: number; content?: ReactNode }[]
@@ -170,7 +188,11 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
   const pageWidgets = widgetOrder.slice(start, start + perPage)
 
   return (
+<<<<<<< HEAD
     <div ref={carouselRef} className="widget-carousel relative" data-widget={page} data-widget-columns={pageWidgets.length}>
+=======
+    <div ref={carouselRef} className="widget-carousel relative" data-widget={page}>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       {/* Left nav */}
       <motion.button
         whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
@@ -210,7 +232,11 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
             {pageWidgets.map(idx => (
               <WidgetFrame
                 id={idx}
+<<<<<<< HEAD
                 adaptive={!previewWidgets && !leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined)}
+=======
+                adaptive={!previewWidgets}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                 key={idx}
                 style={{
                   flex: pageWidgets.length < perPage

@@ -79,7 +79,10 @@ html .dashboard-root--home > .dashboard-schedule:has(.student-schedule-ribbon) {
 .ssr-skeleton-lessons { display:flex; flex-direction:column; gap:10px; margin-top:16px; min-height:0; overflow:hidden; }
 .ssr-skeleton-lesson { display:flex; align-items:center; gap:12px; padding:14px 12px; border-radius:16px; background:var(--color-schedule-row); flex-shrink:0; }
 @media(pointer:coarse) { .ssr-skeleton-controls > .skeleton { height:44px !important; } .ssr-skeleton-controls > .skeleton:nth-child(2),.ssr-skeleton-controls > .skeleton:nth-child(3) { width:44px !important; } }
+<<<<<<< HEAD
 
 /* Shadow padding must not intercept clicks on the widgets below the schedule. */
 .dashboard-schedule:has(.student-schedule-ribbon),.student-schedule-ribbon{pointer-events:none}
 .student-schedule-ribbon header,.student-schedule-ribbon .schedule-card,.student-schedule-ribbon .ssr-load-error{pointer-events:auto}
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

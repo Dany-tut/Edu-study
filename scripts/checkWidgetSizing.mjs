@@ -2,14 +2,22 @@ import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { mkdirSync, writeFileSync } from 'node:fs'
 const result = await build({
+<<<<<<< HEAD
   stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'; export * from './src/lib/defaultDeskLayout'; export * from './src/lib/widgetReviewSizing'; export * from './src/lib/widgetReviewRoute'; export { studentBalanceStats } from './src/lib/studentWidgetStats'",resolveDir:process.cwd(),loader:'ts'},
+=======
+  stdin: {contents:"export { WIDGET_REGISTRY as registry } from './src/components/teacher/widgets/registry'; export * from './src/lib/deskWidgetSizing'",resolveDir:process.cwd(),loader:'ts'},
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   bundle:true,platform:'node',format:'esm',write:false,
   plugins:[{name:'unused-widget-renderers',setup(b){b.onResolve({filter:/^\.\/Widget/},a=>a.importer.endsWith('/registry.tsx')?{path:a.path,external:true}:null)}}],
   external:['react','react/jsx-runtime','framer-motion','lucide-react'],
 })
 mkdirSync('node_modules/.cache',{recursive:true})
 writeFileSync('node_modules/.cache/widget-sizing-check.mjs',result.outputFiles[0].text)
+<<<<<<< HEAD
 const { registry, clampDeskWidget, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP, reviewPresets, reviewAllowed, isWidgetReviewRoute } = await import('../node_modules/.cache/widget-sizing-check.mjs')
+=======
+const { registry, clampDeskWidget, compactDeskWidgets, deskRowHeight, deskColumns, resizeDeskWidget } = await import('../node_modules/.cache/widget-sizing-check.mjs')
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 const integral=item=>{for(const k of ['x','y','w','h','minW','minH'])assert.ok(Number.isInteger(item[k]),`${item.type}: fractional ${k}=${item[k]}`)}
 let cases=0
 for(const def of registry) for(const width of [900,1200,1600,2400]) for(const oldRow of [42,64,84]){
@@ -25,13 +33,18 @@ for(const def of registry) for(const width of [900,1200,1600,2400]) for(const ol
   assert.ok(min.h*(row+8)-8 >= def.minHeightPx-0.001)
   const grown=resizeDeskWidget(min,def,1000,450,width,row)
   integral(grown)
+<<<<<<< HEAD
   if(def.stat)assert.equal(grown.h,1,'Metrics must never grow into empty tall panels');else assert.ok(grown.h>2,'Old maxH:2 must not block growing')
+=======
+  assert.ok(grown.h>2,'Old maxH:2 must not block growing')
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   for(const delta of [1,7,19,43,85,177]) integral(resizeDeskWidget(min,def,delta,delta,width,row))
   if(def.stat)assert.deepEqual([min.w,min.h],[1,1],'Independent indicators must allow 1×1')
   if(def.type==='today-schedule')assert.ok(min.h>1,'Calendar cannot be 1×1')
   cases++
 }
 const metric=clampDeskWidget({i:'metric',type:'stat-students',x:0,y:0,w:1,h:1,gridVersion:2},registry.find(d=>d.stat),1200,116)
+<<<<<<< HEAD
 const packed=resolveDeskCollisions([metric,{i:'list',type:'groups-list',x:0,y:5,w:3,h:3,gridVersion:2}])
 assert.equal(packed[1].y,5,'Intentional empty rows must remain')
 assert.deepEqual(resolveDeskCollisions(packed),packed)
@@ -134,3 +147,15 @@ for(const def of registry.filter(d=>!d.legacy)){
  }
 }
 console.log('All 19 widgets snap unsupported pairs while preserving manual rows')
+=======
+const packed=compactDeskWidgets([metric,{i:'list',type:'groups-list',x:0,y:5,w:3,h:3,gridVersion:2}])
+assert.equal(packed[1].y,1)
+assert.deepEqual(compactDeskWidgets(packed),packed)
+console.log(`${registry.length} types, ${cases} migrations and discrete resize scenarios passed; metrics support 1×1, calendar protected`)
+
+const indicator=registry.find(d=>d.stat)
+for(const [w,h] of [[1,1],[1,2],[2,2],[2,3],[3,3]]){
+ const preset=clampDeskWidget({i:'preset',type:indicator.type,x:0,y:0,w,h,gridVersion:2},indicator,1200,116)
+ assert.deepEqual([preset.w,preset.h],[w,h],`Preset ${w}×${h} must be selectable`)
+}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

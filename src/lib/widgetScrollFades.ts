@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import { measureWork } from './platformPerformance'
 
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 /** Apply edge fades to actual scroll regions, without adding layout wrappers. */
 export function installWidgetScrollFades(root: HTMLElement) {
   const observed = new Set<HTMLElement>()
@@ -40,9 +43,12 @@ export function installWidgetScrollFades(root: HTMLElement) {
     }
     for (const el of [root, ...root.querySelectorAll<HTMLElement>('*')]) {
         if (!observed.has(el)) { resize.observe(el); observed.add(el) }
+<<<<<<< HEAD
         // WeekStrip masks only partially clipped date cells. Its recycled
         // buffer is navigation, not hidden text within a fully visible date.
         if (el.dataset.scrollFadeOwner === 'week-strip') { el.removeAttribute('data-scroll-fade'); continue }
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
         const style = getComputedStyle(el)
         if (/auto|scroll/.test(style.overflowY + style.overflowX)) {
           regions.add(el)
@@ -50,7 +56,11 @@ export function installWidgetScrollFades(root: HTMLElement) {
         } else el.removeAttribute('data-scroll-fade')
       }
   }
+<<<<<<< HEAD
   const schedule = () => { if (!frame && !stopped) frame = requestAnimationFrame(() => measureWork('widget-scroll-fades', scan)) }
+=======
+  const schedule = () => { if (!frame && !stopped) frame = requestAnimationFrame(scan) }
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const resize = new ResizeObserver(schedule)
   const mutation = new MutationObserver(schedule)
   mutation.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] })

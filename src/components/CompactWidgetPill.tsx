@@ -1,6 +1,10 @@
 import { textFadeLines } from '../lib/textFades'
+<<<<<<< HEAD
 import { SubjectMark } from './icons/SubjectMark'
 import { LoopTextIcon, LoopActionLabel } from './icons/LoopIcon'
+=======
+import { LoopTextIcon } from './icons/LoopIcon'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'

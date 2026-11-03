@@ -4,7 +4,7 @@ import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
 import { GLASS, type GlassHeader } from '../lib/nativeGlass'
-import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
+import { useOverlayScroll } from './teacher/OverlayScroll'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import MobileGlassHeader from './MobileGlassHeader'
 import './mobileInteraction.css'
@@ -68,28 +68,51 @@ export default function MobileScreen({
   const keyboardOpen = useKeyboardOpen()
   const rootRef = useRef<HTMLDivElement>(null)
   const dockRef = useRef<HTMLDivElement>(null)
+<<<<<<< HEAD
+=======
+  const topRef = useRef<HTMLDivElement>(null)
+  const [topClearance, setTopClearance] = useState(0)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const [dockClearance, setDockClearance] = useState(0)
   // Measure the actual occupied bottom zone: buttons, errors and safe area can
   // all change its height. The content dissolves BEFORE the controls.
   useLayoutEffect(() => {
     const root = rootRef.current
     const dock = dockRef.current
+<<<<<<< HEAD
     if (!root || !dock) { setDockClearance(0); return }
     const measure = () => {
       const inset = Math.ceil(root.getBoundingClientRect().bottom - dock.getBoundingClientRect().top)
       setDockClearance(old => old === inset ? old : Math.max(0, inset))
+=======
+    if (!root) return
+    const measure = () => {
+      const bounds = root.getBoundingClientRect()
+      const bottom = dock ? Math.max(0, Math.ceil(bounds.bottom - dock.getBoundingClientRect().top)) : 0
+      const top = topRef.current ? Math.max(0, Math.ceil(topRef.current.getBoundingClientRect().bottom - bounds.top)) : 0
+      setDockClearance(old => old === bottom ? old : bottom)
+      setTopClearance(old => old === top ? old : top)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(root)
+<<<<<<< HEAD
     observer.observe(dock)
     return () => observer.disconnect()
   }, [!!bottomDock, bottomDockRaise, keyboardOpen])
+=======
+    if (dock) observer.observe(dock)
+    if (topRef.current) observer.observe(topRef.current)
+    return () => observer.disconnect()
+  }, [!!bottomDock, bottomDockRaise, keyboardOpen, topZone != null, !!glassHeader])
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const TOP_ZONE = topPad
   const { ref: bodyRef, fade, onScroll } = useOverlayScroll()
   // Вход шапки ждёт первого нарисованного кадра — иначе его съедает сборка
   // экрана (lib/useEnterAfterPaint.ts).
   const entered = useEnterAfterPaint()
+<<<<<<< HEAD
   // Alpha mask only: no painted rectangle or theme-colored overlay.
   const dockMask = dockClearance > 0 && !keyboardOpen && fade.bottom > 0
     ? (() => {
@@ -100,6 +123,17 @@ export default function MobileScreen({
     })()
     : {}
 
+=======
+  // Both chrome zones dissolve content alpha; controls stay outside the mask.
+  const topFadeEnd = topClearance > 0 ? topClearance + 24 : 24
+  const bottomFadeStart = dockClearance > 0 && !keyboardOpen
+    ? `max(${topFadeEnd}px, calc(100% - ${dockClearance + 56}px))`
+    : 'calc(100% - 100px)'
+  const bottomFadeEnd = dockClearance > 0 && !keyboardOpen ? `calc(100% - ${dockClearance}px)` : '100%'
+  const contentMask = fade.top > 0 || fade.bottom > 0
+    ? `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0px, rgba(0,0,0,${1 - fade.top}) ${topClearance}px, #000 ${topFadeEnd}px, #000 ${bottomFadeStart}, rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
+    : undefined
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
   // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
   // одним присваиванием не обойтись: держим цель, пока страница дорастает до
@@ -175,7 +209,10 @@ export default function MobileScreen({
     >
       {/* В приложении на iOS шапку рисует система (стеклянные капсулы) — веб-пилюли
           не рендерим, место под них (topPad) остаётся. */}
-      {GLASS && glassHeader && <MobileGlassHeader {...glassHeader} />}
+      {GLASS && glassHeader && <>
+        <MobileGlassHeader {...glassHeader} />
+        <div ref={topRef} aria-hidden="true" style={{ position: 'absolute', top: TOP_INSET, height: 44, width: 0, visibility: 'hidden', pointerEvents: 'none' }} />
+      </>}
 
       {/* TOP — floating glass widget zone. pointer-events pass through empty areas. */}
       {topZone != null && !(GLASS && glassHeader) && (
@@ -183,6 +220,7 @@ export default function MobileScreen({
           // Верхние кнопки на свайпе «назад» стоят, а не едут: по линии стыка
           // они сменяются кнопками нижнего экрана (lib/useSwipeBack.ts).
           data-swipe-pin="top"
+          ref={topRef}
           style={{
             position: 'absolute',
             top: TOP_INSET,
@@ -222,8 +260,13 @@ export default function MobileScreen({
           overflowX: 'clip',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
+<<<<<<< HEAD
           ...fadeMask(fade, 24, 100),
           ...dockMask,
+=======
+          maskImage: contentMask,
+          WebkitMaskImage: contentMask,
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
           paddingTop: topZone != null || (GLASS && glassHeader) ? `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)` : `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`,
           paddingLeft: 16,
           paddingRight: 16,

@@ -1,5 +1,8 @@
 import { textFadeLines, textFadeStyle } from '../lib/textFades'
+<<<<<<< HEAD
 import { ArrowRight } from './icons/appIcons'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { Play, ClipboardList, CalendarDays, Check, Flame, CheckCircle2, TrendingUp, Zap, BookOpen } from './icons/appIcons'

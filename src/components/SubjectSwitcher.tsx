@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { textFadeStyle } from '../lib/textFades'
 import { SubjectMark } from './icons/SubjectMark'
+=======
+import { SubjectMark } from './icons/SubjectMark'
+import { textFadeStyle } from '../lib/textFades'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useEffect, useRef, useState } from 'react'
 import { ICON_GAP } from '../lib/subjects'
 import { ChevronDown, Check } from './icons/appIcons'

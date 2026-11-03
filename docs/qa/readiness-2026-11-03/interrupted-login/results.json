@@ -1,0 +1,57 @@
+{
+  "productionModified": false,
+  "realIPhoneTested": false,
+  "results": [
+    {
+      "scenario": "Native browser opened, then closed without callback; foreground return",
+      "status": "FAIL",
+      "state": [
+        {
+          "text": "Открываем…",
+          "disabled": true
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": true
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": "teacher",
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    },
+    {
+      "scenario": "Native browser refuses to open",
+      "status": "PASS",
+      "state": [
+        {
+          "text": "Продолжить с Apple ID",
+          "disabled": false
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": false
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": "teacher",
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    },
+    {
+      "scenario": "Native browser open never resolves; two minutes pass",
+      "status": "FAIL",
+      "state": [
+        {
+          "text": "Открываем…",
+          "disabled": true
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": true
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": "teacher",
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 .lesson-player-volume { position: relative; flex-shrink: 0; }
 .lesson-player-volume-popover {
   position: absolute; left: 0; bottom: 54px; z-index: 2;
+<<<<<<< HEAD
   display: flex; align-items: center; padding: 0;
   border-radius: 999px; background: rgba(28,28,32,.52);
   backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
@@ -36,11 +37,18 @@
 .lesson-player-volume-slider::-moz-range-progress { background: transparent; }
 .lesson-player-volume-slider::-moz-range-thumb { width: 0; height: 0; border: none; }
 .lesson-player-volume-slider:focus-visible { outline: 2px solid white; outline-offset: -4px; }
+=======
+  display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 4px;
+  border-radius: 16px; background: rgba(20, 20, 22, .96);
+  border: 1px solid rgba(255, 255, 255, .14); box-shadow: var(--shadow-4);
+}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 .lesson-player-time {
   margin-left: 4px; font-size: 12px; font-weight: 650;
   color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .lesson-player-duration { color: rgba(255, 255, 255, .6); }
+<<<<<<< HEAD
 .lesson-player-rate-popover {
   border-radius: 999px; background: rgba(28,28,32,.52);
   backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
@@ -57,6 +65,21 @@
   color: #fff; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
 }
 .lesson-player button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+=======
+.lesson-player-rate-title {
+  padding: 8px 10px 10px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.65);
+}
+.lesson-player-rate-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+.lesson-player-rate-option {
+  min-height: 44px; border: none; border-radius: 10px; padding: 6px;
+  background: transparent; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.lesson-player-rate-option:hover { background: rgba(255,255,255,.1); }
+.lesson-player-rate-option[aria-pressed="true"] { background: rgba(255,255,255,.2); }
+.lesson-player button:focus-visible, .lesson-player-rate-option:focus-visible {
+  outline: 2px solid #fff; outline-offset: -3px;
+}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 .lesson-player-message {
   position: absolute; inset: 8px; z-index: 3;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -77,6 +100,7 @@
   .lesson-player-time-slash { display: none; }
   .lesson-player-message { padding: 6px; gap: 4px; font-size: 11px; }
 }
+<<<<<<< HEAD
 
 /* Shared 24px radius/inset: the caption aligns with the straight edge of the frame. */
 .lesson-video-progress {
@@ -132,3 +156,5 @@
   position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(28,28,32,.5);
   pointer-events: none;
 }
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

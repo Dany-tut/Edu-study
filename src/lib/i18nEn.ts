@@ -10,6 +10,7 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+<<<<<<< HEAD
   "Нет напоминаний": "No reminders",
   'Карточек учеников': 'Student records',
   'Без долга по занятиям': 'No lesson debt',
@@ -35,6 +36,24 @@ export const EN: Record<string, string> = {
   "Все работы": "All assignments",
   "Нужно сдать": "To submit",
   "Не удалось загрузить работы": "Could not load assignments",
+=======
+  'Изменить высоту виджета': 'Change widget height',
+  'Добавить задачу': 'Add a task',
+  'Занятия модуля': 'Module lessons',
+  '← Предыдущие занятия': '← Previous lessons',
+  'Дальше есть ещё занятия →': 'More lessons ahead →',
+  'Показано': 'Shown',
+  'Загрузить ещё': 'Load more',
+  'Повторяем…': 'Retrying…',
+  'Дождитесь загрузки урока и попробуйте ещё раз.': 'Wait for the lesson to load and try again.',
+  'Оценка, комментарий и предложения ИИ': 'Grade, feedback and AI suggestions',
+  'Не удалось загрузить данные занятий. Попробуйте ещё раз.': 'Could not load lesson details. Please try again.',
+  'Проверка сохранена': 'Review saved',
+  'Не удалось сохранить черновик. Не закрывайте экран до отправки.': 'Could not save the draft. Keep this screen open until you submit.',
+  'Не удалось сохранить проверку. Не закрывайте экран и попробуйте ещё раз.': 'Could not save the review. Keep this screen open and try again.',
+  'Не удалось загрузить работы. Попробуйте ещё раз.': 'Could not load submissions. Please try again.',
+  'Подробности': 'Details',
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   'Перемотка': 'Seek',
   'Настройка громкости': 'Volume settings',
   'Уровень громкости': 'Volume level',
@@ -45,11 +64,15 @@ export const EN: Record<string, string> = {
   'Попробуйте ещё раз или откройте исходное видео.': 'Try again or open the original video.',
   'Открыть на Google Диске': 'Open in Google Drive',
   'Сначала просмотрите видео': 'Watch the video first',
+<<<<<<< HEAD
   'ДЗ откроется через 90 минут после начала урока': 'Homework unlocks 90 minutes after the lesson starts',
   'Прогресс сохранён на этом устройстве. Не удалось синхронизировать.': 'Progress is saved on this device. Could not sync.',
   'Занятия модуля': 'Module lessons',
   '← Предыдущие занятия': '← Previous lessons',
   'Дальше есть ещё занятия →': 'More lessons ahead →',
+=======
+  'Прогресс сохранён на этом устройстве. Не удалось синхронизировать.': 'Progress is saved on this device. Could not sync.',
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   "Новая личная задача": "New personal task",
   "Личная задача не создаёт занятие в расписании и не назначает домашку ученикам.": "A personal task does not schedule a lesson or assign homework to students.",
   "Не удалось сохранить задачу": "Could not save the task",
@@ -58,6 +81,7 @@ export const EN: Record<string, string> = {
   "Добавить личную задачу": "Add a personal task",
   "Назначить домашку": "Assign homework",
   "занятие в расписании": "a scheduled lesson",
+<<<<<<< HEAD
   "Вопросов": "Questions",
   "Подробнее": "Details",
   "Уроков пройдено": "Lessons completed",
@@ -91,6 +115,8 @@ export const EN: Record<string, string> = {
   'Просрочено на': 'Overdue by',
   'Оплата сегодня': 'Payment due today',
   'Через': 'In',
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   "Фото и доска к проверке": "Photos and whiteboard for review",
   "Добавить фото к проверке": "Add a photo for review",
   "Фото к проверке": "Review photos",
@@ -5534,6 +5560,10 @@ export const EN: Record<string, string> = {
   "Что получилось и что исправить": "What went well and what to improve",
   "Комментарий ученику в полной проверке": "Student feedback in the full review",
   "Учебный пример": "Demo assignment",
+<<<<<<< HEAD
+=======
+  "Расширить": "Expand",
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   'Пока нет домашних заданий': 'No homework yet',
 
   'По курсам': 'By course',
@@ -5549,6 +5579,7 @@ export const EN: Record<string, string> = {
   'На этот день заданий нет': 'No assignments for this day',
 
   'Не задана': 'Not set',
+<<<<<<< HEAD
   'Дождитесь загрузки урока и попробуйте ещё раз.': 'Wait for the lesson to load and try again.',
   'Очистить выбор': 'Clear selection',
 
@@ -5586,4 +5617,7 @@ export const EN: Record<string, string> = {
   "Показано": "Showing",
   "Загрузить ещё": "Load more",
   "Изменить высоту виджета": "Resize widget height",
+=======
+  'Очистить выбор': 'Clear selection',
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 }

@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
+=======
+import { Table as LoopUiTable } from '../../components/icons/appIcons'
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, type CourseSlot } from '../../lib/courseScheduleSync'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'

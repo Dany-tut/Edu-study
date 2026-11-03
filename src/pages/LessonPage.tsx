@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 import { useNow } from '../lib/useNow'
 import { textFadeStyle } from '../lib/textFades'
 import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
 import { publishVideoWatch } from '../store/studentDataStore'
 import { SubjectMark } from '../components/icons/SubjectMark'
+=======
+import { textFadeStyle } from '../lib/textFades'
+import { homeworkNeedsVideo } from '../lib/homeworkAccess'
+import { publishVideoWatch } from '../store/studentDataStore'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -500,7 +506,11 @@ function readBasicProgress(lessonId: string, homework: LessonHomework): { unlock
   }
 }
 
+<<<<<<< HEAD
 function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false, timeLocked = false }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string; videoRequired?: boolean; timeLocked?: boolean }) {
+=======
+function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string; videoRequired?: boolean }) {
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const t = useT()
   const [{ unlocked, score }, setProgress] = useState(() => readBasicProgress(lessonId, homework))
   const assessment = useDashboard(s => s.lessonAssessments[lessonId])
@@ -537,7 +547,11 @@ function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false
   const hardIconSize = (!hardUnlocked && !hardStatus) ? 18 : 20
 
   const rows = [
+<<<<<<< HEAD
     { id: 'base' as const, icon: timeLocked || videoRequired ? Lock : GraduationCap, iconSize: 20, title: timeLocked ? t('ДЗ откроется через 90 минут после начала урока') : videoRequired ? t('Сначала просмотрите видео') : title ?? t('Домашка') },
+=======
+    { id: 'base' as const, icon: videoRequired ? Lock : GraduationCap, iconSize: 20, title: videoRequired ? t('Сначала просмотрите видео') : title ?? t('Домашка') },
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: t('Сложный уровень') }] : []),
   ]
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
@@ -567,7 +581,11 @@ function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false
     >
       {rows.map(({ id, icon: Icon, iconSize, title }) => {
         const isActive = active === id
+<<<<<<< HEAD
         const locked = timeLocked || videoRequired || (id === 'hard' && !hardUnlocked && !hardStatus)
+=======
+        const locked = videoRequired || (id === 'hard' && !hardUnlocked && !hardStatus)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
         const solidWhite = isActive && !locked
         const faintWash = (locked && hovered === id) || (id === 'base' && (unlocked || basicSubmitted) && hovered === 'base')
         const hasExtra = (id === 'base' && basicSubmitted) || (id === 'hard' && !!hardStatusLabel)
@@ -1102,7 +1120,33 @@ export default function LessonPage() {
 
             {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не
                 попадает — считаются только отрезки, пройденные воспроизведением. */}
+<<<<<<< HEAD
             <LessonVideoProgress watch={watch} duration={videoDuration || watch.duration} />
+=======
+            {(watchedPct > 0 || studyProgress.completed) && (
+              <div className="flex items-center" style={{ gap: 10 }}>
+                <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'var(--color-bg)', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%', width: `${Math.max(2, watchedPct)}%`, borderRadius: 999,
+                      background: studyProgress.completed ? 'var(--grad-green-bar)' : 'var(--grad-purple)',
+                      transition: 'width 0.38s ease',
+                    }}
+                  />
+                </div>
+                <span
+                  className="flex items-center flex-shrink-0"
+                  style={{ gap: 6, fontSize: 13, fontWeight: 600, color: studyProgress.completed ? 'var(--color-green-text)' : 'var(--color-text-3)' }}
+                >
+                  {studyProgress.attended
+                    ? <><CheckCircle2 size={14} /> {t('Урок засчитан — был на занятии')}</>
+                    : studyProgress.completed
+                    ? <><CheckCircle2 size={14} /> {t('Запись просмотрена')}</>
+                    : <>{t('Просмотрено')} {Math.floor(watchedSeconds(watch.ranges) / 60)} / {Math.ceil((videoDuration || watch.duration) / 60)} {t('мин')} · {watchedPct}%</>}
+                </span>
+              </div>
+            )}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
             {watchSyncFailed && <p role="status" style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Прогресс сохранён на этом устройстве. Не удалось синхронизировать.')} <button type="button" onClick={() => persistWatch(watch)} style={{ minHeight: 44 }}>{t('Повторить')}</button></p>}
             {studyProgress.attended && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Запись можно пересмотреть для повторения.')}</p>}
           </div>
@@ -1322,13 +1366,21 @@ export default function LessonPage() {
         <MaterialsTile materials={detail.files.materials ?? []} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
+<<<<<<< HEAD
             <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} timeLocked={homeworkTimeLocked(lesson, accessNow)} videoRequired={homeworkNeedsVideo({ ...lesson, watch })} />
+=======
+            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} videoRequired={homeworkNeedsVideo({ ...lesson, watch })} />
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
           </div>
         )}
         {/* Доп. домашки — такие же карточки, у каждой своя сдача (lib/extraHomework). */}
         {getExtraHomeworks(lesson).map(x => (
           <div key={x.id} style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
+<<<<<<< HEAD
             <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} timeLocked={homeworkTimeLocked(lesson, accessNow)} videoRequired={homeworkNeedsVideo({ ...lesson, watch }, hwRef(lesson.id, x.id))} title={extraHwLabel(x.index, x.total, t)} />
+=======
+            <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} videoRequired={homeworkNeedsVideo({ ...lesson, watch }, hwRef(lesson.id, x.id))} title={extraHwLabel(x.index, x.total, t)} />
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
           </div>
         ))}
       </div>

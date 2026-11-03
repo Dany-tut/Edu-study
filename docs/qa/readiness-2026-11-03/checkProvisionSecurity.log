@@ -1,0 +1,1 @@
+PASS: provisioning denies missing/invalid Auth, scopes owner despite forged metadata, returns CSPRNG credential without public-table persistence

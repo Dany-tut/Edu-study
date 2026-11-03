@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import QuizDialogContent from './QuizDialogContent'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { textFadeLines } from '../lib/textFades'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'

@@ -1,0 +1,45 @@
+{
+  "safetyStop": null,
+  "samples": [
+    {
+      "time": 1793674965.168062,
+      "freeGiB": 12.02,
+      "memoryFreePct": 28
+    },
+    {
+      "time": 1793674968.173354,
+      "freeGiB": 11.02,
+      "memoryFreePct": 27
+    },
+    {
+      "time": 1793674971.182801,
+      "freeGiB": 11.02,
+      "memoryFreePct": 30
+    },
+    {
+      "time": 1793674974.191328,
+      "freeGiB": 11.02,
+      "memoryFreePct": 31
+    },
+    {
+      "time": 1793674977.1997912,
+      "freeGiB": 11.02,
+      "memoryFreePct": 28
+    },
+    {
+      "time": 1793674980.2092018,
+      "freeGiB": 11.01,
+      "memoryFreePct": 28
+    },
+    {
+      "time": 1793674983.221389,
+      "freeGiB": 11.01,
+      "memoryFreePct": 33
+    },
+    {
+      "time": 1793674986.231821,
+      "freeGiB": 11.01,
+      "memoryFreePct": 35
+    }
+  ]
+}

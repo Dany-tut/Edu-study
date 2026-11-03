@@ -1,6 +1,7 @@
 import { gradeViaLinali, parseGradeResult, GradeError, classifyProviderStatus } from './homeworkAi.ts'
 import { assertEquals, assertRejects, assertThrows } from 'jsr:@std/assert@1'
 import type { Work } from '../hw-grade/grader.ts'
+<<<<<<< HEAD
 import atlas from './homeworkCriteria.json' with { type: 'json' }
 const work: Work = {kind:'basic',subject:'chemistry',exam:'ege',title:'Учебная проверка',note:'',tasks:[{n:1,type:'write',statement:'Объясните восстановление железа.',reference:'Железо принимает электроны.',answer:'Железо принимает электроны.',machine:'review'}]}
 const raw = () => ({tasks:[{n:1,kim_n:null,max_points:0,scale:[],elements:[{text:'Приём электронов',verdict:'yes',quote:'Железо принимает электроны.',from:'text',ref:'эталон преподавателя'}],comment:'Верно объяснено восстановление.',note:''}],comment:'Восстановление объяснено верно.',teacher_note:''})
@@ -17,6 +18,10 @@ Deno.test('paid prompt omits machine-only catalogue, preserves all scoring crite
   assertEquals(graded.tokenUsage,{prompt_tokens:1200,completion_tokens:220,total_tokens:1420})
  }
 })
+=======
+const work: Work = {kind:'basic',subject:'chemistry',exam:'ege',title:'Учебная проверка',note:'',tasks:[{n:1,type:'write',statement:'Объясните восстановление железа.',reference:'Железо принимает электроны.',answer:'Железо принимает электроны.',machine:'review'}]}
+const raw = () => ({tasks:[{n:1,kim_n:null,max_points:0,scale:[],elements:[{text:'Приём электронов',verdict:'yes',quote:'Железо принимает электроны.',from:'text',ref:'эталон преподавателя'}],comment:'Верно объяснено восстановление.',note:''}],comment:'Восстановление объяснено верно.',teacher_note:''})
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 Deno.test('API key is server-only and images reach the provider; custom task has feedback without invented score',async()=>{
  const graded=await gradeViaLinali(work,[{name:'t1-board.png',mediaType:'image/png',data:'AAAA'}],{key:'test-private-key',fetcher:async(input,init)=>{
   assertEquals(input,'https://api.linaliapi.com/v1/chat/completions')

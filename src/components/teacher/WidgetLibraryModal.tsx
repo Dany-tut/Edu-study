@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 import { WIDGET_REVIEW_PATH, WIDGET_REVIEW_HASH } from '../../lib/widgetReviewRoute'
 import { clampDeskWidget, resolveDeskCollisions, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
 import { metricObjects } from '../../lib/widgetMetricObjects'
+=======
+import { clampDeskWidget, compactDeskWidgets, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useRef, useState } from 'react'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
@@ -22,7 +26,23 @@ type Props = {
   gridColumns?: number
 }
 
+<<<<<<< HEAD
 function WidgetCard({ def, size, sizes, onSize, onAdd }: { def: WidgetDef; size: { w: number; h: number }; sizes: readonly {w:number;h:number}[]; onSize:(value:string)=>void; onAdd: () => void }) {
+=======
+function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: (size: { w: number; h: number }) => void }) {
+  const width = Math.max(1, document.documentElement.clientWidth - 64)
+  const rowHeight = deskRowHeight(window.innerHeight)
+  const minimum = clampDeskWidget({ i: def.type, type: def.type, x: 0, y: 0, w: 1, h: 1, gridVersion: 2 }, def, width, rowHeight)
+  const options = [...new Set([
+    [minimum.w, minimum.h], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [3, 2], [3, 3], [3, 4], [3, 5], [4, 3], [4, 4],
+  ].map(([w, h]) => {
+    const size = clampDeskWidget({ ...minimum, w, h }, def, width, rowHeight)
+    return `${size.w}×${size.h}`
+  }))]
+  const [selected, setSelected] = useState(options[0])
+  const value = options.includes(selected) ? selected : options[0]
+  const add = () => { const [w, h] = value.split('×').map(Number); onAdd({ w, h }) }
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const t = useT()
   const Icon = def.icon
   return (
@@ -58,10 +78,20 @@ function WidgetCard({ def, size, sizes, onSize, onAdd }: { def: WidgetDef; size:
         flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
         background: 'var(--color-bg-3)', borderRadius: 8, padding: '4px 8px',
       }}>
+<<<<<<< HEAD
         <TeacherSelect value={`${size.w}x${size.h}`} options={sizes.map(s=>({value:`${s.w}x${s.h}`,label:`${s.w}×${s.h}`}))}
           onChange={onSize} clearable={false} menuZIndex={3100} triggerStyle={{minHeight:44,padding:'6px 10px'}} />
       </div>
       <button type="button" className="ww-gallery-add" aria-label={`${t('Добавить')}: ${t(def.label)}`} onClick={onAdd}><Plus size={18}/><span>{t('Добавить')}</span></button>
+=======
+        <TeacherSelect value={value} options={options} onChange={setSelected} clearable={false}
+          menuZIndex={3100} triggerStyle={{ minHeight: 44, padding: '6px 10px' }} />
+      </div>
+      <button type="button" className="ww-gallery-add" onClick={add}
+        aria-label={`${t('Добавить виджет')}: ${t(def.label)}`}>
+        <Plus size={18} /><span>{t('Добавить')}</span>
+      </button>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     </div>
   )
 }
@@ -80,6 +110,7 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
   return { x: 0, y: maxY }
 }
 
+<<<<<<< HEAD
 export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets, gridWidth, gridColumns }: Props) {
   const t = useT()
   const [selectedSizes,setSelectedSizes]=useState<Record<string,{w:number;h:number}>>({})
@@ -94,6 +125,20 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
     const existing = resolveDeskCollisions(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight),gridColumns)))
     const size = widgetSize(def)
     const pos = findFreePosition(existing, size.w, size.h, deskColumns(width,gridColumns))
+=======
+export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets }: Props) {
+  const t = useT()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useWidgetScrollFades(dialogRef)
+  const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !hiddenWidgets?.includes(def.type))
+  const handleAdd = (def: WidgetDef, requested: { w: number; h: number }) => {
+    const id = `${def.type}-${Date.now()}`
+    const width = Math.max(1, document.documentElement.clientWidth - 64)
+    const rowHeight = deskRowHeight(window.innerHeight)
+    const existing = compactDeskWidgets(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight))))
+    const size = clampDeskWidget({i:id, type:def.type, x:0,y:0,w:requested.w,h:requested.h,gridVersion:2},def,width,rowHeight)
+    const pos = findFreePosition(existing, size.w, size.h, deskColumns(width))
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     const item: LayoutItem = {
       i: id,
       type: def.type,
@@ -144,11 +189,19 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
           {/* Header */}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+<<<<<<< HEAD
             padding: '20px 22px 14px', gap:12,
             borderBottom: '1px solid var(--color-border-medium)',
             flexShrink: 0,
           }}>
             <div style={{ minWidth:0, flex:1 }}>
+=======
+            padding: '20px 22px 14px', gap: 12,
+            borderBottom: '1px solid var(--color-border-medium)',
+            flexShrink: 0,
+          }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
               <FadeText lines={2} style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить виджет')}</FadeText>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>
                 {t('Кликните — виджет появится на столе')}
@@ -158,7 +211,11 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
               aria-label={t('Закрыть')}
               onClick={onClose}
               style={{
+<<<<<<< HEAD
                 width: 44, height: 44, flexShrink:0, borderRadius: '50%', border: 'none',
+=======
+                width: 44, height: 44, flexShrink: 0, borderRadius: '50%', border: 'none',
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                 background: 'var(--color-bg-3)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
@@ -173,10 +230,14 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
               <WidgetCard
                 key={def.type}
                 def={def}
+<<<<<<< HEAD
                 size={widgetSize(def)}
                 sizes={(def.allowedSizes??[widgetSize(def)]).filter(s=>{const actual=clampDeskWidget({i:def.type,type:def.type,x:0,y:0,...s,gridVersion:2},def,width,rowHeight,64,gridColumns);return actual.w===s.w&&actual.h===s.h})}
                 onSize={value=>{const [w,h]=value.split('x').map(Number);setSelectedSizes(s=>({...s,[def.type]:{w,h}}))}}
                 onAdd={() => handleAdd(def)}
+=======
+                onAdd={size => handleAdd(def, size)}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
               />
             ))}
           </div>

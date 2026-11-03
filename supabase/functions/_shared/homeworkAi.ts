@@ -25,10 +25,14 @@ export function classifyProviderStatus(status: number): GradeError {
 type AtlasItem = { n: number; max_points: number; criteria?: unknown[] }
 function criteriaFor(work: Work): AtlasItem[] {
   const key = `${work.exam ?? 'ege'}_${work.subject}_2027` as keyof typeof atlas
+<<<<<<< HEAD
   // Machine-graded items have no scoring criteria and are already checked by
   // the answer key. Preserve every extended-answer criterion without sending
   // the rest of the subject catalogue on each paid request.
   return (atlas[key] as AtlasItem[]).filter(item => item.criteria?.length)
+=======
+  return atlas[key] as AtlasItem[]
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 }
 
 export function parseGradeResult(text: string, work: Work) {
@@ -97,10 +101,14 @@ scale — массив {elements:целое,points:целое} из критер
     const body = await response.json()
     const choice = body.choices?.[0]
     if (body.error || choice?.finish_reason === 'length' || typeof choice?.message?.content !== 'string') throw new GradeError('invalid_result')
+<<<<<<< HEAD
     const usage = body.usage
     const tokenUsage = usage && ['prompt_tokens','completion_tokens','total_tokens'].every(key => Number.isSafeInteger(usage[key]) && usage[key] >= 0)
       ? { prompt_tokens:usage.prompt_tokens,completion_tokens:usage.completion_tokens,total_tokens:usage.total_tokens } : undefined
     return { ...parseGradeResult(choice.message.content, work), model: config.model || DEFAULT_MODEL, tokenUsage }
+=======
+    return { ...parseGradeResult(choice.message.content, work), model: config.model || DEFAULT_MODEL }
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   } catch (error) {
     if (error instanceof GradeError) throw error
     if (error instanceof Error && ['TimeoutError','AbortError'].includes(error.name)) throw new GradeError('timeout',true)

@@ -1,5 +1,11 @@
 {
+<<<<<<< HEAD
   "build": 1868,
   "version": "1.0.1868",
   "stamped": "2026-11-03T02:31:09Z"
+=======
+  "build": 1443,
+  "version": "1.0.1443",
+  "stamped": "2026-11-03T03:19:12Z"
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 }

@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:homework-attempts
+> node scripts/checkHomeworkAttempts.mjs
+
+PASS: PostgreSQL migration, mixed grading, retries, history, idempotency, frozen answers, RLS isolation, self-assessment

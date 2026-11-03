@@ -1,0 +1,20 @@
+{
+  "network": [
+    {
+      "path": "/rest/v1/schedule_lessons",
+      "status": 409,
+      "body": "{\"code\":\"23505\",\"details\":null,\"hint\":null,\"message\":\"duplicate key value violates unique constraint \\\"schedule_lessons_group_id_date_time_start_key\\\"\"}"
+    },
+    {
+      "path": "/rest/v1/schedule_lessons",
+      "status": 409,
+      "body": "{\"code\":\"23505\",\"details\":null,\"hint\":null,\"message\":\"duplicate key value violates unique constraint \\\"schedule_lessons_group_id_date_time_start_key\\\"\"}"
+    }
+  ],
+  "console": [
+    "Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "schedule_lessons insert failed: {code: 23505, details: null, hint: null, message: duplicate key value violates unique constraint \"schedule_lessons_group_id_date_time_start_key\"}",
+    "Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "schedule_lessons insert failed: {code: 23505, details: null, hint: null, message: duplicate key value violates unique constraint \"schedule_lessons_group_id_date_time_start_key\"}"
+  ]
+}

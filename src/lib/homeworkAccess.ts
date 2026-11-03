@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import { getLessonScheduleState } from './lessonStatus'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import type { Lesson } from '../data/mockData'
 import { lessonStudyProgress } from './lessonStudyProgress'
 import { parseVideoSource } from './videoSource'
@@ -20,6 +23,7 @@ export function homeworkNeedsVideo(lesson: Lesson, ref = lesson.id): boolean {
   } catch { /* no saved draft */ }
   const source = parseVideoSource(lesson.videoUrl)
   // An external iframe cannot report coverage. Never trap the student behind it.
+<<<<<<< HEAD
   return !!source && source.kind !== 'iframe' && source.kind !== 'audio'
 }
 
@@ -30,4 +34,7 @@ export function homeworkTimeLocked(lesson: Lesson, now = new Date()): boolean {
   if (lesson.kind === 'test') return false
   const event = getLessonScheduleState(lesson, now)
   return event?.phase === 'cancelled' || (event?.startMs != null && now.getTime() < event.startMs + (lesson.deliveryMode === 'recording' ? 0 : 90 * 60_000))
+=======
+  return !!source && source.kind !== 'iframe' && source.kind !== 'gdrive' && source.kind !== 'audio'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 }

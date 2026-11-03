@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
+=======
+import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { LoopInlineIcon } from '../icons/LoopIcon'
 import { Check as LoopInlineCheck } from '../icons/appIcons'
 import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'

@@ -24,7 +24,11 @@ export function LoopTextIcon({ icon: Icon, children, size = '1em' }: { icon: Luc
 }
 
 /** Keep translated labels while replacing trailing text symbols with Loop artwork. */
+<<<<<<< HEAD
 export function LoopActionLabel({ icon: Icon, label, position = 'end' }: { icon: LucideIcon; label: string; position?: 'start' | 'end' }) {
+=======
+export function LoopActionLabel({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   return useLoopIcons()
     ? <>{position === 'start' && <><Icon size="1em" style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /> </>}{label.replace(/^[←‹]\s*|\s*[→›✓]$/g, '')}{position === 'end' && <> <Icon size="1em" style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /></>}</>
     : <>{label}</>

@@ -1,5 +1,8 @@
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { Check as LoopUiCheck } from '../icons/appIcons'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {

@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropdownPosition'
 import FadeText from '../FadeText'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
+=======
+import { SubjectMark } from '../icons/SubjectMark'
+import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropdownPosition'
+import FadeText from '../FadeText'
+import { textFadeStyle } from '../../lib/textFades'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown, Check } from '../icons/appIcons'

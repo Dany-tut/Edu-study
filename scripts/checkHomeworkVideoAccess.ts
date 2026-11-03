@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
+<<<<<<< HEAD
 import { watchRatio, withCompletion, withNativePlayed, emptyWatch, watchedSeconds } from '../src/lib/videoProgress'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { homeworkNeedsVideo } from '../src/lib/homeworkAccess'
 import type { Lesson } from '../src/data/mockData'
 const storage = new Map<string, string>()
@@ -16,6 +19,7 @@ storage.set('student-dashboard:homework:check', JSON.stringify({ basicAnswers: {
 assert.equal(homeworkNeedsVideo(lesson), true)
 storage.set('student-dashboard:homework:check', JSON.stringify({ basicAnswers: { q1: 'answer' } }))
 assert.equal(homeworkNeedsVideo(lesson), false)
+<<<<<<< HEAD
 storage.clear()
 
 assert.equal(homeworkNeedsVideo({ ...lesson, videoUrl: 'https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz/view' }), true, 'Native Drive playback must count toward the prerequisite')
@@ -68,3 +72,8 @@ const tail = withNativePlayed(emptyWatch(), native([[0, 12.75]], 12.75, 20))
 assert.equal(watchedSeconds(tail.ranges), 12.75, 'Pause/ended/pagehide snapshots keep the final fragment')
 assert.equal(withNativePlayed(tail, native([], 0, NaN)).duration, 20, 'Metadata reload retains known duration')
 console.log('PASS: native background 10x, paused/buffering, seeks, replay, resume, final tail and unchanged 70%')
+=======
+console.log('PASS: video prerequisite, seeking, attendance, existing work, unsupported embeds and drafts')
+
+assert.equal(homeworkNeedsVideo({ ...lesson, videoUrl: 'https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz/view' }), false, 'Drive embed cannot report progress')
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

@@ -1,5 +1,8 @@
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { LoopActionLabel } from '../icons/LoopIcon'
 import { ArrowRight as LoopActionArrow } from '../icons/appIcons'
 import { LoopTextIcon } from '../icons/LoopIcon'
@@ -1280,7 +1283,11 @@ function ProgressModal({
                     <span style={{
                       flex: 1, fontSize: 12, lineHeight: 1.3, color: 'var(--color-text)',
                         ...textFadeLines(2), overflow: 'hidden',
+<<<<<<< HEAD
                     }} dangerouslySetInnerHTML={{ __html: wt.question.replace(/<[^>]*>/g, '') }} />
+=======
+                    }}>{new DOMParser().parseFromString(sanitizeHtml(wt.question), 'text/html').body.textContent}</span>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                     <span style={{ fontSize: 10, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Л.')}{wt.line}</span>
                   </div>
                 ))}

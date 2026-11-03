@@ -511,6 +511,7 @@ assert.equal(localStorage.getItem(draftKey), draft)
 assert.deepEqual(m.useStudentData.getState().scopeStudentIds, [student])
 console.log('PASS: track status, module access, recording timing, server grades, test answers/write errors, failed sync/reset, out-of-order loads')
 
+<<<<<<< HEAD
 // A slow external service cannot hold the initial cabinet, and the confirmed
 // second read must still apply its result before reconciling local answers.
 resetStore()
@@ -538,6 +539,8 @@ await new Promise(r=>setTimeout(r,0))
 assert.equal(m.useStudentData.getState().progress,beforeSwitch,'Old external response must not refresh another account')
 console.log('PASS: nonblocking external sync, preserved drafts, confirmed grade refresh and account isolation')
 
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 // Stable schedule links win over duplicate titles/numbers and stale display names.
 {
   const first = { ...scheduledSubject, id: 'first', modules: [{ id: 1, label: 'One', lessons: [{ ...scheduled, dbId: 'uuid-first' }] }] }
@@ -576,7 +579,11 @@ console.log('PASS: nonblocking external sync, preserved drafts, confirmed grade 
     ? { data: null, error: { message: 'calendar disconnected' } }
     : { data: [], error: null }
   await assert.rejects(m.fetchScheduleDays(group, student))
+<<<<<<< HEAD
   await m.useStudentData.getState().load({ afterTestlySync: true })
+=======
+  await m.useStudentData.getState().load()
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   assert.deepEqual(m.useStudentData.getState().scheduleDays, saved)
 }
 console.log('PASS: stable calendar links, distinct same-title events and failed-calendar preservation')
@@ -598,6 +605,7 @@ console.log('PASS: stable calendar links, distinct same-title events and failed-
   assert.equal(row.startsAt, undefined)
 }
 console.log('PASS: dated material without a time is visible in the calendar')
+<<<<<<< HEAD
 
 // A failed course calendar projection must not claim that dated materials are absent.
 {
@@ -626,3 +634,5 @@ console.log('PASS: dated material without a time is visible in the calendar')
   }
 }
 console.log('PASS: reported November 2 lesson shares its calendar and track date in Moscow, Bangkok and New York')
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

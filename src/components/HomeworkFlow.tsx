@@ -758,6 +758,10 @@ type LegacyHardRow = {
 
 const SPRING = { type: 'spring', stiffness: 240, damping: 26 } as const
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
 
 // ─── Части домашки ───────────────────────────────────────────────────────────
@@ -2008,6 +2012,10 @@ export default function HomeworkFlow({
 
   if (!basicLevel || !hardLevel) return null
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
   /**
    * Снимок работы для преподавателя: что спрашивали, что ответил ученик, как
@@ -4709,6 +4717,10 @@ export default function HomeworkFlow({
   )
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
 /**
  * Плитка метрики итогов. Все три одинаковой плотности: залитая «Верно» на

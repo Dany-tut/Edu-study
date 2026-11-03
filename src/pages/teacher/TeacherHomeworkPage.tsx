@@ -1,6 +1,9 @@
 import { textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { ArrowRight as LoopUiArrowRight } from '../../components/icons/appIcons'
 import { SubjectMark } from '../../components/icons/SubjectMark'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import HomeworkAttemptPanel from '../../components/HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from '../../components/HomeworkAttemptHistorySection'
 import { getViewAs } from '../../lib/owner'

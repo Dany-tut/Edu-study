@@ -1,5 +1,8 @@
 import type { CSSProperties } from 'react'
+<<<<<<< HEAD
 import { measureWork } from './platformPerformance'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
 export const TEXT_FADE_PROPERTY = '--iskra-text-fade-lines'
 /** The marker travels with reused style objects; only the text-bearing element is measured. */
@@ -20,11 +23,16 @@ export function textFadeLines(value: number | string | undefined): CSSProperties
 
 type Fade = { image: string; size: string; position: string; repeat: string }
 const CLEAR: Fade = { image: '', size: '', position: '', repeat: '' }
+<<<<<<< HEAD
 export function textFadeMask(width: number, height: number, contentWidth: number, contentHeight: number, lines = 1, rtl = false, lastLineOnly = false): Fade {
+=======
+export function textFadeMask(width: number, height: number, contentWidth: number, contentHeight: number, lines = 1, rtl = false): Fade {
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   if (width <= 0 || height <= 0 || (contentWidth <= width + 1 && contentHeight <= height + 1)) return CLEAR
   const direction = rtl ? 'to left' : 'to right'
   const edge = Math.min(24, width / 3)
   const lastLine = `linear-gradient(${direction}, #000 calc(100% - ${edge}px), transparent)`
+<<<<<<< HEAD
   if (lastLineOnly && contentHeight > height + 1 && lines > 1) {
     const lastHeight = height / lines
     const precedingHeight = height - lastHeight
@@ -34,6 +42,8 @@ export function textFadeMask(width: number, height: number, contentWidth: number
       position: `0 0, 0 ${precedingHeight}px`, repeat: 'no-repeat',
     }
   }
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   // An unbroken word may overflow sideways even in a multi-line text window.
   return contentHeight > height + 1 ? {
     image: `linear-gradient(to bottom, #000 calc(100% - ${Math.min(14, height / 3)}px), transparent)`,
@@ -54,7 +64,10 @@ export function startTextFades() {
   const elements = new Map<HTMLElement, { original: string[]; written: string; title: boolean }>()
   const changed = new Set<HTMLElement>()
   const roots = new Set<ParentNode>()
+<<<<<<< HEAD
   const visible = new Set<HTMLElement>()
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   let selector = BASE_SELECTOR
   let frame = 0
   let stylesDirty = true
@@ -81,7 +94,11 @@ export function startTextFades() {
     stylesDirty = false
   }
   function schedule() {
+<<<<<<< HEAD
     if (!frame) frame = requestAnimationFrame(() => measureWork('text-fades', flush))
+=======
+    if (!frame) frame = requestAnimationFrame(flush)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   }
   function restore(element: HTMLElement) {
     const entry = elements.get(element)
@@ -93,8 +110,11 @@ export function startTextFades() {
     }
     if (entry.title) element.removeAttribute('title')
     resize.unobserve(element)
+<<<<<<< HEAD
     intersection?.unobserve(element)
     visible.delete(element)
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     elements.delete(element)
   }
   function collect(root: ParentNode) {
@@ -107,8 +127,12 @@ export function startTextFades() {
       if (!(item instanceof HTMLElement) || /^(INPUT|TEXTAREA|SELECT)$/.test(item.tagName) || item.isContentEditable) continue
       if (!elements.has(item)) {
         elements.set(item, { original: MASK_KEYS.map(key => item.style.getPropertyValue(key)), written: '', title: false })
+<<<<<<< HEAD
         if (intersection) intersection.observe(item)
         else { visible.add(item); resize.observe(item) }
+=======
+        resize.observe(item)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       }
       changed.add(item)
     }
@@ -123,15 +147,23 @@ export function startTextFades() {
     const updates: Array<{ element: HTMLElement; mask: Fade; text: string; title: boolean }> = []
     for (const element of changed) {
       const entry = elements.get(element)
+<<<<<<< HEAD
       // Measuring scrollWidth in a skipped content-visibility subtree forces
       // its rendering. Large journals have thousands of offscreen labels.
       if (!entry || !element.isConnected || !visible.has(element)) continue
+=======
+      if (!entry || !element.isConnected) continue
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       const css = getComputedStyle(element)
       const raw = element.dataset.textFade ?? css.getPropertyValue(TEXT_FADE_PROPERTY)
       const lines = Number(raw || (element.classList.contains('text-fade') ? 1 : 0))
       const clipped = /hidden|clip/.test(css.overflowX) || /hidden|clip/.test(css.overflowY)
       const mask = lines > 0 && clipped
+<<<<<<< HEAD
         ? textFadeMask(element.clientWidth, element.clientHeight, element.scrollWidth, element.scrollHeight, lines, css.direction === 'rtl', element.getAttribute('data-text-fade-mode') === 'last-line') : CLEAR
+=======
+        ? textFadeMask(element.clientWidth, element.clientHeight, element.scrollWidth, element.scrollHeight, lines, css.direction === 'rtl') : CLEAR
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       // A label mask must never hide nested actions or editable controls.
       const hasControls = !!element.querySelector('button, input, textarea, select, [contenteditable="true"]')
       const text = element.textContent?.trim() ?? ''
@@ -161,6 +193,7 @@ export function startTextFades() {
     for (const entry of entries) changed.add(entry.target as HTMLElement)
     schedule()
   })
+<<<<<<< HEAD
   const intersection = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
     for (const entry of entries) {
       const element = entry.target as HTMLElement
@@ -175,6 +208,8 @@ export function startTextFades() {
     }
     schedule()
   }, { rootMargin: '160px' })
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const mutations = new MutationObserver(records => {
     for (const record of records) {
       const target = record.target instanceof HTMLElement ? record.target : record.target.parentElement
@@ -194,7 +229,11 @@ export function startTextFades() {
     }
     schedule()
   })
+<<<<<<< HEAD
   mutations.observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'data-text-fade', 'data-text-fade-mode'] })
+=======
+  mutations.observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'data-text-fade'] })
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const all = () => { for (const element of elements.keys()) changed.add(element); roots.add(document); schedule() }
   refresh = all
   window.addEventListener('resize', all, { passive: true })
@@ -203,7 +242,11 @@ export function startTextFades() {
   }, true)
   document.fonts?.addEventListener('loadingdone', all)
   roots.add(document)
+<<<<<<< HEAD
   measureWork('text-fades.initial', flush)
+=======
+  flush()
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 }
 
 /** Components mounted outside the main entry (isolated previews) still use the same observer. */

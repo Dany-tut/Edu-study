@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { diagnosticFetch } from './diagnosticFetch'
 import { teacherViewFetch } from './teacherView'
 import { withRequestTiming } from './platformPerformance'
 
@@ -17,7 +18,11 @@ if (!url || !key) {
 
 // OAuth returns a one-time query code, leaving the application's hash router intact.
 export const supabase = createClient(url, key, {
+<<<<<<< HEAD
   auth: { flowType: 'pkce' }, global: { fetch: withRequestTiming(teacherViewFetch) },
+=======
+  auth: { flowType: 'pkce' }, global: { fetch: diagnosticFetch(teacherViewFetch, url) },
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 })
 
 // Адрес и ключ отдельно: на выгрузке страницы обычный клиент не годится —

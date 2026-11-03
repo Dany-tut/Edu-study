@@ -134,6 +134,8 @@ export default function WidgetTodayTasks() {
   const [creating,setCreating]=useState(false)
   const addTask=useTeacher(s=>s.addTask)
   const tasks = useTeacher(s => s.tasks)
+  const addTask = useTeacher(s => s.addTask)
+  const [creating, setCreating] = useState(false)
   const toggleTask = useTeacher(s => s.toggleTask)
   const removeTask = useTeacher(s => s.removeTask)
   const updateTask = useTeacher(s => s.updateTask)
@@ -151,6 +153,40 @@ export default function WidgetTodayTasks() {
   const [tasksAtTop, setTasksAtTop] = useState(true)
   const [tasksAtBottom, setTasksAtBottom] = useState(false)
 
+<<<<<<< HEAD
+=======
+  const addButton = <button type="button" className="ww-task-add" aria-label={t('Добавить задачу')}
+    onClick={() => setCreating(true)}><Plus size={20} /></button>
+  const createModal = creating && <CreateTaskModal
+    onClose={() => { setCreating(false); clearDrafts('createTask.') }}
+    onSave={async task => {
+      const { error } = await addTask({ typeId: task.type?.id ?? null, typeLabel: task.type?.label ?? null,
+        typeBg: task.type?.bg ?? null, typeColor: task.type?.textColor ?? null,
+        title: task.title, date: task.date, time: task.time, comment: task.comment })
+      if (error) throw new Error(error)
+    }} />
+
+  if (!tasks.length) {
+    return (
+      <div style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+      {createModal}
+        <motion.div {...fadeUp(0.26)} style={{ height: '100%' }}>
+          <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <CardTitle>
+              <CheckCircle2 size={14} strokeWidth={2} />
+              {t('Мои задачи')}
+              {addButton}
+            </CardTitle>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 13, color: 'var(--color-text-4)', fontWeight: 500 }}>{t('Нет задач')}</span>
+            </div>
+          </Card>
+        </motion.div>
+      </div>
+    )
+  }
+
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const pending = tasks.filter(t => !t.done)
   const done    = tasks.filter(t => t.done)
   const allTasks = [...pending, ...done]
@@ -164,12 +200,22 @@ export default function WidgetTodayTasks() {
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+<<<<<<< HEAD
       {(editingTask||creating) && (
         <CreateTaskModal
           initialTask={creating ? undefined : editingTask ?? undefined}
           onClose={() => { setCreating(false);setEditingTask(null); clearDrafts('createTask.') }}
           onSave={async saved => {
             const payload = {
+=======
+      {createModal}
+      {editingTask && (
+        <CreateTaskModal
+          initialTask={editingTask}
+          onClose={() => { setEditingTask(null); clearDrafts('createTask.') }}
+          onSave={async saved => {
+            const { error } = await updateTask(editingTask.id, {
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
               typeId: saved.type?.id ?? null,
               typeLabel: saved.type?.label ?? null,
               typeBg: saved.type?.bg ?? null,
@@ -178,8 +224,12 @@ export default function WidgetTodayTasks() {
               date: saved.date,
               time: saved.time,
               comment: saved.comment,
+<<<<<<< HEAD
             }
             const {error}=creating?await addTask(payload):await updateTask(editingTask!.id,payload)
+=======
+            })
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
             if (error) throw new Error(error)
           }}
         />
@@ -197,7 +247,11 @@ export default function WidgetTodayTasks() {
                 {pending.length}
               </span>
             )}
+<<<<<<< HEAD
             <button type="button" className="ww-task-add" onClick={()=>setCreating(true)} aria-label={t('Добавить')} ><Plus size={20}/></button>
+=======
+            {addButton}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
           </CardTitle>
           <div
             className="no-scrollbar ww-task-list"

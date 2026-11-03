@@ -93,8 +93,11 @@ pending = st().updateTask(row.id, { ...task, title: 'Изменённая зад
 resolveRequest({ error: null, data: { ...row, title: 'Изменённая задача' } })
 assert.equal((await pending).error, null)
 assert.equal(st().tasks[0].title, 'Изменённая задача')
+<<<<<<< HEAD
 st().setActivePage('homework')
 assert.equal(st().activePage, 'gradebook', 'Retired review section must open the journal')
 st().openHomeworkReview('existing-homework')
 assert.equal(st().reviewReturnPage, 'gradebook', 'Work review returns to the journal')
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 console.log('PASS: creation context, legacy links, pending forms, leave guard, confirmed task insert/update and failures')

@@ -82,7 +82,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
   }
 
   return <>
-    <button type="button" onClick={() => setOpen(true)} aria-label={`${tn(sub.studentName)} · ${tc(sub.lessonTitle)}`} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 14, width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+    <button type="button" onClick={() => setOpen(true)} aria-label={`${tn(sub.studentName)} · ${tc(sub.lessonTitle)}`} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -228,7 +228,11 @@ export default function MobileTeacherReview({ onDetailChange }: { onDetailChange
               {t('ДОМАШНИЕ ЗАДАНИЯ')}
             </div>
             {pendingHw.map(h => (
+<<<<<<< HEAD
               <button type="button" key={h.id} onClick={() => { tactile(); setSelectedHomework(h) }} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+=======
+              <button type="button" key={h.id} onClick={() => { tactile(); setSelectedHomework(h) }} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                 <ImageIcon size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{tc(h.title)}</FadeText>

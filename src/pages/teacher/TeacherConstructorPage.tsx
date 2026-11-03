@@ -1,6 +1,9 @@
 import { textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { RefreshCw as LoopUiRefreshCw } from '../../components/icons/appIcons'
 import { SubjectMark } from '../../components/icons/SubjectMark'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from '../../components/icons/appIcons'
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
@@ -6549,7 +6552,11 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
             <button onClick={() => startEdit(it)} style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
               <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: `${SCR_ACC}22`, color: SCR_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
               <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
+<<<<<<< HEAD
                 {it.a} <span data-loop-content>→</span> {it.b} | {it.c} <span data-loop-content>→</span> <b>{it.answer || '?'}</b>
+=======
+                {it.a} → {it.b} | {it.c} → <b>{it.answer || '?'}</b>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
               </div>
               <span style={{ fontSize: 10, fontWeight: 700, color: SCR_ACC, background: SCR_SOFT, borderRadius: 6, padding: '2px 8px', flexShrink: 0 }}>{t('Ур.')} {it.level}</span>
             </button>

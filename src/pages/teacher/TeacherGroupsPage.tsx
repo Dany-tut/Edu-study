@@ -1,5 +1,8 @@
 import { textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { SubjectMark } from '../../components/icons/SubjectMark'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
@@ -1990,7 +1993,11 @@ function StudentPanel({
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{group.name}</span>
+<<<<<<< HEAD
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.subject ? <><SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}</> : null}</span>
+=======
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.subject ? <>{group.icon}{ICON_GAP}{tc(group.subject)}</> : null}</span>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
               </div>
             </div>
           </div>
@@ -2331,10 +2338,14 @@ type GroupRosterProps = {
 }
 export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const scrollRoot = useRef<HTMLDivElement>(null)
+<<<<<<< HEAD
   // The journal, group strip and report drawer own their inner scroll fades.
   // Observing every cell here duplicates their work and forces offscreen
   // content to lay out. Only this wrapper's direct scroll container remains.
   useScrollFades(scrollRoot, true, renderRoster ? ':scope > div' : '*')
+=======
+  useScrollFades(scrollRoot)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()

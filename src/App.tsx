@@ -4,11 +4,17 @@ import { applyLessonParticipation, fetchLessonParticipation } from './lib/lesson
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
+<<<<<<< HEAD
 import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
 const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
 const StudentLoginPage = lazy(() => retryImport(() => import('./pages/StudentLoginPage')))
 const NativeEntryPage = lazy(() => retryImport(() => import('./pages/NativeEntryPage')))
 const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
+=======
+import StudentLoginPage from './pages/StudentLoginPage'
+import NativeEntryPage from './pages/NativeEntryPage'
+import LandingPage from './pages/LandingPage'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
 // ── Кабинет учителя и разовые экраны — отдельными чанками ────────────────────
 //
@@ -18,6 +24,9 @@ const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
 // разу их не увидев. Точки входа взаимоисключающие (или #/teacher, или
 // кабинет ученика), так что ленивая загрузка не отнимает ничего у первого
 // кадра ни у той стороны, ни у другой.
+// The student workspace is mutually exclusive with native entry and teacher sign-in.
+// Keep its lesson, course-track and widget code out of those startup paths.
+const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
 const TeacherWorkspace = lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand')))
 const JournalStand = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand'))) : null
 const ExampleGroups = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/ExampleGroups'))) : null

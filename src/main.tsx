@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import { MotionConfig } from 'framer-motion'
 import './index.css'
 import { startTextFades } from './lib/textFades'
+<<<<<<< HEAD
+=======
+import { initAnalytics } from './lib/analytics'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
@@ -34,10 +38,22 @@ if (Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
 {
   const { pathname, search, hash } = window.location
   const route = pathname.replace(/\/+$/, '')
+<<<<<<< HEAD
   if (import.meta.env.DEV && route === '/journal-stand') {
     if (!hash) window.history.replaceState(null, '', pathname + search + '#/teacher/gradebook')
   // The public design stand has its own entry point, outside hash routing.
   } else if (route && route !== '/index.html' && route !== '/student-track-stand' && route !== '/student-widget-stand') {
+=======
+  if (import.meta.env.DEV && route === '/student-track-stand') {
+    // An isolated in-memory student example, with no sign-in or database writes.
+  } else if (import.meta.env.DEV && route === '/journal-stand') {
+    // A stand opens its in-memory example immediately, without waiting for Auth.
+    // The explicit example=live link still opens the signed-in teacher's journal.
+    const standQuery = new URLSearchParams(search)
+    if (!standQuery.has('example')) standQuery.set('example', 'groups')
+    window.history.replaceState(null, '', pathname + '?' + standQuery.toString() + (hash || '#/teacher/gradebook'))
+  } else if (route && route !== '/index.html') {
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     const rest = hash.replace(/^#\/?/, '')
     const target = `#${route}${rest ? '/' + rest : ''}`
     window.history.replaceState(null, '', `/${search}${target}`)
@@ -135,12 +151,19 @@ guardStylesheet()
   else setTimeout(warm, 2000)
 })()
 
+<<<<<<< HEAD
 const StudentTrackStand = window.location.pathname.replace(/\/+$/, '') === '/student-track-stand'
   ? lazy(() => import('./components/studentTrackStand/StudentTrackStand')) : null
 
 const StudentWidgetStand = window.location.pathname.replace(/\/+$/, '') === '/student-widget-stand'
   ? lazy(() => import('./components/studentWidgetStand/StudentWidgetStand')) : null
 
+=======
+const StudentTrackStand = import.meta.env.DEV && window.location.pathname.replace(/\/+$/, '') === '/student-track-stand'
+  ? lazy(() => import('./components/studentTrackStand/StudentTrackStand')) : null
+
+initAnalytics()
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 startTextFades()
 
 createRoot(document.getElementById('root')!).render(
@@ -150,7 +173,11 @@ createRoot(document.getElementById('root')!).render(
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
       <ErrorBoundary>
+<<<<<<< HEAD
         {StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
+=======
+        {StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       </ErrorBoundary>
     </MotionConfig>
   </StrictMode>,

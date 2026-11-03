@@ -112,7 +112,11 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
   // A dated material without a clock time is a calendar item too. It has no
   // schedule row (the course editor only persists timed sessions). Project it
   // from the same assigned catalog as the track, without inventing a start time.
+<<<<<<< HEAD
   const catalog = await fetchCourseStructure(person.rows, { strict: true })
+=======
+  const catalog = await fetchCourseStructure(person.rows)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   for (const subject of catalog) for (const module of subject.modules) for (const lesson of module.lessons) {
     if (!lesson.scheduledDate || lesson.scheduledTime) continue
     const parts = lesson.scheduledDate.split('.')

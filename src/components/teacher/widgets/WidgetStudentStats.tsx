@@ -1,5 +1,8 @@
 import MiniStatCard from './_MiniStatCard'
+<<<<<<< HEAD
 import { studentBalanceStats } from '../../../lib/studentWidgetStats'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import type { LucideIcon } from '../../icons/appIcons'
 import { Users, Layers, CheckCircle2, AlertCircle } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'

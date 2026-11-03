@@ -439,11 +439,14 @@
   .js-example-label { margin-inline: 8px; font-size: 10px; }
 }
 
+<<<<<<< HEAD
 /* Empty stretches still occupy their exact columns; their dash remains visible
    when scrolling a long course matrix. Assigned cells are never collapsed. */
 .js-unassigned-run { text-align: left; }
 .js-unassigned-run > .js-stat-value { position: sticky; left: calc(var(--student-col) + 12px); width: 16px; }
 
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 /* Mobile journal controls retain readable inputs and finger-sized targets. */
 @media(max-width:650px) {
   .js-toolbar .js-search input,.js-scope select { font-size:16px; }
@@ -456,9 +459,15 @@
 }
 
 @media(max-width:650px) {
+<<<<<<< HEAD
   .journal-person-dialog { max-width:calc(100vw - 24px); }
   .journal-person-dialog input,.journal-person-dialog select { font-size:16px!important; min-height:44px; }
   .journal-person-dialog button { min-height:44px; }
+=======
+.journal-person-dialog { max-width:calc(100vw - 24px); }
+.journal-person-dialog input,.journal-person-dialog select { font-size:16px!important; min-height:44px; }
+.journal-person-dialog button { min-height:44px; }
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 }
 
 /* The roster uses one compact row for scope, status and student actions. */

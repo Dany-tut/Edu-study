@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-03",
+  "physical": {
+    "model": "iPhone 17 Pro",
+    "Safari": {
+      "installed": true,
+      "version": "27.2",
+      "bundleId": "com.apple.mobilesafari"
+    },
+    "Chrome": {
+      "installed": false,
+      "exactBundleChecked": "com.google.chrome.ios"
+    },
+    "Yandex Browser": {
+      "installed": true,
+      "version": "2610.4.504",
+      "bundleId": "ru.yandex.mobile.search"
+    },
+    "uiAccess": "iPhone Mirroring reports iPhone is in use and must be locked"
+  },
+  "simulator": {
+    "name": "Iskra Teacher",
+    "model": "iPhone 17 Pro",
+    "Safari": {
+      "installed": true,
+      "version": "26.3",
+      "bundleId": "com.apple.mobilesafari"
+    },
+    "Chrome": {
+      "installed": false
+    },
+    "Yandex Browser": {
+      "installed": false
+    },
+    "uiAccess": "Safari launched; first-run search-engine notice blocks application render; CUA DeviceHub timed out twice"
+  }
+}

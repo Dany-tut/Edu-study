@@ -1,6 +1,9 @@
 import { textFadeStyle } from '../../../lib/textFades'
+<<<<<<< HEAD
 import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 import { SubjectMark } from '../../icons/SubjectMark'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { Users, ChevronRight } from '../../icons/appIcons'
 import { useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'

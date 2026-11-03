@@ -236,7 +236,11 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
         const name = tc(mod.label) || t('Уроки')
         const num = i + 1
         const debts = debtCounts?.[mod.id] ?? 0
+<<<<<<< HEAD
         const debtBadge = debts > 0 && <button type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`} onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)} style={{ border: 0, borderRadius: 999, minWidth: 20, height: 20, padding: '0 5px', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700, cursor: 'pointer', position: 'relative', zIndex: 1 }}>{debts}</button>
+=======
+        const debtBadge = debts > 0 && <button type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`} onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)} style={{ border: 0, borderRadius: 999, minWidth: 20, height: 20, padding: '0 5px', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700, cursor: 'pointer', position: 'absolute', top: -6, right: -6, zIndex: 1 }}>{debts}</button>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
         if (isActive) {
           return (
@@ -244,7 +248,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
               key={mod.id}
               data-module-tab={mod.id}
               style={{
-                ...ACTIVE_PILL, height: BAR_H, padding: '0 14px 0 5px', borderRadius: 999,
+                ...ACTIVE_PILL, position: 'relative', height: BAR_H, padding: '0 14px 0 5px', borderRadius: 999,
                 display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0, whiteSpace: 'nowrap',
               }}
             >
@@ -270,7 +274,11 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
           : pct > 0 && !isDone ? `${num} · ${name} · ${pct}%` : `${num} · ${name}`
 
         return (
+<<<<<<< HEAD
           <div key={mod.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}><Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
+=======
+          <div key={mod.id} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}><Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
             <motion.button
               type="button"
               data-module-tab={mod.id}

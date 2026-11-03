@@ -1,5 +1,8 @@
 import { textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { Check as LoopUiCheck } from '../icons/appIcons'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 // ─────────────────────────────────────────────────────────────────────────────
 // «Материалы» — весь тренажёр витриной, отбор в правой панели
 //

@@ -19,8 +19,10 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
       setError(detail || t('Не удалось завершить вход. Попробуйте ещё раз.'))
       setBusy(null)
     }
+    const cancelled = () => { setBusy(null); setError('') }
+    window.addEventListener('iskra:auth-cancelled', cancelled)
     window.addEventListener('iskra:auth-error', onError)
-    return () => window.removeEventListener('iskra:auth-error', onError)
+    return () => { window.removeEventListener('iskra:auth-error', onError); window.removeEventListener('iskra:auth-cancelled', cancelled) }
   }, [t])
 
   async function begin(provider: 'apple' | 'google') {

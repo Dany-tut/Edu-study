@@ -274,7 +274,11 @@ export const useTeacher = create<TeacherStore>(set => ({
   setActivePage: page => whenMayLeave(() => {
     clearEditorSession(); clearCardsSession()
     set({
+<<<<<<< HEAD
       activePage: page === 'homework' ? 'gradebook' : page, headerDocked: false, pendingGroupForm: null,
+=======
+      activePage: page, headerDocked: false, pendingGroupForm: null,
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       ...(page === 'lesson-editor' ? { editingScheduleId: null } : {}),
       ...(page === 'homework-create' ? { editingHomeworkId: null, hwPresetStudentId: null } : {}),
     })

@@ -1,13 +1,20 @@
 import { textFadeLines } from '../lib/textFades'
+<<<<<<< HEAD
 import { LoopActionLabel } from './icons/LoopIcon'
 import { ArrowRight as LoopUiArrowRight, ArrowLeft as LoopUiArrowLeft } from './icons/appIcons'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import LessonWatchStatus from './LessonWatchStatus'
 import TrackHomeworkButton from './TrackHomeworkButton'
 import LessonSelfAssessment from './LessonSelfAssessment'
 import { gradedTrackResult } from '../lib/homeworkResult'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react'
+<<<<<<< HEAD
 import CourseTrackSkeleton from './CourseTrackSkeleton'
 import { TRACK_NODE_SIZE as NODE_SIZE, TRACK_SIDE_PADDING, TRACK_GLOW_PAD as GLOW_PAD, TRACK_ROW_HEIGHT } from './courseTrackLayout'
+=======
+import Skeleton from './Skeleton'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useWheelHScroll } from '../lib/useWheelHScroll'
 import { courseResumeTarget, courseTrackWidth } from '../lib/courseTrackLayout'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -302,15 +309,24 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
               style={{
                 overflowX: 'auto', overscrollBehaviorX: 'contain',
                 maskImage: `linear-gradient(to right, ${edges.left ? 'transparent, black 24px' : 'black 0%'}, ${edges.right ? 'black calc(100% - 24px), transparent' : 'black 100%'})`,
+<<<<<<< HEAD
                 paddingTop: `var(--home-track-glow-pad, ${GLOW_PAD}px)`,
                 paddingBottom: 'var(--home-track-bottom-pad, 14px)',
+=======
+                paddingTop: GLOW_PAD,
+                paddingBottom: 14,
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
               }}
             >
               <div
                 style={{
                   position: 'relative',
                   width: containerW,
+<<<<<<< HEAD
                   height: `var(--home-track-row-height, ${TRACK_ROW_HEIGHT}px)`,
+=======
+                  height: NODE_SIZE + 50,
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                   overflow: 'visible',
                 }}
               >
@@ -383,9 +399,15 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
               </div>
             </div>
 
+<<<<<<< HEAD
             {(edges.left || edges.right) && <div className="course-track-hints" style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '4px 16px', padding: '0 32px', fontSize: 11, color: 'var(--color-text-3)' }}>
               {edges.left && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowLeft} position="start" label={t('← Предыдущие занятия')} /></button>}
               {edges.right && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowRight} label={t('Дальше есть ещё занятия →')} /></button>}
+=======
+            {(edges.left || edges.right) && <div style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '4px 16px', padding: '0 32px', fontSize: 11, color: 'var(--color-text-3)' }}>
+              {edges.left && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}>{t('← Предыдущие занятия')}</button>}
+              {edges.right && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}>{t('Дальше есть ещё занятия →')}</button>}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
             </div>}
 
             {/* ── Detail popover — overlay anchored to the selected node, rendered
@@ -686,8 +708,11 @@ export default function CourseTrack(props: HomeWorkProps = {}) {
     }
   }, [effectiveActiveId, setActiveSubject])
 
+<<<<<<< HEAD
   if (subjects.length === 0 && !loaded) return <CourseTrackSkeleton />
 
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   if (subjects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 160, gap: 8 }}>
@@ -705,7 +730,10 @@ export default function CourseTrack(props: HomeWorkProps = {}) {
   return (
     <div className="flex flex-col h-full">
       <TrackForSubject
+<<<<<<< HEAD
         {...props}
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
         key={effectiveActiveId}
         courseSlot={
           <CourseSelect

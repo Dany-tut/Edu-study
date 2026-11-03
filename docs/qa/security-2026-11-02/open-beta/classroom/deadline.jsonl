@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 {"size":30,"verified":30,"bytesEach":1399318,"elapsedMs":3595,"uploadP95":3490,"submitP95":99,"totalP95":3576}
 {"size":60,"verified":60,"bytesEach":1399318,"elapsedMs":1910,"uploadP95":1860,"submitP95":14,"totalP95":1867}
+=======
+{"size":30,"verified":30,"bytesEach":1399318,"elapsedMs":3135,"uploadP95":2757,"submitP95":402,"totalP95":3007}
+{"size":60,"verified":60,"bytesEach":1399318,"elapsedMs":2419,"uploadP95":2362,"submitP95":74,"totalP95":2369}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

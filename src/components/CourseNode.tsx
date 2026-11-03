@@ -58,8 +58,13 @@ export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: strin
 
 interface Props {
   /** Optional local preview; real nodes continue to use the student's assessment. */
+<<<<<<< HEAD
   overdueLabel?: string
   assessmentOverride?: LessonAssessment
+=======
+  assessmentOverride?: LessonAssessment
+  overdueLabel?: string
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   lesson: Lesson
   status: TrackLessonStatus
   scheduleState?: ScheduleState | null

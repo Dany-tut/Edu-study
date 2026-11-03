@@ -485,7 +485,11 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
       ...current,
       ...p,
       widgetColumns: normalizeWidgetColumns(p?.widgetColumns),
+<<<<<<< HEAD
       widgetOrder: mergeWidgetOrder(saved, known, DEFAULT_WIDGET_ORDER, 11),
+=======
+      widgetOrder: [...saved, ...fresh],
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       knownWidgetIds: DEFAULT_WIDGET_ORDER,
     }
   },

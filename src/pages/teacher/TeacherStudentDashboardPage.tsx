@@ -1,5 +1,8 @@
 import { textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { SubjectMark } from '../../components/icons/SubjectMark'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -29,7 +32,10 @@ import BackCircle from '../../components/BackCircle'
 import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 import './studentProfile.css'
 import { useScrollFades } from '../../lib/useScrollFades'
+<<<<<<< HEAD
 import { useIsDesktop } from '../../lib/useIsDesktop'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -601,7 +607,11 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
                 {!inDrawer && (profileGroupLabel || group.subject) && (
                   <div className="student-profile-context">
                     {profileGroupLabel && <span>{profileGroupLabel}</span>}
+<<<<<<< HEAD
                     {group.subject && <span><SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}</span>}
+=======
+                    {group.subject && <span>{group.icon}{ICON_GAP}{tc(group.subject)}</span>}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                   </div>
                 )}
                 <div className="student-profile-meta">

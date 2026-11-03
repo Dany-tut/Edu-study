@@ -1,5 +1,8 @@
 import { textFadeLines, textFadeStyle } from '../lib/textFades'
+<<<<<<< HEAD
 import { LoopSelect } from './icons/LoopSelect'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { motion } from 'framer-motion'
 import { SubjectMark } from './icons/SubjectMark'
 import { useState, useMemo, useEffect } from 'react'
@@ -527,9 +530,14 @@ export default function MobileProfilePage() {
                   border: `1px solid ${active ? c.color + '44' : 'var(--color-border-soft)'}`,
                 }}
               >
+<<<<<<< HEAD
                 <span className="min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <SubjectMark subject={c.subject} size={16} />
                   <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{subjectCardLabel(c)}</span>
+=======
+                <span className="min-w-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
+                  {subjectCardLabel(c)}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                 </span>
                 {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
               </button>

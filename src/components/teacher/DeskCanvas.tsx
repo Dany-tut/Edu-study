@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 import { clampDeskWidget, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, resolveDeskCollisions, DESK_GAP, DESK_INSET, DESK_TOP } from '../../lib/deskWidgetSizing'
 import { defaultDeskItems } from '../../lib/defaultDeskLayout'
 import { useScrollFades } from '../../lib/useScrollFades'
+=======
+import { clampDeskWidget, compactDeskWidgets, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, DESK_GAP } from '../../lib/deskWidgetSizing'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { Suspense, useCallback, useMemo, useState, useRef, useEffect } from 'react'
 import { X } from '../icons/appIcons'
@@ -15,13 +19,58 @@ const GAP = DESK_GAP
 
 // ── Grid math ──────────────────────────────────────────────────────────
 // Y-axis math takes an explicit rowH so the grid can scale to the viewport.
+<<<<<<< HEAD
 function colW(cw: number, cols: number) { return (cw - (cols - 1) * GAP) / cols }
 function gx(x: number, cw: number, cols: number) { return x * (colW(cw, cols) + GAP) }
+=======
+function colW(cw: number) { return (cw - (deskColumns(cw) - 1) * GAP) / deskColumns(cw) }
+function gx(x: number, cw: number) { return x * (colW(cw) + GAP) }
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 function gy(y: number, rh: number) { return y * (rh + GAP) }
 function iw(w: number, cw: number, cols: number) { return w * colW(cw, cols) + (w - 1) * GAP }
 function ih(h: number, rh: number) { return h * rh + (h - 1) * GAP }
+<<<<<<< HEAD
 function toGridDX(px: number, cw: number, cols: number) { return Math.round(px / (colW(cw, cols) + GAP)) }
 function toGridDY(py: number, rh: number) { return Math.round(py / (rh + GAP)) }
+=======
+function toGridDX(px: number, cw: number) { return Math.round(px / (colW(cw) + GAP)) }
+function toGridDY(py: number, rh: number) { return Math.round(py / (rh + GAP)) }
+// ── Collision resolution ────────────────────────────────────────────────
+function overlaps(a: LayoutItem, b: LayoutItem): boolean {
+  if (a.i === b.i) return false
+  return !(a.x + a.w <= b.x || b.x + b.w <= a.x ||
+           a.y + a.h <= b.y || b.y + b.h <= a.y)
+}
+
+function resolveCollisions(items: LayoutItem[], activeId: string, columns: number): LayoutItem[] {
+  const layout = items.map(it => ({ ...it }))
+  const activeIdx = layout.findIndex(it => it.i === activeId)
+
+  for (let pass = 0; pass < layout.length * 3; pass++) {
+    let changed = false
+    for (let i = 0; i < layout.length; i++) {
+      if (i === activeIdx) continue
+      for (let j = 0; j < layout.length; j++) {
+        if (i === j || !overlaps(layout[i], layout[j])) continue
+        const blocker = layout[j]
+        const item = layout[i]
+        // Try push right; fall back to push down
+        const rightX = blocker.x + blocker.w
+        if (rightX + item.w <= columns) {
+          layout[i] = { ...item, x: rightX, y: blocker.y }
+        } else {
+          layout[i] = { ...item, y: blocker.y + blocker.h }
+        }
+        changed = true
+        break
+      }
+    }
+    if (!changed) break
+  }
+  return layout
+}
+
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 // ── WidgetShell ─────────────────────────────────────────────────────────
 type ShellProps = { item: LayoutItem; editMode: boolean; onRemove: (id: string) => void }
 
@@ -40,7 +89,11 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
 
   const Comp = def.component
   return (
+<<<<<<< HEAD
     <div ref={shellRef} className="desk-widget-shell iskra-widget" data-widget={item.type} data-grid-w={item.w} data-grid-h={item.h} data-stat={def.stat || undefined}
+=======
+    <div ref={shellRef} className="desk-widget-shell iskra-widget" data-widget={item.type} data-stat={def.stat || undefined}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       style={{ position: 'relative', width: '100%', height: '100%', overflow: 'visible' }}
     >
       <WidgetBoundary label={item.type}>
@@ -131,7 +184,11 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     })
     ro.observe(containerRef.current)
     return () => ro.disconnect()
+<<<<<<< HEAD
   }, [desk.items.length === 0])
+=======
+  }, [items.length === 0])
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
   // Track viewport height so the grid can rescale to the monitor
   const [winH, setWinH] = useState(() =>
@@ -146,6 +203,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   // Content and saved limits never determine the grid's scale. A compact
   // widget keeps its dimensions when the same viewport reloads the desk.
   const rowH = deskRowHeight(winH)
+<<<<<<< HEAD
   const columns = deskColumns(cw, desk.columns)
   const items = useMemo(() => {
     const source = desk.preset ? defaultDeskItems(desk.id, columns) : desk.items
@@ -161,6 +219,15 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   useEffect(() => {
     onGridMeasure?.({ deskId: desk.id, width: cw, items: viewItems, columns })
   }, [desk.id, cw, viewItems, columns, onGridMeasure])
+=======
+  const columns = deskColumns(cw)
+
+  const clampItem = useCallback((item: LayoutItem) =>
+    clampDeskWidget(item, getWidgetDef(item.type), cw, rowH, legacyDeskRowHeight(winH)), [cw, rowH, winH])
+
+  // ── View-mode compaction ──────────────────────────────────────────────
+  const viewItems = useMemo(() => compactDeskWidgets(items.map(clampItem)), [items, clampItem])
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 
   // ── Live layout with collision resolution ─────────────────────────────
   const liveItems = useMemo(() => {
@@ -168,7 +235,11 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
       const withMoved = viewItems.map(it =>
         it.i === drag.id ? clampItem({ ...it, x: drag.curGx, y: drag.curGy }) : it
       )
+<<<<<<< HEAD
       return resolveDeskCollisions(withMoved, drag.id)
+=======
+      return resolveCollisions(withMoved, drag.id, columns)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     }
     if (resize) {
       const item = viewItems.find(it => it.i === resize.id)!
@@ -178,7 +249,11 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
           ? clampItem({ ...it, w: resize.curW, h: resize.curH, maxH: def?.maxH ?? it.maxH })
           : it
       )
+<<<<<<< HEAD
       return resolveDeskCollisions(withMoved, resize.id)
+=======
+      return compactDeskWidgets(resolveCollisions(withMoved, resize.id, columns))
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     }
     return viewItems
   }, [viewItems, drag, resize, clampItem, columns])
@@ -206,7 +281,11 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     const dx = mx - drag.startMx
     const dy = my - drag.startMy
     const item = viewItems.find(it => it.i === drag.id)!
+<<<<<<< HEAD
     const newX = Math.max(0, Math.min(columns - item.w, drag.startGx + toGridDX(dx, cw, columns)))
+=======
+    const newX = Math.max(0, Math.min(columns - item.w, drag.startGx + toGridDX(dx, cw)))
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     const newY = Math.max(0, drag.startGy + toGridDY(dy, rowH))
     if (newX !== drag.curGx || newY !== drag.curGy) {
       setDrag(d => d ? { ...d, curGx: newX, curGy: newY } : d)
@@ -218,8 +297,13 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     const withMoved = viewItems.map(it =>
       it.i === drag.id ? clampItem({ ...it, x: drag.curGx, y: drag.curGy }) : it
     )
+<<<<<<< HEAD
     const resolved = resolveDeskCollisions(withMoved, drag.id)
     onUpdateItems([...resolved, ...desk.items.filter(saved => !resolved.some(item => item.i === saved.i))])
+=======
+    const resolved = resolveCollisions(withMoved, drag.id, columns)
+    onUpdateItems(desk.items.map(saved => resolved.find(item => item.i === saved.i) ?? saved))
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     setDrag(null)
   }, [drag, desk.items, viewItems, onUpdateItems, clampItem, columns])
 
@@ -243,7 +327,11 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     const dy = e.clientY - resize.startMy
     const item = viewItems.find(it => it.i === resize.id)!
     const def = getWidgetDef(item.type)
+<<<<<<< HEAD
     const next = resizeDeskWidget({...item,w:resize.startW,h:resize.startH},def,dx,dy,cw,rowH,desk.columns)
+=======
+    const next = resizeDeskWidget({...item,w:resize.startW,h:resize.startH},def,dx,dy,cw,rowH)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     const newW = next.w, newH = next.h
     if (newW !== resize.curW || newH !== resize.curH) {
       setResize(r => r ? { ...r, curW: newW, curH: newH } : r)
@@ -255,8 +343,13 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     const withResized = viewItems.map(it =>
       it.i === resize.id ? clampItem({ ...it, w: resize.curW, h: resize.curH }) : it
     )
+<<<<<<< HEAD
     const resolved = resolveDeskCollisions(withResized, resize.id)
     onUpdateItems([...resolved, ...desk.items.filter(saved => !resolved.some(item => item.i === saved.i))])
+=======
+    const resolved = compactDeskWidgets(resolveCollisions(withResized, resize.id, columns))
+    onUpdateItems(desk.items.map(saved => resolved.find(item => item.i === saved.i) ?? saved))
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     setResize(null)
   }, [resize, desk.items, viewItems, onUpdateItems, clampItem, columns])
 
@@ -284,7 +377,12 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
       paddingTop: DESK_TOP, paddingLeft: DESK_INSET, paddingRight: DESK_INSET, paddingBottom: DESK_INSET,
       overflowY: 'auto', overflowX: 'hidden',
       overscrollBehavior: 'none',
+<<<<<<< HEAD
       scrollbarWidth: 'none',
+=======
+      scrollSnapType: 'y mandatory',
+      scrollbarGutter: 'stable',
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
       userSelect: 'auto',
     }}>
 
@@ -300,8 +398,12 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
           ref={containerRef}
           onPointerMove={drag ? onItemPointerMove : resize ? onResizePointerMove : undefined}
           onPointerUp={drag ? onItemPointerUp : resize ? onResizePointerUp : undefined}
+<<<<<<< HEAD
           data-desk-grid data-grid-columns={columns} data-grid-row-height={rowH}
           style={{ position: 'relative', width: '100%', height: gridHeight, ...(editMode ? {backgroundImage:'linear-gradient(to right, var(--color-border-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border-soft) 1px, transparent 1px)', backgroundSize:`${colW(cw, columns)+GAP}px ${rowH+GAP}px`} : {}) }}
+=======
+          style={{ position: 'relative', width: '100%', height: gridHeight, ...(editMode ? {backgroundImage:'linear-gradient(to right, var(--color-border-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border-soft) 1px, transparent 1px)', backgroundSize:`${colW(cw)+GAP}px ${rowH+GAP}px`} : {}) }}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
         >
           {liveItems.map(item => {
             const isDragging = drag?.id === item.i
@@ -337,6 +439,19 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
                 }}
               >
                 <WidgetShell item={item} editMode={editMode} onRemove={id => onUpdateItems([...viewItems.filter(item => item.i !== id), ...desk.items.filter(item => hiddenWidgets?.includes(item.type))])} />
+
+                {editMode && (
+                  <div
+                    data-resize-bottom={item.type}
+                    aria-label={t('Изменить высоту виджета')}
+                    onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
+                    style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+                      width: 64, height: 28, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 's-resize', touchAction: 'none' }}
+                  >
+                    <span style={{ width: 28, height: 4, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.55 }} />
+                  </div>
+                )}
 
                 {editMode && (
                   <div

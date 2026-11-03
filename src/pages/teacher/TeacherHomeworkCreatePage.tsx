@@ -1,5 +1,8 @@
 import { textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { ChevronRight as LoopUiChevronRight } from '../../components/icons/appIcons'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { confirmDialog } from '../../components/ConfirmHost'
 import { FIELD } from '../../lib/fieldStyle'

@@ -51,6 +51,7 @@ export default function MobileTeacherApp() {
 
   return (
     <div className="mobile-teacher-app lg:hidden">
+<<<<<<< HEAD
       {tab === 'home'      && <MobileTeacherDay onNavigate={next => setTab(next === 'review' ? 'gradebook' : next)} onDetailChange={setDayDetailOpen} />}
       {tab === 'students'  && <MobileTeacherStudents />}
 
@@ -58,6 +59,15 @@ export default function MobileTeacherApp() {
       {tab === 'profile'   && <MobileTeacherProfile onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} />}
 
       {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}
+=======
+      {tab === 'home'      && <MobileTeacherDay reviewCount={reviewBadge} onNavigate={setTab} onDetailChange={setDayDetailOpen} />}
+      {tab === 'students'  && <MobileTeacherStudents />}
+      {tab === 'review'    && <MobileTeacherReview onDetailChange={setReviewDetailOpen} />}
+      {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
+      {tab === 'profile'   && <MobileTeacherProfile onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} />}
+
+      {!(tab === 'home' && dayDetailOpen || tab === 'review' && reviewDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     </div>
   )
 }

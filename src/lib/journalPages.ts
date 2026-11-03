@@ -26,6 +26,7 @@ export async function journalPages<T>(
     offset += rows.length
   }
 }
+<<<<<<< HEAD
 
 /** Read independent pages in a bounded window. Keep the full ordered result;
  * failures in a required page reject the load, never publish a partial journal. */
@@ -63,3 +64,5 @@ export async function journalParallelPages<T>(
     }
   }
 }
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

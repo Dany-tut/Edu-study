@@ -5,7 +5,12 @@ import {readFileSync,writeFileSync,mkdirSync} from 'node:fs'
 import {randomUUID} from 'node:crypto'
 import assert from 'node:assert/strict'
 const {chromium}=await import(process.env.ISKRA_PLAYWRIGHT_MODULE||'/tmp/iskra-icon-qa/node_modules/playwright/index.mjs')
+<<<<<<< HEAD
 const root=process.env.ISKRA_LOCAL_DIR||'/tmp/iskra-local-security',base='http://127.0.0.1:5291'
+=======
+const root=process.env.ISKRA_LOCAL_DIR||'/tmp/iskra-local-security',base=process.env.ISKRA_QA_BASE_URL||'http://127.0.0.1:5291'
+assert.equal(new URL(base).hostname,'127.0.0.1')
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 const cfg=JSON.parse(readFileSync(root+'/status.json','utf8'))
 assert.equal(new URL(cfg.API_URL).hostname,'127.0.0.1')
 const make=key=>createClient(cfg.API_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})
@@ -41,7 +46,11 @@ async function newContext(){if(context)await context.close();context=await brows
 async function consent(){await page.getByText('Согласен(а) на обработку данных.',{exact:true}).click();await page.getByRole('button',{name:'Принимаю и продолжаю',exact:true}).click()}
 async function openHomework(){await page.goto(`${base}/#/homework/${ref}`,{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'})}
 async function pollProgress(predicate){for(let i=0;i<50;i++){const r=await ok(teacher.from('lesson_progress').select('id,status,score,attachments,review_comment').eq('student_id',student.id).eq('lesson_ref',ref).maybeSingle());if(r&&predicate(r))return r;await new Promise(r=>setTimeout(r,200))}throw Error('Expected server state not reached')}
+<<<<<<< HEAD
 async function login(credentials){await page.goto(base+'/#/login',{waitUntil:'domcontentloaded'});await page.locator('input[type=email]').fill(credentials.email);await page.locator('input[type=password]').fill(credentials.password);await page.getByRole('button',{name:'Войти',exact:true}).click()}
+=======
+async function login(credentials){await page.goto(base+'/#/login',{waitUntil:'domcontentloaded'});await page.locator('input[type=email]').fill(credentials.email);await page.getByPlaceholder('Пароль',{exact:true}).fill(credentials.password);await page.getByRole('button',{name:'Войти',exact:true}).click()}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 async function history(){await page.getByText('ДЗ зачтено · 90%',{exact:true}).waitFor();await page.getByRole('button',{name:/^История попыток/}).click();await page.getByText('Ответы в этой попытке',{exact:true}).click();await page.getByText(answer,{exact:true}).first().waitFor();assert.equal(await page.locator('img[onerror]').count(),0);assert.equal(await page.locator('body').getAttribute('data-qa-xss'),null);assert.ok((await page.locator('body').innerText()).includes(comment))}
 try{
  browser=await chromium.launch({channel:process.env.ISKRA_BROWSER_CHANNEL || 'chrome',headless:true,args:['--disable-background-networking','--renderer-process-limit=2','--js-flags=--max-old-space-size=512']});await newContext()

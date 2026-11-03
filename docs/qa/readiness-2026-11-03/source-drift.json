@@ -1,0 +1,15 @@
+{
+  "changedSinceStart": [
+    "src/components/teacher/mobile/MobileHomeworkReview.tsx",
+    "src/devMobileReviewHarness.tsx",
+    "src/styles/widgets.css",
+    "src/components/MobileSheet.tsx",
+    "src/components/teacher/TeacherSelect.tsx",
+    "src/components/teacher/WidgetLibraryModal.tsx",
+    "src/components/teacher/courseJournal.css",
+    "src/lib/useHomework.ts",
+    "src/lib/useKeyboardInset.ts",
+    "src/lib/useSwipeBack.ts"
+  ],
+  "note": "Shared working copy changed during testing. Baseline is not an immutable release candidate. Repeat release acceptance on a clean frozen candidate."
+}

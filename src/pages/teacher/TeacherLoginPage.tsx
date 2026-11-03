@@ -11,6 +11,7 @@ import { AlertStack } from '../../components/Alert'
 import IskraMark from '../../components/landing/IskraMark'
 import SocialLoginButtons from '../../components/SocialLoginButtons'
 import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogin'
+import ScrollFade from '../../components/ScrollFade'
 import { Capacitor } from '@capacitor/core'
 
 export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
@@ -93,6 +94,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
   }
 
   return (
+    <ScrollFade maxHeight="100dvh" fadeHeight={24} style={{ background: 'var(--color-bg)' }}>
     <div style={{
       minHeight: '100dvh',
       display: 'flex',
@@ -272,6 +274,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         )}
       </div>
     </div>
+    </ScrollFade>
   )
 }
 

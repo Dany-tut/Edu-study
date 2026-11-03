@@ -1,5 +1,8 @@
 import { textFadeStyle } from '../../../lib/textFades'
+<<<<<<< HEAD
 import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useState } from 'react'
 import { AlertCircle, Clock, Check } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'

@@ -4,6 +4,10 @@ import { motion, AnimatePresence, useIsPresent, useReducedMotion } from 'framer-
 import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
 import Modal, { ModalClose } from '../../Modal'
 import MobileSheet from '../../MobileSheet'
+<<<<<<< HEAD
+=======
+import FadeText from '../../FadeText'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useIsDesktop } from '../../../lib/useIsDesktop'
 import DateTimeField from '../../DateTimeField'
 import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../../lib/teacherTz'

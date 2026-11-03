@@ -1,6 +1,10 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+<<<<<<< HEAD
 import { BookOpen, ChevronRight } from './icons/appIcons'
+=======
+import { BookOpen } from './icons/appIcons'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { LoopSvg } from './icons/LoopIcon'
 import { LoopArtworkVideo } from './icons/loopArtwork'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
@@ -153,7 +157,11 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
               <div className="schedule-empty">
                 {seasonEmpty ? <SeasonEmptyDay /> : (
                   <div className="schedule-empty__content">
+<<<<<<< HEAD
                     <img className="schedule-empty__art" src="/schedule-objects-v2-shadows/calendar.png" alt="" width={120} height={120} draggable={false} />
+=======
+                    <img className="schedule-empty__art" src="/schedule-objects-v1/calendar.webp" alt="" width={120} height={120} draggable={false} />
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                     <div className="schedule-empty__copy">
                       <p className="schedule-empty__title">{t('Время для себя')}</p>
                       <p className="schedule-empty__subtitle">{t('Занятий нет — можно выдохнуть')}</p>
@@ -234,7 +242,11 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                     </div>
                     <FadeText className="schedule-lesson-title" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
+<<<<<<< HEAD
                       {mobile ? tc(lesson.lessonTitle) : `${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
+=======
+                      {`${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
                     </FadeText>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>

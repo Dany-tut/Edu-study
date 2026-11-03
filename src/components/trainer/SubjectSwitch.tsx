@@ -1,5 +1,8 @@
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
+<<<<<<< HEAD
 import { SubjectMark } from '../icons/SubjectMark'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 // ─────────────────────────────────────────────────────────────────────────────
 // Переключатель предмета в тренажёре
 //

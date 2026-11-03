@@ -162,9 +162,13 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
           onClose={() => setShowWidgetLibrary(false)}
           onAdd={item => updateDeskItems(activeDesk.id, [...(widgetGrid?.deskId === activeDesk.id ? [...widgetGrid.items, ...activeDesk.items.filter(saved => hiddenWidgets?.includes(saved.type))] : activeDesk.items), item])}
           existingTypes={activeDesk.items.map(i => i.type)}
+<<<<<<< HEAD
           existingItems={widgetGrid?.deskId === activeDesk.id ? widgetGrid.items : activeDesk.items}
           gridColumns={activeDesk.columns}
           gridWidth={widgetGrid?.deskId === activeDesk.id ? widgetGrid.width : undefined}
+=======
+          existingItems={activeDesk.items}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
           hiddenWidgets={hiddenWidgets}
         />
       </Suspense>)}

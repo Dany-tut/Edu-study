@@ -21,6 +21,7 @@ type Props = {
   loading?: boolean
 }
 
+<<<<<<< HEAD
 export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, accentBg, accentColor, dimmed, loading }: Props) {
   const t = useT()
   const setActivePage = useTeacher(s=>s.setActivePage)
@@ -28,6 +29,9 @@ export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, 
     if(widgetId==='stat-lessons') {document.querySelector('[data-widget="today-schedule"]')?.scrollIntoView({behavior:'smooth',block:'nearest'});return}
     setActivePage(widgetId?.startsWith('finance-')?'finances':widgetId==='stat-hw'?'homework':'groups')
   }
+=======
+export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, accentColor, dimmed, loading }: Props) {
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const measureRef = useRef<HTMLSpanElement>(null)
   const valueRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {

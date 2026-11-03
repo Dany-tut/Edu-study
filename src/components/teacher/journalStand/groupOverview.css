@@ -684,6 +684,7 @@
   .jo-week-stamps li { width: 18px; }
 }
 
+<<<<<<< HEAD
 /* Approved Iskra ceramic/acrylic objects: a clear text column and visible overflow. */
 .jo-class-grid,.jo-bento { row-gap:40px; margin-top:32px; }
 .jo-class-grid > .jo-tile--3d,.jo-bento > .jo-tile--3d {
@@ -763,3 +764,7 @@
 .jo-report-object[data-object="results"] { --art-top-inset:0.090625; --art-right-inset:0.079688; }
 .jo-report-object[data-object="rhythm"] { --art-top-inset:0.234375; --art-right-inset:0.032813; }
 .jo-report-object[data-object="topic"] { --art-top-inset:0.200000; --art-right-inset:0.189063; }
+=======
+.jo-share-tools { flex:none; width:100%; }
+.jo-share-scroll { padding-bottom:16px; }
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)

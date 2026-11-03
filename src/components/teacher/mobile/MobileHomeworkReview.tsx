@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { HomeworkItem } from '../../../data/teacherMockData'
 import { useHomeworkSubmissions, reviewHomework, type HwSubmission } from '../../../lib/useHomework'
+<<<<<<< HEAD
+=======
+import { homeworkReviewAttemptKey } from '../../../lib/mobileHomeworkReviewState'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { readDraft, writeDraft, clearDraft } from '../../../lib/useDraft'
 import { useT, useTc } from '../../../lib/i18n'
 import { getViewAs } from '../../../lib/owner'
@@ -31,16 +35,26 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
   const { submissions, loading, error: loadError, reload } = useHomeworkSubmissions(demo ? null : homework.id, homework.lessonId)
   const source = demoSubmissions ?? submissions
   // Keep published cards visible until the teacher explicitly moves on.
+<<<<<<< HEAD
   const [published, setPublished] = useState<Record<string, 'accepted' | 'returned'>>({})
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const pending = useMemo(() => source.filter(s => s.verdict === 'pending' && !published[s.id]), [source, published])
+=======
+  const [published, setPublished] = useState<Record<string, { verdict: 'accepted' | 'returned'; score: number }>>({})
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const pending = useMemo(() => source.filter(s => s.verdict === 'pending' && !published[homeworkReviewAttemptKey(s)]), [source, published])
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const current = source.find(s => s.id === selectedId) ?? pending[0]
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
   const [saveError, setSaveError] = useState('')
   const [draftWarning, setDraftWarning] = useState(false)
+<<<<<<< HEAD
   const done = current ? published[current.id] : undefined
+=======
+  const done = current ? published[homeworkReviewAttemptKey(current)] : undefined
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const key = current ? `mobileHwReview:${homework.id}:${current.id}:${current.answers?.attemptId ?? current.submittedAt}` : ''
   useEffect(() => {
     const saved = readDraft<Draft>(key)
@@ -72,8 +86,16 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
       const ok = await save(current.id, verdict, Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0,
         draft.comment.trim(), { photos: current.reviewPhotos, board: current.reviewBoard }, current.answers?.attemptId)
       if (!ok) throw new Error('save')
+<<<<<<< HEAD
       clearDraft(key); setPublished(old => ({ ...old, [current.id]: verdict })); setSelectedId(current.id)
       onPublished(current.id, verdict)
+=======
+      clearDraft(key)
+      setPublished(old => ({ ...old, [homeworkReviewAttemptKey(current)]: { verdict, score } }))
+      setSelectedId(current.id)
+      // Refresh errors must not turn an already published result into a save failure.
+      try { onPublished(current.id, verdict) } catch { /* the next queue load can refresh its counter */ }
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
     } catch { setSaveError(t(draftWarning ? 'Не удалось сохранить проверку. Не закрывайте экран и попробуйте ещё раз.' : 'Не удалось сохранить проверку. Черновик сохранён — попробуйте ещё раз.')) }
     finally { busyRef.current = false; setBusy(false) }
   }
@@ -98,10 +120,17 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
       {loadError && <Alert tone="danger" text={t(loadError)} action={{label:t('Повторить'),onClick:()=>void reload()}} />}
       {loading && !demo ? <p role="status" className="mhr-muted">{t('Загрузка…')}</p> : current ? <>
         <section className="mhr-card"><p className="mhr-muted">{tc(homework.title)}</p><h1>{tn(current.studentName)}</h1><p className="mhr-muted">{homework.groupName}</p>
+<<<<<<< HEAD
           <span className="mhr-status">{t(done === 'accepted' ? 'Проверено' : done === 'returned' ? 'На доработке' : 'На проверке')}</span>
           {!done && pending.length > 1 && <label className="mhr-label">{t('Ученик')}<select style={FIELD} disabled={busy} aria-label={t('Выбрать ученика в полной проверке')} value={current.id} onChange={e => setSelectedId(e.target.value)}>{pending.map(s => <option key={s.id} value={s.id}>{tn(s.studentName)}</option>)}</select></label>}
         </section>
         {done ? <section className="mhr-card" role="status"><h2>{t('Проверка сохранена')}</h2><p className="mhr-muted">{t(done === 'accepted' ? 'Проверено' : 'На доработке')}{done === 'accepted' ? ` · ${score}%` : ''}</p></section> : <>
+=======
+          <span className="mhr-status">{t(done?.verdict === 'accepted' ? 'Проверено' : done?.verdict === 'returned' ? 'На доработке' : 'На проверке')}</span>
+          {!done && pending.length > 1 && <label className="mhr-label">{t('Ученик')}<select style={FIELD} disabled={busy} aria-label={t('Выбрать ученика в полной проверке')} value={current.id} onChange={e => setSelectedId(e.target.value)}>{pending.map(s => <option key={s.id} value={s.id}>{tn(s.studentName)}</option>)}</select></label>}
+        </section>
+        {done ? <section className="mhr-card" role="status"><h2>{t('Проверка сохранена')}</h2><p className="mhr-muted">{t(done?.verdict === 'accepted' ? 'Проверено' : 'На доработке')}{done?.verdict === 'accepted' ? ` · ${done.score}%` : ''}</p></section> : <>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
           <section className="mhr-card"><h2>{t('Ответы ученика')}</h2>
             {current.comment && <p className="mhr-answer">{current.comment}</p>}
             {current.answers ? <BasicAnswersList payload={current.answers} studentId={demo ? undefined : current.studentId} appearance="review" teacherReviewed={false} /> : !current.comment && <p className="mhr-muted">{t('Ответы этой сдачи не сохранились.')}</p>}

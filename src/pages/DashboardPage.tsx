@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import { useNow } from '../lib/useNow'
 import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
+=======
+import { homeworkNeedsVideo } from '../lib/homeworkAccess'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import Sidebar from '../components/Sidebar'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import ScheduleCarousel from '../components/ScheduleCarousel'
@@ -11,7 +15,10 @@ import MobileBottomNav from '../components/MobileBottomNav'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import type { DiaryTab } from './StudentDiaryPage'
+<<<<<<< HEAD
 import { useScrollFades } from '../lib/useScrollFades'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { readStudentDiaryView, saveStudentDiaryView } from '../lib/studentDiaryViews'
 import { useDiaryRemindersInit } from '../lib/diaryReminders'
 import LessonPage from './LessonPage'
@@ -296,8 +303,12 @@ export default function DashboardPage() {
   useScrollFades(mobileDiaryPane, showDiary, ':scope > *')
   const diaryScroll = useRef(0)
   useLayoutEffect(() => { if (showDiary && diaryPane.current) diaryPane.current.scrollTop = diaryScroll.current }, [showDiary])
+<<<<<<< HEAD
   const accessNow = useNow()
   const videoRequired = !!lesson && (homeworkTimeLocked(lesson, accessNow) || homeworkNeedsVideo(lesson, homeworkRef))
+=======
+  const videoRequired = !!lesson && homeworkNeedsVideo(lesson, homeworkRef)
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   useEffect(() => {
     if (activePage === 'homework' && videoRequired && !lessonPending) closeHomework()
   }, [activePage, videoRequired, lessonPending, closeHomework])

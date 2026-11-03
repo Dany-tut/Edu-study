@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+=======
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import AttendanceEditor from './AttendanceEditor'
 import JournalSkeleton from '../JournalSkeleton'
 import { useScrollFades } from '../../../lib/useScrollFades'
@@ -594,6 +598,25 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
   )
 }
 export default function JournalStand({ owner, production = false }: { owner: string; production?: boolean }) {
+<<<<<<< HEAD
+=======
+  const isDesktop = useIsDesktop()
+  const { data, loading, error, reload, setData } = useCourseJournal(true)
+  const [attendanceCells, setAttendanceCells] = useState<JournalCell[] | null>(null)
+  const [attendanceNotice, setAttendanceNotice] = useState('')
+  function openAttendance(works: StudentWork[]) {
+    if (!data) return
+    const journal = buildJournalIndex(data)
+    const editable = works.flatMap(w => {
+      const student = data.students.find(s => s.id === w.studentId)
+      if (!student || !w.slot.lesson) return []
+      const cell = journalCell(data, journal, student, w.slot.lesson, today)
+      return cell.event && !cell.cancelled && cell.column.lesson?.kind !== 'test' && !cell.column.recording && cell.column.lesson?.delivery_mode !== 'recording' ? [cell] : []
+    })
+    setAttendanceNotice(editable.length ? '' : 'Для этого урока нет доступного занятия в расписании. Посещаемость тестов, записей и отменённых занятий не редактируется.')
+    if (editable.length) setAttendanceCells(editable)
+  }
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
   const isDesktop = useIsDesktop()
@@ -709,6 +732,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
   const scopeLabel = [data?.courses.find(c=>c.id===course)?.title ?? (course===ALL_COURSES?'Все курсы и работы':'Вне курсов'), data?.modules.find(m=>m.id===module)?.label].filter(Boolean).join(' · ')
   const picker = data && <ScopePicker data={data} value={scope} onChange={changeScope} />
   let content: React.ReactNode
+<<<<<<< HEAD
   if (page === 'home') {
     content = data && !data.demo
       ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {
@@ -717,6 +741,15 @@ export default function JournalStand({ owner, production = false }: { owner: str
         }}/>
       : <div className="cj-empty" role={error ? 'alert' : 'status'}>
           {error ?? (loading ? 'Загрузка…' : 'Войдите в аккаунт преподавателя')}
+=======
+  if (page === 'home' || page === 'homework') {
+    content = data && !data.demo ? <div className="jh-live-page">{page === 'home'
+      ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {setQueueGroup(group ?? '*');useTeacher.getState().setActivePage('homework')}}/>
+      : <HomeworkQueue queue={homework.queue} groups={data.groups} groupId={queueGroup} onGroup={setQueueGroup}
+          onOpen={entry => homework.openQueue(entry, queueGroup === '*' ? undefined : queueGroup)}/>}</div>
+      : <div className="cj-empty" role={error ? 'alert' : 'status'}>
+          {error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
           {error && <button type="button" className="cj-button" onClick={reload}>Повторить загрузку</button>}
         </div>
   }

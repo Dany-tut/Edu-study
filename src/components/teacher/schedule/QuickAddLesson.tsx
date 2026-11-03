@@ -1,5 +1,8 @@
 import { textFadeStyle } from '../../../lib/textFades'
+<<<<<<< HEAD
 import { SubjectMark } from '../../icons/SubjectMark'
+=======
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 import { useEffect, useMemo, useState } from 'react'
 import { Pencil } from '../../icons/appIcons'
 import Modal from '../../Modal'

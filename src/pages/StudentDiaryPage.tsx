@@ -37,7 +37,11 @@ import { wallDateTimeInTz } from '../lib/teacherTz'
 import { useT, useLang } from '../lib/i18n'
 import '../components/diary/studentDiary.css'
 
+<<<<<<< HEAD
 export type DiaryTab = 'journal' | 'work' | 'lessons'
+=======
+export type DiaryTab = 'work' | 'lessons'
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
 const tone = (status: StudentDiaryEntry['status']) => {
   const p = trackPalette(status)
   return { '--ds-tone': p.text, '--ds-tone-bg': p.bg, '--ds-tone-line': p.border } as CSSProperties
@@ -304,6 +308,7 @@ export default function StudentDiaryPage({
       <div className="ds-page-heading">
         <p>{dateLabel}</p>
       </div>
+<<<<<<< HEAD
       {tab !== 'lessons' ? <nav className="ds-diary-navigation" aria-label={t('Разделы дневника')}>
         <button type="button" aria-pressed={tab === 'work'} onClick={() => setTab('work')}>{t('Задания')}</button>
         <button type="button" aria-pressed={tab === 'journal'} onClick={() => setTab('journal')}>{t('Журнал работ')}</button>
@@ -311,6 +316,11 @@ export default function StudentDiaryPage({
       {tab === 'lessons' ? (
         <button type="button" className="ds-secondary" onClick={() => setTab('journal')}>
           {t('Дневник')}<ChevronRight size={15} />
+=======
+      {tab === 'lessons' ? (
+        <button type="button" className="ds-secondary" onClick={() => setTab('work')}>
+          {t('Лента')}<ChevronRight size={15} />
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
         </button>
       ) : null}
       {tab !== 'lessons' ? (
@@ -368,13 +378,18 @@ export default function StudentDiaryPage({
           </button>
         </div>
       ) : null}
+<<<<<<< HEAD
       {tab === 'journal' ? (
         <StudentWorkJournal key={diaryOwner ?? 'guest'} entries={scoped} pending={pending} onOpen={open} />
       ) : tab === 'lessons' ? (
+=======
+      {tab === 'lessons' ? (
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
         <CoursesPage />
       ) : (
         <>
           <div className="ds-work-toolbar">
+<<<<<<< HEAD
             <label>
               {t('Состояние')}
               <LoopSelect aria-label={t('Состояние')} value={state} onChange={(e) => setState(e.target.value)}>
@@ -384,6 +399,13 @@ export default function StudentDiaryPage({
                 <option value="passed">{t('Зачтено')}</option>
               </LoopSelect>
             </label>
+=======
+            <div className="ds-state-switch" role="group" aria-label={t('Состояние')}>
+              {([['action', 'Нужно сделать'], ['all', 'Все задания'], ['pending', 'На проверке'], ['passed', 'Зачтено']] as const).map(([value, label]) => (
+                <button key={value} type="button" aria-pressed={state === value} onClick={() => setState(value)}>{t(label)}</button>
+              ))}
+            </div>
+>>>>>>> a1dc461d (Save all local Iskra interface, homework, security and QA updates)
             <label>
               {t('Сортировка')}
               <LoopSelect aria-label={t('Сортировка')} value={sort} onChange={(e) => setSort(e.target.value)}>
