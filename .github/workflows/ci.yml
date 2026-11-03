@@ -82,6 +82,9 @@ jobs:
       - name: Связка трека и календаря
         run: npm run check:course-track && npm run check:schedule && npm run check:attendance
 
+      - name: Диагностическая телеметрия (H1)
+        run: npm run check:diagnostics
+
       - name: Типы (tsc --noEmit)
         id: types
         continue-on-error: true
