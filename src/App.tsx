@@ -5,7 +5,6 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
 import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
-const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
 const StudentLoginPage = lazy(() => retryImport(() => import('./pages/StudentLoginPage')))
 const NativeEntryPage = lazy(() => retryImport(() => import('./pages/NativeEntryPage')))
 const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
