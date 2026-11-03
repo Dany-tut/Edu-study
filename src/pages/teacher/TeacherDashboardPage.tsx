@@ -67,6 +67,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   useNotificationsInit(teacherId)
 
   // Per-teacher access (admin-configured). Load once; gate nav + widgets.
+  const isAdministrator = useTeacherAccess(s => s.isAdmin)
   const accessLoaded = useTeacherAccess(s => s.loaded)
   const hiddenWidgets = useTeacherAccess(s => s.hiddenWidgets)
   const canPage = useTeacherAccess(s => s.canPage)
@@ -240,8 +241,8 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
         {activePage === 'cards-editor'    && <TeacherCardSetEditorPage />}
         {activePage === 'student'         && (standContent ? isDesktop && standContent : <TeacherStudentDashboardPage />)}
-        {activePage === 'storage'          && <TeacherStoragePage />}
-        {activePage === 'admin'            && <TeacherAdminPage />}
+        {activePage === 'storage' && accessLoaded && isAdministrator && <TeacherStoragePage />}
+        {activePage === 'admin' && accessLoaded && isAdministrator && <TeacherAdminPage />}
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}

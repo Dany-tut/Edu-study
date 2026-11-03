@@ -108,6 +108,7 @@ export const useTeacherAccess = create<AccessState>((set, get) => ({
 
   canTab: id => get().isAdmin || !get().hiddenTabs.includes(id),
   canPage: page => {
+    if (page === 'storage' || page === 'admin') return get().isAdmin
     const tab = pageTab(page)
     return tab === null || get().canTab(tab)
   },
