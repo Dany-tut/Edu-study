@@ -1,3 +1,5 @@
+import DesktopFriends from '../../DesktopFriends'
+import { useDesktopFriends } from '../../../lib/desktopFriends'
 import FadeText from '../../FadeText'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -54,6 +56,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
 
 export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?: () => void }) {
   const signedIn = useTeacherSession()
+  const friends = useDesktopFriends()
   const t = useT()
   const { tc, tn } = useTc()
   const { lang, setLang } = useLang()
@@ -201,6 +204,9 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
               : <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />}
           </button>
 
+          {friends.account && <button type="button" className="friend-mobile-entry" onClick={() => friends.setTab('contacts')}>
+            <Users size={18}/>{t('Друзья')}<ChevronRight size={18}/>
+          </button>}
           {/* Тема */}
           <button
             onClick={() => { tactile(); toggleTheme() }}
@@ -286,6 +292,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
           <LogOut size={18} /> {t('Выйти из аккаунта')}
         </motion.button>
       </div>
+      <DesktopFriends model={friends}/>
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
       {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
     </MobileScreen>

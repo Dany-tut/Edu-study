@@ -4,7 +4,7 @@ import { getViewAs } from './teacherView'
 
 export type FriendsTab = 'contacts' | 'requests' | 'search' | 'profile'
 export type Contact = { id: string; handle: string; state: 'incoming' | 'outgoing' | 'friend' }
-type Snapshot = { handle: string | null; searchable: boolean; contacts: Contact[] }
+type Snapshot = { handle: string | null; searchable: boolean; shareToken?: string | null; contacts: Contact[] }
 
 export async function friendsAction<T>(account: string, operation: string, payload: Record<string, unknown> = {}) {
   const { data, error } = await supabase.rpc('desktop_friends', { expected_account: account, operation, payload })

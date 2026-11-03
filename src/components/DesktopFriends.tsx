@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core'
+import { QRCodeSVG } from 'qrcode.react'
+import { copyToClipboard } from '../lib/clipboard'
 import ProfileChips from './ProfileChips'
 import { useT } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
@@ -91,7 +94,7 @@ function FriendsPane({ model, account, tab }: { model: FriendsModel; account: st
     </div>) : <p>{t(empty)}</p>
   }
   return <section aria-label={t(titles[tab])}>
-    {tab === 'profile' ? <form onSubmit={e => { e.preventDefault(); void run(async () => {
+    {tab === 'profile' ? <><form onSubmit={e => { e.preventDefault(); void run(async () => {
       await friendsAction(account,'save',{ handle:clean(nick),searchable:visible }); await model.refresh()
       if (active.current) setMessage('Настройки сохранены.')
     }) }}>
@@ -100,7 +103,17 @@ function FriendsPane({ model, account, tab }: { model: FriendsModel; account: st
       <label className="friend-check"><input type="checkbox" checked={visible} onChange={e=>setVisible(e.target.checked)} disabled={busy}/>{t('Можно найти меня по точному нику')}</label>
       <p>{t('Другие пользователи увидят только твой ник.')}</p>
       <button className="friend-primary" disabled={busy || !valid(nick)}>{t('Сохранить')}</button>
-    </form> : !snapshot.handle ? <><h3>{t('Выбери свой ник')}</h3><p>{t('По нему друзья узнают, от кого пришла заявка.')}</p><button className="friend-primary" onClick={()=>model.setTab('profile')}>{t('Выбрать ник')}</button></> :
+    </form>
+      {snapshot.handle && <div className="friend-share">
+        <h3>{t('Доступ по ссылке')}</h3>
+        <label className="friend-check"><input type="checkbox" checked={!!snapshot.shareToken} disabled={busy} onChange={e => {
+          const enabled = e.target.checked
+          void run(async () => { await friendsAction(account, 'share', { enabled }); await model.refresh() })
+        }}/>{t('Открыть профиль по ссылке и QR-коду')}</label>
+        <p>{t(snapshot.shareToken ? 'После входа по ссылке виден только твой ник. Можно отправить заявку в друзья.' : 'Ссылка закрыта. Ранее отправленные ссылки и QR-коды недействительны.')}</p>
+        {snapshot.shareToken && <ShareCode token={snapshot.shareToken} onCopy={setMessage}/>}
+      </div>}
+    </> : !snapshot.handle ? <><h3>{t('Выбери свой ник')}</h3><p>{t('По нему друзья узнают, от кого пришла заявка.')}</p><button className="friend-primary" onClick={()=>model.setTab('profile')}>{t('Выбрать ник')}</button></> :
     tab === 'contacts' ? <><h3>{t('Мои друзья')}</h3>{rows('friend','Пока здесь никого нет. Найди друга по его нику.')}<button onClick={()=>model.setTab('search')}>{t('Найти друга')}</button></> :
     tab === 'requests' ? <><h3>{t('Входящие')}</h3>{rows('incoming','Новых заявок нет.')}<h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</> :
     <><h3>{t('Найти друга')}</h3><form onSubmit={e=>{e.preventDefault(); void run(async()=>{
@@ -119,4 +132,15 @@ function FriendsPane({ model, account, tab }: { model: FriendsModel; account: st
     </>}
     {message && <p role="status">{t(message)}</p>}
   </section>
+}
+
+function ShareCode({ token, onCopy }: { token: string; onCopy: (message: string) => void }) {
+  const t = useT()
+  const origin = Capacitor.isNativePlatform() ? 'https://edu-study-app.vercel.app' : location.origin
+  const url = new URL('/#/friend?token=' + token, origin).href
+  return <>
+    <QRCodeSVG value={url} size={180} marginSize={4} title={t('QR-код профиля для друзей')}/>
+    <input aria-label={t('Ссылка на профиль для друзей')} readOnly value={url} onFocus={e => e.target.select()}/>
+    <button type="button" onClick={async () => onCopy(await copyToClipboard(url) ? 'Ссылка скопирована.' : 'Выдели и скопируй ссылку.')}>{t('Скопировать ссылку')}</button>
+  </>
 }

@@ -10,6 +10,22 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Доступ по ссылке": "Link access",
+  "Открыть профиль по ссылке и QR-коду": "Open profile via link and QR code",
+  "После входа по ссылке виден только твой ник. Можно отправить заявку в друзья.": "Anyone signed in with the link can see your handle and send a friend request.",
+  "Ссылка закрыта. Ранее отправленные ссылки и QR-коды недействительны.": "Link access is off. Previously shared links and QR codes are no longer valid.",
+  "QR-код профиля для друзей": "Friend profile QR code",
+  "Ссылка на профиль для друзей": "Friend profile link",
+  "Выдели и скопируй ссылку.": "Select and copy the link.",
+  "Профиль для друзей": "Friend profile",
+  "Ссылка закрыта или недействительна.": "This link is private or no longer valid.",
+  "Это твой профиль для друзей.": "This is your friend profile.",
+  "Добавить в друзья": "Add friend",
+  "В свой кабинет": "Go to my dashboard",
+  "Не удалось отправить заявку.": "Could not send the request.",
+  "Не удалось загрузить профиль.": "Could not load the profile.",
+  "Заявка отправлена.": "Request sent.",
+  "Ссылка скопирована.": "Link copied.",
   "Разделы профиля": "Profile navigation",
   "Интеграции": "Integrations",
   "Главное": "Overview",
