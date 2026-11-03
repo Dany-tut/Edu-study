@@ -23,6 +23,9 @@ import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
+import { useScrollEdges } from '../../components/teacher/journalStand/useScrollEdges'
+import '../../components/teacher/journalStand/journalStand.css'
+import './teacherRoster.css'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
   type Group, type GroupTrack, type Student,
@@ -1118,7 +1121,15 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
 }
 
 function ScrollFadeTable({ children }: { children: React.ReactNode }) {
-  return <div style={{ overflowX: 'auto' }}>{children}</div>
+  const { viewport, scroller } = useScrollEdges()
+  return (
+    <div ref={viewport} className="teacher-roster-viewport">
+      <div ref={scroller} className="teacher-roster-scroll">{children}</div>
+      {['left', 'right', 'top', 'bottom'].map(side => (
+        <i key={side} aria-hidden className={'js-scroll-fade js-fade-' + side} />
+      ))}
+    </div>
+  )
 }
 
 // Keep course lists compact without losing access to the full assignment text.
@@ -2334,7 +2345,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   // The journal, group strip and report drawer own their inner scroll fades.
   // Observing every cell here duplicates their work and forces offscreen
   // content to lay out. Only this wrapper's direct scroll container remains.
-  useScrollFades(scrollRoot, true, renderRoster ? ':scope > div' : '*')
+  useScrollFades(scrollRoot, true, renderRoster ? ':scope > div' : ':not(.teacher-roster-viewport, .teacher-roster-viewport *)')
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
@@ -2604,7 +2615,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
 
   return (
     <div ref={scrollRoot} className={renderRoster ? 'js-journal-host' : undefined} style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
-      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: renderRoster ? -100 : 0, padding: renderRoster ? '100px 32px 32px' : '0 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <motion.div {...fadeUp(0.04)} className={renderRoster || onOpenStudent ? 'js-stand-strip' : undefined}>
           <GroupStrip
             mergePersons
@@ -2633,6 +2644,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
           {activeGroup && (
             <motion.div
               ref={tableRef}
+              className="teacher-roster-card-wrap"
               key="student-table"
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0, marginRight: activeStudentId ? 344 : 0 }}
