@@ -250,9 +250,9 @@
 .ww-legacy-student-metric .iskra-mini-stat-open{display:grid;place-items:center;position:absolute;right:10px;bottom:9px;width:28px;height:28px;border:0;border-radius:50%;background:var(--color-bg-input);color:var(--color-accent);cursor:pointer}
 }
 
-/* Both resize marks share ink, round caps and a 14px inset from the card. */
+/* Both resize marks share ink, round caps and an 8px inset from the card. */
 .widget-edit-glow .iskra-mini-stat-open{visibility:hidden}
-.desk-resize-control{--desk-card-radius:24px;--desk-resize-inset:14px;position:absolute;z-index:20;display:grid;place-items:center;color:var(--color-accent);touch-action:none;opacity:.75;transition:opacity .15s}
+.desk-resize-control{--desk-card-radius:24px;--desk-resize-inset:8px;position:absolute;z-index:20;display:grid;place-items:center;color:var(--color-accent);touch-action:none;opacity:.75;transition:opacity .15s}
 .desk-resize-control:hover,.desk-resize-control[data-active]{opacity:1}
 .desk-resize-bottom{width:64px;height:32px;bottom:calc(var(--desk-resize-inset) - 14px);left:50%;transform:translateX(-50%);cursor:s-resize}
 .desk-resize-bottom .desk-resize-mark{width:28px;height:4px;border-radius:4px;background:currentColor;pointer-events:none}
