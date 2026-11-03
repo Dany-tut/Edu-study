@@ -615,8 +615,11 @@ export function useStudents(groupId: string | null) {
     return { error: friendlyStudentError(error), inviteToken: data?.invite_token as string | null }
   }
 
-  async function deleteStudent(id: string) {
-    await supabase.from('students').delete().eq('id', id)
+  async function deleteStudent(id: string, name: string, pendingOnly = false) {
+    let query = supabase.from('students').delete().eq('id', id).eq('name', name)
+    if (pendingOnly) query = query.is('auth_user_id', null)
+    const { data, error } = await query.select('id').single()
+    if (error || data?.id !== id) throw new Error('Student card was not removed')
     await load()
     await reloadAllStudents()
   }
