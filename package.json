@@ -54,7 +54,8 @@
     "check:ui": "node scripts/checkUiRules.mjs && node scripts/checkWidgetSizing.mjs && npm run icons:check && npm run check:homework-facts && npm run check:student-widgets",
     "check:text-fades": "node scripts/checkTextFades.mjs && node scripts/checkTextFadeVisibility.mjs",
     "check:homework-facts": "esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkHomeworkFacts.mjs",
-    "check:student-widgets": "node scripts/checkStudentWidgetMatrix.mjs"
+    "check:student-widgets": "node scripts/checkStudentWidgetMatrix.mjs",
+    "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

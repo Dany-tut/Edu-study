@@ -1,0 +1,21 @@
+
+> student-dashboard@1.0.0 check:ui
+> node scripts/checkUiRules.mjs && npm run check:homework-facts && npm run check:mobile
+
+Overlay fades: 288 narrow/short/edge positioning cases, fixed-action and shared-title integration passed
+Overlay fades: explicit icons and controls stay outside marked text across all TSX sources
+Overlay geometry: software-keyboard height and viewport panning passed
+Text fades: all source files, guard fixtures, single/multiline/RTL/fit/resize mask cases passed
+UI rules: scroll edges, schedule text fades, mobile card integration and durable rule links passed
+
+> student-dashboard@1.0.0 check:homework-facts
+> esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{"VITE_SUPABASE_URL":"http://stub.local","VITE_SUPABASE_PUBLISHABLE_KEY":"stub"}' && node node_modules/.cache/checkHomeworkFacts.mjs
+
+Homework facts: rendered dated, undated and mixed assignments passed
+
+> student-dashboard@1.0.0 check:mobile
+> node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs
+
+Mobile gestures: cancel/multitouch, stale flick, nested scrolling, editing, no-drag handles, horizontal rows and top-dialog isolation passed
+Keyboard: Safari/PWA/panning/native resizing, browser chrome and pinch zoom fixtures passed
+PASS: new attempts re-open the same progress row; legacy drafts are isolated; latest linked submissions are unique

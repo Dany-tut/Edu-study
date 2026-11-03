@@ -1,0 +1,22 @@
+{
+  "scope": "Local real Auth/DB/Storage. Assignment fixture via teacher API; student signup/submit and teacher review via UI; drafts same-browser localStorage",
+  "results": [
+    {
+      "name": "Teacher logs in, opens live review and sees original answers",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher publishes 90 percent and a comment through UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh student login shows published result, comment and historical answers",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload keeps result and exactly one server attempt",
+      "status": "PASS"
+    }
+  ],
+  "productionModified": false
+}

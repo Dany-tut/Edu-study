@@ -1,0 +1,143 @@
+Command line invocation:
+    /Applications/Xcode-27.1.app/Contents/Developer/usr/bin/xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphoneos -destination generic/platform=iOS -derivedDataPath /tmp/iskra-ios-device-qa build
+
+Build settings from command line:
+    SDKROOT = iphoneos27.1
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CapacitorApp: /Users/dany/Cursor/student-dashboard/node_modules/@capacitor/app @ local
+  CapacitorBrowser: /Users/dany/Cursor/student-dashboard/node_modules/@capacitor/browser @ local
+  CapApp-SPM: /Users/dany/Cursor/student-dashboard/ios/App/CapApp-SPM @ local
+  capacitor-swift-pm: https://github.com/ionic-team/capacitor-swift-pm.git @ 8.4.3
+
+2026-11-03 09:17:51.791 xcodebuild[73338:4030808] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (9 targets)
+    Target 'App' in project 'App'
+        ➜ Explicit dependency on target 'CapApp-SPM-product' in project 'CapApp-SPM'
+    Target 'CapApp-SPM-product' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'CapApp-SPM' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'Capacitor-product' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova-product' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'CapacitorApp-product' in project 'CapacitorApp'
+        ➜ Explicit dependency on target 'CapacitorBrowser-product' in project 'CapacitorBrowser'
+    Target 'CapApp-SPM' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'Capacitor-product' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova-product' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'CapacitorApp-product' in project 'CapacitorApp'
+        ➜ Explicit dependency on target 'CapacitorBrowser-product' in project 'CapacitorBrowser'
+    Target 'CapacitorBrowser-product' in project 'CapacitorBrowser'
+        ➜ Explicit dependency on target 'BrowserPlugin' in project 'CapacitorBrowser'
+        ➜ Explicit dependency on target 'Capacitor-product' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova-product' in project 'capacitor-swift-pm'
+    Target 'BrowserPlugin' in project 'CapacitorBrowser'
+        ➜ Explicit dependency on target 'Capacitor-product' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova-product' in project 'capacitor-swift-pm'
+    Target 'CapacitorApp-product' in project 'CapacitorApp'
+        ➜ Explicit dependency on target 'AppPlugin' in project 'CapacitorApp'
+        ➜ Explicit dependency on target 'Capacitor-product' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova-product' in project 'capacitor-swift-pm'
+    Target 'AppPlugin' in project 'CapacitorApp'
+        ➜ Explicit dependency on target 'Capacitor-product' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova-product' in project 'capacitor-swift-pm'
+    Target 'Cordova-product' in project 'capacitor-swift-pm' (no dependencies)
+    Target 'Capacitor-product' in project 'capacitor-swift-pm' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode-27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode-27.1.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode-27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode-27.1.app/Contents/Developer/usr/bin/ibtool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode-27.1.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/dany/Cursor/student-dashboard/ios/App/App/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode-27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode-27.1.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: 79c8bec51a62320ae29ec99092eb2e09
+Build description path: /tmp/iskra-ios-device-qa/Build/Intermediates.noindex/XCBuildData/79c8bec51a62320ae29ec99092eb2e09.xcbuilddata
+ClangStatCache /Applications/Xcode-27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode-27.1.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk /tmp/iskra-ios-device-qa/SDKStatCaches.noindex/iphoneos27.1-24A94232-e829b21a6f8c9b70876ba0858053c044272174d5333517a236ad2e6abe2cf338.sdkstatcache
+    cd /Users/dany/Cursor/student-dashboard/ios/App/App.xcodeproj
+    /Applications/Xcode-27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode-27.1.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.1.sdk -o /tmp/iskra-ios-device-qa/SDKStatCaches.noindex/iphoneos27.1-24A94232-e829b21a6f8c9b70876ba0858053c044272174d5333517a236ad2e6abe2cf338.sdkstatcache
+
+CpResource /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/capacitor.config.json /Users/dany/Cursor/student-dashboard/ios/App/App/capacitor.config.json (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/dany/Cursor/student-dashboard/ios/App/App/capacitor.config.json /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app
+
+CpResource /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/config.xml /Users/dany/Cursor/student-dashboard/ios/App/App/config.xml (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/dany/Cursor/student-dashboard/ios/App/App/config.xml /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app
+
+CpResource /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/public /Users/dany/Cursor/student-dashboard/ios/App/App/public (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/dany/Cursor/student-dashboard/ios/App/App/public /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app
+
+ProcessInfoPlistFile /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/Info.plist /Users/dany/Cursor/student-dashboard/ios/App/App/Info.plist (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    builtin-infoPlistUtility /Users/dany/Cursor/student-dashboard/ios/App/App/Info.plist -producttype com.apple.product-type.application -genpkginfo /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/PkgInfo -expandbuildsettings -format binary -platform iphoneos -additionalcontentfile /tmp/iskra-ios-device-qa/Build/Intermediates.noindex/App.build/Debug-iphoneos/App.build/Base.lproj/LaunchScreen-SBPartialInfo.plist -additionalcontentfile /tmp/iskra-ios-device-qa/Build/Intermediates.noindex/App.build/Debug-iphoneos/App.build/Base.lproj/Main-SBPartialInfo.plist -additionalcontentfile /tmp/iskra-ios-device-qa/Build/Intermediates.noindex/App.build/Debug-iphoneos/App.build/assetcatalog_generated_info.plist -scanforprivacyfile /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/Frameworks/Capacitor.framework -scanforprivacyfile /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/Frameworks/Cordova.framework -requiredArchitecture arm64 -o /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/Info.plist
+
+CopySwiftLibs /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    builtin-swiftStdLibTool --copy --verbose --sign C7DF2E3B0F47F1388DAE7D1A562D00B76587DE72 --scan-executable /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/App.debug.dylib --scan-folder /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/Frameworks --scan-folder /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/PlugIns --scan-folder /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/SystemExtensions --scan-folder /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/Extensions --platform iphoneos --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v27.1.266.1.ngJ1il/Metal.xctoolchain --toolchain /Applications/Xcode-27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode-27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/iskra-ios-device-qa/Build/Intermediates.noindex/App.build/Debug-iphoneos/App.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
+
+CodeSign /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/App.debug.dylib (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    
+    Signing Identity:     "Apple Development: Daniil Makarenko (6HL4GA765R)"
+    Provisioning Profile: "iOS Team Provisioning Profile: *"
+                          (17283051-2f86-4fbf-ba41-9c46ba019191)
+    
+    /usr/bin/codesign --force --sign C7DF2E3B0F47F1388DAE7D1A562D00B76587DE72 --timestamp\=none --generate-entitlement-der /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/App.debug.dylib
+/tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/App.debug.dylib: replacing existing signature
+
+CodeSign /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/__preview.dylib (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    
+    Signing Identity:     "Apple Development: Daniil Makarenko (6HL4GA765R)"
+    Provisioning Profile: "iOS Team Provisioning Profile: *"
+                          (17283051-2f86-4fbf-ba41-9c46ba019191)
+    
+    /usr/bin/codesign --force --sign C7DF2E3B0F47F1388DAE7D1A562D00B76587DE72 --timestamp\=none --generate-entitlement-der /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/__preview.dylib
+/tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app/__preview.dylib: replacing existing signature
+
+CodeSign /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    
+    Signing Identity:     "Apple Development: Daniil Makarenko (6HL4GA765R)"
+    Provisioning Profile: "iOS Team Provisioning Profile: *"
+                          (17283051-2f86-4fbf-ba41-9c46ba019191)
+    
+    /usr/bin/codesign --force --sign C7DF2E3B0F47F1388DAE7D1A562D00B76587DE72 --entitlements /tmp/iskra-ios-device-qa/Build/Intermediates.noindex/App.build/Debug-iphoneos/App.build/App.app.xcent --timestamp\=none --generate-entitlement-der /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app
+/tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app: replacing existing signature
+
+Validate /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app (in target 'App' from project 'App')
+    cd /Users/dany/Cursor/student-dashboard/ios/App
+    builtin-validationUtility /tmp/iskra-ios-device-qa/Build/Products/Debug-iphoneos/App.app -shallow-bundle -infoplist-subpath Info.plist
+
+PruneExplicitPrecompiledModules /tmp/iskra-ios-device-qa/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/iskra-ios-device-qa/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/iskra-ios-device-qa/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+** BUILD SUCCEEDED **
+

@@ -9,6 +9,7 @@ import { parseBasicAnswers, type BasicAnswersPayload } from './basicAnswers'
 import { baseLessonRef, extraHwLabel, hwRef } from './extraHomework'
 import { t } from './i18n'
 import { returnTestlyHomework } from './testlyModule'
+import { hardSubmissionTitle, isHardSubmissionRow, standaloneHomeworkId } from './hardSubmissionIdentity'
 
 export type HardSub = {
   id: string
@@ -451,9 +452,13 @@ const hardQuery = createSharedQuery<HardSub[]>(async () => {
     .order('updated_at', { ascending: false })
 
   if (!rows) return []
+  // A basic answer snapshot may also have a student comment. Keep the old
+  // comment-only hard format, but do not reinterpret identified basic payloads.
+  const hardRows = rows.filter(isHardSubmissionRow)
+  if (!hardRows.length) return []
 
   // Derive base lesson refs (strip '-hard' suffix if present)
-  const baseRefs = [...new Set(rows.map(r =>
+  const baseRefs = [...new Set(hardRows.map(r =>
     r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
   ))]
 
@@ -472,7 +477,15 @@ const hardQuery = createSharedQuery<HardSub[]>(async () => {
     })
   }
 
-  return rows.map(r => {
+  const homeworkIds = [...new Set(baseRefs.map(standaloneHomeworkId).filter((id): id is string => id !== null))]
+  const homeworkTitles: Record<string, string> = {}
+  if (homeworkIds.length) {
+    const { data: homework } = await supabase.from('homework')
+      .select('id, title').eq('created_by', uid).in('id', homeworkIds)
+    for (const h of homework ?? []) homeworkTitles[h.id] = h.title
+  }
+
+  return hardRows.map(r => {
     const base = r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
     // Единая per-task/раунд-модель: v2 берём как есть, legacy одиночный хард
     // синтезируем в одну вкладку с одним раундом — чтобы тред показывался везде.
@@ -484,7 +497,7 @@ const hardQuery = createSharedQuery<HardSub[]>(async () => {
       id: r.id,
       lessonRef: r.lesson_ref,
       baseRef: base,
-      lessonTitle: titleMap[base] ?? base,
+      lessonTitle: hardSubmissionTitle(base, titleMap, homeworkTitles),
       studentId: r.student_id,
       studentName: (r.students as { name: string } | null)?.name ?? '',
       score: r.score ?? 0,

@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:video-access
+> node scripts/checkHomeworkVideoAccess.mjs
+
+PASS: video prerequisite, seeking, attendance, existing work, unsupported embeds and drafts

@@ -91,6 +91,9 @@ function nativeWindowShrunk(): boolean {
 function read(): KeyboardState {
   const vv = typeof window === 'undefined' ? null : window.visualViewport
   if (!vv) return CLOSED
+  // Pinch zoom shrinks the visual viewport too. It must not lift sheets or
+  // hide navigation as if a software keyboard had appeared.
+  if (Math.abs(vv.scale - 1) > 0.01 && !editableFocused()) return CLOSED
   const height = Math.round(window.innerHeight - vv.height)
   if (height < MIN_KEYBOARD) return IS_NATIVE && nativeWindowShrunk() ? { inset: 0, open: true } : CLOSED
   // Нахлёст не бывает больше клавиатуры и меньше нуля: за пределами этого

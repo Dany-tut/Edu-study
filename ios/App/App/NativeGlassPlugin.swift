@@ -9,22 +9,24 @@ private enum LoopNativeIcons {
         "checkmark.rectangle.stack": "CheckCircle2", "checklist": "NotebookPen",
         "person.crop.circle": "UserCircle",
     ]
-    private static var assets: [String: UIImageAsset] = [:]
+    private static var images: [String: UIImage] = [:]
 
     static func image(_ symbol: String, traits: UITraitCollection = .current) -> UIImage? {
         guard let name = names[symbol] else { return UIImage(systemName: symbol) }
-        if let asset = assets[name] { return asset.image(with: traits).withRenderingMode(.alwaysOriginal) }
-        let asset = UIImageAsset()
-        for (theme, style) in [("light", UIUserInterfaceStyle.light), ("dark", .dark)] {
-            guard let url = Bundle.main.url(forResource: "\(name)-\(theme)@3x", withExtension: "png", subdirectory: "public/icons/loop"),
-                  let data = try? Data(contentsOf: url), let image = UIImage(data: data, scale: 3) else {
-                return UIImage(systemName: symbol)
-            }
-            asset.register(image.withRenderingMode(.alwaysOriginal), with: UITraitCollection(userInterfaceStyle: style))
+        let theme = traits.userInterfaceStyle == .dark ? "dark" : "light"
+        let resource = "\(name)-\(theme)@3x"
+        if let cached = images[resource] { return cached }
+        guard let url = Bundle.main.url(forResource: resource, withExtension: "png", subdirectory: "public/icons/loop"),
+              let data = try? Data(contentsOf: url), let glyph = UIImage(data: data, scale: 3) else {
+            return UIImage(systemName: symbol)
         }
-        assets[name] = asset
-        return asset.image(with: traits).withRenderingMode(.alwaysOriginal)
+        // The resource is 72 physical pixels. Keep its 24-point logical size
+        // when handing it to UITabBarItem, including after appearance changes.
+        let image = glyph.withRenderingMode(.alwaysOriginal)
+        images[resource] = image
+        return image
     }
+
 }
 
 // Системные контролы iOS поверх WebView: в приложении алерты, подтверждения,
@@ -70,6 +72,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
     private var leadingPill: GlassPillView?
     private var trailingPill: GlassPillView?
     private var headerBackButton: UIButton?
+    private var headerTitleWidth: NSLayoutConstraint?
 
     private var host: UIViewController? { bridge?.viewController }
 
@@ -99,8 +102,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
                 NSLayoutConstraint.activate([
                     container.leadingAnchor.constraint(equalTo: host.view.leadingAnchor, constant: 16),
                     container.trailingAnchor.constraint(equalTo: host.view.trailingAnchor, constant: -16),
-                    container.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 8),
-                    container.heightAnchor.constraint(equalToConstant: 40),
+                    container.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 22),
+                    container.heightAnchor.constraint(equalToConstant: 44),
                 ])
                 self.headerHost = container
             }
@@ -128,7 +131,6 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
                     button.centerYAnchor.constraint(equalTo: container.centerYAnchor),
                     button.widthAnchor.constraint(equalToConstant: 44),
                     button.heightAnchor.constraint(equalToConstant: 44),
-                    lead.widthAnchor.constraint(lessThanOrEqualTo: container.widthAnchor, constant: -112),
                 ])
                 self.headerBackButton = button
             }
@@ -136,6 +138,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             self.headerBackButton?.accessibilityLabel = backLabel
             self.headerBackButton?.setImage(LoopNativeIcons.image("chevron.left", traits: host.traitCollection) ?? UIImage(systemName: "chevron.left"), for: .normal)
             lead.center(in: container, axis: .center)
+            if self.headerTitleWidth == nil {
+                self.headerTitleWidth = lead.widthAnchor.constraint(lessThanOrEqualTo: container.widthAnchor)
+                self.headerTitleWidth?.isActive = true
+            }
+            var titleSideInset: CGFloat = showBack ? 56 : 0
 
             if let tt = trailingText {
                 let tr = self.trailingPill ?? { let p = GlassPillView(); container.addSubview(p); self.trailingPill = p; return p }()
@@ -143,11 +150,14 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
                 tr.isHidden = false
                 // leading слева, trailing справа.
                 tr.center(in: container, axis: .trailing)
+                let trailingWidth = tr.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).width
+                titleSideInset = max(titleSideInset, trailingWidth + 12)
             } else {
                 self.trailingPill?.isHidden = true
                 // единственная капсула — по центру.
                 lead.center(in: container, axis: .center)
             }
+            self.headerTitleWidth?.constant = -2 * titleSideInset
             call.resolve()
         }
     }
@@ -175,6 +185,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             self.headerHost = nil
             self.leadingPill = nil
             self.headerBackButton = nil
+            self.headerTitleWidth = nil
             self.trailingPill = nil
             call.resolve()
         }
@@ -387,10 +398,11 @@ private final class MenuAnchorButton: UIButton {
 /// (для счётчика) и подпись; ширина обнимает содержимое.
 private final class GlassPillView: UIView {
     private let effect = UIVisualEffectView()
-    private let label = UILabel()
+    private let label = SoftEdgeTitleLabel()
     private let icon = UIImageView()
     private var loopSymbol: String?
     private var lastAxis: Axis?
+    private var positionConstraints: [NSLayoutConstraint] = []
 
     enum Axis { case leading, trailing, center }
 
@@ -411,9 +423,8 @@ private final class GlassPillView: UIView {
         icon.contentMode = .scaleAspectFit
         icon.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 15, weight: .bold)
-        label.lineBreakMode = .byTruncatingTail
-        label.adjustsFontSizeToFitWidth = true
-        label.minimumScaleFactor = 0.8
+        label.lineBreakMode = .byClipping
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         label.translatesAutoresizingMaskIntoConstraints = false
 
         let stack = UIStackView(arrangedSubviews: [icon, label])
@@ -463,15 +474,34 @@ private final class GlassPillView: UIView {
     func center(in container: UIView, axis: Axis) {
         guard axis != lastAxis else { return }
         lastAxis = axis
-        constraints.filter { $0.firstAttribute == .centerX || $0.firstAttribute == .leading || $0.firstAttribute == .trailing }.forEach { _ in }
-        // Снимаем прежние опорные констрейнты этой капсулы в контейнере.
-        container.constraints.filter { ($0.firstItem === self || $0.secondItem === self) }.forEach { container.removeConstraint($0) }
-        centerYAnchor.constraint(equalTo: container.centerYAnchor).isActive = true
+        NSLayoutConstraint.deactivate(positionConstraints)
+        let horizontal: NSLayoutConstraint
         switch axis {
-        case .leading: leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
-        case .trailing: trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
-        case .center: centerXAnchor.constraint(equalTo: container.centerXAnchor).isActive = true
+        case .leading: horizontal = leadingAnchor.constraint(equalTo: container.leadingAnchor)
+        case .trailing: horizontal = trailingAnchor.constraint(equalTo: container.trailingAnchor)
+        case .center: horizontal = centerXAnchor.constraint(equalTo: container.centerXAnchor)
         }
+        positionConstraints = [centerYAnchor.constraint(equalTo: container.centerYAnchor), horizontal]
+        NSLayoutConstraint.activate(positionConstraints)
+    }
+}
+
+/// Fade only the title; the Loop glyph and native glass remain crisp.
+private final class SoftEdgeTitleLabel: UILabel {
+    override var text: String? { didSet { setNeedsLayout() } }
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard bounds.width > 0, intrinsicContentSize.width > bounds.width + 0.5 else {
+            layer.mask = nil
+            return
+        }
+        let fade = CAGradientLayer()
+        fade.frame = bounds
+        fade.startPoint = CGPoint(x: 0, y: 0.5)
+        fade.endPoint = CGPoint(x: 1, y: 0.5)
+        fade.colors = [UIColor.black.cgColor, UIColor.black.cgColor, UIColor.clear.cgColor]
+        fade.locations = [0, NSNumber(value: max(0, 1 - 18 / bounds.width)), 1]
+        layer.mask = fade
     }
 }
 

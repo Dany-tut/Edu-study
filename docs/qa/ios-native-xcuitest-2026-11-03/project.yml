@@ -1,0 +1,29 @@
+name: IskraUIHarness
+options:
+  deploymentTarget:
+    iOS: '15.0'
+settings:
+  base:
+    CODE_SIGNING_ALLOWED: NO
+    SWIFT_VERSION: '5.0'
+    GENERATE_INFOPLIST_FILE: YES
+    IPHONEOS_DEPLOYMENT_TARGET: '15.0'
+targets:
+  IskraUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dany.iskra.temporary-ui-tests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  IskraUIHarness:
+    build:
+      targets:
+        IskraUITests: [test]
+    test:
+      gatherCoverageData: false
+      targets:
+        - name: IskraUITests

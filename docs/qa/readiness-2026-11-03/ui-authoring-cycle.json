@@ -1,0 +1,23 @@
+{
+  "scope": "Frozen frontend on port 5297; real local services; group/student/homework authored through UI; student signup via invite on Chrome viewport 390x844; no real iPhone",
+  "steps": [
+    "teacher creates group through UI",
+    "teacher creates student through UI and configures defaults",
+    "teacher creates and publishes assigned homework with fill and extended tasks",
+    "student registers with invitation through mobile UI",
+    "student finds assignment via home Continue then Homework",
+    "student answers and submits",
+    "teacher returns focus; queue reloads without page refresh",
+    "teacher reviews and publishes 90 percent plus comment",
+    "student reloads and sees result and history comment"
+  ],
+  "server": {
+    "status": "completed",
+    "score": 90,
+    "reviewComment": "Проверено: решение объяснено верно.",
+    "attemptCount": 1,
+    "reviewRequired": "true"
+  },
+  "knownIssue": "An extended question still says На проверке after the overall work is completed at 90 percent",
+  "productionModified": false
+}

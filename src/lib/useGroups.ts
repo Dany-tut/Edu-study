@@ -807,8 +807,10 @@ export function useAttendance(groupId: string | null) {
     lessonDate: string,
     entries: { studentId: string; present: boolean | null; grade?: number | null }[],
     lessonTitle = '',
-    scheduleId?: string
+    scheduleId?: string,
+    signal?: AbortSignal
   ) {
+    signal?.throwIfAborted()
     // A personal lesson given to a group member (student-scoped schedule row,
     // groupId null) still belongs to that student's GROUP journal — just as a
     // single personal entry, not a whole-group one. So resolve each student's own
@@ -837,11 +839,14 @@ export function useAttendance(groupId: string | null) {
     // Exact event marks survive multiple lessons on the same date and may be
     // saved after the lesson. null remains explicitly unmarked.
     if (scheduleId) {
-      const { error } = await supabase.rpc('teacher_journal_save', {
+      const request = supabase.rpc('teacher_journal_save', {
         p_schedule: scheduleId, p_entries: entries,
       })
+      const { error } = await (signal ? request.abortSignal(signal) : request)
+      signal?.throwIfAborted()
       if (error) throw error
     }
+    signal?.throwIfAborted()
     const rows = entries.filter(e => e.present !== null).map(e => ({
       group_id: groupId ?? groupByStudent.get(e.studentId) ?? null,
       student_id: e.studentId,
@@ -862,21 +867,26 @@ export function useAttendance(groupId: string | null) {
     // Single source of truth: recompute each affected student's attendance %
     // straight from lesson_attendance and write it back to students.attendance,
     // so the roster / Оценки tab stop reading a stale denormalised snapshot.
+    signal?.throwIfAborted()
     const affected = [...new Set(entries.map(e => e.studentId))]
     if (affected.length) {
-      const { data: att } = await supabase
+      const attendanceQuery = supabase
         .from('lesson_attendance')
         .select('student_id, present')
         .in('student_id', affected)
+      const { data: att } = await (signal ? attendanceQuery.abortSignal(signal) : attendanceQuery)
+      signal?.throwIfAborted()
       const tally = new Map<string, { present: number; total: number }>((att ? affected : []).map(id => [id, { present: 0, total: 0 }]))
       for (const r of att ?? []) {
         const cur = tally.get(r.student_id) ?? { present: 0, total: 0 }
         cur.total++; if (r.present) cur.present++
         tally.set(r.student_id, cur)
       }
-      await Promise.all([...tally].map(([id, { present, total }]) =>
-        supabase.from('students').update({ attendance: total ? Math.round((present / total) * 100) : 0 }).eq('id', id)
-      ))
+      await Promise.all([...tally].map(([id, { present, total }]) => {
+        signal?.throwIfAborted()
+        const update = supabase.from('students').update({ attendance: total ? Math.round((present / total) * 100) : 0 }).eq('id', id)
+        return signal ? update.abortSignal(signal) : update
+      }))
     }
 
     await load()

@@ -143,6 +143,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
     const authDataChanged = createAuthDataChangeGuard()
     const focus = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoaded.current > 30_000) reload() }
     window.addEventListener('focus', focus)
+    window.addEventListener('iskra:journal-changed', reload)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (authDataChanged(event, session) && event !== 'INITIAL_SESSION') {
         setData(null)
@@ -151,7 +152,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
         reload()
       }
     })
-    return () => { window.removeEventListener('focus', focus); subscription.unsubscribe() }
+    return () => { window.removeEventListener('focus', focus); window.removeEventListener('iskra:journal-changed', reload); subscription.unsubscribe() }
   }, [reload])
   const resolved = useMemo(() => data && !data.demo ? { ...data, students, groups } : data, [data, students, groups])
   return { data: resolved, loading, error, reload, setData }

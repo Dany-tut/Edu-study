@@ -1,0 +1,10 @@
+{
+  "scope": "Real localhost Supabase Auth/PostgREST and synthetic owned data",
+  "productionModified": false,
+  "results": [
+    {
+      "name": "Real browser learner UI persisted a new attempt and corrected answer on the same progress row",
+      "status": "PASS"
+    }
+  ]
+}

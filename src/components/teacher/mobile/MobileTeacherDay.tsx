@@ -24,6 +24,7 @@ import { sanitizeHtml } from '../../../lib/sanitizeHtml'
 import { addDays, todayMsk, weekStart, useTeacherWeek, type SchedItem } from '../../../lib/teacherSchedule'
 import { loadTeacherLesson, saveTeacherLesson, publishTeacherLesson, lessonSessionError,
   type LessonDetail, type LessonAttendance, type LessonHomeworkDraft, type TeacherLessonSession } from '../../../lib/teacherLessonSession'
+import { useTeacherSession } from '../../../lib/useTeacherSession'
 import type { MTab } from './MobileTeacherNav'
 
 const stack: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 12 }
@@ -64,6 +65,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
   const { tn, tc } = useTc()
   const { lang } = useLang()
   const locale = lang === 'en' ? 'en-GB' : 'ru-RU'
+  const signedIn = useTeacherSession()
   const today = todayMsk()
   const [day, setDay] = useState(todayMsk)
   const start = weekStart(day)
@@ -98,15 +100,15 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
 
   useEffect(() => {
     let current = true
-    if (!items?.length) { setSessions({}); return }
+    if (!items?.length || import.meta.env.DEV && signedIn === false) { setSessions({}); return }
     supabase.from('teacher_lesson_sessions').select('schedule_id, started_at, completed_at, homework_id')
       .in('schedule_id', items.map(i => i.id)).then(({ data, error: e }) => {
         if (!current) return
-        if (e) { setError(lessonSessionError(e)); return }
+        if (e) { setError(t('Не удалось загрузить данные занятий. Попробуйте ещё раз.')); return }
         setSessions(Object.fromEntries((data ?? []).map(s => [s.schedule_id, s as TeacherLessonSession])))
       })
     return () => { current = false }
-  }, [items, tick])
+  }, [items, tick, signedIn, t])
 
   useEffect(() => {
     let current = true

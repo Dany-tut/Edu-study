@@ -3532,7 +3532,7 @@ export default function HomeworkFlow({
                 // целого теста не является одним «неверным ответом».
                 const integratedTest = qType(question) === 'testly'
                 const showVerdict = graded && autoGradable && !integratedTest
-                const showReview = graded && !autoGradable && !integratedTest
+                const showReview = graded && !autoGradable && !integratedTest && basicProgress?.status !== 'completed'
                 // Дрилл — задание из пяти строк, и подсказка по одной из них не
                 // должна закрывать разбор остальных четырёх, поэтому у него одного
                 // «Проверить» остаётся живым и после подсказки.

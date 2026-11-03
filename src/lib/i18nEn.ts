@@ -10,6 +10,13 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Выберите ученика для оплаты.": "Select a student for the payment.",
+  "Укажите положительную сумму в целых рублях, не больше 2 147 483 647.": "Enter a positive whole-ruble amount up to 2,147,483,647.",
+  "Укажите целое неотрицательное количество занятий.": "Enter a non-negative whole number of lessons.",
+  "Не удалось подтвердить сохранение платежа.\nПроверьте список оплат перед повтором. Введённые данные сохранены.": "Could not confirm that the payment was saved.\nCheck the payment list before trying again. Your entries have been preserved.",
+  "Выберите ученика": "Select a student",
+  "Не удалось загрузить данные занятий. Попробуйте ещё раз.": "Could not load lesson data. Please try again.",
+
   "Нет напоминаний": "No reminders",
   'Карточек учеников': 'Student records',
   'Без долга по занятиям': 'No lesson debt',

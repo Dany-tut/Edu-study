@@ -1,0 +1,7 @@
+PASS: Student opens invitation and registers through UI
+PASS: Student opens assigned homework, writes answers and reloads local draft
+PASS: Browser submission persists one pending manual attempt
+PASS: Teacher logs in, opens live review and sees original answers
+PASS: Teacher returns the first attempt with actionable feedback
+FAIL: 42703 column homework_attempts.attachments does not exist
+Evidence: /tmp/iskra-local-security/evidence/browser-return-1793673094813

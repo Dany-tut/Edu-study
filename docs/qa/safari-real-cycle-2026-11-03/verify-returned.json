@@ -1,0 +1,14 @@
+{
+  "scope": "Real localhost Supabase Auth/PostgREST and synthetic owned data",
+  "productionModified": false,
+  "results": [
+    {
+      "name": "Mobile teacher UI saved return and comment in real local database",
+      "status": "PASS"
+    },
+    {
+      "name": "Learner Auth session reads the returned result and comment",
+      "status": "PASS"
+    }
+  ]
+}

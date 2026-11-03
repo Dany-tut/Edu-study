@@ -1,0 +1,23 @@
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:15845:13
+    at async _handleRequest (/Users/dany/Cursor/student-dashboard/node_modules/@supabase/auth-js/dist/main/lib/fetch.js:117:18)
+    at async _request (/Users/dany/Cursor/student-dashboard/node_modules/@supabase/auth-js/dist/main/lib/fetch.js:107:18)
+    at async SupabaseAuthClient.signInWithPassword (/Users/dany/Cursor/student-dashboard/node_modules/@supabase/auth-js/dist/main/GoTrueClient.js:867:23)
+    at async ok (file:///Users/dany/Cursor/student-dashboard/scripts/security/checkLocalReturnCycle.mjs:13:30)
+    at async file:///Users/dany/Cursor/student-dashboard/scripts/security/checkLocalReturnCycle.mjs:21:34 {
+  [cause]: Error: read ECONNRESET
+      at TCP.onStreamRead (node:internal/stream_base_commons:216:20) {
+    errno: -54,
+    code: 'ECONNRESET',
+    syscall: 'read'
+  }
+}
+file:///Users/dany/Cursor/student-dashboard/scripts/security/checkLocalReturnCycle.mjs:13
+async function ok(p){const r=await p;if(r.error)throw Error(`${r.error.code||r.error.status||''} ${r.error.message}`);return r.data}
+                                                      ^
+
+Error:  fetch failed
+    at ok (file:///Users/dany/Cursor/student-dashboard/scripts/security/checkLocalReturnCycle.mjs:13:55)
+    at async file:///Users/dany/Cursor/student-dashboard/scripts/security/checkLocalReturnCycle.mjs:21:34
+
+Node.js v24.11.1

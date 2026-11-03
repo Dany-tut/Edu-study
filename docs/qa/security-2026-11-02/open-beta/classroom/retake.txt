@@ -1,0 +1,1 @@
+PASS: PostgreSQL migration, mixed grading, retries, history, idempotency, frozen answers, RLS isolation, self-assessment

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { BookOpen, Check, ChevronRight, CircleAlert, Download, Plus, RefreshCw, Search, Users, X } from '../icons/appIcons'
+import { BookOpen, Check, ChevronRight, CircleAlert, Download, Plus, RefreshCw, Search, Users, X, Filter, BarChart2 } from '../icons/appIcons'
 import JournalSkeleton from './JournalSkeleton'
 import Modal from '../Modal'
 import MobileSheet from '../MobileSheet'
@@ -174,6 +174,8 @@ export default function CourseJournal({ mobile = false }: { mobile?: boolean }) 
   const [groupId, setGroupId] = useState(restored.current ? 'all' : remembered.current.groupId ?? 'all')
   const [moduleId, setModuleId] = useState(restored.current ? 'all' : remembered.current.moduleId ?? 'all')
   const [query, setQuery] = useState('')
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false)
   const [mode, setMode] = useState<'overview' | 'attendance' | 'work' | 'stats'>('overview')
   const [onlyAttention, setOnlyAttention] = useState(false)
   const [selected, setSelected] = useState<{ studentId: string; columnId: string } | null>(restored.current ?? null)
@@ -266,31 +268,54 @@ export default function CourseJournal({ mobile = false }: { mobile?: boolean }) 
   const modules = data.modules.filter(m => m.course_id === courseId).sort((a, b) => a.position - b.position)
   const pendingEvents = allColumns.flatMap(c => c.events).filter((event, i, all) => event.status !== 'cancelled'
     && all.findIndex(e => e.id === event.id) === i && visibleCells.some(cell => cell.event?.id === event.id && cell.needsAttendance))
-  return <div className={`course-journal ${mobile ? 'cj-mobile' : ''}`}>
-    <header className="cj-heading"><div><div className="cj-eyebrow">{t('Кабинет преподавателя')}</div><h1>{t('Журнал')}</h1><p>{t('Занятия, работы и прогресс — в контексте курса.')}</p></div>
-      <div className="cj-heading-actions"><button className="cj-icon-button" type="button" aria-label={t('Обновить журнал')} disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /></button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} />{mobile ? 'CSV' : t('Экспорт CSV')}</button></div>
-    </header>
-    {data.demo && <div className="cj-demo"><span>{t('Демопросмотр')}</span>{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}<a href="#/teacher/login">{t('Войти в аккаунт')}</a></div>}
-    {data.warnings.map(warning => <Alert key={warning} tone="warning" text={t(warning)} />)}
-    <section className="cj-context" aria-label={t('Контекст журнала')}>
-      <label className="cj-course-select"><span>{t('Курс или интенсив')}</span><div><BookOpen size={20} /><JournalSelect mobile={mobile} displayValue={tc(activeCourse?.title || t(courseId === OUTSIDE_COURSES ? 'Вне курсов' : 'Без названия'))} aria-label={t('Курс или интенсив')} value={courseId} onChange={e => changeCourse(e.target.value)}>
+  const courseSelector = (<label className="cj-course-select"><span>{t('Курс или интенсив')}</span><div><BookOpen size={20} /><JournalSelect mobile={mobile} displayValue={tc(activeCourse?.title || t(courseId === OUTSIDE_COURSES ? 'Вне курсов' : 'Без названия'))} aria-label={t('Курс или интенсив')} value={courseId} onChange={e => changeCourse(e.target.value)}>
         <optgroup label={t('Курсы')}>{data.courses.filter(c => c.kind !== 'intensive').map(c => <option key={c.id} value={c.id}>{tc(c.title || t('Без названия'))}</option>)}</optgroup>
         {data.courses.some(c => c.kind === 'intensive') && <optgroup label={t('Интенсивы')}>{data.courses.filter(c => c.kind === 'intensive').map(c => <option key={c.id} value={c.id}>{tc(c.title)}</option>)}</optgroup>}
         <option value={OUTSIDE_COURSES}>{t('Вне курсов')}</option>
-      </JournalSelect></div></label>
-      <div className="cj-context-right"><span className="cj-course-kind">{t(courseId === OUTSIDE_COURSES ? 'Разовые занятия и ДЗ' : activeCourse?.kind === 'intensive' ? 'Интенсив' : 'Курс')}</span><span><Users size={14} />{roster.length} {t('учеников')}</span></div>
-      <div className="cj-filters">
-        <label><span>{t('Ученики')}</span><JournalSelect mobile={mobile} displayValue={groupId === 'all' ? t('Все ученики курса') : groupId === 'direct' ? t('Индивидуальные и без группы') : tc(rosterGroups.find(g => g.id === groupId)?.name ?? '')} aria-label={t('Группа')} value={groupId} onChange={e => setGroupId(e.target.value)}><option value="all">{t('Все ученики курса')}</option>{rosterGroups.filter(g => !g.isIndividual).map(g => <option key={g.id} value={g.id}>{tc(g.name)}</option>)}{roster.some(s => !s.groupId || data.groups.find(g => g.id === s.groupId)?.isIndividual) && <option value="direct">{t('Индивидуальные и без группы')}</option>}</JournalSelect></label>
-        {modules.length > 0 && <label><span>{t('Модуль')}</span><JournalSelect mobile={mobile} displayValue={moduleId === 'all' ? t('Все модули') : tc(modules.find(m => m.id === moduleId)?.label || t('Без названия'))} aria-label={t('Модуль')} value={moduleId} onChange={e => setModuleId(e.target.value)}><option value="all">{t('Все модули')}</option>{modules.map(m => <option key={m.id} value={m.id}>{tc(m.label || t('Без названия'))}</option>)}</JournalSelect></label>}
-        <label className="cj-search"><Search size={15} /><input aria-label={t('Поиск ученика')} placeholder={t('Найти ученика')} value={query} onChange={e => setQuery(e.target.value)} />{query && <button type="button" aria-label={t('Сбросить поиск')} onClick={() => setQuery('')}><X size={13} /></button>}</label>
-      </div>
-    </section>
-    <div className="cj-summaries">
+      </JournalSelect></div></label>)
+  const secondaryFilters = <><label><span>{t('Ученики')}</span><JournalSelect mobile={mobile} displayValue={groupId === 'all' ? t('Все ученики курса') : groupId === 'direct' ? t('Индивидуальные и без группы') : tc(rosterGroups.find(g => g.id === groupId)?.name ?? '')} aria-label={t('Группа')} value={groupId} onChange={e => setGroupId(e.target.value)}><option value="all">{t('Все ученики курса')}</option>{rosterGroups.filter(g => !g.isIndividual).map(g => <option key={g.id} value={g.id}>{tc(g.name)}</option>)}{roster.some(s => !s.groupId || data.groups.find(g => g.id === s.groupId)?.isIndividual) && <option value="direct">{t('Индивидуальные и без группы')}</option>}</JournalSelect></label>
+        {modules.length > 0 && <label><span>{t('Модуль')}</span><JournalSelect mobile={mobile} displayValue={moduleId === 'all' ? t('Все модули') : tc(modules.find(m => m.id === moduleId)?.label || t('Без названия'))} aria-label={t('Модуль')} value={moduleId} onChange={e => setModuleId(e.target.value)}><option value="all">{t('Все модули')}</option>{modules.map(m => <option key={m.id} value={m.id}>{tc(m.label || t('Без названия'))}</option>)}</JournalSelect></label>}</>
+  const studentSearch = (<label className="cj-search"><Search size={15} /><input aria-label={t('Поиск ученика')} placeholder={t('Найти ученика')} value={query} onChange={e => setQuery(e.target.value)} />{query && <button type="button" aria-label={t('Сбросить поиск')} onClick={() => setQuery('')}><X size={13} /></button>}</label>)
+  const summaryCards = (<div className="cj-summaries">
       <div><span>{t('Изучено уроков')}</span><strong>{summary.studied}<small> / {summary.studyTotal}</small></strong><p>{t('Присутствие или просмотр записи')}</p></div>
       <div><span>{t('Зачтено работ')}</span><strong>{summary.passed}<small> / {summary.required}</small></strong><p>{t('Обязательные доступные работы')}</p></div>
       <div><span>{t('Средний результат')}</span><strong>{summary.score === null ? '—' : `${summary.score}%`}</strong><p>{t('По итоговым результатам работ')}</p></div>
-      <button type="button" aria-pressed={onlyAttention} className={onlyAttention ? 'cj-summary-active' : ''} onClick={() => setOnlyAttention(v => !v)}><span>{mobile ? <FadeText>{t('Требуют внимания')}</FadeText> : t('Требуют внимания')} <ChevronRight size={13} /></span><strong>{attentionStudents}<small> / {filteredRoster.length}</small></strong><p>{t('Проверка, доработка или пропущенный срок')}</p></button>
-    </div>
+      <button type="button" aria-pressed={onlyAttention} className={onlyAttention ? 'cj-summary-active' : ''} onClick={() => { setOnlyAttention(v => !v); if (mobile) setMobileSummaryOpen(false) }}><span>{mobile ? <FadeText>{t('Требуют внимания')}</FadeText> : t('Требуют внимания')} <ChevronRight size={13} /></span><strong>{attentionStudents}<small> / {filteredRoster.length}</small></strong><p>{t('Проверка, доработка или пропущенный срок')}</p></button>
+    </div>)
+  const activeMobileFilters = Number(groupId !== 'all') + Number(moduleId !== 'all')
+  return <div className={`course-journal ${mobile ? 'cj-mobile' : ''}`}>
+    {!mobile && <header className="cj-heading"><div><div className="cj-eyebrow">{t('Кабинет преподавателя')}</div><h1>{t('Журнал')}</h1><p>{t('Занятия, работы и прогресс — в контексте курса.')}</p></div>
+      <div className="cj-heading-actions"><button className="cj-icon-button" type="button" aria-label={t('Обновить журнал')} disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /></button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} />{mobile ? 'CSV' : t('Экспорт CSV')}</button></div>
+    </header>}
+    {data.demo && (mobile ? <div className="cj-mobile-demo-note"><span>{t('Демопросмотр')}</span><a href="#/teacher/login">{t('Войти в аккаунт')}</a></div> : <div className="cj-demo"><span>{t('Демопросмотр')}</span>{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}<a href="#/teacher/login">{t('Войти в аккаунт')}</a></div>)}
+    {data.warnings.map(warning => <Alert key={warning} tone="warning" text={t(warning)} />)}
+    {mobile ? <>
+      <section className="cj-context cj-mobile-compact-context" aria-label={t('Контекст журнала')}>
+        {courseSelector}
+        <button className="cj-icon-button" type="button" aria-label={t('Фильтры')} aria-haspopup="dialog" aria-expanded={mobileFiltersOpen} onClick={() => setMobileFiltersOpen(true)}>
+          <Filter size={18} />{activeMobileFilters > 0 && <span className="cj-mobile-filter-count">{activeMobileFilters}</span>}
+        </button>
+      </section>
+      <div className="cj-mobile-search-row">{studentSearch}<button className="cj-icon-button" type="button" aria-label={t('Результаты')} aria-haspopup="dialog" aria-expanded={mobileSummaryOpen} onClick={() => setMobileSummaryOpen(true)}><BarChart2 size={18} /></button></div>
+      <MobileSheet open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)} title={t('Фильтры')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileFiltersOpen(false)}>{t('Готово')}</button>}>
+        <div className="course-journal cj-mobile cj-mobile-filter-panel">
+          <div className="cj-filters">{secondaryFilters}</div>
+          <button className="cj-button" type="button" disabled={activeMobileFilters === 0} onClick={() => { setGroupId('all'); setModuleId('all') }}>{t('Сбросить фильтры')}</button>
+          <div className="cj-mobile-panel-actions"><button className="cj-button" type="button" disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} />{t('Обновить журнал')}</button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} />CSV</button></div>
+          {data.demo && <p className="cj-note">{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}</p>}
+        </div>
+      </MobileSheet>
+      <MobileSheet open={mobileSummaryOpen} onClose={() => setMobileSummaryOpen(false)} title={t('Результаты')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileSummaryOpen(false)}>{t('Готово')}</button>}>
+        <div className="course-journal cj-mobile">{summaryCards}</div>
+      </MobileSheet>
+    </> : <>
+      <section className="cj-context" aria-label={t('Контекст журнала')}>
+        {courseSelector}
+        <div className="cj-context-right"><span className="cj-course-kind">{t(courseId === OUTSIDE_COURSES ? 'Разовые занятия и ДЗ' : activeCourse?.kind === 'intensive' ? 'Интенсив' : 'Курс')}</span><span><Users size={14} />{roster.length} {t('учеников')}</span></div>
+        <div className="cj-filters">{secondaryFilters}{studentSearch}</div>
+      </section>
+      {summaryCards}
+    </>}
     <div className="cj-toolbar"><JournalTabScroll mobile={mobile}><div className="cj-tabs" role="group" aria-label={t('Вид журнала')}>{([['overview', 'Обзор'], ['attendance', 'Посещаемость'], ['work', 'Работы'], ['stats', 'Статистика']] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={mode === id} onClick={() => setMode(id)}>{t(label)}</button>)}</div></JournalTabScroll>
       {!mobile && <button className="cj-button cj-primary" type="button" disabled={!scheduleIds.length} onClick={() => openMark(pendingEvents[0]?.id ?? scheduleIds[0])}><Plus size={15} />{t('Отметить занятие')}</button>}
     </div>
