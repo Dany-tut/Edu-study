@@ -59,7 +59,9 @@
     "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs",
     "check:calendar-browser": "node scripts/checkTeacherCalendarDay.mjs",
     "check:shelf-filters-browser": "node scripts/checkShelfFiltersBrowser.mjs",
-    "check:diagnostics": "node scripts/checkDiagnosticFetch.mjs && node scripts/checkTelemetryH1.mjs && node scripts/checkIncidentTelemetry.mjs && node scripts/checkIncidentDelivery.mjs && node scripts/checkTelegramWebhook.mjs"
+    "check:diagnostics": "node scripts/checkDiagnosticFetch.mjs && node scripts/checkTelemetryH1.mjs && node scripts/checkIncidentTelemetry.mjs && node scripts/checkIncidentDelivery.mjs && node scripts/checkTelegramWebhook.mjs",
+    "check:server-monitor": "node scripts/checkServerMonitor.mjs && node scripts/checkDiagnosticJourney.mjs && node scripts/checkRecoveryImports.mjs && node scripts/checkBootDiagnostics.mjs && node scripts/checkNativeCrashWebhook.mjs && node scripts/checkMutationEvidence.mjs && node scripts/checkWorkerContext.mjs",
+    "check:monitor-db": "node scripts/checkMonitorDb.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
@@ -82,7 +84,9 @@
     "tailwindcss": "^3.4.19",
     "three": "^0.185.1",
     "vite": "6.4.5",
-    "zustand": "^4.5.0"
+    "zustand": "^4.5.0",
+    "@sentry/capacitor": "4.5.0",
+    "@sentry/react": "10.76.2"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.120.0",

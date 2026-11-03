@@ -1,3 +1,4 @@
+import { diagnosticFailure, diagnosticRetry, diagnosticRecovered } from './diagnosticJourney'
 /**
  * Опознание и лечение «чанк пропал после деплоя».
  *
@@ -83,9 +84,15 @@ export async function hardReload({ full = false }: { full?: boolean } = {}): Pro
  */
 export function retryImport<T>(factory: () => Promise<T>, attempts = 3): Promise<T> {
   return factory().catch(async (err: unknown) => {
+    const failure = diagnosticFailure('lazy_module', 'load_failed')
     for (let i = 1; i < attempts; i++) {
       await new Promise(r => setTimeout(r, 250 * 2 ** (i - 1)))
-      try { return await factory() } catch { /* следующая попытка */ }
+      try {
+        diagnosticRetry(failure, 'automatic')
+        const value = await factory()
+        diagnosticRecovered(failure, 'module_loaded')
+        return value
+      } catch { /* следующая попытка */ }
     }
     throw err
   })
