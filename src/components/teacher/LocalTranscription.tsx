@@ -141,7 +141,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const pending = readPending(props.owner, props.lessonKey, props.source)
   if (!props.owner || !props.source) return <>{props.children(null)}</>
   if (view !== 'entry') return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }}>
-    {view === 'review' ? <Review {...props} onClose={() => setView('entry')} /> :
+    {view === 'review' ? <Review key={props.source} {...props} onClose={() => setView('entry')} /> :
       <section className="transcription-inline">
         <button type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
         {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
