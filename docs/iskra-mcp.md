@@ -11,7 +11,9 @@ The endpoint uses Supabase OAuth 2.1 and a caller-scoped Supabase client. Every 
 - `add_course_lesson` — add a lesson and plain-text lesson notes to an owned draft course.
 - `create_test_for_lesson` — add a multiple-choice test to an owned draft course lesson, provided it has no existing test.
 
-Teachers review and publish changes in Искра. The profile's **Модули** section copies the server URL for Claude and lists/revokes Claude OAuth grants.
+Teachers review and publish changes in Искра. Open **Настройки → Интеграции** on desktop, or **Ещё → Интеграции** on mobile. The shared card checks MCP availability separately from issued OAuth grants, copies the server URL, opens Claude's connector form, and revokes individual grants by client ID. Names from dynamic registration are untrusted display values, not proof that an application is Claude.
+
+In the verified Claude client, use **Customize → Connectors → Add connector → Add custom connector**, choose **Sign in now** and **Register automatically**, then approve access in Iskra. The card links to the observed web form: https://claude.ai/customize/connectors/yours?modal=add-custom-connector .
 
 ## Supabase Auth setup required for production
 
@@ -29,3 +31,7 @@ supabase functions deploy iskra-mcp --project-ref igsdwvwiqnozgwczzycx --no-veri
 ```
 
 The OAuth 2.1 server is a project-level setting, separate from the Edge Function deployment. Do not enable it until the signing-key and production consent-path settings have been reviewed.
+
+## Acceptance on3 November2026
+
+ES256, production consent/site URL and OAuth discovery were checked. OAuth server and dynamic registration are enabled; only three auth.oauth_server fields were pushed from an isolated minimal config. The protected MCP function is deployed. Protocol plus complete local UI with real backend passed; see [evidence](qa/mcp-integration-2026-11-03/README.md). Actual Claude reaches consent; completion requires the pending browser confirmation and is recorded separately. OAuth credentials inherit the owner’s existing RLS rights; draft-only guarantees describe the four MCP tools, not every direct Supabase API.
