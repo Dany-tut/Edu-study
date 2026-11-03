@@ -1262,6 +1262,7 @@ function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
   showVerdict: boolean
   onChange: (v: string) => void
 }) {
+  const isDesktop = useIsDesktop()
   const initial = useMemo(
     () => items.map((_, i) => i).sort((a, b) => items[a].localeCompare(items[b], 'ru')),
     [items],
@@ -1282,7 +1283,7 @@ function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
     onChange(n.join(','))
   }
   const arrowBtn = (off: boolean): React.CSSProperties => ({
-    width: 26, height: 22, borderRadius: 7, border: 'none', cursor: off ? 'default' : 'pointer',
+    width: isDesktop ? 26 : 44, height: isDesktop ? 22 : 44, borderRadius: 7, border: 'none', cursor: off ? 'default' : 'pointer',
     background: 'var(--color-bg-3)', color: 'var(--color-text-3)', display: 'flex',
     alignItems: 'center', justifyContent: 'center', opacity: off ? 0.4 : 1,
   })
@@ -1300,8 +1301,8 @@ function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
             <span style={{ flex: 1, fontSize: 14, lineHeight: 1.4, color: 'var(--color-text)' }}>{items[itemIdx]}</span>
             {!disabled && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <button onClick={() => move(pos, -1)} disabled={pos === 0} style={arrowBtn(pos === 0)}><ChevronUp size={14} /></button>
-                <button onClick={() => move(pos, 1)} disabled={pos === order.length - 1} style={arrowBtn(pos === order.length - 1)}><ChevronDown size={14} /></button>
+                <button type="button" aria-label={`${tStatic('Переместить вверх')}: ${items[itemIdx]}`} onClick={() => move(pos, -1)} disabled={pos === 0} style={arrowBtn(pos === 0)}><ChevronUp size={14} /></button>
+                <button type="button" aria-label={`${tStatic('Переместить вниз')}: ${items[itemIdx]}`} onClick={() => move(pos, 1)} disabled={pos === order.length - 1} style={arrowBtn(pos === order.length - 1)}><ChevronDown size={14} /></button>
               </div>
             )}
           </div>

@@ -1,3 +1,4 @@
+import { widgetNavigationProps } from './widgetNavigation'
 import { textFadeStyle } from '../../../lib/textFades'
 import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 import { useState } from 'react'
@@ -82,8 +83,8 @@ export default function WidgetFinanceOverdue() {
   }
 
   return (
-    <div style={{
-      width: '100%', height: '100%',
+    <div {...widgetNavigationProps(() => setActivePage('finances'))} aria-label={t('Должники')} style={{
+      width: '100%', height: '100%', cursor: 'pointer',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'var(--blur-glass)',

@@ -19,7 +19,7 @@ const mocks = {
   i18n: `export const useT=()=>value=>value;`,
   native: `export const useNativeOverlay=()=>{};`,
   keyboard: `export const useKeyboardState=()=>({inset:0,open:false});`,
-  social: `export default function Social(){return null}`,
+  social: `export default function Social(){return null};export function AuthLegalLinks(){return null}`,
   session: `export const clearStudentSession=()=>{};export const setStudentSession=()=>{};`,
   analytics: `export const trackNow=async()=>{};export const trackEvent=()=>{};`,
   actions: `export const studentPasswordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error;return r?.profile??null};export const passwordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};export const verifyEmailCode=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};`,
