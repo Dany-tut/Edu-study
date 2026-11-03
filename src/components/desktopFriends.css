@@ -12,3 +12,8 @@
 .desktop-friends .friend-check {display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
 .friend-row {padding:12px;background:var(--color-bg);border-radius:16px}
 .friend-row strong {flex:1;overflow-wrap:anywhere}
+
+.friends-overview {grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.friends-overview section {min-width:0;padding:18px;border:1px solid var(--color-border-medium);border-radius:20px;background:var(--color-bg-2)}
+.friends-overview > p {grid-column:1/-1}
+@media (max-width:760px) {.friends-overview {grid-template-columns:minmax(0,1fr)}}

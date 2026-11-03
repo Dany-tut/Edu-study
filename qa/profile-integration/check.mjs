@@ -25,7 +25,11 @@ await p.evaluate(()=>{
  window.navFrames=[]
  function frame(){const nav=document.querySelector('nav[aria-label="Разделы профиля"]'); if(!nav)return;const r=nav.getBoundingClientRect(); window.navFrames.push([r.x+r.width/2,r.y+r.height/2]);requestAnimationFrame(frame)}frame()
 })
-await click('Друзья');await p.getByRole('navigation',{name:'Разделы друзей'}).getByRole('button',{name:'Заявки'}).click()
+await click('Друзья')
+assert.equal(await p.getByRole('navigation',{name:'Разделы друзей'}).count(),0)
+for (const name of ['Мой ник','Поиск','Заявки','Друзья']) {
+  await p.getByRole('region',{name,exact:true}).waitFor()
+}
 await click('Настройки');await click('Главное');await click('Интеграции')
 const card=p.locator('.transcription-module');await card.waitFor()
 const header=p.locator('.teacher-profile-identity')

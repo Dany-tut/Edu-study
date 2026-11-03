@@ -2,7 +2,7 @@ import './teacherProfileHeader.css'
 import FadeText from '../../components/FadeText'
 import ProfileChips from '../../components/ProfileChips'
 import HScrollFade from '../../components/HScrollFade'
-import { FriendsContent, FriendsTabs } from '../../components/DesktopFriends'
+import { FriendsContent } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
@@ -277,10 +277,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
             }}/>
           </HScrollFade>
         </header>
-        {section === 'friends' && <HScrollFade padX={2} fadeWidth={22} style={{ width: 'fit-content', maxWidth: '100%', margin: '0 auto 16px' }}>
-          <FriendsTabs model={friends}/>
-        </HScrollFade>}
-        {section === 'friends' && <FriendsContent model={friends}/>}
+        {section === 'friends' && <FriendsContent model={friends} overview/>}
         {section === 'main' && <>
         {/* Avatar preview + picker */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
