@@ -97,7 +97,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         </button>
         {connected && <button className="integration-action integration-disconnect" disabled={busy || !owner} onClick={change}
           aria-label={busy ? 'Отключаем…' : 'Отключить компьютер'}>
-          {busy ? 'Отключаем…' : <span>Отключить<span className="transcription-device-word"> компьютер</span></span>}
+          {busy ? 'Отключаем…' : 'Отключить'}
         </button>}
       </div>
       <div aria-live="polite" className="transcription-setup">

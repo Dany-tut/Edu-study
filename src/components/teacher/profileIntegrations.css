@@ -24,6 +24,8 @@
 .integration-action:disabled {background:var(--color-bg-3);color:var(--color-text-3);cursor:not-allowed}
 .integration-action:focus-visible {outline:2px solid var(--color-control-accent);outline-offset:2px}
 .integration-disconnect {margin-inline-start:auto}
+.integration-actions .integration-disconnect,
+.integration-steps .integration-disconnect {width:fit-content;flex:0 0 auto;padding-inline:12px}
 .integration-step-number {display:grid;place-items:center;flex:none;width:20px;height:20px;border:1px solid currentColor;border-radius:50%;font-size:12px}
 .integration-step-arrow {flex:none;color:var(--color-text-3)}
 .claude-access-grant {flex-wrap:nowrap}
@@ -32,5 +34,5 @@
 @container (max-width:500px) {
   .integration-steps {flex-direction:column;align-items:flex-start;gap:4px}
   .integration-step-arrow {align-self:center;transform:rotate(90deg)}
-  .integration-steps .integration-action {width:100%}
+  .integration-steps .integration-action:not(.integration-disconnect) {width:100%}
 }
