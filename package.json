@@ -51,6 +51,7 @@
     "check:drive-video": "deno test --no-lock --node-modules-dir=auto --allow-env supabase/functions/_shared/driveVideo_test.ts supabase/functions/drive-video/index_test.ts",
     "check:video-access": "node scripts/checkHomeworkVideoAccess.mjs",
     "check:student-home": "node scripts/checkStudentHomeWork.mjs",
+    "check:student-topbar": "node scripts/checkStudentTopbarBrowser.mjs",
     "check:ui": "node scripts/checkUiRules.mjs && node scripts/checkWidgetSizing.mjs && npm run icons:check && npm run check:homework-facts && npm run check:student-widgets && npm run check:mobile",
     "check:text-fades": "node scripts/checkTextFades.mjs && node scripts/checkTextFadeVisibility.mjs",
     "check:homework-facts": "esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkHomeworkFacts.mjs",
