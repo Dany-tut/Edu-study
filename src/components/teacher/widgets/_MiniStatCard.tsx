@@ -26,7 +26,7 @@ export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, 
   const setActivePage = useTeacher(s=>s.setActivePage)
   const open = () => {
     if(widgetId==='stat-lessons') {document.querySelector('[data-widget="today-schedule"]')?.scrollIntoView({behavior:'smooth',block:'nearest'});return}
-    setActivePage(widgetId?.startsWith('finance-')?'finances':widgetId==='stat-hw'?'homework':'groups')
+    setActivePage((widgetId==='stat-earnings'||widgetId?.startsWith('finance-'))?'finances':widgetId==='stat-hw'?'homework':'groups')
   }
   const measureRef = useRef<HTMLSpanElement>(null)
   const valueRef = useRef<HTMLDivElement>(null)
