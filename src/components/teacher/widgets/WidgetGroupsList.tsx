@@ -1,3 +1,4 @@
+import { widgetNavigationProps } from './widgetNavigation'
 import { textFadeStyle } from '../../../lib/textFades'
 import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 import { SubjectMark } from '../../icons/SubjectMark'
@@ -13,8 +14,8 @@ export default function WidgetGroupsList() {
   const setActivePage = useTeacher(s => s.setActivePage)
 
   return (
-    <div style={{
-      width: '100%', height: '100%',
+    <div {...widgetNavigationProps(() => setActivePage('groups'))} aria-label={t('Группы')} style={{
+      width: '100%', height: '100%', cursor: 'pointer',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'var(--blur-glass)',
@@ -73,7 +74,7 @@ export default function WidgetGroupsList() {
           groups.map((g, i) => (
             <div
               key={g.id}
-              className="ww-row ww-group-row"
+              className="ww-row ww-group-row" data-widget-interactive
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '10px 16px',

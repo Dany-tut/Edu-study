@@ -3,7 +3,7 @@ import type { LucideIcon } from '../../icons/appIcons'
 import { metricObjects } from '../../../lib/widgetMetricObjects'
 import { useTeacher } from '../../../store/teacherStore'
 import { ArrowUpRight } from '../../icons/appIcons'
-import { useT } from '../../../lib/i18n'
+import { metricNavigationTarget, widgetNavigationProps } from './widgetNavigation'
 import Skeleton from '../../Skeleton'
 
 type Props = {
@@ -19,15 +19,13 @@ type Props = {
    *  «Студентов 0» на полсекунды у учителя с тридцатью учениками читается как
    *  потеря данных, а не как ожидание. */
   loading?: boolean
+  onOpen?: () => void
 }
 
-export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, accentBg, accentColor, dimmed, loading }: Props) {
-  const t = useT()
+export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, accentBg, accentColor, dimmed, loading, onOpen }: Props) {
   const setActivePage = useTeacher(s=>s.setActivePage)
-  const open = () => {
-    if(widgetId==='stat-lessons') {document.querySelector('[data-widget="today-schedule"]')?.scrollIntoView({behavior:'smooth',block:'nearest'});return}
-    setActivePage((widgetId==='stat-earnings'||widgetId?.startsWith('finance-'))?'finances':widgetId==='stat-hw'?'homework':'groups')
-  }
+  const destination = metricNavigationTarget(widgetId)
+  const open = onOpen ?? (destination ? () => setActivePage(destination) : undefined)
   const measureRef = useRef<HTMLSpanElement>(null)
   const valueRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
@@ -58,8 +56,8 @@ export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, 
     }
   }, [value, loading])
   return (
-    <div className="iskra-mini-stat" role="group" aria-label={`${label}: ${loading ? '…' : value}. ${sub}`} title={`${label}: ${loading ? '…' : value}. ${sub}`} aria-busy={loading || undefined} style={{
-      width: '100%', height: '100%',
+    <div className="iskra-mini-stat" role="group" {...widgetNavigationProps(open)} aria-label={`${label}: ${loading ? '…' : value}. ${sub}`} title={`${label}: ${loading ? '…' : value}. ${sub}`} aria-busy={loading || undefined} style={{
+      width: '100%', height: '100%', cursor: open ? 'pointer' : 'default',
       background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'var(--blur-glass)',
       WebkitBackdropFilter: 'var(--blur-glass)',
@@ -100,7 +98,7 @@ export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, 
         </div>
       )}
       {widgetId && metricObjects[widgetId] && <img className="iskra-mini-stat-object" src={metricObjects[widgetId]} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-      {widgetId && metricObjects[widgetId] && <button type="button" className="iskra-mini-stat-open" aria-label={t('Открыть')} onClick={open}><ArrowUpRight size={16}/></button>}
+      {open && <span className="iskra-mini-stat-open" aria-hidden="true"><ArrowUpRight size={16}/></span>}
     </div>
   )
 }

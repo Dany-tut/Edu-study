@@ -281,3 +281,7 @@ html:has(.ww-gallery-dialog),body:has(.ww-gallery-dialog){overflow:hidden;oversc
 .ww-attention-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
 .ww-attention-icon{display:none;align-items:center;justify-content:center;background:var(--color-peach-soft);color:var(--color-peach-text)}
 .iskra-widget[data-grid-w="1"][data-grid-h="1"] .ww-attention-icon{display:flex}
+
+/* A navigation arrow describes the whole card; nested controls stay independent. */
+[data-widget-navigation="true"]{cursor:pointer}
+[data-widget-navigation="true"]:focus-visible{outline:2px solid var(--color-accent);outline-offset:-3px}
