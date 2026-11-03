@@ -29,7 +29,7 @@ export default function HomeworkResultActions({ isMobile, navCollapsed, onSummar
   const actionStyle = btn('M', 'quiet', { flex: '1 1 120px', minWidth: 0, minHeight: 44, whiteSpace: 'normal', lineHeight: 1.3 })
 
   return createPortal(
-    <nav ref={panelRef} aria-label={t('Действия после сдачи')} style={{
+    <nav ref={panelRef} data-homework-bottom={isMobile ? '' : undefined} aria-label={t('Действия после сдачи')} style={{
       boxSizing: 'border-box', position: 'fixed', bottom: isMobile ? (navCollapsed ? 92 : 104) : 24,
       marginBottom: 'env(safe-area-inset-bottom, 0px)', left: '50%', transform: 'translateX(-50%)',
       zIndex: 100, width: 'min(620px, calc(100vw - 24px))', display: 'flex', flexWrap: 'wrap', gap: 6,

@@ -87,6 +87,7 @@ import { reviewSlots, buildReviewTasks, gradeFor, type ReviewTask } from '../lib
 import VocabIntro from './VocabIntro'
 import LessonReview from './LessonReview'
 import HomeworkFlowBar from './HomeworkFlowBar'
+import { HomeworkViewportChrome } from './MobileHomeworkViewport'
 import HomeworkResultActions from './HomeworkResultActions'
 import { testlyReviewUrl } from '../lib/testlyModule'
 import ChamoTrace from './ChamoTrace'
@@ -106,6 +107,7 @@ import {
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
+import { useHomeworkKeyboardScroll, scrollHomeworkFlowToStart } from '../lib/useHomeworkKeyboardScroll'
 import { Alert } from './Alert'
 import { btn } from '../lib/pillStyles'
 
@@ -2759,26 +2761,8 @@ export default function HomeworkFlow({
   // Прокрутку глушим у контейнера страницы (overflow), запомнив положение:
   // без этого браузер при снятии блокировки ставит список в начало.
   const keyboardOpen = useKeyboardOpen()
-  useEffect(() => {
-    if (!isMobile || !keyboardOpen || !flowMode || flowFinished) return
-    const el = document.querySelector('.dashboard-main') as HTMLElement | null
-    if (!el) return
-    const top = el.scrollTop
-    const prev = el.style.overflowY
-    el.style.overflowY = 'hidden'
-    return () => { el.style.overflowY = prev; el.scrollTop = top }
-  }, [isMobile, keyboardOpen, flowMode, flowFinished])
+  useHomeworkKeyboardScroll(isMobile, keyboardOpen, flowMode, flowFinished, flowStep)
 
-  // Клавиатура ушла — просим Safari вернуть видимую область на место. Сам он
-  // оставляет её сдвинутой вверх до следующего касания, и док с кнопкой стоят
-  // над пустой полосой там, где только что была клавиатура.
-  const hadKeyboard = useRef(false)
-  useEffect(() => {
-    if (keyboardOpen) { hadKeyboard.current = true; return }
-    if (!hadKeyboard.current) return
-    hadKeyboard.current = false
-    window.scrollTo(0, 0)
-  }, [keyboardOpen])
   const flowQuestionIndex = questionAt(queue, flowPosition)
   const flowQuestion = flowMode && !flowOnIntro && !flowFinished && flowQuestionIndex >= 0
     ? basicQuestions[flowQuestionIndex]
@@ -2858,15 +2842,7 @@ export default function HomeworkFlow({
     const card = flowQuestion ? questionSectionRefs.current[flowQuestion.id] : null
     // Прокручивается не окно, а ближайший предок с собственной прокруткой
     // (панель урока), поэтому ищем его от самой карточки, а не гадаем.
-    let node: HTMLElement | null = card?.parentElement ?? null
-    while (node) {
-      if (node.scrollHeight > node.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(node).overflowY)) {
-        node.scrollTo({ top: 0 })
-        return
-      }
-      node = node.parentElement
-    }
-    window.scrollTo({ top: 0 })
+    scrollHomeworkFlowToStart(card)
     // Шаг — единственное, что должно двигать прокрутку: на ответ внутри задания
     // она реагировать не обязана.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3085,6 +3061,7 @@ export default function HomeworkFlow({
     <>
     {/* Неотправленная сдача. Поверх всего и с кнопкой: тупика «ошибка есть,
         деться некуда» быть не должно. */}
+    <HomeworkViewportChrome bottom>
     {submitFailed && (
       <Alert
         tone="danger"
@@ -3096,6 +3073,8 @@ export default function HomeworkFlow({
         }}
       />
     )}
+    </HomeworkViewportChrome>
+    <HomeworkViewportChrome>
     <AnimatePresence>
       {showResultModal && (
         <ResultModal
@@ -3125,6 +3104,7 @@ export default function HomeworkFlow({
         />
       )}
     </AnimatePresence>
+    </HomeworkViewportChrome>
     <TheorySheet
       open={showTheory}
       onClose={() => setShowTheory(false)}
@@ -3177,6 +3157,7 @@ export default function HomeworkFlow({
 
       {/* Docked twin — fixed at the topbar line so the Back/title pills sit ON
           the topbar row (mini topbar centred between them and the widget pill). */}
+      <HomeworkViewportChrome>
       <div className="docked-pills-row" style={{ position: 'fixed', top: isMobile ? MOBILE_TOP_INSET : 30, left: isMobile ? 16 : 32, right: isMobile ? 16 : 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
@@ -3248,6 +3229,7 @@ export default function HomeworkFlow({
       </AnimatePresence>
       </div>
 
+      </HomeworkViewportChrome>
       {/* The homework card scrolls in the flow, up under the topbar + blur. */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -4543,7 +4525,7 @@ export default function HomeworkFlow({
                   единственной кнопкой, в списке — точки прогресса с переходами:
                   вместе они спорили бы за один и тот же низ экрана. */}
               {flowMode && !flowFinished && (
-                <HomeworkFlowBar
+                <HomeworkViewportChrome bottom><HomeworkFlowBar
                   step={flowStep}
                   total={flowTotal}
                   label={flowLabel}
@@ -4554,9 +4536,10 @@ export default function HomeworkFlow({
                   navCollapsed={navCollapsed}
                   onPrimary={flowPrimary}
                   onSkip={flowQuestion && !flowAnswered ? () => goToFlowStep(nextFlowStep(flowStep)) : undefined}
-                />
+                /></HomeworkViewportChrome>
               )}
 
+              <HomeworkViewportChrome bottom>
               {state.basicSubmitted ? (
                 <HomeworkResultActions
                   isMobile={isMobile}
@@ -4602,6 +4585,7 @@ export default function HomeworkFlow({
                   onJump={jumpToQuestion}
                 />
               </motion.div>}
+              </HomeworkViewportChrome>
             </div>
           ) : (
             <div className="flex flex-col" style={{ gap: 18 }}>
@@ -4673,6 +4657,7 @@ export default function HomeworkFlow({
       </motion.div>
     </div>
 
+    <HomeworkViewportChrome>
     {/* Full-screen image viewer for teacher's attached photos */}
     <AnimatePresence>
       {lightbox && (
@@ -4705,6 +4690,7 @@ export default function HomeworkFlow({
         </motion.div>
       )}
     </AnimatePresence>
+    </HomeworkViewportChrome>
     </>
   )
 }
