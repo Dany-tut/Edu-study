@@ -1,3 +1,5 @@
+import DesktopFriends from '../DesktopFriends'
+import { useDesktopFriends } from '../../lib/desktopFriends'
 import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownSurface } from '../../lib/dropdownStyle'
@@ -101,6 +103,7 @@ export default function TeacherTopBar() {
 
   // Persisted so an open modal (and its draft) re-opens after a page reload.
   const [taskModalOpen, setTaskModalOpen] = usePersistentState('createTask.open', false)
+  const friends = useDesktopFriends()
   const [feedbackOpen, setFeedbackOpen]   = useState(false)
   const [notifOpen, setNotifOpen]         = useState(false)
 
@@ -352,6 +355,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
   }
 
   const profileMenuItems = [
+    ...(friends.account ? [{ icon: Users, label: t('Друзья'), sub: t('Ник, поиск и заявки'), action: 'friends' }] : []),
     { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile' },
     { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'),  action: 'widgets' },
     { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme' },
@@ -459,7 +463,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <div ref={bellRef} style={{ display: 'inline-flex' }}>
-          <NotificationBell onClick={() => setNotifOpen(o => !o)} />
+          <NotificationBell friendCount={friends.incoming.length} onClick={() => { void friends.refresh(); setNotifOpen(o => !o) }} />
         </div>
 
         <motion.button
@@ -654,6 +658,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                     sessionStorage.setItem('feedback_view', 'dialogs')
                     setActivePage('admin')
                   }
+                  if (item.action === 'friends') friends.setTab('contacts')
                   if (item.action === 'feedback') setFeedbackOpen(true)
                   setProfileOpen(false)
                 }}
@@ -712,7 +717,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       document.body
     )}
 
-    <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
+    <NotificationPopup requests={friends.incoming} onRequests={() => { setNotifOpen(false); friends.setTab('requests') }} open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
+    <DesktopFriends model={friends} />
     {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
     {taskModalOpen && (
       <CreateTaskModal
