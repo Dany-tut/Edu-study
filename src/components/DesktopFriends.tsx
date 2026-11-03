@@ -1,3 +1,4 @@
+import HScrollFade from './HScrollFade'
 import ProfileChips from './ProfileChips'
 import { useT } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
@@ -40,21 +41,28 @@ export default function DesktopFriends({ model }: { model: FriendsModel }) {
   }, [open])
   if (!account || !tab) return null
   return <Modal title={t('Друзья')} subtitle={snapshot?.handle ? '@' + snapshot.handle : t('Профиль в Искре')} icon={<Users size={24}/>} width={660} zIndex={9200} onClose={() => setTab(null)}>
-    <div ref={panel}><FriendsContent model={model}/></div>
+    <div ref={panel} className="desktop-friends">
+      <HScrollFade fadeWidth={22} padX={2}><FriendsTabs model={model}/></HScrollFade>
+      <FriendsContent model={model}/>
+    </div>
   </Modal>
+}
+
+export function FriendsTabs({ model }: { model: FriendsModel }) {
+  const t = useT()
+  if (!model.tab) return null
+  return <ProfileChips label={t('Разделы друзей')} value={model.tab} onChange={model.setTab}
+    items={(Object.keys(titles) as FriendsTab[]).map(id => ({
+      id, label: t(titles[id]) + (id === 'requests' && model.incoming.length ? ' · ' + model.incoming.length : ''),
+    }))}/>
 }
 
 export function FriendsContent({ model }: { model: FriendsModel }) {
   const t = useT()
-  const { account, snapshot, tab, setTab } = model
+  const { account, snapshot, tab } = model
   if (!account || !tab) return null
   return (
     <div className="desktop-friends">
-      <ProfileChips label={t('Разделы друзей')} value={tab} onChange={setTab}
-        items={(Object.keys(titles) as FriendsTab[]).map(id => ({
-          id, label: t(titles[id]) + (id === 'requests' && model.incoming.length ? ' · ' + model.incoming.length : ''),
-        }))}/>
-
       {model.error && <p role="alert">{t(model.error)} <button onClick={model.refresh}>{t('Повторить')}</button></p>}
       {snapshot ? <FriendsPane key={account + tab} model={model} account={account} tab={tab}/> : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
     </div>
