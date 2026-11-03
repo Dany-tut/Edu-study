@@ -149,7 +149,7 @@ export default function MobileProfilePage() {
       <div style={{ width: 38, flexShrink: 0 }} />
       <DynamicIsland>
         <Flame size={16} style={{ color: '#F8A23B' }} />
-        <span>{stats.streak} {t('дней')}</span>
+        <span>{stats.streak} {plural(stats.streak, ['день', 'дня', 'дней'], ['day', 'days'], lang)}</span>
         <span style={{ opacity: 0.35 }}>·</span>
         <Zap size={14} style={{ color: 'var(--color-accent)' }} />
         <span>{stats.totalPoints}</span>
