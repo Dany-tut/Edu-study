@@ -436,21 +436,24 @@ export default function Sidebar() {
   }, [pickerOpen])
 
   // Close the avatar picker on an outside click or Escape. The popover lives in
-  // a portal, so an "outside" click is one outside BOTH the avatar and popover.
+  // a portal. Only the visible panels count as inside: their flex wrapper also
+  // covers the empty gap and the space above the offset settings panel.
   useEffect(() => {
     if (!pickerOpen) return
     const onPointerDown = (e: PointerEvent) => {
       const t = e.target as Node
-      if (avatarRef.current?.contains(t) || popoverRef.current?.contains(t)) return
+      if (avatarRef.current?.contains(t)) return
+      const panels = popoverRef.current?.querySelectorAll('[role="menu"]')
+      if (panels && Array.from(panels).some(panel => panel.contains(t))) return
       closePicker()
     }
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closePicker()
     }
-    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('pointerdown', onPointerDown, true)
     document.addEventListener('keydown', onKeyDown)
     return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('pointerdown', onPointerDown, true)
       document.removeEventListener('keydown', onKeyDown)
     }
   }, [pickerOpen])

@@ -1,0 +1,42 @@
+{
+  "scope": "Production frontend with actual Auth, explicit recipient; invalid inputs rejected without requests; valid POST intercepted before DB",
+  "explicitRecipient": true,
+  "results": [
+    {
+      "input": "-100",
+      "requests": 0,
+      "retained": true,
+      "error": "Укажите положительную сумму в целых рублях, не больше 2 147 483 647."
+    },
+    {
+      "input": "100.50",
+      "requests": 0,
+      "retained": true,
+      "error": "Укажите положительную сумму в целых рублях, не больше 2 147 483 647."
+    },
+    {
+      "input": "1e3",
+      "requests": 0,
+      "retained": true,
+      "error": "Укажите положительную сумму в целых рублях, не больше 2 147 483 647."
+    },
+    {
+      "input": "2147483648",
+      "requests": 0,
+      "retained": true,
+      "error": "Укажите положительную сумму в целых рублях, не больше 2 147 483 647."
+    }
+  ],
+  "requests": [
+    {
+      "student_id": "53a00f49-1b61-4da2-acba-f360de4f0f5a",
+      "teacher_id": "9b6d9dd6-d13d-41d8-8b0f-fd2a70d805e1",
+      "amount": 1000,
+      "lessons_paid": 2,
+      "note": "",
+      "paid_at": "2026-11-03T03:55:07.693Z"
+    }
+  ],
+  "retained": "1000",
+  "error": "Не удалось подтвердить сохранение платежа. Проверьте список оплат перед повтором. Введённые данные сохранены."
+}

@@ -1,0 +1,10 @@
+{
+  "localOnly": true,
+  "createdAmount": 1000,
+  "lessonsPaid": 2,
+  "selectedStudent": "QA Ученик через интерфейс",
+  "createdAndDeletedThroughUI": true,
+  "summaryAfterCreate": 2000,
+  "summaryAfterDelete": 1000,
+  "serverSumAfterCleanup": 1000
+}

@@ -27,3 +27,14 @@
 Здесь только screenshot и trace с выдуманными данными `ui-only@example.invalid`, без авторизации. `IskraUITests.swift` содержит публичный сценарий, проект генерируется XcodeGen. Методы04/05 требуют предварительно авторизованную локальную synthetic-сессию; приватный метод03 с реквизитами исключён из публичного harness. Полные xcresult и приватный authenticated local сценарий остаются в `/tmp/iskra-xcuitest-20261103`.
 
 Один simulator не заменяет физический iPhone; touchcancel, sheet dismissal и восстановление панелей после многократных keyboard transitions этим сценарием не проверены. Есть отдельные исполняемые DOM regression checks для gesture hooks.
+
+
+## Причина UUID и исправление
+
+Read-only SQL локального backend показал270строк кандидатов hardQuery: все имеют явный `-hard`, `attachments.v=2` и массив `tasks`; обычных строк, попавших только из-за `comment`, в этом наборе нет. Это реальные сложные сдачи standalone-домашек. Для исходного `hw-868908be-…-hard` homework.title существует: «QA Deadline60». Раньше titleMap смотрел только lessons.short_id, поэтому выводил техническийref.
+
+Добавлен owner-scoped lookup homework.title для валидных UUID standalone-refs. Названия уроков/дополнительных домашних работ и неизвестный legacy fallback сохраняются. Старый comment-only путь дополнительно исключает явно маркированные `basic-*` snapshots; suffix-hard и старые comment/photos/per-task hard ответы остаются. Немаркированные старые строки нельзя надёжно отличить по одному comment, поэтому эвристикой их не отбрасываем.
+
+Исполняемый regression guard добавлен в scripts/checkMobileHomeworkReview.mjs (входит в check:ui). Проверены basic-1/basic-2, explicit hard, legacy photos/blocks, standalone UUID, названия урока/допа и неизвестныйref. tsc, check:ui и diff-check прошли.
+
+Нативный повтор на пересобранной локальной App.app: test06 **PASS**, 1тест15.494с. Исходная очередь и quick-review sheet показывают «QA Deadline60» вместо hw-UUID. Screenshots31/32. Только просмотр и Закрыть, без действий проверки.

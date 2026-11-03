@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { startSocialLogin, type LoginRole } from '../lib/socialAuth'
+import { useEffect, useRef, useState } from 'react'
+import { startSocialLogin, cancelSocialLogin, type LoginRole } from '../lib/socialAuth'
 import { useT } from '../lib/i18n'
 import { Alert } from './Alert'
 
@@ -10,27 +10,31 @@ const providers = [
 
 export default function SocialLoginButtons({ role }: { role: LoginRole }) {
   const t = useT()
+  const sequence = useRef(0)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     const onError = (event: Event) => {
       const detail = (event as CustomEvent<string>).detail
+      sequence.current++
       setError(detail || t('Не удалось завершить вход. Попробуйте ещё раз.'))
       setBusy(null)
     }
-    const cancelled = () => { setBusy(null); setError('') }
+    const cancelled = () => { sequence.current++; setBusy(null); setError('') }
     window.addEventListener('iskra:auth-cancelled', cancelled)
     window.addEventListener('iskra:auth-error', onError)
     return () => { window.removeEventListener('iskra:auth-error', onError); window.removeEventListener('iskra:auth-cancelled', cancelled) }
   }, [t])
 
   async function begin(provider: 'apple' | 'google') {
+    const id = ++sequence.current
     setBusy(provider)
     setError('')
     try {
       await startSocialLogin(provider, role)
     } catch (err) {
+      if (sequence.current !== id) return
       setBusy(null)
       setError(err instanceof Error ? t(err.message) : t('Не удалось начать вход. Проверьте интернет и попробуйте ещё раз.'))
     }
@@ -61,6 +65,7 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
           {busy === id ? t('Открываем…') : `${t('Продолжить с')} ${label}`}
         </button>
       ))}
+      {busy && <button type="button" onClick={cancelSocialLogin} style={{ minHeight: 44, border: 0, borderRadius: 14, color: 'var(--color-text)', background: 'var(--color-bg-input)', cursor: 'pointer' }}>{t('Отменить вход')}</button>}
       {error && <Alert tone="danger" text={error} style={{ marginTop: 2 }} />}
       <p style={{ margin: '2px 0 0', textAlign: 'center', fontSize: 11, lineHeight: 1.5, color: 'var(--color-muted)' }}>
         <a href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Политика конфиденциальности</a>

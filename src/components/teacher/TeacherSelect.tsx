@@ -29,9 +29,10 @@ const baseTrigger: React.CSSProperties = {
 export default function TeacherSelect({
   value, options, onChange, placeholder, triggerStyle, small = false,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)',
-  onAddOption, onDeleteOption, clearable = true, menuZIndex = 2000,
+  onAddOption, onDeleteOption, clearable = true, menuZIndex = 2000, disabled = false,
 }: {
   menuZIndex?: number
+  disabled?: boolean
   value: string
   options: TeacherSelectOption[]
   onChange: (v: string) => void
@@ -80,6 +81,7 @@ export default function TeacherSelect({
     : opts
 
   const openDropdown = () => {
+    if (disabled) return
     // В приложении на iOS — системное меню со стеклом (lib/nativeGlass.ts).
     // Список с правкой (добавить/удалить пункт) остаётся своим: в UIMenu
     // поля ввода нет.
@@ -184,11 +186,12 @@ export default function TeacherSelect({
     <>
       <div
         ref={btnRef}
-        onClick={handleTriggerClick}
+        onClick={disabled ? undefined : handleTriggerClick}
+        aria-disabled={disabled || undefined}
         style={{
           ...baseTrigger,
           ...triggerStyle,
-          cursor: 'text',
+          cursor: disabled ? 'default' : 'text',
           // Только цвет: место под рамку уже занято, а собственную рамку
           // call-site'а (triggerStyle) перекрашиваем, а не заменяем. Цвет покоя
           // пишем ЯВНО: если убрать borderColor из объекта на закрытии, React

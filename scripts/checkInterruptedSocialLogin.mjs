@@ -50,6 +50,8 @@ try {
     // and React's MessageChannel work before inspecting the resulting screen.
     await page.evaluate(async () => { for (let i = 0; i < 20; i++) await Promise.resolve() })
     await page.waitForTimeout(50)
+    const offeredCancel = await page.getByRole('button', { name: 'Отменить вход', exact: true }).count() > 0
+    if (mode === 'pending' && offeredCancel) await page.getByRole('button', { name: 'Отменить вход', exact: true }).click()
     const state = await page.getByRole('button').evaluateAll(xs => xs.map(b => ({ text: b.innerText, disabled: b.disabled })))
     const googleEnabled = state.some(b => b.text.includes('Google') && !b.disabled)
     const appleEnabled = state.some(b => b.text.includes('Apple ID') && !b.disabled)
@@ -58,7 +60,7 @@ try {
     const errorText = await page.getByRole('alert').allTextContents()
     const safeMessage = !errorText.some(text => /access_denied|server_error|invalid_grant/.test(text))
     const passed = googleEnabled && appleEnabled && !pendingRole && safeMessage
-    results.push({ scenario: mode === 'resolve' ? 'Native browser opened, then closed without callback; foreground return' : mode === 'reject' ? 'Native browser refuses to open' : mode === 'callback-denied' ? 'Provider returns access_denied in native callback' : mode === 'pending-timeout' ? 'Native browser open never resolves; timeout after 181 seconds' : 'Native browser open never resolves; no cancellation for two minutes', status: passed ? 'PASS' : 'FAIL', state, canCancel, pendingRole, controlsRecovered: googleEnabled && appleEnabled, safeMessage, errorText, scope: 'Actual React component and socialAuth; native bridge and provider are fixtures' })
+    results.push({ scenario: mode === 'resolve' ? 'Native browser opened, then closed without callback; foreground return' : mode === 'reject' ? 'Native browser refuses to open' : mode === 'callback-denied' ? 'Provider returns access_denied in native callback' : mode === 'pending-timeout' ? 'Native browser open never resolves; timeout after 181 seconds' : 'Native browser open never resolves; user cancels after two minutes', status: passed ? 'PASS' : 'FAIL', state, canCancel: offeredCancel || canCancel, pendingRole, controlsRecovered: googleEnabled && appleEnabled, safeMessage, errorText, scope: 'Actual React component and socialAuth; native bridge and provider are fixtures' })
     await page.screenshot({ path: `${out}/${mode}.png`, fullPage: true })
     await context.close()
   }

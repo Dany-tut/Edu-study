@@ -1,0 +1,11 @@
+
+> student-dashboard@1.0.0 check:course-journal
+> esbuild scripts/checkCourseJournal.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkCourseJournal.mjs --log-level=error && node node_modules/.cache/checkCourseJournal.mjs && esbuild scripts/checkJournalRequests.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkJournalRequests.mjs --log-level=error && node node_modules/.cache/checkJournalRequests.mjs && node scripts/checkAuthDataChange.mjs
+
+Course journal: course isolation, direct enrolment, exact event marks, same-day collisions, recording credit, best attempts, pending review, zero scores, future work, optional hard work, cancellation, standalone assignments and safe CSV passed.
+Journal stand: stable learner across enrollments, native and mixed assignments, reused Testly, zero, pending review and retake passed.
+Stand overview: period boundaries, weighted class result, zero vs missing scores, topic pairs and unknown submission dates passed.
+Journal dates: legacy lesson assignment date, invalid month/day and valid week aggregation passed.
+Journal requests: bounded parallel reads, ordering, empty scopes, full pagination, error propagation and cancellation passed.
+Exact journal IDs: bounded request count, complete ordered rows, timeout splitting and missing-row rejection passed.
+PASS: duplicate sign-in, token rotation, permission changes, user updates, account isolation and sign-out

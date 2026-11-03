@@ -1,0 +1,71 @@
+{
+  "scope": "Actual React forms and Modal; deferred Auth/attendance services; no real network or database",
+  "results": [
+    {
+      "name": "attendance-pending",
+      "status": "PASS",
+      "closed": 2,
+      "cancelDisabled": false,
+      "saving": false,
+      "virtualSeconds": 181,
+      "expectation": "A hung save has a bounded recovery or explicit exit without losing the draft"
+    },
+    {
+      "name": "otp-verification-pending",
+      "status": "PASS",
+      "changeDisabled": false,
+      "submitDisabled": false,
+      "virtualSeconds": 181
+    },
+    {
+      "name": "password-reset-switch-pending",
+      "status": "PASS",
+      "resetBlocked": false,
+      "passwordBlocked": false,
+      "otherMethodAvailable": true,
+      "virtualSeconds": 181,
+      "expectation": "Switching from a stalled password request does not block recovery and the next login"
+    },
+    {
+      "name": "attendance-reject-retry",
+      "status": "PASS",
+      "draftRetained": true,
+      "calls": 2
+    },
+    {
+      "name": "attendance-partial-retry",
+      "status": "PASS",
+      "events": [
+        "event0",
+        "event1",
+        "event1"
+      ],
+      "expectation": "Retry writes only the failed event; the earlier saved attendance is preserved"
+    },
+    {
+      "name": "otp-pending-reopen",
+      "status": "PASS",
+      "lockedAfterReopen": false,
+      "virtualSeconds": 181,
+      "expectation": "The email-code method can be retried after a stalled request; collapse/reopen must not keep it locked"
+    },
+    {
+      "name": "attendance-cancel-late-response",
+      "status": "PASS",
+      "retained": true,
+      "before": {
+        "closed": 1,
+        "saved": 1
+      },
+      "after": {
+        "closed": 1,
+        "saved": 1
+      }
+    },
+    {
+      "name": "otp-cancel-retry-late-response",
+      "status": "PASS",
+      "oldIgnored": true
+    }
+  ]
+}

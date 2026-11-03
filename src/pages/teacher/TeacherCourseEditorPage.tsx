@@ -5843,6 +5843,7 @@ export default function TeacherCourseEditorPage() {
   const [autosaving, setAutosaving] = useState(0)
   const [publicationPending, setPublicationPending] = useState(false)
   const [publishErr, setPublishErr] = useState<string | null>(null)
+  const saveIssue = useRef<string | null>(null)
   // Отпечаток серверной версии, с которой открыли курс. Сравнивается перед
   // каждой записью — см. syncAccessToSupabase.
   const baselineStamp = useRef<string | null>(null)
@@ -5899,7 +5900,7 @@ export default function TeacherCourseEditorPage() {
       clearCourseDraftAfterSync(seq, ok)
       if (ok && draftSeq.current === seq) unsaved.current = false
       if (ok) { setPublishErr(null); flash() }
-      else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+      else setPublishErr(saveIssue.current ?? t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
       return ok
     }).finally(() => setAutosaving(n => n - 1))
   }
@@ -6155,7 +6156,7 @@ export default function TeacherCourseEditorPage() {
           short_id: shortId,
           title: c.title, subject: c.subject, level: c.level,
           description: c.description ?? '',
-          status: c.status, color: c.color, bg: c.bg,
+          status: c.status !== latestCourse.current.status ? latestCourse.current.status : c.status, color: c.color, bg: c.bg,
           created_by: ownerId,
           // ОТПЕЧАТОК СИДА ПИШЕМ ОТСЮДА, иначе «Из сида» не закрывает вопрос:
           // применение ставит штамп только в состояние редактора, а плитка в
@@ -6174,6 +6175,24 @@ export default function TeacherCourseEditorPage() {
     const courseDbId = courseUpsert?.id
     let writeStamp: string | null = (courseUpsert as { updated_at?: string } | null)?.updated_at ?? null
     if (!courseDbId) return false
+    async function finishSave() {
+      // Publication becomes visible only after lessons, access and schedule succeed.
+      if (c.status !== latestCourse.current.status) {
+        const { data, error } = await supabase.from('courses').update({ status: c.status }).eq('id', courseDbId!).select('updated_at').single()
+        if (error) return await writeFailed()
+        writeStamp = data?.updated_at ?? writeStamp
+      }
+      baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
+      saveIssue.current = null
+      window.dispatchEvent(new Event('iskra:journal-changed'))
+      return true
+    }
+    function scheduleIssue(error: { code?: string; message?: string }) {
+      saveIssue.current = error.code === '23505'
+        ? t('Это время уже занято другим занятием.\nИзмените дату или время урока и повторите сохранение.')
+        : null
+      return writeFailed()
+    }
     // Курс записан — его updated_at уже ушёл вперёд: дальнейшие выходы обязаны
     // пересчитать отпечаток (см. writeFailed выше).
     wrote = true
@@ -6406,8 +6425,7 @@ export default function TeacherCourseEditorPage() {
     const scheduledLessons = c.lessons.filter(l =>
       (l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
     if (c.groupIds.length === 0 && c.studentIds.length === 0) {
-      baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
-      return true
+      return await finishSave()
     }
 
     // Fetch course row + lessons from DB to get UUIDs
@@ -6416,10 +6434,7 @@ export default function TeacherCourseEditorPage() {
       .select('id, lessons(id, lesson_number, title)')
       .eq('short_id', shortId)
       .single()
-    if (!courseRow) {
-      baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
-      return true
-    }
+    if (!courseRow) return await writeFailed()
 
     const dbLessons = (courseRow.lessons ?? []) as Array<{ id: string; lesson_number: number; title: string }>
 
@@ -6476,30 +6491,29 @@ export default function TeacherCourseEditorPage() {
     if (allLessonIds.length > 0) {
       const { data: oldRows, error: readErr } = await supabase
         .from('schedule_lessons').select('id,lesson_id,group_id,student_id,node_type,date,time_start,time_end,subject,lesson_title,lesson_number').in('lesson_id', allLessonIds)
-      if (readErr) { console.error('schedule_lessons read failed:', readErr); return await writeFailed() }
+      if (readErr) { console.error('schedule_lessons read failed:', readErr); return await scheduleIssue(readErr) }
       existingSlots = oldRows ?? []
     }
     const plan = planCourseSchedule(existingSlots, rows)
     if (plan.update.length) {
       const { error } = await supabase.from('schedule_lessons').upsert(plan.update, { onConflict: 'id' })
-      if (error) { console.error('schedule_lessons update failed:', error); return await writeFailed() }
+      if (error) { console.error('schedule_lessons update failed:', error); return await scheduleIssue(error) }
     }
     if (plan.insert.length > 0) {
       const { error: insErr } = await supabase
         .from('schedule_lessons')
         .insert(plan.insert.map(row => ({ ...row, status: 'upcoming' })))
-      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return await writeFailed() }
+      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return await scheduleIssue(insErr) }
     }
     if (plan.remove.length > 0) {
       const { error: delErr } = await supabase
         .from('schedule_lessons').delete().in('id', plan.remove)
-      if (delErr) { console.error('schedule_lessons delete failed:', delErr); return await writeFailed() }
+      if (delErr) { console.error('schedule_lessons delete failed:', delErr); return await scheduleIssue(delErr) }
     }
     // Записали мы — значит теперь свежая версия наша. Штамп берём из ответов
     // записи (primary), а не отдельным SELECT, который может уехать на реплику
     // и вернуть устаревшее значение → ложный конфликт при следующем автосейве.
-    baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
-    return true
+    return await finishSave()
   }
 
   // ── «Выдать новой группе» — clone this course as a fresh, independent stream
@@ -6661,9 +6675,9 @@ export default function TeacherCourseEditorPage() {
         setCourseEdited(JSON.stringify({ ...latestCourse.current, status }))
         flash()
       } else {
-        setPublishErr(status === 'published'
+        setPublishErr(saveIssue.current ?? (status === 'published'
           ? t('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
-          : t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+          : t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.')))
       }
       setSaving(false)
       setPublicationPending(false)

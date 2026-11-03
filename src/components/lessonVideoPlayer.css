@@ -121,6 +121,13 @@
 
 .lesson-player-controls { padding: 28px 20px 16px; }
 .lesson-player-controls-row { gap: 4px; margin-top: 4px; }
+.lesson-player-controls[data-interactive="true"] > .lesson-player-rail,
+.lesson-player-controls[data-interactive="true"] > .lesson-player-controls-row { pointer-events: auto; }
+/* Keep the normal 48px buttons and 12px track in fullscreen, with room below
+   the controls even on displays whose bottom edge has a safe-area inset. */
+.lesson-player[data-fullscreen="true"] .lesson-player-controls {
+  padding: 28px max(24px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+}
 @media (max-width: 600px) {
   .lesson-player-controls { padding: 24px 12px 12px; }
   .lesson-player-controls-row { gap: 0; --player-button-size: 44px; }
