@@ -101,8 +101,8 @@ export function moveDeskWidget(items: LayoutItem[], moved: LayoutItem, columns: 
     a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
   const collisions = items.filter(item => overlaps(moved, item))
   if (moved.y === original.y && moved.x !== original.x && collisions.length &&
-      collisions.every(item => item.y === original.y && item.h === original.h)) {
-    const row = items.filter(item => item.y === original.y && item.h === original.h)
+      collisions.every(item => item.y === original.y)) {
+    const row = items.filter(item => item.y === original.y)
       .sort((a, b) => a.x - b.x)
     const from = row.findIndex(item => item.i === moved.i)
     const left = moved.x < original.x

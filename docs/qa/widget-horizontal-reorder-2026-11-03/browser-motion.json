@@ -785,6 +785,64 @@
           "h": 364
         }
       }
+    },
+    {
+      "scenario": "different-heights",
+      "frames": 361,
+      "maxFrameGap": 82.60000000009313,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 0,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 4.699981689453125
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 897,
+          "y": 236,
+          "w": 511,
+          "h": 376
+        },
+        "today-tasks": {
+          "x": 551,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
     }
   ]
 }

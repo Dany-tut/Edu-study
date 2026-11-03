@@ -202,3 +202,11 @@ const vertical=drag(baseline,'stat-students',0,1)
 assert.equal(vertical.find(i=>i.i==='stat-students').y,1)
 assert.ok(vertical.every(a=>!vertical.some(b=>overlaps(a,b))),'Vertical fallback overlaps')
 console.log(`${reorderCases} horizontal drag cases: equal/mixed widths, both directions, unchanged lower rows, free gaps and reload passed`)
+
+const heights=[{i:'tall',type:'fixture',x:0,y:0,w:2,h:3},{i:'short',type:'fixture',x:2,y:0,w:2,h:1},{i:'below',type:'fixture',x:0,y:3,w:8,h:2}]
+const mixedHeight=drag(heights,'short',0)
+assert.deepEqual(positions(mixedHeight),{tall:[2,0,2,3],short:[0,0,2,1],below:[0,3,8,2]},'Different heights should swap when the destination fits')
+const stacked=[heights[0],heights[1],{i:'under-short',type:'fixture',x:2,y:1,w:2,h:2}]
+const constrained=drag(stacked,'tall',2)
+assert.ok(constrained.every(a=>!constrained.some(b=>overlaps(a,b))),'A tall swapped card collided with the stack below')
+console.log('Mixed heights: horizontal swap when it fits, collision-safe fallback when a lower card blocks it')
