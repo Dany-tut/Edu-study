@@ -142,7 +142,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
     <TeacherSubjectsPrompt />
-    <div className="dashboard-root teacher-dashboard-root " style={{ display: isDesktop || mobileTool ? 'flex' : 'none', position: 'relative' }}>
+    {(isDesktop || mobileTool) && <div className="dashboard-root teacher-dashboard-root" style={{ display: 'flex', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
       {!editMode && <div aria-hidden className="edge-progressive-blur--top" />}
@@ -253,7 +253,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         </Suspense>
       </motion.div>
 
-    </div>
+    </div>}
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
     <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
