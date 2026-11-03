@@ -1,0 +1,19 @@
+{
+  "time": "2026-11-03T04:57:27.569328+00:00",
+  "head": "c688b13db9f049bad523334495c9f35ff7e7fd8f",
+  "sourceManifest": "../snapshot.json",
+  "runtimeManifest": "runtime-hashes.json",
+  "runtimeScope": "Compiled JS/CSS and index; public image files are not included",
+  "frontend": "http://127.0.0.1:5297",
+  "backend": "127.0.0.1:55321",
+  "browser": "Chrome headless, 390x844 ownership; 1440x900/1024x600/320x568/390x844 edges",
+  "ownershipRace": "PASS",
+  "fadeEdgesConfigurations": 32,
+  "negativeControls": {
+    "transientStaleAWrite": "EXPECTED_FAIL caught",
+    "bothFadeEdgesAtStart": "EXPECTED_FAIL caught"
+  },
+  "fullAcceptance": "PARTIAL",
+  "productFailuresObserved": 0,
+  "productionModified": false
+}

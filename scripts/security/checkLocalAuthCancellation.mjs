@@ -21,11 +21,12 @@ mkdirSync('node_modules/.cache', { recursive: true })
 writeFileSync('node_modules/.cache/localAuthCancellation.mjs', bundle.outputFiles[0].text)
 const m = await import('../../node_modules/.cache/localAuthCancellation.mjs')
 const realFetch = globalThis.fetch
-let pause, release, reached
+let pause, release, reached, rejectProfile = false
 const transport = async (input, init) => {
   const url = new URL(typeof input === 'string' ? input : input.url)
   const response = await realFetch(input, init)
-  if (pause && (pause === 'token' ? url.pathname.endsWith('/token') : url.pathname.endsWith('/user'))) {
+  if (rejectProfile && url.pathname === '/rest/v1/students') return Response.json({ code: 'QA_PROFILE_UNAVAILABLE', message: 'Synthetic profile failure' }, { status: 503 })
+  if (pause && (pause === 'token' ? url.pathname.endsWith('/token') : pause === 'profile' ? url.pathname === '/rest/v1/students' : url.pathname.endsWith('/user'))) {
     pause = null
     reached = true
     await new Promise(resolve => { release = resolve })
@@ -71,6 +72,29 @@ try {
   await m.verifyEmailCode(email, generated.data.properties.email_otp, new AbortController().signal)
   assert.equal((await main.auth.getUser()).data.user?.id, userId)
   results.push({ name: 'Real one-time email code verification commits the intended session', status: 'PASS' })
+  assert.ifError((await main.auth.signOut({ scope: 'local' })).error)
+  const fixture = JSON.parse(readFileSync(root + '/fixture.json', 'utf8'))
+  const student = fixture.accounts.studentA
+  pause = 'profile'; reached = false; release = undefined; events.length = 0
+  const controller = new AbortController()
+  const pending = m.studentPasswordSignIn(student.email, student.password, controller.signal).then(() => 'resolved', () => 'rejected')
+  await waitFor(() => reached)
+  controller.abort()
+  assert.equal(await pending, 'rejected')
+  release()
+  await new Promise(r => setTimeout(r, 100))
+  assert.equal((await main.auth.getSession()).data.session, null)
+  assert.ok(!events.includes('SIGNED_IN'))
+  results.push({ name: 'Student profile cancellation cannot commit a late session', status: 'PASS' })
+  rejectProfile = true
+  await assert.rejects(m.studentPasswordSignIn(student.email, student.password, new AbortController().signal))
+  rejectProfile = false
+  assert.equal((await main.auth.getSession()).data.session, null)
+  results.push({ name: 'Student profile failure is rejected instead of routing as a teacher', status: 'PASS' })
+  const profile = await m.studentPasswordSignIn(student.email, student.password, new AbortController().signal)
+  assert.ok(profile?.id && profile.name)
+  assert.equal((await main.auth.getUser()).data.user?.email, student.email.toLowerCase())
+  results.push({ name: 'Student login resolves the real profile before committing the session', status: 'PASS' })
   assert.ifError((await main.auth.signOut({ scope: 'local' })).error)
 } finally { listener.subscription.unsubscribe(); globalThis.fetch = realFetch }
 const out = process.env.ISKRA_QA_OUTPUT || 'docs/qa/readiness-fixes-2026-11-03'

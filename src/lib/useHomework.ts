@@ -1,3 +1,5 @@
+import { trackEvent } from './analytics'
+import { latestHomeworkSubmissions } from './mobileHomeworkReviewState'
 import type { HomeworkAttempt } from './homeworkResult'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
@@ -668,8 +670,8 @@ export async function reviewHomework(
   }).eq('id', progressRowId)
   if (expectedAttemptId) update = update.eq('attachments->>attemptId', expectedAttemptId)
   const { data: saved, error } = await update.select('id')
-  if (!saved?.length && !error) return false
-  if (error) { console.error('[reviewHomework]', error); return false }
+  if (!saved?.length && !error) { trackEvent('operation_failed', { operation: 'review_homework', reason: 'no_rows_updated', resource_id: progressRowId }); return false }
+  if (error) { trackEvent('operation_failed', { operation: 'review_homework', code: error.code, resource_id: progressRowId }); console.error('[reviewHomework]', error); return false }
   return true
 }
 

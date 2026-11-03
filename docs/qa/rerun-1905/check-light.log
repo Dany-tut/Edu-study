@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:light
+> esbuild scripts/checkLightData.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLightData.mjs --log-level=error && node node_modules/.cache/checkLightData.mjs
+
+✓ лёгкие таблицы совпадают с данными (текстов 92, произведений 125).

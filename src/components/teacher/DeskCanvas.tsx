@@ -227,7 +227,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   const onResizePointerDown = useCallback((e: React.PointerEvent, item: LayoutItem, axis: ResizeState['axis'] = 'both') => {
     e.preventDefault()
     e.stopPropagation()
-    containerRef.current?.setPointerCapture(e.pointerId)
+    e.currentTarget.setPointerCapture(e.pointerId)
     setResize({
       axis,
       id: item.i,
@@ -250,20 +250,15 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     }
   }, [resize, viewItems, cw, rowH, columns])
 
-  const onResizePointerUp = useCallback((e: React.PointerEvent) => {
+  const onResizePointerUp = useCallback(() => {
     if (!resize) return
-    const current = viewItems.find(item => item.i === resize.id)!
-    // Read the release point as well: a quick release can arrive before the
-    // last React pointer-move render, especially with coalesced mouse events.
-    const final = resizeDeskWidget({...current,w:resize.startW,h:resize.startH},getWidgetDef(current.type),
-      resize.axis === 'vertical' ? 0 : e.clientX-resize.startMx,e.clientY-resize.startMy,cw,rowH,desk.columns)
     const withResized = viewItems.map(it =>
-      it.i === resize.id ? final : it
+      it.i === resize.id ? clampItem({ ...it, w: resize.curW, h: resize.curH }) : it
     )
     const resolved = resolveDeskCollisions(withResized, resize.id)
     onUpdateItems([...resolved, ...desk.items.filter(saved => !resolved.some(item => item.i === saved.i))])
     setResize(null)
-  }, [resize, desk.items, desk.columns, viewItems, onUpdateItems, cw, rowH])
+  }, [resize, desk.items, viewItems, onUpdateItems, clampItem, columns])
 
   // ── Render ────────────────────────────────────────────────────────────
   const gridHeight = useMemo(() => {
@@ -305,7 +300,6 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
           ref={containerRef}
           onPointerMove={drag ? onItemPointerMove : resize ? onResizePointerMove : undefined}
           onPointerUp={drag ? onItemPointerUp : resize ? onResizePointerUp : undefined}
-          onPointerCancel={() => { setResize(null); setDrag(null) }}
           data-desk-grid data-grid-columns={columns} data-grid-row-height={rowH}
           style={{ position: 'relative', width: '100%', height: gridHeight, ...(editMode ? {backgroundImage:'linear-gradient(to right, var(--color-border-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border-soft) 1px, transparent 1px)', backgroundSize:`${colW(cw, columns)+GAP}px ${rowH+GAP}px`} : {}) }}
         >
@@ -315,11 +309,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
             const isActive = isDragging || isResizing
             // Bare widgets render their own card(s); the cell must not add a
             // backing frame/shadow (would show as a stray panel behind them).
-            const definition = getWidgetDef(item.type)
-            const bare = definition?.bare && !editMode
-            const sizes = definition?.allowedSizes
-            const canResize = !sizes?.length || sizes.some(size => size.w !== item.w || size.h !== item.h)
-            const canResizeHeight = !sizes?.length || sizes.some(size => size.w === item.w && size.h !== item.h)
+            const bare = getWidgetDef(item.type)?.bare && !editMode
             return (
               <div
                 key={item.i}
@@ -349,25 +339,38 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
                 <WidgetShell item={item} editMode={editMode} onRemove={id => onUpdateItems([...viewItems.filter(item => item.i !== id), ...desk.items.filter(item => hiddenWidgets?.includes(item.type))])} />
 
                 {editMode && (
-                  <>
-                    {canResizeHeight && <div
-                      data-resize-bottom={item.type}
-                      className="desk-resize-control desk-resize-bottom"
-                      data-active={isResizing || undefined}
-                      aria-label={t('Изменить высоту виджета')}
-                      onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
-                    >
-                      <span className="desk-resize-mark" />
-                    </div>}
-                    {canResize && <div
-                      data-resize-handle={item.type}
-                      className="desk-resize-control desk-resize-corner"
-                      data-active={isResizing || undefined}
-                      onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!)}
-                    >
-                      <span className="desk-resize-mark" />
-                    </div>}
-                  </>
+                  <div
+                    data-resize-bottom={item.type}
+                    aria-label={t('Изменить высоту виджета')}
+                    onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
+                    style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+                      width: 64, height: 28, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 's-resize', touchAction: 'none' }}
+                  >
+                    <span style={{ width: 28, height: 4, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.55 }} />
+                  </div>
+                )}
+
+                {/* iOS-style resize corner */}
+                {editMode && (
+                  <div
+                    data-resize-handle={item.type}
+                    onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!)}
+                    style={{
+                      position: 'absolute', bottom: 6, right: 6,
+                      width: 28, height: 28, zIndex: 20,
+                      display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end',
+                      cursor: 'se-resize', touchAction: 'none',
+                    }}
+                  >
+                    <div style={{
+                      width: 18, height: 18,
+                      borderRight: `2.5px solid rgba(255,255,255,${isResizing ? 1 : 0.7})`,
+                      borderBottom: `2.5px solid rgba(255,255,255,${isResizing ? 1 : 0.7})`,
+                      borderRadius: '0 0 16px 0',
+                      transition: 'border-color 0.15s',
+                    }} />
+                  </div>
                 )}
               </div>
             )

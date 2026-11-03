@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:lesson-participation
+> node scripts/checkLessonParticipation.mjs
+
+PASS: journal attendance, old lessons, recorded-only mode, corrections, split nodes, legacy ambiguity, access isolation

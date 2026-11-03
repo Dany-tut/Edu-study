@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-11-03T04:18:58.912808+00:00",
+  "workspaceHead": "2dfc71679cb16dc72078a80b713f13a84bc98023",
+  "snapshot": "/tmp/iskra-fixes-build-1793677865",
+  "checks": {
+    "build": 0,
+    "types": 0,
+    "ui": 0,
+    "i18n": 0,
+    "forms": 9,
+    "oauth": 5,
+    "sdkAuth": 4,
+    "returnCycle": 10,
+    "actualBrowserAuthCancel": true,
+    "attendanceFinalSaveButtonHeight": 44
+  },
+  "unrelatedSourceDrift": [
+    "src/index.css",
+    "src/components/lessonVideoPlayer.css",
+    "src/components/CourseModuleBar.tsx",
+    "src/components/LessonVideoPlayer.tsx",
+    "src/pages/LandingPage.tsx",
+    "src/pages/DashboardPage.tsx"
+  ],
+  "productionModified": false
+}
