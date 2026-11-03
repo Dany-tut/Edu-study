@@ -4198,6 +4198,8 @@ export const EN: Record<string, string> = {
   'Искра — кабинет ученика': 'Iskra — student workspace',
   'Вход для преподавателя': 'Teacher sign in',
   'Вход для препода': 'Teacher sign in',
+  'Войдите аккаунтом, к которому привязан профиль ученика.': 'Sign in with the account linked to your student profile.',
+  'Эта учётная запись ещё не подключена к профилю ученика. Попросите учителя связать аккаунт.': 'This account is not linked to a student profile yet. Ask your teacher to link it.',
   'Вход для ученика': 'Student sign in',
   'Аккаунт — по приглашению администратора': 'Account by administrator invitation',
   'Поиск ученика': 'Find a student',

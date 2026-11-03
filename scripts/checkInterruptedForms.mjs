@@ -22,7 +22,7 @@ const mocks = {
   social: `export default function Social(){return null};export function AuthLegalLinks(){return null}`,
   session: `export const clearStudentSession=()=>{};export const setStudentSession=()=>{};`,
   analytics: `export const trackNow=async()=>{};export const trackEvent=()=>{};`,
-  actions: `export const studentPasswordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error;return r?.profile??null};export const passwordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};export const verifyEmailCode=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};`,
+  actions: `export const linkedStudentProfile=async()=>null;export const studentPasswordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error;return r?.profile??null};export const passwordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};export const verifyEmailCode=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};`,
   capacitor: `export const Capacitor={isNativePlatform:()=>true};`,
 }
 const bundle = await build({ stdin: { contents: entry, resolveDir: process.cwd(), loader: 'tsx' },

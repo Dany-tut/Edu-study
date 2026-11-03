@@ -10,7 +10,7 @@ import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
 import { Alert } from '../components/Alert'
 import { useAsyncTask } from '../lib/useAsyncTask'
-import { studentPasswordSignIn } from '../lib/authActions'
+import { linkedStudentProfile, studentPasswordSignIn } from '../lib/authActions'
 import ScrollFade from '../components/ScrollFade'
 import SocialLoginButtons, { AuthLegalLinks } from '../components/SocialLoginButtons'
 import AuthHero from '../components/AuthHero'
@@ -41,6 +41,29 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
   const loading = action.busy
   const [error, setError] = useState(linkExpired ? t('Ссылка устарела или уже использована. Запросите новую.') : '')
   const [notice, setNotice] = useState('')
+
+  const switchingCabinet = new URLSearchParams(window.location.hash.split('?')[1]).get('switch') === 'student'
+  const { run } = action
+  useEffect(() => {
+    if (!switchingCabinet || recovery || linkExpired) return
+    void run(async signal => {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (error) throw error
+      if (!user) return null
+      const row = await linkedStudentProfile(supabase, user.id, signal)
+      const { data: { session } } = await supabase.auth.getSession()
+      return session?.user.id === user.id ? row : null
+    }, row => {
+      if (window.location.hash !== '#/login?switch=student') return
+      if (!row) {
+        setNotice(t('Войдите аккаунтом, к которому привязан профиль ученика.'))
+        return
+      }
+      setStudentSession({ id: row.id, name: row.name, groupId: row.group_id ?? '' })
+      window.location.replace('#/')
+      window.location.reload()
+    }, failed)
+  }, [switchingCabinet, recovery, linkExpired, run])
 
   useEffect(() => {
     if (mode !== 'newpassword') return
@@ -74,6 +97,9 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
           void trackNow('login', { role: 'student', method: 'auth' })
           const next = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('next')
           window.location.hash = next && /^#\/(homework|lesson)\//.test(next) ? next : '#/'
+        } else if (switchingCabinet) {
+          clearStudentSession()
+          setError(t('Эта учётная запись ещё не подключена к профилю ученика. Попросите учителя связать аккаунт.'))
         } else {
           // A successful empty profile read can belong to a teacher/admin.
           clearStudentSession()
@@ -207,7 +233,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
           {mode === 'reset' && <button type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
         </form>}
 
-        {mode === 'login' && <SocialLoginButtons role="student" />}
+        {mode === 'login' && !(switchingCabinet && loading) && <SocialLoginButtons role="student" />}
 
         {notice && <Alert tone="info" text={notice} style={{ marginTop: 12 }} />}
 

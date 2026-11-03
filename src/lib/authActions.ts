@@ -33,15 +33,19 @@ export const verifyEmailCode = (email: string, token: string, signal: AbortSigna
   authenticate(signal, auth => auth.verifyOtp({ email, token, type: 'email' }))
 
 type SignInStudentProfile = { id: string; name: string; group_id: string | null }
+export async function linkedStudentProfile(client: SupabaseClient, userId: string, signal: AbortSignal) {
+  const { data, error } = await client.from('students')
+    .select('id, name, group_id, created_at')
+    .eq('auth_user_id', userId)
+    .order('created_at', { ascending: true }).order('id', { ascending: true })
+    .limit(1).abortSignal(signal).retry(false)
+  if (error) throw error
+  return (data?.[0] as SignInStudentProfile | undefined) ?? null
+}
+
 export async function studentPasswordSignIn(email: string, password: string, signal: AbortSignal) {
   const profile = await authenticate(signal, auth => auth.signInWithPassword({ email, password }), async (client, session) => {
-    const { data, error } = await client.from('students')
-      .select('id, name, group_id, created_at')
-      .eq('auth_user_id', session.user.id)
-      .order('created_at', { ascending: true }).order('id', { ascending: true })
-      .limit(1).abortSignal(signal).retry(false)
-    if (error) throw error
-    return (data?.[0] as SignInStudentProfile | undefined) ?? null
+    return linkedStudentProfile(client, session.user.id, signal)
   })
   return profile ?? null
 }

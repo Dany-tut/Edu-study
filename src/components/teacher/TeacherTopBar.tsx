@@ -628,7 +628,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
             {teacherRole === 'admin' && (
               <motion.button whileTap={{ scale: 0.98 }}
-                onClick={() => { setProfileOpen(false); window.location.hash = '#/' }}
+                onClick={() => { setProfileOpen(false); window.location.hash = '#/login?switch=student' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}

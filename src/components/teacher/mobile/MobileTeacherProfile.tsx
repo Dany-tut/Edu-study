@@ -275,7 +275,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
 
         {isAdmin && <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => { tactile(); window.location.hash = '#/' }}
+          onClick={() => { tactile(); window.location.hash = '#/login?switch=student' }}
           className="flex items-center justify-center cursor-pointer"
           style={{ gridColumn: 'span 2', gap: 8, padding: 12, borderRadius: 24, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
         >

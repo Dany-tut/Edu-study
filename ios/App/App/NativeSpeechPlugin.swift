@@ -128,6 +128,7 @@ public class NativeSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesize
 /// не находит, его регистрируют вручную (Main.storyboard ссылается на этот класс).
 class MainViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
+        bridge?.registerPluginInstance(GoogleAuthPlugin())
         bridge?.registerPluginInstance(NativeSpeechPlugin())
         bridge?.registerPluginInstance(NativeGlassPlugin())
     }

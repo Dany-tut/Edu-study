@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { writeFileSync } from 'node:fs'
 const store=new Map(), events=[], timers=new Map(), appListeners={},browserListeners={}
+let nativeGoogleResult, exchanges=0
 let sequence=0, exchangeResolve, signInError
 const storage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)}
 globalThis.localStorage=storage;globalThis.sessionStorage=storage
@@ -14,12 +15,13 @@ const drain=async()=>{for(let i=0;i<30;i++)await Promise.resolve()}
 globalThis.__oauthQA={
  App:{addListener:async(name,fn)=>{appListeners[name]=fn;return {remove:async()=>{}}},getLaunchUrl:async()=>({})},
  Browser:{open:async()=>{},close:async()=>{browserListeners.browserFinished?.()},addListener:async(name,fn)=>{browserListeners[name]=fn;return {remove:async()=>{}}}},
- Capacitor:{isNativePlatform:()=>true},
- supabase:{auth:{signInWithOAuth:async()=>({data:{url:'https://provider.invalid'},error:signInError}),exchangeCodeForSession:()=>new Promise(resolve=>{exchangeResolve=resolve}),getUser:async()=>({data:{user:{id:'user',app_metadata:{role:'teacher'}}}}),signOut:async()=>{}},from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{role:'teacher'}})})})})},
+ Capacitor:{isNativePlatform:()=>true,isPluginAvailable:()=>true},
+ registerPlugin:()=>({open:()=>new Promise(resolve=>{nativeGoogleResult=resolve}),cancel:async()=>{}}),
+ supabase:{auth:{signInWithOAuth:async()=>({data:{url:'https://provider.invalid'},error:signInError}),exchangeCodeForSession:()=>new Promise(resolve=>{exchanges++;exchangeResolve=resolve}),getUser:async()=>({data:{user:{id:'user',app_metadata:{role:'teacher'}}}}),signOut:async()=>{}},from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{role:'teacher'}})})})})},
  trackEvent:(event,meta)=>events.push({event,...meta}),trackNow:async(event,meta)=>events.push({event,...meta}),
  clearStudentSession:()=>{},setStudentSession:()=>{},authErrorRu:()=> 'Ошибка входа',
 }
-const mockExports={ '@capacitor/app':['App'],'@capacitor/browser':['Browser'],'@capacitor/core':['Capacitor'], './supabase':['supabase'],'./analytics':['trackEvent','trackNow'],'./studentSession':['clearStudentSession','setStudentSession'],'./authErrors':['authErrorRu'] }
+const mockExports={ '@capacitor/app':['App'],'@capacitor/browser':['Browser'],'@capacitor/core':['Capacitor','registerPlugin'], './supabase':['supabase'],'./analytics':['trackEvent','trackNow'],'./studentSession':['clearStudentSession','setStudentSession'],'./authErrors':['authErrorRu'] }
 const out=await build({entryPoints:['src/lib/socialAuth.ts'],bundle:true,platform:'node',format:'esm',write:false,plugins:[{name:'mocks',setup(b){b.onResolve({filter:/.*/},a=>mockExports[a.path]?{path:a.path,namespace:'mock'}:undefined);b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:mockExports[a.path].map(n=>`export const ${n}=globalThis.__oauthQA.${n};`).join('\n'),loader:'js'}))}}]})
 writeFileSync('node_modules/.cache/socialAuthRecovery.mjs',out.outputFiles[0].text)
 const m=await import('../node_modules/.cache/socialAuthRecovery.mjs')
@@ -32,12 +34,33 @@ assert.equal(m.hasPendingSocialAuth(),false);assert.equal(cancelled,1)
 assert.equal(events.at(-1).event,'auth_cancelled')
 await m.startSocialLogin('apple','teacher')
 appListeners.appUrlOpen({url:'iskra://auth/callback?code=PRIVATE'})
-await drain();browserListeners.browserFinished();runDelay(750)
+await drain()
+appListeners.appUrlOpen({url:'iskra://auth/callback?code=PRIVATE'})
+await drain();assert.equal(exchanges,1)
+browserListeners.browserFinished();runDelay(750)
 assert.equal(cancelled,1,'closing during PKCE exchange must not cancel the successful flow')
 exchangeResolve({error:null});await drain();runDelay(750)
 assert.equal(m.hasPendingSocialAuth(),false);assert.equal(win.location.hash,'#/teacher')
 assert.ok(events.some(e=>e.event==='auth_completed'))
 assert.equal(cancelled,1)
+const googleAttempt=m.startSocialLogin('google','teacher')
+await drain()
+nativeGoogleResult({cancelled:true});await googleAttempt
+assert.equal(m.hasPendingSocialAuth(),false)
+const abandoned=m.startSocialLogin('google','teacher')
+await drain()
+const resolveAbandoned=nativeGoogleResult
+m.cancelSocialLogin()
+const googleRetry=m.startSocialLogin('google','teacher')
+await drain()
+resolveAbandoned({url:'iskra://auth/callback?code=STALE'})
+await abandoned
+assert.equal(exchanges,1)
+assert.equal(m.hasPendingSocialAuth(),true)
+nativeGoogleResult({url:'iskra://auth/callback?code=PRIVATE'})
+await drain();exchangeResolve({error:null});await googleRetry
+assert.equal(events.at(-1).event,'login')
+assert.equal(m.hasPendingSocialAuth(),false)
 signInError=new Error('provider unavailable')
 await assert.rejects(m.startSocialLogin('google','teacher'))
 assert.equal(m.hasPendingSocialAuth(),false)
