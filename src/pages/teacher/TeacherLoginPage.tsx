@@ -11,6 +11,8 @@ import { AlertStack } from '../../components/Alert'
 import IskraMark from '../../components/landing/IskraMark'
 import SocialLoginButtons from '../../components/SocialLoginButtons'
 import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogin'
+import ScrollFade from '../../components/ScrollFade'
+import { useKeyboardState } from '../../lib/useKeyboardInset'
 import { Capacitor } from '@capacitor/core'
 import { useAsyncTask } from '../../lib/useAsyncTask'
 import { passwordSignIn } from '../../lib/authActions'
@@ -52,15 +54,22 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
       signal.throwIfAborted()
       if (mode === 'login') {
         await passwordSignIn(normalizedEmail, password, signal)
-      } else {
-        signal.throwIfAborted()
-        const result = mode === 'reset'
-          ? await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo: `${window.location.origin}${window.location.pathname}` })
-          : await supabase.auth.updateUser({ password })
-        if (result.error) throw result.error
+      } else if (mode === 'reset') {
+        // Без #/teacher: Supabase дописывает токен решёткой, и второй «#» в
+        // адресе ломал разбор. Форму нового пароля App показывает сам.
+        // Адрес должен быть в Auth → URL Configuration → Redirect URLs.
+        const redirectTo = `${window.location.origin}${window.location.pathname}`
+        const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })
+        if (error) throw error
+      } else if (mode === 'newpassword') {
+        const { error } = await supabase.auth.updateUser({ password })
+        if (error) throw error
       }
     }, () => {
-      if (mode === 'reset') { localStorage.setItem('iskra:password-recovery-role', 'teacher'); setMode('sent') }
+      if (mode === 'reset') {
+        localStorage.setItem('iskra:password-recovery-role', 'teacher')
+        setMode('sent')
+      }
       else {
         if (mode === 'newpassword') setNotice(t('Пароль обновлён. Входим…'))
         if (mode === 'login') void trackNow('login', { role: 'teacher', method: 'auth' })
@@ -84,8 +93,15 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     sent: t('Вернуться ко входу'),
   }
 
-  const formHeight = 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))'
+  const keyboard = useKeyboardState()
+  const bottomInset = `max(env(safe-area-inset-bottom, 0px), ${keyboard.inset}px)`
+  const formHeight = `calc(100dvh - env(safe-area-inset-top, 0px) - ${bottomInset})`
   return (
+    <ScrollFade maxHeight={formHeight} fadeHeight={24} style={{
+      position: 'fixed',
+      inset: `env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) ${bottomInset} env(safe-area-inset-left, 0px)`,
+      background: 'var(--color-bg)',
+    }}>
     <div style={{
       minHeight: formHeight,
       display: 'flex',
@@ -110,7 +126,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           <IskraMark size={36} />
           <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div style={{ display: keyboard.open ? 'none' : 'flex', justifyContent: 'center', margin: '0 auto 16px' }}>
           <img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'trainer'}.png`} alt="" aria-hidden="true" width={104} height={104} draggable={false} style={{ width: 104, height: 104, objectFit: 'contain' }} />
         </div>
         <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-.03em', fontWeight: 740, color: 'var(--color-text)', margin: '0 0 6px' }}>
@@ -267,6 +283,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         )}
       </div>
     </div>
+    </ScrollFade>
   )
 }
 
