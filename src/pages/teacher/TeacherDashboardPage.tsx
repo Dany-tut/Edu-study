@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { studentIdFromTeacherHash, teacherStudentHash } from '../../lib/teacherStudentRoute'
 import { isWidgetReviewRoute } from '../../lib/widgetReviewRoute'
 import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPrompt'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
@@ -46,6 +47,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   // читают палитру через реестр, поэтому карту достаточно поставить один раз.
   useTeacherSubjectColors()
   const activePage = useTeacher(s => s.activePage)
+  const studentId = useTeacher(s => s.selectedStudentId)
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
   const isDesktop = useIsDesktop()
@@ -91,15 +93,18 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     setActivePage(firstTab ? firstTab.id : 'profile-settings')
   }, [accessLoaded, activePage, canPage, canTab, setActivePage])
 
-  // The store hydrates activePage on load (from the per-tab nav snapshot, then the
-  // URL hash), so we don't reset it on mount anymore — that would clobber pages
-  // with no hash of their own (admin, a student dashboard, …). We only listen for
-  // browser back/forward, which fires `hashchange` for the mapped standalone pages.
+  // A student link also works when the teacher store was initialized on another screen.
   useEffect(() => {
     const onHashChange = () => {
+      const id = studentIdFromTeacherHash(window.location.hash)
+      if (id) {
+        useTeacher.getState().openStudentDashboard(id, null)
+        return
+      }
       const page = HASH_TO_PAGE[window.location.hash]
       if (page) setActivePage(page)
     }
+    if (studentIdFromTeacherHash(window.location.hash)) onHashChange()
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,11 +114,14 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   // sub-pages have no hash — their restore is handled by the nav snapshot in the store.
   useEffect(() => {
     if (sizeReview) return
-    const hash = PAGE_TO_HASH[activePage]
+    const current = useTeacher.getState()
+    if (current.activePage !== activePage || current.selectedStudentId !== studentId) return
+    const hash = activePage === 'student' && studentId ? teacherStudentHash(studentId)
+      : PAGE_TO_HASH[activePage] ?? (studentIdFromTeacherHash(window.location.hash) ? '#/teacher/gradebook' : null)
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }
-  }, [activePage, sizeReview])
+  }, [activePage, studentId, sizeReview])
 
   // Horizontal wheel / trackpad swipe switches desks (Сегодня → Финансы → Ученики …).
   // Only a dominantly-horizontal gesture counts, so vertical scrolling of widgets is
@@ -176,7 +184,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       </Suspense>)}
 
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
-      {mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 10 }}>
+      {mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
         <button className="cj-button" style={{ minHeight: 44 }} onClick={() => setActivePage('home')}>{t('На главную')}</button>
       </div> : <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
         {/* Left spacer */}
@@ -220,10 +228,8 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.12, ease: 'easeOut' }}
-        // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
-        // paddingTop:100 — the progressive-blur recipe) must not be clipped
-        // by this wrapper, so their overflow stays visible.
-        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
+        // Clip only at the viewport so content can scroll behind the header.
+        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
         <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>} >
         {activePage === 'home' && (

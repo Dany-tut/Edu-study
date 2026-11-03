@@ -1,3 +1,4 @@
+import { diagnosticFailure, diagnosticRetry } from '../lib/diagnosticJourney'
 import { Component, type ReactNode } from 'react'
 import { AlertIcon } from './Alert'
 import { trackEvent } from '../lib/analytics'
@@ -24,8 +25,10 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   /** Стек компонентов последнего краха — уходит в форму «Сообщить об ошибке». */
   private componentStack = ''
+  private failureId = ''
 
   componentDidCatch(error: Error, info: unknown) {
+    this.failureId = diagnosticFailure('page', 'render_failed')
     console.error('[ErrorBoundary]', error, info)
     // Report render-time crashes to analytics_events so they show up in the
     // admin dashboard — window 'error'/'unhandledrejection' listeners do NOT
@@ -45,7 +48,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     // «Чанк пропал после деплоя» — не крах приложения, а устаревшая вкладка:
     // забираем свежий index.html одной перезагрузкой (гард внутри), вместо того
     // чтобы показывать «Что-то пошло не так» тому, кто ни в чём не виноват.
-    try { recoverFromChunkError(String(error?.message ?? error ?? '')) } catch { /**/ }
+    try { if (recoverFromChunkError(String(error?.message ?? error ?? ''))) diagnosticRetry(this.failureId, 'automatic') } catch { /**/ }
   }
 
   /**
@@ -83,7 +86,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <button
             // Чанковый крах, дошедший до экрана, значит, обычная перезагрузка уже
             // не помогла: её обслужил воркер со старой оболочкой. Снимаем его.
-            onClick={() => { if (isChunkError(String(this.state.error?.message ?? ''))) void hardReload({ full: true }); else window.location.reload() }}
+            onClick={() => { diagnosticRetry(this.failureId, 'reload'); if (isChunkError(String(this.state.error?.message ?? ''))) void hardReload({ full: true }); else window.location.reload() }}
             style={{ padding: '10px 28px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
             {t('Обновить')}
@@ -93,6 +96,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               // Перезагрузка на сломанном адресе возвращает тот же крах.
               // «На главную» — единственный выход из такой петли. Оставляем
               // пользователя в его кабинете: общий маршрут #/ открывает ученика.
+              diagnosticRetry(this.failureId, 'home')
               const isTeacherRoute = window.location.hash.startsWith('#/teacher')
               if (isTeacherRoute) {
                 // The teacher store restores the last page from this per-tab
