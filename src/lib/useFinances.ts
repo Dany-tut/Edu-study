@@ -95,8 +95,8 @@ export async function addPayment(params: {
     // A lost response may hide a committed insert. Only accept a conflict when
     // our authenticated read proves that exact operation and all its values.
     if (error.code !== '23505') throw error
-    const query = supabase.from('payments').select('id,student_id,teacher_id,amount,lessons_paid,note').eq('id',pending.id).single()
-    const existing = await (signal ? query.abortSignal(signal) : query)
+    const query = supabase.from('payments').select('id,student_id,teacher_id,amount,lessons_paid,note').eq('id',pending.id)
+    const existing = await (signal ? query.abortSignal(signal) : query).single()
     signal?.throwIfAborted()
     const saved = existing.data
     if (existing.error || !saved || saved.student_id !== row.student_id || saved.teacher_id !== row.teacher_id || saved.amount !== row.amount || saved.lessons_paid !== row.lessons_paid || saved.note !== row.note) throw error
