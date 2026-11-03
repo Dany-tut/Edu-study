@@ -407,7 +407,6 @@ export function initAnalytics() {
   getSessionId()
   restoreIncidents()
   setJourneyReporter(trackEvent)
-  observeReloadedJourneys()
   setRequestReporter(({ event, ...meta }) => trackEvent(typeof event === 'string' ? event : 'api_request', meta))
   installRuntimeDiagnostics(trackEvent)
   window.dispatchEvent(new Event('iskra:diagnostics-ready'))
@@ -415,6 +414,7 @@ export function initAnalytics() {
   window.addEventListener('online', () => trackEvent('network_online'))
 
   void resolveIdentity().then(() => {
+    observeReloadedJourneys()
     let tz: string | null = null
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null } catch { /**/ }
     trackEvent('session_start', {
