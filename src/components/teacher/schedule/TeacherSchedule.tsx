@@ -4,7 +4,6 @@ import { motion, AnimatePresence, useIsPresent, useReducedMotion } from 'framer-
 import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
 import Modal, { ModalClose } from '../../Modal'
 import MobileSheet from '../../MobileSheet'
-import FadeText from '../../FadeText'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
 import DateTimeField from '../../DateTimeField'
 import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../../lib/teacherTz'
@@ -63,10 +62,11 @@ const fromIso = (iso: string) => wallDateTimeInTz(iso, 'Europe/Moscow')
 
 type Toast = { text: string; undo?: SchedUndo; tone?: 'danger' }
 
-export default function TeacherSchedule({ mobile = false, embedded = false, onOpen, onAttendance }: {
+export default function TeacherSchedule({ mobile = false, embedded = false, weekMode = false, onOpen, onAttendance }: {
   mobile?: boolean
   /** На Главной: своя рамка снаружи, лента скроллится внутри фиксированной высоты. */
   embedded?: boolean
+  weekMode?: boolean
   /** Нет — тап по занятию открывает меню (на телефоне редактора урока нет). */
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
@@ -78,7 +78,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
   const [visibleDates, setVisibleDates] = useState(() => ({ first: weekStart(today), last: addDays(weekStart(today), 6) }))
   const start = weekStart(day)
   const { items, reload } = useTeacherWeek(start)
-  const list = (items ?? []).filter(i => i.date === day)
+  const list = (items ?? []).filter(i => weekMode || i.date === day).sort((a,b)=>a.date.localeCompare(b.date)||(a.time??'').localeCompare(b.time??''))
   const [dir, setDir] = useState(0)
 
   const overlays = useRef<CalendarOverlayHandle>(null)
@@ -261,8 +261,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
         }}
       />
 
-      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', padding: '4px 4px 0' }}>
-        {day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}
+      <div className="calendar-widget-date" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', padding: '4px 4px 0' }}>
+        {weekMode ? `${dayLabel(start)} — ${dayLabel(addDays(start,6))}` : <>{day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}</>}
       </div>
 
       {/* Лента дня */}
@@ -271,9 +271,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
         onTouchEnd={onFeedTouchEnd}
         className={embedded ? 'no-scrollbar' : undefined}
         style={embedded
-          ? { flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', position: 'relative', paddingRight: 4,
-              maskImage: 'linear-gradient(to bottom, black calc(100% - 16px), transparent)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black calc(100% - 16px), transparent)' }
+          ? { flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', position: 'relative', paddingRight: 4 }
           : { minHeight: mobile ? 150 : 280, position: 'relative' }}
       >
         <AnimatePresence mode="popLayout" initial={false} custom={dir}>
@@ -288,7 +286,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
           >
             {items === null ? null : list.length === 0 ? (
               <div style={{ textAlign: 'center', padding: mobile ? '36px 0' : '56px 0', fontSize: 14, color: 'var(--color-text-4)' }}>{t('Занятий нет')}</div>
-            ) : list.map(item => (
+            ) : list.map((item,index) => (
+              <div key={item.id}>{weekMode&&(index===0||list[index-1].date!==item.date)&&<div className="calendar-week-day-label">{dayLabel(item.date)}</div>}
               <Card
                 key={item.id}
                 item={item}
@@ -298,7 +297,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, onOp
                 onDragStart={(el, x, y) => { haptic(10); startDrag(item, el, x, y) }}
                 onDragMove={moveDrag}
                 onDragEnd={endDrag}
-              />
+              /></div>
             ))}
           </motion.div>
         </AnimatePresence>
@@ -412,16 +411,16 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
       </span>
       <span className="calendar-widget-details" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
         <span className="calendar-widget-person" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, minWidth: 0 }}>
-          {preview ? <span className="calendar-widget-preview-name">{item.who}</span> : <FadeText enabled={mobile} style={{
+          {preview ? <span className="calendar-widget-preview-name">{item.who}</span> : <span className="calendar-widget-name" style={{
             fontSize: 15, fontWeight: 700, color: item.cancelled ? 'var(--color-text-3)' : 'var(--color-text)',
-          }}>{item.who}</FadeText>}
+          }}>{item.who}</span>}
           {live && <Chip tone="live">{t('ИДЁТ СЕЙЧАС')}</Chip>}
           {item.rec && <Chip>{t('Запись')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
         </span>
         {sub && (preview
           ? <span className="calendar-widget-preview-subtitle">{sub}</span>
-          : <FadeText enabled={mobile} className="calendar-widget-subtitle" style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{sub}</FadeText>)}
+          : <span className="calendar-widget-subtitle" style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{sub}</span>)}
         <span className="calendar-widget-metadata">
           {item.subject && <span className="calendar-widget-subject">{t(item.subject)}</span>}
           {item.level && <span>{item.level}</span>}

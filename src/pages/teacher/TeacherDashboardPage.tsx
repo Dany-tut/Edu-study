@@ -1,35 +1,37 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { isWidgetReviewRoute } from '../../lib/widgetReviewRoute'
 import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPrompt'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
 import NotificationToastContainer from '../../components/NotificationToast'
 import { useNotificationsInit } from '../../lib/notificationsSync'
-import TeacherHome from './TeacherHome'
-import TeacherGroupsPage from './TeacherGroupsPage'
-import TeacherHomeworkPage from './TeacherHomeworkPage'
-import TeacherGradebookPage from './TeacherGradebookPage'
-import TeacherConstructorPage from './TeacherConstructorPage'
-import TeacherHomeworkCreatePage from './TeacherHomeworkCreatePage'
-import TeacherHomeworkReviewPage from './TeacherHomeworkReviewPage'
-import TeacherHardReviewPage from './TeacherHardReviewPage'
-import TeacherLessonEditorPage from './TeacherLessonEditorPage'
+import { retryImport } from '../../lib/chunkError'
+const TeacherGroupsPage = lazy(() => retryImport(() => import('./TeacherGroupsPage')))
+const TeacherHomeworkPage = lazy(() => retryImport(() => import('./TeacherHomeworkPage')))
+const TeacherGradebookPage = lazy(() => retryImport(() => import('./TeacherGradebookPage')))
+const TeacherConstructorPage = lazy(() => retryImport(() => import('./TeacherConstructorPage')))
+const TeacherHomeworkCreatePage = lazy(() => retryImport(() => import('./TeacherHomeworkCreatePage')))
+const TeacherHomeworkReviewPage = lazy(() => retryImport(() => import('./TeacherHomeworkReviewPage')))
+const TeacherHardReviewPage = lazy(() => retryImport(() => import('./TeacherHardReviewPage')))
+const TeacherLessonEditorPage = lazy(() => retryImport(() => import('./TeacherLessonEditorPage')))
 import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
-import TeacherStudentDashboardPage from './TeacherStudentDashboardPage'
-import TeacherCourseEditorPage from './TeacherCourseEditorPage'
-import TeacherCardSetEditorPage from './TeacherCardSetEditorPage'
-import TeacherStoragePage from './TeacherStoragePage'
-import TeacherAdminPage from './TeacherAdminPage'
-import TeacherProfileSettingsPage from './TeacherProfileSettingsPage'
-import TeacherPaymentPage from './TeacherPaymentPage'
-import TeacherFinancesPage from './TeacherFinancesPage'
-import MobileTeacherApp from '../../components/teacher/mobile/MobileTeacherApp'
+const TeacherStudentDashboardPage = lazy(() => retryImport(() => import('./TeacherStudentDashboardPage')))
+const TeacherCourseEditorPage = lazy(() => retryImport(() => import('./TeacherCourseEditorPage')))
+const TeacherCardSetEditorPage = lazy(() => retryImport(() => import('./TeacherCardSetEditorPage')))
+const TeacherStoragePage = lazy(() => retryImport(() => import('./TeacherStoragePage')))
+const TeacherAdminPage = lazy(() => retryImport(() => import('./TeacherAdminPage')))
+const TeacherProfileSettingsPage = lazy(() => retryImport(() => import('./TeacherProfileSettingsPage')))
+const TeacherPaymentPage = lazy(() => retryImport(() => import('./TeacherPaymentPage')))
+const TeacherFinancesPage = lazy(() => retryImport(() => import('./TeacherFinancesPage')))
+const MobileTeacherApp = lazy(() => retryImport(() => import('../../components/teacher/mobile/MobileTeacherApp')))
 import DeskSwitcher from '../../components/teacher/DeskSwitcher'
-import DeskCanvas from '../../components/teacher/DeskCanvas'
-import WidgetLibraryModal from '../../components/teacher/WidgetLibraryModal'
+const DeskCanvas = lazy(() => retryImport(() => import('../../components/teacher/DeskCanvas')))
+const WidgetSizeReview = lazy(() => retryImport(() => import('../../components/teacher/widgetReview/WidgetSizeReview')))
+const WidgetLibraryModal = lazy(() => retryImport(() => import('../../components/teacher/WidgetLibraryModal')))
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore'
 import { useDeskStore } from '../../store/deskStore'
-import { useDeskLayouts } from '../../lib/useDeskLayouts'
+import { type LayoutItem, useDeskLayouts } from '../../lib/useDeskLayouts'
 import { useTeacherAccess, TEACHER_TABS } from '../../lib/teacherAccess'
 import { useTeacherTz } from '../../lib/teacherTz'
 import { useT } from '../../lib/i18n'
@@ -38,6 +40,7 @@ import { getOwnerId } from '../../lib/owner'
 
 export default function TeacherDashboardPage({ standContent }: { standContent?: React.ReactNode } = {}) {
   const t = useT()
+  const sizeReview = isWidgetReviewRoute(window.location)
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
   // читают палитру через реестр, поэтому карту достаточно поставить один раз.
   useTeacherSubjectColors()
@@ -51,8 +54,10 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   const {
     config, activeDesk,
     setActiveDesk, addDesk, resetDesk,
-    updateDeskItems, addWidget, removeWidget,
+    updateDeskItems,
   } = useDeskLayouts()
+
+  const [widgetGrid, setWidgetGrid] = useState<{ deskId: string; width: number; items: LayoutItem[]; columns: number } | null>(null)
 
   // Teacher is identified by their Supabase auth user id (matches notifications.recipient_id).
   const [teacherId, setTeacherId] = useState<string | null>(null)
@@ -98,11 +103,12 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   // Sync the URL hash when activePage changes (standalone pages only). Context-heavy
   // sub-pages have no hash — their restore is handled by the nav snapshot in the store.
   useEffect(() => {
+    if (sizeReview) return
     const hash = PAGE_TO_HASH[activePage]
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }
-  }, [activePage])
+  }, [activePage, sizeReview])
 
   // Horizontal wheel / trackpad swipe switches desks (Сегодня → Финансы → Ученики …).
   // Only a dominantly-horizontal gesture counts, so vertical scrolling of widgets is
@@ -123,13 +129,17 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     setTimeout(() => { wheelCooldown.current = false }, 450)
   }, [editMode, config.desks, activeDesk.id, setActiveDesk])
 
+  if (sizeReview && accessLoaded && canPage('home')) {
+    return <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}><WidgetSizeReview hiddenWidgets={hiddenWidgets} /></Suspense>
+  }
+
   return (
     <>
     {/* Desktop surfaces live notifications inside TeacherCompactPill (top-right),
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
     <TeacherSubjectsPrompt />
-    <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
+    <div className="dashboard-root teacher-dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
       {!editMode && <div aria-hidden className="edge-progressive-blur--top" />}
@@ -147,15 +157,17 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       )}
 
       {/* Widget library modal */}
-      {showWidgetLibrary && (
+      {showWidgetLibrary && (<Suspense fallback={null}>
         <WidgetLibraryModal
           onClose={() => setShowWidgetLibrary(false)}
-          onAdd={item => addWidget(activeDesk.id, item)}
+          onAdd={item => updateDeskItems(activeDesk.id, [...(widgetGrid?.deskId === activeDesk.id ? [...widgetGrid.items, ...activeDesk.items.filter(saved => hiddenWidgets?.includes(saved.type))] : activeDesk.items), item])}
           existingTypes={activeDesk.items.map(i => i.type)}
-          existingItems={activeDesk.items}
+          existingItems={widgetGrid?.deskId === activeDesk.id ? widgetGrid.items : activeDesk.items}
+          gridColumns={activeDesk.columns}
+          gridWidth={widgetGrid?.deskId === activeDesk.id ? widgetGrid.width : undefined}
           hiddenWidgets={hiddenWidgets}
         />
-      )}
+      </Suspense>)}
 
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
       <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
@@ -205,13 +217,14 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         // by this wrapper, so their overflow stays visible.
         style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
       >
+        <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>} >
         {activePage === 'home' && (
           <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <DeskCanvas
               desk={activeDesk}
+              onGridMeasure={setWidgetGrid}
               onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
               onAddWidget={() => setShowWidgetLibrary(true)}
-              onRemoveWidget={id => removeWidget(activeDesk.id, id)}
               hiddenWidgets={hiddenWidgets}
             />
           </div>
@@ -232,12 +245,13 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}
+        </Suspense>
       </motion.div>
 
     </div>
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    {!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}
+    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
     </>
   )
 }

@@ -8,7 +8,7 @@ import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { shiftDay } from './overviewStats'
 import { useNow } from '../../../lib/useNow'
 import { StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
-import { HomeworkNavigation, HomeworkQueue, HomeworkTasks, useHomeworkHub, type HomeworkPage } from './HomeworkHub'
+import { HomeworkNavigation, HomeworkTasks, useHomeworkHub, type HomeworkPage } from './HomeworkHub'
 import { applyStandReview, nativeHomeworkReviewId, type HomeworkEntry, type ReviewDecision } from './homeworkStand'
 
 import { addFullReviewExample, fullReviewExample, fullReviewAiExample, saveFullReviewExample, FULL_REVIEW_EXAMPLE_ID, FULL_REVIEW_EXAMPLE_TITLE } from './fullReviewExample'
@@ -138,7 +138,7 @@ function exampleData() {
   }
   return addFullReviewExample(data, today)
 }
-const pageFromHash = (): ExamplePage => window.location.hash.startsWith('#/teacher/homework-review') ? 'full-review' : window.location.hash === '#/student/diary' ? 'diary' : window.location.hash === '#/student/schedule' ? 'schedule' : window.location.hash === '#/student/widgets' ? 'widgets' : window.location.hash === '#/teacher' ? 'home' : window.location.hash === '#/teacher/homework' ? 'review' : 'journal'
+const pageFromHash = (): ExamplePage => window.location.hash.startsWith('#/teacher/homework-review') ? 'full-review' : window.location.hash === '#/student/diary' ? 'diary' : window.location.hash === '#/student/schedule' ? 'schedule' : window.location.hash === '#/student/widgets' ? 'widgets' : window.location.hash === '#/teacher' ? 'home' : 'journal'
 // A separate in-memory example lets a teacher with no groups inspect the scrolling strip.
 export default function ExampleGroups() {
   const [data, setData] = useState(exampleData)
@@ -148,7 +148,6 @@ export default function ExampleGroups() {
   const [add, setAdd] = useState<'groups' | 'students' | null>(null)
   const [name, setName] = useState('')
   const [page, setPage] = useState<ExamplePage>(pageFromHash)
-  const [queueGroup, setQueueGroup] = useState('*')
   const [reviewStudent, setReviewStudent] = useState(() => new URLSearchParams(window.location.hash.split('?')[1]).get('student') ?? 'example-group-0-0')
   const [reviewReturn, setReviewReturn] = useState<HomeworkPage>('journal')
   const fullReview = useMemo(() => fullReviewExample(data), [data])
@@ -173,13 +172,13 @@ export default function ExampleGroups() {
     if (entry.work.slot.ref !== 'hw-' + FULL_REVIEW_EXAMPLE_ID || nativeHomeworkReviewId(data, entry) !== FULL_REVIEW_EXAMPLE_ID) return false
     handoffHomeworkReview(FULL_REVIEW_EXAMPLE_ID, entry.student.id, draft)
     setReviewStudent(entry.student.id)
-    setReviewReturn(page === 'home' || page === 'review' ? page : 'journal')
+    setReviewReturn(page === 'home' ? page : 'journal')
     navigate('full-review', entry.student.id)
     return true
   })
   function navigate(next: ExamplePage, studentId = reviewStudent) {
     setPage(next)
-    const hash = next === 'full-review' ? '#/teacher/homework-review?student=' + encodeURIComponent(studentId) : next === 'diary' ? '#/student/diary' : next === 'schedule' ? '#/student/schedule' : next === 'widgets' ? '#/student/widgets' : next === 'home' ? '#/teacher' : next === 'review' ? '#/teacher/homework' : '#/teacher/gradebook'
+    const hash = next === 'full-review' ? '#/teacher/homework-review?student=' + encodeURIComponent(studentId) : next === 'diary' ? '#/student/diary' : next === 'schedule' ? '#/student/schedule' : next === 'widgets' ? '#/student/widgets' : next === 'home' ? '#/teacher' : '#/teacher/gradebook'
     if (window.location.hash !== hash) window.history.pushState(null, '', hash)
   }
   useEffect(() => {
@@ -188,7 +187,6 @@ export default function ExampleGroups() {
     window.addEventListener('hashchange', sync)
     return () => {window.removeEventListener('popstate', sync);window.removeEventListener('hashchange', sync)}
   }, [])
-  function openQueue(group?: string) {setQueueGroup(group ?? '*');navigate('review')}
   const index = useMemo(() => buildStandIndex(data), [data])
   const slots = useMemo(() => scopeSlots(index, s), [index, s.course, s.module])
   const entries = useMemo(
@@ -234,19 +232,19 @@ export default function ExampleGroups() {
         <a href="/journal-stand/?example=live#/teacher/gradebook">Мой журнал</a>
       </div>
       {page === 'widgets' || page === 'schedule' || page === 'diary' ? <div className="sw-backbar"><button type="button" className="cj-button" onClick={() => navigate('journal')}>← К журналу</button><span>{page === 'diary' ? 'Концепты дневника' : page === 'schedule' ? 'Концепты расписания' : 'Концепты ученика'}</span></div>
-        : page !== 'full-review' && <HomeworkNavigation page={page} count={homework.queue.length} onChange={next => {if(next==='review')setQueueGroup('*');navigate(next)}}/>}
-      {(page === 'journal' || page === 'home' || page === 'review') && <div className="course-journal" style={{margin:'0 28px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+        : page !== 'full-review' && <HomeworkNavigation page={page} onChange={navigate}/>}
+      {(page === 'journal' || page === 'home') && <div className="course-journal" style={{margin:'0 28px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
         <button type="button" className="cj-button" onClick={() => {
           setGroup(data.groups[0].id);change({course:'demo-chem',module:'',strip:'groups',tab:'Работы',search:'',student:'',workRef:''});navigate('journal')
           homework.openAssignment('hw-' + FULL_REVIEW_EXAMPLE_ID, fullReview.submitters.map(s => s.id))
-        }}>Тестовая домашка · фото и доска</button><button type="button" className="cj-button" onClick={() => {setReviewStudent(fullReview.submitters[1].id);setReviewReturn(page === 'home' || page === 'review' ? page : 'journal');navigate('full-review', fullReview.submitters[1].id)}}>✦ Концепт проверки ИИ</button><span style={{fontSize:11,color:'var(--color-text-3)'}}>3 сдачи · {FULL_REVIEW_EXAMPLE_TITLE}</span>
+        }}>Тестовая домашка · фото и доска</button><button type="button" className="cj-button" onClick={() => {setReviewStudent(fullReview.submitters[1].id);setReviewReturn(page === 'home' ? page : 'journal');navigate('full-review', fullReview.submitters[1].id)}}>✦ Концепт проверки ИИ</button><span style={{fontSize:11,color:'var(--color-text-3)'}}>3 сдачи · {FULL_REVIEW_EXAMPLE_TITLE}</span>
       </div>}
       {page==='full-review'&&<label className="aic-demo-state">Учебный пример состояния ИИ<select aria-label="Состояние проверки ИИ" value={aiDemoState} onChange={e=>setAiDemoState(e.target.value)}><option value="original">Разбор готов</option><option value="pending">В очереди</option><option value="working">Проверяет</option><option value="unavailable">Сервис недоступен</option><option value="timeout">Долгая проверка</option><option value="rate_limit">Лимит запросов</option><option value="configuration">Ключ не настроен</option><option value="credentials">Неверный ключ</option><option value="balance">Недостаточно средств</option><option value="invalid_result">Неполный разбор</option><option value="missing_evidence">Фото недоступно</option></select></label>}
       <div className={'js-journal-host js-example-area' + (page === 'diary' ? ' ds-example-host' : '')}>
         {page === 'full-review' ? <Suspense fallback={<p role="status">Открываем полную проверку…</p>}>
           <FullReviewEditor key={FULL_REVIEW_EXAMPLE_ID} {...fullReview} embedded aiConcept aiByProgress={aiExample} onRequestAi={async()=>{setAiDemoState('original');return {ok:true}}} reviewIdx={reviewIdx}
             setReviewIdx={i => {const student = fullReview.submitters[i];if(student){setReviewStudent(student.id);window.history.replaceState(null,'','#/teacher/homework-review?student='+encodeURIComponent(student.id))}}}
-            returnLabel={reviewReturn === 'journal' ? 'В журнал' : reviewReturn === 'home' ? 'На главную' : 'К очереди проверки'}
+            returnLabel={reviewReturn === 'journal' ? 'В журнал' : reviewReturn === 'home' ? 'На главную' : 'В журнал'}
             onBack={() => navigate(reviewReturn)} onReview={async (id, verdict, score, comment, attachments, attemptId) => {
               try {setData(saveFullReviewExample(data,today,id,verdict,score,comment,attachments,attemptId));return true}
               catch {return false}
@@ -254,9 +252,7 @@ export default function ExampleGroups() {
         </Suspense> : page === 'diary' ? <Suspense fallback={<p role="status">Загружаем дневник…</p>}><DiaryStand /></Suspense>
           : page === 'schedule' ? <Suspense fallback={<p role="status">Загружаем расписание…</p>}><ScheduleConceptStand /></Suspense>
           : page === 'widgets' ? <Suspense fallback={<p role="status">Загружаем концепты…</p>}><StudentWidgetsStand /></Suspense>
-          : page === 'home' ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={openQueue}/>
-          : page === 'review' ? <HomeworkQueue queue={homework.queue} groups={data.groups} groupId={queueGroup} onGroup={setQueueGroup}
-            onOpen={entry => homework.openQueue(entry, queueGroup === '*' ? undefined : queueGroup)}/>
+          : page === 'home' ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {if(group)setGroup(group);navigate('journal')}}/>
           : <>
         <div className="js-stand-strip">
           <GroupStrip

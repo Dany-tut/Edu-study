@@ -1,4 +1,5 @@
 import { textFadeStyle } from '../../../lib/textFades'
+import { SubjectMark } from '../../icons/SubjectMark'
 import { useEffect, useMemo, useState } from 'react'
 import { Pencil } from '../../icons/appIcons'
 import Modal from '../../Modal'
@@ -101,7 +102,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
                     color: g.id === groupId ? 'var(--color-purple-text)' : 'var(--color-text-2)',
                   }}
                 >
-                  <span>{g.icon}</span>{g.name}
+                  <span><SubjectMark subject={g.subject} size={16} /></span>{g.name}
                 </button>
               ))}
             </div>

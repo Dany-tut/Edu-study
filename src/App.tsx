@@ -4,9 +4,11 @@ import { applyLessonParticipation, fetchLessonParticipation } from './lib/lesson
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
-import StudentLoginPage from './pages/StudentLoginPage'
-import NativeEntryPage from './pages/NativeEntryPage'
-import LandingPage from './pages/LandingPage'
+import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
+const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
+const StudentLoginPage = lazy(() => retryImport(() => import('./pages/StudentLoginPage')))
+const NativeEntryPage = lazy(() => retryImport(() => import('./pages/NativeEntryPage')))
+const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
 
 // ── Кабинет учителя и разовые экраны — отдельными чанками ────────────────────
 //
@@ -122,6 +124,7 @@ function AppRoutes() {
   const [consented, setConsented] = useState(hasStudentConsent())
   const loadStudentData = useStudentData(s => s.load)
   const progressScope = useStudentData(s => s.scopeStudentIds.join(','))
+  const studentWorkspace = isStudentWorkspaceRoute(hash, window.location.pathname)
 
   // Behavioural telemetry: init once, then log every route change.
   useEffect(() => { initAnalytics() }, [])
@@ -195,8 +198,9 @@ function AppRoutes() {
     return () => { subscription.unsubscribe(); dispose?.() }
   }, [])
 
-  // Load real Supabase data whenever a student session exists
+  // A saved student account must not hydrate behind the teacher cabinet.
   useEffect(() => {
+    if (!studentWorkspace) return
     const sess = getStudentSession()
     if (!sess) return
     // Спиннер снимается ДАЖЕ если загрузка упала.
@@ -251,10 +255,11 @@ function AppRoutes() {
       window.clearInterval(attendanceTimer)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [loadStudentData])
+  }, [loadStudentData, studentWorkspace])
 
-  // One person can own several student rows. Subscribe to every row loaded by the track.
+  // One person can own several student rows. Subscribe only in their cabinet.
   useEffect(() => {
+    if (!studentWorkspace) return
     const sess = getStudentSession()
     if (!sess) return
     const ids = progressScope ? progressScope.split(',') : [sess.id]
@@ -268,7 +273,7 @@ function AppRoutes() {
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.error('[realtime] lesson_progress subscription:', status)
     })
     return () => { void supabase.removeChannel(channel) }
-  }, [loadStudentData, progressScope])
+  }, [loadStudentData, progressScope, studentWorkspace])
 
   // Supabase Auth redirects MCP clients to the app's consent path (without a
   // hash fragment). Keep this route independent from the cabinet hash router.
@@ -277,11 +282,11 @@ function AppRoutes() {
   }
 
   if (IS_NATIVE && (hash.startsWith('#/entry') || hash === '' || hash === '#' || hash === '#/')) {
-    return <NativeEntryPage />
+    return <Chunk><NativeEntryPage /></Chunk>
   }
 
   // Лендинг доступен по явному адресу даже при активном входе (для просмотра)
-  if (hash.startsWith('#/landing')) return <LandingPage />
+  if (hash.startsWith('#/landing')) return <Chunk><LandingPage /></Chunk>
   if (hash.startsWith('#/join-teacher')) return <Chunk><JoinTeacherPage /></Chunk>
   if (hash.startsWith('#/join')) return <Chunk><JoinPage /></Chunk>
   if (hash.startsWith('#/diagnostic')) return <Chunk><DiagnosticTestPage /></Chunk>
@@ -303,9 +308,13 @@ function AppRoutes() {
   // Протухшая или уже использованная ссылка из письма: Supabase возвращает
   // /#error=access_denied&error_code=otp_expired… — ни один маршрут это не
   // ловил, и человек оказывался на лендинге без объяснений.
-  if (hash.startsWith('#error=')) return <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher' }} linkExpired /></Chunk>
+  if (hash.startsWith('#error=')) return localStorage.getItem('iskra:password-recovery-role') === 'student'
+    ? <Chunk><StudentLoginPage linkExpired /></Chunk>
+    : <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher' }} linkExpired /></Chunk>
 
-  if (recovery) return <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); window.location.hash = '#/teacher' }} recovery /></Chunk>
+  if (recovery) return localStorage.getItem('iskra:password-recovery-role') === 'student'
+    ? <Chunk><StudentLoginPage recovery onRecoveryComplete={() => { setRecovery(false); window.location.hash = '#/login' }} /></Chunk>
+    : <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); localStorage.removeItem('iskra:password-recovery-role'); window.location.hash = '#/teacher' }} recovery /></Chunk>
 
   // Local previews allow a guest teacher cabinet. Keep the real sign-in form
   // explicitly reachable so development can exercise authenticated RLS too.
@@ -322,18 +331,18 @@ function AppRoutes() {
     if (session === undefined && !import.meta.env.DEV) return null
     // A student's Supabase session must not unlock the teacher cabinet.
     const isStudentAccount = session?.user?.user_metadata?.role === 'student' && session?.user?.app_metadata?.role !== 'admin'
-    if (isStudentAccount && !import.meta.env.DEV) return <StudentLoginPage />
+    if (isStudentAccount && !import.meta.env.DEV) return <Chunk><StudentLoginPage /></Chunk>
     if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (
       <>
-        <Chunk fallback={hash.startsWith('#/teacher/gradebook') ? <JournalSkeleton page /> : undefined}><TeacherWorkspace owner={session?.user.id ?? 'local'} production /></Chunk>
+        <Chunk fallback={hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : undefined}><TeacherWorkspace owner={session?.user.id ?? 'local'} production /></Chunk>
         <InstallPrompt />
       </>
     )
   }
 
   // Explicit reauthentication must be reachable even with a stale student card.
-  if (hash.startsWith('#/login')) return <StudentLoginPage />
+  if (hash.startsWith('#/login')) return <Chunk><StudentLoginPage /></Chunk>
 
   // Public landing (главная для гостя) + student routes
   const studentSession = getStudentSession()
@@ -352,7 +361,7 @@ function AppRoutes() {
     // В приложении пустой адрес уже уводится на #/teacher (эффект выше) —
     // здесь только пустой кадр, чтобы не мигнуть лендингом/студвходом.
     if (IS_NATIVE) return null
-    return <LandingPage />
+    return <Chunk><LandingPage /></Chunk>
   }
   // 152-ФЗ consent gate: overlay ON TOP of the cabinet (dashboard stays mounted
   // behind it) so a fault in the gate can never blank the app.

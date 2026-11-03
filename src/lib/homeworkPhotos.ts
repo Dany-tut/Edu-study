@@ -1,3 +1,4 @@
+import { personalDemoOwner } from './personalStudentDemo'
 // Фото сдач ДЗ в хранилище (бакет homework-photos).
 //
 // Раньше фото и доска ученика уходили base64-строкой в lesson_progress.attachments
@@ -61,6 +62,8 @@ const EXT_BY_MIME: Record<string, string> = {
  */
 export async function uploadHomeworkPhoto(src: string, studentId: string): Promise<string> {
   if (!src.startsWith('data:')) return src
+  // Synthetic homework attachments stay with the browser-local submission.
+  if (personalDemoOwner()) return src
   // Папка = auth.uid() (так проверяет RLS), не getOwnerId: тот подменяется
   // при админском «просмотре кабинета».
   const uid = (await getSessionUser())?.id

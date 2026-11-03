@@ -1,5 +1,5 @@
-import { SubjectMark } from '../icons/SubjectMark'
 import { textFadeStyle } from '../../lib/textFades'
+import { SubjectMark } from '../icons/SubjectMark'
 import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { ICON_GAP } from '../../lib/subjects'
@@ -404,7 +404,7 @@ function PersonCard({
             color: s.color,
             background: s.color + '1E', border: `1px solid ${s.color}3A`,
           }}>
-            <span style={{ fontSize: 10, lineHeight: 1 }}>{s.icon}</span>
+            <span style={{ fontSize: 10, lineHeight: 1 }}><SubjectMark subject={s.subject} size={12} /></span>
             <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(s.subject)}</span>
           </span>
         ))}

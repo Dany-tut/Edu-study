@@ -65,7 +65,7 @@ export function SeasonBackdrop() {
 }
 
 /** Шапка темы: подпись, заголовок и герой-объект. compact — телефон. */
-export function SeasonHero({ compact = false }: { compact?: boolean }) {
+export function SeasonHero({ compact = false, portalDecor = true }: { compact?: boolean; portalDecor?: boolean }) {
   const t = useT()
   const s = useSeason()
   if (!s.on('hero') || !s.variant || !s.season) return null
@@ -75,6 +75,12 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
   // экрана справа. Заголовок остаётся для экранного диктора. На телефоне текст
   // нужен — без него карточка непонятна.
   const pictureOnly = (s.variant === 'candy' || s.variant === 'lanterns') && !compact
+  const cornerDecor = pictureOnly && s.variant === 'candy' ? (
+    <div aria-hidden className="season-corner-decor">
+      <img aria-hidden src={seasonImg('spider-web')} alt="" className="season-hero__spider" />
+      <img aria-hidden src={seasonImg('skeleton')} alt="" className="season-hero__skeleton" />
+    </div>
+  ) : null
   return (
     <div className={`season-hero season-hero--${s.variant}${compact ? ' season-hero--compact' : ''}${pictureOnly ? ' season-hero--picture' : ''}`}>
       {pictureOnly ? (
@@ -87,13 +93,7 @@ export function SeasonHero({ compact = false }: { compact?: boolean }) {
         </div>
       )}
       {s.variant !== 'candy' || compact ? <img aria-hidden src={seasonImg(c.img)} alt="" className="season-hero__img season-float" /> : null}
-      {pictureOnly && s.variant === 'candy' && createPortal(
-        <div aria-hidden className="season-corner-decor">
-          <img aria-hidden src={seasonImg('spider-web')} alt="" className="season-hero__spider" />
-          <img aria-hidden src={seasonImg('skeleton')} alt="" className="season-hero__skeleton" />
-        </div>,
-        document.body,
-      )}
+      {cornerDecor && (portalDecor ? createPortal(cornerDecor, document.body) : cornerDecor)}
     </div>
   )
 }

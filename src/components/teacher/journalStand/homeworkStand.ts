@@ -1,7 +1,7 @@
 import type { CourseJournalData } from '../../../lib/courseJournal'
 import type { Student } from '../../../data/teacherMockData'
 import { parseBasicAnswers } from '../../../lib/basicAnswers'
-import { buildStandIndex, sameLearner, studentWorks, type StudentWork } from './studentWorks'
+import { buildStandIndex, sameLearner, studentWorks, type StudentWork, type StandIndex } from './studentWorks'
 
 export interface HomeworkEntry { key: string; student: Student; work: StudentWork }
 export interface ReviewDecision { verdict: 'accepted' | 'returned'; score: number; comment: string }
@@ -20,8 +20,7 @@ export function workDueLabel(day: string) {
   return Number.isFinite(date) ? new Intl.DateTimeFormat('ru-RU', {day:'numeric',month:'short',timeZone:'UTC'}).format(date) : day
 }
 
-export function homeworkEntries(data: CourseJournalData, today: string): HomeworkEntry[] {
-  const index = buildStandIndex(data)
+export function homeworkEntries(data: CourseJournalData, today: string, index: StandIndex = buildStandIndex(data)): HomeworkEntry[] {
   const slots = [...index.slots.values()]
   const students = data.students.filter((s, i, all) => all.findIndex(other => sameLearner(other, s)) === i)
   return students.flatMap(student => studentWorks(data, index, student, slots, today)

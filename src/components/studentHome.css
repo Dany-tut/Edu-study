@@ -1,0 +1,161 @@
+/* The live home keeps the agreed schedule / 180px widgets / course track. */
+.live-student-home { position:relative; isolation:isolate; height:100dvh; min-height:0; display:flex; flex-direction:column; overflow:hidden; color:var(--color-text); background:var(--color-bg); padding-bottom:16px; --home-track-pull-up:0px; --home-track-glow-pad:44px; }
+.lh-header { position:relative; z-index:70; flex:0 0 84px; display:flex; align-items:center; justify-content:center; padding:12px 32px; }
+.lh-header .sidebar { position:static; }
+.lh-assignments { position:absolute; left:32px; top:24px; }
+.lh-content { position:relative; z-index:1; flex:1; min-height:0; display:grid; grid-template-rows:clamp(180px,25vh,250px) 180px minmax(210px,1fr); gap:24px; padding:16px 32px 8px; }
+.lh-schedule,.lh-widgets,.lh-course { position:relative; min-width:0; min-height:0; }
+.lh-schedule { z-index:45; }
+.lh-widgets { z-index:20; }
+.lh-course { padding:0; }
+.lh-course > div { height:auto; }
+.live-student-home .widget-carousel { height:100%; padding-inline:24px; }
+.live-student-home .carousel-nav { top:50%; }
+.live-student-home .student-schedule-ribbon { height:100%; }
+.live-student-home { --home-schedule-height:clamp(150px,22vh,210px); }
+.lh-season-decor { position:absolute; inset:0; z-index:0; pointer-events:none; }
+.lh-season-decor .season-hero { min-height:0; height:0; padding:0; margin:0; }
+.lh-season-decor .season-hero__copy { display:none; }
+.lh-season-decor .season-hero__img { top:64px; bottom:auto; right:3%; height:120px; opacity:.8; }
+.lh-widgets .season-cat { left:auto; right:8px; top:-48px; transform:scale(.65); transform-origin:top right; }
+.live-student-home .season-corner { width:140px; }
+.lh-work-card { height:100%; min-width:0; display:flex; flex-direction:column; gap:8px; padding:16px 22px; border-radius:24px; background:var(--color-bg-card); border:1px solid var(--color-border-glass); box-shadow:var(--shadow-3); }
+.lh-work-card header { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.lh-work-card h2 { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:650; margin:0; }
+.lh-work-card header > :is(button,span) { font-size:11px; color:var(--color-text-3); }
+.lh-work-card button { cursor:pointer; border:0; background:transparent; color:var(--color-accent); }
+.lh-work-card h3 { font-size:18px; line-height:24px; margin:3px 0 0; font-weight:600; min-width:0; }
+.lh-work-card p { font-size:12px; line-height:16px; color:var(--color-text-3); margin:0; }
+.lh-work-card .lh-overdue,.lh-overdue { color:var(--color-red-text); }
+.lh-work-card .lh-primary { align-self:flex-start; display:flex; align-items:center; gap:8px; margin-top:auto; border-radius:999px; padding:9px 16px; background:var(--grad-purple); color:#fff; font-size:12px; font-weight:600; }
+.lh-work-counts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; flex:1; }
+.lh-work-counts button { display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:3px; padding:5px 12px; border-radius:14px; background:var(--color-purple-soft); color:var(--color-purple-text); }
+.lh-work-counts [data-kind=overdue] { color:var(--color-red-text); background:var(--color-red-soft); }
+.lh-work-counts [data-kind=review] { color:var(--color-peach-text); background:var(--color-peach-soft); }
+.lh-work-counts strong { font-size:30px; line-height:32px; font-weight:550; font-variant-numeric:tabular-nums; }
+.lh-work-counts span { font-size:11px; }
+.lh-work-filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.lh-work-filters button { border:0; border-radius:999px; padding:8px 12px; color:var(--color-text-3); background:var(--color-bg-3); cursor:pointer; }
+.lh-work-filters [aria-pressed=true] { background:var(--color-purple-soft); color:var(--color-purple-text); }
+.lh-work-row { width:100%; display:flex; align-items:center; gap:12px; text-align:left; padding:16px 0; border:0; border-bottom:1px solid var(--color-border-soft); background:transparent; color:var(--color-text); cursor:pointer; }
+.lh-work-row > span:first-child { flex:1; min-width:0; display:grid; gap:5px; }
+.lh-work-row strong { font-size:14px; font-weight:600; }
+.lh-work-row small { font-size:11px; color:var(--color-text-3); }
+.lh-work-row > span:nth-child(2) { font-size:11px; }
+.live-student-home button:focus-visible { outline:2px solid var(--color-accent); outline-offset:3px; }
+@media(min-width:1024px) and (max-height:800px) {
+  .live-student-home { padding-bottom:10px; --home-track-glow-pad:26px; --home-schedule-height:clamp(130px,20vh,170px); }
+  .lh-header { flex-basis:70px; }
+  .lh-content { grid-template-rows:minmax(130px,1fr) 180px 216px; padding-top:8px; gap:16px; }
+  .live-student-home .season-node-img--lanterns { max-height:80px; }
+}
+@media(min-width:1024px) and (max-height:660px) {
+  .lh-header { flex-basis:58px; }
+  .lh-content { grid-template-rows:minmax(90px,1fr) 132px 200px; gap:10px; padding-top:4px; }
+  .live-student-home { --home-track-glow-pad:28px; --home-track-row-height:94px; --home-track-bottom-pad:10px; --home-schedule-height:120px; }
+  .live-student-home .season-node-img--lanterns { max-height:64px; }
+  .lh-work-card { padding:10px 16px; gap:4px; }
+  .lh-work-card h3 { font-size:16px; line-height:20px; }
+  .lh-work-counts strong { font-size:25px; line-height:26px; }
+}
+@media(max-width:1023px) {
+  .live-student-home { padding-bottom:calc(102px + env(safe-area-inset-bottom,0px)); --home-track-glow-pad:26px; }
+  .lh-header { flex:0 0 56px; padding:8px 18px; gap:12px; justify-content:space-between; }
+  .lh-profile { display:grid; place-items:center; border:0; width:36px; height:36px; border-radius:50%; color:var(--color-accent); background:var(--color-purple-soft); }
+  .lh-header > strong { font-size:15px; }
+  .lh-assignments { position:static; max-width:100px; }
+  .lh-assignments:empty { display:none; }
+  .lh-content { grid-template-rows:minmax(130px,1fr) 180px 216px; padding:8px 16px; gap:12px; }
+  .live-student-home .widget-carousel { padding-inline:4px; }
+  .lh-work-card { padding-inline:16px; }
+  .lh-work-counts { gap:6px; }
+  .lh-work-counts button { padding-inline:8px; }
+  .lh-season-decor .season-hero__img { height:88px; top:80px; }
+  .live-student-home .season-hero__skeleton { height:120px; }
+  .live-student-home .season-hero__spider { width:80px; }
+  .live-student-home .season-corner { width:90px; opacity:.7; }
+  .live-student-home .season-node-img--lanterns { max-height:80px; }
+  .lh-course .course-track-hints { display:none!important; }
+}
+@media(max-width:1023px) and (max-height:700px) {
+  .lh-content { grid-template-rows:minmax(90px,1fr) 124px 200px; padding-block:4px; gap:6px; }
+  .live-student-home { --home-track-glow-pad:28px; --home-track-row-height:94px; --home-track-bottom-pad:10px; }
+  .live-student-home .season-node-img--lanterns { max-height:64px; }
+  .lh-work-card { padding:8px 12px; gap:3px; }
+  .lh-work-card h3 { font-size:14px; line-height:17px; }
+  .lh-work-card p { font-size:10px; line-height:13px; }
+  .lh-work-counts strong { font-size:24px; line-height:26px; }
+  .lh-work-card .lh-primary { padding-block:6px; }
+}
+@media(max-width:1023px) and (max-height:600px) {
+  .lh-content { grid-template-rows:minmax(76px,1fr) 112px 200px; }
+  .lh-work-counts strong { font-size:22px; line-height:23px; }
+}
+.lh-appearance { position:absolute; right:28px; top:24px; display:grid; place-items:center; width:36px; height:36px; border:0; border-radius:50%; background:var(--color-bg-card); color:var(--color-accent); box-shadow:var(--shadow-2); cursor:pointer; }
+.lh-appearance-options { display:grid; gap:12px; }
+.lh-appearance-options button { padding:16px; border:1px solid var(--color-border-soft); border-radius:16px; color:var(--color-text); background:var(--color-bg-card); cursor:pointer; text-align:left; }
+.lh-appearance-options [aria-pressed=true] { background:var(--color-purple-soft); border-color:var(--color-accent); }
+@media(max-width:1023px) { .lh-appearance { position:static; flex-shrink:0; box-shadow:none; } }
+@media(max-width:1023px) {
+  .lh-header { display:grid; grid-template-columns:36px 1fr 36px 36px; gap:8px; }
+  .lh-header > strong { text-align:center; }
+  .lh-appearance { grid-column:4; grid-row:1; }
+  .lh-assignments { grid-column:1/-1; grid-row:2; max-width:none; justify-self:center; }
+  .live-student-home:has(.lh-assignments button) .lh-header { flex-basis:84px; }
+}
+@media(max-width:1023px) and (max-height:600px) {
+  .live-student-home:has(.lh-assignments button) .lh-content { grid-template-rows:minmax(60px,1fr) 104px 188px; }
+}
+/* The schedule consumes its grid row, rather than retaining a fixed phone height. */
+.live-student-home { --live-mobile-schedule-height:100%; }
+.lh-schedule .student-schedule-ribbon { display:flex; flex-direction:column; padding-bottom:0; }
+.lh-schedule .student-schedule-ribbon > header { flex-shrink:0; }
+.lh-schedule .student-schedule-ribbon > :last-child:not(header) { flex:1; min-height:0; height:auto!important; }
+.lh-schedule .ssr-load-error { min-height:0; }
+@media(max-height:700px) {
+  /* Keep the number and work state readable. The extra schedule badge remains
+     in the accessible description and lesson details, beside the full schedule. */
+  .lh-course .season-node-wrap > div:last-child:has(> [data-schedule-status] + span) > [data-schedule-status] { display:none; }
+  .live-student-home { --home-track-row-height:96px; --home-track-bottom-pad:8px; }
+}
+@media(max-width:1023px) and (max-height:700px) {
+  .lh-content { grid-template-rows:minmax(90px,1fr) 124px 180px; }
+  .live-student-home .schedule-card--center { padding:8px!important; }
+  .live-student-home .schedule-card--center > div:first-child > div { margin-bottom:5px!important; }
+  .live-student-home .schedule-card--center [data-schedule-state] { flex-wrap:nowrap!important; min-height:48px!important; padding:5px 9px!important; gap:6px!important; }
+  .live-student-home .schedule-card--center [data-schedule-state] > div:last-child:has(>button) { flex-basis:auto!important; }
+  .live-student-home .schedule-card--center [data-schedule-state] > div:last-child > button { padding:5px!important; font-size:10px!important; min-height:44px; }
+  .live-student-home .schedule-card--center [data-schedule-state] p { font-size:12px!important; }
+  .lh-work-card .lh-primary { min-height:44px; flex-shrink:0; }
+}
+@media(max-width:1023px) and (max-height:600px) {
+  .lh-content { grid-template-rows:minmax(76px,1fr) 112px 180px; }
+  .lh-work-card { padding:5px 12px; gap:2px; }
+  .lh-work-card header,.lh-work-card h2 { line-height:16px; }
+  .lh-work-card h3 { line-height:16px; margin:0; }
+  .lh-work-card p { line-height:12px; white-space:nowrap; }
+  .live-student-home:has(.lh-assignments button) .lh-content { grid-template-rows:minmax(60px,1fr) 104px 180px; }
+}
+.lh-work-card header,.lh-work-card .lh-primary { flex-shrink:0; }
+@media(max-width:1023px) and (max-height:600px) { .lh-work-card h2 svg { width:14px; height:14px; } }
+
+/* The page itself never scrolls; do not reserve a blank scrollbar gutter. */
+html:has(.live-student-home) { scrollbar-gutter:auto; }
+.lh-work-card header > button { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+@media(max-width:1023px) {
+  /* The themed sky and track remain; hanging artwork must not cover lessons. */
+  .lh-season-decor { display:none; }
+  html[data-season-variant="potions"] .lh-header > strong { color:#fff; }
+}
+@media(max-width:1023px) and (max-height:700px) {
+  .lh-work-counts { gap:4px; min-height:0; }
+  .lh-work-counts button { min-height:0; padding:4px 8px; }
+  .lh-work-counts span { line-height:12px; }
+}
+
+@media(max-width:1023px) and (max-height:700px) {
+  .live-student-home .schedule-card--center [data-schedule-state]:has(.schedule-open-icon) .schedule-row-media { display:none; }
+  .live-student-home .schedule-card--center .schedule-open-label { display:none; }
+  .live-student-home .schedule-card--center .schedule-open-icon { display:block; }
+  .live-student-home .schedule-card--center [data-schedule-state] > div:last-child > button { width:44px; display:grid; place-items:center; }
+}

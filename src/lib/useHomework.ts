@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { createSharedQuery, useSharedQuery } from './sharedQuery'
+import { pendingSubmissionTime } from './reminderContent'
 import type { HomeworkItem } from '../data/teacherMockData'
 import { parseBasicAnswers, type BasicAnswersPayload } from './basicAnswers'
 import { baseLessonRef, extraHwLabel, hwRef } from './extraHomework'
@@ -296,7 +297,7 @@ function statusToVerdict(status?: string | null): HwSubmission['verdict'] {
   return 'pending'
 }
 
-function mapRow(h: any, counts?: { submitted: number; reviewed: number }): HwAssignment {
+function mapRow(h: any, counts?: { submitted: number; reviewed: number; oldest?: string; latest?: string }): HwAssignment {
   const submittedCount = counts?.submitted ?? 0
   const reviewedCount = counts?.reviewed ?? 0
   return {
@@ -315,6 +316,8 @@ function mapRow(h: any, counts?: { submitted: number; reviewed: number }): HwAss
     submittedCount,
     totalCount: h.total_students ?? 0,
     reviewedCount,
+    oldestSubmittedAt: counts?.oldest,
+    lastSubmittedAt: counts?.latest,
     status: h.status ?? 'active',
     lessonId: h.lesson_id ?? null,
     basicTasks: Array.isArray(h.basic_tasks) ? h.basic_tasks : [],
@@ -338,11 +341,11 @@ const homeworkQuery = createSharedQuery<HwAssignment[]>(async () => {
   // Счётчики «сдано / проверено» — из lesson_progress (ключ `hw-<id>`), где
   // и живут сдачи учеников. submitted = все сдавшие; reviewed = приняты/возвращены.
   const refs = data.map(h => `hw-${h.id}`)
-  const countsByHw = new Map<string, { submitted: number; reviewed: number }>()
+  const countsByHw = new Map<string, { submitted: number; reviewed: number; oldest?: string; latest?: string }>()
   if (refs.length > 0) {
     const { data: progress } = await supabase
       .from('lesson_progress')
-      .select('lesson_ref, status, students!inner(created_by)')
+      .select('lesson_ref, status, updated_at, homework_attempts(number,status,submitted_at), students!inner(created_by)')
       .in('lesson_ref', refs)
       .eq('students.created_by', uid)
       .in('status', ['submitted', 'returned', 'completed'])
@@ -351,6 +354,11 @@ const homeworkQuery = createSharedQuery<HwAssignment[]>(async () => {
       const c = countsByHw.get(hwId) ?? { submitted: 0, reviewed: 0 }
       c.submitted += 1
       if (p.status === 'completed' || p.status === 'returned') c.reviewed += 1
+      const submittedAt = pendingSubmissionTime(p)
+      if (submittedAt) {
+        if (!c.oldest || Date.parse(submittedAt) < Date.parse(c.oldest)) c.oldest = submittedAt
+        if (!c.latest || Date.parse(submittedAt) > Date.parse(c.latest)) c.latest = submittedAt
+      }
       countsByHw.set(hwId, c)
     }
   }
@@ -608,7 +616,7 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
       .order('updated_at', { ascending: false })
     if (token !== request.current) return
     if (queryError) throw queryError
-    setSubmissions(latestHomeworkSubmissions((data ?? []).map((s: any) => ({
+    setSubmissions((data ?? []).map((s: any) => ({
       id: s.id,
       hwId,
       studentId: s.student_id,
@@ -621,7 +629,7 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
       reviewPhotos: Array.isArray(s.review_attachments?.photos) ? s.review_attachments.photos : [],
       reviewBoard: s.review_attachments?.board ?? null,
       answers: parseBasicAnswers(s.attachments),
-    }))))
+    })))
     } catch { if (token === request.current) setError('Не удалось загрузить работы. Попробуйте ещё раз.') }
     finally { if (token === request.current) setLoading(false) }
   }, [hwId, lessonId])

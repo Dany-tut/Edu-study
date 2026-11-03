@@ -1,4 +1,5 @@
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
+import { Check as LoopUiCheck } from '../icons/appIcons'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {
@@ -120,7 +121,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#fff', fontSize: 18, fontWeight: 800,
         }}>
-          {toCheck > 0 ? toCheck : '✓'}
+          {toCheck > 0 ? toCheck : <LoopUiCheck size={16} />}
         </div>
       }
       kicker={t('Сегодня · домашки')}

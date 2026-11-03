@@ -492,14 +492,14 @@ query = request => request.table === 'courses' ? { data: [courseRow], error: nul
     : { data: [], error: null }
 assert.equal((await m.fetchStudentTrack(session)).progress, null)
 m.useStudentData.setState({ progress: { lesson: progress('completed', 95) } })
-await m.useStudentData.getState().load()
+await m.useStudentData.getState().load({ afterTestlySync: true })
 assert.equal(localStorage.getItem(draftKey), draft)
 assert.equal(m.useStudentData.getState().progress.lesson.status, 'completed')
 
 // A successful empty progress response still reconciles an actual reset.
 query = () => ({ data: [], error: null })
 rpc = () => ({ data: payload([]), error: null })
-await m.useStudentData.getState().load()
+await m.useStudentData.getState().load({ afterTestlySync: true })
 assert.equal(localStorage.getItem(draftKey), null)
 assert.deepEqual(m.useStudentData.getState().progress, {})
 
@@ -514,9 +514,9 @@ rpc = name => {
   return fresh.promise
 }
 localStorage.setItem(draftKey, draft)
-const oldLoad = m.useStudentData.getState().load()
+const oldLoad = m.useStudentData.getState().load({ afterTestlySync: true })
 await started.promise
-const freshLoad = m.useStudentData.getState().load()
+const freshLoad = m.useStudentData.getState().load({ afterTestlySync: true })
 fresh.resolve({ data: payload([tuple('completed', 95)]), error: null })
 await freshLoad
 old.resolve({ data: payload([]), error: null })
@@ -526,6 +526,33 @@ assert.equal(m.useDashboard.getState().lessonAssessments.lesson.score, 95)
 assert.equal(localStorage.getItem(draftKey), draft)
 assert.deepEqual(m.useStudentData.getState().scopeStudentIds, [student])
 console.log('PASS: track status, module access, recording timing, server grades, test answers/write errors, failed sync/reset, out-of-order loads')
+
+// A slow external service cannot hold the initial cabinet, and the confirmed
+// second read must still apply its result before reconciling local answers.
+resetStore()
+localStorage.setItem('student_session', JSON.stringify(session))
+localStorage.setItem(draftKey,draft)
+const external = deferred()
+globalThis.__trackTestClient.functions.invoke = () => external.promise
+rpc = name => ({data:name === 'student_track' ? payload([]) : [],error:null})
+query = () => ({data:[],error:null})
+await m.useStudentData.getState().load()
+assert.equal(m.useStudentData.getState().loaded,true,'Cabinet must open before external sync')
+assert.equal(localStorage.getItem(draftKey),draft,'Unreconciled external answers must be retained')
+rpc = name => ({data:name === 'student_track' ? payload([tuple('completed',95)]) : [],error:null})
+external.resolve({data:{ok:true},error:null})
+for(let i=0;i<50 && m.useStudentData.getState().progress.lesson?.score !== 95;i++) await new Promise(r=>setTimeout(r,0))
+assert.equal(m.useStudentData.getState().progress.lesson.score,95,'External sync must trigger a fresh database read')
+assert.equal(localStorage.getItem(draftKey),draft)
+const switched = deferred()
+globalThis.__trackTestClient.functions.invoke = () => switched.promise
+await m.useStudentData.getState().load()
+localStorage.setItem('student_session',JSON.stringify({...session,id:owner}))
+const beforeSwitch = m.useStudentData.getState().progress
+switched.resolve({data:{ok:true},error:null})
+await new Promise(r=>setTimeout(r,0))
+assert.equal(m.useStudentData.getState().progress,beforeSwitch,'Old external response must not refresh another account')
+console.log('PASS: nonblocking external sync, preserved drafts, confirmed grade refresh and account isolation')
 
 // Stable schedule links win over duplicate titles/numbers and stale display names.
 {
@@ -565,7 +592,7 @@ console.log('PASS: track status, module access, recording timing, server grades,
     ? { data: null, error: { message: 'calendar disconnected' } }
     : { data: [], error: null }
   await assert.rejects(m.fetchScheduleDays(group, student))
-  await m.useStudentData.getState().load()
+  await m.useStudentData.getState().load({ afterTestlySync: true })
   assert.deepEqual(m.useStudentData.getState().scheduleDays, saved)
 }
 console.log('PASS: stable calendar links, distinct same-title events and failed-calendar preservation')
@@ -587,3 +614,31 @@ console.log('PASS: stable calendar links, distinct same-title events and failed-
   assert.equal(row.startsAt, undefined)
 }
 console.log('PASS: dated material without a time is visible in the calendar')
+
+// A failed course calendar projection must not claim that dated materials are absent.
+{
+  query = request => request.table === 'courses'
+    ? { data: null, error: { message: 'course calendar projection disconnected' } }
+    : { data: [], error: null }
+  await assert.rejects(m.fetchScheduleDays(group, student))
+}
+
+// The reported lesson must resolve to the same November 2 date in track and calendar.
+{
+  const course = { id: 'c6177343-59bf-4a34-a441-c1259f4ac248', short_id: '1qwsds', title: 'Тыквенный спас', subject: 'Химия', student_ids: [student], group_ids: [],
+    course_modules: [{ position: 1, label: 'Уроки', lessons: [{ id: '12af15db-21cd-42b6-aa06-ded9f7e789f3', short_id: '1qwsds-5', title: 'Задания №31', lesson_number: 5, scheduled_date: '02.11.2026', scheduled_time: null }] }] }
+  query = request => ({ data: request.table === 'courses' ? [course] : [], error: null })
+  for (const tz of ['Europe/Moscow', 'Asia/Bangkok', 'America/New_York']) {
+    m.useStudentTz.setState({ tz })
+    const days = await m.fetchScheduleDays(group, student, { from: '2026-11-01', to: '2026-11-03' })
+    const item = days.find(day => day.date === '2026-11-02').lessons[0]
+    const node = { id: '1qwsds-5', dbId: item.lessonId, title: item.lessonTitle, number: 5, scheduledDate: '02.11.2026', status: 'current' }
+    const subjects = [{ id: '1qwsds', name: 'Тыквенный спас', modules: [{ id: 1, label: 'Уроки', lessons: [node] }] }]
+    m.useStudentData.setState({ subjects, scheduleDays: days })
+    assert.equal(m.resolveScheduleLesson(item, subjects).lesson.id, node.id)
+    assert.equal(m.lessonScheduleDate(node, 'long'), '2 ноября')
+    assert.equal(m.getLessonScheduleState(node, new Date('2026-11-02T12:00:00Z')).isToday, true)
+    assert.equal(m.getTrackLessonStatus(node, new Date('2026-11-02T12:00:00Z')), 'today')
+  }
+}
+console.log('PASS: reported November 2 lesson shares its calendar and track date in Moscow, Bangkok and New York')

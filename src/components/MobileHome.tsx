@@ -380,7 +380,9 @@ export default function MobileHome() {
 
   return (
     <>
-      <MobileScreen topZone={topZone} topPad={72} restoreKey="home" bottomDockRaise={loaded && continueInfo ? 80 : 0}
+      {/* The course/update dock also occupies the space above navigation, even
+          when there is no lesson to continue. Keep the last card above it. */}
+      <MobileScreen topZone={topZone} topPad={72} restoreKey="home" bottomDockRaise={(loaded && continueInfo) || multiCourse || updateReady ? 80 : 0}
         bottomDock={loaded && continueInfo ? <button onClick={() => { tactile(); openLesson(continueInfo.lesson.id) }} style={{ width: '100%', height: 48, borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t(getDisplayLessonStatus(continueInfo.lesson) === 'current' ? 'Продолжить' : 'Начать')}</button> : undefined}>
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>

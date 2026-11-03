@@ -17,7 +17,7 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
   renderDay: (date: string, weekday: number) => ReactNode
 }) {
   const [anchor, setAnchor] = useState(navigation.start)
-  const [scrolling, setScrolling] = useState(false)
+  const [clippedDates, setClippedDates] = useState(false)
   const reducedMotion = useReducedMotion()
   const viewport = useRef<HTMLDivElement>(null)
   const anchorRef = useRef(anchor)
@@ -30,12 +30,17 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
   const animationSource = useRef<'navigation' | 'wheel' | null>(null)
   const rangeCallback = useRef(onVisibleRangeChange)
   const lastRange = useRef('')
+  const measuredWidth = useRef(0)
+  const visiblePosition = useRef(weekPosition(navigation.start))
   useLayoutEffect(() => { rangeCallback.current = onVisibleRangeChange }, [onVisibleRangeChange])
 
   const reportVisibleRange = useCallback(() => {
     const el = viewport.current
-    if (!el?.clientWidth) return
+    if (!el?.clientWidth || (measuredWidth.current && el.clientWidth !== measuredWidth.current)) return
+    visiblePosition.current = weekPosition(anchorRef.current) + el.scrollLeft / el.clientWidth - BUFFER
     const dayWidth = el.clientWidth / 7
+    const edge = el.scrollLeft % dayWidth
+    setClippedDates(edge > 1 && dayWidth - edge > 1)
     // Each day has a 3px margin. Ignore dates fully outside the viewport,
     // including when an edge falls in the gap between two day buttons.
     const firstIndex = Math.floor((el.scrollLeft + 3) / dayWidth)
@@ -87,12 +92,10 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
       animationTarget.current = destination
       animationSource.current = source
       placeAt(destination)
-      setScrolling(false)
       return
     }
     animationTarget.current = destination
     animationSource.current = source
-    setScrolling(true)
     // Retarget the running spring without resetting its position or velocity.
     if (animationFrame.current !== null) return
     let position = weekPosition(anchorRef.current) + el.scrollLeft / el.clientWidth - BUFFER
@@ -114,7 +117,6 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
       if (!finished) animationFrame.current = requestAnimationFrame(frame)
       else {
         animationFrame.current = null
-        setScrolling(false)
       }
     }
     animationFrame.current = requestAnimationFrame(frame)
@@ -124,6 +126,7 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
     const el = viewport.current
     if (!el) return
     anchorRef.current = anchor
+    measuredWidth.current = el.clientWidth
     const left = pendingLeft.current ?? BUFFER * el.clientWidth
     pendingLeft.current = null
     expectedLeft.current = left
@@ -153,7 +156,7 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
     if (!el) return
     let width = el.clientWidth
 
-    const settle = (finished = true) => {
+    const settle = () => {
       if (!el.clientWidth) return
       const index = Math.round(el.scrollLeft / el.clientWidth)
       const next = addDays(anchorRef.current, (index - BUFFER) * 7)
@@ -163,9 +166,9 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
         pendingLeft.current = el.scrollLeft + (BUFFER - index) * el.clientWidth
         setAnchor(next)
       }
-      if (finished) setScrolling(false)
     }
     const onScroll = () => {
+      if (el.clientWidth !== measuredWidth.current) return
       reportVisibleRange()
       if (expectedLeft.current !== null) {
         const expected = expectedLeft.current
@@ -176,13 +179,12 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
         animationTarget.current = null
         animationSource.current = null
       }
-      setScrolling(true)
       if (timer.current) clearTimeout(timer.current)
       if (animationFrame.current !== null) return
       timer.current = setTimeout(settle, 160)
       // Refill before reaching either end, including during a long wheel gesture.
       const position = el.scrollLeft / el.clientWidth
-      if (position < 1 || position > BUFFER * 2 - 1) settle(false)
+      if (position < 1 || position > BUFFER * 2 - 1) settle()
     }
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return
@@ -198,15 +200,15 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
       const visible = weekPosition(anchorRef.current) + el.scrollLeft / el.clientWidth - BUFFER
       animateTo((animationTarget.current ?? visible) + delta * unit / el.clientWidth, 'wheel')
     }
-    const onPointerDown = () => { stopAnimation(); setScrolling(false) }
+    const onPointerDown = () => { stopAnimation() }
     const resize = new ResizeObserver(() => {
       const nextWidth = el.clientWidth
       if (nextWidth && width !== nextWidth) {
         stopAnimation()
-        setScrolling(false)
-        expectedLeft.current = width ? el.scrollLeft / width * nextWidth : BUFFER * nextWidth
-        el.scrollLeft = expectedLeft.current
-        reportVisibleRange()
+        // Browsers can clamp scrollLeft during layout before ResizeObserver.
+        // Restore the last logical date, not that transient pixel position.
+        measuredWidth.current = nextWidth
+        placeAt(visiblePosition.current)
       }
       width = nextWidth
     })
@@ -224,24 +226,24 @@ export default function WeekStrip({ navigation, label, onVisibleRangeChange, ren
       stopAnimation()
       if (timer.current) clearTimeout(timer.current)
     }
-  }, [animateTo, reportVisibleRange, stopAnimation])
+  }, [animateTo, placeAt, reportVisibleRange, stopAnimation])
 
   return (
     <motion.div
-      animate={{ maskImage: mask(scrolling ? 0 : 1), WebkitMaskImage: mask(scrolling ? 0 : 1) }}
+      animate={{ maskImage: mask(clippedDates ? 0 : 1), WebkitMaskImage: mask(clippedDates ? 0 : 1) }}
       transition={{ duration: reducedMotion ? 0 : 0.16 }}
       style={{ minWidth: 0, maskPosition: '0 0', WebkitMaskPosition: '0 0', maskSize: '100% 100%', WebkitMaskSize: '100% 100%', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat' }}
     >
       <div
         ref={viewport}
         data-week-strip
+        data-scroll-fade-owner="week-strip"
         role="group"
         aria-label={label}
         className="no-scrollbar"
         onClickCapture={() => {
           stopAnimation()
           if (timer.current) clearTimeout(timer.current)
-          setScrolling(false)
         }}
         style={{ display: 'flex', overflowX: 'auto', overscrollBehaviorX: 'contain', overflowAnchor: 'none' }}
       >

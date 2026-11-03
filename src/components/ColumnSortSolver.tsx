@@ -1,3 +1,4 @@
+import { ArrowRight as LoopUiArrowRight } from './icons/appIcons'
 // ─────────────────────────────────────────────────────────────────────────────
 // «Разложить по столбцам» (columnSort) — много к одному
 //
@@ -107,7 +108,7 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
         {/* Куда предмет относился на самом деле — только там, где не сошлось. */}
         {ok === false && (
           <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)' }}>
-            → {columns[item.column]}
+            <LoopUiArrowRight size={12} style={{display:'inline-block',verticalAlign:'middle'}} /> {columns[item.column]}
           </span>
         )}
       </motion.button>

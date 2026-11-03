@@ -55,9 +55,11 @@ export default defineConfig({
         // даёт кеш app-shell: туда кладётся каждый удачный переход.
         globPatterns: [
           'manifest.webmanifest',
-          'assets/index-*.js',
-          'assets/*.css',
-          '*.{svg,png,ico}',
+          'assets/app-*.js',
+          'assets/index-*.css',
+          'assets/vendor-core-*.js',
+          'icon.svg',
+          'icon-teacher.svg',
         ],
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
 
@@ -98,6 +100,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        entryFileNames: 'assets/app-[hash].js',
         // ── Общие данные — своим чанком, а не во входном ────────────────────
         //
         // Rollup поднимает модуль, нужный ДВУМ чанкам, в их общего родителя —
@@ -106,6 +109,11 @@ export default defineConfig({
         // там, откуда их только что убрали: ленивый импорт в этом случае не
         // помогает, помогает только явное имя чанка.
         manualChunks: (id) => {
+          // Build metadata changes the entry on every release. Keep stable
+          // framework/Auth/animation code cached across those entry changes.
+          // Only baseline libraries belong here; large editors/3D stay lazy.
+          if (/\/node_modules\/(react|react-dom|scheduler|framer-motion|motion-dom|motion-utils|@supabase)(\/|$)/.test(id)
+            || id.includes('commonjsHelpers')) return 'vendor-core'
           if (id.includes('src/data/feed/outlets')) return 'feed-outlets'
           return undefined
         },

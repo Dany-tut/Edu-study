@@ -1,5 +1,5 @@
-import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
+import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
 import { LoopInlineIcon } from '../icons/LoopIcon'
 import { Check as LoopInlineCheck } from '../icons/appIcons'
 import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'

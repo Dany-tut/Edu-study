@@ -1,3 +1,4 @@
+import { ArrowRight } from './icons/appIcons'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import MobileSheet from './MobileSheet'
@@ -220,7 +221,7 @@ function GesturePreview({ gesture, action, engagement }: {
         padding: '10px 0 2px', fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)',
       }}>
         <span>{t(GESTURES.find(g => g.id === gesture)!.label)}</span>
-        <span style={{ color: 'var(--color-text-4)' }}>→</span>
+        <ArrowRight size={14} style={{ color: 'var(--color-text-4)' }} />
         <span style={{ color: dead ? 'var(--color-text-4)' : tone.ink }}>{t(ACTION_LABEL[action])}</span>
       </div>
     </div>

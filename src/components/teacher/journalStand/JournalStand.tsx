@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import AttendanceEditor from './AttendanceEditor'
 import JournalSkeleton from '../JournalSkeleton'
 import { useScrollFades } from '../../../lib/useScrollFades'
@@ -12,9 +12,13 @@ import { OUTSIDE_COURSES, buildJournalIndex, journalCell, type JournalCell, type
 import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
+import { performanceDiagnostics } from '../../../lib/platformPerformance'
 import TestlyMark from '../../TestlyMark'
 import { ArrowLeft, BookOpen, CalendarCheck, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
 import { useScrollEdges } from './useScrollEdges'
+import { matrixRuns } from './matrixRuns'
+import { columnSpacers } from './columnWindow'
+import { useColumnWindow } from './useColumnWindow'
 import StudentReportDrawer from './StudentReportDrawer'
 import GroupOverview, { StudentOverviewCard } from './GroupOverview'
 import { studentOverview, type RosterEntry } from './overviewStats'
@@ -437,22 +441,37 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     const displayDate = !col.lesson && col.topic ? col.due ?? col.date : col.date
     return sources.size ? [{ col, displayDate, source: sources.size === 1 ? [...sources][0] : null, hasHomework, upcoming }] : []
   }).sort((a, b) => (a.displayDate ?? '9999').localeCompare(b.displayDate ?? '9999')), [slots, byStudent, today, withWork])
+  const columnPositions = useMemo(() => new Map(columns.map((c, i) => [c.col.ref, i])), [columns])
+  const window = useColumnWindow(frame, columns.length, position)
+  const mountedColumns = useMemo(() => columns.slice(window.start, window.end), [columns, window.start, window.end])
+  const before = columnSpacers(window.start), after = columnSpacers(columns.length - window.end)
+  const rows = useMemo(() => new Map(entries.map(({ student }) => [student.id,
+    matrixRuns(mountedColumns, column => byStudent.get(student.id)?.has(column.col.ref) ?? false)
+  ])), [entries, mountedColumns, byStudent])
+  useEffect(() => {
+    if (!performanceDiagnostics || !withWork) return
+    const refs = new Set(columns.map(c => c.col.ref))
+    const all = entries.flatMap(e => e.works.filter(w => refs.has(w.slot.ref)))
+    const grades = all.flatMap(w => w.score === null || ['На проверке', 'На доработке'].includes(w.status) ? [] : [w.score + '%']).sort()
+    console.debug('[journal-matrix] ' + JSON.stringify({ students: entries.length, columns: columns.length, cells: all.length, grades }))
+  }, [entries, columns, withWork])
   const columnCount = columns.length
   const trackCount = Math.max(1, columnCount)
   // A per-student source needs a third line. Reserve it for the whole roster in every view.
   const showSourceLine = columns.some(({ source }) => source === null)
   const nearest = withWork ? columns.reduce<string | null>((min, { upcoming }) =>
     upcoming && (!min || upcoming < min) ? upcoming : min, null) : null
+  const pendingSelection = useRef(false)
   useLayoutEffect(() => {
-    if (frame.current) {
-      frame.current.scrollTop = position.current.top
-      frame.current.scrollLeft = position.current.left
-    }
-  }, [frame, position])
+    pendingSelection.current = !!detail
+    if (detail) window.reveal(columns.findIndex(c => c.col.ref === detail))
+  }, [detail, selected.student, columns, window.reveal])
   useLayoutEffect(() => {
+    if (!pendingSelection.current) return
     const wrap = frame.current
     const el = wrap?.querySelector<HTMLElement>('[data-selected-work="true"]')
     if (!el || !wrap) return
+    pendingSelection.current = false
     const box = wrap.getBoundingClientRect(), cell = el.getBoundingClientRect()
     const pin = wrap.querySelector('tbody th')?.getBoundingClientRect().width ?? 0
     const head = wrap.querySelector('thead')?.getBoundingClientRect().height ?? 0
@@ -462,13 +481,36 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     else if (cell.left < box.left + pin) wrap.scrollLeft += cell.left - box.left - pin - 10
     if (cell.bottom > bottom) wrap.scrollTop += cell.bottom - bottom + 6
     else if (cell.top < box.top + head) wrap.scrollTop += cell.top - box.top - head - 6
-  }, [detail, selected.student, work?.slot.ref, frame, viewport])
-  const jumpToNearest = () => {
-    const wrap = frame.current
-    const next = wrap?.querySelector<HTMLElement>('th[data-upcoming]')
-    if (wrap && next) {
-      const nameWidth = wrap.querySelector('th')!.getBoundingClientRect().width
-      wrap.scrollLeft += next.getBoundingClientRect().left - wrap.getBoundingClientRect().left - nameWidth
+  }, [detail, selected.student, work?.slot.ref, frame, viewport, window.start, window.end])
+  const jumpToNearest = () => window.reveal(columns.findIndex(c => c.upcoming === nearest))
+
+  function columnTab(event: KeyboardEvent<HTMLTableElement>) {
+    if (event.key !== 'Tab' || !(event.target instanceof HTMLElement)) return
+    const cell = event.target.closest<HTMLTableCellElement>('td[aria-colindex], th[aria-colindex]')
+    const row = cell?.parentElement
+    if (!cell || !row) return
+    const current = Number(cell.getAttribute('aria-colindex')) - 2
+    const id = row.getAttribute('data-student-id')
+    const step = event.shiftKey ? -1 : 1
+    for (let i = current + step; i >= 0 && i < columns.length; i += step) {
+      if (id ? !byStudent.get(id)?.has(columns[i].col.ref) : !(withWork ? onOpenAssignment : onOpenAttendance)) continue
+      if (i >= window.start && i < window.end) return
+      event.preventDefault()
+      window.reveal(i)
+      requestAnimationFrame(() => row.querySelector<HTMLButtonElement>(`[aria-colindex="${i + 2}"] button`)?.focus({ preventScroll: true }))
+      return
+    }
+    if (event.shiftKey && id && current === -1) {
+      const previous = row.previousElementSibling ?? row.closest('table')?.querySelector('thead tr')
+      const previousId = previous?.getAttribute('data-student-id')
+      for (let i = columns.length - 1; previous && i >= 0; i--) {
+        if (previousId ? !byStudent.get(previousId)?.has(columns[i].col.ref) : !(withWork ? onOpenAssignment : onOpenAttendance)) continue
+        if (i >= window.start && i < window.end) return
+        event.preventDefault()
+        window.reveal(i)
+        requestAnimationFrame(() => previous.querySelector<HTMLButtonElement>(`[aria-colindex="${i + 2}"] button`)?.focus({ preventScroll: true }))
+        return
+      }
     }
   }
   const close = () => {
@@ -484,17 +526,18 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
         }}>
           <div className="js-grid-content" data-source-line={showSourceLine || undefined}
             style={{ '--columns': columnCount, '--grid-tracks': trackCount } as CSSProperties}>
-          <table>
+          <table aria-colcount={columnCount + 1} onKeyDown={columnTab}>
             <colgroup>
               <col className="js-student-col" />
-              {columnCount > 0 && <col className="js-data-col" span={columnCount} />}
+              {columnSpacers(columnCount).map((span, i) => <col key={i} className="js-data-col" span={span} />)}
             </colgroup>
             <thead><tr>
-              <th scope="col"><div className="js-head-slots"><span className="js-col-student">Ученик <small>{visible.length}</small></span>
+              <th scope="col" aria-colindex={1}><div className="js-head-slots"><span className="js-col-student">Ученик <small>{visible.length}</small></span>
                 {nearest && <button className="js-next-link" type="button" onClick={jumpToNearest}>К ближайшей работе <ChevronRight size={11}/></button>}
               </div></th>
-              {columns.map(({ col, displayDate, source, hasHomework, upcoming }) => (
-                <th scope="col" key={col.ref} data-upcoming={!!nearest && upcoming === nearest || undefined}>
+              {before.map((span, i) => <th key={"before-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
+              {mountedColumns.map(({ col, displayDate, source, hasHomework, upcoming }, i) => (
+                <th scope="col" aria-colindex={window.start + i + 2} key={col.ref} data-upcoming={!!nearest && upcoming === nearest || undefined}>
                   <div className="js-head-slots">
                   <div className="js-col-meta">
                     <time dateTime={displayDate ?? undefined}>{shortDate(displayDate)}</time>
@@ -509,19 +552,21 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                   </div>
                 </th>
               ))}
+              {after.map((span, i) => <th key={"after-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
             </tr></thead>
             <tbody>{visible.map(({ student }) => (
-              <tr key={student.id}>
-                <th scope="row">
+              <tr key={student.id} data-student-id={student.id}>
+                <th scope="row" aria-colindex={1}>
                   <button type="button" className="js-name" title={student.name} aria-label={student.name}
                     aria-pressed={entry?.student.id === student.id} onClick={() => set({ student: student.id, workRef: '' })}>
                     <span className="cj-avatar" aria-hidden>{monogram(student.name)}</span><span>{student.name}</span>
                   </button>
                 </th>
-                {columns.map(({ col, source, upcoming }) => {
+                {before.map((span, i) => <td key={"before-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
+                {rows.get(student.id)?.map(({ item: { col, source, upcoming }, span }) => {
                   const w = byStudent.get(student.id)?.get(col.ref)
                   const active = selected.student === student.id && detail === col.ref
-                  return <td key={col.ref} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
+                  return <td key={col.ref} aria-colindex={(columnPositions.get(col.ref) ?? 0) + 2} colSpan={span} className={!w ? 'js-unassigned-run' : undefined} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
                     <button type="button" data-selected-work={active || undefined} aria-pressed={active}
                       className="js-cell" aria-label={[student.name, col.title,
                         ...(withWork ? [w.source, w.status === 'На проверке' && onOpenWork ? 'Проверить' : w.score === null ? w.status : w.score + '% · ' + w.status] : []),
@@ -534,6 +579,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     </button>
                   ) : <span className="js-stat-value" title="Не назначено">—</span>}</td>
                 })}
+                {after.map((span, i) => <td key={"after-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
               </tr>
             ))}</tbody>
           </table>
@@ -548,8 +594,11 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
   )
 }
 export default function JournalStand({ owner, production = false }: { owner: string; production?: boolean }) {
+  const page = useTeacher((s) => s.activePage),
+    studentId = useTeacher((s) => s.selectedStudentId)
   const isDesktop = useIsDesktop()
-  const { data, loading, error, reload, setData } = useCourseJournal(true)
+  const journalActive = ['groups', 'gradebook', 'student'].includes(page)
+  const { data, loading, error, reload, setData } = useCourseJournal(true, journalActive)
   const [attendanceCells, setAttendanceCells] = useState<JournalCell[] | null>(null)
   const [attendanceNotice, setAttendanceNotice] = useState('')
   function openAttendance(works: StudentWork[]) {
@@ -564,8 +613,6 @@ export default function JournalStand({ owner, production = false }: { owner: str
     setAttendanceNotice(editable.length ? '' : 'Для этого урока нет доступного занятия в расписании. Посещаемость тестов, записей и отменённых занятий не редактируется.')
     if (editable.length) setAttendanceCells(editable)
   }
-  const page = useTeacher((s) => s.activePage),
-    studentId = useTeacher((s) => s.selectedStudentId)
   const storageKey = 'iskra:journal-stand:' + owner
   const [selected, setSelected] = useState<StandSelection>(() => {
     try {
@@ -591,7 +638,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
       /* optional */
     }
   }, [storageKey, selected])
-  const index = useMemo(() => (data ? buildStandIndex(data) : null), [data])
+  const index = useMemo(() => (journalActive && data ? buildStandIndex(data) : null), [data, journalActive])
   const course =
     data?.courses.some((c) => c.id === selected.course) || [ALL_COURSES, OUTSIDE_COURSES].includes(selected.course)
       ? selected.course
@@ -609,7 +656,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
     setData(current => current?.work.includes(entry.work.submission!) ? applyStandReview(current, entry, decision) : current)
     reload()
   }
-  const homework = useHomeworkHub(data, today, saveReview, entry => {
+  const homework = useHomeworkHub(journalActive ? data : null, today, saveReview, entry => {
     set({course:entry.work.slot.course,module:'',strip:entry.student.groupId ? 'groups' : 'students',student:entry.student.id,workRef:entry.work.slot.ref,tab:'Работы',search:''})
     useTeacher.getState().setSelectedGroupId(entry.student.groupId || null)
     useTeacher.getState().setActivePage('gradebook')
@@ -620,7 +667,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
     handoffHomeworkReview(id, entry.student.id, draft)
     useTeacher.getState().openHomeworkReview(id,entry.student.id,page)
     return true
-  })
+  }, index)
   const entries = useMemo(
     () =>
       !index || !data
@@ -663,16 +710,31 @@ export default function JournalStand({ owner, production = false }: { owner: str
   const picker = data && <ScopePicker data={data} value={scope} onChange={changeScope} />
   let content: React.ReactNode
   if (page === 'home') {
-    content = data && !data.demo ? <div className="jh-live-page"><HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {
+    content = data && !data.demo
+      ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {
           useTeacher.getState().setSelectedGroupId(group || null)
           useTeacher.getState().setActivePage('gradebook')
-        }}/></div>
+        }}/>
       : <div className="cj-empty" role={error ? 'alert' : 'status'}>
-          {error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}
+          {error ?? (loading ? 'Загрузка…' : 'Войдите в аккаунт преподавателя')}
           {error && <button type="button" className="cj-button" onClick={reload}>Повторить загрузку</button>}
         </div>
   }
-  if (['gradebook', 'groups', 'student'].includes(page)) {
+  // Roster forms use their own group/student queries. A slow or failed journal
+  // must not prevent opening them or consume their pending navigation intent.
+  if (page === 'groups') {
+    content = <TeacherGroupsPage
+      key={page}
+      initialStripTab={selected.strip}
+      onStripChange={(strip) => set({ strip, search: '', student: '', workRef: '' })}
+      onOpenStudent={open}
+      rosterTools={picker}
+      hasUnsubmittedWork={data && !error ? student => !!entries.find(e => e.student.id === student.id)
+        ?.works.some(w => !w.submitted && ['Не сдано', 'В процессе', 'Просрочено'].includes(w.status)) : undefined}
+      rosterHomeworkScore={data && !error ? student => entries.find(e => e.student.id === student.id)?.stats.average ?? null : undefined}
+    />
+  }
+  if (['gradebook', 'student'].includes(page)) {
     if (loading && !error && (!data || data.demo))
       content = <JournalSkeleton table={selected.tab !== 'Обзор'} />
     else if (error || !data || data.demo)
@@ -744,7 +806,6 @@ export default function JournalStand({ owner, production = false }: { owner: str
           initialStripTab={selected.strip}
           onStripChange={(strip) => set({ strip, search: '', student: '', workRef: '' })}
           onOpenStudent={open}
-          rosterTools={page === 'groups' ? picker : undefined}
           hasUnsubmittedWork={(student) =>
             !!entries
               .find((e) => e.student.id === student.id)

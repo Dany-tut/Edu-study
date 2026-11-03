@@ -8,9 +8,9 @@ export default function WidgetStudentCount() {
   const { groups, loading } = useGroups()
   const allStudents = useAllStudents()
   return (
-    <MiniStatCard
+    <MiniStatCard widgetId="student-count"
       loading={loading}
-      icon={Users} label={t('Учеников')}
+      icon={Users} label={t('Карточек учеников')}
       value={allStudents.length}
       sub={`${t('в')} ${groups.length} ${t('группах')}`}
       accentBg="var(--color-purple-soft)" accentColor="var(--color-accent)"

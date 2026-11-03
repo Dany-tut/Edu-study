@@ -1,4 +1,5 @@
 import { textFadeStyle } from '../../lib/textFades'
+import { SubjectMark } from '../icons/SubjectMark'
 import { useEffect, useState } from 'react'
 import { CheckboxMark } from '../Checkbox'
 import { Lock, BookOpen, Users, LayoutGrid, Copy, Share2, Check } from '../icons/appIcons'
@@ -28,7 +29,7 @@ export const hiddenWidgetsFrom = (selected: string[]) => ALL_WIDGET_TYPES.filter
 export const selectedTabsFrom = (hidden: string[]) => ALL_TAB_IDS.filter(id => !hidden.includes(id))
 export const selectedWidgetsFrom = (hidden: string[]) => ALL_WIDGET_TYPES.filter(t => !hidden.includes(t))
 
-function Chip({ label, on, onToggle, dimmed }: { label: string; on: boolean; onToggle: () => void; dimmed?: boolean }) {
+function Chip({ label, on, onToggle, dimmed }: { label: React.ReactNode; on: boolean; onToggle: () => void; dimmed?: boolean }) {
   return (
     <button
       onClick={onToggle}
@@ -137,7 +138,7 @@ export default function AccessConfigurator({
           </SectionTitle>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
             {SUBJECTS.map(s => (
-              <Chip key={s.id} label={`${s.icon}${ICON_GAP}${s.name}`} on={subjList.includes(s.id)} onToggle={() => toggleSubject(s.id)} />
+              <Chip key={s.id} label={<><SubjectMark subject={s.id} size={14} />{ICON_GAP}{s.name}</>} on={subjList.includes(s.id)} onToggle={() => toggleSubject(s.id)} />
             ))}
           </div>
         </>

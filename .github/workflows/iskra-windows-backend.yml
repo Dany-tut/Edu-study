@@ -1,0 +1,69 @@
+name: Windows full classroom
+on:
+  push:
+    branches: [codex/beta-invite-privacy-1103]
+    paths:
+      - '.github/workflows/iskra-windows-backend.yml'
+      - '.gitattributes'
+      - 'supabase/**'
+      - 'scripts/security/**'
+      - 'src/**'
+permissions:
+  contents: read
+jobs:
+  classroom:
+    runs-on: windows-2025
+    timeout-minutes: 40
+    env:
+      ISKRA_LOCAL_DIR: node_modules/.cache/iskra-ci
+      ISKRA_PLAYWRIGHT_MODULE: playwright
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.64.1
+      - name: Start isolated Supabase in WSL
+        run: |
+          wsl --install -d Ubuntu-24.04 --web-download --no-launch
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # A Windows-owned WSL client keeps the distribution alive between Actions steps.
+          $keeper = Start-Process wsl.exe -PassThru -WindowStyle Hidden -ArgumentList '-d','Ubuntu-24.04','-u','root','--','sleep','2400'
+          "ISKRA_WSL_KEEPER=$($keeper.Id)" >> $env:GITHUB_ENV
+          wsl -d Ubuntu-24.04 -u root -- bash scripts/security/startWindowsCiBackend.sh
+      - name: Verify API access and prepare synthetic fixtures
+        run: node scripts/security/checkLocalSupabase.mjs
+      - name: Build isolated app
+        run: |
+          $config = Get-Content "$env:ISKRA_LOCAL_DIR/status.json" -Raw | ConvertFrom-Json
+          if ($config.API_URL -ne 'http://127.0.0.1:55321') { throw 'Expected runner loopback' }
+          $env:VITE_SUPABASE_URL = $config.API_URL
+          $env:VITE_SUPABASE_PUBLISHABLE_KEY = $config.ANON_KEY
+          npx --no-install vite build
+      - name: Student and teacher cycle in Windows Chrome and Edge
+        run: |
+          $server = Start-Process node -PassThru -ArgumentList 'node_modules/vite/bin/vite.js','preview','--host','127.0.0.1','--port','5291','--strictPort'
+          try {
+            foreach ($browser in 'chrome','msedge') {
+              $env:ISKRA_BROWSER_CHANNEL = $browser
+              Write-Output "Windows browser $browser"
+              node scripts/security/checkLocalUserCycle.mjs
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+          } finally { Stop-Process -Id $server.Id -ErrorAction SilentlyContinue }
+      - name: Release guest
+        if: always()
+        run: |
+          if ($env:ISKRA_WSL_KEEPER) { Stop-Process -Id $env:ISKRA_WSL_KEEPER -ErrorAction SilentlyContinue }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-qa-results
+          path: |
+            node_modules/.cache/iskra-ci/evidence/api-matrix.json
+            node_modules/.cache/iskra-ci/evidence/browser-replay-*/result.json
+          include-hidden-files: true
+          retention-days: 5

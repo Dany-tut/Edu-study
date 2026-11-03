@@ -1,4 +1,6 @@
 import { textFadeStyle } from '../../lib/textFades'
+import { RefreshCw as LoopUiRefreshCw } from '../../components/icons/appIcons'
+import { SubjectMark } from '../../components/icons/SubjectMark'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from '../../components/icons/appIcons'
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
@@ -2856,7 +2858,7 @@ function CreatorView({
                 value={tkSubject}
                 onChange={v => { setTkSubject(v); setTkSection(''); setTkTopic('') }}
                 placeholder={t('Предмет')}
-                options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [tkSubject]).map(s => ({ value: s.name, label: `${s.icon}${ICON_GAP}${tc(s.name)}` }))}
+                options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [tkSubject]).map(s => ({ value: s.name, label: tc(s.name), icon: <SubjectMark subject={s.id} size={16} /> }))}
               />
             </div>
             {/* Разметка. У языкового предмета своя: уровень / навык / тема —
@@ -3262,7 +3264,7 @@ function CreatorView({
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{LETTERS[i]}</span>
                       <GrowTextarea value={l} onChange={v => setTkMatchLeft(prev => prev.map((x, j) => j === i ? v : x))} placeholder={t("Левый элемент…")} style={{ ...inputSt, flex: 1 }} />
-                      <span style={{ flexShrink: 0, color: 'var(--color-text-3)', fontWeight: 700 }}>→</span>
+                      <span data-loop-content style={{ flexShrink: 0, color: 'var(--color-text-3)', fontWeight: 700 }}>→</span>
                       <GrowTextarea value={tkMatchRight[i]} onChange={v => setTkMatchRight(prev => prev.map((x, j) => j === i ? v : x))} placeholder={(i + 1) + t('. Правый элемент…')} style={{ ...inputSt, flex: 1 }} />
                       <div style={{ width: 64, flexShrink: 0 }}>
                         <TeacherSelect small value={String(tkMatchMap[i] + 1)} onChange={v => setTkMatchMap(prev => prev.map((x, j) => j === i ? Number(v) - 1 : x))}
@@ -5011,7 +5013,7 @@ function DiagResultsTable({
             {results.length > 0 ? (results.length) + t(' прохождени') + (results.length === 1 ? t('е') : t('й')) : t('Ещё никто не прошёл')}
           </div>
         </div>
-        <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }}>↻</button>
+        <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }} aria-label={t('Обновить')}><LoopUiRefreshCw size={14}/></button>
         <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : fillUnderWhite(accent), color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
           {copied ? <Check size={14} /> : <Link2 size={14} />}
           {copied ? t('Скопировано!') : t('Ссылка')}
@@ -5928,7 +5930,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
                 <TeacherSelect value={subjectState} onChange={handleSubjectChange} placeholder={t('Предмет')}
                   accent={accent} accentBg={accent + '1f'}
-                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, subjectState).map(o => ({ value: o.value, label: `${subjectIcon(o.value)}${ICON_GAP}${t(o.value)}` }))} />
+                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, subjectState).map(o => ({ value: o.value, label: t(o.value), icon: <SubjectMark subject={o.value} size={16} /> }))} />
               </div>
             )}
             {isCustomTest && (
@@ -6515,11 +6517,11 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
             <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <input value={ea} onChange={e => setEa(e.target.value)} placeholder="A" style={{ ...inputStyle, maxWidth: 100 }} />
-                <span style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 13 }}>→</span>
+                <span data-loop-content style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 13 }}>→</span>
                 <input value={eb} onChange={e => setEb(e.target.value)} placeholder="B" style={{ ...inputStyle, maxWidth: 100 }} />
                 <span style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 13 }}>|</span>
                 <input value={ec} onChange={e => setEc(e.target.value)} placeholder="C" style={{ ...inputStyle, maxWidth: 100 }} />
-                <span style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 13 }}>→</span>
+                <span data-loop-content style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 13 }}>→</span>
                 <input value={eans} onChange={e => setEans(e.target.value)} placeholder={t("Ответ")} style={{ ...inputStyle, maxWidth: 120 }} />
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -6547,7 +6549,7 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
             <button onClick={() => startEdit(it)} style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
               <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: `${SCR_ACC}22`, color: SCR_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
               <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
-                {it.a} → {it.b} | {it.c} → <b>{it.answer || '?'}</b>
+                {it.a} <span data-loop-content>→</span> {it.b} | {it.c} <span data-loop-content>→</span> <b>{it.answer || '?'}</b>
               </div>
               <span style={{ fontSize: 10, fontWeight: 700, color: SCR_ACC, background: SCR_SOFT, borderRadius: 6, padding: '2px 8px', flexShrink: 0 }}>{t('Ур.')} {it.level}</span>
             </button>
@@ -6642,7 +6644,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
               {task.pairs.map((pair, pi) => (
                 <div key={pi} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input value={pair.left} onChange={e => updatePair(task.id, pi, 'left', e.target.value)} placeholder={t("Левая часть")} style={inputStyle} />
-                  <span style={{ color: 'var(--color-muted)', fontSize: 14, flexShrink: 0 }}>→</span>
+                  <span data-loop-content style={{ color: 'var(--color-muted)', fontSize: 14, flexShrink: 0 }}>→</span>
                   <input value={pair.right} onChange={e => updatePair(task.id, pi, 'right', e.target.value)} placeholder={t("Правая часть")} style={inputStyle} />
                   {task.pairs.length > 1 && (
                     <button onClick={() => removePair(task.id, pi)} style={{ padding: '6px', borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
@@ -7123,7 +7125,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                 <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>{t('Предмет')}</div>
                 <TeacherSelect value={testSubject} onChange={setTestSubject} placeholder={t('Предмет')}
                   accent={accent} accentBg={accent + '1f'}
-                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, testSubject).map(o => ({ value: o.value, label: `${subjectIcon(o.value)}${ICON_GAP}${t(o.value)}` }))} />
+                  options={courseSubjectOptionsFor(useTeacherAccess.getState().subjects, testSubject).map(o => ({ value: o.value, label: t(o.value), icon: <SubjectMark subject={o.value} size={16} /> }))} />
               </div>
               <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
               {/* Mode tabs */}
@@ -7798,7 +7800,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
                   {anonResults.length}
                 </span>
               )}
-              <button onClick={refreshResults} title={t("Обновить")} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 10, fontWeight: 600 }}>↻</button>
+              <button onClick={refreshResults} title={t("Обновить")} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 10, fontWeight: 600 }} aria-label={t('Обновить')}><LoopUiRefreshCw size={14}/></button>
             </div>
             {anonResults.length === 0 ? (
               <div style={{ padding: '24px 16px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', textAlign: 'center', color: 'var(--color-muted)', fontSize: 12 }}>

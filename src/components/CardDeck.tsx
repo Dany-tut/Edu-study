@@ -1,3 +1,4 @@
+import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from './icons/appIcons'
 // Карточный режим тренажёра — стопка карточек, которую разбирают свайпом.
 //
 // ЗАЧЕМ ОТДЕЛЬНО ОТ ReviewSession. Планировщик тот же (lib/reviewScheduler,
@@ -1147,6 +1148,8 @@ function swipeRows(binary: boolean, t: (s: string) => string): SwipeRow[] {
   ]
 }
 
+function SwipeArrow({ dir }: { dir: Dir }) { const Icon = dir === 'left' ? ArrowLeft : dir === 'right' ? ArrowRight : dir === 'up' ? ArrowUp : ArrowDown; return <Icon size={13} /> }
+
 function SwipeLegend({ rows, active, accent }: {
   rows: SwipeRow[]
   /** Жест, который карточка показывает прямо сейчас. */
@@ -1176,7 +1179,7 @@ function SwipeLegend({ rows, active, accent }: {
               width: 13, flexShrink: 0, textAlign: 'center', fontSize: 13, fontWeight: 800,
               color: on ? accent : 'var(--color-text-3)', transition: 'color 0.22s ease',
             }}>
-              {r.arrow}
+              <SwipeArrow dir={r.dir} />
             </span>
             <span style={{ fontSize: 13, fontWeight: 700, color, flexShrink: 0 }}>{r.label}</span>
             <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-3)' }}>— {r.note}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
@@ -6,7 +6,6 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
 import ScheduleCard from './ScheduleCard'
 import Skeleton from './Skeleton'
-import HScrollFade from './HScrollFade'
 import ScheduleRibbon from './ScheduleRibbon'
 import type { ScheduleDay } from '../data/mockData'
 
@@ -14,12 +13,17 @@ import type { ScheduleDay } from '../data/mockData'
 const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
 const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 
-// The fixed date strip clips vertically too. Reserve paint space for
-// card shadows, then offset the viewport so the dashboard rows do not move.
-// Fade alpha rather than painting a solid overlay over the seasonal backdrop.
+// Reserve paint space for shadows without moving the dashboard rows.
 const SHADOW_PAD = 96
-const SCROLLER_STYLE = {
-  height: `calc(100% + ${SHADOW_PAD * 2}px)`, top: -SHADOW_PAD,
+/** A date strip is navigation, not a freely scrollable row. Clipping paint
+ * without a scroll container also prevents focus/trackpad scroll from moving it. */
+function CenteredDateStrip({ children, width, viewportWidth }: { children: ReactNode; width: number; viewportWidth: number }) {
+  const mask = viewportWidth > 0 && width > viewportWidth
+    ? 'linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent)'
+    : undefined
+  return <div data-schedule-strip="fixed" style={{ position: 'absolute', insetInline: 0, top: -SHADOW_PAD, height: `calc(100% + ${SHADOW_PAD * 2}px)`, clipPath: 'inset(0)', maskImage: mask, WebkitMaskImage: mask, pointerEvents: 'none' }}>
+    <div style={{ position: 'absolute', left: '50%', top: SHADOW_PAD, bottom: SHADOW_PAD, width, transform: 'translateX(-50%)', display: 'flex', gap: 8, alignItems: 'center' }}>{children}</div>
+  </div>
 }
 
 export default function ScheduleCarousel() {
@@ -33,11 +37,15 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
   const storedSetIndex = useDashboard(s => s.setScheduleIndex)
   const storedDays = useStudentData(s => s.scheduleDays)
   const storedLoaded = useStudentData(s => s.loaded)
-  const scheduleIndex = props.index ?? storedIndex
+  const requestedIndex = props.index ?? storedIndex
   const setScheduleIndex = props.onSelect ?? storedSetIndex
   const scheduleDays = props.days ?? storedDays
   const loaded = props.loaded ?? storedLoaded
   const total = scheduleDays.length
+  // A resized view or refreshed date range can retain an index from a longer
+  // array. Keep a real selected day instead of rendering seven empty spacers.
+  const scheduleIndex = Number.isInteger(requestedIndex) && requestedIndex >= 0 && requestedIndex < total
+    ? requestedIndex : Math.max(0, scheduleDays.findIndex(day => day.isToday))
   const isDesktop = useIsDesktop()
   const mobile = !isDesktop
 
@@ -53,19 +61,9 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
     return () => ro.disconnect()
   }, [])
 
-  // Keep the selected day in the middle while the neighbouring cards travel
-  // underneath the edge fades instead of being cut off by the viewport.
-  useEffect(() => {
-    const viewport = wrapRef.current?.querySelector<HTMLElement>('.no-scrollbar')
-    const selected = viewport?.querySelector<HTMLElement>('[data-schedule-day="selected"]')
-    if (!viewport || !selected) return
-    viewport.scrollLeft = selected.offsetLeft + selected.offsetWidth / 2 - viewport.clientWidth / 2
-  }, [scheduleIndex, total, mobile, wrapW])
-
-  const pad = mobile ? 22 : 56
   const slotWidth = mobile ? SLOT_WIDTH_MOBILE : SLOT_WIDTH_DESKTOP
   // Centre card fills the padded area, leaving a small peek of the side cards.
-  const centerWidth = mobile && wrapW ? Math.max(240, wrapW - pad * 2) : undefined
+  const centerWidth = mobile && wrapW ? Math.max(240, wrapW - 44) : undefined
 
   // Always render 3 slots on each side of the selected day so it stays
   // centered. Out-of-range slots become invisible spacers that preserve
@@ -75,7 +73,9 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
   // the whole strip grow/shrink — keeping the tallest height avoids the jump.
   // Two full lesson rows must fit even on a laptop. Taller windows give the
   // calendar more room; longer lists scroll inside the card at every size.
-  const stripHeight = mobile ? 210 : 'var(--home-schedule-height, clamp(210px, 26vh, 260px))'
+  const stripHeight = mobile ? 'var(--live-mobile-schedule-height, 210px)' : 'var(--home-schedule-height, clamp(210px, 26vh, 260px))'
+
+  const stripWidth = (centerWidth ?? (mobile ? 300 : 480)) + 2 * (slotWidth[1] + slotWidth[2] + slotWidth[3]) + 6 * 8
 
   const offsets = [-3, -2, -1, 0, 1, 2, 3]
   const slots = offsets.map(offset => {
@@ -97,7 +97,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
       // карточки прыгали: заглушка была ниже/уже и прижата к низу.
       return (
         <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Загрузка…')} className="relative" style={{ height: stripHeight }}>
-          <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ overflowX: 'hidden', height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
+          <CenteredDateStrip width={stripWidth} viewportWidth={wrapW}>
           {offsets.map(offset => {
             const d = Math.abs(offset)
             const w = d === 0 ? (centerWidth ?? (mobile ? 300 : 480)) : slotWidth[d]
@@ -116,7 +116,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
               </div>
             )
           })}
-          </HScrollFade>
+          </CenteredDateStrip>
         </div>
       )
     }
@@ -135,7 +135,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
     >
       <div ref={wrapRef} style={{ height: '100%' }}>
-      <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ overflowX: 'hidden', height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
+      <CenteredDateStrip width={stripWidth} viewportWidth={wrapW}>
         {slots.map(slot =>
           slot.day ? (
             <ScheduleCard
@@ -157,7 +157,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
             />
           ),
         )}
-      </HScrollFade>
+      </CenteredDateStrip>
       </div>
     </motion.div>
   )

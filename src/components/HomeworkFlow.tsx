@@ -760,7 +760,6 @@ const SPRING = { type: 'spring', stiffness: 240, damping: 26 } as const
 
 
 
-
 // ─── Части домашки ───────────────────────────────────────────────────────────
 //
 // Домашка языкового юнита — это семь заданий плюс десять словарных карточек, и
@@ -1560,7 +1559,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
                   }}>
                     {item.cue}
                   </span>
-                  {!stacked && <span style={{ color: 'var(--color-muted)', flexShrink: 0 }}>→</span>}
+                  {!stacked && <span data-loop-content style={{ color: 'var(--color-muted)', flexShrink: 0 }}>→</span>}
                 </div>
                 <div className="flex items-center" style={{ gap: 10, flex: 1, minWidth: 0, width: stacked ? '100%' : undefined }}>
                   <input
@@ -2008,7 +2007,6 @@ export default function HomeworkFlow({
   const submittingBasicRef = useRef(false)
 
   if (!basicLevel || !hardLevel) return null
-
 
 
   /**
@@ -4710,7 +4708,6 @@ export default function HomeworkFlow({
     </>
   )
 }
-
 
 
 /**

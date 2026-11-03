@@ -1,4 +1,5 @@
 import { textFadeLines, textFadeStyle } from '../lib/textFades'
+import { LoopSelect } from './icons/LoopSelect'
 import { motion } from 'framer-motion'
 import { SubjectMark } from './icons/SubjectMark'
 import { useState, useMemo, useEffect } from 'react'
@@ -46,13 +47,6 @@ const CHIP_PALETTE = [PAIR.focus, PAIR.accent2, PAIR.info, PAIR.warning, PAIR.ro
 // Ряды карточки настроек — одной высоты и без разделителей: список читается
 // ровной колонкой, а не лесенкой из полосок разной толщины.
 const ROW_H = 56
-const selectChevronStyle: React.CSSProperties = {
-  appearance: 'none',
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 14px center',
-  paddingRight: 36,
-}
 
 // Русские числительные: «2 курса», а не «2 курсов». Формы: 1 / 2-4 / 5+.
 function plural(n: number, ru: [string, string, string], en: [string, string], lang: string): string {
@@ -428,14 +422,14 @@ export default function MobileProfilePage() {
               {/* Язык — весь ряд кликабелен, один тап меняет язык */}
               <div style={{ padding: '12px 16px', borderTop: '1px solid var(--color-border-soft)' }}>
                 <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)', marginBottom: 8 }}>{t('Часовой пояс')}</div>
-                <select value={studentTzMode} onChange={e => void setStudentTzMode(e.target.value as 'auto' | 'manual')} style={{ ...selectChevronStyle, width: '100%', height: 40, borderRadius: 10, paddingLeft: 10, border: '1px solid var(--color-border-medium)', backgroundColor: 'var(--color-bg-5)', color: 'var(--color-text)', font: 'inherit', marginBottom: 8 }}>
+                <LoopSelect value={studentTzMode} onChange={e => void setStudentTzMode(e.target.value as 'auto' | 'manual')} style={{ width: '100%', height: 40, borderRadius: 10, paddingLeft: 10, border: '1px solid var(--color-border-medium)', backgroundColor: 'var(--color-bg-5)', color: 'var(--color-text)', font: 'inherit', marginBottom: 8 }}>
                   <option value="auto">{t('Автоматически')} · {tzShortLabel(browserTz())}</option>
                   <option value="manual">{t('Выбрать вручную')}</option>
-                </select>
-                <select value={studentTz} disabled={studentTzMode === 'auto'} onChange={e => void setStudentTz(e.target.value)} style={{ ...selectChevronStyle, width: '100%', height: 40, borderRadius: 10, paddingLeft: 10, border: '1px solid var(--color-border-medium)', backgroundColor: 'var(--color-bg-5)', color: 'var(--color-text)', font: 'inherit', opacity: studentTzMode === 'auto' ? 0.6 : 1 }}>
+                </LoopSelect>
+                <LoopSelect value={studentTz} disabled={studentTzMode === 'auto'} onChange={e => void setStudentTz(e.target.value)} style={{ width: '100%', height: 40, borderRadius: 10, paddingLeft: 10, border: '1px solid var(--color-border-medium)', backgroundColor: 'var(--color-bg-5)', color: 'var(--color-text)', font: 'inherit', opacity: studentTzMode === 'auto' ? 0.6 : 1 }}>
                   {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   {!TZ_OPTIONS.some(o => o.value === studentTz) && <option value={studentTz}>{tzShortLabel(studentTz)}</option>}
-                </select>
+                </LoopSelect>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Время урока показывается по этому поясу')}</div>
               </div>
 
@@ -533,8 +527,9 @@ export default function MobileProfilePage() {
                   border: `1px solid ${active ? c.color + '44' : 'var(--color-border-soft)'}`,
                 }}
               >
-                <span className="min-w-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
-                  {subjectCardLabel(c)}
+                <span className="min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <SubjectMark subject={c.subject} size={16} />
+                  <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{subjectCardLabel(c)}</span>
                 </span>
                 {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
               </button>

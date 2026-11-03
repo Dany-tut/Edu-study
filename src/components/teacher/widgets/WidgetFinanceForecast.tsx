@@ -7,7 +7,7 @@ export default function WidgetFinanceForecast() {
   const t = useT()
   const { forecast } = useFinanceSummary()
   return (
-    <MiniStatCard
+    <MiniStatCard widgetId="finance-forecast"
       icon={Sparkles} label={t('Прогноз')}
       value={`${forecast.toLocaleString('ru-RU')} ₽`}
       sub={t('до конца месяца')}

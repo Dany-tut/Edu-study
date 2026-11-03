@@ -68,43 +68,38 @@ export default function MobileScreen({
   const keyboardOpen = useKeyboardOpen()
   const rootRef = useRef<HTMLDivElement>(null)
   const dockRef = useRef<HTMLDivElement>(null)
-  const topRef = useRef<HTMLDivElement>(null)
-  const [topClearance, setTopClearance] = useState(0)
   const [dockClearance, setDockClearance] = useState(0)
   // Measure the actual occupied bottom zone: buttons, errors and safe area can
   // all change its height. The content dissolves BEFORE the controls.
   useLayoutEffect(() => {
     const root = rootRef.current
     const dock = dockRef.current
-    if (!root) return
+    if (!root || !dock) { setDockClearance(0); return }
     const measure = () => {
-      const bounds = root.getBoundingClientRect()
-      const bottom = dock ? Math.max(0, Math.ceil(bounds.bottom - dock.getBoundingClientRect().top)) : 0
-      const top = topRef.current ? Math.max(0, Math.ceil(topRef.current.getBoundingClientRect().bottom - bounds.top)) : 0
-      setDockClearance(old => old === bottom ? old : bottom)
-      setTopClearance(old => old === top ? old : top)
+      const inset = Math.ceil(root.getBoundingClientRect().bottom - dock.getBoundingClientRect().top)
+      setDockClearance(old => old === inset ? old : Math.max(0, inset))
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(root)
-    if (dock) observer.observe(dock)
-    if (topRef.current) observer.observe(topRef.current)
+    observer.observe(dock)
     return () => observer.disconnect()
-  }, [!!bottomDock, bottomDockRaise, keyboardOpen, topZone != null, !!glassHeader])
+  }, [!!bottomDock, bottomDockRaise, keyboardOpen])
   const TOP_ZONE = topPad
   const { ref: bodyRef, fade, onScroll } = useOverlayScroll()
   // Вход шапки ждёт первого нарисованного кадра — иначе его съедает сборка
   // экрана (lib/useEnterAfterPaint.ts).
   const entered = useEnterAfterPaint()
-  // Both chrome zones dissolve content alpha; controls stay outside the mask.
-  const topFadeEnd = topClearance > 0 ? topClearance + 24 : 24
-  const bottomFadeStart = dockClearance > 0 && !keyboardOpen
-    ? `max(${topFadeEnd}px, calc(100% - ${dockClearance + 56}px))`
-    : 'calc(100% - 100px)'
-  const bottomFadeEnd = dockClearance > 0 && !keyboardOpen ? `calc(100% - ${dockClearance}px)` : '100%'
-  const contentMask = fade.top > 0 || fade.bottom > 0
-    ? `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0px, rgba(0,0,0,${1 - fade.top}) ${topClearance}px, #000 ${topFadeEnd}px, #000 ${bottomFadeStart}, rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
-    : undefined
+  // Alpha mask only: no painted rectangle or theme-colored overlay.
+  const dockMask = dockClearance > 0 && !keyboardOpen && fade.bottom > 0
+    ? (() => {
+      const end = `calc(100% - ${dockClearance}px)`
+      const start = `max(24px, calc(100% - ${dockClearance + 56}px))`
+      const mask = `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0, #000 24px, #000 ${start}, transparent ${end}, transparent 100%)`
+      return { maskImage: mask, WebkitMaskImage: mask }
+    })()
+    : {}
+
 
   // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
   // одним присваиванием не обойтись: держим цель, пока страница дорастает до
@@ -231,8 +226,8 @@ export default function MobileScreen({
           overflowX: 'clip',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
-          maskImage: contentMask,
-          WebkitMaskImage: contentMask,
+          ...fadeMask(fade, 24, 100),
+          ...dockMask,
           paddingTop: topZone != null || (GLASS && glassHeader) ? `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)` : `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`,
           paddingLeft: 16,
           paddingRight: 16,

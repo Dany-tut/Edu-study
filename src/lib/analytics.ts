@@ -169,16 +169,14 @@ async function performFlush(final: boolean) {
 // а не «/»: иначе пульсы и ошибки с главной ложились отдельной строкой «/»,
 // где ноль визитов (визит-то записан роутером как «#/»), и на вкладке
 // «Проблемы» она выглядела страницей-призраком.
-function analyticsPath(path: unknown): string | null {
-  if (typeof path !== 'string') return null
+function analyticsPath(path: string): string {
   if (path.startsWith('#') && !path.startsWith('#/')) return '#/'
-  return path.split('?', 1)[0]
+  return path.replace(/(?!^)[?#&].*$/s, '')
 }
 
 function currentPath(): string | null {
   if (typeof location === 'undefined') return null
-  if (location.hash.startsWith('#/')) return analyticsPath(location.hash)
-  if (location.hash) return '#/'
+  if (location.hash) return analyticsPath(location.hash)
   return location.pathname === '/' ? '#/' : location.pathname
 }
 
@@ -193,8 +191,8 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || Number(meta.duration_ms) >= 3000))
   buffer.push({
     event,
-    path: eventPath,
-    meta: { ...(isIncident ? sanitizeIncidentMeta(meta) : meta), ...(isIncident ? incidentContext() : {}), app_version: __APP_VERSION__, online: navigator.onLine, viewport: `${window.innerWidth}×${window.innerHeight}` },
+    path: path ? analyticsPath(path) : currentPath(),
+    meta,
     created_at: new Date().toISOString(),
     identity: { ...identity },
     session_id: getSessionId(),
@@ -249,7 +247,7 @@ export function trackPath(path: string, meta: Record<string, unknown> = {}) {
   // висели в bounce-риске.
   if (path.startsWith('#') && !path.startsWith('#/')) return
 
-  path = analyticsPath(path) ?? '#/'
+  path = analyticsPath(path)
   if (path === lastPath) return
   recordDwell()
 

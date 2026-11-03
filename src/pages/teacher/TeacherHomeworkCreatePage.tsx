@@ -1,4 +1,5 @@
 import { textFadeStyle } from '../../lib/textFades'
+import { ChevronRight as LoopUiChevronRight } from '../../components/icons/appIcons'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { confirmDialog } from '../../components/ConfirmHost'
 import { FIELD } from '../../lib/fieldStyle'
@@ -968,7 +969,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
 
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid var(--color-border-soft)' }}>
-        <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
+        <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>
         <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer', fontFamily: 'inherit' }}>
           <AlertCircle size={12} />{reported ? t('Отправлено') : t('Ошибка')}
         </button>

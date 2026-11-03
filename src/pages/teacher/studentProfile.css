@@ -53,3 +53,14 @@
 @container (max-width: 380px) {
   .student-profile-kpi-label { flex-direction: column; align-items: flex-start; }
 }
+
+/* The floating profile controls occupy their own row below the mobile menu. */
+.student-profile-dock { position: fixed; top: 30px; left: 32px; right: 32px; z-index: 80; pointer-events: none; }
+.student-profile-dock-row { display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.student-profile-dock-download { padding: 10px 18px 10px 14px; }
+@media (max-width: 1023px) {
+  .student-profile-dock { top: calc(env(safe-area-inset-top, 0px) + 72px); left: 16px; right: 16px; }
+  .student-profile-dock-row { gap: 8px; }
+  .student-profile-dock-download { width: 44px; height: 44px; padding: 0; justify-content: center; }
+  .student-profile-dock-download > span { display: none; }
+}

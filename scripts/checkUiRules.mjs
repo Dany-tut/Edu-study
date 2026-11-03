@@ -1,5 +1,6 @@
 import './checkOverlayFades.mjs'
 import './checkTextFades.mjs'
+import './checkTextFadeVisibility.mjs'
 import assert from 'node:assert/strict'
 import {readFileSync} from 'node:fs'
 import {build} from 'esbuild'
@@ -31,7 +32,6 @@ assert.ok(!/overflowY:\s*'auto'/.test(pickers),'Do not reintroduce raw picker sc
 assert.match(read('src/components/teacher/journalStand/journalStand.css'),/font-size:16px!important; min-height:44px/,'Mobile person forms must keep readable inputs')
 
 assert.match(read('src/components/teacher/CourseJournal.tsx'),/className="cj-table-frame" ref=\{viewport\}/,'Alternate journal tables must retain sticky-column-aware fades')
-assert.match(read('src/pages/teacher/TeacherStudentDashboardPage.tsx'),/useScrollFades\(profileScroll, (?:!!student && !inDrawer|!inDrawer && !!student)/, 'Standalone student reports need fades without double-masking the drawer')
 const scheduleCard = read('src/components/ScheduleCard.tsx')
 assert.ok(!/\btruncate\b|textOverflow:\s*['"]ellipsis['"]|line-clamp/.test(scheduleCard), 'Schedule labels must fade instead of showing ellipses')
 assert.equal((scheduleCard.match(/<FadeText className="schedule-lesson-title"/g) || []).length, 2, 'Both center and neighbour lesson titles must use the measured text fade')

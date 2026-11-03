@@ -1,4 +1,4 @@
-import { createContext, forwardRef, useContext, type ReactElement, type ReactNode, type SVGProps } from 'react'
+import { createContext, forwardRef, useContext, type CSSProperties, type ReactElement, type ReactNode, type SVGProps } from 'react'
 import type { LucideIcon, LucideProps } from 'lucide-react'
 
 const LoopContext = createContext(true)
@@ -24,9 +24,9 @@ export function LoopTextIcon({ icon: Icon, children, size = '1em' }: { icon: Luc
 }
 
 /** Keep translated labels while replacing trailing text symbols with Loop artwork. */
-export function LoopActionLabel({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+export function LoopActionLabel({ icon: Icon, label, position = 'end' }: { icon: LucideIcon; label: string; position?: 'start' | 'end' }) {
   return useLoopIcons()
-    ? <>{label.replace(/\s*[→›✓]$/, '')} <Icon size="1em" style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /></>
+    ? <>{position === 'start' && <><Icon size="1em" style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /> </>}{label.replace(/^[←‹]\s*|\s*[→›✓]$/g, '')}{position === 'end' && <> <Icon size="1em" style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /></>}</>
     : <>{label}</>
 }
 
@@ -36,9 +36,12 @@ export function LoopIconProvider({ enabled = true, children }: { enabled?: boole
 }
 
 export const LoopSvg = forwardRef<SVGSVGElement, LucideProps & { name: string; artwork: ReactNode }>(
-  function LoopSvg({ name, artwork, size = 24, strokeWidth = 2, absoluteStrokeWidth, color = 'currentColor', className, children, ...props }, ref) {
+  function LoopSvg({ name, artwork, size = 24, strokeWidth = 2, absoluteStrokeWidth, color = 'currentColor', className, children, fill, style, ...props }, ref) {
     const opticalStroke = Number(strokeWidth) * 1.15
     const width = absoluteStrokeWidth && Number(size) > 0 ? opticalStroke * 32 / Number(size) : opticalStroke
+    // Explicit selection/media fills must reach the closed body, not just the SVG root.
+    const interiorFill = style?.fill ?? fill
+    const iconStyle = interiorFill === undefined ? style : { ...style, '--loop-soft': interiorFill } as CSSProperties
     const labelled = props['aria-label'] || props['aria-labelledby'] || props.role === 'img'
     return (
       <svg
@@ -47,7 +50,9 @@ export const LoopSvg = forwardRef<SVGSVGElement, LucideProps & { name: string; a
         width={size}
         height={size}
         viewBox="0 0 32 32"
-        fill="none"
+        fill={fill ?? 'none'}
+        style={iconStyle}
+        color={color}
         stroke={color}
         strokeWidth={width}
         strokeLinecap="round"

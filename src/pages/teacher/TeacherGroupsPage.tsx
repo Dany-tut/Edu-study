@@ -1,4 +1,5 @@
 import { textFadeStyle } from '../../lib/textFades'
+import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
@@ -468,7 +469,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
                 value={selectedGroup}
                 placeholder={t('Пока без занятий')}
                 onChange={setSelectedGroup}
-                options={[{ value: '', label: t('Пока без занятий') }, ...groups.map(g => ({ value: g.id, label: `${g.icon}${ICON_GAP}${g.name}` }))]}
+                options={[{ value: '', label: t('Пока без занятий') }, ...groups.map(g => ({ value: g.id, label: g.name, icon: <SubjectMark subject={g.subject} size={16} /> }))]}
                 clearable={false}
                 triggerStyle={selectTriggerStyle}
               />
@@ -1565,7 +1566,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.subject ? <>{group.icon}{ICON_GAP}{tc(group.subject)}</> : null}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.subject ? <><SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}</> : null}</span>
                 </div>
               </div>
             </div>
@@ -1822,7 +1823,7 @@ function TracksSection({
             Последнее направление не удаляем: это уже «Удалить ученика». */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <div style={{ ...chip(group.icon, group.subject, group.level, group.color), flex: 1 }}>
-            <span>{group.icon}</span>
+            <span><SubjectMark subject={group.subject} size={14} /></span>
             <span>{group.id ? tc(group.subject) : tc(group.name)}{group.level ? ` · ${t(group.level)}` : ''}</span>
           </div>
           {individual && (
@@ -1851,7 +1852,7 @@ function TracksSection({
               type="button" onClick={() => onOpenCard(sc.id)} title={t('Открыть карточку')}
               style={{ ...chip(sc.icon, sc.subject, sc.level, sc.color), cursor: 'pointer', flex: 1, justifyContent: 'flex-start' }}
             >
-              <span>{sc.icon}</span>
+              <span><SubjectMark subject={sc.subject} size={14} /></span>
               <span>{tc(sc.subject)}{sc.level ? ` · ${t(sc.level)}` : ''}</span>
             </button>
             <Tooltip label={t('Удалить карточку')}><button
@@ -1989,7 +1990,7 @@ function StudentPanel({
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{group.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.subject ? <>{group.icon}{ICON_GAP}{tc(group.subject)}</> : null}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.subject ? <><SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}</> : null}</span>
               </div>
             </div>
           </div>
@@ -2330,7 +2331,10 @@ type GroupRosterProps = {
 }
 export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const scrollRoot = useRef<HTMLDivElement>(null)
-  useScrollFades(scrollRoot)
+  // The journal, group strip and report drawer own their inner scroll fades.
+  // Observing every cell here duplicates their work and forces offscreen
+  // content to lay out. Only this wrapper's direct scroll container remains.
+  useScrollFades(scrollRoot, true, renderRoster ? ':scope > div' : '*')
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()

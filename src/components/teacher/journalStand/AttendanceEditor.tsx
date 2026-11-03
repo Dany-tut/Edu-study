@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import { useAsyncTask } from '../../../lib/useAsyncTask'
 import Modal from '../../Modal'
 import { Alert } from '../../Alert'
 import { useAttendance } from '../../../lib/useGroups'
@@ -11,49 +10,39 @@ export default function AttendanceEditor({ cells, onClose, onSaved }: {
   cells: JournalCell[]; onClose: () => void; onSaved: () => void
 }) {
   const { saveLesson } = useAttendance(null)
-  const key = (i: number) => `iskra:attendance-draft:${cells[i].event!.id}:${cells[i].student.id}`
-  const original = cells.map(c => ({ present: c.present, grade: c.grade }))
-  const [draft, setDraft] = useState(() => original.map((mark, i) => {
-    try { const saved = JSON.parse(sessionStorage.getItem(key(i)) || 'null'); return saved && JSON.stringify(saved.base) === JSON.stringify(mark) ? saved.value as Mark : mark } catch { return mark }
-  }))
-  const baseline = useRef(original)
-  const action = useAsyncTask()
-  const busy = action.busy
+  const [draft, setDraft] = useState(() => cells.map(c => ({ present: c.present, grade: c.grade })))
+  const baseline = useRef(draft)
+  const lock = useRef(false)
+  const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const dirty = draft.some((m, i) => m.present !== baseline.current[i].present || m.grade !== baseline.current[i].grade)
-  function remember(i: number, mark: Mark) {
-    try { sessionStorage.setItem(key(i), JSON.stringify({ base: baseline.current[i], value: mark })) } catch { /* Keep the in-memory draft if storage is unavailable. */ }
-  }
-  function update(i: number, mark: Mark) { remember(i, mark); setDraft(v => v.map((m, n) => n === i ? mark : m)) }
-  function close() { action.cancel(); onSaved(); onClose() }
-  function save() {
-    if (!dirty || busy) return
-    setError('')
-    void action.run(async signal => {
+  function update(i: number, mark: Mark) { setDraft(v => v.map((m, n) => n === i ? mark : m)) }
+  async function save() {
+    if (lock.current || !dirty) return
+    lock.current = true; setBusy(true); setError('')
+    try {
       const events = new Map<string, number[]>()
       cells.forEach((c, i) => {
         if (c.event && (draft[i].present !== baseline.current[i].present || draft[i].grade !== baseline.current[i].grade))
           events.set(c.event.id, [...(events.get(c.event.id) ?? []), i])
       })
       for (const indices of events.values()) {
-        signal.throwIfAborted()
         const event = cells[indices[0]].event!
-        await saveLesson(event.group_id, event.date, indices.map(i => ({ studentId: cells[i].student.id, ...draft[i] })), event.lesson_title, event.id, signal)
-        signal.throwIfAborted()
+        await saveLesson(event.group_id, event.date, indices.map(i => ({ studentId: cells[i].student.id, ...draft[i] })), event.lesson_title, event.id)
         baseline.current = baseline.current.map((m, i) => indices.includes(i) ? draft[i] : m)
-        for (const i of indices) { try { sessionStorage.removeItem(key(i)) } catch { /* storage unavailable */ } }
       }
-    }, () => { onSaved(); onClose() }, () => {
+      onSaved(); onClose()
+    } catch {
       onSaved()
-      setError('Не удалось подтвердить сохранение всех отметок.\nЧерновик сохранён. Проверьте журнал и повторите оставшиеся изменения.')
-    })
+      setError('Не удалось сохранить все отметки.\nЧерновик сохранён в окне. Повторите сохранение оставшихся изменений.')
+    } finally { lock.current = false; setBusy(false) }
   }
   return <Modal title={cells.length === 1 ? cells[0].student.name : 'Оценки за урок'}
-    subtitle={cells[0]?.column.title} width={640} onClose={close}
-    footer={<><button type="button" className="cj-button" onClick={close}>Отмена</button><button type="button" className="cj-button cj-primary" disabled={busy || !dirty} onClick={() => void save()}>{busy ? 'Сохранение…' : 'Сохранить'}</button></>}>
+    subtitle={cells[0]?.column.title} width={640} onClose={() => { if (!lock.current) onClose() }}
+    footer={<><button type="button" className="cj-button" disabled={busy} onClick={onClose}>Отмена</button><button type="button" className="cj-button cj-primary" disabled={busy || !dirty} onClick={() => void save()}>{busy ? 'Сохранение…' : 'Сохранить'}</button></>}>
     <div className="course-journal ja-editor">
       <p className="cj-note">Оценка за урок — от 1 до 5. Сначала отметьте присутствие. «Без оценки» удаляет оценку.</p>
-      {cells.length > 1 && <button type="button" className="cj-button" disabled={busy} onClick={() => { draft.forEach((m, i) => remember(i, { ...m, present: true })); setDraft(v => v.map(m => ({ ...m, present: true }))) }}>Все присутствовали</button>}
+      {cells.length > 1 && <button type="button" className="cj-button" disabled={busy} onClick={() => setDraft(v => v.map(m => ({ ...m, present: true })))}>Все присутствовали</button>}
       {cells.map((cell, i) => <fieldset key={`${cell.event!.id}:${cell.student.id}`} disabled={busy} className="ja-row">
         <legend>{cell.student.name}</legend>
         <small>{cell.event!.date} · {cell.event!.time_start?.slice(0, 5)}</small>

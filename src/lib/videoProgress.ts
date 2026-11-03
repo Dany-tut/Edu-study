@@ -42,7 +42,7 @@ export interface VideoWatch {
 }
 
 /** Доля ролика, после которой просмотр засчитан. Хвост с титрами не требуем. */
-export const COMPLETE_RATIO = 0.9
+export const COMPLETE_RATIO = 0.7
 /** Отрезки короче этого не запоминаем — это дрожание таймера, не просмотр. */
 const MIN_SEGMENT = 0.35
 /** Шаг больше этого = перемотка: отрезок разрывается, промежуток не засчитан. */
@@ -95,6 +95,30 @@ export function watchRatio(w: VideoWatch): number {
 export function withCompletion(w: VideoWatch): VideoWatch {
   const done = w.completed || (w.duration > 0 && watchRatio(w) >= COMPLETE_RATIO)
   return done === w.completed ? w : { ...w, completed: done }
+}
+
+/** Native media keeps played ranges even while background JS timers are throttled.
+ * Seeking, pauses and buffering do not fill gaps in this browser-owned history.
+ */
+export function withNativePlayed(
+  watch: VideoWatch,
+  media: Pick<HTMLMediaElement, 'currentTime' | 'duration' | 'played'>,
+): VideoWatch {
+  // addWatched merges in place inside its working array: keep saved snapshots intact.
+  if (!Number.isFinite(media.duration) || media.duration <= 0) return watch
+  let ranges = watch.ranges.map(([a, b]): WatchRange => [a, b])
+  const duration = media.duration
+  const played = media.played
+  for (let i = 0; i < played.length; i++) {
+    const from = played.start(i)
+    const to = played.end(i)
+    if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from || from >= duration) continue
+    ranges = addWatched(ranges, Math.max(0, from), Math.min(to, duration))
+  }
+  return withCompletion({
+    ...watch, ranges, duration,
+    position: Number.isFinite(media.currentTime) ? Math.max(0, media.currentTime) : watch.position,
+  })
 }
 
 /** Есть ли откуда продолжать: смотрели больше минуты и не досмотрели до конца. */

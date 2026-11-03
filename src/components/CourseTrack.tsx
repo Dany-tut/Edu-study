@@ -1,10 +1,13 @@
 import { textFadeLines } from '../lib/textFades'
+import { LoopActionLabel } from './icons/LoopIcon'
+import { ArrowRight as LoopUiArrowRight, ArrowLeft as LoopUiArrowLeft } from './icons/appIcons'
 import LessonWatchStatus from './LessonWatchStatus'
 import TrackHomeworkButton from './TrackHomeworkButton'
 import LessonSelfAssessment from './LessonSelfAssessment'
 import { gradedTrackResult } from '../lib/homeworkResult'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react'
-import Skeleton from './Skeleton'
+import CourseTrackSkeleton from './CourseTrackSkeleton'
+import { TRACK_NODE_SIZE as NODE_SIZE, TRACK_SIDE_PADDING, TRACK_GLOW_PAD as GLOW_PAD, TRACK_ROW_HEIGHT } from './courseTrackLayout'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
 import { courseResumeTarget, courseTrackWidth } from '../lib/courseTrackLayout'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -28,13 +31,14 @@ import { playTransitionDrop } from '../lib/sound'
 import HardStarLottie from './HardStarLottie'
 import { useT, useTc } from '../lib/i18n'
 import { TRACK_STATUS, trackPalette } from '../lib/theme'
+import type { StudentDiaryEntry } from '../lib/studentDiary'
+import { homeModuleDebts } from '../lib/studentHomeWork'
 
-const NODE_SIZE = 56
+type HomeWorkProps = { homeWorks?: readonly StudentDiaryEntry[]; today?: string; onOpenDebts?: (course: string, module: number) => void }
+
 const DETAIL_CARD_WIDTH = 340
 const HARD_CARD_WIDTH = 320
-const TRACK_SIDE_PADDING = 36
 // Vertical breathing room above the row so the selected node's glow ring isn't clipped.
-const GLOW_PAD = 24
 // Трек подтягивается под строку курса: кружки встают в 12 px от неё, свечение
 // уходит в воздух над строкой (строка поверх — zIndex 2).
 const TRACK_PULL_UP = 12 - GLOW_PAD
@@ -107,7 +111,7 @@ function useScrollTabIntoView(
   }, [rowRef, attr, activeId])
 }
 
-function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot?: React.ReactNode }) {
+function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }: { subject: Subject; courseSlot?: React.ReactNode } & HomeWorkProps) {
   const t = useT()
   const { tc } = useTc()
   const { activeModuleId, setActiveModule, setTrackPopoverOpen, openLesson, openHomeworkForLesson, highlightLessonId, lessonAssessments } = useDashboard()
@@ -174,7 +178,9 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   // Первый текущий урок — на нём праздничная тема ставит фонарь/конфету (CourseNode.seasonMark).
   const scheduleStates = allLessons.map(lesson => getLessonScheduleState(lesson, now))
   const statuses = allLessons.map((lesson, i) => getTrackLessonStatus(lesson, now, scheduleStates[i]))
-  const seasonMarkIndex = statuses.indexOf('today')
+  const todayIndex = statuses.indexOf('today')
+  const seasonMarkIndex = todayIndex >= 0 ? todayIndex : statuses.indexOf('current')
+  const debtCounts = useMemo(() => homeModuleDebts(homeWorks ?? [], subject.id, today ?? ''), [homeWorks, subject.id, today])
   const selectedLesson = allLessons.find(lesson => lesson.id === selectedLessonId) ?? null
   const selectedScheduleState = selectedLesson ? scheduleStates[allLessons.indexOf(selectedLesson)] : null
 
@@ -254,13 +260,15 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
           поля сняты отрицательным отступом, чтобы строка не стала выше. Снизу
           не больше 12 — дальше уже кружки трека, и поле перехватывало бы клик. */}
       <div ref={moduleRowRef} style={{ flexShrink: 0, position: 'relative', zIndex: 2, margin: `-${ROW_SHADOW_TOP}px 0 -${ROW_SHADOW_BOTTOM}px` }}>
-      <HScrollFade padX={32} padTop={ROW_SHADOW_TOP} padBottom={ROW_SHADOW_BOTTOM} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
+      <HScrollFade fadeMode="mask" padX={32} padTop={ROW_SHADOW_TOP} padBottom={ROW_SHADOW_BOTTOM} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
         {courseSlot}
         {!(subject.modules.length === 1 && subject.modules[0].loose) && (
           <>
             {courseSlot && <span aria-hidden style={{ width: 1, height: 22, background: 'var(--color-text-4)', flexShrink: 0 }} />}
             <ModuleChain
               subject={subject}
+              debtCounts={debtCounts}
+              onOpenDebts={id => onOpenDebts?.(subject.id, id)}
               activeId={effectiveModuleId}
               onSelect={id => {
                 if (id === activeModuleId) return
@@ -276,7 +284,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
       {/* ── Track body: auto height, centered content. Сверху минус: над
            кружками GLOW_PAD под свечение, и без поправки трек отъезжал бы от
            строки курса на 24 px вместо 12. ── */}
-      <div className="flex items-center" style={{ marginTop: TRACK_PULL_UP, paddingBottom: 12 }}>
+      <div className="flex items-center" style={{ marginTop: `var(--home-track-pull-up, ${TRACK_PULL_UP}px)`, paddingBottom: 12 }}>
         <div className="flex items-center gap-6 w-full">
 
           {/* Full-width track — nodes distributed across the whole row */}
@@ -294,15 +302,15 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
               style={{
                 overflowX: 'auto', overscrollBehaviorX: 'contain',
                 maskImage: `linear-gradient(to right, ${edges.left ? 'transparent, black 24px' : 'black 0%'}, ${edges.right ? 'black calc(100% - 24px), transparent' : 'black 100%'})`,
-                paddingTop: GLOW_PAD,
-                paddingBottom: 14,
+                paddingTop: `var(--home-track-glow-pad, ${GLOW_PAD}px)`,
+                paddingBottom: 'var(--home-track-bottom-pad, 14px)',
               }}
             >
               <div
                 style={{
                   position: 'relative',
                   width: containerW,
-                  height: NODE_SIZE + 50,
+                  height: `var(--home-track-row-height, ${TRACK_ROW_HEIGHT}px)`,
                   overflow: 'visible',
                 }}
               >
@@ -375,9 +383,9 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
               </div>
             </div>
 
-            {(edges.left || edges.right) && <div style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '4px 16px', padding: '0 32px', fontSize: 11, color: 'var(--color-text-3)' }}>
-              {edges.left && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}>{t('← Предыдущие занятия')}</button>}
-              {edges.right && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}>{t('Дальше есть ещё занятия →')}</button>}
+            {(edges.left || edges.right) && <div className="course-track-hints" style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '4px 16px', padding: '0 32px', fontSize: 11, color: 'var(--color-text-3)' }}>
+              {edges.left && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowLeft} position="start" label={t('← Предыдущие занятия')} /></button>}
+              {edges.right && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowRight} label={t('Дальше есть ещё занятия →')} /></button>}
             </div>}
 
             {/* ── Detail popover — overlay anchored to the selected node, rendered
@@ -400,7 +408,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                   }}
                   style={{
                     position: 'absolute',
-                    bottom: `calc(100% - ${GLOW_PAD - 14}px)`,
+                    bottom: `calc(100% - (var(--home-track-glow-pad, ${GLOW_PAD}px) - 14px))`,
                     left: detailLeft,
                     width: detailCardWidth,
                     borderRadius: 20,
@@ -551,7 +559,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                   }}
                   style={{
                     position: 'absolute',
-                    bottom: `calc(100% - ${GLOW_PAD - 14}px)`,
+                    bottom: `calc(100% - (var(--home-track-glow-pad, ${GLOW_PAD}px) - 14px))`,
                     left: hardDetailLeft,
                     width: hardCardWidth,
                     borderRadius: 20,
@@ -661,7 +669,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   )
 }
 
-export default function CourseTrack() {
+export default function CourseTrack(props: HomeWorkProps = {}) {
   const t = useT()
   const { activeSubjectId, setActiveSubject, setActiveModule } = useDashboard()
   const subjects = useStudentData(s => s.subjects)
@@ -678,6 +686,8 @@ export default function CourseTrack() {
     }
   }, [effectiveActiveId, setActiveSubject])
 
+  if (subjects.length === 0 && !loaded) return <CourseTrackSkeleton />
+
   if (subjects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 160, gap: 8 }}>
@@ -688,7 +698,6 @@ export default function CourseTrack() {
             <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
           </>
         )}
-        {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 280 }} />}
       </div>
     )
   }
@@ -696,6 +705,7 @@ export default function CourseTrack() {
   return (
     <div className="flex flex-col h-full">
       <TrackForSubject
+        {...props}
         key={effectiveActiveId}
         courseSlot={
           <CourseSelect

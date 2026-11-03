@@ -3,32 +3,17 @@ import type { ScheduleItem, Reminder } from '../data/teacherMockData'
 import { useTeacher } from '../store/teacherStore'
 import { useGroups, useAllStudents, useJournalPending } from './useGroups'
 import { useHomework, useHardSubmissions } from './useHomework'
-import { supabase } from './supabase'
-import { t, useT } from './i18n'
+import { useTeacherTodaySchedule } from './teacherToday'
+import { useT } from './i18n'
+import { buildTeacherReminders } from './reminderContent'
 import { scheduleHasEnded, todayMsk } from './teacherSchedule'
-
-function diffDays(isoA: string, isoB: string) {
-  return Math.round((new Date(isoA).getTime() - new Date(isoB).getTime()) / 86400000)
-}
-
-// Компактное «сдано N назад» для строк напоминаний.
-function agoLabel(iso?: string): string {
-  if (!iso) return ''
-  const diff = Date.now() - new Date(iso).getTime()
-  if (!Number.isFinite(diff) || diff < 0) return t('сдано только что')
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${t('сдано')} ${mins} ${t('мин назад')}`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${t('сдано')} ${hrs} ${t('ч назад')}`
-  const days = Math.floor(hrs / 24)
-  return `${t('сдано')} ${days} ${t('дн назад')}`
-}
 
 export function useOverlayThumb() {
   const [m, setM] = useState({ st: 0, sh: 0, ch: 0 })
   const [hover, setHover] = useState(false)
   const [scrolling, setScrolling] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(timer.current), [])
 
   function update(el: HTMLElement) {
     setM(prev => (prev.st === el.scrollTop && prev.sh === el.scrollHeight && prev.ch === el.clientHeight
@@ -70,52 +55,16 @@ export function useHomeData() {
   const { submissions: hardSubs } = useHardSubmissions()
   const allStudents = useAllStudents()
 
-  const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([])
+  const { schedule: todaySchedule } = useTeacherTodaySchedule()
   const [scheduleClock, setScheduleClock] = useState(() => Date.now())
   useEffect(() => {
     const timer = window.setInterval(() => setScheduleClock(Date.now()), 30_000)
     return () => window.clearInterval(timer)
   }, [])
-  useEffect(() => {
-    const today = todayMsk()
-    supabase
-      .from('schedule_lessons')
-      .select('*, groups(name, icon, color, color_soft, students(count))')
-      .eq('date', today)
-      .order('time_start')
-      .then(({ data }) => {
-        if (!data) return
-        const ownedGroups = new Set(groups.map(g => g.id))
-        const ownedStudents = new Set(allStudents.map(s => s.id))
-        const owned = data.filter((s: any) =>
-          (s.group_id && ownedGroups.has(s.group_id)) ||
-          (s.student_id && ownedStudents.has(s.student_id)))
-        setTodaySchedule(owned.map((s: any) => {
-          const stu = s.student_id ? allStudents.find((a: any) => a.id === s.student_id) : null
-          return {
-            id: String(s.id),
-            groupId: s.group_id ?? null,
-            studentId: s.student_id ?? null,
-            groupName: s.groups?.name ?? stu?.name ?? '',
-            icon: s.groups?.icon ?? '👤',
-            time: (s.time_start ?? '').slice(0, 5),
-            endTime: (s.time_end ?? '').slice(0, 5),
-            topic: s.lesson_title ?? '',
-            lessonNumber: s.lesson_number ?? 0,
-            subject: s.subject ?? '',
-            status: (s.status ?? 'upcoming') as ScheduleItem['status'],
-            studentCount: s.groups?.students?.[0]?.count ?? (stu ? 1 : 0),
-            color: s.groups?.color ?? 'var(--color-purple)',
-            colorSoft: s.groups?.color_soft ?? 'var(--color-bg-3)',
-          }
-        }))
-      })
-  }, [groups, allStudents])
 
   const pendingJournals = useJournalPending(null)
   const pendingHomework = allHomework.filter(hw => hw.status === 'active')
   const totalStudents = new Set(allStudents.map(s => s.personId || s.authUserId || s.id)).size
-  const TODAY = new Date().toISOString().split('T')[0]
 
   const pendingHard = hardSubs.filter(s => s.status === 'submitted')
   const pendingCount =
@@ -124,41 +73,8 @@ export function useHomeData() {
 
   const doneCount = todaySchedule.filter(s => s.status === 'completed').length
 
-  const reminders: Reminder[] = [
-    ...pendingHomework.filter(hw => hw.submittedCount > 0).map(hw => ({
-      id: `hw-${hw.id}`,
-      type: 'check-hw' as Reminder['type'],
-      text: `${t('Проверить ДЗ')} — ${hw.groupName}`,
-      detail: `${hw.submittedCount} ${t('из')} ${hw.totalCount} ${t('сдали')}`
-        + (hw.lastSubmittedAt ? ` · ${agoLabel(hw.lastSubmittedAt)}` : ''),
-      urgency: 'high' as Reminder['urgency'],
-    })),
-    ...pendingHard.map(s => ({
-      id: `hard-${s.id}`,
-      type: 'check-hw' as Reminder['type'],
-      text: `${t('Сложное ДЗ')} — ${s.studentName.split(' ')[0]}`,
-      detail: s.updatedAt ? `${s.lessonTitle} · ${agoLabel(s.updatedAt)}` : s.lessonTitle,
-      urgency: 'high' as Reminder['urgency'],
-    })),
-    ...allStudents.filter(s => s.paymentDue && diffDays(s.paymentDue, TODAY) <= 7).map(s => ({
-      id: `pay-${s.id}`,
-      type: 'payment-debt' as Reminder['type'],
-      text: `${t('Оплата')} — ${s.name.split(' ')[0]}`,
-      detail: s.paymentAmount ? `${s.paymentAmount.toLocaleString('ru-RU')} ₽` : '',
-      urgency: (diffDays(s.paymentDue!, TODAY) < 0 ? 'high' : 'medium') as Reminder['urgency'],
-    })),
-    ...pendingJournals.map(p => ({
-      id: `journal-${p.scheduleId}`,
-      type: 'fill-journal' as Reminder['type'],
-      text: `${t('Журнал')} — ${p.scopeName}`,
-      detail: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
-      urgency: 'medium' as Reminder['urgency'],
-    })),
-  ]
-
-  const reminderDone = (r: Reminder) =>
-    r.type === 'check-hw' &&
-    pendingHomework.some(hw => r.id === `hw-${hw.id}` && hw.reviewedCount >= hw.submittedCount)
+  const reminders = buildTeacherReminders({ homework: allHomework, hard: hardSubs, students: allStudents, journals: pendingJournals, today: todayMsk(), now: scheduleClock, t })
+  const reminderDone = (r: Reminder) => r.done === true
 
   const reminderAction = (r: Reminder): (() => void) | undefined => {
     if (r.id.startsWith('hard-')) { const id = r.id.slice(5); return () => openHardReview(id) }

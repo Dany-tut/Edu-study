@@ -1,16 +1,17 @@
-import { homeworkNeedsVideo } from '../lib/homeworkAccess'
+import { useNow } from '../lib/useNow'
+import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
 import Sidebar from '../components/Sidebar'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import ScheduleCarousel from '../components/ScheduleCarousel'
 import WidgetCarousel from '../components/WidgetCarousel'
 import CompactWidgetPill from '../components/CompactWidgetPill'
 import CourseTrack from '../components/CourseTrack'
-import HomeNext, { useHomeRedesign } from '../components/HomeNext'
+import StudentHome from '../components/StudentHome'
 import MobileBottomNav from '../components/MobileBottomNav'
-import MobileHome from '../components/MobileHome'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import type { DiaryTab } from './StudentDiaryPage'
+import { useScrollFades } from '../lib/useScrollFades'
 import { readStudentDiaryView, saveStudentDiaryView } from '../lib/studentDiaryViews'
 import { useDiaryRemindersInit } from '../lib/diaryReminders'
 import LessonPage from './LessonPage'
@@ -33,7 +34,6 @@ import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment 
 import { ClipboardList, ChevronRight } from '../components/icons/appIcons'
 import { useT, tc } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
-import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from '../components/season/Season'
 import SeasonAsk from '../components/season/SeasonAsk'
 import Modal from '../components/Modal'
 import '../components/studentHomeLayout.css'
@@ -119,7 +119,6 @@ export default function DashboardPage() {
   useNotificationsInit(getStudentSession()?.id)
   const isDesktop = useIsDesktop()
   const trackPopoverOpen = useDashboard(s => s.trackPopoverOpen)
-  const homeRedesign = useHomeRedesign()
   const activePage = useDashboard(s => s.activePage)
   const setActivePage = useDashboard(s => s.setActivePage)
   const currentLessonId = useDashboard(s => s.currentLessonId)
@@ -292,9 +291,13 @@ export default function DashboardPage() {
   const [diarySeen, setDiarySeen] = useState(false)
   useEffect(() => { if (showDiary) setDiarySeen(true) }, [showDiary])
   const diaryPane = useRef<HTMLElement>(null)
+  const mobileDiaryPane = useRef<HTMLDivElement>(null)
+  useScrollFades(diaryPane, showDiary, ':scope > *')
+  useScrollFades(mobileDiaryPane, showDiary, ':scope > *')
   const diaryScroll = useRef(0)
   useLayoutEffect(() => { if (showDiary && diaryPane.current) diaryPane.current.scrollTop = diaryScroll.current }, [showDiary])
-  const videoRequired = !!lesson && homeworkNeedsVideo(lesson, homeworkRef)
+  const accessNow = useNow()
+  const videoRequired = !!lesson && (homeworkTimeLocked(lesson, accessNow) || homeworkNeedsVideo(lesson, homeworkRef))
   useEffect(() => {
     if (activePage === 'homework' && videoRequired && !lessonPending) closeHomework()
   }, [activePage, videoRequired, lessonPending, closeHomework])
@@ -407,11 +410,12 @@ export default function DashboardPage() {
           главную дважды, второй раз в никуда. Порог у useIsDesktop один и тот
           же (1024), значение известно уже на первом рендере, так что подмены
           «сначала не та вёрстка» не будет. */}
-      {isDesktop && (
+      {activePage === 'home' && <LayoutGroup><StudentHome assignments={<AssignedTestsBlock compact />}/></LayoutGroup>}
+      {isDesktop && activePage !== 'home' && (
       <LayoutGroup>
-      <div className={activePage === 'home' ? 'dashboard-root dashboard-root--home' : 'dashboard-root'} style={{ display: 'flex' }}>
+      <div className="dashboard-root" style={{ display: 'flex' }}>
         {/* Праздничная тема (lib/season.ts): фон за всеми блоками главной. Без темы — ничего. */}
-        {activePage === 'home' && !homeRedesign && <SeasonBackdrop />}
+
         {/* Full-width progressive blur+fade strip pinned to the top, behind the
             floating topbar pill — content scrolls up under a soft blurred band so
             it never bleeds through the gaps around the pills. */}
@@ -440,7 +444,7 @@ export default function DashboardPage() {
             }}
           >
             <AnimatePresence>
-              {activePage !== 'home' && (
+              {(
                 <motion.div
                   key="compact-widget-pill"
                   // Plain fade+slide entrance — the previous layoutId-shared
@@ -460,54 +464,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {activePage === 'home' ? (
-          homeRedesign ? (
-            /* Новая главная (флаг home_redesign, см. HomeNext.tsx). Праздничные
-               украшения сюда не идут: они привязаны к старой раскладке. */
-            <main className="dashboard-main">
-              <section style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: trackPopoverOpen ? 30 : 5 }}>
-                <HomeNext />
-              </section>
-              <section style={{ flexShrink: 0 }}>
-                <AssignedTestsBlock />
-              </section>
-            </main>
-          ) : (
-          <>
-            {/* Шапка праздничной темы — над расписанием; без темы не рендерится. */}
-            <section className="dashboard-schedule season-hero-row">
-              <SeasonHero />
-            </section>
-
-            {/* Row 1: Schedule — pill + 4-card carousel */}
-            <section className="dashboard-schedule">
-              <ScheduleCarousel />
-            </section>
-
-            {/* Full-width content below */}
-            <main className="dashboard-main dashboard-main--overview">
-              {/* Row 2: Widget carousel (stats / science facts / focus timer). */}
-              <section style={{ flexShrink: 0, position: 'relative', zIndex: 20 }}>
-                <WidgetCarousel />
-                {/* Кот сидит на ряду виджетов — здесь, а не в плитке: карусель
-                    обрезает всё, что выше её на 56 px. */}
-                <SeasonCat />
-              </section>
-
-              {/* Row 3: Course track — natural height, no flex-grow */}
-              <section style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: trackPopoverOpen ? 30 : 5 }}>
-                <CourseTrack />
-              </section>
-
-              {/* The full assignment list opens above the fixed home composition. */}
-              <section className="dashboard-home-assignments" style={{ flexShrink: 0 }}>
-                <AssignedTestsBlock compact />
-              </section>
-            </main>
-            <SeasonCornerPumpkin />
-          </>
-          )
-        ) : showDiary ? null
+        {showDiary ? null
         : showLesson ? (
           /* Single lesson — player + materials (screen 2). The page
              extends past the viewport (homework levels, transcript, etc.),
@@ -597,11 +554,9 @@ export default function DashboardPage() {
           (Home/Courses/Profile/Trainer) render standalone — they bring their own
           safe-area, top chrome and bottom nav. Lesson/ДЗ flows keep a padded
           scroll wrapper with safe-area top + bottom-nav clearance. */}
-      {!isDesktop && (
+      {!isDesktop && activePage !== 'home' && (
       <div>
-        {activePage === 'home' ? (
-          <MobileHome />
-        ) : showDiary ? null
+        {showDiary ? null
         : activePage === 'profile' ? (
           <MobileProfilePage />
         ) : activePage === 'trainer' ? (
@@ -638,10 +593,9 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {(showDiary || diarySeen) && <div style={{ display: showDiary ? 'block' : 'none', minHeight: '100dvh', background: 'var(--color-bg)', paddingTop: MOBILE_TOP_INSET, paddingLeft: 16, paddingRight: 16, paddingBottom: 120, overflowX: 'clip' }}>
+        {(showDiary || diarySeen) && <><div ref={mobileDiaryPane} style={{ display: showDiary ? 'block' : 'none', height: '100dvh', boxSizing: 'border-box', background: 'var(--color-bg)', paddingTop: MOBILE_TOP_INSET, paddingLeft: 16, paddingRight: 16, paddingBottom: 120, overflowX: 'clip', overflowY: 'auto' }}>
           <Suspense fallback={<LessonLoading />}><StudentDiaryPage tab={diaryTab} setTab={setDiaryTab} /></Suspense>
-          {showDiary && <MobileBottomNav />}
-        </div>}
+        </div>{showDiary && <MobileBottomNav />}</>}
 
         {/* Вкладка «ДЗ» — каталог занятий со статусами (свой поиск/фильтр/
             сортировка в нижнем доке). Отдельная страница, а не 'homework': та

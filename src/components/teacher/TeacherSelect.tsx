@@ -197,6 +197,7 @@ export default function TeacherSelect({
           borderColor: open ? accent : restBorderColor,
         }}
       >
+        {current?.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}>{current.icon}</span>}
         {open && searchable ? (
           <input
             ref={inputRef}

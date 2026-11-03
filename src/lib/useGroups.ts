@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
-import { createSharedQuery, useSharedQuery } from './sharedQuery'
+import { createSharedQuery, readSharedQuery, useSharedQuery } from './sharedQuery'
+import { journalBatches, journalPages } from './journalRequests'
+import { pendingJournalRows, type PendingEvent, type PendingJournal } from './journalPending'
 import { parseStudentLimitError, studentLimitMessage } from './plan'
 import { t } from './i18n'
 import { subjectIcon, resolveSubjectPalette } from './subjects'
@@ -121,6 +123,11 @@ const groupsQuery = createSharedQuery<Group[]>(async () => {
     tracks: Array.isArray(g.tracks) ? g.tracks : [],
   }))
 }, [])
+
+export async function readTeacherRoster() {
+  const [groups, students] = await Promise.all([readSharedQuery(groupsQuery), readSharedQuery(allStudentsQuery)])
+  return { groups, students }
+}
 
 export function useGroups() {
   const { value: groups, loading } = useSharedQuery(groupsQuery)
@@ -889,21 +896,12 @@ export function useAttendance(groupId: string | null) {
   return { records, loading, saveLesson, reload: load }
 }
 
-export type PendingJournal = {
-  scheduleId: string
-  date: string        // 'YYYY-MM-DD'
-  title: string
-  timeStart: string
-  groupId: string | null
-  studentId: string | null
-  scopeName: string
-}
+export type { PendingJournal } from './journalPending'
 
 // "Журнал не заполнен" — a scheduled lesson whose start time + buffer has passed
 // but has no lesson_attendance rows yet. Pass a groupId to scope, or null for all
 // groups (drives the nav badge). Lessons become eligible HOURS_AFTER hours after
 // their start, so the teacher is nudged a bit after the lesson, not during it.
-const JOURNAL_GRACE_HOURS = 2
 
 // Отметил урок — красная точка в шапке должна погаснуть сразу. Бейдж живёт в
 // TeacherTopBar, журнал сохраняется страницей ниже по дереву; общего состояния у
@@ -913,101 +911,49 @@ export function bumpJournalPending() {
   for (const fn of journalSubs) fn()
 }
 
+// Header, its measurement layer and home cards share one pending-journal read.
+const pendingJournalsQuery = createSharedQuery<PendingJournal[]>(async () => {
+  const now = Date.now()
+  const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, local
+  const fromStr = new Date(now - 30 * 86_400_000).toLocaleDateString('en-CA')
+
+  const uid = await getOwnerId()
+  if (!uid) return []
+  const { groups: myGroups, students: myStudents } = await readTeacherRoster()
+  if (await getOwnerId() !== uid) throw new Error('Сессия изменилась')
+  const groupIds = myGroups.map(g => g.id)
+  const studentIds = myStudents.map(s => s.id)
+  if (!groupIds.length && !studentIds.length) return []
+  const scope: string[] = []
+  if (groupIds.length) scope.push(`group_id.in.(${groupIds.join(',')})`)
+  if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
+
+  const data = await journalPages<PendingEvent>(offset => supabase
+    .from('schedule_lessons')
+    .select('id, date, lesson_title, time_start, group_id, student_id, lesson_id, subject, node_type, groups(name), students(name, group_id)')
+    .neq('status', 'cancelled').gte('date', fromStr).lte('date', todayStr).or(scope.join(','))
+    .order('date', { ascending: false }).order('time_start', { ascending: false }).order('id').range(offset, offset + 499))
+  if (!data.length) return []
+
+  const [legacy, sessions] = await Promise.all([
+    journalBatches(studentIds, batch => journalPages<{ student_id: string; lesson_date: string; lesson_title: string | null; present: boolean | null }>(offset =>
+      supabase.from('lesson_attendance').select('student_id, lesson_date, lesson_title, present').gte('lesson_date', fromStr).in('student_id', batch)
+        .order('id').range(offset, offset + 499))),
+    journalBatches(data.map(row => row.id), batch => journalPages<{ schedule_id: string; attendance: unknown }>(offset =>
+      supabase.from('teacher_lesson_sessions').select('schedule_id, attendance').in('schedule_id', batch)
+        .order('schedule_id').range(offset, offset + 499))),
+  ])
+  if (await getOwnerId() !== uid) throw new Error('Сессия изменилась')
+  return pendingJournalRows(data, myStudents, legacy, sessions, now)
+}, [], { watch: reload => {
+  journalSubs.add(reload)
+  return () => { journalSubs.delete(reload) }
+} })
+
 export function useJournalPending(groupId: string | null, reloadKey = 0) {
-  const [pending, setPending] = useState<PendingJournal[]>([])
-  const [saveTick, setSaveTick] = useState(0)
-
-  useEffect(() => {
-    const fn = () => setSaveTick(v => v + 1)
-    journalSubs.add(fn)
-    return () => { journalSubs.delete(fn) }
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      const now = Date.now()
-      const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, local
-      const fromStr = new Date(now - 30 * 86_400_000).toLocaleDateString('en-CA')
-
-      let query = supabase
-        .from('schedule_lessons')
-        .select('id, date, lesson_title, time_start, group_id, student_id, lesson_id, subject, node_type, groups(name), students(name, group_id)')
-        .neq('status', 'cancelled')
-        .gte('date', fromStr)
-        .lte('date', todayStr)
-
-      if (groupId) {
-        const { data: studs } = await supabase.from('students').select('id').eq('group_id', groupId)
-        const studentIds = (studs ?? []).map((s: any) => s.id)
-        const scope = [`group_id.eq.${groupId}`]
-        if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
-        query = query.or(scope.join(','))
-      } else {
-        // No group filter (the nav badge): still scope to THIS teacher's own
-        // groups / students, otherwise a new teacher sees every teacher's lessons.
-        const uid = await getOwnerId()
-        if (!uid) { if (!cancelled) setPending([]); return }
-        const [{ data: myGroups }, { data: myStudents }] = await Promise.all([
-          supabase.from('groups').select('id').eq('created_by', uid),
-          supabase.from('students').select('id').eq('created_by', uid),
-        ])
-        const groupIds = (myGroups ?? []).map((g: any) => g.id)
-        const studentIds = (myStudents ?? []).map((s: any) => s.id)
-        if (!groupIds.length && !studentIds.length) { setPending([]); return }
-        const scope: string[] = []
-        if (groupIds.length) scope.push(`group_id.in.(${groupIds.join(',')})`)
-        if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
-        query = query.or(scope.join(','))
-      }
-
-      const { data } = await query.order('date', { ascending: false }).order('time_start', { ascending: false })
-      if (cancelled || !data) return
-
-      const [legacy, sessions, people] = await Promise.all([
-        supabase.from('lesson_attendance').select('student_id, lesson_date, lesson_title, present').gte('lesson_date', fromStr),
-        supabase.from('teacher_lesson_sessions').select('schedule_id, attendance'),
-        supabase.from('students').select('id, group_id'),
-      ])
-      if (cancelled || legacy.error || sessions.error || people.error) return
-      const byEvent = new Map((sessions.data ?? []).map(s => [s.schedule_id, s.attendance as Record<string, boolean | null>]))
-      const legacyMarks = new Map((legacy.data ?? []).map(a => [`${a.student_id}|${a.lesson_date}|${a.lesson_title ?? ''}`, a.present]))
-
-      const seen = new Set<string>()
-      const out: PendingJournal[] = []
-      for (const r of data as any[]) {
-        // Grace gate: only surface once the lesson has had time to finish.
-        const start = new Date(`${r.date}T${(r.time_start || '00:00')}:00`).getTime()
-        if (Number.isFinite(start) && start + JOURNAL_GRACE_HOURS * 3_600_000 > now) continue
-
-        const gid: string | null = r.group_id ?? r.students?.group_id ?? null
-        const roster = r.group_id ? (people.data ?? []).filter(p => p.group_id === r.group_id).map(p => p.id) : r.student_id ? [r.student_id] : []
-        const marks = byEvent.get(r.id)
-        // Legacy marks are ambiguous when the same title occurs twice that day.
-        const matchingTimes = new Set(data.filter(other => other.date === r.date && other.lesson_title === r.lesson_title
-          && other.group_id === r.group_id && other.student_id === r.student_id).map(other => JSON.stringify([other.time_start, other.lesson_id, other.subject, other.node_type])))
-        const filled = roster.length > 0 && roster.every(id => {
-          if (marks && Object.prototype.hasOwnProperty.call(marks, id)) return typeof marks[id] === 'boolean'
-          return matchingTimes.size === 1 && typeof legacyMarks.get(`${id}|${r.date}|${r.lesson_title ?? ''}`) === 'boolean'
-        })
-        if (filled) continue
-
-        // Each event gets its own reminder, including consecutive lessons.
-        const key = `${r.group_id ?? r.student_id}|${r.date}|${r.time_start}|${r.lesson_title}`
-        if (seen.has(key)) continue
-        seen.add(key)
-        out.push({
-          scheduleId: r.id, date: r.date, title: r.lesson_title ?? '', timeStart: r.time_start ?? '',
-          groupId: gid, studentId: r.student_id,
-          scopeName: r.groups?.name ?? r.students?.name ?? '',
-        })
-      }
-      setPending(out)
-    })()
-    return () => { cancelled = true }
-  }, [groupId, reloadKey, saveTick])
-
-  return pending
+  const { value: pending } = useSharedQuery(pendingJournalsQuery)
+  useEffect(() => { if (reloadKey) void pendingJournalsQuery.reload() }, [reloadKey])
+  return groupId ? pending.filter(row => row.groupId === groupId) : pending
 }
 
 /** Строка students в том минимуме, которого хватает, чтобы опознать человека. */
@@ -1095,8 +1041,12 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
   }))
 }, [])
 
+export function useAllStudentsSnapshot() {
+  return useSharedQuery(allStudentsQuery)
+}
+
 export function useAllStudents() {
-  return useSharedQuery(allStudentsQuery).value
+  return useAllStudentsSnapshot().value
 }
 
 /** Перечитать список учеников во всех местах сразу — после создания, перевода

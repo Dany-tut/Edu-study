@@ -427,9 +427,9 @@ function AnalogiesSection({ cfg, step, labels, onComplete }: SectionProps<Analog
       </div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>
-          <span>{m.a}</span><span style={{ color: ACC }}>→</span><span>{m.b}</span>
+          <span>{m.a}</span><span data-loop-content style={{ color: ACC }}>→</span><span>{m.b}</span>
           <span style={{ color: 'var(--color-text-3)', margin: '0 6px', fontWeight: 500 }}>{t('как')}</span>
-          <span>{m.c}</span><span style={{ color: ACC }}>→</span><span style={{ color: ACC, fontWeight: 800 }}>?</span>
+          <span>{m.c}</span><span data-loop-content style={{ color: ACC }}>→</span><span style={{ color: ACC, fontWeight: 800 }}>?</span>
         </div>
       </Card>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

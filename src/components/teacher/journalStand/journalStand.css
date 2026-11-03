@@ -147,6 +147,10 @@
 .js-matrix thead th:first-child { z-index: 3; }
 .js-matrix .js-grid-gutter { padding: 0; }
 .js-head-slots { display: grid; grid-template: 14px 30px 15px / minmax(0, 1fr); row-gap: 3px; }
+/* Keep every column in the table and accessibility tree, while the browser
+   skips layout/paint of content far outside this two-axis viewport. The grid
+   tracks already fix header height at 65px, so scrolling cannot change it. */
+.js-head-slots { content-visibility: auto; contain-intrinsic-block-size: auto 65px; }
 .js-col-meta, .js-col-source { color: var(--color-text-3); font-size: 10px; font-weight: 450; line-height: 14px; }
 .js-col-meta { grid-row: 1; }
 .js-col-source { grid-row: 3; }
@@ -168,6 +172,7 @@
 .js-name > span:last-child { white-space: nowrap; text-overflow: clip; overflow: hidden; --iskra-text-fade-lines: 1; }
 .js-name .cj-avatar, .js-pill .cj-avatar { width: 28px; height: 28px; }
 .js-cell { display: grid; grid-template: var(--cell-tracks) / minmax(0, 1fr); align-content: center; align-items: center; justify-items: start; gap: 2px; padding: 4px 8px; height: var(--cell-height); }
+.js-cell { content-visibility: auto; contain-intrinsic-block-size: auto var(--cell-height); }
 .js-cell > .cj-badge { grid-row: 1; }
 .js-cell > small { grid-row: 2; }
 .js-cell > .js-source { grid-row: 3; }
@@ -434,6 +439,11 @@
   .js-example-label { margin-inline: 8px; font-size: 10px; }
 }
 
+/* Empty stretches still occupy their exact columns; their dash remains visible
+   when scrolling a long course matrix. Assigned cells are never collapsed. */
+.js-unassigned-run { text-align: left; }
+.js-unassigned-run > .js-stat-value { position: sticky; left: calc(var(--student-col) + 12px); width: 16px; }
+
 /* Mobile journal controls retain readable inputs and finger-sized targets. */
 @media(max-width:650px) {
   .js-toolbar .js-search input,.js-scope select { font-size:16px; }
@@ -446,9 +456,9 @@
 }
 
 @media(max-width:650px) {
-.journal-person-dialog { max-width:calc(100vw - 24px); }
-.journal-person-dialog input,.journal-person-dialog select { font-size:16px!important; min-height:44px; }
-.journal-person-dialog button { min-height:44px; }
+  .journal-person-dialog { max-width:calc(100vw - 24px); }
+  .journal-person-dialog input,.journal-person-dialog select { font-size:16px!important; min-height:44px; }
+  .journal-person-dialog button { min-height:44px; }
 }
 
 /* The roster uses one compact row for scope, status and student actions. */

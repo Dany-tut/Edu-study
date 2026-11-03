@@ -1,4 +1,5 @@
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
+import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
 import { LoopActionLabel } from '../icons/LoopIcon'
 import { ArrowRight as LoopActionArrow } from '../icons/appIcons'
 import { LoopTextIcon } from '../icons/LoopIcon'
@@ -689,7 +690,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
         {mobile
           ? <span style={{ flex: 1 }} />
-          : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>}
+          : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>}
         <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
           <AlertTriangle size={12} />{reported ? t('Отправлено') : t('Ошибка')}
         </button>

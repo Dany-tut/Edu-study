@@ -162,7 +162,7 @@ function WordRow({ word, root, lang, accent, tone, reading }: {
             а не опечатка, и молчать о нём нельзя (두음법칙 и прочее). */}
         {word.alt && (
           <div style={{ fontSize: 12, color: 'var(--color-muted)', ...proseWrap }}>
-            {root.ko} {'→'} {word.alt} {t('— корень звучит здесь иначе')}
+            {root.ko} <span data-loop-content>→</span> {word.alt} {t('— корень звучит здесь иначе')}
           </div>
         )}
       </div>

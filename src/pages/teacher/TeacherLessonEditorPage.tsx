@@ -1,4 +1,5 @@
 import { textFadeStyle } from '../../lib/textFades'
+import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
@@ -585,6 +586,7 @@ function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
     return {
       name: g?.name ?? tGlobal('Группа'),
       sub: g ? `${g.level} · ${tc(g.subject)}` : '',
+      subject: g?.subject,
       icon: g?.icon ?? '👥',
       initials: '',
       color: 'var(--color-green-text)',
@@ -596,6 +598,7 @@ function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
   return {
     name: s ? tn(s.name) : tGlobal('Студент'),
     sub: g?.name ?? '',
+    subject: g?.subject,
     icon: '',
     initials,
     color: 'var(--color-green-text)',
@@ -669,7 +672,7 @@ function AudiencePicker({
                   fontSize: r.kind === 'group' ? 11 : 10, fontWeight: 800,
                   color: '#fff',
                 }}>
-                  {r.kind === 'group' ? <span>{d.icon}</span> : d.initials}
+                  {r.kind === 'group' ? <SubjectMark subject={d.subject} size={14} /> : d.initials}
                 </div>
                 <span style={{
                   fontSize: 12, fontWeight: 600,
@@ -760,7 +763,7 @@ function AudiencePicker({
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
-                          {g.icon}
+                          <SubjectMark subject={g.subject} size={16} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{g.name}</div>

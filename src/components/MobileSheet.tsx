@@ -1,8 +1,7 @@
 import FadeText from './FadeText'
 import { useEffect, useRef, useId } from 'react'
-import { X } from './icons/appIcons'
 import { useT } from '../lib/i18n'
-import './mobileInteraction.css'
+import { X } from './icons/appIcons'
 import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { createPortal } from 'react-dom'
@@ -82,7 +81,7 @@ export default function MobileSheet({
     if (!open) return
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const isTop = () => {
-      const sheets = document.querySelectorAll('[role="dialog"][aria-modal="true"]')
+      const sheets = document.querySelectorAll('.mobile-sheet')
       return sheets[sheets.length - 1] === sheetRef.current
     }
     const frame = requestAnimationFrame(() => {
@@ -305,7 +304,7 @@ export default function MobileSheet({
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)' }} />
               </div>
               {title && (
-                <div id={titleId} style={{ padding: '4px 60px 14px', textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
+                <div style={{ padding: '4px 20px 10px', textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
                   <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{title}</FadeText>
                 </div>
               )}

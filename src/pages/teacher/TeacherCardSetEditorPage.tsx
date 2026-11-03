@@ -155,7 +155,7 @@ export default function TeacherCardSetEditorPage() {
           {editedSet && isShelf(group) && (
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setFocus(null)}
-              style={{ ...headBtn, color: 'var(--color-text-2)' }}
+              style={{ ...headBtn, boxShadow: 'none', color: 'var(--color-text-2)' }}
             >
               <ChevronLeft size={16} strokeWidth={2} /> {t('Полка')}
             </motion.button>

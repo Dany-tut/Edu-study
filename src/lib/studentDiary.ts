@@ -1,3 +1,4 @@
+import { homeworkTimeLocked } from './homeworkAccess'
 import type { Lesson, Subject } from '../data/mockData'
 import type { ProgressMap } from './db'
 import { getTrackLessonStatus, type TrackLessonStatus } from './lessonStatus'
@@ -22,6 +23,8 @@ export type StudentDiaryEntry = {
   suffix?: string
   due: string | null
   status: TrackLessonStatus
+  /** An assignment from the hard-task bank can exist without a basic homework. */
+  hardOnly?: boolean
 }
 export function diaryDay(value: unknown): string | null {
   if (typeof value !== 'string') return null
@@ -57,7 +60,7 @@ export function buildStudentDiary(
     for (const [moduleOrder, module] of course.modules.entries()) {
       if (isCourseModuleLocked(course, moduleOrder)) continue
       for (const lesson of module.lessons) {
-        if (lesson.status === 'locked') continue
+        if (lesson.status === 'locked' || homeworkTimeLocked(lesson, now)) continue
         const base = lesson.id.replace(/~rec$/, '')
         const info =
           metadata.get(base) ?? (!lesson.heavyPending ? metadataFromHomework(lesson.homework) : null)
@@ -76,6 +79,7 @@ export function buildStudentDiary(
             moduleOrder,
             due: recording ? (info?.recordingDate ?? null) : (info?.mainDate ?? null),
             status: visual,
+            hardOnly: !recording && info?.hasMain === false && lesson.kind !== 'test' && !!lesson.bankHard?.length,
           })
         if (recording) continue
         for (const extra of info?.extras ?? []) {

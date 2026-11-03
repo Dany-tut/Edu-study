@@ -7,11 +7,11 @@ export default function WidgetStudentGroups() {
   const t = useT()
   const { groups, loading } = useGroups()
   return (
-    <MiniStatCard
+    <MiniStatCard widgetId="student-groups"
       loading={loading}
       icon={Layers} label={t('Групп')}
       value={groups.length}
-      sub={t('активных')}
+      sub={t('Групп')}
       accentBg="var(--color-purple-soft)" accentColor="var(--color-accent)"
     />
   )

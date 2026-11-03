@@ -74,6 +74,11 @@ jobs:
       - name: Зависимости
         run: npm ci
 
+      # Manual dispatch or an explicit release marker validates the candidate remotely.
+      - name: Проверка кандидата выпуска
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release-check]')
+        run: npm run release:check
+
       - name: Связка трека и календаря
         run: npm run check:course-track && npm run check:schedule && npm run check:attendance
 
@@ -82,11 +87,17 @@ jobs:
         continue-on-error: true
         run: npx tsc --noEmit
 
+      - name: Главная ученика (check:student-home)
+        run: npm run check:student-home
+
       # ── Сторожа содержания ────────────────────────────────────────────────
       #
       # Порядок — от быстрых к медленным, чтобы дешёвая поломка всплывала в
       # логе раньше. Четыре последних гоняются через esbuild (они импортируют
       # исходники приложения), поэтому идут в конце.
+
+      - name: Виды дневника (check:diary-views)
+        run: npm run check:diary-views && npm run check:student-journal
 
       - name: Словарь слов (check:gloss)
         id: gloss
@@ -97,6 +108,12 @@ jobs:
         id: i18n
         continue-on-error: true
         run: npm run check:i18n
+
+      - name: Полнота и параллельная загрузка журнала
+        run: npm run check:journal-loading && npm run check:journal-summary
+
+      - name: Изоляция личного учебного примера
+        run: node scripts/checkPersonalStudentDemo.mjs
 
       - name: Просмотр кабинета преподавателя (check:teacher-view)
         run: npm run check:teacher-view
@@ -134,7 +151,7 @@ jobs:
       - name: Стандарт урока (check:lesson)
         id: lesson
         continue-on-error: true
-        run: npm run check:lesson
+        run: npm run check:lesson && npm run check:video-access
 
       - name: Позиции верных ответов (check:choicepos)
         id: choicepos
@@ -153,6 +170,12 @@ jobs:
         id: courseaccess
         continue-on-error: true
         run: npm run check:course-access
+
+      - name: Границы и покрытие иконок Loop
+        run: npm run icons:check
+
+      - name: Правила интерфейса (check:ui)
+        run: npm run check:ui
 
       - name: Сборка
         id: build

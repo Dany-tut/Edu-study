@@ -124,4 +124,3 @@ export async function loadWork(admin: SupabaseClient, gradeId: string): Promise<
     images,
   }
 }
-

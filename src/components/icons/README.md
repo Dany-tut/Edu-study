@@ -30,7 +30,10 @@ diagrams, brand logos and animation artwork retain their own drawing.
 - Preserve curves, asymmetry and the small warm details on utility icons.
 - Main strokes inherit `currentColor`, preserving white button glyphs,
   destructive actions and subject/status colors. Semantic neutral/accent icons
-  use `--loop-ink`. Details and fills use `--loop-detail` / `--loop-soft`.
+  use `--loop-ink`. Small details use `--loop-detail`. Closed interiors use `--loop-soft`, which
+  is transparent in both themes and defaults to `none` even outside the app.
+  Explicit `fill` or `style.fill` reaches the closed body for selected stars,
+  hearts and media controls; never paint an interior white to imitate its surface.
   All three tokens have dark-theme values in `index.css`.
 - The SVG remains decorative by default. Label the button/link that owns its
   action. A standalone SVG with `aria-label` / `aria-labelledby` is exposed to
@@ -70,3 +73,25 @@ node scripts/buildLoopNativeIcons.mjs --renderer=/tmp/iskra-loop-renderer/node_m
 npm run build
 npx cap copy ios
 ```
+
+## UI audit guard
+
+`icons:check` also runs `scripts/checkLoopUi.mjs`; `check:ui` invokes it in CI
+and release preflight. The AST guard rejects CSS-embedded SVG controls, raw
+subject emoji, emoji-bearing selector labels, text action arrows and literal
+status glyphs (including local aliases). Negative fixtures prove the audited
+bypasses are detected, while positive fixtures protect formulas and Loop adapters.
+
+Use `SubjectMark` for subject pictograms, the optional `TeacherSelect` icon slot
+for searchable labels, `LoopSelect` for native selects, and `LoopActionLabel` for
+translated forward/back actions. Preserve text-only labels for native menus.
+Instructional arrow notation can carry `data-loop-content`; it exempts only
+arrows, never status/subject emoji. Charts, branded logos, content illustrations,
+and DEV-only experimental stands remain outside this glyph guard. The guard
+is not an exhaustive visual audit or a type checker for arbitrary ReactNode slots.
+
+Stroked artwork stays inside the SVG viewport through `strokeWidth={3}`.
+Source glyphs that touched the edge have a proportional fit transform with
+a 0.5-unit safety margin. Keep SVG sources, `glyphs.json`, and the fit transforms
+in `generate.cjs` in sync. `npm run icons:check` rasterizes all 250 React drawings
+at stroke widths 1, 2, 2.5 and 3 to detect clipped ink, including composites.

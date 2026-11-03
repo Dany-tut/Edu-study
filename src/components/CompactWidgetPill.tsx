@@ -1,5 +1,6 @@
 import { textFadeLines } from '../lib/textFades'
-import { LoopTextIcon } from './icons/LoopIcon'
+import { SubjectMark } from './icons/SubjectMark'
+import { LoopTextIcon, LoopActionLabel } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -210,7 +211,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
     <PillContent
       avatar={
         <div style={{ width: '100%', height: '100%', background: 'var(--grad-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>
-          📊
+          <TrendingUp size={22} />
         </div>
       }
       kicker={t(META[0].kicker)}
@@ -786,7 +787,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             знак остановки, а сегодняшний итог остаётся рядом — в пилюле,
             подписанной словом «Пауза». */}
         <span style={{ fontSize: counting && started ? 11 : 15, fontWeight: 700, color: palette.text, position: 'relative', lineHeight: 1, display: 'flex', alignItems: 'center' }}>
-          {!started ? (def?.icon ?? '·')
+          {!started ? <SubjectMark subject={def?.id} size={18} />
             : counting ? formatShort(todayMs)
             : <PauseMark color={palette.text} />}
         </span>
@@ -882,7 +883,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {kind === 'bank' && (
               <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
                 style={{ flexShrink: 0, padding: '4px 8px', borderRadius: 999, border: 'none', background: `${accent}26`, color: palette.text, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-                {t('Подробнее →')}
+                <LoopActionLabel icon={ArrowRight} label={t('Подробнее →')} />
               </button>
             )}
           </div>
@@ -1198,10 +1199,11 @@ export default function CompactWidgetPill() {
   // язык из ссылки, запасной банк заданий, — и виджеты в шапке должны быть про
   // то, чем ученик занят прямо сейчас.
   const relevant = useWidgetRelevance(activePage === 'trainer' ? (trainerSubjectId || trainerSubject) : null)
-  const visibleOrder = rawOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
+  const compactOrder = rawOrder.filter(id => id !== 11) // The task list belongs to the home row.
+  const visibleOrder = compactOrder.filter(id => !hiddenWidgets.includes(id) && relevant(id))
   // Если фильтры выели всё (данные ещё не приехали, чужие id в настройках) —
   // показываем исходный порядок: пустая шапка хуже неточной.
-  const widgetOrder = visibleOrder.length > 0 ? visibleOrder : rawOrder
+  const widgetOrder = visibleOrder.length > 0 ? visibleOrder : compactOrder.length > 0 ? compactOrder : [0]
   // Волна под виджетом тренажёра красится предметом, а не вечным зелёным:
   // полоска шире самого виджета и на корейском была главным чужим пятном.
   const { dark: darkTheme } = useTheme()

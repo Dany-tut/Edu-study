@@ -1,4 +1,6 @@
 import { textFadeStyle } from '../../lib/textFades'
+import { ArrowUp as LoopUiArrowUp, ArrowDown as LoopUiArrowDown } from '../icons/appIcons'
+import { SubjectMark } from '../icons/SubjectMark'
 // ─────────────────────────────────────────────────────────────────────────────
 // Наборы карточек — вкладка Конструктора
 //
@@ -71,7 +73,7 @@ const LANG_OPTIONS = SUBJECTS
   // значением (React ругался на дублирующийся ключ), а подпись у обеих бралась
   // от последней. Первый выигрывает — это сам язык.
   .filter((s, i, all) => all.findIndex(x => x.langCode === s.langCode) === i)
-  .map(s => ({ value: s.langCode!, label: `${s.icon}${ICON_GAP}${s.name}`, subject: s.id }))
+  .map(s => ({ value: s.langCode!, label: s.name, icon: <SubjectMark subject={s.id} size={14} />, subject: s.id }))
 
 /**
  * Предметы для поля набора — ВСЕ, а не только языковые.
@@ -158,7 +160,7 @@ const langLabelOf = (lang: string) => LANG_OPTIONS.find(o => o.value === lang)?.
  */
 const scopeLabelOf = (g: { subject?: string | null; lang: string }) => {
   const s = g.subject ? SUBJECTS.find(x => x.id === g.subject) : undefined
-  return s ? `${s.icon}${ICON_GAP}${s.name}` : langLabelOf(g.lang)
+  return s ? s.name : langLabelOf(g.lang)
 }
 const subjectOf = (lang: string) => LANG_OPTIONS.find(o => o.value === lang)?.subject ?? null
 
@@ -1005,7 +1007,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
               }}
               style={ghost}
               title={t('Выше')}
-            >↑</button>
+            ><LoopUiArrowUp size={14}/></button>
             <button
               onClick={() => {
                 if (i === group.sets.length - 1) return
@@ -1015,7 +1017,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
               }}
               style={ghost}
               title={t('Ниже')}
-            >↓</button>
+            ><LoopUiArrowDown size={14}/></button>
             <Tooltip label={t('Удалить набор')}><button
               onClick={() => setSets(group.sets.filter((_, j) => j !== i))}
               style={{ ...ghost, color: 'var(--color-red-text)' }}
@@ -1103,7 +1105,7 @@ function ScopeFields({ group, patch, studentOptions, stacked = false }: {
         <Field label={t('Предмет')}>
           <TeacherSelect
             value={group.subject ?? ''}
-            options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [group.subject]).map(s => ({ value: s.id, label: `${s.icon}${ICON_GAP}${s.name}` }))}
+            options={teacherSubjectDefs(useTeacherAccess.getState().subjects, [group.subject]).map(s => ({ value: s.id, label: s.name, icon: <SubjectMark subject={s.id} size={14} /> }))}
             onChange={v => patch({ subject: v, lang: langOfSubject(v) })}
             clearable={false}
           />

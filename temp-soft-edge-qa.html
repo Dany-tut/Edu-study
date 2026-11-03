@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="root"></div><script type="module">
+import React from '/node_modules/.vite/deps/react.js';
+import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
+const {createRoot}=ReactDOM;
+import ScrollFade from '/src/components/ScrollFade.tsx';
+import HScrollFade from '/src/components/HScrollFade.tsx';
+import '/src/index.css';
+const h=React.createElement;
+createRoot(document.getElementById('root')).render(h('main',{style:{maxWidth:390,margin:'30px auto',padding:16,color:'var(--color-text)'}},h('h1',null,'Искра · soft edge'),h('section',{'data-testid':'vertical',style:{background:'var(--color-bg-2)',borderRadius:24,padding:16}},h(ScrollFade,{maxHeight:260},...Array.from({length:18},(_,i)=>h('p',{key:i,style:{padding:'14px 0'}},'Строка '+(i+1)))),h('button',{style:{padding:16}},'Действие')),h('section',{'data-testid':'horizontal',style:{marginTop:30}},h(HScrollFade,null,...Array.from({length:12},(_,i)=>h('span',{key:i,style:{flexShrink:0,padding:16,background:'var(--color-purple-soft)'}},'Фильтр '+(i+1)))))));
+</script></body></html>

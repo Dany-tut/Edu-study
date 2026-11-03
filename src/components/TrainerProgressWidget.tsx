@@ -1,3 +1,5 @@
+import { LoopActionLabel } from './icons/LoopIcon'
+import { ArrowRight as LoopActionArrow } from './icons/appIcons'
 import { LoopTextIcon } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { motion } from 'framer-motion'
@@ -85,7 +87,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
             onClick={() => setOpenModal(true)}
             style={{ fontSize: 11, fontWeight: 600, color: palette.text, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            {t('Детали →')}
+            <LoopActionLabel icon={LoopActionArrow} label={t('Детали →')} />
           </button>
         )}
       </div>

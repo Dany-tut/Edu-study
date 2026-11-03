@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { LoopActionLabel } from '../components/icons/LoopIcon'
+import { ArrowLeft as LoopBackArrow } from '../components/icons/appIcons'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from '../components/icons/appIcons'
 import { supabase } from '../lib/supabase'
@@ -24,13 +26,20 @@ const inputStyle: React.CSSProperties = {
   WebkitTextFillColor: 'var(--color-text)',
 }
 
-export default function StudentLoginPage() {
+export default function StudentLoginPage({ recovery = false, linkExpired = false, onRecoveryComplete }: { recovery?: boolean; linkExpired?: boolean; onRecoveryComplete?: () => void }) {
   const t = useT()
+  const [mode, setMode] = useState<'login' | 'reset' | 'sent' | 'newpassword'>(recovery ? 'newpassword' : linkExpired ? 'reset' : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(linkExpired ? t('Ссылка устарела или уже использована. Запросите новую.') : '')
+  const [notice, setNotice] = useState('')
+
+  useEffect(() => {
+    if (mode !== 'newpassword') return
+    supabase.auth.getUser().then(({ data }) => { if (data.user?.email) setEmail(data.user.email) })
+  }, [mode])
 
   async function handleLogin() {
     if (!email.trim() || !password) return
@@ -95,6 +104,37 @@ export default function StudentLoginPage() {
     setError(t(authErrorRu(authErr, 'Неверный email или пароль')))
   }
 
+  async function handleSubmit() {
+    if (mode === 'login') return handleLogin()
+    if (mode === 'reset') {
+      if (!email.trim()) return
+      setLoading(true); setError(''); setNotice('')
+      try {
+        localStorage.setItem('iskra:password-recovery-role', 'student')
+        const redirectTo = `${window.location.origin}${window.location.pathname}`
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo })
+        if (resetError) throw resetError
+        setMode('sent')
+      } catch (err: any) { setError(t(authErrorRu(err))) }
+      finally { setLoading(false) }
+      return
+    }
+    if (mode === 'newpassword') {
+      if (password.length < 6) { setError(t('Пароль должен быть не менее 6 символов')); return }
+      setLoading(true); setError(''); setNotice('')
+      try {
+        const { error: updateError } = await supabase.auth.updateUser({ password })
+        if (updateError) throw updateError
+        await supabase.auth.signOut()
+        localStorage.removeItem('iskra:password-recovery-role')
+        clearStudentSession()
+        setPassword(''); setNotice(t('Пароль обновлён. Теперь войдите с новым паролем.')); setMode('login')
+        onRecoveryComplete?.()
+      } catch (err: any) { setError(t(authErrorRu(err))) }
+      finally { setLoading(false) }
+    }
+  }
+
   return (
     <div style={{
       minHeight: '100dvh', background: 'var(--color-bg)',
@@ -111,12 +151,16 @@ export default function StudentLoginPage() {
         }}
       >
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{t('Вход в кабинет')}</div>
-          <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{t('Введите email и пароль')}</div>
+          <div style={{ textAlign: 'center', marginBottom: 18 }}><img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'quiz'}.png`} alt="" aria-hidden="true" width={96} height={96} draggable={false} style={{ width: 96, height: 96, objectFit: 'contain' }} /></div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{mode === 'sent' ? t('Проверьте почту') : mode === 'reset' ? t('Восстановить пароль') : mode === 'newpassword' ? t('Новый пароль') : t('Вход в кабинет')}</div>
+          <div style={{ fontSize: 14, lineHeight: 1.45, color: 'var(--color-muted)', marginTop: 4 }}>{mode === 'login' ? t('Введите email и пароль') : mode === 'reset' ? t('Отправим ссылку для смены пароля') : mode === 'sent' ? t('Мы отправили ссылку для смены пароля.') : t('Придумайте пароль не короче 6 символов')}</div>
         </div>
 
-        <form
-          onSubmit={e => { e.preventDefault(); void handleLogin() }}
+        {mode === 'sent' ? <div style={{ textAlign: 'center' }}>
+          <button type="button" onClick={() => setMode('login')} style={{ height: 48, width: '100%', border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t('Вернуться ко входу')}</button>
+          <p style={{ margin: '16px 0 0', color: 'var(--color-muted)', fontSize: 12 }}>{t('Если письма нет, проверьте папку «Спам».')}</p>
+        </div> : <form
+          onSubmit={e => { e.preventDefault(); void handleSubmit() }}
           style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
         >
           <input className="auth-input"
@@ -127,6 +171,7 @@ export default function StudentLoginPage() {
             autoCorrect="off"
             spellCheck={false}
             autoComplete="username"
+            readOnly={mode === 'newpassword'}
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="Email"
@@ -134,7 +179,7 @@ export default function StudentLoginPage() {
             style={inputStyle}
             autoFocus
           />
-          <div style={{ position: 'relative' }}>
+          {mode !== 'reset' && <div style={{ position: 'relative' }}>
             <input className="auth-input"
               // Keep a real password input so Safari Password AutoFill can fill
               // the saved credential into this form.
@@ -143,10 +188,10 @@ export default function StudentLoginPage() {
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              autoComplete="current-password"
+              autoComplete={mode === 'newpassword' ? 'new-password' : 'current-password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder={t('Пароль')}
+              placeholder={mode === 'newpassword' ? t('Новый пароль') : t('Пароль')}
               aria-label={t('Пароль')}
               style={{ ...inputStyle, paddingRight: 44 }}
             />
@@ -165,34 +210,36 @@ export default function StudentLoginPage() {
             >
               {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
             </button>
-          </div>
+          </div>}
+          {mode === 'login' && <button type="button" onClick={() => { setMode('reset'); setError(''); setNotice('') }} style={{ alignSelf: 'flex-end', padding: 0, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
           <button
             type="submit"
-            disabled={!email.trim() || !password || loading}
+            disabled={loading || (mode !== 'newpassword' && !email.trim()) || (mode === 'login' && !password) || (mode === 'newpassword' && !password)}
             style={{ height: 48,
               marginTop: 8, width: '100%', padding: '0 22px',
-              background: 'var(--grad-purple)', opacity: email.trim() && password ? 1 : 0.45,
+              background: 'var(--grad-purple)', opacity: loading ? 0.55 : 1,
               color: '#fff', fontWeight: 700, fontSize: 15,
               border: 'none', borderRadius: 14,
-              cursor: email.trim() && password ? 'pointer' : 'not-allowed',
+              cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
-            {loading ? t('Вход...') : t('Войти')}
+            {loading ? t('Загрузка...') : mode === 'reset' ? t('Отправить письмо') : mode === 'newpassword' ? t('Сохранить пароль') : t('Войти')}
           </button>
-        </form>
+          {mode === 'reset' && <button type="button" onClick={() => { setMode('login'); setError('') }} style={{ border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
+        </form>}
 
-        <SocialLoginButtons role="student" />
+        {mode === 'login' && <SocialLoginButtons role="student" />}
+
+        {notice && <Alert tone="info" text={notice} style={{ marginTop: 12 }} />}
 
         {error && (
           <Alert tone="danger" text={error} style={{ marginTop: 12 }} />
         )}
 
-        <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
-          {t('Если забыли пароль — обратитесь к учителю')}
-        </div>
+        {mode === 'login' && <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Если забыли пароль — обратитесь к учителю')}</div>}
         {Capacitor.isNativePlatform() && (
           <button type="button" onClick={() => { window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
-            {t('← Выбрать роль')}
+            <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
           </button>
         )}
       </motion.div>

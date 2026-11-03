@@ -1,3 +1,4 @@
+import { Check, X } from './icons/appIcons'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -50,7 +51,7 @@ function FlightChip({
   const bg = correct
     ? 'var(--grad-green)'
     : 'var(--grad-red)'
-  const label = correct ? '✓' : '✗'
+  const ResultIcon = correct ? Check : X
   const to = toRef.current
 
   return (
@@ -95,7 +96,7 @@ function FlightChip({
         lineHeight: 1,
       }}
     >
-      {label}
+      <ResultIcon size={18} />
       {/* Question number badge */}
       <div style={{
         position: 'absolute',

@@ -228,7 +228,7 @@ export default function MobileTeacherReview({ onDetailChange }: { onDetailChange
               {t('ДОМАШНИЕ ЗАДАНИЯ')}
             </div>
             {pendingHw.map(h => (
-              <button type="button" key={h.id} onClick={() => { tactile(); setSelectedHomework(h) }} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+              <button type="button" key={h.id} onClick={() => { tactile(); setSelectedHomework(h) }} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
                 <ImageIcon size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{tc(h.title)}</FadeText>

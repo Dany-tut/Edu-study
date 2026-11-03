@@ -1,3 +1,4 @@
+import { Minus as LoopUiMinus, X as LoopUiX } from '../icons/appIcons'
 /**
  * «ИИ предложил N баллов» на экране проверки ДЗ.
  *
@@ -25,7 +26,7 @@ import { useT } from '../../lib/i18n'
 import { Alert } from '../Alert'
 import { homeworkAiIssue } from '../../lib/homeworkAiState'
 
-const MARK: Record<AiGradeElement['verdict'], string> = { yes: '✓', partial: '½', no: '✗' }
+const MARK: Record<AiGradeElement['verdict'], React.ReactNode> = { yes: <Check size={12} />, partial: <LoopUiMinus size={12} />, no: <LoopUiX size={12} /> }
 
 function pointsWord(n: number, t: (s: string) => string): string {
   const d = n % 10, dd = n % 100
@@ -140,7 +141,7 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit, onRet
                     <span style={{
                       flexShrink: 0, width: 16, textAlign: 'center', fontWeight: 700,
                       color: e.counted ? 'var(--color-green-text)' : e.verdict === 'no' ? 'var(--color-red-text)' : 'var(--color-amber-text)',
-                    }}>{e.counted ? '✓' : MARK[e.verdict]}</span>
+                    }}>{e.counted ? <Check size={12} /> : MARK[e.verdict]}</span>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ color: 'var(--color-text)' }}>{e.text}</div>
                       {e.quote && (

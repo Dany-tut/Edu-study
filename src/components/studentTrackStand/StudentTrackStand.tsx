@@ -18,10 +18,6 @@ import { setSeasonChoice, setSeasonPreview, useSeason, VARIANTS, type SeasonVari
 import { useScrollFades } from '../../lib/useScrollFades'
 import './studentTrackStand.css'
 
-// This route is development-only. Seed the existing local season preview before
-// its first subscription; choosing a theme never changes the school's season.
-if (import.meta.env.DEV) localStorage.setItem('season.dev', 'candy')
-
 function initialScenario(): Scenario {
   const value = new URLSearchParams(location.search).get('scenario')
   return SCENARIOS.find(([id]) => id === value)?.[0] ?? 'debts'
@@ -51,7 +47,7 @@ export default function StudentTrackStand() {
     const value = new URLSearchParams(location.search).get('season')
     return VARIANTS.find(item => item.key === value)?.key ?? 'off'
   })
-  useEffect(() => { setSeasonPreview(true); setSeasonChoice(theme) }, [theme])
+  useEffect(() => { setSeasonPreview(true, false); setSeasonChoice(theme, false) }, [theme])
   function chooseTheme(value: SeasonVariant | 'off') {
     setTheme(value)
     const url = new URL(location.href)
@@ -138,7 +134,7 @@ export default function StudentTrackStand() {
     <div className="st-season-decor" aria-hidden><SeasonHero /></div>
     <SeasonCornerPumpkin />
     <header className="sw-home-header st-header">
-      <label className="st-scenario"><span>Локальный стенд · Искра</span><select aria-label="Сценарий трека" value={scenario} onChange={e=>chooseScenario(e.target.value as Scenario)}>{SCENARIOS.map(([id,label])=><option value={id} key={id}>{label}</option>)}</select></label>
+      <label className="st-scenario"><span>Демо главной · Искра</span><select aria-label="Сценарий трека" value={scenario} onChange={e=>chooseScenario(e.target.value as Scenario)}>{SCENARIOS.map(([id,label])=><option value={id} key={id}>{label}</option>)}</select></label>
       <nav className="sw-home-nav" aria-label="Главная Искры"><span className="st-person"><span>М</span>Митя</span><button type="button" className="is-current" onClick={()=>{setListScope(null);setSelected(null)}}><TaskliIcon name="home" size={17}/>Главная</button><button type="button" onClick={()=>openList('all')}><TaskliIcon name="courses" size={17}/>Мои работы</button></nav>
       <div className="sw-home-tools"><select className="st-theme-select" aria-label="Оформление главной" value={theme} onChange={e=>chooseTheme(e.target.value as SeasonVariant | 'off')}><option value="off">Без праздника</option>{VARIANTS.map(item=><option key={item.key} value={item.key}>{item.title}</option>)}</select><button className="sw-icon-button" type="button" aria-label="Сбросить пример" onClick={()=>chooseScenario(scenario)}><RotateCcw size={17}/></button><button className="sw-icon-button" type="button" aria-label="Сменить тему" onClick={toggle}>{dark?<Sun size={18}/>:<Moon size={18}/>}</button><button className="sw-icon-button" type="button" aria-label="Все задолженности" onClick={()=>openList('all','overdue')}><TaskliIcon name="notification" size={18}/>{overdue.length>0&&<span>{overdue.length}</span>}</button></div>
     </header>
@@ -151,7 +147,7 @@ export default function StudentTrackStand() {
       <section className="st-course" aria-label="Трек курса">
         <div className="st-course-bar"><CourseSelect subjects={examples.map(item => item.subject)} activeId={subject.id} onSelect={chooseCourse}/><div ref={moduleRef} className="st-module-scroll"><ModuleChain subject={subject} activeId={moduleId} onSelect={chooseModule} debtCounts={counts} onOpenDebts={id=>{chooseModule(id);openList(id,'overdue')}}/></div><span className="st-muted st-progress">{coursePct(subject)}% курса</span>{subject.modules.length>1&&moduleId!==example.activeModule&&<button className="sw-link" type="button" onClick={()=>chooseModule(example.activeModule)}>К текущему модулю →</button>}</div>
         <div ref={trackRef} tabIndex={0} aria-label="Занятия модуля" className={`st-track-scroll${visible.length > 15 ? " is-compact" : ""}`} style={{maskImage:`linear-gradient(to right, ${edges.left ? "transparent, black 24px" : "black 0%"}, ${edges.right ? "black calc(100% - 24px), transparent" : "black 100%"})`}}><div className="st-track" style={{gridTemplateColumns:`repeat(${visible.length}, minmax(${visible.length > 15 ? "72px" : "104px"}, 1fr))`, width: visible.length > 15 ? `${visible.length / 15 * 100}%` : undefined}}>{visible.map((lesson,i)=>{
-          const work=assignments.find(item=>item.lessonId===lesson.id);const late=work&&isHomeworkOverdue(work,TODAY);const status=getTrackLessonStatus(lesson);return <div className="st-track-step" data-current={lesson.id===focusId} key={lesson.id}><CourseNode lesson={lesson} status={lesson.id===focusId&&status==='current'?'today':status} index={i} assessmentOverride={assessments[lesson.id]} seasonMark={lesson.id===focusId} isSelected={lesson.id===selected} overdueLabel={late?'ДЗ просрочено · срок '+dateLabel(work.dueDate):undefined} onSelect={()=>setSelected(lesson.id)} onHardSelect={()=>setSelected(lesson.id)}/><span className="st-node-status" style={{color:late?'var(--color-red-text)':undefined}}>{late?'ДЗ просрочено':lessonStatusLabel(status,lesson.kind)}</span></div>
+          const work=assignments.find(item=>item.lessonId===lesson.id);const late=work&&isHomeworkOverdue(work,TODAY);const status=getTrackLessonStatus(lesson);return <div className="st-track-step" data-current={lesson.id===focusId} key={lesson.id}><CourseNode lesson={lesson} status={lesson.id===focusId&&status==='current'?'today':status} index={i} assessmentOverride={assessments[lesson.id]} seasonMark={lesson.id===focusId} isSelected={lesson.id===selected} onSelect={()=>setSelected(lesson.id)} onHardSelect={()=>setSelected(lesson.id)}/><span className="st-node-status">{lessonStatusLabel(status,lesson.kind)}</span></div>
         })}</div></div>
         <div className="st-track-caption"><span>Модуль {moduleId} · {module.label}</span><span className="st-track-hints">{edges.left&&<button type="button" onClick={()=>trackRef.current?.scrollBy({left:-trackRef.current.clientWidth*0.85,behavior:'smooth'})}>← Предыдущие занятия</button>}{edges.right&&<button type="button" onClick={()=>trackRef.current?.scrollBy({left:trackRef.current.clientWidth*0.85,behavior:'smooth'})}>Дальше есть ещё занятия →</button>}</span></div>
       </section>

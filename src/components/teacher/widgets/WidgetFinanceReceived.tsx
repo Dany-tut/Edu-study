@@ -7,7 +7,7 @@ export default function WidgetFinanceReceived() {
   const t = useT()
   const { received } = useFinanceSummary()
   return (
-    <MiniStatCard
+    <MiniStatCard widgetId="finance-received"
       icon={TrendingUp} label={t('Получено')}
       value={`${received.toLocaleString('ru-RU')} ₽`}
       sub={t('в этом месяце')}

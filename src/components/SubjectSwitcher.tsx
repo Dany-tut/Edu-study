@@ -1,5 +1,5 @@
-import { SubjectMark } from './icons/SubjectMark'
 import { textFadeStyle } from '../lib/textFades'
+import { SubjectMark } from './icons/SubjectMark'
 import { useEffect, useRef, useState } from 'react'
 import { ICON_GAP } from '../lib/subjects'
 import { ChevronDown, Check } from './icons/appIcons'
@@ -16,7 +16,7 @@ import { tc } from '../lib/i18n'
 
 export type Card = { id: string; groupId: string; subject: string; level: string; icon: string; color: string }
 
-export const subjectCardLabel = (c: Card) => `${c.icon}${ICON_GAP}${tc(c.subject)}${c.level ? ` · ${tc(c.level)}` : ''}`
+export const subjectCardLabel = (c: Card) => `${tc(c.subject)}${c.level ? ` · ${tc(c.level)}` : ''}`
 
 // Карточки человека + переход между ними. Хук, а не только компонент: оболочек
 // две — выпадашка в сайдбаре (десктоп) и шторка из шапки профиля (телефон), а

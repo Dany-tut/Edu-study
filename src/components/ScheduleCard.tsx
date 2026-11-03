@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { BookOpen } from './icons/appIcons'
+import { BookOpen, ChevronRight } from './icons/appIcons'
 import { LoopSvg } from './icons/LoopIcon'
 import { LoopArtworkVideo } from './icons/loopArtwork'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
@@ -129,6 +129,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
       style={{
         // Карточка — кнопка, а не текст: тап не должен подсвечивать надписи.
         userSelect: 'none', WebkitUserSelect: 'none',
+        pointerEvents: 'auto',
         width: mobile
           ? (isCenter ? (centerWidth ?? 300) : distance === 1 ? 84 : distance === 2 ? 60 : 44)
           : (isCenter ? 480 : distance === 1 ? 160 : distance === 2 ? 130 : 110),
@@ -152,7 +153,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
               <div className="schedule-empty">
                 {seasonEmpty ? <SeasonEmptyDay /> : (
                   <div className="schedule-empty__content">
-                    <img className="schedule-empty__art" src="/schedule-objects-v1/calendar.webp" alt="" width={120} height={120} draggable={false} />
+                    <img className="schedule-empty__art" src="/schedule-objects-v2-shadows/calendar.png" alt="" width={120} height={120} draggable={false} />
                     <div className="schedule-empty__copy">
                       <p className="schedule-empty__title">{t('Время для себя')}</p>
                       <p className="schedule-empty__subtitle">{t('Занятий нет — можно выдохнуть')}</p>
@@ -177,7 +178,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 const pal = isMissed
                   ? missedPalette
                   : lesson.subject === 'Биология'
-                  ? subjectTheme(lesson.subject)
+                  ? subjectTheme(lesson.subject, dark)
                   : { text: PURPLE.text, soft: PURPLE.soft, accent: PURPLE.text, onAccent: '#FFFFFF', ring: PURPLE.ring }
                 return (
                 <motion.div
@@ -211,7 +212,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5" style={{ marginBottom: 4 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: (isEmphasized || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {tc(lesson.subject)}
+                        {tc(lesson.subject)}{mobile ? ` · #${lesson.lessonNumber + 1}` : ''}
                       </span>
                       {st.phase !== 'today' && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
                       {isMissed && (
@@ -233,15 +234,15 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                     </div>
                     <FadeText className="schedule-lesson-title" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-                      {`${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
+                      {mobile ? tc(lesson.lessonTitle) : `${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
                     </FadeText>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
-                    <div style={{ minWidth: 54, textAlign: 'right' }}>
+                    {lesson.time && <div style={{ minWidth: 54, textAlign: 'right' }}>
                       <span style={{ fontSize: 18, fontWeight: 600, color: isMissed ? pal.text : 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums', textDecoration: isCancelled ? 'line-through' : undefined }}>{lesson.time}</span>
                       {lesson.endTime && <p style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('до')} {lesson.endTime}</p>}
-                    </div>
-                    <div aria-hidden="true" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    </div>}
+                    <div aria-hidden="true" className="schedule-row-media" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {!isCancelled && (st.phase === 'available' ? <BookOpen size={18} color={pal.text} /> : <LoopSvg
                         name="Video"
                         artwork={LoopArtworkVideo}
@@ -253,10 +254,10 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   </div>
                   {!isCancelled && (isCurrent || isUpcoming || st.hasEnded || st.phase === 'available') && (
                     <div style={{ flexBasis: '100%' }}>
-                      <button type="button" onClick={e => { e.stopPropagation(); openScheduledLesson(lesson) }} style={{
+                      <button type="button" aria-label={t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')} onClick={e => { e.stopPropagation(); openScheduledLesson(lesson) }} style={{
                         border: 'none', borderRadius: 10, padding: '7px 11px', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                         background: isCurrent ? pal.text : 'var(--color-bg-card)', color: isCurrent ? pal.onAccent : pal.text,
-                      }}>{t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')}</button>
+                      }}><span className="schedule-open-label">{t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')}</span>{mobile && <ChevronRight size={16} className="schedule-open-icon hidden" aria-hidden/>}</button>
                     </div>
                   )}
                 </motion.div>
@@ -270,7 +271,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             // scrolling is needed: the compact seasonal card cannot fit two rows.
             return (
                 <ScrollFade
-                  maxHeight="100%" fadeMode="mask" fadeHeight={22} scrollClassName="no-scrollbar"
+                  maxHeight="100%" fadeMode="mask" fadeHeight={mobile ? 10 : 22} scrollClassName="no-scrollbar"
                   style={{ flex: 1, minHeight: 0, marginInline: -8, marginBlock: -8 }}
                   scrollStyle={{ height: '100%', paddingInline: 8, paddingBlock: 8 }}
                 >
