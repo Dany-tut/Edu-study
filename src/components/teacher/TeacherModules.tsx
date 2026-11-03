@@ -220,7 +220,7 @@ export default function TeacherModules() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Claude</div>
             <div style={{ fontSize: 12, color: claudeGrants.length ? 'var(--color-green-text)' : 'var(--color-text-3)', marginTop: 2 }}>
-              {!claudeLoaded ? t('Проверяем подключение…') : claudeGrants.length ? `${t('Подключён к Искре')} · ${claudeGrants.length}` : t('Не подключён')}
+              {!claudeLoaded ? t('Проверяем подключение…') : claudeError ? t('Проверка подключения Claude пока недоступна.') : claudeGrants.length ? `${t('Подключён к Искре')} · ${claudeGrants.length}` : t('Не подключён')}
             </div>
           </div>
           <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', flexShrink: 0 }}>MCP</span>
@@ -230,7 +230,7 @@ export default function TeacherModules() {
           {t('Добавляйте курсы, уроки и тесты в Искру прямо из Claude. Доступ ограничен вашим аккаунтом преподавателя.')}
         </div>
 
-        {claudeGrants.length ? (
+        {!claudeLoaded || claudeError ? null : claudeGrants.length ? (
           <>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {[t('Ваши курсы'), t('Черновики курсов и уроков'), t('Тесты к черновым урокам')].map(s => (
@@ -250,7 +250,7 @@ export default function TeacherModules() {
             <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('После добавления подтвердите вход и доступ в окне Искры. Это можно отменить в любой момент.')}</div>
           </>
         )}
-        {claudeError && <Alert tone="danger" text={claudeError} />}
+
       </div>
     </div>
   )

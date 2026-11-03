@@ -31,6 +31,8 @@ export default function MobileTeacherApp() {
   const pendingJournal = useTeacher(s => s.pendingGradebookLessonId)
   useEffect(() => {
     if (teacherPage === 'gradebook' || pendingJournal) setTab('gradebook')
+    else if (teacherPage === 'profile-settings') setTab('profile')
+    else if (teacherPage === 'groups') setTab('students')
   }, [teacherPage, pendingJournal])
   const [dayDetailOpen, setDayDetailOpen] = useState(false)
   const [reviewDetailOpen, setReviewDetailOpen] = useState(false)
