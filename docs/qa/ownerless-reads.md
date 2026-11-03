@@ -7,6 +7,6 @@
 - Independent invariants: absent owner -> empty result and zero transport operations; teacher A/B -> only the selected teacher's filter. No assumption that this fixes the authentication failure itself.
 - Reproduction: node --experimental-vm-modules scripts/checkOwnerlessReads.mjs
 - Baseline: all four absent-owner cases fail; patched: all four pass including signed-in A/B scopes. Assertions unchanged across before/after.
-- UI controls/layout/motion/overflow: not changed or tested. Real browser, delayed responses during account changes, physical iPhone and released build acceptance remain untested.
+- The initial module-only result above is superseded for browser/device coverage by [PR29 acceptance](pr29-browser-phone-scenario.md). Product controls/layout are unchanged; released-build acceptance remains separate.
 - Coverage: only null-owner REST400 subcase. Mixed API error groups also include unrelated transport/auth/permission/slow responses; do not close a whole collector group with this patch.
 - Release: not authorized. No confirmed_fixed status; release check and exact released-SHA owner verification required later.
