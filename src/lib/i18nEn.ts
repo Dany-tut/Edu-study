@@ -573,6 +573,8 @@ export const EN: Record<string, string> = {
   'Свободная речь': 'Fluent speech',
   "— Сбросить": "— Reset",
   "Ничего не найдено": "Nothing found",
+  "Скопировать ник": "Copy nickname",
+  "Не удалось скопировать ник": "Could not copy nickname",
   "Скопировать номер": "Copy number",
   "Скопировано": "Copied",
   "линия": "line",

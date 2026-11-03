@@ -30,6 +30,7 @@ import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
 import { Alert } from '../../components/Alert'
 import TeacherModules from '../../components/teacher/TeacherModules'
 import TeacherLoginMethods from '../../components/teacher/TeacherLoginMethods'
+import { copyToClipboard } from '../../lib/clipboard'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
@@ -70,6 +71,16 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
   // Draft-backed: survives a page reload; cleared on successful save.
   const [name,     setName]     = usePersistentState('profile.name', '')
   const [avatarId, setAvatarId] = usePersistentState('profile.avatarId', 'flower')
+  const [copyResult, setCopyResult] = useState('')
+  useEffect(() => {
+    if (!copyResult) return
+    const timer = window.setTimeout(() => setCopyResult(''), 1800)
+    return () => window.clearTimeout(timer)
+  }, [copyResult])
+  async function copyName() {
+    const copied = await copyToClipboard(name)
+    setCopyResult(copied ? t('Скопировано') : t('Не удалось скопировать ник'))
+  }
   const nameInput = useRef<HTMLInputElement>(null)
   const [profileOwner, setProfileOwner] = useState<string | null>(null)
   const [email,    setEmail]    = useState('')
@@ -250,9 +261,13 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
         <header className="teacher-profile-header">
           <div className="teacher-profile-identity">
             <BackCircle onClick={() => setActivePage('home')} label="На главную" />
-            <div style={{ minWidth: 0 }}>
+            <div style={{ minWidth: 0, position: 'relative' }}>
               <h1>{t('Профиль')}</h1>
-              <FadeText className="teacher-profile-name">{name}</FadeText>
+              <button type="button" className="teacher-profile-name" disabled={!name.trim()}
+                aria-label={t('Скопировать ник') + ' ' + name} onClick={copyName}>
+                <FadeText>{name}</FadeText>
+              </button>
+              <span className="teacher-profile-copy-status" role="status">{copyResult}</span>
             </div>
           </div>
           <HScrollFade padX={2} padTop={3} padBottom={3} fadeWidth={22} style={{ minWidth: 0, maxWidth: '100%', justifySelf: 'center' }}>
