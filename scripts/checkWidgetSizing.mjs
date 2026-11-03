@@ -9,7 +9,7 @@ const result = await build({
 })
 mkdirSync('node_modules/.cache',{recursive:true})
 writeFileSync('node_modules/.cache/widget-sizing-check.mjs',result.outputFiles[0].text)
-const { metricObjects, registry, clampDeskWidget, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP, reviewPresets, reviewAllowed, isWidgetReviewRoute } = await import('../node_modules/.cache/widget-sizing-check.mjs')
+const { metricObjects, registry, moveDeskWidget, clampDeskWidget, deskRowHeight, deskColumns, resizeDeskWidget, legacyDeskRowHeight, resolveDeskCollisions, studentBalanceStats, defaultDeskItems, DESK_INSET, DESK_TOP, reviewPresets, reviewAllowed, isWidgetReviewRoute } = await import('../node_modules/.cache/widget-sizing-check.mjs')
 const integral=item=>{for(const k of ['x','y','w','h','minW','minH'])assert.ok(Number.isInteger(item[k]),`${item.type}: fractional ${k}=${item[k]}`)}
 let cases=0
 for(const def of registry) for(const width of [900,1200,1600,2400]) for(const oldRow of [42,64,84]){
@@ -157,3 +157,48 @@ for (const def of registry.filter(d => d.stat)) {
  }
 }
 console.log('All independent metrics: 1×1 ↔ illustrated 2×1 at three desk widths')
+
+// Same-row drag changes horizontal order, never the rows below it.
+const overlaps=(a,b)=>a.i!==b.i&&a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y
+const positions=items=>Object.fromEntries(items.map(i=>[i.i,[i.x,i.y,i.w,i.h]]))
+const drag=(items,id,x,y=items.find(i=>i.i===id).y,cols=8)=>moveDeskWidget(items,{...items.find(i=>i.i===id),x,y},cols)
+const baseline=defaultDeskItems('today',8)
+const before=JSON.stringify(baseline)
+const swapped=drag(baseline,'attention-students',4)
+assert.deepEqual(swapped.filter(i=>i.y===0).sort((a,b)=>a.x-b.x).map(i=>i.i),['stat-students','stat-hw','attention-students','stat-lessons'])
+assert.deepEqual(swapped.filter(i=>i.y>0),baseline.filter(i=>i.y>0),'Horizontal drag pushed a lower row')
+assert.deepEqual(positions(drag(swapped,'attention-students',6)),positions(baseline),'Adjacent swap must reverse cleanly')
+const mixed=drag(baseline,'today-tasks',3)
+assert.deepEqual(['today-schedule','today-tasks','today-reminders'].map(id=>positions(mixed)[id]),[[0,1,3,5],[3,1,2,5],[5,1,3,5]])
+assert.deepEqual(positions(drag(mixed,'today-tasks',6)),positions(baseline),'Different-width adjacent swap must reverse')
+assert.deepEqual(drag(baseline,'attention-students',0).filter(i=>i.y===0).sort((a,b)=>a.x-b.x).map(i=>i.i),['attention-students','stat-students','stat-hw','stat-lessons'])
+const withGaps=[{i:'a',type:'stat-students',x:0,y:0,w:2,h:1},{i:'b',type:'stat-hw',x:2,y:0,w:1,h:1},{i:'c',type:'stat-lessons',x:3,y:0,w:1,h:1},{i:'d',type:'attention-students',x:6,y:0,w:2,h:1},...baseline.filter(i=>i.y>0)]
+assert.deepEqual(positions(drag(withGaps,'d',2)).d,[2,0,2,1])
+assert.deepEqual(['b','c'].map(id=>positions(drag(withGaps,'d',2))[id]),[[4,0,1,1],[5,0,1,1]])
+const free=drag(withGaps,'d',4)
+assert.deepEqual(free.filter(i=>i.i!=='d'),withGaps.filter(i=>i.i!=='d'),'Free placement must not compact peers')
+assert.deepEqual(positions(free).d,[4,0,2,1])
+assert.equal(JSON.stringify(baseline),before,'Dragging mutated the source layout')
+let reorderCases=0
+for(const widths of [[1,1],[2,2],[3,3,2],[2,1,1,2],[1,2,3,1]])for(const h of [1,2,5]){
+ let x=0
+ const row=widths.map((w,index)=>{const card={i:`row-${index}`,type:'fixture',x,y:0,w,h};x+=w;return card})
+ const below={i:'below',type:'fixture',x:0,y:h,w:8,h:3}
+ const source=[...row,below]
+ for(const active of row)for(const target of row){
+  const result=drag(source,active.i,Math.min(8-active.w,target.x))
+  assert.deepEqual(result.find(i=>i.i==='below'),below,'Horizontal reorder changed the lower row')
+  for(const card of result){
+   assert.deepEqual([card.w,card.h],[source.find(i=>i.i===card.i).w,source.find(i=>i.i===card.i).h])
+   assert.ok(card.x>=0&&card.x+card.w<=8)
+   assert.ok(!result.some(other=>overlaps(card,other)))
+   if(card.i!=='below')assert.equal(card.y,0,'Same-row drag fell back to downward displacement')
+  }
+  assert.deepEqual(resolveDeskCollisions(JSON.parse(JSON.stringify(result))),result,'Saved horizontal order changed on reload')
+  reorderCases++
+ }
+}
+const vertical=drag(baseline,'stat-students',0,1)
+assert.equal(vertical.find(i=>i.i==='stat-students').y,1)
+assert.ok(vertical.every(a=>!vertical.some(b=>overlaps(a,b))),'Vertical fallback overlaps')
+console.log(`${reorderCases} horizontal drag cases: equal/mixed widths, both directions, unchanged lower rows, free gaps and reload passed`)

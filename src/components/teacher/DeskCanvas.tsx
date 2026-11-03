@@ -1,4 +1,4 @@
-import { clampDeskWidget, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, resolveDeskCollisions, DESK_GAP, DESK_INSET, DESK_TOP } from '../../lib/deskWidgetSizing'
+import { clampDeskWidget, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, moveDeskWidget, resolveDeskCollisions, DESK_GAP, DESK_INSET, DESK_TOP } from '../../lib/deskWidgetSizing'
 import { defaultDeskItems } from '../../lib/defaultDeskLayout'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
@@ -165,10 +165,8 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   // ── Live layout with collision resolution ─────────────────────────────
   const liveItems = useMemo(() => {
     if (drag) {
-      const withMoved = viewItems.map(it =>
-        it.i === drag.id ? clampItem({ ...it, x: drag.curGx, y: drag.curGy }) : it
-      )
-      return resolveDeskCollisions(withMoved, drag.id)
+      const item = viewItems.find(it => it.i === drag.id)!
+      return moveDeskWidget(viewItems, clampItem({ ...item, x: drag.curGx, y: drag.curGy }), columns)
     }
     if (resize) {
       const item = viewItems.find(it => it.i === resize.id)!
@@ -187,7 +185,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   const onItemPointerDown = useCallback((e: React.PointerEvent, item: LayoutItem) => {
     if (!editMode) return
     e.preventDefault()
-    e.currentTarget.setPointerCapture(e.pointerId)
+    containerRef.current?.setPointerCapture(e.pointerId)
     const rect = containerRef.current!.getBoundingClientRect()
     setDrag({
       id: item.i,
@@ -213,15 +211,17 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     }
   }, [drag, viewItems, cw, rowH, columns])
 
-  const onItemPointerUp = useCallback(() => {
+  const onItemPointerUp = useCallback((e: React.PointerEvent) => {
     if (!drag) return
-    const withMoved = viewItems.map(it =>
-      it.i === drag.id ? clampItem({ ...it, x: drag.curGx, y: drag.curGy }) : it
-    )
-    const resolved = resolveDeskCollisions(withMoved, drag.id)
+    const item = viewItems.find(it => it.i === drag.id)!
+    const rect = containerRef.current!.getBoundingClientRect()
+    // Include the release point, even when the last move has not rendered yet.
+    const x = drag.startGx + toGridDX(e.clientX - rect.left - drag.startMx, cw, columns)
+    const y = drag.startGy + toGridDY(e.clientY - rect.top - drag.startMy, rowH)
+    const resolved = moveDeskWidget(viewItems, clampItem({ ...item, x, y }), columns)
     onUpdateItems([...resolved, ...desk.items.filter(saved => !resolved.some(item => item.i === saved.i))])
     setDrag(null)
-  }, [drag, desk.items, viewItems, onUpdateItems, clampItem, columns])
+  }, [drag, desk.items, viewItems, onUpdateItems, clampItem, columns, cw, rowH])
 
   // ── Pointer resize handlers ───────────────────────────────────────────
   const onResizePointerDown = useCallback((e: React.PointerEvent, item: LayoutItem, axis: ResizeState['axis'] = 'both') => {

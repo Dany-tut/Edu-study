@@ -1,0 +1,790 @@
+{
+  "scope": "Actual DeskCanvas fixture; mouse at 1440x900 light and 390x844 dark; no server persistence E2E",
+  "reloadPersisted": true,
+  "records": [
+    {
+      "scenario": "top-left-first",
+      "frames": 86,
+      "maxFrameGap": 29.799999999813735,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.3540878295898438,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-0",
+      "frames": 144,
+      "maxFrameGap": 27.299999999813735,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-1",
+      "frames": 297,
+      "maxFrameGap": 24.200000000186265,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-2",
+      "frames": 230,
+      "maxFrameGap": 32.200000000186265,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-3",
+      "frames": 106,
+      "maxFrameGap": 21,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.4992904663085938,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-4",
+      "frames": 139,
+      "maxFrameGap": 20.600000000093132,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-5",
+      "frames": 415,
+      "maxFrameGap": 30.59999999962747,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-6",
+      "frames": 163,
+      "maxFrameGap": 49.60000000009313,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-7",
+      "frames": 116,
+      "maxFrameGap": 22.600000000093132,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.4864349365234375,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-8",
+      "frames": 360,
+      "maxFrameGap": 26.100000000093132,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "top-repeat-9",
+      "frames": 130,
+      "maxFrameGap": 26,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "bottom-left",
+      "frames": 110,
+      "maxFrameGap": 46.10000000009313,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 0,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 4.256103515625
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 724,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 1070,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 897,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 551,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "mixed-left",
+      "frames": 145,
+      "maxFrameGap": 21.90000000037253,
+      "maxYShift": {
+        "stat-students": 0,
+        "stat-hw": 0,
+        "stat-lessons": 0,
+        "attention-students": 1.5,
+        "today-schedule": 0,
+        "today-reminders": 0,
+        "today-tasks": 0
+      },
+      "final": {
+        "stat-students": {
+          "x": 32,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "stat-hw": {
+          "x": 724,
+          "y": 108,
+          "w": 165,
+          "h": 120
+        },
+        "stat-lessons": {
+          "x": 897,
+          "y": 108,
+          "w": 165,
+          "h": 120
+        },
+        "attention-students": {
+          "x": 378,
+          "y": 108,
+          "w": 338,
+          "h": 120
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-reminders": {
+          "x": 551,
+          "y": 236,
+          "w": 511,
+          "h": 632
+        },
+        "today-tasks": {
+          "x": 1070,
+          "y": 236,
+          "w": 338,
+          "h": 632
+        }
+      }
+    },
+    {
+      "scenario": "mobile-dark-left",
+      "frames": 157,
+      "maxFrameGap": 25.59999999962747,
+      "maxYShift": {
+        "stat-hw": 0,
+        "stat-lessons": 1.4499969482421875,
+        "today-schedule": 0
+      },
+      "final": {
+        "stat-hw": {
+          "x": 199,
+          "y": 108,
+          "w": 159,
+          "h": 116
+        },
+        "stat-lessons": {
+          "x": 32,
+          "y": 108,
+          "w": 159,
+          "h": 116
+        },
+        "today-schedule": {
+          "x": 32,
+          "y": 232,
+          "w": 326,
+          "h": 364
+        }
+      }
+    }
+  ]
+}
