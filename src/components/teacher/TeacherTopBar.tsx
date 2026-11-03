@@ -13,6 +13,7 @@ import {
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'
+import { useDeskStore } from '../../store/deskStore'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
 import { useJournalPending } from '../../lib/useGroups'
@@ -20,7 +21,6 @@ import ViewAsBanner from './ViewAsBanner'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
 import { usePersistentState, clearDrafts, readDraft } from '../../lib/useDraft'
 import CreateTaskModal from './CreateTaskModal'
-import WidgetsModal from './WidgetsModal'
 import FeedbackModal from '../FeedbackModal'
 import AppVersionRow from '../AppVersionRow'
 import { supabase } from '../../lib/supabase'
@@ -101,7 +101,6 @@ export default function TeacherTopBar() {
 
   // Persisted so an open modal (and its draft) re-opens after a page reload.
   const [taskModalOpen, setTaskModalOpen] = usePersistentState('createTask.open', false)
-  const [widgetsOpen, setWidgetsOpen]     = useState(false)
   const [feedbackOpen, setFeedbackOpen]   = useState(false)
   const [notifOpen, setNotifOpen]         = useState(false)
 
@@ -354,7 +353,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
   const profileMenuItems = [
     { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile' },
-    { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('как у учеников'),  action: 'widgets' },
+    { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'),  action: 'widgets' },
     { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme' },
     { icon: CreditCard,  label: t('Тарифы'),             sub: t('подписка и счета'),   action: 'payment' },
     { icon: MessageSquarePlus, label: t('Обратная связь'), sub: t('сообщить об ошибке'), action: 'feedback' },
@@ -641,7 +640,10 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
             {profileMenuItems.map(item => (
               <motion.button key={item.action} whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  if (item.action === 'widgets') setWidgetsOpen(true)
+                  if (item.action === 'widgets') {
+                    if (isHome) useDeskStore.getState().setShowWidgetLibrary(true)
+                    else useTeacher.getState().openDeskEditor()
+                  }
                   if (item.action === 'theme') toggleTheme()
                   if (item.action === 'profile') setActivePage('profile-settings')
                   if (item.action === 'payment') setActivePage('payment')
@@ -711,7 +713,6 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
     )}
 
     <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
-    {widgetsOpen && <WidgetsModal onClose={() => setWidgetsOpen(false)} />}
     {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
     {taskModalOpen && (
       <CreateTaskModal
