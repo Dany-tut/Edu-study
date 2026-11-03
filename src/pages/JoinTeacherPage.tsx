@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import ScrollFade from '../components/ScrollFade'
 import Skeleton from '../components/Skeleton'
 import Checkbox from '../components/Checkbox'
 import { motion } from 'framer-motion'
@@ -26,7 +27,7 @@ type Step = 'loading' | 'form' | 'error'
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px', borderRadius: 12,
-  border: '1.5px solid var(--color-border)', fontSize: 14, outline: 'none',
+  border: '1.5px solid var(--color-border)', fontSize: 16, minHeight: 50, lineHeight: '22px', outline: 'none',
   boxSizing: 'border-box', marginTop: 0,
   // Explicit color + background: без них input берёт tailwind-preflight
   // `color: inherit` (светлый текст тёмной темы) на дефолтном белом фоне —
@@ -129,6 +130,7 @@ export default function JoinTeacherPage() {
   }
 
   return (
+    <ScrollFade maxHeight="100dvh" fadeHeight={24} style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)' }}>
     <div style={{ minHeight: '100dvh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: `calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px)`, boxSizing: 'border-box' }}>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.38 }} style={card}>
         {step === 'loading' && (
@@ -185,11 +187,12 @@ export default function JoinTeacherPage() {
                 <div style={{ position: 'relative' }}>
                   <input className="auth-input"
                     type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t('Пароль')}
-                    style={{ ...inputStyle, paddingRight: 44, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
+                    style={{ ...inputStyle, paddingRight: 52, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
                     onKeyDown={e => e.key === 'Enter' && handleRegister()}
                   />
                   <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
-                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', padding: 4, cursor: 'pointer', color: 'var(--color-muted)' }}>
+              aria-pressed={showPassword}
+                    style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-muted)' }}>
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
@@ -226,6 +229,7 @@ export default function JoinTeacherPage() {
         )}
       </motion.div>
     </div>
+    </ScrollFade>
   )
 }
 
