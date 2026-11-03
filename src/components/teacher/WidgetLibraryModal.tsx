@@ -1,14 +1,12 @@
-import { WIDGET_REVIEW_PATH, WIDGET_REVIEW_HASH } from '../../lib/widgetReviewRoute'
 import { clampDeskWidget, resolveDeskCollisions, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
 import { metricObjects } from '../../lib/widgetMetricObjects'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Pencil } from '../icons/appIcons'
 import { WIDGET_REGISTRY, getWidgetDef, type WidgetDef } from './widgets/registry'
 import type { LayoutItem } from '../../lib/useDeskLayouts'
-import TeacherSelect from './TeacherSelect'
 import FadeText from '../FadeText'
 import { useT } from '../../lib/i18n'
 
@@ -23,7 +21,7 @@ type Props = {
   gridColumns?: number
 }
 
-function WidgetCard({ def, size, sizes, onSize, onAdd }: { def: WidgetDef; size: { w: number; h: number }; sizes: readonly {w:number;h:number}[]; onSize:(value:string)=>void; onAdd: () => void }) {
+function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
   const t = useT()
   const Icon = def.icon
   return (
@@ -55,13 +53,6 @@ function WidgetCard({ def, size, sizes, onSize, onAdd }: { def: WidgetDef; size:
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t(def.label)}</div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>{t(def.description)}</div>
       </div>
-      <div className="ww-gallery-size" style={{
-        flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
-        background: 'var(--color-bg-3)', borderRadius: 8, padding: '4px 8px',
-      }}>
-        <TeacherSelect value={`${size.w}x${size.h}`} options={sizes.map(s=>({value:`${s.w}x${s.h}`,label:`${s.w}×${s.h}`}))}
-          onChange={onSize} clearable={false} menuZIndex={3100} triggerStyle={{minHeight:44,padding:'6px 10px'}} />
-      </div>
       <button type="button" className="ww-gallery-add" aria-label={`${t('Добавить')}: ${t(def.label)}`} onClick={onAdd}><Plus size={18}/><span>{t('Добавить')}</span></button>
     </div>
   )
@@ -83,14 +74,13 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
 
 export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existingTypes, existingItems = [], hiddenWidgets, gridWidth, gridColumns }: Props) {
   const t = useT()
-  const [selectedSizes,setSelectedSizes]=useState<Record<string,{w:number;h:number}>>({})
   const title = onEditDesk ? t('Виджеты') : t('Добавить виджет')
   const dialogRef = useRef<HTMLDivElement>(null)
   useWidgetScrollFades(dialogRef)
   const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !def.unavailable && !hiddenWidgets?.includes(def.type))
   const width = gridWidth ?? Math.max(1, document.documentElement.clientWidth - 64)
   const rowHeight = deskRowHeight(window.innerHeight)
-  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:selectedSizes[def.type]?.w??1,h:selectedSizes[def.type]?.h??1,gridVersion:2},def,width,rowHeight,64,gridColumns)
+  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:1,h:1,gridVersion:2},def,width,rowHeight,64,gridColumns)
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
     const existing = resolveDeskCollisions(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight),gridColumns)))
@@ -179,9 +169,6 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
               <WidgetCard
                 key={def.type}
                 def={def}
-                size={widgetSize(def)}
-                sizes={(def.allowedSizes??[widgetSize(def)]).filter(s=>{const actual=clampDeskWidget({i:def.type,type:def.type,x:0,y:0,...s,gridVersion:2},def,width,rowHeight,64,gridColumns);return actual.w===s.w&&actual.h===s.h})}
-                onSize={value=>{const [w,h]=value.split('x').map(Number);setSelectedSizes(s=>({...s,[def.type]:{w,h}}))}}
                 onAdd={() => handleAdd(def)}
               />
             ))}
@@ -191,7 +178,6 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
               <Pencil size={16} />{t('Настроить на экране')}
             </button>
           )}
-          <a href={WIDGET_REVIEW_PATH} onClick={event => { event.preventDefault(); onClose(); window.location.hash = WIDGET_REVIEW_HASH }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '10px 18px', flexShrink: 0, borderTop: '1px solid var(--color-border-medium)', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>{t('Вся сетка размеров')}</a>
         </motion.div>
       </motion.div>
     </AnimatePresence>,
