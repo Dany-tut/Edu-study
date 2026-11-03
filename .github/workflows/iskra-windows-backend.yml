@@ -4,6 +4,8 @@ on:
     branches: [qa/iskra-windows-beta]
     paths:
       - '.github/workflows/iskra-windows-backend.yml'
+      - '.gitattributes'
+      - 'supabase/**'
       - 'scripts/security/**'
       - 'src/**'
 permissions:
