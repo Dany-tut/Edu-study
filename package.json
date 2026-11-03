@@ -60,7 +60,7 @@
     "check:calendar-browser": "node scripts/checkTeacherCalendarDay.mjs",
     "check:shelf-filters-browser": "node scripts/checkShelfFiltersBrowser.mjs",
     "check:diagnostics": "node scripts/checkDiagnosticFetch.mjs && node scripts/checkTelemetryH1.mjs && node scripts/checkIncidentTelemetry.mjs && node scripts/checkIncidentDelivery.mjs && node scripts/checkTelegramWebhook.mjs",
-    "check:server-monitor": "node scripts/checkServerMonitor.mjs && node scripts/checkDiagnosticJourney.mjs && node scripts/checkRecoveryImports.mjs && node scripts/checkBootDiagnostics.mjs && node scripts/checkNativeCrashWebhook.mjs && node scripts/checkMutationEvidence.mjs && node scripts/checkWorkerContext.mjs",
+    "check:server-monitor": "node scripts/checkServerMonitor.mjs && node scripts/checkDiagnosticJourney.mjs && node scripts/checkRecoveryImports.mjs && node scripts/checkBootDiagnostics.mjs && node scripts/checkNativeCrashWebhook.mjs && node scripts/checkMutationEvidence.mjs && node scripts/checkWorkerContext.mjs && node scripts/checkPulseScheduledSummary.mjs",
     "check:monitor-db": "node scripts/checkMonitorDb.mjs"
   },
   "dependencies": {
