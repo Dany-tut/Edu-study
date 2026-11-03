@@ -1,0 +1,306 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "light",
+    "reduced": false,
+    "downloadFrames": 216,
+    "connectFrames": 26,
+    "frames": 347,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        152,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        303,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 533.265625,
+      "y": 31,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 254,
+      "y": 33.40625,
+      "width": 261.265625,
+      "height": 49.1875
+    }
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "dark",
+    "reduced": false,
+    "downloadFrames": 240,
+    "connectFrames": 26,
+    "frames": 339,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        152,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        303,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 533.265625,
+      "y": 31,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 254,
+      "y": 33.40625,
+      "width": 261.265625,
+      "height": 49.1875
+    }
+  },
+  {
+    "width": 768,
+    "height": 680,
+    "theme": "light",
+    "reduced": false,
+    "downloadFrames": 240,
+    "connectFrames": 27,
+    "frames": 341,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        299,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        597,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 197.265625,
+      "y": 31,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 33.40625,
+      "width": 155.265625,
+      "height": 49.1875
+    }
+  },
+  {
+    "width": 768,
+    "height": 680,
+    "theme": "dark",
+    "reduced": false,
+    "downloadFrames": 240,
+    "connectFrames": 28,
+    "frames": 346,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        299,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ],
+      [
+        597,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 197.265625,
+      "y": 31,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 33.40625,
+      "width": 155.265625,
+      "height": 49.1875
+    }
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "theme": "light",
+    "reduced": false,
+    "downloadFrames": 240,
+    "connectFrames": 26,
+    "frames": 344,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        528,
+        18,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        1055,
+        35,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 19,
+      "y": 92.1875,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 28,
+      "width": 342,
+      "height": 49.1875
+    }
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "theme": "dark",
+    "reduced": true,
+    "downloadFrames": 1,
+    "connectFrames": 26,
+    "frames": 81,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        528,
+        18,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        1055,
+        35,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 19,
+      "y": 92.1875,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 28,
+      "width": 342,
+      "height": 49.1875
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "theme": "light",
+    "reduced": false,
+    "downloadFrames": 240,
+    "connectFrames": 26,
+    "frames": 348,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        763,
+        53,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        1526,
+        105,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 26,
+      "y": 92.1875,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 28,
+      "width": 272,
+      "height": 49.1875
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "theme": "dark",
+    "reduced": false,
+    "downloadFrames": 240,
+    "connectFrames": 27,
+    "frames": 365,
+    "geometry": [
+      [
+        0,
+        0,
+        "linear-gradient(to right, rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        763,
+        53,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) calc(100% - 22px), transparent)"
+      ],
+      [
+        1526,
+        105,
+        "linear-gradient(to right, transparent, rgb(0, 0, 0) 22px, rgb(0, 0, 0) 100%)"
+      ]
+    ],
+    "nav": {
+      "x": 26,
+      "y": 92.1875,
+      "width": 373.46875,
+      "height": 54
+    },
+    "identity": {
+      "x": 24,
+      "y": 28,
+      "width": 272,
+      "height": 49.1875
+    }
+  }
+]

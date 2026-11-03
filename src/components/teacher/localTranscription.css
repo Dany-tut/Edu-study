@@ -39,3 +39,25 @@
 .transcription-setup h4 {margin:0;color:var(--color-text);font-size:14px}
 .transcription-setup ol {list-style:decimal;margin:6px 0 0;padding-inline-start:1.5em}
 .transcription-setup li + li {margin-top:5px}
+
+.transcription-step {position:relative;isolation:isolate;overflow:hidden}
+.transcription-step::before {
+  content:'';position:absolute;inset:0;z-index:-1;background:var(--color-purple-soft);
+  transform:scaleX(0);transform-origin:left;pointer-events:none;
+}
+.transcription-step[data-phase=download]::before {animation:transcription-download 4s cubic-bezier(.25,.65,.4,1) both}
+@keyframes transcription-download {from {transform:scaleX(0)} to {transform:scaleX(1)}}
+.transcription-step[data-phase=connecting]::before {transform:scaleX(.86);transition:transform 1.6s ease-out}
+.transcription-step[data-phase=done]::before {transform:scaleX(1);background:var(--color-green-soft);transition:transform .45s ease-out,background .35s}
+.transcription-step[data-phase=done]:disabled {color:var(--color-green-text);cursor:default}
+.transcription-step-label,.transcription-step-complete {cursor:default}
+.transcription-step-label[data-active=true] {background:var(--color-purple-soft);color:var(--color-purple-text)}
+.transcription-step-complete {color:var(--color-green-text)}
+.transcription-setup:not(:empty) {animation:transcription-guide-in .28s ease-out}
+@keyframes transcription-guide-in {from {opacity:0;transform:translateY(4px)} to {opacity:1;transform:none}}
+@container (min-width:501px) and (max-width:650px) {
+  .transcription-steps {gap:4px}
+}
+@media (prefers-reduced-motion:reduce) {
+  .transcription-step[data-phase]::before,.transcription-setup:not(:empty) {animation:none;transition:none}
+}
