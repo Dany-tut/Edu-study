@@ -1,3 +1,4 @@
+import StickersWidget from './StickersWidget'
 import { HomeWidgetPresentation, HomeTaskRow } from './HomeWidgetPresentation'
 export { default as HomeWidgetObject } from './HomeWidgetObject'
 import { useStudentData } from '../store/studentDataStore'
@@ -5,7 +6,6 @@ import { useDashboard } from '../store/dashboardStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { computeSubjectStats } from '../lib/db'
 import { getSubject } from '../lib/subjects'
-import { useStickers } from '../lib/stickers'
 import { useTextOfDay } from '../lib/useTextOfDay'
 import { useFeedGlance } from '../lib/feedRead'
 import { useT, tc } from '../lib/i18n'
@@ -29,10 +29,6 @@ function FocusSummary({ onOpen }: { onOpen:()=>void }) {
 function TrainerSummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),ms=useTrainerProgress(s=>s.todayMs),done=useTrainerProgress(s=>s.doneCount),wrong=useTrainerProgress(s=>s.wrongCount),subject=useTrainerProgress(s=>s.subject)
   return <HomeWidgetPresentation id={7} title={t('Тренажёр')} action={t('Открыть тренажёр')} onOpen={onOpen} metrics={[{value:ms>0?Math.floor(ms/60000):done,label:t(ms>0?'Минут сегодня':'Решено заданий')}]} copy={{title:'',text:tc(subject)+(wrong>0?` · ${t('Ошибок')}: ${wrong}`:'')}}/>
-}
-function AwardsSummary({ onOpen }: { onOpen:()=>void }) {
-  const t=useT(),{stickers,loading}=useStickers()
-  return <HomeWidgetPresentation id={8} title={t('Стикеры')} action={t('Коллекция')} onOpen={onOpen} status={loading?'loading':'ready'} metrics={[{value:stickers.length,label:t('Получено стикеров')}]} copy={{title:'',text:stickers[0]?tc(stickers[0].lessonTitle):t('Награды за принятые задания')}}/>
 }
 function DailySummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),subjects=useStudentData(s=>s.subjects),activeId=useDashboard(s=>s.activeSubjectId)
@@ -61,7 +57,7 @@ export default function StudentHomeWidget({ id,onOpen,onTask }: { id:number;onOp
   if(id===0)return <StatsSummary onOpen={onOpen}/>
   if(id===3)return <FocusSummary onOpen={onOpen}/>
   if(id===7)return <TrainerSummary onOpen={onOpen}/>
-  if(id===8)return <AwardsSummary onOpen={onOpen}/>
+  if(id===8)return <StickersWidget/>
   if(id===9)return <DailySummary onOpen={onOpen}/>
   if(id===10)return <FeedSummary onOpen={onOpen}/>
   if(id===11)return <TasksSummary onOpen={onOpen} onTask={onTask}/>

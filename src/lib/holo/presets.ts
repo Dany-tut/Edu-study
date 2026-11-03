@@ -178,38 +178,41 @@ export function drawStickerArt(spec: StickerArtSpec): HTMLCanvasElement {
   // работы с одинаковым баллом не выглядели одним и тем же стикером.
   const fp = fingerprint(spec)
   const emblem = spec.emblem ?? AUTO_EMBLEMS[fp % AUTO_EMBLEMS.length]
-  const lobes = [12, 14, 16][(fp >> 3) % 3]
+  const rounded = emblem === 'crown' || emblem === 'laurel' || emblem === 'medal'
+  const cut = (radius: number) => {
+    if (rounded) {
+      scallopPath(ctx, c, c, radius, 10, 0.19)
+      return
+    }
+    ctx.beginPath()
+    const points = 8 + fp % 3
+    for (let i = 0; i < points * 2; i++) {
+      const angle = Math.PI * i / points - Math.PI / 2
+      const r = radius * (i % 2 ? 0.81 : 1)
+      const x = c + r * Math.cos(angle), y = c + r * Math.sin(angle)
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.closePath()
+  }
 
-  // Корпус печати держим светлым: рендер подмешивает под краску серебряную
-  // фольгу (ink < 1), и радужные полосы читаются только на светлом.
-  scallopPath(ctx, c, c, R, lobes, 0.075, ((fp >> 5) % 6) * 0.26)
-  const body = ctx.createLinearGradient(0, c - R, 0, c + R)
-  body.addColorStop(0, '#FFFFFF')
-  body.addColorStop(0.55, tier.inkLight)
-  body.addColorStop(1, tier.ink)
+  const body = ctx.createLinearGradient(c - R, c + R, c + R, c - R)
+  body.addColorStop(0, tier.ink)
+  body.addColorStop(0.28, tier.inkLight)
+  body.addColorStop(0.48, '#FFF1C9')
+  body.addColorStop(0.68, tier.inkLight)
+  body.addColorStop(1, '#BDFBF2')
+  cut(R)
   ctx.fillStyle = body
   ctx.fill()
-
-  // кольца-канты
-  ctx.beginPath()
-  ctx.arc(c, c, R * 0.88, 0, Math.PI * 2)
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = px * 0.036
+  ctx.strokeStyle = '#FFFCFA'
+  ctx.stroke()
+  cut(R * 0.9)
+  ctx.lineWidth = px * 0.009
   ctx.strokeStyle = tier.ink
-  ctx.lineWidth = px * 0.016
   ctx.stroke()
-  ctx.beginPath()
-  ctx.arc(c, c, R * 0.8, 0, Math.PI * 2)
-  ctx.strokeStyle = 'rgba(255,255,255,0.9)'
-  ctx.lineWidth = px * 0.008
-  ctx.stroke()
-
-  // светлая «шайба» под цифрой — на ней балл читается на любой фольге
-  ctx.beginPath()
-  ctx.arc(c, c - px * 0.02, R * 0.58, 0, Math.PI * 2)
-  const disc = ctx.createRadialGradient(c - R * 0.2, c - R * 0.3, R * 0.05, c, c - px * 0.02, R * 0.58)
-  disc.addColorStop(0, '#FFFFFF')
-  disc.addColorStop(1, 'rgba(255,255,255,0.72)')
-  ctx.fillStyle = disc
-  ctx.fill()
 
   // лицо стикера: балл цифрой либо эмблема
   ctx.fillStyle = tier.inkDark
@@ -219,22 +222,22 @@ export function drawStickerArt(spec: StickerArtSpec): HTMLCanvasElement {
     ctx.font = `800 ${px * 0.4}px "Manrope", "Inter", system-ui, sans-serif`
     ctx.fillText(String(tier.score), c, c - px * 0.02)
   } else {
-    drawEmblem(ctx, emblem, c, c - px * 0.02, R * 0.36, tier)
+    drawEmblem(ctx, emblem, c, c - px * 0.02, R * 0.40, tier)
   }
 
   // Звёзды по числу баллов — дуга снизу. Пустые места не рисуем вовсе: бледная
   // звезда «которой нет» на мелком стикере читается как полноценная, и балл 4
   // выглядит как 5. Оставшиеся звёзды центрируем по дуге.
   const stars = tier.score
-  const starR = R * 0.7
+  const starR = R * (spec.sublabel ? 0.49 : 0.57)
   for (let i = 0; i < stars; i++) {
-    const a = Math.PI / 2 + (i - (stars - 1) / 2) * 0.235
-    drawStar(ctx, c + Math.cos(a) * starR, c + Math.sin(a) * starR, px * 0.036, tier.inkDark)
+    const a = Math.PI / 2 + (i - (stars - 1) / 2) * 0.31
+    drawStar(ctx, c + Math.cos(a) * starR, c + Math.sin(a) * starR, px * 0.031, tier.inkDark)
   }
 
   // подписи по дуге сверху и снизу
-  if (spec.label) arcText(ctx, spec.label.toUpperCase(), c, c, R * 0.945, px * 0.055, tier.inkDark)
-  if (spec.sublabel) arcText(ctx, spec.sublabel.toUpperCase(), c, c, R * 0.95, px * 0.04, `${tier.inkDark}B0`, true)
+  if (spec.label) arcText(ctx, spec.label.toUpperCase(), c, c, R * 0.59, px * 0.043, tier.inkDark)
+  if (spec.sublabel) arcText(ctx, spec.sublabel.toUpperCase(), c, c, R * 0.65, px * 0.034, `${tier.inkDark}B0`, true)
 
   return canvas
 }
@@ -438,10 +441,13 @@ function arcText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: nu
   ctx.textBaseline = 'middle'
   ctx.font = `700 ${size}px "Manrope", "Inter", system-ui, sans-serif`
   const chars = [...text]
-  const step = (size * 0.78) / r
-  const total = chars.length * step
+  const advances = chars.map(ch => (ctx.measureText(ch).width + size * 0.12) / r)
+  const total = advances.reduce((sum, step) => sum + step, 0)
+  const direction = bottom ? -1 : 1
+  let angle = (bottom ? Math.PI / 2 : -Math.PI / 2) - direction * total / 2
   chars.forEach((ch, i) => {
-    const a = (bottom ? Math.PI / 2 + total / 2 - i * step : -Math.PI / 2 - total / 2 + i * step + step / 2)
+    const a = angle + direction * advances[i] / 2
+    angle += direction * advances[i]
     ctx.save()
     ctx.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r)
     ctx.rotate(bottom ? a - Math.PI / 2 : a + Math.PI / 2)
