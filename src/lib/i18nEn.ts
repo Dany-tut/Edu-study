@@ -3687,6 +3687,7 @@ export const EN: Record<string, string> = {
   'Текст вопроса': 'Question text',
   'Вариант ответа': 'Answer option',
   'Верный ответ': 'Correct answer',
+  'Удалить вариант': 'Remove option',
   'Пояснение (после ответа)': 'Explanation (shown after the answer)',
   'Домашка · хард-задание (на проверку преподавателю)': 'Homework · hard task (goes to the teacher)',
   'Условие задания…': 'Task statement…',
@@ -4448,6 +4449,8 @@ export const EN: Record<string, string> = {
 
   // ——— Обсуждение и время ———
   'Не удалось загрузить обсуждение': 'Couldn\'t load the discussion',
+  'Удалить платёж': 'Delete payment',
+  'Не удалось удалить платёж. Попробуйте ещё раз.': 'Could not delete the payment. Try again.',
   'Не удалось удалить': 'Couldn\'t delete',
 
   // ——— Отчёт об ошибке ———

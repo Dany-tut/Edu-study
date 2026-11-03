@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import FadeText from '../../components/FadeText'
+import { useIsDesktop } from '../../lib/useIsDesktop'
 import Modal from '../../components/Modal'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { Alert } from '../../components/Alert'
@@ -102,6 +104,7 @@ export function AddPaymentModal({ student, students, onClose, onSaved }: {
 function StudentRow({
   student,
   groupName,
+  compact = false,
   onPay,
   expanded,
   onToggle,
@@ -109,6 +112,7 @@ function StudentRow({
 }: {
   student: Student
   groupName: string
+  compact?: boolean
   onPay: (s: Student) => void
   expanded: boolean
   onToggle: () => void
@@ -117,7 +121,9 @@ function StudentRow({
   const t = useT()
   const { tn } = useTc()
   const status = getStatus(student)
-  const { payments, reload } = usePayments(student.id)
+  const { payments } = usePayments(student.id)
+  const deletion = useAsyncTask()
+  const [deleteError, setDeleteError] = useState('')
 
   const statusColor = status === 'overdue' ? 'var(--color-red-text)'
     : status === 'soon' ? '#D07020'
@@ -130,9 +136,11 @@ function StudentRow({
 
   const balance = student.lessonBalance ?? 0
 
-  async function handleDelete(id: string) {
-    await deletePayment(id)
-    onChanged()
+  function handleDelete(id: string) {
+    setDeleteError('')
+    void deletion.run(signal => deletePayment(id, signal),
+      () => { onChanged() },
+      () => setDeleteError(t('Не удалось удалить платёж. Попробуйте ещё раз.')))
   }
 
   return (
@@ -142,14 +150,14 @@ function StudentRow({
       {/* Main row */}
       <div
         style={{
-          display: 'flex', alignItems: 'center', gap: 10,
+          display: compact ? 'grid' : 'flex', gridTemplateColumns: compact ? '34px minmax(0, 1fr) auto' : undefined, alignItems: 'center', gap: 10,
           padding: '12px 16px', cursor: 'pointer',
         }}
         onClick={onToggle}
       >
         {/* Avatar */}
         <div style={{
-          width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+          width: 34, height: 34, borderRadius: '50%', flexShrink: 0, gridColumn: compact ? 1 : undefined, gridRow: compact ? '1 / span 2' : undefined,
           background: avatarBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 700, color: statusColor,
@@ -158,10 +166,10 @@ function StudentRow({
         </div>
 
         {/* Name + status */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-            {tn(student.name).split(' ').slice(0, 2).join(' ')}
-            <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 400, marginLeft: 6 }}>{groupName}</span>
+        <div style={{ flex: 1, minWidth: 0, gridColumn: compact ? 2 : undefined, gridRow: compact ? 1 : undefined }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', flexDirection: compact ? 'column' : 'row', alignItems: compact ? 'stretch' : 'baseline', gap: compact ? 2 : 6, minWidth: 0 }}>
+            <FadeText>{tn(student.name).split(' ').slice(0, 2).join(' ')}</FadeText>
+            <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 400 }}>{groupName}</FadeText>
           </div>
           <div style={{ fontSize: 11, color: statusColor, marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
             {status === 'overdue' && <><AlertCircle size={12} /> {t('просрочено')} {Math.abs(diffDays(student.paymentDue!))} {t('дн.')}</>}
@@ -172,32 +180,34 @@ function StudentRow({
           </div>
         </div>
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: compact ? 'wrap' : 'nowrap', minWidth: 0, gridColumn: compact ? 2 : undefined, gridRow: compact ? 2 : undefined }}>
         {/* Balance chip */}
         <div style={{
           padding: '4px 8px', borderRadius: 8,
           background: balance < 0 ? 'var(--color-red-soft)' : balance === 0 ? 'var(--color-bg-3)' : 'var(--color-green-soft)',
           fontSize: 11, fontWeight: 700,
           color: balance < 0 ? 'var(--color-red-text)' : balance === 0 ? 'var(--color-text-3)' : 'var(--color-green-text)',
-          flexShrink: 0,
+          flexShrink: 0, maxWidth: '100%',
         }}>
-          {balance > 0 ? `+${balance}` : balance} {t('зан.')}
+          <FadeText>{`${balance > 0 ? '+' : ''}${balance} ${t('зан.')}`}</FadeText>
         </div>
 
         {/* Amount */}
         {student.paymentAmount ? (
-          <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 4 }}>
+          <div style={{ textAlign: 'right', flexShrink: compact ? 1 : 0, minWidth: 0, maxWidth: '100%', marginRight: compact ? 0 : 4 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: statusColor }}>
-              {fmt(student.paymentAmount)} ₽
+              <FadeText>{`${fmt(student.paymentAmount)} ₽`}</FadeText>
             </div>
           </div>
         ) : null}
 
+        </div>
         {/* Pay button */}
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={e => { e.stopPropagation(); onPay(student) }}
           style={{
-            padding: '6px 12px', borderRadius: 9,
+            padding: '6px 12px', borderRadius: 9, minHeight: 44, gridColumn: compact ? 3 : undefined, gridRow: compact ? 2 : undefined,
             background: status === 'overdue' || status === 'soon'
               ? 'var(--grad-purple)'
               : 'var(--color-bg-3)',
@@ -215,11 +225,12 @@ function StudentRow({
         </motion.button>
 
         {/* Expand toggle */}
-        <div style={{ color: 'var(--color-text-3)', flexShrink: 0 }}>
+        <button type="button" aria-label={t('История платежей')} aria-expanded={expanded} onClick={e => { e.stopPropagation(); onToggle() }} style={{ color: 'var(--color-text-3)', flexShrink: 0, border: 0, background: 'transparent', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gridColumn: compact ? 3 : undefined, gridRow: compact ? 1 : undefined, justifySelf: 'end' }}>
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </div>
+        </button>
       </div>
 
+      {deleteError && <Alert tone="danger" text={deleteError} />}
       {/* Payment history */}
       <AnimatePresence>
         {expanded && (
@@ -255,10 +266,13 @@ function StudentRow({
                     +{fmt(p.amount)} ₽
                   </div>
                   <button
+                    aria-label={t('Удалить платёж')}
+                    disabled={deletion.busy}
                     onClick={() => handleDelete(p.id)}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: 'var(--color-text-3)', padding: 2, display: 'flex',
+                      minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center',
                     }}
                   >
                     <Trash2 size={14} />
@@ -277,6 +291,7 @@ function StudentRow({
 
 export default function TeacherFinancesPage() {
   const t = useT()
+  const desktop = useIsDesktop()
   const students = useAllStudents()
   const { groups } = useGroups()
   const [filter, setFilter]       = useState<FilterTab>('all')
@@ -340,7 +355,7 @@ export default function TeacherFinancesPage() {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => setPaying(null)}
-            style={{ height: 40,
+            style={{ height: 44,
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '0 16px', borderRadius: 12,
               background: 'var(--grad-purple)', border: 'none',
@@ -354,7 +369,7 @@ export default function TeacherFinancesPage() {
 
         {/* KPI strip */}
         <div style={{
-          display: 'flex',
+          display: 'grid', gridTemplateColumns: desktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
           background: 'var(--color-bg-2)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 16, overflow: 'hidden',
@@ -367,14 +382,15 @@ export default function TeacherFinancesPage() {
             { label: t('Прогноз'),   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={14} /> },
           ].map((item, i, arr) => (
             <div key={item.label} style={{
-              flex: 1, padding: '14px 8px', textAlign: 'center',
-              borderRight: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none',
+              minWidth: 0, padding: '14px 8px', textAlign: 'center',
+              borderRight: (desktop ? i < arr.length - 1 : i % 2 === 0) ? '1px solid var(--color-border)' : 'none',
+              borderBottom: !desktop && i < 2 ? '1px solid var(--color-border)' : 'none',
             }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                {item.icon} {item.label}
+                {item.icon} <FadeText>{item.label}</FadeText>
               </div>
               <div style={{ fontSize: 18, fontWeight: 800, color: item.color, marginTop: 4, letterSpacing: '-0.5px' }}>
-                {item.value} ₽
+                <FadeText>{`${item.value} ₽`}</FadeText>
               </div>
             </div>
           ))}
@@ -413,6 +429,7 @@ export default function TeacherFinancesPage() {
                   key={s.id + reloadKey}
                   student={s}
                   groupName={group?.name ?? ''}
+                  compact={!desktop}
                   onPay={setPaying}
                   onChanged={handlePaid}
                   expanded={expandedId === s.id}

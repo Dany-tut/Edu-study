@@ -52,6 +52,21 @@ export function usePayments(studentId?: string) {
   return { payments, loading, reload: load }
 }
 
+// Keep an uncertain payment's identity across retry/reload. The table primary key
+// makes resending that operation safe; a confirmed save starts a new operation.
+const pendingPayments = new Map<string, { id: string; paidAt: string }>()
+function pendingPayment(key: string) {
+  let value = pendingPayments.get(key)
+  try {
+    const stored = JSON.parse(localStorage.getItem(key) ?? 'null')
+    if (typeof stored?.id === 'string' && /^[0-9a-f-]{36}$/i.test(stored.id) && typeof stored.paidAt === 'string') value = stored
+  } catch { /* Storage can be unavailable; keep the same-page retry identity. */ }
+  if (!value) value = { id: crypto.randomUUID(), paidAt: new Date().toISOString() }
+  pendingPayments.set(key, value)
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* Same-page fallback above. */ }
+  return value
+}
+
 export async function addPayment(params: {
   studentId: string
   amount: number
@@ -62,20 +77,39 @@ export async function addPayment(params: {
   signal?.throwIfAborted()
   const uid = await getOwnerId()
   signal?.throwIfAborted()
-  const request = supabase.from('payments').insert({
+  const key = 'iskra:pending-payment:' + JSON.stringify([uid, params.studentId, params.amount, params.lessonsPaid, params.note ?? ''])
+  const pending = pendingPayment(key)
+  const row = {
+    id: pending.id,
     student_id: params.studentId,
     teacher_id: uid,
     amount: params.amount,
     lessons_paid: params.lessonsPaid,
-    note: params.note ?? null,
-    paid_at: new Date().toISOString(),
-  }).retry(false)
+    note: params.note || null,
+    paid_at: pending.paidAt,
+  }
+  const request = supabase.from('payments').insert(row).retry(false)
   const { error } = await (signal ? request.abortSignal(signal) : request)
-  if (error) throw error
+  signal?.throwIfAborted()
+  if (error) {
+    // A lost response may hide a committed insert. Only accept a conflict when
+    // our authenticated read proves that exact operation and all its values.
+    if (error.code !== '23505') throw error
+    const query = supabase.from('payments').select('id,student_id,teacher_id,amount,lessons_paid,note').eq('id',pending.id)
+    const existing = await (signal ? query.abortSignal(signal) : query).single()
+    signal?.throwIfAborted()
+    const saved = existing.data
+    if (existing.error || !saved || saved.student_id !== row.student_id || saved.teacher_id !== row.teacher_id || saved.amount !== row.amount || saved.lessons_paid !== row.lessons_paid || saved.note !== row.note) throw error
+  }
+  pendingPayments.delete(key)
+  try { localStorage.removeItem(key) } catch { /* Storage is optional. */ }
 }
 
-export async function deletePayment(id: string) {
-  const { error } = await supabase.from('payments').delete().eq('id', id)
+export async function deletePayment(id: string, signal?: AbortSignal) {
+  signal?.throwIfAborted()
+  const request = supabase.from('payments').delete().eq('id', id).retry(false)
+  const { error } = await (signal ? request.abortSignal(signal) : request)
+  signal?.throwIfAborted()
   if (error) throw error
 }
 
