@@ -1,5 +1,7 @@
 import DesktopFriends from '../../DesktopFriends'
 import { useDesktopFriends } from '../../../lib/desktopFriends'
+import Modal from '../../Modal'
+import TeacherModules from '../TeacherModules'
 import FadeText from '../../FadeText'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -62,6 +64,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
   const { lang, setLang } = useLang()
   const [email, setEmail] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [integrations, setIntegrations] = useState(false)
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
   const [plan, setPlan] = useState<{ planName: string; studentsUsed: number; maxStudents: number | null } | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
@@ -207,6 +210,9 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
           {friends.account && <button type="button" className="friend-mobile-entry" onClick={() => friends.setTab('contacts')}>
             <Users size={18}/>{t('Друзья')}<ChevronRight size={18}/>
           </button>}
+          <button type="button" onClick={() => { tactile(); setIntegrations(true) }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', textAlign:'left' }}>
+            <Sparkles size={18}/><span style={{ flex:1 }}>{t('Интеграции')}</span><ChevronRight size={18}/>
+          </button>
           {/* Тема */}
           <button
             onClick={() => { tactile(); toggleTheme() }}
@@ -293,6 +299,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
         </motion.button>
       </div>
       <DesktopFriends model={friends}/>
+      {integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
       {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
     </MobileScreen>
