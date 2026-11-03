@@ -80,27 +80,26 @@
 .js-scope option { background: var(--color-bg-card); }
 .js-search input { width: 100%; }
 .js-toolbar-slot { container: journal-tools / inline-size; flex: none; position: relative; z-index: 4; }
-.js-toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--color-border-soft); flex: none;
-  position: relative; z-index: 4; background: var(--color-bg-card); }
-.js-tabs.cj-tabs { display: inline-grid; grid-template-columns: 60px 70px minmax(114px, max-content); flex: none; gap: 2px; padding: 3px; }
-.js-tabs.cj-tabs button { font-weight: 600; min-width: 0; height: 30px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; }
+.teacher-table-toolbar { background: rgb(var(--glass-rgb)); padding: 14px 20px 12px; border-bottom: 1px solid var(--color-border-soft); }
+.js-toolbar { display: flex; align-items: center; gap: 12px; flex: none;
+  position: relative; z-index: 4; }
+.js-tabs.cj-tabs { display: inline-grid; grid-template-columns: repeat(3, max-content); flex: none; gap: 2px; padding: 3px; }
+.js-tabs.cj-tabs button { font-weight: 600; min-width: 0; height: 32px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
 .js-tabs button svg { display: none; }
 .js-tabs button:hover, .js-scope label:hover, .js-search:hover { background: var(--color-bg-3); }
 .js-tabs button[aria-pressed='true'], .js-attention[aria-pressed='true'] { color: var(--color-accent); background: var(--color-purple-soft); }
-.js-toolbar .js-search { margin-inline-start: auto; width: clamp(115px, 13%, 180px); height: 34px; }
-.js-toolbar .js-search input { outline: 0; font-size: 12px; }
+.teacher-table-search { display: flex; align-items: center; gap: 8px; box-sizing: border-box; width: 180px; height: 40px; padding: 0 12px; border-radius: 10px; background: var(--color-bg); border: 1px solid var(--color-border-soft); }
+.js-toolbar .js-search { margin-inline-start: auto; }
+.js-toolbar .js-search input { outline: 0; font-size: 13px; }
 .js-toolbar .js-search:focus-within, .js-toolbar .js-scope label:focus-within { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .js-toolbar .js-scope select:focus-visible { outline: 0; }
-.js-filter-area { position: relative; min-width: 0; }
+.js-filter-area { position: relative; min-width: 0; margin-inline-start: auto; }
 .js-filter-items { display: flex; align-items: center; gap: 8px; }
 .js-filter-items .js-scope { flex-wrap: nowrap; }
-.js-filter-items .js-scope label { min-height: 33px; }
-.js-filter-items .js-scope select { max-width: 155px; font-size: 12px; }
-.js-filter-items .js-attention, .js-filter-trigger { min-height: 33px; padding: 5px 10px; white-space: nowrap; font-size: 12px; }
+.js-filter-items .js-attention, .js-filter-trigger { min-height: 40px; padding: 5px 12px; white-space: nowrap; font-size: 12px; }
 .js-filter-area .js-filter-trigger { display: none; }
 .js-filter-trigger[data-filtered] { color: var(--color-accent); background: var(--color-purple-soft); }
 @container (max-width: 1100px) {
-  .js-filter-area { margin-inline-start: auto; }
   .js-filter-area .js-filter-trigger { display: inline-flex; }
   .js-filter-items { display: none; }
   .js-filter-items[data-open] { display: flex; flex-direction: column; align-items: stretch; position: absolute; z-index: 8; right: 0; top: calc(100% + 6px);
@@ -460,7 +459,7 @@
 }
 
 /* The roster uses one compact row for scope, status and student actions. */
-.group-roster-toolbar .js-scope {
+:is(.group-roster-toolbar, .js-filter-items) .js-scope {
   flex: 0 1 auto;
   flex-wrap: nowrap;
   gap: 8px;
@@ -468,26 +467,30 @@
   font-weight: 600;
   line-height: 20px;
 }
-.group-roster-toolbar .js-scope label {
+:is(.group-roster-toolbar, .js-filter-items) .js-scope label {
   height: 40px;
   box-sizing: border-box;
   padding: 0 10px;
 }
-.group-roster-toolbar .js-scope select { max-width: 170px; font: inherit; }
+:is(.group-roster-toolbar, .js-filter-items) .js-scope select { max-width: 170px; font: inherit; }
 @media (max-width: 767px) {
-  .group-roster-toolbar .js-scope { flex-wrap: wrap; font-size: 16px; }
-  .group-roster-toolbar .js-scope label,
+  :is(.group-roster-toolbar, .js-filter-items) .js-scope { font-size: 16px; }
+  .group-roster-toolbar .js-scope { flex-wrap: wrap; }
+  :is(.group-roster-toolbar, .js-filter-items) .js-scope label,
   .group-roster-toolbar button { min-height: 44px; }
   .group-roster-toolbar input { font-size: 16px !important; }
 }
 
 .js-pending-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
 .js-pending-lessons { margin: 0 14px; font-size: 13px; color: var(--color-text); }
-.js-pending-lessons summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
+.js-pending-lessons summary::-webkit-details-marker { display: none; }
+.js-pending-lessons summary svg { flex: none; }
+.js-pending-lessons[open] summary svg { transform: rotate(90deg); }
+.js-pending-lessons summary { display: flex; align-items: center; gap: 8px; list-style: none; cursor: pointer; padding: 12px 0; font-weight: 600; }
 .js-pending-lessons p { color: var(--color-text-2); margin: 0; }
 .js-pending-lessons ul { margin: 6px 0; padding-inline-start: 20px; }
 .js-pending-lessons li { padding: 3px 0; overflow-wrap: anywhere; }
 @container (max-width: 660px) {
-  .js-tabs button:has(.js-pending-count) { padding-inline: 6px; }
+  .js-tabs.cj-tabs button:has(.js-pending-count) { padding-inline: 10px; }
   .js-pending-lessons summary { min-height: 44px; }
 }
