@@ -27,7 +27,10 @@ export default function BackCircle({ onClick, label = 'Назад', style }: {
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 40, height: 40, flexShrink: 0, padding: 0, borderRadius: 999,
-        border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.62)',
+        // Закреплённая при прокрутке строка задаёт то же стекло, что у её таблеток.
+        border: '1px solid var(--back-circle-border, var(--color-border-medium))',
+        background: 'rgba(var(--glass-rgb), var(--back-circle-opacity, 0.62))',
+        boxShadow: 'var(--back-circle-shadow, none)',
         backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
         cursor: 'pointer', color: 'var(--color-text-2)', fontFamily: 'inherit',
         // Кнопка часто стоит в плавающей панели, где родитель пропускает клики

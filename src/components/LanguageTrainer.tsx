@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines, ClipboardCheck } from './icons/appIcons'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
@@ -1366,7 +1367,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
                   {!!g.about && (
                     <div style={{
                       fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
-                      display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                       ...textFadeLines(3),  overflow: 'hidden',
                     }}>
                       {t(g.about)}
                     </div>

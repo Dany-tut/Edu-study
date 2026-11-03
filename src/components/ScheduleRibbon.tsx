@@ -10,6 +10,7 @@ import { wallDateTimeInTz } from '../lib/teacherTz'
 import { useNow } from '../lib/useNow'
 import { useLang, useT } from '../lib/i18n'
 import type { ScheduleDay } from '../data/mockData'
+import Skeleton from './Skeleton'
 import './scheduleRibbon.css'
 
 const dateOf = (key: string) => new Date(`${key}T12:00:00Z`)
@@ -37,6 +38,12 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
   const [selected, setSelected] = useState(() => days[index]?.date ?? today)
   const [month, setMonth] = useState(() => selected.slice(0, 7))
   const [open, setOpen] = useState(false)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    if (open) { setVisible(true); return }
+    const timer = window.setTimeout(() => setVisible(false), 150)
+    return () => window.clearTimeout(timer)
+  }, [open])
   const [expanded, setExpanded] = useState(false)
   const expandedDialog = useRef<HTMLDialogElement>(null)
   const [remote, setRemote] = useState<ScheduleDay[]>([])
@@ -74,12 +81,13 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
     return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape) }
   }, [open])
   useEffect(() => {
-    if (open && expanded) expandedDialog.current?.showModal()
-  }, [open, expanded])
-  const byDate = new Map([...remote, ...days].map(day => [day.date, day]))
+    if (visible && expanded) expandedDialog.current?.showModal()
+  }, [visible, expanded])
+  const byDate = new Map([...days, ...remote].map(day => [day.date, day]))
+  const loading = !byDate.has(selected) && !failed && (pending || !loaded)
   const label = (key: string, options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' }) => dateOf(key).toLocaleDateString(locale, { ...options, timeZone: 'UTC' })
   function choose(key: string) {
-    setSelected(key); setMonth(key.slice(0, 7)); setOpen(false); setExpanded(false)
+    setSelected(key); setMonth(key.slice(0, 7)); setOpen(false)
     const next = days.findIndex(day => day.date === key)
     if (next >= 0) setIndex(next)
     if (open) trigger.current?.focus()
@@ -89,38 +97,40 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
   const last = new Date(first); last.setUTCMonth(last.getUTCMonth() + 1); last.setUTCDate(0)
   function changeMonth(amount: number) { const date = dateOf(`${month}-01`); date.setUTCMonth(date.getUTCMonth() + amount); setMonth(keyOf(date).slice(0, 7)) }
 
-  const calendar = <div className={`ssr-month${expanded ? ' ssr-month-expanded' : ''}`} role={expanded ? undefined : 'dialog'} aria-label={t('Выбор даты')} id={dialogId}>
+  const calendar = <div className={`ssr-month${expanded ? ' ssr-month-expanded' : ''}${!open ? ' ssr-month-closing' : ''}`} role={expanded ? undefined : 'dialog'} aria-label={t('Выбор даты')} id={dialogId}>
             <div className="ssr-month-heading"><strong>{label(`${month}-01`, { month: 'long', year: 'numeric' })}</strong><div>
+              <button type="button" className="ssr-button ssr-icon ssr-expand" aria-label={t(expanded ? 'Свернуть' : 'Расширить')} title={t(expanded ? 'Свернуть' : 'Расширить')} onClick={() => setExpanded(value => !value)}><Icon name={expanded ? 'Minimize' : 'Maximize'} /></button>
               <button type="button" className="ssr-button ssr-icon" aria-label={t('Предыдущий месяц')} onClick={() => changeMonth(-1)}><Icon name="ChevronLeft" /></button>
               <button type="button" className="ssr-button ssr-icon" aria-label={t('Следующий месяц')} onClick={() => changeMonth(1)}><Icon name="ChevronRight" /></button>
             </div></div>
-            <button type="button" className="ssr-button ssr-expand" onClick={() => setExpanded(value => !value)}><Icon name={expanded ? 'Minimize' : 'Maximize'} />{t(expanded ? 'Свернуть' : 'Расширить')}</button>
             <div className="ssr-month-grid">{Array.from({ length: 7 }, (_, i) => <span className="ssr-weekday" key={`week-${i}`}>{label(shift('2026-11-02', i), { weekday: 'short' })}</span>)}
               {Array.from({ length: leading }, (_, i) => <span key={`space-${i}`} />)}
               {Array.from({ length: last.getUTCDate() }, (_, i) => {
                 const key = shift(`${month}-01`, i), hasLesson = byDate.get(key)?.lessons.some(lesson => lesson.status !== 'cancelled')
-                return <button type="button" key={key} className={`ssr-month-day${key === today ? ' ssr-now' : ''}`} aria-label={`${label(key)}${hasLesson ? ` · ${t('Есть занятие')}` : ''}`} aria-pressed={key === selected} onClick={() => choose(key)}>{i + 1}{hasLesson && <i aria-hidden="true" />}</button>
+                return <button type="button" key={key} className={`ssr-month-day${key === today ? ' ssr-now' : ''}`} aria-label={`${label(key)}${hasLesson ? ` · ${t('Есть занятие')}` : ''}`} aria-pressed={key === selected} onClick={() => choose(key)}><span className="ssr-day-number">{i + 1}</span>{hasLesson && <i aria-hidden="true" />}</button>
               })}
             </div><div className="ssr-calendar-note" role="status">{pending ? t('Загрузка…') : failed ? <button type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Не удалось загрузить расписание')} · {t('Повторить загрузку')}</button> : <><i />{t('Есть занятие')}</>}</div>
           </div>
 
   return <section className="student-schedule-ribbon" aria-label={t('Расписание')}>
     <header className="ssr-toolbar">
-      <div className="ssr-controls">
+      {loading ? <div className="ssr-controls ssr-skeleton-controls" aria-hidden="true">
+        <Skeleton w={78} h={38} radius={12} /><Skeleton w={38} h={38} radius={12} /><Skeleton w={38} h={38} radius={12} /><Skeleton w={120} h={38} radius={12} />
+      </div> : <div className="ssr-controls">
         <button type="button" className="ssr-button" onClick={() => choose(today)}>{t('Сегодня')}</button>
         <button type="button" className="ssr-button ssr-icon" aria-label={t('Предыдущий день')} onClick={() => choose(shift(selected, -1))}><Icon name="ChevronLeft" /></button>
         <button type="button" className="ssr-button ssr-icon" aria-label={t('Следующий день')} onClick={() => choose(shift(selected, 1))}><Icon name="ChevronRight" /></button>
         <div className="ssr-picker" ref={picker}>
           <button type="button" className="ssr-button ssr-trigger" ref={trigger} aria-expanded={open} aria-controls={dialogId} onClick={() => { if (!open) { setMonth(selectedMonth); setExpanded(false) } setOpen(value => !value) }}><Icon name="CalendarDays" />{t('Календарь')}</button>
-          {open && (expanded ? <dialog ref={expandedDialog} className="ssr-expanded-dialog" aria-label={t('Календарь')} onCancel={() => { setOpen(false); setExpanded(false); trigger.current?.focus() }} onClick={event => { if (event.target === event.currentTarget) { setOpen(false); setExpanded(false); trigger.current?.focus() } }}>{calendar}</dialog> : calendar)}
+          {visible && (expanded ? <dialog ref={expandedDialog} className="ssr-expanded-dialog" aria-label={t('Календарь')} onCancel={event => { event.preventDefault(); setOpen(false); trigger.current?.focus() }} onClick={event => { if (event.target === event.currentTarget) { setOpen(false); trigger.current?.focus() } }}>{calendar}</dialog> : calendar)}
         </div>
-      </div>
+      </div>}
     </header>
-    {byDate.has(selected) ? children([-3, -2, -1, 0, 1, 2, 3].map(offset => {
+    {failed ? (
+      <div className="ssr-load-error" role="alert">{t('Не удалось загрузить расписание')} <button type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Повторить загрузку')}</button></div>
+    ) : loading ? children([], 0, () => {}, false) : byDate.has(selected) ? children([-3, -2, -1, 0, 1, 2, 3].map(offset => {
       const date = shift(selected, offset)
       return { ...(byDate.get(date) ?? { date, label: label(date), lessons: [] }), isToday: date === today }
-    }), 3, next => choose(shift(selected, next - 3)), loaded) : failed ? (
-      <div className="ssr-load-error" role="alert">{t('Не удалось загрузить расписание')} <button type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Повторить загрузку')}</button></div>
-    ) : children([], 0, () => {}, !pending && loaded)}
+    }), 3, next => choose(shift(selected, next - 3)), loaded) : children([], 0, () => {}, !pending && loaded)}
   </section>
 }

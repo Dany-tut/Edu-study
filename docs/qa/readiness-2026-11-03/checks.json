@@ -1,0 +1,392 @@
+[
+  {
+    "check": "types",
+    "command": [
+      "npx",
+      "--no-install",
+      "tsc",
+      "--noEmit"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 123.78,
+    "log": "types.log"
+  },
+  {
+    "check": "check:gloss",
+    "command": [
+      "npm",
+      "run",
+      "check:gloss"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 8.14,
+    "log": "check-gloss.log"
+  },
+  {
+    "check": "check:questions",
+    "command": [
+      "npm",
+      "run",
+      "check:questions"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.29,
+    "log": "check-questions.log"
+  },
+  {
+    "check": "check:prose",
+    "command": [
+      "npm",
+      "run",
+      "check:prose"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 6.36,
+    "log": "check-prose.log"
+  },
+  {
+    "check": "check:examples",
+    "command": [
+      "npm",
+      "run",
+      "check:examples"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.82,
+    "log": "check-examples.log"
+  },
+  {
+    "check": "check:scenes",
+    "command": [
+      "npm",
+      "run",
+      "check:scenes"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.23,
+    "log": "check-scenes.log"
+  },
+  {
+    "check": "check:i18n",
+    "command": [
+      "npm",
+      "run",
+      "check:i18n"
+    ],
+    "exitCode": 1,
+    "status": "FAIL",
+    "seconds": 0.35,
+    "log": "check-i18n.log"
+  },
+  {
+    "check": "check:cards",
+    "command": [
+      "npm",
+      "run",
+      "check:cards"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.18,
+    "log": "check-cards.log"
+  },
+  {
+    "check": "check:feed",
+    "command": [
+      "npm",
+      "run",
+      "check:feed"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.18,
+    "log": "check-feed.log"
+  },
+  {
+    "check": "check:attendance",
+    "command": [
+      "npm",
+      "run",
+      "check:attendance"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.28,
+    "log": "check-attendance.log"
+  },
+  {
+    "check": "check:schedule",
+    "command": [
+      "npm",
+      "run",
+      "check:schedule"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.23,
+    "log": "check-schedule.log"
+  },
+  {
+    "check": "check:logic",
+    "command": [
+      "npm",
+      "run",
+      "check:logic"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.22,
+    "log": "check-logic.log"
+  },
+  {
+    "check": "check:gradebook",
+    "command": [
+      "npm",
+      "run",
+      "check:gradebook"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.17,
+    "log": "check-gradebook.log"
+  },
+  {
+    "check": "check:course-journal",
+    "command": [
+      "npm",
+      "run",
+      "check:course-journal"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.18,
+    "log": "check-course-journal.log"
+  },
+  {
+    "check": "check:lesson",
+    "command": [
+      "npm",
+      "run",
+      "check:lesson"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 11.57,
+    "log": "check-lesson.log"
+  },
+  {
+    "check": "check:choicepos",
+    "command": [
+      "npm",
+      "run",
+      "check:choicepos"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 13.22,
+    "log": "check-choicepos.log"
+  },
+  {
+    "check": "check:light",
+    "command": [
+      "npm",
+      "run",
+      "check:light"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.33,
+    "log": "check-light.log"
+  },
+  {
+    "check": "check:teacher-view",
+    "command": [
+      "npm",
+      "run",
+      "check:teacher-view"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.58,
+    "log": "check-teacher-view.log"
+  },
+  {
+    "check": "check:homework-results",
+    "command": [
+      "npm",
+      "run",
+      "check:homework-results"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.38,
+    "log": "check-homework-results.log"
+  },
+  {
+    "check": "check:course-track",
+    "command": [
+      "npm",
+      "run",
+      "check:course-track"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.66,
+    "log": "check-course-track.log"
+  },
+  {
+    "check": "check:homework-attempts",
+    "command": [
+      "npm",
+      "run",
+      "check:homework-attempts"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 8.73,
+    "log": "check-homework-attempts.log"
+  },
+  {
+    "check": "check:lesson-participation",
+    "command": [
+      "npm",
+      "run",
+      "check:lesson-participation"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 14.68,
+    "log": "check-lesson-participation.log"
+  },
+  {
+    "check": "check:release",
+    "command": [
+      "npm",
+      "run",
+      "check:release"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 7.41,
+    "log": "check-release.log"
+  },
+  {
+    "check": "check:feed-release",
+    "command": [
+      "npm",
+      "run",
+      "check:feed-release"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 13.01,
+    "log": "check-feed-release.log"
+  },
+  {
+    "check": "check:video-access",
+    "command": [
+      "npm",
+      "run",
+      "check:video-access"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.29,
+    "log": "check-video-access.log"
+  },
+  {
+    "check": "check:ui",
+    "command": [
+      "npm",
+      "run",
+      "check:ui"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 2.72,
+    "log": "check-ui.log"
+  },
+  {
+    "check": "checkPasswordResetSecurity",
+    "command": [
+      "node",
+      "scripts/checkPasswordResetSecurity.mjs"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.61,
+    "log": "checkPasswordResetSecurity.log"
+  },
+  {
+    "check": "checkProvisionSecurity",
+    "command": [
+      "node",
+      "scripts/checkProvisionSecurity.mjs"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.61,
+    "log": "checkProvisionSecurity.log"
+  },
+  {
+    "check": "checkHomeworkAi",
+    "command": [
+      "node",
+      "scripts/checkHomeworkAi.mjs"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.13,
+    "log": "checkHomeworkAi.log"
+  },
+  {
+    "check": "checkJournalLoading",
+    "command": [
+      "node",
+      "scripts/checkJournalLoading.mjs"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.07,
+    "log": "checkJournalLoading.log"
+  },
+  {
+    "check": "checkTeacherQuickActions",
+    "command": [
+      "node",
+      "scripts/checkTeacherQuickActions.mjs"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.07,
+    "log": "checkTeacherQuickActions.log"
+  },
+  {
+    "check": "checkStudentTrackDebts",
+    "command": [
+      "node",
+      "scripts/checkStudentTrackDebts.mjs"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 0.07,
+    "log": "checkStudentTrackDebts.log"
+  },
+  {
+    "check": "checkSanitizeSecurity",
+    "command": [
+      "node",
+      "scripts/checkSanitizeSecurity.mjs"
+    ],
+    "exitCode": 0,
+    "status": "PASS",
+    "seconds": 3.86,
+    "log": "checkSanitizeSecurity.log"
+  }
+]

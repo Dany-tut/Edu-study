@@ -1,5 +1,9 @@
 project_id = "igsdwvwiqnozgwczzycx"
 
+[functions.drive-video]
+# POST verifies the user JWT; GET/HEAD verify a short-lived media ticket.
+verify_jwt = false
+
 [auth]
 enable_manual_linking = true
 additional_redirect_urls = ["https://edu-study-app.vercel.app/**", "iskra://auth/callback"]
@@ -15,4 +19,8 @@ verify_jwt = false
 
 [functions.testly-sync]
 # Authenticated with the existing shared Testly bridge secret; never browser-facing.
+verify_jwt = false
+
+[functions.hw-grade-run]
+# JWT is verified inside the handler; cron uses its shared secret.
 verify_jwt = false

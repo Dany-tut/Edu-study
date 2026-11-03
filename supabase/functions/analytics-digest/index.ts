@@ -196,12 +196,7 @@ Deno.serve(async (req) => {
     // присланного JWT.
     const { data: authUser } = await admin.auth.admin.getUserById(userData.user.id)
     const appRole = (authUser?.user?.app_metadata as { role?: string } | undefined)?.role
-    if (appRole !== 'admin') {
-      // Запасной путь: если у кого-то админство проставлено только в profiles.
-      const { data: profile } = await admin
-        .from('profiles').select('role').eq('id', userData.user.id).single()
-      if (profile?.role !== 'admin') return json({ error: 'Только для админа' }, 403)
-    }
+    if (appRole !== 'admin') return json({ error: 'Только для админа' }, 403)
     allowed = true
   }
 

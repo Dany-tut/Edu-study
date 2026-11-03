@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { diagnosticFetch } from './diagnosticFetch'
 import { teacherViewFetch } from './teacherView'
 
 // Public client used from the browser. The publishable key is safe to ship —
@@ -16,7 +17,7 @@ if (!url || !key) {
 
 // OAuth returns a one-time query code, leaving the application's hash router intact.
 export const supabase = createClient(url, key, {
-  auth: { flowType: 'pkce' }, global: { fetch: teacherViewFetch },
+  auth: { flowType: 'pkce' }, global: { fetch: diagnosticFetch(teacherViewFetch, url) },
 })
 
 // Адрес и ключ отдельно: на выгрузке страницы обычный клиент не годится —

@@ -1,6 +1,9 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
+import FadeText from '../../components/FadeText'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
@@ -118,9 +121,10 @@ function AddGroupModal({ onClose, onSave }: {
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
+        className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
-          width: 420, boxShadow: 'var(--shadow-5)',
+          width: 420, maxWidth:'calc(100vw - 24px)', boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -241,6 +245,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
+        className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
           width: 380, boxShadow: 'var(--shadow-5)',
@@ -386,9 +391,10 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
+        className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22,
-          width: 420, boxShadow: 'var(--shadow-5)',
+          width: 420, maxWidth:'calc(100vw - 24px)', boxShadow: 'var(--shadow-5)',
           maxHeight: '90dvh', overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
         }}
@@ -716,9 +722,10 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
         exit={{ opacity: 0, scale: 0.94 }}
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
+        className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22,
-          width: 420, boxShadow: 'var(--shadow-5)',
+          width: 420, maxWidth:'calc(100vw - 24px)', boxShadow: 'var(--shadow-5)',
           maxHeight: '90dvh', overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
         }}
@@ -1110,38 +1117,37 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
 }
 
 function ScrollFadeTable({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [fadeLeft, setFadeLeft] = useState(false)
-  const [fadeRight, setFadeRight] = useState(false)
+  return <div style={{ overflowX: 'auto' }}>{children}</div>
+}
 
-  function check() {
+// Keep course lists compact without losing access to the full assignment text.
+function RosterDescription({ text }: { text: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [expanded, setExpanded] = useState(false)
+  const [overflow, setOverflow] = useState(false)
+  const t = useT()
+  useEffect(() => {
     const el = ref.current
     if (!el) return
-    setFadeLeft(el.scrollLeft > 4)
-    setFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
-  }
-
-  useEffect(() => { check() }, [])
-
+    const check = () => setOverflow(el.scrollWidth > el.clientWidth + 1)
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    check()
+    return () => observer.disconnect()
+  }, [text, expanded])
   return (
-    <div style={{ position: 'relative' }}>
-      <div ref={ref} onScroll={check} style={{ overflowX: 'auto' }}>
-        {children}
-      </div>
-      <div style={{
-        position: 'absolute', top: 0, left: 0, bottom: 0, width: 56,
-        pointerEvents: 'none', zIndex: 2,
-        background: 'linear-gradient(to right, var(--color-bg-2), transparent)',
-        opacity: fadeLeft ? 1 : 0,
-        transition: 'opacity 0.22s ease',
-      }} />
-      <div style={{
-        position: 'absolute', top: 0, right: 0, bottom: 0, width: 72,
-        pointerEvents: 'none', zIndex: 2,
-        background: 'linear-gradient(to left, var(--color-bg-2), transparent)',
-        opacity: fadeRight ? 1 : 0,
-        transition: 'opacity 0.22s ease',
-      }} />
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, marginTop: 4, minWidth: 0, fontSize: 11, fontWeight: 400, color: 'var(--color-muted)' }}>
+      <span ref={ref} style={{
+        flex: 1, minWidth: 0, lineHeight: '16px',
+        whiteSpace: expanded ? 'normal' : 'nowrap', overflow: 'hidden', overflowWrap: 'anywhere',
+        maskImage: !expanded && overflow ? 'linear-gradient(to right, black calc(100% - 32px), transparent)' : undefined,
+      }}>{text}</span>
+      {(overflow || expanded) && <button
+        type="button" aria-expanded={expanded}
+        aria-label={t(expanded ? 'Свернуть' : 'Показать все')}
+        onClick={event => { event.stopPropagation(); setExpanded(value => !value) }}
+        style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: 0, marginTop: -14, marginBottom: -14, border: 0, borderRadius: 4, background: 'transparent', color: 'var(--color-muted)', cursor: 'pointer' }}
+      >{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>}
     </div>
   )
 }
@@ -1416,7 +1422,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
           {copiedField === 'login' ? <Check size={14} /> : <Copy size={14} />}
         </button>
       </div>
-      <div style={rowStyle}>
+      {password && <div style={rowStyle}>
         <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>{t('Пароль')}</span>
         {phase === 'revealed'
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{password}</span>
@@ -1427,7 +1433,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
         <button type="button" onClick={() => void handleCopy('password', password)} disabled={!password} title={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} aria-label={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} style={{ ...copyButtonStyle, opacity: password ? 1 : 0.4, cursor: password ? 'pointer' : 'default' }}>
           {copiedField === 'password' ? <Check size={14} /> : <Copy size={14} />}
         </button>
-      </div>
+      </div>}
       <div style={{ fontSize: 10, color: 'var(--color-text-3)', textAlign: 'center', marginTop: 2 }}>
         {phase === 'hidden' ? t('● ● ●  нажмите чтобы показать') : t('Нажмите значок, чтобы скопировать поле')}
       </div>
@@ -1920,8 +1926,16 @@ function StudentPanel({
   const [commentErr, setCommentErr] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [resetting, setResetting] = useState(false)
-  const [newPass, setNewPass] = useState<string | null>(null)
+  const [issuedCredential, setIssuedCredential] = useState<{ studentId: string; password: string } | null>(null)
+  const newPass = issuedCredential?.studentId === student.id ? issuedCredential.password : null
+  const setNewPass = (password: string | null) => setIssuedCredential(password ? { studentId: student.id, password } : null)
   const [resetErr, setResetErr] = useState<string | null>(null)
+  useEffect(() => { setNewPass(null); setResetErr(null) }, [student.id])
+  useEffect(() => {
+    if (!newPass) return
+    const timer = setTimeout(() => setNewPass(null), 120_000)
+    return () => clearTimeout(timer)
+  }, [newPass])
   async function resetPassword() {
     setResetting(true)
     setResetErr(null)
@@ -1966,7 +1980,7 @@ function StudentPanel({
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
             <StudentAvatar student={student} group={group} />
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                 {tn(student.name)}
               </div>
               <div style={{
@@ -1974,7 +1988,7 @@ function StudentPanel({
                 background: group.color + '33', borderRadius: 7, padding: '2px 8px',
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{group.name}</span>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.subject ? <>{group.icon}{ICON_GAP}{tc(group.subject)}</> : null}</span>
               </div>
             </div>
@@ -2005,21 +2019,24 @@ function StudentPanel({
       <OverlayScrollArea style={{ flex: 1 }} padding="16px 20px 0" scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Credentials */}
-        {(student.email || student.tempPassword) && (
+        {student.email && (
           <section>
             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
               {t('Доступ в кабинет')}
             </div>
             <CredentialsSpoiler
               login={student.email ?? ''}
-              password={newPass ?? student.tempPassword ?? ''}
+              password={newPass ?? ''}
             />
+            <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '8px 0 0', lineHeight: 1.45 }}>
+              {t(newPass ? 'Скопируйте новый пароль и передайте ученику. Он исчезнет из этой панели через две минуты.' : 'Пароль ученика не хранится. При необходимости выдайте новый.')}
+            </p>
             <button
               onClick={resetPassword}
               disabled={resetting}
               style={{ ...btn('S', 'secondary'), marginTop: 8, width: '100%' }}
             >
-              {resetting ? t('Сбрасываем…') : newPass ? `${t('Новый пароль:')} ${newPass}` : t('Сбросить пароль')}
+              {resetting ? t('Сбрасываем…') : t('Сбросить пароль')}
             </button>
             {resetErr && (
               <Alert tone="danger" text={resetErr} style={{ marginTop: 8 }} />
@@ -2312,6 +2329,8 @@ type GroupRosterProps = {
   onStripChange?: (tab: 'groups' | 'students') => void
 }
 export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
+  const scrollRoot = useRef<HTMLDivElement>(null)
+  useScrollFades(scrollRoot)
   const t = useT()
   const { tn } = useTc()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
@@ -2380,15 +2399,15 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
 
   const openAddGroupModal = useCallback(() => setShowAddGroup(true), [])
 
+  const pendingGroupForm = useTeacher(s => s.pendingGroupForm)
+  const clearPendingGroupForm = useTeacher(s => s.clearPendingGroupForm)
   useEffect(() => {
-    const onAddStudent = () => setShowAddStudent(true)
-    window.addEventListener('teacher:open-add-group', openAddGroupModal)
-    window.addEventListener('teacher:open-add-student', onAddStudent)
-    return () => {
-      window.removeEventListener('teacher:open-add-group', openAddGroupModal)
-      window.removeEventListener('teacher:open-add-student', onAddStudent)
-    }
-  }, [openAddGroupModal])
+    if (!pendingGroupForm) return
+    setShowAddGroup(pendingGroupForm === 'group')
+    setShowAddStudent(pendingGroupForm === 'student')
+    setShowAddStudentPicker(false)
+    clearPendingGroupForm()
+  }, [pendingGroupForm, clearPendingGroupForm, setShowAddGroup, setShowAddStudent, setShowAddStudentPicker])
 
 
   const regularGroups = groups.filter(g => !g.isIndividual)
@@ -2523,7 +2542,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
           person: {
             name: s.name, phone: s.phone, telegramLink: s.telegramLink, parentContact: s.parentContact,
             desiredScore: s.desiredScore, paymentAmount: s.paymentAmount,
-            email: s.email, tempPassword: s.tempPassword, authUserId: s.authUserId, personId: s.personId,
+            email: s.email, authUserId: s.authUserId, personId: s.personId,
           },
           subjects: new Set(), registered: !!s.authUserId,
         }
@@ -2535,7 +2554,6 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
         e.registered = true
         e.person.authUserId = s.authUserId
         if (s.email) e.person.email = s.email
-        if (s.tempPassword) e.person.tempPassword = s.tempPassword
       }
     }
     return [...map.values()].map(e => ({ key: e.key, person: e.person, subjects: [...e.subjects], registered: e.registered }))
@@ -2581,7 +2599,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
     : new Set<string>()
 
   return (
-    <div className={renderRoster ? 'js-journal-host' : undefined} style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
+    <div ref={scrollRoot} className={renderRoster ? 'js-journal-host' : undefined} style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <motion.div {...fadeUp(0.04)} className={renderRoster || onOpenStudent ? 'js-stand-strip' : undefined}>
           <GroupStrip
@@ -2625,24 +2643,21 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                   borderBottom: '1px solid var(--color-border-soft)',
                 }}>
                   {/* Single header row: name left, pills center, search right */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
+                  <div className="group-roster-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
                     {/* Left: group name */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto', minWidth: 0 }}>
                       <div style={{
                         width: 10, height: 10, borderRadius: '50%', background: activeGroup.color, flex: 'none',
                       }} />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
                         {activeGroup.name}
-                      </span>
+                      </FadeText>
                       {activeGroup.isIndividual && (
                         <span style={cardChip(activeGroup.color, { flex: 'none' })}>1:1</span>
                       )}
-                      <span style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flex: 'none' }}>
-                        · {groupStudents.length} {groupStudents.length === 1 ? t('студент') : t('студентов')}
-                      </span>
                     </div>
 
-                    {/* Center: filter pills (absolute so they're truly centered) */}
+                    {/* Student status filters */}
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: 6, margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center',
                     }}>
@@ -2660,7 +2675,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                             onClick={() => setRosterFilter(f.id)}
                             style={{
                               display: 'inline-flex', alignItems: 'center', gap: 6,
-                              padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+                              height: 40, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
                               fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
                               background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                               color: active ? 'var(--color-text)' : 'var(--color-muted)',
@@ -2683,7 +2698,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       <div style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
-                        borderRadius: 10, padding: '8px 12px', width: 180,
+                        borderRadius: 10, padding: '0 12px', width: 180, height: 40, boxSizing: 'border-box',
                       }}>
                         <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
                         <input
@@ -2745,7 +2760,17 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                 </div>
 
                 <ScrollFadeTable>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <table style={{ width: '100%', minWidth: 1000, tableLayout: 'fixed', borderCollapse: 'collapse' }}>
+                    <colgroup>
+                      <col style={{ width: '32%' }} />
+                      <col style={{ width: '13%' }} />
+                      <col style={{ width: '7%' }} />
+                      <col style={{ width: '7%' }} />
+                      <col style={{ width: '10%' }} />
+                      <col style={{ width: '9%' }} />
+                      <col style={{ width: '12%' }} />
+                      <col style={{ width: '10%' }} />
+                    </colgroup>
                     <thead>
                       <tr style={{ background: 'var(--color-bg-2)' }}>
                         <Th label={t('Студент')}        sortKey="name"       currentKey={sortKey} dir={sortDir} onSort={handleSort} />
@@ -2798,12 +2823,10 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                 }}>
                                   {initials}
                                 </div>
-                                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                                  {tn(student.name)}
-                                  {allRosterView && <span style={{ display: 'block', marginTop: 4, fontSize: 11, fontWeight: 400, color: 'var(--color-muted)', whiteSpace: 'normal' }}>
-                                    {studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel}
-                                  </span>}
-                                </span>
+                                <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
+                                  <FadeText>{tn(student.name)}</FadeText>
+                                  {allRosterView && <RosterDescription text={studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel} />}
+                                </div>
                               </div>
                             </td>
                             {/* Last visit */}
@@ -2838,7 +2861,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                               </span>
                             </td>
                             {/* Debt */}
-                            <td style={{ padding: '12px 24px 12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
+                            <td style={{ padding: '12px 24px 12px 12px', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
                               {student.debt != null && student.debt > 0 ? (
                                 <span style={{
                                   fontSize: 12, fontWeight: 700,
@@ -2848,7 +2871,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                   borderRadius: 6,
                                   padding: '2px 8px',
                                 }}>
-                                  {student.debt.toLocaleString('ru-RU')} ₽
+                                  {student.debt.toLocaleString('ru-RU')}{'\u00a0₽'}
                                 </span>
                               ) : (
                                 <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>—</span>
@@ -2923,7 +2946,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
               onAddToGroup={regularGroups.length > 0 ? () => setAddToGroupForStudent(true) : undefined}
               onResetPassword={async () => {
                 // Real password reset: the Edge Function changes the actual Supabase
-                // Auth password (needs service_role) and mirrors it into temp_password.
+                // Auth password and returns it once without persistence.
                 const { data, error } = await supabase.functions.invoke('reset-student-password', {
                   body: { studentId: activeStudentId },
                 })
@@ -2999,7 +3022,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
               name: activeStudent.name, phone: activeStudent.phone, telegramLink: activeStudent.telegramLink,
               parentContact: activeStudent.parentContact, desiredScore: activeStudent.desiredScore,
               paymentAmount: activeStudent.paymentAmount, email: activeStudent.email,
-              tempPassword: activeStudent.tempPassword, authUserId: activeStudent.authUserId,
+              authUserId: activeStudent.authUserId,
               personId: activeStudent.personId,
             })}
             onClose={() => setAddToGroupForStudent(false)}

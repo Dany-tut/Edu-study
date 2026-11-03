@@ -42,8 +42,8 @@ import './diaryStand.css'
 
 type Design = 'focus' | 'feed' | 'courses'
 type Tab = 'today' | 'work' | 'courses'
-type Sort = 'priority' | 'due' | 'number' | 'subject' | 'course' | 'student' | 'submitted'
-type Grouping = 'none' | 'subject' | 'course' | 'student'
+type Sort = 'priority' | 'due' | 'number' | 'subject' | 'course'
+type Grouping = 'none' | 'subject' | 'course'
 const names: Record<Design, string> = { focus: 'Фокус', feed: 'Лента', courses: 'По курсам' }
 const courseFor = (work: DiaryWork) => diaryCourses.find((course) => course.id === work.course)!
 const shortDate = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', timeZone: 'UTC' })
@@ -113,12 +113,10 @@ function WorkRow({
   work,
   today,
   onOpen,
-  student = false,
 }: {
   work: DiaryWork
   today: string
   onOpen: (work: DiaryWork) => void
-  student?: boolean
 }) {
   return (
     <button type="button" className="ds-work-row" onClick={() => onOpen(work)}>
@@ -131,7 +129,6 @@ function WorkRow({
         <span className="ds-work-meta">
           <Status work={work} />
           <Due work={work} today={today} />
-          {student ? <span>{work.student}</span> : null}
         </span>
       </span>
       <ChevronRight className="ds-chevron" size={18} />
@@ -164,12 +161,11 @@ function Progress({ value, label, accent }: { value: number; label: string; acce
 export default function DiaryStand() {
   const dark = useTheme((s) => s.dark)
   const toggleTheme = useTheme((s) => s.toggle)
+  const [sample, setSample] = useState('full')
   const [design, setDesign] = useState<Design>('focus')
   const [tab, setTab] = useState<Tab>('today')
-  const [teacher, setTeacher] = useState(false)
   const [subject, setSubject] = useState('*')
   const [course, setCourse] = useState('*')
-  const [student, setStudent] = useState('*')
   const [status, setStatus] = useState('action')
   const [sort, setSort] = useState<Sort>('priority')
   const [group, setGroup] = useState<Grouping>('none')
@@ -192,12 +188,17 @@ export default function DiaryStand() {
     timeZone: 'UTC',
   }).format(diaryDate(today, 0))
   const personal = diaryWorks.filter((work) => work.student === 'Артём Волков')
-  const all = teacher ? diaryWorks : personal
+  const pool = personal
+  const all = sample === 'empty' || sample === 'course-only' ? []
+    : sample === 'one' ? pool.filter(w => w.course === 'chem').slice(0, 1)
+    : sample === 'two' ? pool.filter(w => w.course === 'chem').slice(0, 2) : pool
+  const availableCourses = sample === 'empty' ? []
+    : ['course-only', 'one', 'two'].includes(sample) ? diaryCourses.filter(c => c.id === 'chem') : diaryCourses
+  const visibleCourses = availableCourses.filter(c => (subject === '*' || c.subject === subject) && (course === '*' || c.id === course))
   const scope = all.filter(
     (work) =>
       (subject === '*' || courseFor(work).subject === subject) &&
-      (course === '*' || work.course === course) &&
-      (student === '*' || !teacher || work.student === student),
+      (course === '*' || work.course === course),
   )
   const actions = scope
     .filter(isDiaryAction)
@@ -257,21 +258,10 @@ export default function DiaryStand() {
     setSubject(diaryCourses.find((c) => c.id === value)!.subject)
     setTab('courses')
   }
-  function toggleRole(value: boolean) {
-    setTeacher(value)
-    setTab('work')
-    setStudent('*')
-    setStatus(value ? 'pending' : 'action')
-    setSort(value ? 'submitted' : 'priority')
-    setGroup('none')
-    setDescending(false)
-  }
-
   function renderCourseCard(id: DiaryCourseId, full = false) {
     const item = diaryCourses.find((c) => c.id === id)!
     const palette = subjectTheme(item.subject, dark)
     const works = scope.filter((work) => work.course === id)
-    if (!works.length) return null
     return (
       <section
         key={id}
@@ -311,7 +301,6 @@ export default function DiaryStand() {
           <>
             <div className="ds-course-track" aria-label={`Трек курса ${item.title}`}>
               {works
-                .filter(() => !teacher || student !== '*')
                 .sort((a, b) => a.number - b.number)
                 .map((work) => (
                   <button
@@ -362,7 +351,7 @@ export default function DiaryStand() {
     )
   }
   function renderUpcoming() {
-    if (subject === 'Биология' || (course !== '*' && course !== 'chem')) return null
+    if (!visibleCourses.some(c => c.id === 'chem') || subject === 'Биология' || (course !== '*' && course !== 'chem')) return null
     return (
       <section className="ds-upcoming">
         <div className="ds-section-head">
@@ -423,7 +412,7 @@ export default function DiaryStand() {
     if (!first)
       return (
         <section className="ds-priority">
-          <Empty>Все дела выполнены. Можно выдохнуть.</Empty>
+          <Empty>{!scope.length ? 'Пока нет домашних заданий' : 'Все дела выполнены. Можно выдохнуть.'}</Empty>
         </section>
       )
     return (
@@ -471,7 +460,7 @@ export default function DiaryStand() {
         <div className="ds-focus-grid">
           <main>
             {renderPriorityCard()}
-            <section className="ds-section ds-rest">
+            {actions.length > 1 && <section className="ds-section ds-rest">
               <div className="ds-section-head">
                 <h2>Дальше по плану</h2>
                 <span>{Math.max(0, actions.length - 1)} ДЗ</span>
@@ -479,7 +468,7 @@ export default function DiaryStand() {
               {actions.slice(1).map((work) => (
                 <WorkRow key={work.id} work={work} today={today} onOpen={open} />
               ))}
-            </section>
+            </section>}
           </main>
           <aside>
             {renderUpcoming()}
@@ -494,7 +483,8 @@ export default function DiaryStand() {
           </button>
         </div>
         <div className="ds-course-shelf">
-          {diaryCourses.filter((c) => c.id !== 'outside').map((c) => renderCourseCard(c.id))}
+          {visibleCourses.map(c => renderCourseCard(c.id))}
+          {!visibleCourses.length && <Empty>Курсы ещё не добавлены</Empty>}
         </div>
         {pending.length ? (
           <button
@@ -619,7 +609,7 @@ export default function DiaryStand() {
             </button>
           </div>
         ) : null}
-        <div className="ds-course-board">{diaryCourses.map((c) => renderCourseCard(c.id, true))}</div>
+        <div className="ds-course-board">{visibleCourses.map(c => renderCourseCard(c.id, true))}{!visibleCourses.length && <Empty>Курсы ещё не добавлены</Empty>}</div>
         {overview ? renderRecommendation() : null}
       </>
     )
@@ -633,25 +623,13 @@ export default function DiaryStand() {
         (status === 'passed' && work.status === 'test_passed'),
     )
     function grouping(work: DiaryWork, kind: Grouping) {
-      return kind === 'subject'
-        ? courseFor(work).subject
-        : kind === 'course'
-          ? courseFor(work).title
-          : kind === 'student'
-            ? work.student
-            : ''
+      return kind === 'subject' ? courseFor(work).subject : kind === 'course' ? courseFor(work).title : ''
     }
     function compare(a: DiaryWork, b: DiaryWork) {
       if (sort === 'number') return a.number - b.number
-      if (sort === 'student')
-        return compareText(a.student.split(' ').slice(1).join(' '), b.student.split(' ').slice(1).join(' '))
       if (sort === 'subject') return compareText(courseFor(a).subject, courseFor(b).subject)
       if (sort === 'course') return compareText(courseFor(a).title, courseFor(b).title)
-      return sort === 'due'
-        ? (a.dueOffset ?? 0) - (b.dueOffset ?? 0)
-        : sort === 'submitted'
-          ? (a.submittedOrder ?? 0) - (b.submittedOrder ?? 0)
-          : diaryPriority(a) - diaryPriority(b)
+      return sort === 'due' ? (a.dueOffset ?? 0) - (b.dueOffset ?? 0) : diaryPriority(a) - diaryPriority(b)
     }
     list.sort(
       (a, b) =>
@@ -660,11 +638,7 @@ export default function DiaryStand() {
           ? a.dueOffset === null
             ? 1
             : -1
-          : sort === 'submitted' && (a.submittedOrder === undefined) !== (b.submittedOrder === undefined)
-            ? a.submittedOrder === undefined
-              ? 1
-              : -1
-            : (descending ? -1 : 1) * compare(a, b)) ||
+          : (descending ? -1 : 1) * compare(a, b)) ||
         compareText(a.course, b.course) ||
         a.number - b.number ||
         compareText(a.id, b.id),
@@ -681,17 +655,6 @@ export default function DiaryStand() {
               <option value="passed">Зачтено</option>
             </select>
           </label>
-          {teacher ? (
-            <label>
-              Ученик
-              <select aria-label="Ученик" value={student} onChange={(e) => setStudent(e.target.value)}>
-                <option value="*">Все ученики</option>
-                {[...new Set(diaryWorks.map((w) => w.student))].map((name) => (
-                  <option key={name}>{name}</option>
-                ))}
-              </select>
-            </label>
-          ) : null}
           <label>
             Сортировка
             <select aria-label="Сортировка" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
@@ -700,12 +663,7 @@ export default function DiaryStand() {
               <option value="subject">По предмету</option>
               <option value="course">По курсу / интенсиву</option>
               <option value="number">По номеру ДЗ</option>
-              {teacher ? (
-                <>
-                  <option value="student">По фамилии ученика</option>
-                  <option value="submitted">По времени сдачи</option>
-                </>
-              ) : null}
+
             </select>
           </label>
           <label>
@@ -718,7 +676,6 @@ export default function DiaryStand() {
               <option value="none">Без группировки</option>
               <option value="subject">По предмету</option>
               <option value="course">По курсу</option>
-              {teacher ? <option value="student">По ученику</option> : null}
             </select>
           </label>
           <button
@@ -734,7 +691,7 @@ export default function DiaryStand() {
         </div>
         <section className="ds-section ds-all-work">
           <div className="ds-section-head">
-            <h2>{teacher ? 'Работы учеников' : 'Все домашние задания'}</h2>
+            <h2>Все домашние задания</h2>
             <span>{list.length} ДЗ</span>
           </div>
           {list.map((work, i) => (
@@ -742,7 +699,7 @@ export default function DiaryStand() {
               {group !== 'none' && (i === 0 || grouping(work, group) !== grouping(list[i - 1], group)) ? (
                 <h3 className="ds-group-heading">{grouping(work, group)}</h3>
               ) : null}
-              <WorkRow work={work} today={today} onOpen={open} student={teacher} />
+              <WorkRow work={work} today={today} onOpen={open} />
             </div>
           ))}
           {!list.length ? <Empty>По этим фильтрам работ нет</Empty> : null}
@@ -777,14 +734,12 @@ export default function DiaryStand() {
           ))}
         </div>
         <label className="ds-role">
-          <span>Вид</span>
-          <select
-            aria-label="Роль в примере"
-            value={teacher ? 'teacher' : 'student'}
-            onChange={(e) => toggleRole(e.target.value === 'teacher')}
-          >
-            <option value="student">Ученик</option>
-            <option value="teacher">Преподаватель</option>
+          <span>Данные</span>
+          <select aria-label="Объём данных в примере" value={sample} onChange={e => {
+            setSample(e.target.value); setSubject('*'); setCourse('*'); setSelected(null); setReminder(null)
+          }}>
+            <option value="full">Полный пример</option><option value="empty">Нет курсов</option>
+            <option value="course-only">Курс без ДЗ</option><option value="one">Одно ДЗ</option><option value="two">Два ДЗ</option>
           </select>
         </label>
         <button
@@ -830,12 +785,11 @@ export default function DiaryStand() {
           </nav>
           <span className="ds-person">
             <span>АВ</span>
-            {teacher ? 'Преподаватель' : 'Артём'}
+            Артём
           </span>
         </header>
         <div className="ds-page-heading">
           <p>
-            {teacher ? 'Работы учеников · ' : ''}
             {dateLabel}
           </p>
         </div>
@@ -862,15 +816,14 @@ export default function DiaryStand() {
               onChange={(e) => chooseSubject(e.target.value)}
             >
               <option value="*">Все предметы</option>
-              <option>Химия</option>
-              <option>Биология</option>
+              {[...new Set(availableCourses.map(c => c.subject))].map(name => <option key={name}>{name}</option>)}
             </select>
           </label>
           <label>
             <span className="ds-field-label">Курс / интенсив</span>
             <select aria-label="Курс дневника" value={course} onChange={(e) => setCourse(e.target.value)}>
               <option value="*">Все курсы и интенсивы</option>
-              {diaryCourses
+              {availableCourses
                 .filter((c) => subject === '*' || c.subject === subject)
                 .map((c) => (
                   <option key={c.id} value={c.id}>

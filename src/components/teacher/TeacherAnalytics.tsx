@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import AnalyticsDiagnostics from './AnalyticsDiagnostics'
 import CountBadge from '../CountBadge'
 import Segmented from '../Segmented'
 import Skeleton from '../Skeleton'
@@ -348,7 +349,7 @@ export default function TeacherAnalytics() {
   const [days, setDays]                   = useState(30)
   const [loading, setLoading]             = useState(true)
   const [heatRole, setHeatRole]           = useState<'teacher'|'student'>('teacher')
-  const [activeTab, setActiveTab]         = useState<'activity'|'issues'|'heatmap'|'digest'>('activity')
+  const [activeTab, setActiveTab]         = useState<'activity'|'issues'|'heatmap'|'digest'|'diagnostics'>('activity')
   const [overviewT, setOverviewT]         = useState<Overview|null>(null)
   const [overviewS, setOverviewS]         = useState<Overview|null>(null)
   const [teacherHeat, setTeacherHeat]     = useState<HeatCell[]>([])
@@ -395,8 +396,8 @@ export default function TeacherAnalytics() {
       supabase.rpc('admin_recent_errors',             { p_limit: 500 }),
       supabase.rpc('admin_rage_hotspots',             { p_days: days }),
     ])
-    if (ovT.error && /does not exist|forbidden/i.test(ovT.error.message ?? ''))
-      setErr(t('Ошибка загрузки:') + ' ' + ovT.error.message)
+    const failed = [ovT, ovS, th, sh, dl, bd, fn, ps, re, rh].find(result => result.error)
+    if (failed?.error) setErr(t('Ошибка загрузки:') + ' ' + failed.error.message)
     setOverviewT((ovT.data as Overview) ?? null)
     setOverviewS((ovS.data as Overview) ?? null)
     setTeacherHeat((th.data as HeatCell[]) ?? [])
@@ -729,7 +730,7 @@ export default function TeacherAnalytics() {
             stable segmented control below (see next row). */}
         <Segmented
           variant="mode" value={activeTab} onChange={setActiveTab} style={{ marginLeft:'auto' }}
-          items={([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')], ['digest', t('Разбор')]] as const).map(([id,label]) => ({
+          items={([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')], ['digest', t('Разбор')], ['diagnostics', t('Диагностика')]] as const).map(([id,label]) => ({
             id, title: label,
             label: id==='issues' && totalErrors>0 ? <>{label} <CountBadge count={totalErrors} tone="danger" /></> : label,
           }))}
@@ -738,7 +739,7 @@ export default function TeacherAnalytics() {
 
       {/* Role split for the activity & heatmap tabs — a stable segmented control
           that never reflows the tab bar above it. */}
-      {activeTab !== 'issues' && activeTab !== 'digest' && (
+      {(activeTab === 'activity' || activeTab === 'heatmap') && (
         <Segmented
           variant="filter" value={heatRole} onChange={setHeatRole} style={{ marginBottom:20 }}
           items={[{ id: 'teacher', label: t('Учителя') }, { id: 'student', label: t('Ученики') }]}
@@ -1217,6 +1218,8 @@ export default function TeacherAnalytics() {
           )}
         </>
       )}
+
+      {activeTab === 'diagnostics' && <AnalyticsDiagnostics days={days} />}
 
       {/* ── TAB: DIGEST (разбор телеметрии моделью) ── */}
       {activeTab === 'digest' && (() => {

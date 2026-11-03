@@ -1,0 +1,112 @@
+[
+  {
+    "id": "stat-students",
+    "source": "src/components/teacher/widgets/WidgetStatStudents.tsx",
+    "sha256": "46db68104bb093f5a5a24243a37e2aa0e40aee8f71fb4457e612ffad901ec4f9"
+  },
+  {
+    "id": "stat-hw",
+    "source": "src/components/teacher/widgets/WidgetStatHW.tsx",
+    "sha256": "3199f91e66aa92180c41ddbe729b16a402cfd1f58a206896d773563307569c13"
+  },
+  {
+    "id": "stat-lessons",
+    "source": "src/components/teacher/widgets/WidgetStatLessons.tsx",
+    "sha256": "ac5e96cafdaf0fab443bbc976c564f96672c802a5d5e837ac512428bbc7934cf"
+  },
+  {
+    "id": "stat-earnings",
+    "source": "src/components/teacher/widgets/WidgetStatEarnings.tsx",
+    "sha256": "524a320d07e586cf9e6babff772c56c0edcd04e32d8e428f7c5e431fea596f91"
+  },
+  {
+    "id": "finance-received",
+    "source": "src/components/teacher/widgets/WidgetFinanceReceived.tsx",
+    "sha256": "19402d89eb1f5c520842d8b759e20f58c45cc1e9624fff1641782659f1c8a99c"
+  },
+  {
+    "id": "finance-expected",
+    "source": "src/components/teacher/widgets/WidgetFinanceExpected.tsx",
+    "sha256": "eddfe226fc6fce51e8fd90ce5a63c30a31e9814a3c902c8d91ac19fa7bec59b0"
+  },
+  {
+    "id": "finance-debt",
+    "source": "src/components/teacher/widgets/WidgetFinanceDebt.tsx",
+    "sha256": "0146d7771c76fe9eb53d87882cd48814d98ef3073982d7576c8162dbda689b81"
+  },
+  {
+    "id": "finance-forecast",
+    "source": "src/components/teacher/widgets/WidgetFinanceForecast.tsx",
+    "sha256": "0d1fae5b935221f8e920312cc70fa63ea7757ecb3cb00a21f2c078b5a670195b"
+  },
+  {
+    "id": "student-count",
+    "source": "src/components/teacher/widgets/WidgetStudentCount.tsx",
+    "sha256": "96095362b88b8ddaddae4dad19a4d215ae5a517e6c55653555c9b5cf48e9dbbd"
+  },
+  {
+    "id": "student-groups",
+    "source": "src/components/teacher/widgets/WidgetStudentGroups.tsx",
+    "sha256": "d358e69e5016b95760b774a191880c3713232645b6acc102f7440fad76337934"
+  },
+  {
+    "id": "student-active",
+    "source": "src/components/teacher/widgets/WidgetStudentActive.tsx",
+    "sha256": "395893d646d9f5ba8b4af50be965db8be3026fc54c1aecb98d75778eb283bbf2"
+  },
+  {
+    "id": "student-debtors",
+    "source": "src/components/teacher/widgets/WidgetStudentDebtors.tsx",
+    "sha256": "1c0cd0f7a1de08634472168597a2b7c22ebccc7e34b74684775fc35700ca4fed"
+  },
+  {
+    "id": "finance-kpi",
+    "source": "src/components/teacher/widgets/WidgetFinanceKpi.tsx",
+    "sha256": "e0d475f87484c7be495f809e8ed4855f0c8945b473aede5ae557f24d12296c34"
+  },
+  {
+    "id": "finance-overdue",
+    "source": "src/components/teacher/widgets/WidgetFinanceOverdue.tsx",
+    "sha256": "da8adb67d58f534b9d8f824528cb056d2cd038140e784f5ad9a552bd5e657904"
+  },
+  {
+    "id": "finance-activity",
+    "source": "src/components/teacher/widgets/WidgetFinanceActivity.tsx",
+    "sha256": "9d36b998a827f551b322129d72ef2336ca738b36909c343f65c7806cf469504c"
+  },
+  {
+    "id": "student-stats",
+    "source": "src/components/teacher/widgets/WidgetStudentStats.tsx",
+    "sha256": "b63402dbbacb340a41916bb50c8d5ad1207793d711dc0de44720d3fcc2296f0c"
+  },
+  {
+    "id": "groups-list",
+    "source": "src/components/teacher/widgets/WidgetGroupsList.tsx",
+    "sha256": "3d5b9d86507f657495132ce5812fe6b1a340fcf5b3755670fc69330de03d4cd3"
+  },
+  {
+    "id": "attention-students",
+    "source": "src/components/teacher/widgets/WidgetAttentionStudents.tsx",
+    "sha256": "31ab9f00289824f993711b7feefbde20c89bc575f98fa3f5a731a51db95f591c"
+  },
+  {
+    "id": "today-stats",
+    "source": "src/components/teacher/widgets/WidgetTodayStats.tsx",
+    "sha256": "95d57f4681988a66c7c43b70a8b844e678cc506cad6a9d2e91a29b6df3fb54fd"
+  },
+  {
+    "id": "today-schedule",
+    "source": "src/components/teacher/widgets/WidgetTodaySchedule.tsx",
+    "sha256": "559e39b177b37daf52bfb1b1d7bc1705bef7dea4251ed5610b5d97821cb856c6"
+  },
+  {
+    "id": "today-reminders",
+    "source": "src/components/teacher/widgets/WidgetTodayReminders.tsx",
+    "sha256": "b7507503f95ac3c5905d74d33b3233c4f497c9c1de46db8a653f05e67b0baa12"
+  },
+  {
+    "id": "today-tasks",
+    "source": "src/components/teacher/widgets/WidgetTodayTasks.tsx",
+    "sha256": "f3a3086d38bd570e5fa8d5389f243ed973e6c8b759bb2cd178e785627bab6fd7"
+  }
+]

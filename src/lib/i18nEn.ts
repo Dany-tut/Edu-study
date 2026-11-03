@@ -10,6 +10,41 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Изменить высоту виджета': 'Change widget height',
+  'Добавить задачу': 'Add a task',
+  'Занятия модуля': 'Module lessons',
+  '← Предыдущие занятия': '← Previous lessons',
+  'Дальше есть ещё занятия →': 'More lessons ahead →',
+  'Показано': 'Shown',
+  'Загрузить ещё': 'Load more',
+  'Повторяем…': 'Retrying…',
+  'Дождитесь загрузки урока и попробуйте ещё раз.': 'Wait for the lesson to load and try again.',
+  'Оценка, комментарий и предложения ИИ': 'Grade, feedback and AI suggestions',
+  'Не удалось загрузить данные занятий. Попробуйте ещё раз.': 'Could not load lesson details. Please try again.',
+  'Проверка сохранена': 'Review saved',
+  'Не удалось сохранить черновик. Не закрывайте экран до отправки.': 'Could not save the draft. Keep this screen open until you submit.',
+  'Не удалось сохранить проверку. Не закрывайте экран и попробуйте ещё раз.': 'Could not save the review. Keep this screen open and try again.',
+  'Не удалось загрузить работы. Попробуйте ещё раз.': 'Could not load submissions. Please try again.',
+  'Подробности': 'Details',
+  'Перемотка': 'Seek',
+  'Настройка громкости': 'Volume settings',
+  'Уровень громкости': 'Volume level',
+  'Скорость воспроизведения': 'Playback speed',
+  'Не удалось открыть запись.': 'Could not open the recording.',
+  'Открываем запись…': 'Opening recording…',
+  'Попробуйте ещё раз или откройте видео на Google Диске.': 'Try again or open the video in Google Drive.',
+  'Попробуйте ещё раз или откройте исходное видео.': 'Try again or open the original video.',
+  'Открыть на Google Диске': 'Open in Google Drive',
+  'Сначала просмотрите видео': 'Watch the video first',
+  'Прогресс сохранён на этом устройстве. Не удалось синхронизировать.': 'Progress is saved on this device. Could not sync.',
+  "Новая личная задача": "New personal task",
+  "Личная задача не создаёт занятие в расписании и не назначает домашку ученикам.": "A personal task does not schedule a lesson or assign homework to students.",
+  "Не удалось сохранить задачу": "Could not save the task",
+  "в группу или без группы": "with or without a group",
+  "для себя, без назначения ученикам": "for yourself, not assigned to students",
+  "Добавить личную задачу": "Add a personal task",
+  "Назначить домашку": "Assign homework",
+  "занятие в расписании": "a scheduled lesson",
   "Фото и доска к проверке": "Photos and whiteboard for review",
   "Добавить фото к проверке": "Add a photo for review",
   "Фото к проверке": "Review photos",
@@ -22,6 +57,8 @@ export const EN: Record<string, string> = {
 
   'Материалы открыты': 'Materials are available',
   'Нет запланированных занятий': 'No scheduled lessons',
+  'Время для себя': 'Time for yourself',
+  'Занятий нет — можно выдохнуть': 'No lessons — take a breather',
   'Был на занятии': 'Attended the lesson',
   'Не был на занятии': 'Did not attend the lesson',
   'Задача добавлена в демопросмотре': 'Task added in the demo',
@@ -1171,6 +1208,11 @@ export const EN: Record<string, string> = {
   "Заметки": "Notes",
   "Активные курсы": "Active courses",
   "Курс не назначен": "No course assigned",
+  "Активных курсов пока нет.": "No active courses yet.",
+  "Пока нет результатов тренажёра.": "No practice results yet.",
+  "Заданий с ошибками пока нет.": "No tasks with mistakes yet.",
+  "Для определения слабых тем пока недостаточно данных.": "Not enough data to identify weak topics yet.",
+  "По текущим результатам слабые темы не выявлены.": "No weak topics identified in the current results.",
   "уроков пройдено": "lessons completed",
   "Тренажёр — сводка": "Practice — summary",
   "Задач": "Tasks",
@@ -5433,4 +5475,20 @@ export const EN: Record<string, string> = {
   "Комментарий ученику в полной проверке": "Student feedback in the full review",
   "Учебный пример": "Demo assignment",
   "Расширить": "Expand",
+  'Пока нет домашних заданий': 'No homework yet',
+
+  'По курсам': 'By course',
+
+  'План на неделю': 'Weekly plan',
+
+  'Все сроки': 'All due dates',
+
+  'Дни недели': 'Days of the week',
+
+  'Лента заданий': 'Assignment feed',
+
+  'На этот день заданий нет': 'No assignments for this day',
+
+  'Не задана': 'Not set',
+  'Очистить выбор': 'Clear selection',
 }

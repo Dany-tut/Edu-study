@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Наборы карточек — вкладка Конструктора
 //
@@ -886,7 +887,7 @@ function SetCard({ set, group, checked, editMode, onCheck, onOpen, onDelete, onS
           <span
             onClick={e => { e.stopPropagation(); onShelf() }}
             title={t('Настройки полки')}
-            style={cardChip(MAT_COLOR, { cursor: 'pointer', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })}
+            style={cardChip(MAT_COLOR, { cursor: 'pointer', maxWidth: 130, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' })}
           >
             {group.title}
           </span>

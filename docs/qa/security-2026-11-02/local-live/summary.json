@@ -1,0 +1,20 @@
+{
+  "real_http_pass": 100,
+  "real_http_fail": 0,
+  "http_run_precedes_payment_patch": true,
+  "payments_sql_regression": "PASS deny student, deny foreign teacher, allow owner",
+  "browser_e2e": "INCOMPLETE: safety disk stop",
+  "min_disk_gib": 7.91,
+  "min_memory_free_pct": 25,
+  "production_modified": false,
+  "own_services_stopped": true,
+  "current_source_hashes_not_all_retested_due_to_resource_stop": {
+    "supabase/migrations/20261102074927_secure_roles_and_password_storage.sql": "9fe0f775dec7693ec7768522974dfb2f8856da6471d63638aa03b8f5b9cdc75c",
+    "supabase/migrations/20261102075513_restrict_staff_resource_writes.sql": "cfa6c57c35ef0c3c31479ff066d0f28a72456ec61b693c6368f9055082aee433",
+    "supabase/migrations/20261102124842_payment_staff_and_student_owner.sql": "ca90b340a8f63493fb571b6139c7524a1bfe9809f51f383db112059e3a6907d3",
+    "scripts/security/checkLocalSupabase.mjs": "30852f0c5ee1ebb08c29e3bb4d14dd911e843bed3c3a6afa9e2ff725e6d67990",
+    "scripts/security/checkLocalPayments.mjs": "1292f0c353366ae5c748b54e56e039036accaa8d5a07fadcf0a558b9a18ba8a2",
+    "scripts/security/probeLocalBrowserSignup.mjs": "bb2e1b64e713251352e1290fc92e8dfc1f67eae5e7eab04cdb2455b722d3d588",
+    "scripts/security/prepareLocalSupabase.py": "420860ecdf6cb0f09b0c28177a94922d23ca5ff89ad1e900a1e220cf77f9c01e"
+  }
+}

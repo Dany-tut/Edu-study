@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownSurface } from '../../lib/dropdownStyle'
 import CountBadge from '../CountBadge'
@@ -73,12 +74,12 @@ type QuickItem = QuickAction | QuickSeparator
 
 const quickActions: QuickItem[] = [
   { icon: BookOpen,      label: 'Создать курс',      sub: 'новый курс',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-course' },
-  { icon: GraduationCap, label: 'Создать урок',      sub: 'новый урок',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
-  { icon: ClipboardList, label: 'Создать домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
-  { icon: CheckSquare,   label: 'Создать задачу',    sub: 'встреча, урок…',   color: '#4B8EF1', bg: 'rgba(75,142,241,0.13)', action: 'create-task' },
+  { icon: GraduationCap, label: 'Создать урок',      sub: 'занятие в расписании',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
+  { icon: ClipboardList, label: 'Назначить домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
+  { icon: CheckSquare,   label: 'Добавить личную задачу', sub: 'для себя, без назначения ученикам',   color: '#4B8EF1', bg: 'rgba(75,142,241,0.13)', action: 'create-task' },
   { type: 'separator' },
   { icon: Users,         label: 'Создать группу',    sub: 'новая группа',     color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'create-group' },
-  { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу / 1:1',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
+  { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу или без группы',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
 ]
 
 export default function TeacherTopBar({ standReviewCount }: { standReviewCount?: number } = {}) {
@@ -123,6 +124,9 @@ export default function TeacherTopBar({ standReviewCount }: { standReviewCount?:
 
   const activePage             = useTeacher(s => s.activePage)
   const setActivePage          = useTeacher(s => s.setActivePage)
+  const openLessonEditor = useTeacher(s => s.openLessonEditor)
+  const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
+  const openGroupForm = useTeacher(s => s.openGroupForm)
   const addTask                = useTeacher(s => s.addTask)
   const openConstructor        = useTeacher(s => s.openConstructor)
   const triggerConstructorBack = useTeacher(s => s.triggerConstructorBack)
@@ -551,9 +555,11 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   onClick={() => {
                     if (action.action === 'create-task') setTaskModalOpen(true)
                     if (action.action === 'create-course') openConstructor('course')
-                    if (action.action === 'create-group') { setActivePage('groups'); setTimeout(() => window.dispatchEvent(new CustomEvent('teacher:open-add-group')), 80) }
-                    if (action.action === 'add-student') { setActivePage('groups'); setTimeout(() => window.dispatchEvent(new CustomEvent('teacher:open-add-student')), 80) }
-                    if (action.page) setActivePage(action.page)
+                    if (action.action === 'create-group') openGroupForm('group')
+                    if (action.action === 'add-student') openGroupForm('student')
+                    if (action.page === 'lesson-editor') openLessonEditor(null)
+                    else if (action.page === 'homework-create') openHomeworkCreate()
+                    else if (action.page) setActivePage(action.page)
                     setAddOpen(false)
                   }}
                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
@@ -591,7 +597,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{teacherName || (teacherRole === 'admin' ? t('Админ') : t('Учитель'))}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teacherEmail}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.3, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{teacherEmail}</div>
               </div>
             </div>
 
@@ -603,7 +609,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: planPct != null ? 8 : 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                   <Zap size={14} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(planTier.name)}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(planTier.name)}</span>
                 </div>
                 {planDaysLeft != null && (
                   <span style={{ fontSize: 11, fontWeight: 600, flexShrink: 0, color: planEnding ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>
@@ -665,8 +671,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   <item.icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sub}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{item.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{item.sub}</div>
                 </div>
               </motion.button>
             ))}
@@ -684,8 +690,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 <Globe size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('Язык')}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lang === 'ru' ? 'Русский' : 'English'}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t('Язык')}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{lang === 'ru' ? 'Русский' : 'English'}</div>
               </div>
             </motion.button>
 
@@ -718,8 +724,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
     {taskModalOpen && (
       <CreateTaskModal
         onClose={() => { setTaskModalOpen(false); clearDrafts('createTask.') }}
-        onSave={task => {
-          addTask({
+        onSave={async task => {
+          const { error } = await addTask({
             typeId: task.type?.id ?? null,
             typeLabel: task.type?.label ?? null,
             typeBg: task.type?.bg ?? null,
@@ -729,7 +735,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
             time: task.time,
             comment: task.comment,
           })
-          setTaskModalOpen(false)
+          if (error) throw new Error(error)
         }}
       />
     )}

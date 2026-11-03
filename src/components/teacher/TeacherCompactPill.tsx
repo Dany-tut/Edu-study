@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {
@@ -51,7 +52,7 @@ function PillContent({
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 12,
-      padding: '10px 24px 14px 10px', width: '100%', boxSizing: 'border-box',
+      padding: '9px 24px 14px 9px', width: '100%', boxSizing: 'border-box',
     }}>
       <div style={{
         width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
@@ -64,15 +65,14 @@ function PillContent({
         <span style={{
           fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
         }}>
           {kicker}
         </span>
         <span style={{
           fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3,
-          display: '-webkit-box',
-          WebkitLineClamp: expanded ? 'unset' : 1,
-          WebkitBoxOrient: 'vertical',
+          ...textFadeLines(expanded ? 'unset' : 1),
+
           overflow: 'hidden',
         }}>
           {title}
@@ -223,7 +223,7 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
                 {s.topic && (
                   <span style={{
                     marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)',
-                    flexShrink: 0, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    flexShrink: 0, maxWidth: 100, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
                   }}>{s.topic}</span>
                 )}
               </div>
@@ -287,10 +287,10 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
                     <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)' }}>{p.timeStart.slice(0,5)}</span>
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                       {p.scopeName}
                     </span>
-                    <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-2)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                       {p.scopeName}
                     </span>
                   </span>
@@ -400,7 +400,7 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <span style={{
             color: 'var(--color-text-2)', lineHeight: 1.4,
-            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+             ...textFadeLines(2),  overflow: 'hidden',
           }}>
             {dedupBody(latest.body)}
           </span>
@@ -464,7 +464,7 @@ function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
       onClick={e => e.stopPropagation()}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        gap: 6, padding: '8px', width: '100%', boxSizing: 'border-box', height: COLLAPSED_H,
+        gap: 6, padding: 9, width: '100%', boxSizing: 'border-box', height: COLLAPSED_H - 2,
       }}
     >
       {actions.map(({ icon: Icon, label, bg, iconColor, page }, i) => {

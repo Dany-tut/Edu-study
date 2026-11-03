@@ -212,7 +212,10 @@ export default function Sidebar() {
   const avatarRef = useRef<HTMLDivElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
-  const nameWrapRef = useRef<HTMLDivElement>(null)
+  const navRef = useRef<HTMLElement>(null)
+  const nameWrapRef = useRef<HTMLButtonElement>(null)
+  const nameTextRef = useRef<HTMLSpanElement>(null)
+  const [nameWidth, setNameWidth] = useState(0)
   // Max width for the name when a widget pill shares the top-bar row; undefined
   // means "no cap" (home page, or when there's room for the full name).
   const [nameMaxWidth, setNameMaxWidth] = useState<number | undefined>(undefined)
@@ -268,6 +271,19 @@ export default function Sidebar() {
   // compact one (and matches the docked Back/title/date pills + widget pill).
   const contrasty = isCompact || autoCompact
 
+  // Measure the intrinsic label independently of its animated clipping box.
+  // Animating width:auto together with padding measures the old padding and
+  // then snaps to the larger intrinsic width when Motion restores auto.
+  useLayoutEffect(() => {
+    const text = nameTextRef.current
+    if (!text) return
+    const measure = () => setNameWidth(text.getBoundingClientRect().width + 18)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(text)
+    return () => observer.disconnect()
+  }, [])
+
   // Once the lesson scrolls back up (auto-dock condition gone), drop the
   // manual override so the next scroll-down re-docks the bar as expected.
   useEffect(() => { if (!autoCompact) setForceExpanded(false) }, [autoCompact])
@@ -312,11 +328,32 @@ export default function Sidebar() {
     const PILL = 320, GAP = 20, ROW_PAD = 32 // mirror DashboardPage / .topbar-row
     const apply = () => {
       const bar = barRef.current, nameWrap = nameWrapRef.current
-      if (!bar || !nameWrap) return
+      const nav = navRef.current, profile = avatarRef.current
+      if (!bar || !nameWrap || !nav || !profile) return
       if (isCompact || activePage === 'home') { setNameMaxWidth(undefined); return }
-      // rest-of-bar width is invariant to clipping the name (clipping shrinks
-      // both `bar` and `nameWrap` by the same amount), so this converges.
-      const rest = bar.offsetWidth - nameWrap.offsetWidth
+      // Reserve the EXPANDED navigation, not its current animated width.
+      // Otherwise every frame changes the name's target and restarts its
+      // animation, leaving a second, slower resize after the bar opens.
+      const outer = getComputedStyle(bar)
+      const navStyle = getComputedStyle(nav)
+      const expandedNav = Array.from(nav.children).reduce((width, child, index) => {
+        const button = child as HTMLElement
+        const label = button.querySelector<HTMLElement>('[data-topbar-label]')
+        const css = getComputedStyle(button)
+        return width + (label?.getBoundingClientRect().width ?? 0)
+          + parseFloat(css.paddingLeft) + parseFloat(css.paddingRight)
+          + (index === 1 && activeItem === 'courses' ? 25 : 0)
+      }, Math.max(0, nav.childElementCount - 1) * parseFloat(navStyle.columnGap))
+      const rest = Array.from(bar.children).reduce((width, child) => {
+        const element = child as HTMLElement
+        const css = getComputedStyle(element)
+        const size = element === nav ? expandedNav
+          : element === profile ? (profile.firstElementChild as HTMLElement).offsetWidth
+          : element.offsetWidth
+        return width + size + parseFloat(css.marginLeft) + parseFloat(css.marginRight)
+      }, parseFloat(outer.paddingLeft) + parseFloat(outer.paddingRight)
+        + parseFloat(outer.borderLeftWidth) + parseFloat(outer.borderRightWidth)
+        + Math.max(0, bar.childElementCount - 1) * parseFloat(outer.columnGap))
       const maxBar = window.innerWidth - 2 * (PILL + GAP + ROW_PAD)
       setNameMaxWidth(Math.max(0, maxBar - rest))
     }
@@ -325,7 +362,7 @@ export default function Sidebar() {
     if (barRef.current) ro.observe(barRef.current)
     window.addEventListener('resize', apply)
     return () => { ro.disconnect(); window.removeEventListener('resize', apply) }
-  }, [isCompact, activePage])
+  }, [isCompact, activePage, activeItem, lang])
 
   // Report the centred bar's viewport left/right edges so the docked lesson
   // title can cap its width and keep a small gap to the bar (mirroring the
@@ -434,7 +471,7 @@ export default function Sidebar() {
         borderRadius: 32,
         // Как у учителя: 60 − 44 = 16 → отступ 8; пункт — радиус 22 (30 − 8,
         // концентрично капсуле бара). Было 12 и 20 — бары двух кабинетов расходились.
-        padding: '8px',
+        padding: '8px 11px 8px 8px',
         height: 60,
         width: 'fit-content',
         boxSizing: 'border-box',
@@ -450,8 +487,8 @@ export default function Sidebar() {
       }}
     >
       {/* Avatar (flower on a generated-color backdrop) + Name */}
-      <div style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0, paddingRight: 8 }}>
-        <div ref={avatarRef} style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
+      <div ref={avatarRef} style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0, paddingRight: 0 }}>
+        <div style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
           <motion.button
             whileHover={{ scale: 1.08, filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.35))' }}
             whileTap={{ scale: 0.94 }}
@@ -641,7 +678,7 @@ export default function Sidebar() {
                         {/* Columns picker */}
                         <div style={{ ...labelStyle, marginBottom: 8, padding: '0 8px' }}>{t('Блоков в строке')}</div>
                         <div style={{ display: 'flex', gap: 8, marginBottom: 4, padding: '0 8px' }}>
-                          {([1, 2, 3] as WidgetColumns[]).map(n => {
+                          {([2, 3, 4] as WidgetColumns[]).map(n => {
                             const selected = widgetColumns === n
                             return (
                               <motion.button
@@ -712,7 +749,7 @@ export default function Sidebar() {
                           >
                             <Ghost size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                             <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}>{t('Хэллоуин-тема')}</span>
-                            <span className="truncate" style={{ maxWidth: 104, fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
+                            <span className="text-fade" style={{ maxWidth: 104, fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
                               {t(season.active ? (VARIANTS.find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
                             </span>
                           </motion.button>
@@ -816,32 +853,37 @@ export default function Sidebar() {
         </div>
         {/* Width collapses to 0 (instead of popLayout's absolute exit) so the
             name tucks behind the avatar in flow — nothing detaches sideways. */}
-        <motion.div
+        <motion.button
+          type="button"
+          aria-label={t('Профиль')}
+          title={tn(displayName)}
+          aria-expanded={pickerOpen}
+          onClick={() => { tactile(); if (pickerOpen) closePicker(); else { setMenuView('root'); setPickerOpen(true) } }}
           ref={nameWrapRef}
           initial={false}
           animate={{
-            width: isCompact ? 0 : 'auto',
+            width: isCompact ? 0 : Math.min(nameWidth, nameMaxWidth ?? Infinity),
             opacity: isCompact ? 0 : 1,
-            marginLeft: isCompact ? 0 : 10,
           }}
           transition={transition}
-          // When the widget pill sits beside the bar, `nameMaxWidth` caps the
-          // name so the expanded bar + pill still fit the viewport. max-width
-          // bounds the animated `width:auto`, turning the span into a definite
-          // box that can fade. undefined → no cap (plenty of room / home).
-          style={{ overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: nameMaxWidth }}
+          // Include the viewport cap in the numeric target, so clipping does
+          // not switch constraints partway through the animation.
+          style={{ overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 0, minHeight: 44, border: 0, background: 'transparent', cursor: 'pointer', font: 'inherit', padding: 0 }}
+          tabIndex={isCompact ? -1 : 0}
         >
-          <FadeText style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
-            {tn(displayName)}
-          </FadeText>
-        </motion.div>
+          <span style={{ display: 'block', paddingLeft: 10, paddingRight: 8 }}>
+            <FadeText style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
+              <span ref={nameTextRef} style={{ display: 'inline-block' }}>{tn(displayName)}</span>
+            </FadeText>
+          </span>
+        </motion.button>
       </div>
 
       {/* Divider */}
       <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0, order: 4 }} />
 
       {/* Nav */}
-      <nav style={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'center', order: 1 }}>
+      <nav ref={navRef} style={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'center', order: 1 }}>
         {navItems.map(item => {
           const isActive = activeItem === item.id
           const diaryActive = isActive && item.id === 'courses'
@@ -908,7 +950,7 @@ export default function Sidebar() {
                 transition={transition}
                 style={{ display: 'block', overflow: 'hidden', whiteSpace: 'nowrap' }}
               >
-                {t(item.label)}
+                <span data-topbar-label style={{ display: 'block', width: 'max-content' }}>{t(item.label)}</span>
               </motion.span>
 
               {/* На активном пункте фон уже фиолетовый — там счётчик белый (inverse). */}

@@ -1,6 +1,8 @@
 // Lightweight behavioural telemetry beacon. Automatic — no consent gate.
 // Records ids + behaviour only (no names/emails/PII). RLS enforces admin-only read.
 import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
+import { INCIDENT_EVENTS, sanitizeIncidentMeta, incidentContext, rememberDiagnosticEvent, installRuntimeDiagnostics } from './incidentTelemetry'
+import { setRequestReporter } from './diagnosticFetch'
 import { getStudentSession } from './studentSession'
 import { getSessionUser } from './owner'
 
@@ -11,6 +13,8 @@ type PendingEvent = {
   path: string | null
   meta: Record<string, unknown>
   created_at: string
+  identity: Identity
+  session_id: string
 }
 
 const SESSION_KEY = 'analytics_session'
@@ -22,6 +26,21 @@ let sessionId = ''
 let identity: Identity = { user_id: null, student_id: null, role: 'anon' }
 let buffer: PendingEvent[] = []
 let started = false
+const incidentOutbox = new Map<string, PendingEvent>()
+function persistIncidents() {
+  try { localStorage.setItem('iskra:incident-outbox:' + getSessionId(), JSON.stringify([...incidentOutbox.values()].slice(-50))) } catch { /* full/private storage */ }
+}
+function restoreIncidents() {
+  try {
+    const pending = JSON.parse(localStorage.getItem('iskra:incident-outbox:' + getSessionId()) || '[]')
+    if (!Array.isArray(pending)) return
+    for (const e of pending.slice(-50)) {
+      if (typeof e?.meta?.incident_id !== 'string' || !e.identity || !e.session_id || !e.event || Date.now() - Date.parse(e.created_at) > 86400000 || !Number.isFinite(Date.parse(e.created_at))) continue
+      incidentOutbox.set(e.meta.incident_id, e); buffer.push(e)
+    }
+  } catch { /* stale outbox */ }
+}
+
 
 // dwell tracking
 let dwellPath = ''
@@ -64,7 +83,7 @@ async function resolveIdentity() {
     if (u) {
       // Respect the role stamped at sign-up (admin/student/teacher); default to
       // teacher for legacy sessions with no role metadata.
-      const metaRole = u.user_metadata?.role
+      const metaRole = u.app_metadata?.role ?? u.user_metadata?.role
       const role = metaRole === 'admin' || metaRole === 'student' ? metaRole : 'teacher'
       identity = { user_id: u.id, student_id: metaRole === 'student' ? u.id : null, role }
       return
@@ -97,21 +116,32 @@ function flushFinal(rows: unknown[]) {
         Prefer: 'return=minimal',
       },
       body: JSON.stringify(rows),
-    })
+    }).catch(() => { /* offline unload: incident outbox remains for retry */ })
   } catch { /* уходящей странице уже не помочь */ }
 }
 
-async function flush(final = false) {
+let flushPromise: Promise<void> | null = null
+async function flush(final = false): Promise<void> {
+  if (final) { await performFlush(true); return }
+  if (flushPromise) {
+    await flushPromise
+    if (buffer.length) await flush()
+    return
+  }
+  flushPromise = performFlush(false)
+  try { await flushPromise } finally { flushPromise = null }
+}
+async function performFlush(final: boolean) {
   if (buffer.length === 0) return
   const batch = buffer
   buffer = []
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : null
   const rows = batch.map(e => ({
     created_at: e.created_at,
-    user_id: identity.user_id,
-    student_id: identity.student_id,
-    role: identity.role,
-    session_id: getSessionId(),
+    user_id: e.identity.user_id,
+    student_id: e.identity.student_id,
+    role: e.identity.role,
+    session_id: e.session_id,
     event: e.event,
     path: e.path,
     meta: e.meta,
@@ -120,8 +150,12 @@ async function flush(final = false) {
   if (final) { flushFinal(rows); return }
   try {
     const { error } = await supabase.from('analytics_events').insert(rows)
-    if (error) buffer.unshift(...batch)
-  } catch { buffer.unshift(...batch) }
+    if (error) buffer = [...batch, ...buffer].slice(-500)
+    else {
+      for (const e of batch) if (typeof e.meta.incident_id === 'string') incidentOutbox.delete(e.meta.incident_id)
+      persistIncidents()
+    }
+  } catch { buffer = [...batch, ...buffer].slice(-500) }
 }
 
 // Где мы сейчас — так же, как это понимает роутер. Корень без якоря — «#/»,
@@ -130,7 +164,8 @@ async function flush(final = false) {
 // «Проблемы» она выглядела страницей-призраком.
 function currentPath(): string | null {
   if (typeof location === 'undefined') return null
-  if (location.hash) return location.hash
+  if (location.hash.startsWith('#/')) return location.hash.split('?')[0]
+  if (location.hash) return '#/'
   return location.pathname === '/' ? '#/' : location.pathname
 }
 
@@ -139,13 +174,25 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   // (trackNow на входе/выходе), поэтому дев-заслонка стоит здесь, а не только
   // в initAnalytics — иначе роутер и логин продолжали бы писать с localhost.
   if (!TELEMETRY_ON) return
+  if (buffer.length >= 500) buffer.shift()
+  const eventPath = path ?? currentPath()
+  rememberDiagnosticEvent(event, eventPath, meta)
+  const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || Number(meta.duration_ms) >= 3000))
   buffer.push({
     event,
-    path: path ?? currentPath(),
-    meta,
+    path: eventPath,
+    meta: { ...(isIncident ? sanitizeIncidentMeta(meta) : meta), ...(isIncident ? incidentContext() : {}), app_version: __APP_VERSION__, online: navigator.onLine, viewport: `${window.innerWidth}×${window.innerHeight}` },
     created_at: new Date().toISOString(),
+    identity: { ...identity },
+    session_id: getSessionId(),
   })
-  if (buffer.length >= MAX_BUFFER) void flush()
+  if (isIncident) {
+    const pending = buffer[buffer.length - 1]
+    incidentOutbox.set(String(pending.meta.incident_id), pending)
+    if (incidentOutbox.size > 50) incidentOutbox.delete(incidentOutbox.keys().next().value!)
+    persistIncidents()
+  }
+  if (isIncident || buffer.length >= MAX_BUFFER) void flush()
 }
 
 export function trackPageView(path: string, meta: Record<string, unknown> = {}) {
@@ -202,7 +249,7 @@ export function trackPath(path: string, meta: Record<string, unknown> = {}) {
 // уведомления за кадр и досылает их следующим. Ничего не ломается, но событие
 // приходит на каждый ресайз — за месяц оно дало 3000+ строк и вытеснило со
 // вкладки «Проблемы» все настоящие ошибки. Не пишем его вовсе.
-const IGNORED_ERROR = /^ResizeObserver loop|process is not defined/
+const IGNORED_ERROR = /^ResizeObserver loop/
 
 // Ошибки самого инструментария разработки: оптимизатор зависимостей Vite
 // (`process is not defined` в .vite/deps), HMR-клиент, react-refresh. В проде
@@ -221,6 +268,7 @@ function installErrorTracking() {
       src: src.slice(0, 120),
       line: e.lineno,
       col: e.colno,
+      stack: e.error instanceof Error ? e.error.stack?.slice(0, 3000) : undefined,
     })
     void flush()
   })
@@ -230,9 +278,10 @@ function installErrorTracking() {
     const reason = e.reason
     const msg = reason instanceof Error
       ? reason.message
-      : (typeof reason === 'string' ? reason : JSON.stringify(reason))
+      : (typeof reason === 'string' ? reason : 'Unhandled rejection')
     trackEvent('promise_rejection', {
       msg: String(msg ?? '').slice(0, 200),
+      stack: reason instanceof Error ? reason.stack?.slice(0, 3000) : undefined,
     })
     void flush()
   })
@@ -339,6 +388,11 @@ export function initAnalytics() {
   if (!TELEMETRY_ON) return
   started = true
   getSessionId()
+  restoreIncidents()
+  setRequestReporter(({ event, ...meta }) => trackEvent(typeof event === 'string' ? event : 'api_request', meta))
+  installRuntimeDiagnostics(trackEvent)
+  window.addEventListener('offline', () => trackEvent('network_offline'))
+  window.addEventListener('online', () => trackEvent('network_online'))
 
   void resolveIdentity().then(() => {
     let tz: string | null = null

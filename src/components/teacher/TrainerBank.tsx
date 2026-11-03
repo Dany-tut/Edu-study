@@ -1,3 +1,5 @@
+import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { LoopInlineIcon } from '../icons/LoopIcon'
 import { Check as LoopInlineCheck } from '../icons/appIcons'
 import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
@@ -320,10 +322,10 @@ export function BankQuestionCard({
             <span style={cardChipTone('neutral')}>{task.line} лин.</span>
             {dirty && <span style={cardChip(accent)}>{t('изм.')}</span>}
           </div>
-          <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
             {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
           </p>
-          <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--color-text-5)', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.topic}</span>
+          <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--color-text-5)', maxWidth: 130, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.topic}</span>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             <button onClick={() => openEdit(task.id)} style={{
               display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
@@ -395,7 +397,7 @@ export function BankQuestionCard({
       {!compact && (
         <div style={{ padding: '10px 14px', background: 'var(--color-green-soft)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)', flexShrink: 0 }}>{t('Ответ:')}</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{answer || '—'}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{answer || '—'}</span>
         </div>
       )}
 
@@ -403,7 +405,7 @@ export function BankQuestionCard({
       {/* Footer: source (full mode only) */}
       {!compact && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2 }}>
-          <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.section} → {task.topic} · {task.source}</span>
+          <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.section}</span><LoopUiChevronRight size={11} style={{ flexShrink: 0 }} /><span style={{ flex: 1, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.topic} · {task.source}</span></span>
         </div>
       )}
 
@@ -560,10 +562,10 @@ function BankGridCard({
 
       {/* Body: question title + topic */}
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4,  ...textFadeLines(2),  overflow: 'hidden' }}>
           {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 11, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {task.topic}
         </div>
       </div>

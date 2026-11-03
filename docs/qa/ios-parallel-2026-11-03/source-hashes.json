@@ -1,0 +1,13 @@
+{
+  "src/components/MobileSheet.tsx": "8bd6e42b3ff9b06c81ec4a15a74f8d8b172ce6c35252eb804d60da9ff5d5027e",
+  "src/lib/useSwipeBack.ts": "3eecd31fc9488e922894730766615a792a096d2037cfe58f80d7c4a582328f60",
+  "src/lib/useKeyboardInset.ts": "bd6cb8af566b24c115ebbaa6d2c157dca8b8d47a2d87c544b3ed8a3d043743e9",
+  "src/components/teacher/mobile/MobileHomeworkReview.tsx": "da73c11ae9ae53592ec1a9cd67f10f1e01f8b9509f9a70ad141dc899dd639556",
+  "src/lib/mobileHomeworkReviewState.ts": "d0c5c2ae93c5293970af6af588bde8716eeac13cbb7da253fa4511c0052522fb",
+  "src/lib/useHomework.ts": "f79f6f19da98cbc879f3740226a176e3d280c80a418175be61e71ddc8b0a7763",
+  "src/devMobileReviewHarness.tsx": "4fb1ecde137869709d56aa2460e36bc5d632eacf1b6189fa927d6ec9518a1536",
+  "src/components/teacher/courseJournal.css": "ea05684b9ac7d0e4a52097bd985a5381bdc17d83dd9cb9dd880e2f0694524ddf",
+  "scripts/checkMobileGestures.mjs": "5136d5ab323a0fab4d62336cbe79d65643741905f4db7032dd80428ebdd6406e",
+  "scripts/checkMobileHomeworkReview.mjs": "e513ae55a5542edf4ad04210b0b37d571ddfed13885643b14ae9bd3ffc08545e",
+  "package.json": "e3f6a4da1f159ab3d8e43c1d704ff7623473f1abbaf0475592d00e839fca2a4c"
+}

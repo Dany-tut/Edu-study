@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "before_after_equal": true,
+  "sample": [
+    90,
+    "11:30",
+    "02.11 \u0432 10:00"
+  ]
+}

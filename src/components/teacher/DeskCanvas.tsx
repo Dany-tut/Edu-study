@@ -1,3 +1,5 @@
+import { clampDeskWidget, compactDeskWidgets, deskRowHeight, legacyDeskRowHeight, deskColumns, resizeDeskWidget, DESK_GAP } from '../../lib/deskWidgetSizing'
+import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { Suspense, useCallback, useMemo, useState, useRef, useEffect } from 'react'
 import { X } from '../icons/appIcons'
 import { type Desk, type LayoutItem } from '../../lib/useDeskLayouts'
@@ -7,37 +9,17 @@ import Skeleton from '../Skeleton'
 import { useDeskStore } from '../../store/deskStore'
 import { useT } from '../../lib/i18n'
 
-const ROW_H = 64          // base row height (edit mode + fallback)
-const ROW_H_MIN = 42      // floor when shrinking to fit a short monitor
-const ROW_H_MAX = 84      // cap when growing to fill a tall monitor
-const TOP_PAD = 108       // paddingTop of the scroll container
-const BOTTOM_BREATH = 16  // small gap so the last row isn't flush to the edge
-const COLS = 12
-const GAP = 8
+const GAP = DESK_GAP
 
 // ── Grid math ──────────────────────────────────────────────────────────
 // Y-axis math takes an explicit rowH so the grid can scale to the viewport.
-function colW(cw: number) { return (cw - (COLS - 1) * GAP) / COLS }
+function colW(cw: number) { return (cw - (deskColumns(cw) - 1) * GAP) / deskColumns(cw) }
 function gx(x: number, cw: number) { return x * (colW(cw) + GAP) }
 function gy(y: number, rh: number) { return y * (rh + GAP) }
 function iw(w: number, cw: number) { return w * colW(cw) + (w - 1) * GAP }
 function ih(h: number, rh: number) { return h * rh + (h - 1) * GAP }
 function toGridDX(px: number, cw: number) { return Math.round(px / (colW(cw) + GAP)) }
-function toGridDY(py: number) { return Math.round(py / (ROW_H + GAP)) }
-function itemMinW(it: LayoutItem) {
-  // Older saved calendars still carry minW: 4. Use the current limit without
-  // resetting their size or position, including during live resize and save.
-  return it.type === 'today-schedule' ? getWidgetDef(it.type)!.minW : it.minW ?? 2
-}
-function clampItem(it: LayoutItem): LayoutItem {
-  const minW = itemMinW(it)
-  const w = Math.max(minW, it.w)
-  const h = it.maxH ? Math.min(it.maxH, Math.max(it.minH ?? 2, it.h)) : Math.max(it.minH ?? 2, it.h)
-  const x = Math.max(0, Math.min(COLS - w, it.x))
-  const y = Math.max(0, it.y)
-  return { ...it, x, y, w, h, minW }
-}
-
+function toGridDY(py: number, rh: number) { return Math.round(py / (rh + GAP)) }
 // ── Collision resolution ────────────────────────────────────────────────
 function overlaps(a: LayoutItem, b: LayoutItem): boolean {
   if (a.i === b.i) return false
@@ -45,7 +27,7 @@ function overlaps(a: LayoutItem, b: LayoutItem): boolean {
            a.y + a.h <= b.y || b.y + b.h <= a.y)
 }
 
-function resolveCollisions(items: LayoutItem[], activeId: string): LayoutItem[] {
+function resolveCollisions(items: LayoutItem[], activeId: string, columns: number): LayoutItem[] {
   const layout = items.map(it => ({ ...it }))
   const activeIdx = layout.findIndex(it => it.i === activeId)
 
@@ -59,7 +41,7 @@ function resolveCollisions(items: LayoutItem[], activeId: string): LayoutItem[] 
         const item = layout[i]
         // Try push right; fall back to push down
         const rightX = blocker.x + blocker.w
-        if (rightX + item.w <= COLS) {
+        if (rightX + item.w <= columns) {
           layout[i] = { ...item, x: rightX, y: blocker.y }
         } else {
           layout[i] = { ...item, y: blocker.y + blocker.h }
@@ -79,22 +61,8 @@ type ShellProps = { item: LayoutItem; editMode: boolean; onRemove: (id: string) 
 function WidgetShell({ item, editMode, onRemove }: ShellProps) {
   const t = useT()
   const def = getWidgetDef(item.type)
-  const [edges, setEdges] = useState({ top: false, bottom: false })
   const shellRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const id = setTimeout(() => {
-      const el = shellRef.current?.querySelector('.no-scrollbar') as HTMLElement | null
-      if (el) sync(el)
-    }, 200)
-    return () => clearTimeout(id)
-  }, [])
-
-  function sync(el: HTMLElement) {
-    const top = el.scrollTop > 4
-    const bot = el.scrollTop + el.clientHeight < el.scrollHeight - 4
-    setEdges(p => p.top === top && p.bottom === bot ? p : { top, bottom: bot })
-  }
+  useWidgetScrollFades(shellRef)
 
   if (!def) return (
     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -105,8 +73,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
 
   const Comp = def.component
   return (
-    <div ref={shellRef}
-      onScrollCapture={e => { const el = e.target as HTMLElement; if (el.scrollHeight > el.clientHeight + 2) sync(el) }}
+    <div ref={shellRef} className="desk-widget-shell iskra-widget" data-widget={item.type} data-stat={def.stat || undefined}
       style={{ position: 'relative', width: '100%', height: '100%', overflow: 'visible' }}
     >
       <WidgetBoundary label={item.type}>
@@ -126,20 +93,14 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
         </Suspense>
       </WidgetBoundary>
 
-      {/* Scroll fades */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,
-        background: 'linear-gradient(to bottom, rgba(var(--glass-rgb),0.92), transparent)',
-        opacity: edges.top ? 1 : 0, transition: 'opacity 0.15s', borderRadius: '24px 24px 0 0' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,
-        background: 'linear-gradient(to top, rgba(var(--glass-rgb),0.92), transparent)',
-        opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.15s', borderRadius: '0 0 24px 24px' }} />
-
       {/* Edit overlay — blocks widget-internal clicks, acts as drag surface */}
       {editMode && (
         <div style={{ position: 'absolute', inset: 0, borderRadius: 24, zIndex: 6,
           background: 'rgba(0,0,0,0.10)',
           cursor: 'grab', pointerEvents: 'auto' }} />
       )}
+
+      {editMode && <span data-widget-size style={{position:'absolute',left:10,top:-10,zIndex:20,fontSize:11,fontWeight:700,padding:'3px 7px',borderRadius:8,background:'var(--color-bg-card)',color:'var(--color-text-2)',pointerEvents:'none'}}>{item.w}×{item.h}</span>}
 
       {/* Delete button */}
       {editMode && (
@@ -174,6 +135,7 @@ type DragState = {
   curGx: number;   curGy: number
 }
 type ResizeState = {
+  axis: 'both' | 'vertical'
   id: string
   startMx: number; startMy: number
   startW: number;  startH: number
@@ -205,7 +167,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     })
     ro.observe(containerRef.current)
     return () => ro.disconnect()
-  }, [])
+  }, [items.length === 0])
 
   // Track viewport height so the grid can rescale to the monitor
   const [winH, setWinH] = useState(() =>
@@ -217,39 +179,16 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // ── View-mode compaction ──────────────────────────────────────────────
-  const viewItems = useMemo(() => {
-    if (editMode) return items.map(it => clampItem(it))
-    const sorted = [...items].map(it => clampItem(it)).sort((a, b) =>
-      a.y !== b.y ? a.y - b.y : a.x - b.x)
-    const placed: LayoutItem[] = []
-    return sorted.map(item => {
-      let y = 0
-      outer: while (true) {
-        for (const p of placed) {
-          if (item.x < p.x + p.w && item.x + item.w > p.x &&
-              y < p.y + p.h && y + item.h > p.y) { y++; continue outer }
-        }
-        break
-      }
-      const out = { ...item, y }
-      placed.push(out)
-      return out
-    })
-  }, [items, editMode])
+  // Content and saved limits never determine the grid's scale. A compact
+  // widget keeps its dimensions when the same viewport reloads the desk.
+  const rowH = deskRowHeight(winH)
+  const columns = deskColumns(cw)
 
-  // ── Adaptive row height ───────────────────────────────────────────────
-  // In view mode the whole active desk should fit one monitor without a
-  // scrollbar: shrink the row height on short screens, grow it (up to a cap)
-  // on tall ones. Edit mode keeps the fixed base so dragging feels stable.
-  const rowH = useMemo(() => {
-    if (editMode) return ROW_H
-    const maxY = viewItems.reduce((m, it) => Math.max(m, it.y + it.h), 0)
-    if (!maxY) return ROW_H
-    const avail = winH - TOP_PAD - BOTTOM_BREATH
-    const fit = (avail - (maxY - 1) * GAP) / maxY
-    return Math.max(ROW_H_MIN, Math.min(ROW_H_MAX, fit))
-  }, [viewItems, editMode, winH])
+  const clampItem = useCallback((item: LayoutItem) =>
+    clampDeskWidget(item, getWidgetDef(item.type), cw, rowH, legacyDeskRowHeight(winH)), [cw, rowH, winH])
+
+  // ── View-mode compaction ──────────────────────────────────────────────
+  const viewItems = useMemo(() => compactDeskWidgets(items.map(clampItem)), [items, clampItem])
 
   // ── Live layout with collision resolution ─────────────────────────────
   const liveItems = useMemo(() => {
@@ -257,20 +196,20 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
       const withMoved = viewItems.map(it =>
         it.i === drag.id ? clampItem({ ...it, x: drag.curGx, y: drag.curGy }) : it
       )
-      return resolveCollisions(withMoved, drag.id)
+      return resolveCollisions(withMoved, drag.id, columns)
     }
     if (resize) {
       const item = viewItems.find(it => it.i === resize.id)!
       const def = getWidgetDef(item.type)
       const withMoved = viewItems.map(it =>
         it.i === resize.id
-          ? clampItem({ ...it, w: resize.curW, h: resize.curH, maxH: it.maxH ?? def?.maxH })
+          ? clampItem({ ...it, w: resize.curW, h: resize.curH, maxH: def?.maxH ?? it.maxH })
           : it
       )
-      return resolveCollisions(withMoved, resize.id)
+      return compactDeskWidgets(resolveCollisions(withMoved, resize.id, columns))
     }
     return viewItems
-  }, [viewItems, drag, resize])
+  }, [viewItems, drag, resize, clampItem, columns])
 
   // ── Pointer drag handlers ─────────────────────────────────────────────
   const onItemPointerDown = useCallback((e: React.PointerEvent, item: LayoutItem) => {
@@ -295,28 +234,30 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     const dx = mx - drag.startMx
     const dy = my - drag.startMy
     const item = viewItems.find(it => it.i === drag.id)!
-    const newX = Math.max(0, Math.min(COLS - item.w, drag.startGx + toGridDX(dx, cw)))
-    const newY = Math.max(0, drag.startGy + toGridDY(dy))
+    const newX = Math.max(0, Math.min(columns - item.w, drag.startGx + toGridDX(dx, cw)))
+    const newY = Math.max(0, drag.startGy + toGridDY(dy, rowH))
     if (newX !== drag.curGx || newY !== drag.curGy) {
       setDrag(d => d ? { ...d, curGx: newX, curGy: newY } : d)
     }
-  }, [drag, viewItems, cw])
+  }, [drag, viewItems, cw, rowH, columns])
 
   const onItemPointerUp = useCallback(() => {
     if (!drag) return
-    const withMoved = desk.items.map(it =>
+    const withMoved = viewItems.map(it =>
       it.i === drag.id ? clampItem({ ...it, x: drag.curGx, y: drag.curGy }) : it
     )
-    onUpdateItems(resolveCollisions(withMoved, drag.id))
+    const resolved = resolveCollisions(withMoved, drag.id, columns)
+    onUpdateItems(desk.items.map(saved => resolved.find(item => item.i === saved.i) ?? saved))
     setDrag(null)
-  }, [drag, desk.items, onUpdateItems])
+  }, [drag, desk.items, viewItems, onUpdateItems, clampItem, columns])
 
   // ── Pointer resize handlers ───────────────────────────────────────────
-  const onResizePointerDown = useCallback((e: React.PointerEvent, item: LayoutItem) => {
+  const onResizePointerDown = useCallback((e: React.PointerEvent, item: LayoutItem, axis: ResizeState['axis'] = 'both') => {
     e.preventDefault()
     e.stopPropagation()
     e.currentTarget.setPointerCapture(e.pointerId)
     setResize({
+      axis,
       id: item.i,
       startMx: e.clientX, startMy: e.clientY,
       startW: item.w, startH: item.h,
@@ -326,33 +267,31 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
 
   const onResizePointerMove = useCallback((e: React.PointerEvent) => {
     if (!resize) return
-    const dx = e.clientX - resize.startMx
+    const dx = resize.axis === 'vertical' ? 0 : e.clientX - resize.startMx
     const dy = e.clientY - resize.startMy
-    const item = desk.items.find(it => it.i === resize.id)!
+    const item = viewItems.find(it => it.i === resize.id)!
     const def = getWidgetDef(item.type)
-    const minW = itemMinW(item)
-    const minH = item.minH ?? def?.minH ?? 2
-    const maxH = item.maxH ?? def?.maxH
-    const newW = Math.max(minW, Math.min(COLS - item.x, resize.startW + Math.round(dx / (colW(cw) + GAP))))
-    const newH = Math.max(minH, maxH ? Math.min(maxH, resize.startH + Math.round(dy / (ROW_H + GAP))) : resize.startH + Math.round(dy / (ROW_H + GAP)))
+    const next = resizeDeskWidget({...item,w:resize.startW,h:resize.startH},def,dx,dy,cw,rowH)
+    const newW = next.w, newH = next.h
     if (newW !== resize.curW || newH !== resize.curH) {
       setResize(r => r ? { ...r, curW: newW, curH: newH } : r)
     }
-  }, [resize, desk.items, cw])
+  }, [resize, viewItems, cw, rowH, columns])
 
   const onResizePointerUp = useCallback(() => {
     if (!resize) return
-    const withResized = desk.items.map(it =>
+    const withResized = viewItems.map(it =>
       it.i === resize.id ? clampItem({ ...it, w: resize.curW, h: resize.curH }) : it
     )
-    onUpdateItems(resolveCollisions(withResized, resize.id))
+    const resolved = compactDeskWidgets(resolveCollisions(withResized, resize.id, columns))
+    onUpdateItems(desk.items.map(saved => resolved.find(item => item.i === saved.i) ?? saved))
     setResize(null)
-  }, [resize, desk.items, onUpdateItems])
+  }, [resize, desk.items, viewItems, onUpdateItems, clampItem, columns])
 
   // ── Render ────────────────────────────────────────────────────────────
   const gridHeight = useMemo(() => {
     const maxY = liveItems.reduce((m, it) => Math.max(m, it.y + it.h), 0)
-    return ih(maxY, rowH) || 0
+    return maxY > 0 ? ih(maxY, rowH) : 0
   }, [liveItems, rowH])
 
   // Number of snap pages needed in view mode (iOS-style paging)
@@ -383,6 +322,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
       overflowY: 'auto', overflowX: 'hidden',
       overscrollBehavior: 'none',
       scrollSnapType: 'y mandatory',
+      scrollbarGutter: 'stable',
       userSelect: 'auto',
     }}>
 
@@ -408,7 +348,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
           ref={containerRef}
           onPointerMove={drag ? onItemPointerMove : resize ? onResizePointerMove : undefined}
           onPointerUp={drag ? onItemPointerUp : resize ? onResizePointerUp : undefined}
-          style={{ position: 'relative', width: '100%', height: gridHeight }}
+          style={{ position: 'relative', width: '100%', height: gridHeight, ...(editMode ? {backgroundImage:'linear-gradient(to right, var(--color-border-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border-soft) 1px, transparent 1px)', backgroundSize:`${colW(cw)+GAP}px ${rowH+GAP}px`} : {}) }}
         >
           {liveItems.map(item => {
             const isDragging = drag?.id === item.i
@@ -445,9 +385,23 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
               >
                 <WidgetShell item={item} editMode={editMode} onRemove={onRemoveWidget} />
 
+                {editMode && (
+                  <div
+                    data-resize-bottom={item.type}
+                    aria-label={t('Изменить высоту виджета')}
+                    onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
+                    style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+                      width: 64, height: 28, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 's-resize', touchAction: 'none' }}
+                  >
+                    <span style={{ width: 28, height: 4, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.55 }} />
+                  </div>
+                )}
+
                 {/* iOS-style resize corner */}
                 {editMode && (
                   <div
+                    data-resize-handle={item.type}
                     onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!)}
                     style={{
                       position: 'absolute', bottom: 6, right: 6,

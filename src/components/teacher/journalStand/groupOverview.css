@@ -567,7 +567,8 @@
   font-size: 11px;
 }
 .jo-share[open] {
-  display: block;
+  display: flex;
+  flex-direction: column;
   position: fixed;
   inset: 0;
   border: 0;
@@ -579,7 +580,7 @@
   max-height: none;
   margin: 0;
   padding: 16px;
-  overflow: auto;
+  overflow: hidden;
   color: var(--color-text);
   background: var(--color-bg);
 }
@@ -682,3 +683,6 @@
   .jo-week-stamps { gap: 2px; }
   .jo-week-stamps li { width: 18px; }
 }
+
+.jo-share-tools { flex:none; width:100%; }
+.jo-share-scroll { padding-bottom:16px; }

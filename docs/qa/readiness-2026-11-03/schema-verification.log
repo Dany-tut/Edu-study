@@ -1,0 +1,10 @@
+payments_delete
+payments_insert
+payments_read
+payments_staff_delete
+payments_staff_insert
+payments_staff_update
+payments_update
+_hhmm_diff|{"search_path=pg_catalog, public, extensions, pg_temp"}
+_hhmm_plus|{"search_path=pg_catalog, public, extensions, pg_temp"}
+_schedule_label|{"search_path=pg_catalog, public, extensions, pg_temp"}

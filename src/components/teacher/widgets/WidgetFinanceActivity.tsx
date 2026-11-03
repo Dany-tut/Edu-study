@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { CheckCircle2, Wallet } from '../../icons/appIcons'
 import { usePayments } from '../../../lib/useFinances'
 import { useAllStudents } from '../../../lib/useGroups'
@@ -42,7 +43,7 @@ export default function WidgetFinanceActivity() {
       overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{
+      <div className="ww-header" style={{
         padding: '14px 16px 10px',
         display: 'flex', alignItems: 'center', gap: 8,
         borderBottom: '1px solid var(--color-border)',
@@ -61,7 +62,7 @@ export default function WidgetFinanceActivity() {
       </div>
 
       {/* List */}
-      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
+      <div className="no-scrollbar ww-list" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
         {loading ? (
           <div style={{ padding: '4px 2px' }} aria-busy="true"><Skeleton.List rows={3} gap={14} /></div>
         ) : recent.length === 0 ? (
@@ -78,6 +79,7 @@ export default function WidgetFinanceActivity() {
             return (
               <div
                 key={p.id}
+                className="ww-row ww-payment-row"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '10px 16px',
@@ -88,7 +90,7 @@ export default function WidgetFinanceActivity() {
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >
                 {/* Icon / avatar */}
-                <div style={{
+                <div className="ww-avatar" style={{
                   width: 32, height: 32, borderRadius: 10, flexShrink: 0,
                   background: 'var(--color-green-soft)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -98,19 +100,19 @@ export default function WidgetFinanceActivity() {
                 </div>
 
                 {/* Name + note */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                     {student ? tn(student.name).split(' ').slice(0, 2).join(' ') : t('Ученик')}
                   </div>
                   {(p.note || p.lessonsPaid > 0) && (
-                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                    <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                       {[p.note, p.lessonsPaid > 0 ? `${p.lessonsPaid} ${t('зан.')}` : ''].filter(Boolean).join(' · ')}
                     </div>
                   )}
                 </div>
 
                 {/* Amount */}
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div className="ww-amount" style={{ textAlign: 'right', flexShrink: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-green-text)' }}>
                     +{p.amount.toLocaleString('ru-RU')} ₽
                   </div>

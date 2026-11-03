@@ -1,0 +1,45 @@
+import './checkOverlayFades.mjs'
+import './checkTextFades.mjs'
+import assert from 'node:assert/strict'
+import {readFileSync} from 'node:fs'
+import {build} from 'esbuild'
+const read = path => readFileSync(new URL('../'+path,import.meta.url),'utf8')
+const output = await build({entryPoints:['src/lib/useScrollFades.ts'],bundle:true,platform:'node',format:'esm',write:false,external:['react']})
+// Load beside installed dependencies so React resolves without a browser.
+const {writeFileSync,mkdirSync} = await import('node:fs')
+mkdirSync('node_modules/.cache',{recursive:true})
+writeFileSync('node_modules/.cache/ui-scroll-fades.mjs',output.outputFiles[0].text)
+const {scrollFadeMask:mask} = await import('../node_modules/.cache/ui-scroll-fades.mjs')
+assert.equal(mask(0,100,100),'none')
+assert.match(mask(0,100,300),/to bottom, #000.*transparent\)$/)
+assert.match(mask(100,100,300),/to bottom, transparent.*transparent\)$/)
+assert.match(mask(200,100,300),/to bottom, transparent.*#000\)$/)
+assert.match(mask(20,100,300,true),/to right, transparent.*transparent\)$/)
+const hub=read('src/components/teacher/journalStand/HomeworkHub.tsx')
+assert.match(hub,/useScrollFades\(body, active\)/,'Homework scroll regions must keep automatic fades')
+const css=read('src/components/teacher/journalStand/homeworkReview.css')
+assert.match(css,/height:auto; max-height:none/,'Mobile inspector must not trap the answer in a short viewport')
+
+const journal=read('src/components/teacher/journalStand/JournalStand.tsx')
+assert.match(journal,/useScrollFades\(host, true, '\.js-tabs, \.js-filter-items, \.jh-homework-list'\)/,'Journal lists and mobile filters must retain fades')
+assert.match(journal,/if \(!isDesktop \|\| !data/, 'Mobile full-review action must stay in the responsive card')
+const report=read('src/components/teacher/journalStand/GroupOverview.tsx')
+assert.match(report,/<OverlayScrollArea className="jo-share-scroll"/,'Screenshot report must scroll below its fixed return action')
+const pickers=read('src/components/teacher/AddToGroupModals.tsx')
+assert.equal((pickers.match(/<OverlayScrollArea /g)||[]).length,3,'All three selection lists need shared scrolling')
+assert.ok(!/overflowY:\s*'auto'/.test(pickers),'Do not reintroduce raw picker scroll lists')
+assert.match(read('src/components/teacher/journalStand/journalStand.css'),/font-size:16px!important; min-height:44px/,'Mobile person forms must keep readable inputs')
+
+assert.match(read('src/components/teacher/CourseJournal.tsx'),/className="cj-table-frame" ref=\{viewport\}/,'Alternate journal tables must retain sticky-column-aware fades')
+assert.match(read('src/pages/teacher/TeacherStudentDashboardPage.tsx'),/useScrollFades\(profileScroll, (?:!!student && !inDrawer|!inDrawer && !!student)/, 'Standalone student reports need fades without double-masking the drawer')
+const scheduleCard = read('src/components/ScheduleCard.tsx')
+assert.ok(!/\btruncate\b|textOverflow:\s*['"]ellipsis['"]|line-clamp/.test(scheduleCard), 'Schedule labels must fade instead of showing ellipses')
+assert.equal((scheduleCard.match(/<FadeText className="schedule-lesson-title"/g) || []).length, 2, 'Both center and neighbour lesson titles must use the measured text fade')
+assert.match(read('src/components/MobileHome.tsx'), /<FadeText className="schedule-lesson-title"[^>]*>\{tc\(l.lessonTitle\)\}<\/FadeText>/, 'Mobile schedule titles must retain the shared text fade')
+
+assert.ok(!/\btruncate\b|textOverflow:\s*['"]ellipsis['"]/.test(read('src/components/MobileHome.tsx')), 'Single-line mobile home labels must fade instead of showing ellipses')
+
+const rules=read('docs/ui-rules.md')
+for(const id of ['SCROLL-01','TEXT-01','MOBILE-01','ALERT-01','AI-01','BRAND-01']) assert.ok(rules.includes(id),`Missing UI rule ${id}`)
+assert.ok(read('AGENTS.md').includes('docs/ui-rules.md'))
+console.log('UI rules: scroll edges, schedule text fades, mobile card integration and durable rule links passed')

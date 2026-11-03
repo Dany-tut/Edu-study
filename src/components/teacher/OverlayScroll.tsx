@@ -55,8 +55,24 @@ export function useOverlayScroll<T extends HTMLElement = HTMLDivElement>() {
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     for (const child of el.children) ro.observe(child)
+    const childrenObserver = new MutationObserver(records => {
+      for (const record of records) {
+        for (const child of Array.from(record.removedNodes)) {
+          if (child instanceof Element) ro.unobserve(child)
+        }
+        for (const child of Array.from(record.addedNodes)) {
+          if (child instanceof Element) ro.observe(child)
+        }
+      }
+      measure()
+    })
+    childrenObserver.observe(el, { childList: true })
     el.addEventListener('load', measure, true)
-    return () => { ro.disconnect(); el.removeEventListener('load', measure, true) }
+    return () => {
+      childrenObserver.disconnect()
+      ro.disconnect()
+      el.removeEventListener('load', measure, true)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   })
   useEffect(() => () => { if (hide.current) clearTimeout(hide.current) }, [])

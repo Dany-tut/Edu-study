@@ -1,0 +1,25 @@
+{
+  "tool": "built-in imagegen",
+  "assets": [
+    {
+      "slug": "trend",
+      "prompt": "Edit this approved Iskra 3D object ONLY to add a naturally rendered physically plausible cast shadow on an invisible horizontal tabletop. Preserve the exact object identity, materials, lavender/blue acrylic, speckled white ceramic, amber accents, camera, perspective, object size and orientation. Keep object completely intact. Lighting soft large key upper left. The object stands firmly on its base: dense tight ambient occlusion at the contact edge, asymmetric soft cast shadow extending subtly right and backward, realistic penumbra varying with height, faint colored transmission caustics from translucent acrylic. NOT a uniform oval, NOT a halo around the silhouette, NOT a flat drop shadow. Transparent background including genuinely semitransparent shadow pixels, no opaque tabletop or background, no text. Allow transparent margin below and around shadow without cropping it. Premium clean product render.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-c962c040-885a-45a5-908c-fde48e15de49.png"
+    },
+    {
+      "slug": "goal",
+      "prompt": "Edit this approved Iskra 3D object ONLY to add a naturally rendered physically plausible cast shadow on an invisible horizontal tabletop. Preserve the exact object identity, materials, lavender/blue acrylic, speckled white ceramic, amber accents, camera, perspective, object size and orientation. Keep object completely intact. Lighting soft large key upper left. The object stands firmly on its base: dense tight ambient occlusion at the contact edge, asymmetric soft cast shadow extending subtly right and backward, realistic penumbra varying with height, faint colored transmission caustics from translucent acrylic. NOT a uniform oval, NOT a halo around the silhouette, NOT a flat drop shadow. Transparent background including genuinely semitransparent shadow pixels, no opaque tabletop or background, no text. Allow transparent margin below and around shadow without cropping it. Premium clean product render.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-57700db5-5007-4b12-84ec-c1a0cd58d1a7.png"
+    },
+    {
+      "slug": "lag",
+      "prompt": "Edit this approved Iskra 3D object ONLY to add a naturally rendered physically plausible cast shadow on an invisible horizontal tabletop. Preserve the exact object identity, materials, lavender/blue acrylic, speckled white ceramic, amber accents, camera, perspective, object size and orientation. Keep object completely intact. Lighting soft large key upper left. The object stands firmly on its base: dense tight ambient occlusion at the contact edge, asymmetric soft cast shadow extending subtly right and backward, realistic penumbra varying with height, faint colored transmission caustics from translucent acrylic. NOT a uniform oval, NOT a halo around the silhouette, NOT a flat drop shadow. Transparent background including genuinely semitransparent shadow pixels, no opaque tabletop or background, no text. Allow transparent margin below and around shadow without cropping it. Premium clean product render.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-5f709c0e-4381-4d95-92f6-f8a8bab7e3fb.png"
+    },
+    {
+      "slug": "ontime",
+      "prompt": "Edit this approved Iskra 3D object ONLY to add a naturally rendered physically plausible cast shadow on an invisible horizontal tabletop. Preserve the exact object identity, materials, lavender/blue acrylic, speckled white ceramic, amber accents, camera, perspective, object size and orientation. Keep object completely intact. Lighting soft large key upper left. The object stands firmly on its base: dense tight ambient occlusion at the contact edge, asymmetric soft cast shadow extending subtly right and backward, realistic penumbra varying with height, faint colored transmission caustics from translucent acrylic. NOT a uniform oval, NOT a halo around the silhouette, NOT a flat drop shadow. Transparent background including genuinely semitransparent shadow pixels, no opaque tabletop or background, no text. Allow transparent margin below and around shadow without cropping it. Premium clean product render.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-87e45415-b8ec-4f63-8447-bf77da71bad5.png"
+    }
+  ]
+}

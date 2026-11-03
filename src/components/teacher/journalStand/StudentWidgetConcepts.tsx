@@ -70,10 +70,10 @@ export function FadeText({ children, className = '', lines }: { children: ReactN
 export function WidgetObject({ kind, className = '' }: { kind: WidgetId; className?: string }) {
   return <img className={`sw-object ${className}`} src={`/widget-objects-v1/${kind}.png`} alt="" aria-hidden="true" draggable={false} width={96} height={96} />
 }
-function Card({ id, title, extra, children, footer }: { id: WidgetId; title?: string; extra?: ReactNode; children: ReactNode; footer: ReactNode }) {
+function Card({ id, title, extra, children, footer, onOpen }: { onOpen?: () => void; id: WidgetId; title?: string; extra?: ReactNode; children: ReactNode; footer: ReactNode }) {
   const meta = WIDGETS.find(item => item.id === id)!
-  return <section className={`sw-card sw-card--${id}`} data-widget-type={id}>
-    <header className="sw-card-heading"><h3><FadeText lines={1}>{title || meta.label}</FadeText></h3>{extra}</header>
+  return <section className={`sw-card sw-card--${id}`} data-widget-type={id} onClick={onOpen ? event => { if (!(event.target as Element).closest('button, a, input, select')) onOpen() } : undefined} style={onOpen ? { cursor: 'pointer' } : undefined}>
+    <header className="sw-card-heading"><h3>{onOpen ? <button type="button" onClick={onOpen} style={{ all: 'unset', cursor: 'pointer' }}><FadeText lines={1}>{title || meta.label}</FadeText></button> : <FadeText lines={1}>{title || meta.label}</FadeText>}</h3>{extra}</header>
     <div className="sw-card-body"><div className="sw-card-main">{children}</div><WidgetObject kind={id} /></div>
     <footer className="sw-card-footer">{footer}</footer>
   </section>
@@ -94,7 +94,7 @@ export function WidgetConcept({ id, settings, tasks, timer, seconds, running, fo
   const language = settings.subject === 'english'
   const long = settings.longContent
   const action = (label: string, detail: Detail) => <button type="button" className="sw-link sw-card-action" onClick={() => onDetail(detail)}>{label} →</button>
-  if (id === 'reminders') return <Card id={id} extra={<span className="sw-small">Все курсы</span>} footer={<button type="button" className="sw-link sw-card-action" onClick={onTasks}>{settings.scenario === 'tasks' ? 'Все 3 дела' : 'Открыть дела'} →</button>}>
+  if (id === 'reminders') return <Card id={id} onOpen={onTasks} extra={<span className="sw-small">Все курсы</span>} footer={<button type="button" className="sw-link sw-card-action" onClick={onTasks}>{settings.scenario === 'tasks' ? 'Все 3 дела' : 'Открыть дела'} →</button>}>
     {settings.scenario === 'done' ? <div className="sw-state"><h4>Всё сдано</h4><p>Можно выдохнуть. Практика — по желанию.</p></div>
       : settings.scenario === 'loading' ? <div className="sw-state" aria-busy="true"><p>Проверяем задания и сроки</p><div className="sw-skeleton" /><div className="sw-skeleton short" /></div>
       : settings.scenario === 'error' ? <div className="sw-state" role="alert"><h4>Дела пока недоступны</h4><button type="button" className="sw-link" onClick={onRetry}>Повторить →</button></div>

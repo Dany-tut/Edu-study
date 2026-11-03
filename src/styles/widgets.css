@@ -1,0 +1,219 @@
+/* Shared widget layout: container dimensions drive content, never viewport guesses. */
+.iskra-widget{container:iskra-widget / size;min-width:0;min-height:0}
+.iskra-widget[data-stat]{container:iskra-kpi / size}
+.iskra-widget [style*="--iskra-text-fade-lines"]{--iskra-text-fade-lines:0!important;white-space:normal!important;overflow:visible!important;max-height:none!important;overflow-wrap:anywhere;min-width:0}.iskra-widget .calendar-widget-subtitle{--iskra-text-fade-lines:0!important;white-space:normal!important;overflow:visible!important;max-height:none!important}
+.iskra-widget .iskra-mini-stat{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto minmax(0,1fr) auto!important;gap:10px!important;padding:16px!important;min-width:0;border-radius:22px!important}
+.iskra-widget .iskra-mini-stat-heading{display:grid!important;grid-template-columns:minmax(0,1fr) 30px;align-items:center!important;gap:8px;min-width:0}
+.iskra-widget .iskra-mini-stat-label{white-space:normal;overflow-wrap:normal;font-size:11px!important;line-height:1.3;min-width:0}
+.iskra-widget .iskra-mini-stat-value{--metric-base-size:clamp(22px,12cqi,36px);font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important;line-height:1.1!important;white-space:nowrap;align-self:center;min-width:0}
+.iskra-widget .iskra-mini-stat-sub{justify-self:start;align-self:end!important;font-size:11px!important;line-height:1.35;max-width:100%;white-space:normal;padding:5px 8px!important;overflow-wrap:normal}
+@container iskra-kpi (max-height:135px){.iskra-widget .iskra-mini-stat{grid-template-rows:auto minmax(0,1fr)!important;gap:6px!important;padding:14px!important}.iskra-widget .iskra-mini-stat-sub{display:none!important}.iskra-widget .iskra-mini-stat-value{--metric-base-size:clamp(24px,13cqi,32px);font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important}}
+@container iskra-kpi (max-width:175px){.iskra-widget .iskra-mini-stat{grid-template-columns:30px minmax(0,1fr)!important;grid-template-rows:1fr!important;align-items:center;gap:10px!important;padding:12px!important;border-radius:18px!important}.iskra-widget .iskra-mini-stat-label,.iskra-widget .iskra-mini-stat-sub{display:none!important}.iskra-widget .iskra-mini-stat-heading{display:block!important}.iskra-widget .iskra-mini-stat-value{--metric-base-size:24px;font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important}}
+@container iskra-kpi (min-width:320px) and (max-height:150px){.iskra-widget .iskra-mini-stat{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:auto auto!important;column-gap:20px!important;row-gap:6px!important;padding:16px 20px!important;align-content:center}.iskra-widget .iskra-mini-stat-heading{grid-template-columns:30px minmax(0,1fr);justify-self:start;align-self:center;grid-column:1;grid-row:1}.iskra-widget .iskra-mini-stat-icon{grid-column:1;grid-row:1}.iskra-widget .iskra-mini-stat-label{grid-column:2;grid-row:1}.iskra-widget .iskra-mini-stat-value{grid-column:2;grid-row:1/3;--metric-base-size:32px;font-size:min(var(--metric-base-size),var(--metric-font-size,999px))!important}.iskra-widget .iskra-mini-stat-sub{display:block!important;grid-column:1;grid-row:2;margin-left:38px;max-width:calc(100% - 38px)}}
+.iskra-widget{--ww-gap:10px}
+.iskra-widget .ww-header{padding:12px 14px!important;min-height:48px;gap:8px!important;flex-wrap:wrap}
+.iskra-widget .ww-header>div{min-width:0;gap:6px!important}
+.iskra-widget .ww-header span{overflow-wrap:normal}
+.iskra-widget .ww-header button{flex-shrink:0;min-height:28px}
+.iskra-widget .ww-list{flex:1 1 0!important;min-height:0;overflow-x:hidden;overflow-y:auto!important;overscroll-behavior:contain}
+.iskra-widget .ww-row{display:grid!important;align-items:center!important;gap:6px 8px!important;padding:10px 12px!important;min-width:0}
+.iskra-widget .ww-info{min-width:0}
+.iskra-widget .ww-info>div:first-child{font-size:13px!important;line-height:1.35;overflow-wrap:anywhere}
+.iskra-widget .ww-avatar{width:30px!important;height:30px!important;align-self:start;margin-top:2px}
+.iskra-widget .ww-group-row{grid-template-columns:30px minmax(0,1fr) auto 12px}
+.iskra-widget .ww-status{font-size:11px!important;line-height:1.35;min-width:0;white-space:normal}
+.iskra-widget .ww-attention-row{grid-template-columns:30px minmax(0,1fr) 12px}
+.iskra-widget .ww-attention-row .ww-status{grid-column:2;grid-row:2;justify-self:start;max-width:100%}
+.iskra-widget .ww-attention-row>svg:last-child{grid-column:3;grid-row:1/3}
+.iskra-widget .ww-attention-row .ww-avatar{grid-row:1/3}
+.iskra-widget .ww-debt-row{grid-template-columns:30px minmax(0,1fr) auto 32px}
+.iskra-widget .ww-debt-row .ww-info{grid-column:2;grid-row:1}
+.iskra-widget .ww-debt-row .ww-status{grid-column:2/4;grid-row:2;justify-self:start}
+.iskra-widget .ww-debt-row .ww-amount{grid-column:3;grid-row:1;min-width:0!important;white-space:nowrap}
+.iskra-widget .ww-debt-row .ww-pay{grid-column:4;grid-row:1/3;padding:0!important;width:32px;height:32px;justify-content:center}
+.iskra-widget .ww-pay-label{display:none}
+.iskra-widget .ww-payment-row{grid-template-columns:30px minmax(0,1fr) auto;align-items:start!important}
+.iskra-widget .ww-payment-row .ww-amount{white-space:nowrap;line-height:1.4}
+.iskra-widget .ww-task-card{padding:14px!important;min-height:0;gap:0}
+.iskra-widget .ww-task-heading{min-height:44px;gap:8px!important;flex-shrink:0}
+.iskra-widget .ww-task-heading>svg{flex-shrink:0}
+.iskra-widget .ww-task-add{margin-left:auto;flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:12px;background:var(--color-bg-3);color:var(--color-accent);display:grid;place-items:center;cursor:pointer}
+.iskra-widget .ww-task-add svg{display:block;margin:0}
+.iskra-widget .ww-task-list{min-height:0;flex:1 1 0;max-height:none!important;overflow-y:auto!important;mask-image:none!important;-webkit-mask-image:none!important}
+.iskra-widget .ww-task-row{display:grid!important;grid-template-columns:20px minmax(0,1fr) 24px;gap:5px 8px!important;padding:10px!important;align-items:start!important;flex-shrink:0}
+.iskra-widget .ww-task-title{grid-column:2;grid-row:1;min-height:28px;padding-top:5px;white-space:normal!important;overflow:visible!important;line-height:1.35;overflow-wrap:anywhere}
+.iskra-widget .ww-task-check{grid-column:1;grid-row:1;min-height:28px;align-items:center}
+.iskra-widget .ww-task-type{grid-column:2;grid-row:2;justify-self:start}
+.iskra-widget .ww-task-date{grid-column:2;grid-row:3}
+.iskra-widget .ww-task-remove{grid-column:3;grid-row:1;opacity:1!important;pointer-events:auto!important;width:24px!important;height:28px!important}
+.iskra-widget .ww-reminder-row{display:grid!important;grid-template-columns:28px minmax(0,1fr) auto;gap:6px 8px!important;padding:10px!important}
+.iskra-widget .ww-reminder-row>div:first-child{width:28px!important;height:28px!important;grid-column:1;grid-row:1/3}
+.iskra-widget .ww-reminder-info{grid-column:2/4;min-width:0}
+.iskra-widget .ww-reminder-info>div{white-space:normal!important;overflow:visible!important;line-height:1.35}
+.iskra-widget .ww-reminder-row>span{grid-column:2/4;justify-self:start;max-width:100%;white-space:normal}
+.iskra-widget .ww-reminder-row[style*="padding-right: 48px"]{padding-right:44px!important}
+.iskra-widget[data-widget="today-reminders"]>div{padding:14px!important}
+.iskra-widget[data-widget="today-schedule"] .calendar-widget-content{padding:12px;display:flex;min-height:0}
+.iskra-widget[data-widget="today-schedule"] .calendar-widget-schedule{flex:1;min-width:0;gap:8px!important}
+.iskra-widget .calendar-widget-header{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center!important;gap:8px!important;flex-shrink:0}
+.iskra-widget .calendar-widget-title{font-size:16px!important;min-width:0}
+.iskra-widget .calendar-widget-actions{gap:6px!important;flex-wrap:nowrap!important}
+.iskra-widget .calendar-widget-lesson{padding:10px!important;gap:8px!important;border-radius:16px!important}
+.iskra-widget .calendar-widget-details{min-width:0}
+.iskra-widget .calendar-widget-subtitle{white-space:normal!important;overflow-wrap:anywhere}
+/* Wide rows retain the same values and actions with a different reading order. */
+@container iskra-widget (min-width:520px){
+.iskra-widget .ww-attention-row{grid-template-columns:30px minmax(0,1fr) auto 12px}.iskra-widget .ww-attention-row .ww-status{grid-column:3;grid-row:1}.iskra-widget .ww-attention-row>svg:last-child{grid-column:4;grid-row:1}.iskra-widget .ww-attention-row .ww-avatar{grid-row:1}
+.iskra-widget .ww-debt-row{grid-template-columns:30px minmax(0,1fr) auto auto auto}.iskra-widget .ww-debt-row .ww-status{grid-column:3;grid-row:1}.iskra-widget .ww-debt-row .ww-amount{grid-column:4;grid-row:1}.iskra-widget .ww-debt-row .ww-pay{grid-column:5;grid-row:1;width:auto;padding:7px 10px!important}.iskra-widget .ww-pay-label{display:inline}
+.iskra-widget .ww-task-row{grid-template-columns:20px auto minmax(0,1fr) auto 24px}.iskra-widget .ww-task-check{grid-column:1;grid-row:1}.iskra-widget .ww-task-type{grid-column:2;grid-row:1}.iskra-widget .ww-task-title{grid-column:3;grid-row:1}.iskra-widget .ww-task-date{grid-column:4;grid-row:1}.iskra-widget .ww-task-remove{grid-column:5;grid-row:1}
+}
+@container iskra-widget (max-width:340px){.iskra-widget .ww-secondary{display:none}.iskra-widget .calendar-widget-metadata{display:none!important}.iskra-widget .ww-reminder-row{grid-template-columns:minmax(0,1fr)}.iskra-widget .ww-reminder-row>div:first-child{display:none}.iskra-widget .ww-reminder-info,.iskra-widget .ww-reminder-row>span{grid-column:1!important}}
+/* Student strip: content owns a scrollable reading region; controls never shrink. */
+.iskra-widget[data-widget^="pupil-"]{border-radius:24px}
+.iskra-widget[data-widget^="pupil-"]>div,.iskra-widget[data-widget^="pupil-"]>button{min-width:0;min-height:0;box-sizing:border-box}
+.iskra-widget[data-widget^="pupil-"] button,.iskra-widget[data-widget^="pupil-"] a{flex-shrink:0}
+.iskra-widget .ww-media-content{padding:12px 14px!important;gap:6px;min-height:0}
+.iskra-widget .ww-media-heading{margin-bottom:0!important;flex-shrink:0}
+.iskra-widget .ww-media-heading span{font-size:11px!important;padding:4px 8px!important;line-height:1.2!important}
+.iskra-widget .ww-primary-body{min-height:0;overflow-y:auto;overflow-x:hidden;justify-content:flex-start!important;align-items:flex-start!important;padding:4px 0;overscroll-behavior:contain}
+.iskra-widget .ww-primary-body p{font-size:15px!important;line-height:1.35!important;white-space:normal!important;overflow-wrap:anywhere}
+.iskra-widget[data-widget="pupil-reactions"] .ww-primary-body p:first-child{font-size:18px!important;font-weight:700}
+.iskra-widget .ww-media-pages{margin-top:0!important;flex-shrink:0;flex-wrap:wrap;gap:6px!important;max-height:30px;overflow:auto}
+.iskra-widget .ww-art{width:24%!important;min-width:64px!important;max-width:160px!important}
+.iskra-widget .ww-question-body{align-items:flex-start!important;overflow-y:auto;min-height:0;overscroll-behavior:contain;padding:4px 0}
+.iskra-widget .ww-question-body h3{font-size:17px!important;line-height:1.35!important}
+.iskra-widget .ww-question-footer{margin-top:6px!important;min-height:32px!important;flex-shrink:0;overflow-x:auto}
+.iskra-widget .ww-question-footer>button{height:34px!important;border-radius:12px!important;padding:0 12px!important;font-size:12px!important}
+.iskra-widget[data-widget="pupil-question"]>div{padding:12px 14px!important}
+.iskra-widget .ww-timer-controls{min-height:0;gap:8px!important}
+.iskra-widget .ww-timer-heading{flex-wrap:wrap;gap:6px!important}
+.iskra-widget .ww-timer-heading button{font-size:12px!important;padding:6px 10px!important}
+.iskra-widget .ww-timer-hint{min-height:0}
+.iskra-widget .ww-timer-hint p{font-size:12px!important;line-height:1.3}
+.iskra-widget .ww-timer-actions{flex-shrink:0;gap:6px!important}
+.iskra-widget .ww-timer-actions button{height:34px!important;min-width:34px;border-radius:12px!important;font-size:12px!important}
+.iskra-widget .ww-reading-header{gap:6px!important;flex-wrap:wrap;flex-shrink:0;min-width:0}
+.iskra-widget .ww-reading-header>span{font-size:12px!important}
+.iskra-widget .ww-reading-header>a{margin-left:auto!important}
+.iskra-widget .ww-reading-body{overflow-y:auto!important;flex:1 1 0!important;min-height:0;padding:8px 10px!important}
+.iskra-widget .ww-reading-body>div:first-child{font-size:14px!important;line-height:1.3!important}
+.iskra-widget .ww-reading-actions{flex-shrink:0;gap:8px!important;flex-wrap:wrap}
+.iskra-widget .ww-reading-actions>a,.iskra-widget .ww-reading-actions>button{padding:6px 10px!important;font-size:12px!important;min-height:30px}
+.iskra-widget .ww-feed-items{overflow-y:auto;overscroll-behavior:contain}
+.iskra-widget .ww-feed-items>a{flex-shrink:0;align-items:start!important}
+.iskra-widget .ww-feed-items>a>span:nth-child(2){white-space:normal!important;overflow:visible!important;line-height:1.3}
+.iskra-widget .ww-sticker-items{flex:1 1 0;min-height:0;overflow-y:auto;align-content:flex-start;gap:8px!important}
+.iskra-widget .ww-sticker-counts{flex-shrink:0;gap:4px!important}
+.iskra-widget .ww-sticker-counts>span{font-size:11px!important;padding:3px 6px!important}
+.iskra-widget[data-widget="pupil-stickers"]>div,.iskra-widget[data-widget="pupil-trainer"]>div,.iskra-widget[data-widget="pupil-dose"]>div,.iskra-widget[data-widget="pupil-feed"]>div{padding:12px 14px!important;gap:8px!important;overflow:hidden}
+.iskra-widget[data-widget="pupil-stickers"]>div>p,.iskra-widget[data-widget="pupil-dose"]>div>p,.iskra-widget[data-widget="pupil-feed"]>div>p{min-height:0;overflow-y:auto;font-size:12px!important;line-height:1.4!important}
+.iskra-widget .ww-trainer-entry{padding:14px!important;gap:8px!important}
+.iskra-widget .ww-trainer-entry[data-empty] p{font-size:12px!important;line-height:1.4!important}
+.iskra-widget .ww-trainer-metrics{gap:6px!important;min-width:0}
+.iskra-widget .ww-trainer-metrics>div{padding:7px 5px!important;min-width:0}
+.iskra-widget .ww-trainer-metrics>div>div:first-child{font-size:22px!important}
+.iskra-widget[data-widget="pupil-stats"] .stats-grid{gap:8px!important}
+.iskra-widget[data-widget="pupil-stats"] .stat-card{padding:10px 8px!important;gap:6px!important;min-width:0}
+.iskra-widget[data-widget="pupil-stats"] .stat-value{font-size:24px!important}
+.iskra-widget[data-widget="pupil-stats"] .stat-label{font-size:11px!important;line-height:1.2}
+.iskra-widget .ww-quiz-heading{gap:8px!important;margin-bottom:6px!important}
+.iskra-widget .ww-quiz-heading h3{font-size:14px!important;line-height:1.3!important;max-height:none!important}
+.iskra-widget .ww-quiz-preview{overflow-y:auto;min-height:0;flex:1 1 0!important}
+.iskra-widget .ww-quiz-start{gap:8px!important;align-items:center;flex-shrink:0}
+.iskra-widget .ww-quiz-start>button{height:32px!important;font-size:12px!important;padding:0 14px!important;border-radius:12px!important}
+.iskra-widget .ww-quiz-start>span{font-size:11px!important}
+.iskra-widget .ww-quiz-active{min-height:0;flex:1 1 0!important}
+.iskra-widget .quiz-answers{overflow-y:auto;grid-auto-rows:minmax(30px,auto);gap:5px!important;align-content:start}
+.iskra-widget .quiz-answers button{min-height:30px!important;overflow:visible!important;font-size:12px!important}
+.iskra-widget[data-widget="pupil-quiz"]>div{padding:12px 14px!important}
+@container iskra-widget (max-width:440px){
+.iskra-widget .ww-art{width:56px!important;min-width:56px!important;max-width:56px!important}.iskra-widget .ww-art [style*="font-size"]{font-size:28px!important}
+.iskra-widget .ww-timer-hint{display:none!important}.iskra-widget .ww-timer-controls{justify-content:space-between;gap:8px!important}.iskra-widget .ww-timer-heading>span{font-size:11px!important}.iskra-widget[data-widget="pupil-focus"]>div{padding:12px!important;gap:12px!important}.iskra-widget .ww-timer-ring{width:82px;justify-content:center}.iskra-widget .ww-timer-ring>div{width:82px!important;height:82px!important}.iskra-widget .ww-timer-ring svg{width:82px;height:82px}.iskra-widget .ww-timer-ring .absolute>span:first-child{font-size:22px!important}
+.iskra-widget .ww-reading-header>span:nth-of-type(2){display:none}.iskra-widget .ww-feed-items>a>span:last-child{font-size:10px!important}
+.iskra-widget .ww-reading-body>div+div{display:none}.iskra-widget[data-widget="pupil-reactions"] .ww-media-heading span{font-size:11px!important}
+.iskra-widget[data-widget="pupil-stats"] .stat-card--flask>svg,.iskra-widget[data-widget="pupil-stats"] .season-stat-img{display:none}
+}
+@container iskra-widget (max-height:160px){.iskra-widget .ww-media-content{padding:10px 12px!important;gap:4px}.iskra-widget .ww-media-heading{display:none}.iskra-widget .ww-timer-hint{display:none!important}.iskra-widget .ww-quiz-start>span{display:none}.iskra-widget[data-widget="pupil-trainer"]>div{gap:6px!important}}
+.iskra-widget .ww-trainer-metrics>div>svg{display:none}
+.iskra-widget .ww-trainer-progress>div:first-child{margin-bottom:3px!important}
+.iskra-widget .ww-trainer-progress>div:first-child>span:first-child{display:none}
+.iskra-widget .ww-trainer-today{gap:5px!important;flex-wrap:nowrap!important}
+.iskra-widget .ww-trainer-today>span:first-child{display:none!important}
+.iskra-widget .ww-trainer-today>span{padding:3px 6px!important;white-space:nowrap}
+.iskra-widget .ww-quiz-heading>div:first-child{max-height:64px;overflow-y:auto;min-height:0}
+@container iskra-widget (max-height:160px){.iskra-widget[data-widget="pupil-trainer"]>div{gap:4px!important}.iskra-widget .ww-quiz-heading>div:first-child{max-height:40px}}
+/* Explicit slots keep wrapped labels from shifting icons and size badges. */
+.ww-gallery-dialog{width:min(860px,calc(100vw - 32px))!important;max-width:none!important;max-height:calc(100dvh - 32px)!important}
+.ww-gallery-list{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));align-content:start;gap:10px!important;min-height:0}
+.ww-gallery-card{min-width:0;display:grid!important;grid-template-columns:42px minmax(0,1fr);grid-template-rows:auto 1fr auto;gap:8px 12px!important;padding:16px!important;align-items:start!important;align-content:start}
+.ww-gallery-icon{grid-column:1;grid-row:1 / 3;align-self:start}
+.ww-gallery-copy{grid-column:2;grid-row:1;overflow-wrap:anywhere}
+.ww-gallery-copy>div:first-child{line-height:1.35;min-height:2.7em}
+.ww-gallery-size{grid-column:2;grid-row:2;width:100%;background:none!important;padding:0!important;justify-self:start;align-self:end;margin-top:4px;white-space:nowrap}
+.ww-gallery-add{grid-column:2;grid-row:3;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;border-radius:10px;background:var(--color-purple-soft);color:var(--color-accent);font:inherit;font-size:13px;cursor:pointer}
+.ww-gallery-card:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+@media(max-width:560px){.ww-gallery-list{grid-template-columns:1fr;padding:12px!important}.ww-gallery-copy>div:first-child{min-height:0}}
+.iskra-widget .ww-question-footer>div{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;min-width:0;width:100%}
+.iskra-widget .ww-question-footer>div>div{min-width:0;max-height:64px;overflow-y:auto;overflow-wrap:anywhere;padding:6px 10px!important}
+.iskra-widget .ww-timer-ring .absolute>span:last-child{font-size:11px!important;letter-spacing:0!important}
+.iskra-widget .ww-trainer-metrics>div>div:last-child{font-size:11px!important;line-height:1.2}
+.iskra-widget :is(.ww-list,.ww-task-list,.ww-primary-body,.ww-feed-items,.ww-reading-body){scrollbar-width:thin;scrollbar-gutter:stable}
+.iskra-widget :is(.ww-list,.ww-task-list,.ww-primary-body,.ww-feed-items,.ww-reading-body)::-webkit-scrollbar{display:block!important;width:5px}
+.iskra-widget :is(.ww-list,.ww-task-list,.ww-primary-body,.ww-feed-items,.ww-reading-body)::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:8px}
+.iskra-widget [data-scroll-fade],.ww-gallery-dialog [data-scroll-fade],.ww-widget-order-dialog [data-scroll-fade]{mask-image:var(--widget-scroll-mask)!important;-webkit-mask-image:var(--widget-scroll-mask)!important;mask-composite:intersect;-webkit-mask-composite:source-in}
+
+.widget-carousel .carousel-nav{top:50%}
+@container iskra-widget (max-width:280px){
+.iskra-widget[data-widget="pupil-focus"]>div{padding:8px!important;gap:8px!important}
+.iskra-widget .ww-timer-ring{width:64px}
+.iskra-widget .ww-timer-ring>div{width:64px!important;height:64px!important}
+.iskra-widget .ww-timer-ring svg{width:64px;height:64px}
+.iskra-widget .ww-timer-ring .absolute>span:first-child{font-size:18px!important}
+.iskra-widget .ww-timer-ring .absolute>span:last-child{font-size:9px!important}
+.iskra-widget .ww-timer-heading button{padding:6px 8px!important;font-size:11px!important}
+}
+@container iskra-widget (max-width:280px){
+.iskra-widget .ww-timer-actions button:first-child{padding:0 8px!important}
+.iskra-widget .ww-timer-actions button:last-child{width:34px!important}
+}
+@container iskra-widget (max-width:440px){
+.iskra-widget[data-widget="pupil-stats"] .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(0,1fr))!important}
+.iskra-widget[data-widget="pupil-stats"] .stat-empty-icon{display:none}
+}
+@container iskra-widget (max-height:160px){
+.iskra-widget[data-widget="pupil-stats"] .stat-card{padding:6px!important;gap:4px!important}
+.iskra-widget[data-widget="pupil-stats"] .stat-value{font-size:20px!important}
+.iskra-widget[data-widget="pupil-stats"] .stat-pending>*:last-child{display:none}
+}
+/* A short card uses the same icon/value layout at every width. Keeping the
+   title+icon above the value needs more height than the compact 88px frame. */
+@container iskra-kpi (max-height:110px){
+.iskra-widget .iskra-mini-stat{grid-template-columns:30px minmax(0,1fr)!important;grid-template-rows:1fr!important;align-items:center;gap:10px!important;padding:12px!important}
+.iskra-widget .iskra-mini-stat-heading{display:block!important;grid-column:1!important;grid-row:1!important}
+.iskra-widget .iskra-mini-stat-label,.iskra-widget .iskra-mini-stat-sub{display:none!important}
+.iskra-widget .iskra-mini-stat-value{grid-column:2!important;grid-row:1!important;--metric-base-size:32px}
+}
+/* One-row cells show the title/icon and value. Secondary badges live in the
+   taller presets; they must not squeeze the primary data into narrow columns. */
+@container iskra-kpi (max-height:135px){
+.iskra-widget .iskra-mini-stat{grid-template-columns:30px minmax(0,1fr)!important;grid-template-rows:1fr!important;align-items:center!important;align-content:center}
+.iskra-widget .iskra-mini-stat-heading{display:block!important;grid-column:1!important;grid-row:1!important}
+.iskra-widget .iskra-mini-stat-value{grid-column:2!important;grid-row:1!important}
+.iskra-widget .iskra-mini-stat-label,.iskra-widget .iskra-mini-stat-sub{display:none!important}
+}
+
+@container iskra-kpi (min-width:320px) and (max-height:135px){
+.iskra-widget .iskra-mini-stat{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+.iskra-widget .iskra-mini-stat-heading{display:grid!important;grid-template-columns:30px minmax(0,1fr)!important}
+.iskra-widget .iskra-mini-stat-label{display:block!important}
+}
+
+.ww-attention-compact{display:none}
+@container iskra-widget (max-height:160px){
+.iskra-widget .ww-attention-card>.ww-header,.iskra-widget .ww-attention-card>.ww-list{display:none!important}
+.iskra-widget .ww-attention-compact{display:flex;align-items:center;position:relative;width:100%;height:100%;padding:12px 16px;gap:8px;border:0;background:none;color:var(--color-text);text-align:left;cursor:pointer;overflow:hidden}
+.iskra-widget .ww-attention-summary{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.iskra-widget .ww-attention-value{font-size:30px;font-weight:750;line-height:1}
+.iskra-widget .ww-attention-object{width:96px;height:96px;max-width:34%;object-fit:contain;flex-shrink:0}
+.iskra-widget .ww-attention-open{position:absolute;bottom:12px;right:12px;color:var(--color-accent)}
+}

@@ -1,3 +1,4 @@
+import { homeworkNeedsVideo } from '../lib/homeworkAccess'
 import Sidebar from '../components/Sidebar'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import ScheduleCarousel from '../components/ScheduleCarousel'
@@ -10,6 +11,7 @@ import MobileHome from '../components/MobileHome'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import type { DiaryTab } from './StudentDiaryPage'
+import { readStudentDiaryView, saveStudentDiaryView } from '../lib/studentDiaryViews'
 import { useDiaryRemindersInit } from '../lib/diaryReminders'
 import LessonPage from './LessonPage'
 import TestFlow from '../components/TestFlow'
@@ -18,7 +20,7 @@ import NotificationToastContainer from '../components/NotificationToast'
 import { useNotificationsInit } from '../lib/notificationsSync'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
 import { retryImport } from '../lib/chunkError'
 import Skeleton from '../components/Skeleton'
 import { findLessonById, getExtraHomeworks, getLessonDetail } from '../data/lessonContent'
@@ -277,7 +279,13 @@ export default function DashboardPage() {
   // вынесен отдельным слоем (см. ниже, «Каталог не размонтируется»), а условия
   // нужны обеим сторонам — поэтому считаем их один раз здесь.
   const lessonWaiting = (!lesson && !dataLoaded) || lessonPending
-  const [diaryTab, setDiaryTab] = useState<DiaryTab>('today')
+  const diaryOwner = getStudentSession()?.id ?? null
+  const [diaryTab, setDiaryTabValue] = useState<DiaryTab>(() => readStudentDiaryView(diaryOwner))
+  useEffect(() => { setDiaryTabValue(readStudentDiaryView(diaryOwner)) }, [diaryOwner])
+  const setDiaryTab = useCallback((view: DiaryTab) => {
+    setDiaryTabValue(view)
+    saveStudentDiaryView(diaryOwner, view)
+  }, [diaryOwner])
   const diaryFocusNonce = useDashboard(s => s.moduleFocusNonce)
   useEffect(() => { if (useDashboard.getState().coursesFocusLessonId) setDiaryTab('lessons') }, [diaryFocusNonce])
   const showDiary = activePage === 'courses'
@@ -286,9 +294,13 @@ export default function DashboardPage() {
   const diaryPane = useRef<HTMLElement>(null)
   const diaryScroll = useRef(0)
   useLayoutEffect(() => { if (showDiary && diaryPane.current) diaryPane.current.scrollTop = diaryScroll.current }, [showDiary])
-  const showLesson = activePage === 'lesson'
+  const videoRequired = !!lesson && homeworkNeedsVideo(lesson, homeworkRef)
+  useEffect(() => {
+    if (activePage === 'homework' && videoRequired && !lessonPending) closeHomework()
+  }, [activePage, videoRequired, lessonPending, closeHomework])
+  const showLesson = activePage === 'lesson' || (activePage === 'homework' && videoRequired && !lessonPending)
   const showHomeworkWaiting = activePage === 'homework' && lessonWaiting
-  const showHomework = activePage === 'homework' && !!lesson && !!homework
+  const showHomework = activePage === 'homework' && !!lesson && !!homework && !videoRequired
   const showTrainer = activePage === 'trainer'
   // Тот же «остальное» из старой цепочки: 'courses', 'homeworkList', 'profile'
   // (десктопного профиля нет) и домашка, у которой не нашлось ни данных, ни
@@ -558,7 +570,7 @@ export default function DashboardPage() {
 
         {(showDiary || diarySeen) && <main ref={diaryPane} className="dashboard-main"
           onScroll={event => { diaryScroll.current = event.currentTarget.scrollTop }}
-          style={{ display: showDiary ? undefined : 'none', overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}>
+          style={{ display: showDiary ? undefined : 'none', overflowY: 'auto', scrollbarGutter: 'stable', minHeight: 0, marginTop: -100, paddingTop: 100 }}>
           <Suspense fallback={<LessonLoading />}><StudentDiaryPage tab={diaryTab} setTab={setDiaryTab} /></Suspense>
         </main>}
 

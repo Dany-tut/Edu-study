@@ -1,0 +1,4 @@
+FAIL attendance-pending
+PASS attendance-reject-retry
+PASS attendance-partial-retry
+FAIL otp-pending-reopen

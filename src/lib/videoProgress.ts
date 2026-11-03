@@ -161,7 +161,7 @@ export async function saveVideoWatch(
   writeLocal(lessonId, next)
   if (!UUID_RE.test(studentId)) return
 
-  await supabase.from('lesson_progress').upsert({
+  const { error } = await supabase.from('lesson_progress').upsert({
     student_id: studentId,
     lesson_ref: videoWatchRef(lessonId),
     subject,
@@ -170,6 +170,7 @@ export async function saveVideoWatch(
     attachments: { v: 1, video: next },
     updated_at: next.updatedAt,
   }, { onConflict: 'student_id,lesson_ref' })
+  if (error) throw error
 }
 
 /**

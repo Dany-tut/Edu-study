@@ -1,0 +1,13 @@
+CREATE POLICY "avatars own delete" ON storage.objects AS PERMISSIVE FOR DELETE TO authenticated USING (((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
+CREATE POLICY "avatars own insert" ON storage.objects AS PERMISSIVE FOR INSERT TO authenticated WITH CHECK (((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
+CREATE POLICY "avatars read" ON storage.objects AS PERMISSIVE FOR SELECT TO authenticated USING (((bucket_id = 'avatars'::text) AND can_read_avatar(name)));
+CREATE POLICY "homework_photos owner delete" ON storage.objects AS PERMISSIVE FOR DELETE TO authenticated USING (((bucket_id = 'homework-photos'::text) AND (owner_id = (( SELECT auth.uid() AS uid))::text)));
+CREATE POLICY "homework_photos read" ON storage.objects AS PERMISSIVE FOR SELECT TO authenticated USING (((bucket_id = 'homework-photos'::text) AND (created_at > (now() - '7 days'::interval)) AND private.can_read_homework_photo(name)));
+CREATE POLICY "homework_photos student insert" ON storage.objects AS PERMISSIVE FOR INSERT TO authenticated WITH CHECK (((bucket_id = 'homework-photos'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text) AND ((storage.foldername(name))[2] IN ( SELECT (unnest(my_student_ids()))::text AS unnest))));
+CREATE POLICY "lesson_materials owner write" ON storage.objects AS PERMISSIVE FOR ALL TO authenticated USING (((bucket_id = 'lesson-materials'::text) AND (owner = auth.uid()))) WITH CHECK (((bucket_id = 'lesson-materials'::text) AND (owner = auth.uid())));
+CREATE POLICY "owner rw homework-files" ON storage.objects AS PERMISSIVE FOR ALL TO authenticated USING (((bucket_id = 'homework-files'::text) AND (owner = auth.uid()))) WITH CHECK (((bucket_id = 'homework-files'::text) AND (owner = auth.uid())));
+CREATE POLICY "read lesson-materials" ON storage.objects AS PERMISSIVE FOR SELECT TO public USING ((bucket_id = 'lesson-materials'::text));
+CREATE POLICY "read task-images" ON storage.objects AS PERMISSIVE FOR SELECT TO public USING ((bucket_id = 'task-images'::text));
+CREATE POLICY "task_media auth read" ON storage.objects AS PERMISSIVE FOR SELECT TO authenticated USING ((bucket_id = 'task-media'::text));
+CREATE POLICY "task_media owner rw" ON storage.objects AS PERMISSIVE FOR ALL TO authenticated USING (((bucket_id = 'task-media'::text) AND (owner = auth.uid()))) WITH CHECK (((bucket_id = 'task-media'::text) AND (owner = auth.uid())));
+CREATE POLICY "write task-images" ON storage.objects AS PERMISSIVE FOR ALL TO authenticated USING (((bucket_id = 'task-images'::text) AND (owner = auth.uid()))) WITH CHECK (((bucket_id = 'task-images'::text) AND (owner = auth.uid())));

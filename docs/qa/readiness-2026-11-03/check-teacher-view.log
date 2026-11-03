@@ -1,0 +1,7 @@
+
+> student-dashboard@1.0.0 check:teacher-view
+> node scripts/checkTeacherView.mjs
+
+PASS: clean entry/exit navigation, isolated tabs, unchanged Auth identity, sign-out and non-admin isolation
+PASS: verified admin can read target Testly context; writes, student actions, forged role and invalid targets are rejected
+PASS: read-only reports/downloads, no grade/student/course/payment/Auth/module mutations, normal writes restored on exit

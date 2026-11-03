@@ -135,6 +135,7 @@ type CardProps = {
   scopeLabel: string
   groupLabel?: string
   example?: boolean
+  embedded?: boolean
 }
 function ReportSheet({
   student,
@@ -143,10 +144,12 @@ function ReportSheet({
   scopeLabel,
   groupLabel,
   example,
+  embedded = false,
   action,
 }: CardProps & { action?: ReactNode }) {
   const debt = r.debts[0],
     focus = r.focus
+  const contextGroup = !embedded && groupLabel?.trim().replace(/\s+/g, ' ').toLocaleLowerCase() !== student.name.trim().replace(/\s+/g, ' ').toLocaleLowerCase() ? groupLabel : undefined
   const nextStep = focus
     ? 'Разобрать ошибки по теме «' + focus.title + '».'
     : debt
@@ -157,16 +160,18 @@ function ReportSheet({
   return (
     <article className="jo-sheet" aria-label={'Итоги ученика · ' + student.name}>
       <div className="jo-heading">
-        <div className="jo-person">
-          <span className="cj-avatar">{initials(student.name)}</span>
-          <div>
-            <span className="jo-kicker">Итоги ученика</span>
-            <h2>{student.name}</h2>
+        {embedded ? <h2>Итоги ученика</h2> : (
+          <div className="jo-person">
+            <span className="cj-avatar">{initials(student.name)}</span>
+            <div>
+              <span className="jo-kicker">Итоги ученика</span>
+              <h2>{student.name}</h2>
+            </div>
           </div>
-        </div>
+        )}
         {action}
       </div>
-      <p className="jo-context">{[scopeLabel, groupLabel, periodLabel(today)].filter(Boolean).join(' · ')}</p>
+      <p className="jo-context">{[scopeLabel, contextGroup, periodLabel(today)].filter(Boolean).join(' · ')}</p>
       <p className="jo-orientation">
         {r.delta === null
           ? 'Для оценки динамики пока мало проверенных работ.'
@@ -380,10 +385,12 @@ export function StudentOverviewCard({
                 Вернуться
               </button>
             </div>
+            <OverlayScrollArea className="jo-share-scroll" style={{flex:1}} showScrollbar={false}>
             <div className="jo-share-paper">
               <div className="jo-brand">✳ Искра</div>
-              <ReportSheet {...props} />
+              <ReportSheet {...props} embedded={false} />
             </div>
+            </OverlayScrollArea>
           </>
         )}
       </dialog>

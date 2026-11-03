@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../lib/textFades'
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { Play, ClipboardList, CalendarDays, Check, Flame, CheckCircle2, TrendingUp, Zap, BookOpen } from './icons/appIcons'
@@ -136,10 +137,10 @@ function ContinueCard({ info }: { info: { lesson: Lesson; subject: Subject } | n
 
   return (
     <div style={box}>
-      <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.8, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.8, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
         {label} · {tc(subject.name)}
       </div>
-      <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.15,  ...textFadeLines(2),  overflow: 'hidden' }}>
         {t('Занятие')} #{lesson.number + 1} · {tc(lesson.title)}
       </div>
       <div style={{ fontSize: 14, fontWeight: 500, opacity: 0.85, ...NUM }}>
@@ -192,7 +193,7 @@ function HomeworkCard({ items }: { items: Array<{ lesson: Lesson; subject: Subje
             className="hover-row"
             style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', margin: '0 -8px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
           >
-            <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 500, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 500, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
               {tc(subject.name)} · {tc(lesson.title)}
             </span>
             <span style={{
@@ -266,9 +267,11 @@ function TodayCard({ date, lessons, nextDay }: { date: string | null; lessons: S
                 key={l.id}
                 type="button"
                 data-schedule-state={states[i].phase}
+                data-ended={passed || undefined}
                 disabled={states[i].phase === 'cancelled'}
                 onClick={() => open(l)}
                 style={{
+                  filter: passed ? 'grayscale(1)' : undefined, opacity: passed ? 0.65 : 1,
                   flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left',
                   padding: '10px 12px 10px 14px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                   background: hot ? 'var(--color-purple-soft)' : passed ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
@@ -280,8 +283,8 @@ function TodayCard({ date, lessons, nextDay }: { date: string | null; lessons: S
                   {states[i].phase === 'completed' && <Check size={12} strokeWidth={2.8} style={{ color: 'var(--color-green-text)' }} />}
                 </span>
                 {states[i].label && <ScheduleStatusBadge state={states[i]} label={states[i].recordingAvailable ? 'Запись доступна' : states[i].label} />}
-                <span style={{ fontSize: 14, fontWeight: 700, color: passed ? 'var(--color-text-3)' : 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(l.subject)}</span>
-                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(l.lessonTitle)}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: passed ? 'var(--color-text-3)' : 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tc(l.subject)}</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tc(l.lessonTitle)}</span>
               </button>
             )
           })}
@@ -309,7 +312,7 @@ function StatsRow({ stats }: { stats: { streak: number; completedTasks: number; 
           <span style={{ color: 'var(--color-accent)', display: 'inline-flex', flexShrink: 0 }}>{icon}</span>
           <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             <span style={{ fontSize: 19, fontWeight: 700, lineHeight: 1.1, color: 'var(--color-text)', ...NUM }}>{value}</span>
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label}</span>
           </span>
         </div>
       ))}

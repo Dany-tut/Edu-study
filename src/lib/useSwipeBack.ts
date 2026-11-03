@@ -1528,6 +1528,8 @@ function install() {
   document.addEventListener('touchstart', e => {
     if (stageUp) return // жест уже доигрывает — новый не начинаем
     reset()
+    // A modal sheet owns its touches; never navigate the page behind it.
+    if (document.querySelector('.mobile-sheet')) return
     if (e.touches.length !== 1 || stack.length === 0) return
     const t = e.touches[0]
     if (t.clientX > EDGE) return

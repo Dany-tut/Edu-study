@@ -41,20 +41,25 @@
     "check:homework-attempts": "node scripts/checkHomeworkAttempts.mjs",
     "check:lesson-participation": "node scripts/checkLessonParticipation.mjs",
     "check:course-access": "esbuild scripts/checkCourseAccess.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkCourseAccess.mjs --log-level=error && node node_modules/.cache/checkCourseAccess.mjs && node scripts/checkCourseAccessDb.mjs",
-    "release:check": "node scripts/guardProductionRelease.mjs --check",
+    "release:check": "npm run check:ui && node scripts/guardProductionRelease.mjs --check",
     "check:release": "node scripts/checkReleasePolicy.mjs",
-    "check:feed-release": "node scripts/checkFeedRelease.mjs"
+    "check:feed-release": "node scripts/checkFeedRelease.mjs",
+    "check:video-access": "node scripts/checkHomeworkVideoAccess.mjs",
+    "check:ui": "node scripts/checkUiRules.mjs && npm run check:homework-facts && npm run check:mobile",
+    "check:homework-facts": "esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkHomeworkFacts.mjs",
+    "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
     "@capacitor/browser": "^8.0.5",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
-    "@capacitor/ios": "^8.4.1",
+    "@capacitor/ios": "8.4.3",
     "@supabase/supabase-js": "^2.108.1",
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.5.0",
     "clsx": "^2.1.0",
+    "dompurify": "3.4.17",
     "framer-motion": "^11.0.0",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.468.0",
@@ -64,7 +69,7 @@
     "react-dom": "^19.0.0",
     "tailwindcss": "^3.4.19",
     "three": "^0.185.1",
-    "vite": "^5.4.0",
+    "vite": "6.4.5",
     "zustand": "^4.5.0"
   },
   "devDependencies": {

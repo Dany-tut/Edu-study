@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { openJournalTask } from '../../lib/journalTasks'
 import { motion, AnimatePresence } from 'framer-motion'
 import Checkbox from '../../components/Checkbox'
@@ -229,7 +230,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
             borderRadius: 8, padding: '4px 10px', flexShrink: 0, maxWidth: '100%',
           }}>
             <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: item.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.groupName}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: item.color, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{item.groupName}</span>
           </span>
           {isLive && (
             <span style={{ fontSize: 11, fontWeight: 700, color: item.color, letterSpacing: 0.3, flexShrink: 0 }}>
@@ -238,7 +239,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
           )}
         </span>
         {(item.subject || item.topic || item.lessonNumber > 0) && (
-          <span style={{ fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
             {[item.subject, item.lessonNumber > 0 ? `${t('Урок')} ${item.lessonNumber}` : '', item.topic].filter(Boolean).join(' · ')}
           </span>
         )}
@@ -314,7 +315,7 @@ function PaymentBlock({ students, groups }: { students: Student[]; groups: Group
                   {tn(s.name).split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                     {tn(s.name).split(' ')[0]} {tn(s.name).split(' ')[1]?.[0]}.
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{group?.name ?? ''}</div>
@@ -410,7 +411,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
           fontSize: 14, fontWeight: 700,
           color: done ? 'var(--color-green-text)' : 'var(--color-text)',
           textDecoration: done ? 'line-through' : 'none',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
         }}>
           {item.text}
         </div>
@@ -418,7 +419,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
           <div style={{
             fontSize: 12, fontWeight: 500, marginTop: 2,
             color: done ? 'var(--color-green-text)' : 'var(--color-text-3)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
           }}>
             {done ? t('Готово') : item.detail}
           </div>
@@ -694,7 +695,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         flex: 1, fontSize: 13, fontWeight: 500,
         color: task.done ? 'var(--color-text-3)' : 'var(--color-text)',
         textDecoration: task.done ? 'line-through' : 'none',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
       }}>
         {(task.title || (task.typeLabel ?? t('Задача'))).replace(/@/g, '')}
       </span>
@@ -766,8 +767,8 @@ function MyTasksBlock() {
       <CreateTaskModal
         initialTask={editingTask}
         onClose={() => { setEditingTask(null); clearDrafts('createTask.') }}
-        onSave={saved => {
-          updateTask(editingTask.id, {
+        onSave={async saved => {
+          const { error } = await updateTask(editingTask.id, {
             typeId: saved.type?.id ?? null,
             typeLabel: saved.type?.label ?? null,
             typeBg: saved.type?.bg ?? null,
@@ -777,7 +778,7 @@ function MyTasksBlock() {
             time: saved.time,
             comment: saved.comment,
           })
-          setEditingTask(null)
+          if (error) throw new Error(error)
         }}
       />
     )}

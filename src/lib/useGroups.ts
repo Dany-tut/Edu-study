@@ -267,7 +267,6 @@ export function useGroups() {
       payment_amount: s.paymentAmount ?? 0,
       debt: s.debt ?? 0,
       email: s.email ?? null,
-      temp_password: s.tempPassword ?? null,
     }).select('id, invite_token').single()
     if (!error && data?.id) {
       await supabase.rpc('seed_student_progress', {
@@ -291,12 +290,12 @@ export function useGroups() {
   // Add ONE more направление (subject/level) to an existing 1:1 student mid-training:
   // creates a separate individual group card + student row for the same person,
   // copying their contacts, target score, payment AND account link (email /
-  // temp_password / auth_user_id). Because the account link is copied, the new card
+  // auth_user_id). Because the account link is copied, the new card
   // is instantly reachable by the student's existing login — no re-registration.
   // The new row also gets a fresh invite_token so an unregistered student can still
   // activate it. Mirrors addIndividualStudent, just seeded from an existing student.
   async function addIndividualCard(opts: {
-    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'>
+    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'authUserId' | 'personId'>
     subject: Group['subject']
     level: string
     /** Цвет карточки. Не задан — берётся цвет предмета из реестра. */
@@ -336,7 +335,6 @@ export function useGroups() {
       desired_score: opts.student.desiredScore ?? 80,
       payment_amount: opts.student.paymentAmount ?? 0,
       email: opts.student.email || null,
-      temp_password: opts.student.tempPassword || null,
       auth_user_id: opts.student.authUserId || null,
       // Link to the SAME person — omit only if unknown (DB default mints a new one).
       ...(opts.student.personId ? { person_id: opts.student.personId } : {}),
@@ -359,13 +357,13 @@ export function useGroups() {
 
   // Enroll an EXISTING person into a regular group. Unlike addStudentToGroup
   // (brand-new person → new invite), this copies the person's account link
-  // (email / temp_password / auth_user_id) and contacts onto the new row, so the
+  // (email / auth_user_id) and contacts onto the new row, so the
   // student reaches the new group with their existing login — no re-registration.
   // Used when a 1:1 student later buys a group course. Already-registered → seed
   // their progress for this group so lessons/course show up immediately.
   async function addExistingStudentToGroup(
     targetGroupId: string,
-    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'>,
+    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'authUserId' | 'personId'>,
   ) {
     try {
       const attached = await attachUnassigned(student.personId, targetGroupId)
@@ -384,7 +382,6 @@ export function useGroups() {
       desired_score: student.desiredScore ?? 80,
       payment_amount: student.paymentAmount ?? 0,
       email: student.email || null,
-      temp_password: student.tempPassword || null,
       auth_user_id: student.authUserId || null,
       // Reuse the existing human's person_id so this enrolment is the same person.
       ...(student.personId ? { person_id: student.personId } : {}),
@@ -554,7 +551,7 @@ export function useStudents(groupId: string | null) {
     setLoading(true)
     const { data } = await supabase
       .from('students')
-      .select('*')
+      .select('id,group_id,name,phone,telegram_link,parent_contact,started_at,last_visit,hw_score,test_score,trial_score,desired_score,attendance,comment,payment_due,payment_amount,last_payment,debt,invite_token,email,auth_user_id,person_id,avatar_path,lesson_balance,created_at,created_by')
       .eq('group_id', groupId)
       .order('created_at')
     if (data) {
@@ -582,7 +579,6 @@ export function useStudents(groupId: string | null) {
         debt: s.debt ?? 0,
         inviteToken: s.invite_token ?? null,
         email: s.email ?? '',
-        tempPassword: s.temp_password ?? '',
         authUserId: s.auth_user_id ?? null,
         personId: s.person_id ?? undefined,
         avatarPath: s.avatar_path ?? null,
@@ -607,7 +603,6 @@ export function useStudents(groupId: string | null) {
       payment_amount: s.paymentAmount ?? 0,
       debt: s.debt ?? 0,
       email: s.email ?? null,
-      temp_password: s.tempPassword ?? null,
     }).select('invite_token').single()
     if (!error) await load()
     return { error: friendlyStudentError(error), inviteToken: data?.invite_token as string | null }
@@ -626,7 +621,6 @@ export function useStudents(groupId: string | null) {
       name: 'name', phone: 'phone', telegramLink: 'telegram_link', parentContact: 'parent_contact',
       desiredScore: 'desired_score', comment: 'comment', paymentDue: 'payment_due',
       paymentAmount: 'payment_amount', lastPayment: 'last_payment', debt: 'debt',
-      tempPassword: 'temp_password',
     }
     const row: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(patch)) {
@@ -758,11 +752,11 @@ export function useLessonRoster(lesson: GroupLesson | null) {
     ;(async () => {
       if (lesson.groupId) {
         const { data } = await supabase
-          .from('students').select('*').eq('group_id', lesson.groupId).order('created_at')
+          .from('students').select('id,group_id,name,phone,telegram_link,parent_contact,started_at,last_visit,hw_score,test_score,trial_score,desired_score,attendance,comment,payment_due,payment_amount,last_payment,debt,invite_token,email,auth_user_id,person_id,avatar_path,lesson_balance,created_at,created_by').eq('group_id', lesson.groupId).order('created_at')
         if (!cancelled) setRoster((data ?? []).map((s: any) => ({ id: s.id, name: s.name, avatarPath: s.avatar_path ?? null })))
       } else if (lesson.studentId) {
         const { data } = await supabase
-          .from('students').select('*').eq('id', lesson.studentId).single()
+          .from('students').select('id,group_id,name,phone,telegram_link,parent_contact,started_at,last_visit,hw_score,test_score,trial_score,desired_score,attendance,comment,payment_due,payment_amount,last_payment,debt,invite_token,email,auth_user_id,person_id,avatar_path,lesson_balance,created_at,created_by').eq('id', lesson.studentId).single()
         if (!cancelled) setRoster(data ? [{ id: data.id, name: data.name, avatarPath: data.avatar_path ?? null }] : [])
       } else {
         setRoster([])
@@ -1057,7 +1051,7 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
   const uid = await getOwnerId()
   const { data } = await supabase
     .from('students')
-    .select('*, groups(subject, is_individual)')
+    .select('id,group_id,name,phone,telegram_link,parent_contact,started_at,last_visit,hw_score,test_score,trial_score,desired_score,attendance,comment,payment_due,payment_amount,last_payment,debt,invite_token,email,auth_user_id,person_id,avatar_path,lesson_balance,created_at,created_by, groups(subject, is_individual)')
     .eq('created_by', uid)
     .order('name')
   return (data ?? []).map((s: any) => ({
@@ -1088,7 +1082,6 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
     lessonBalance: s.lesson_balance ?? 0,
     inviteToken: s.invite_token ?? null,
     email: s.email ?? '',
-    tempPassword: s.temp_password ?? '',
   }))
 }, [])
 

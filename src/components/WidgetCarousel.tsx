@@ -1,5 +1,6 @@
+import { useWidgetScrollFades } from '../lib/useWidgetScrollFades'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
-import { useState, useCallback, useRef, useEffect, lazy, Suspense, type ReactNode } from 'react'
+import { useState, useCallback, useRef, useEffect, useLayoutEffect, lazy, Suspense, type ReactNode } from 'react'
 import { retryImport } from '../lib/chunkError'
 import { ChevronLeft, ChevronRight } from './icons/appIcons'
 // ── Виджеты — по одному чанку на виджет ─────────────────────────────────────
@@ -40,6 +41,14 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? '-130%' : '130%', opacity: 0 }),
 }
 
+const WIDGET_TYPES = ['stats', 'facts', 'reactions', 'focus', 'memes', 'question', 'quiz', 'trainer', 'stickers', 'dose', 'feed']
+
+function WidgetFrame({ id, children, style, adaptive }: { id: number; children: ReactNode; style: React.CSSProperties; adaptive: boolean }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useWidgetScrollFades(ref)
+  return <div ref={ref} className={adaptive ? "iskra-widget" : undefined} data-widget={adaptive ? `pupil-${WIDGET_TYPES[id]}` : undefined} style={style}>{children}</div>
+}
+
 export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
   columnsOverride?: number
   /** In-memory stand content, in the home page's original carousel geometry. */
@@ -55,7 +64,23 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
   // Mobile passes columnsOverride={1} → one full-width widget per page; desktop
   // omits it and keeps the user's stored column preference.
   const storeColumns = useDashboard(s => s.widgetColumns)
-  const perPage = columnsOverride ?? storeColumns
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const [availableWidth, setAvailableWidth] = useState(0)
+  useLayoutEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    const measure = () => {
+      const style = getComputedStyle(el)
+      setAvailableWidth(el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+  const requestedColumns = Math.max(1, columnsOverride ?? storeColumns)
+  const fittingColumns = availableWidth ? Math.max(1, Math.floor((availableWidth + 16) / 296)) : requestedColumns
+  const perPage = Math.min(requestedColumns, fittingColumns)
   const rawOrder = useDashboard(s => s.widgetOrder)
   const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
   // Два фильтра поверх сохранённого порядка, оба — только на показ:
@@ -72,19 +97,14 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
     if (hideTimer.current) clearTimeout(hideTimer.current)
   }, [])
 
-  // Смена числа колонок пересобирает страницы целиком — тут возврат в начало
-  // честен. А вот СМЕНА НАБОРА виджетов возврата не заслуживает: набор зависит
-  // от предмета открытого курса (lib/widgetVisibility.ts), то есть менялся на
-  // каждом переключении курса — и карусель послушно прыгала на первую страницу,
-  // размонтируя показанные виджеты и монтируя вместо них другие (они ленивые,
-  // с Suspense и своими запросами). Клик по курсу оплачивал эту пересборку
-  // кадром. Теперь страница только ПОДРЕЗАЕТСЯ до существующей, если уехала за
-  // край, а иначе остаётся на месте: тот же ряд, те же смонтированные виджеты.
+  // On narrower windows preserve the first visible widget's page rather than
+  // resetting the carousel. Relevance changes only clamp a now missing page.
   const prevPerPage = useRef(perPage)
   useEffect(() => {
     if (prevPerPage.current !== perPage) {
+      const previous = prevPerPage.current
       prevPerPage.current = perPage
-      setPage([0, 0])
+      setPage(([current]) => [Math.min(pageCount - 1, Math.floor(current * previous / perPage)), 0])
       return
     }
     // Тот же кортеж возвращаем намеренно: React на неизменной ссылке
@@ -140,7 +160,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
   const pageWidgets = widgetOrder.slice(start, start + perPage)
 
   return (
-    <div className="widget-carousel relative" data-widget={page}>
+    <div ref={carouselRef} className="widget-carousel relative" data-widget={page}>
       {/* Left nav */}
       <motion.button
         whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
@@ -178,7 +198,9 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
             style={{ gap: 16 }}
           >
             {pageWidgets.map(idx => (
-              <div
+              <WidgetFrame
+                id={idx}
+                adaptive={!previewWidgets}
                 key={idx}
                 style={{
                   flex: pageWidgets.length < perPage
@@ -193,7 +215,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets }: {
                 <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
                   {renderWidget(idx, true)}
                 </Suspense>
-              </div>
+              </WidgetFrame>
             ))}
           </motion.div>
         </AnimatePresence>

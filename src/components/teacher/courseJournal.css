@@ -140,3 +140,52 @@
 .cj-mobile .cj-pending-alert, .cj-mobile .cj-active-filter { flex-wrap: wrap; gap: 8px; }
 .cj-mobile .cj-pending-alert > span, .cj-mobile .cj-active-filter > span { flex: 1; min-width: 100px; overflow-wrap: anywhere; line-height: 1.5; }
 .cj-mobile .cj-pending-alert button, .cj-mobile .cj-active-filter button { flex-shrink: 0; padding: 4px 0; white-space: nowrap; }
+
+/* Native mobile journal obeys the same input and touch rules as the stand. */
+.cj-mobile .cj-search input,.cj-mobile .cj-filters .native-select-field { font-size:16px; }
+.cj-mobile .cj-tabs button,.cj-mobile .cj-heading-actions button,
+.cj-mobile .cj-filters .native-select-field,.cj-mobile .cj-search { min-height:44px; }
+
+.cj-table-frame { position:relative; min-width:0; max-width:100%; }
+.cj-table-fade { position:absolute; top:0; bottom:0; width:22px; pointer-events:none; z-index:3; opacity:0; }
+.cj-table-fade-left { left:var(--frozen-w,150px); background:linear-gradient(to right,var(--color-bg-2),transparent); }
+.cj-table-fade-right { right:0; background:linear-gradient(to left,var(--color-bg-2),transparent); }
+.cj-table-frame[data-edges~="left"]>.cj-table-fade-left,.cj-table-frame[data-edges~="right"]>.cj-table-fade-right { opacity:1; }
+
+/* The mobile screen already owns the centered glass title. */
+.cj-mobile .cj-heading h1 { display: none; }
+
+/* Phone summaries remain readable without borrowing the desktop's dense type. */
+.cj-mobile .cj-heading p,
+.cj-mobile .cj-demo,
+.cj-mobile .cj-summaries p,
+.cj-mobile .cj-legend,
+.cj-mobile .cj-legend p { font-size: 12px; line-height: 1.5; }
+.cj-mobile .cj-summaries > * > span,
+.cj-mobile .cj-course-select > span,
+.cj-mobile .cj-filters label > span:not(.native-select-field) { font-size: 12px; line-height: 1.4; }
+.cj-mobile .cj-tabs button { font-size: 12px; }
+.cj-mobile .cj-heading-actions .cj-icon-button { width: 44px; min-width: 44px; height: 44px; flex-shrink: 0; }
+
+/* Mobile journal gives the roster priority; secondary controls live in sheets. */
+.cj-mobile .cj-mobile-compact-context { flex-wrap: nowrap; gap: 10px; padding: 10px 12px; border-radius: 24px; }
+.cj-mobile-compact-context .cj-course-select { width: auto; flex: 1; flex-basis: auto; }
+.cj-mobile-compact-context .cj-course-select > span { display: none; }
+.cj-mobile-compact-context .cj-course-select > div { gap: 8px; }
+.cj-mobile .cj-mobile-compact-context .cj-icon-button,
+.cj-mobile-search-row > .cj-icon-button { position: relative; flex: 0 0 44px; width: 44px; min-width: 44px; height: 44px; padding: 0; }
+.cj-mobile-demo-note { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 2px 8px; font-size: 11px; line-height: 1.5; color: var(--color-text-3); }
+.cj-mobile-demo-note > span { color: var(--color-accent); }
+.cj-mobile-demo-note a { color: var(--color-accent); }
+.cj-mobile-filter-count { position: absolute; top: -3px; right: -3px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: var(--color-accent); color: white; font-size: 10px; font-weight: 700; }
+.cj-mobile-search-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.cj-mobile-search-row .cj-search { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; min-height: 44px; padding: 0 12px; border: 1px solid var(--color-border-soft); border-radius: 14px; background: var(--color-bg-2); color: var(--color-text-3); }
+.cj-mobile-search-row .cj-search input { font-size: 16px; }
+.cj-mobile-search-row .cj-search button { flex: 0 0 44px; min-width: 44px; min-height: 44px; justify-content: center; margin-right: -12px; }
+.cj-mobile-filter-panel { display: flex; flex-direction: column; gap: 16px; }
+.cj-mobile-filter-panel .cj-filters { border: 0; padding: 0; flex-direction: column; align-items: stretch; }
+.cj-mobile-filter-panel .cj-filters > label { width: 100%; flex: none; }
+.cj-mobile-filter-panel .cj-filters .native-select-field { min-height: 48px; font-size: 16px; }
+.cj-mobile-panel-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cj-mobile-panel-actions button { min-height: 44px; }
+.cj-mobile-panel-done { width: 100%; min-height: 48px; font-size: 15px; }

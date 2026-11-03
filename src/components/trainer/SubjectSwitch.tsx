@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Переключатель предмета в тренажёре
 //
@@ -97,7 +98,7 @@ export function SubjectList({ state, onPicked, accent }: {
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{
                   display: 'block', fontSize: 13, fontWeight: active ? 700 : 600,
-                  color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
                 }}>
                   {t(o.def.name)}
                 </span>
@@ -105,7 +106,7 @@ export function SubjectList({ state, onPicked, accent }: {
                     рейле «Банк ЕГЭ · 5 заданий» иначе ломается пополам. */}
                 <span style={{
                   display: 'block', fontSize: 11, color: 'var(--color-text-3)', marginTop: 1,
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
                 }}>
                   {meta(o)}
                 </span>
@@ -190,7 +191,7 @@ export function SubjectHero({ state, subtitle, palette }: {
           {current && <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{current.def.icon}</span>}
           <span style={{
             fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase',
-            opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
           }}>
             {current ? t(current.def.name) : t('Тренажёр')}
           </span>
@@ -211,7 +212,7 @@ export function SubjectHero({ state, subtitle, palette }: {
           <p style={{
             margin: '8px 0 0', fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)',
             height: 'calc(13px * 1.45 * 2)', overflow: 'hidden',
-            display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+              ...textFadeLines(2),
           }}>{subtitle}</p>
         )}
       </div>

@@ -28,10 +28,10 @@ import { build } from 'esbuild'
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { pathToFileURL, fileURLToPath } from 'node:url'
 
-const SRC = new URL('../src', import.meta.url).pathname
-const NODE_MODULES = new URL('../node_modules', import.meta.url).pathname
+const SRC = fileURLToPath(new URL('../src', import.meta.url))
+const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url))
 
 const dir = mkdtempSync(join(tmpdir(), 'prosecheck-'))
 const entry = join(dir, 'entry.ts')

@@ -1,5 +1,7 @@
+import { trackEvent } from './analytics'
+import { latestHomeworkSubmissions } from './mobileHomeworkReviewState'
 import type { HomeworkAttempt } from './homeworkResult'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { createSharedQuery, useSharedQuery } from './sharedQuery'
@@ -565,25 +567,35 @@ export function useHardSubmissions() {
 // (reviewHomework), поэтому homework_submissions больше не нужна.
 export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | null): {
   submissions: HwSubmission[]
+  loading: boolean
+  error: string
   reload: () => Promise<void>
 } {
   const [submissions, setSubmissions] = useState<HwSubmission[]>([])
 
+  const [loading, setLoading] = useState(!!hwId)
+  const [error, setError] = useState('')
+  const request = useRef(0)
   const load = useCallback(async () => {
-    if (!hwId) { setSubmissions([]); return }
+    const token = ++request.current
+    if (!hwId) { setSubmissions([]); setLoading(false); setError(''); return }
+    setLoading(true); setError('')
+    try {
     const uid = await getOwnerId()
     // ДЗ вне курса ученик решает на ноде `hw-<id>`, а ДЗ, привязанное к уроку, —
     // на самом уроке, и пишет туда же (lesson_ref = id урока). Читаем оба ключа:
     // иначе у курсовой домашки витрина проверки оставалась пустой.
     const refs = lessonId ? [`hw-${hwId}`, lessonId] : [`hw-${hwId}`]
-    const { data } = await supabase
+    const { data, error: queryError } = await supabase
       .from('lesson_progress')
       .select('id, student_id, status, score, comment, attachments, review_comment, review_attachments, updated_at, students!inner(name, created_by)')
       .in('lesson_ref', refs)
       .eq('students.created_by', uid)
       .in('status', ['submitted', 'returned', 'completed'])
       .order('updated_at', { ascending: false })
-    setSubmissions((data ?? []).map((s: any) => ({
+    if (token !== request.current) return
+    if (queryError) throw queryError
+    setSubmissions(latestHomeworkSubmissions((data ?? []).map((s: any) => ({
       id: s.id,
       hwId,
       studentId: s.student_id,
@@ -596,12 +608,14 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
       reviewPhotos: Array.isArray(s.review_attachments?.photos) ? s.review_attachments.photos : [],
       reviewBoard: s.review_attachments?.board ?? null,
       answers: parseBasicAnswers(s.attachments),
-    })))
+    }))))
+    } catch { if (token === request.current) setError('Не удалось загрузить работы. Попробуйте ещё раз.') }
+    finally { if (token === request.current) setLoading(false) }
   }, [hwId, lessonId])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { setSubmissions([]); void load(); return () => { request.current++ } }, [load])
 
-  return { submissions, reload: load }
+  return { submissions, loading, error, reload: load }
 }
 
 // Персист ревью обычного ДЗ — та же строка lesson_progress, что и сдача.
@@ -635,8 +649,8 @@ export async function reviewHomework(
   }).eq('id', progressRowId)
   if (expectedAttemptId) update = update.eq('attachments->>attemptId', expectedAttemptId)
   const { data: saved, error } = await update.select('id')
-  if (!saved?.length && !error) return false
-  if (error) { console.error('[reviewHomework]', error); return false }
+  if (!saved?.length && !error) { trackEvent('operation_failed', { operation: 'review_homework', reason: 'no_rows_updated', resource_id: progressRowId }); return false }
+  if (error) { trackEvent('operation_failed', { operation: 'review_homework', code: error.code, resource_id: progressRowId }); console.error('[reviewHomework]', error); return false }
   return true
 }
 

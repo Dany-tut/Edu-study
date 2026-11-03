@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import LessonWatchStatus from '../components/LessonWatchStatus'
 import { homeworkDisplayScore } from '../lib/homeworkResult'
 import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
@@ -377,9 +378,8 @@ export default function CoursesPage() {
                   style={{
                     position: 'relative',
                     zIndex: 1,
-                    display: '-webkit-box',
-                    WebkitBoxOrient: 'vertical',
-                    WebkitLineClamp: 2,
+
+                    ...textFadeLines(2),
                     overflow: 'hidden',
                     overflowWrap: 'anywhere',
                   }}
@@ -565,7 +565,7 @@ export default function CoursesPage() {
                   {t('Занятие №')}{lesson.number + 1}
                 </span>
                 <span
-                  className="line-clamp-2"
+                  className="text-fade-2"
                   style={{ fontSize: 13, fontWeight: 500, color: st.subText, lineHeight: 1.3 }}
                 >
                   {tc(lesson.title)}

@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../lib/textFades'
 import { motion } from 'framer-motion'
 import { SubjectMark } from './icons/SubjectMark'
 import { useState, useMemo, useEffect } from 'react'
@@ -532,7 +533,7 @@ export default function MobileProfilePage() {
                   border: `1px solid ${active ? c.color + '44' : 'var(--color-border-soft)'}`,
                 }}
               >
-                <span className="min-w-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <span className="min-w-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                   {subjectCardLabel(c)}
                 </span>
                 {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
@@ -633,7 +634,7 @@ function CourseCard({ title, icon, caption, progress, pair, active, onClick }: {
       }}
     >
       <span className="flex items-center justify-center flex-shrink-0" style={{ width: 30, height: 30, borderRadius: 10, background: pair?.bg ?? 'var(--color-bg-5)', fontSize: 15 }}>{icon}</span>
-      <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, color: active ? accent : 'var(--color-text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 32 }}>
+      <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, color: active ? accent : 'var(--color-text)',  ...textFadeLines(2),  overflow: 'hidden', minHeight: 32 }}>
         {title}
       </span>
       {typeof progress === 'number' ? (
@@ -654,7 +655,7 @@ function CourseCard({ title, icon, caption, progress, pair, active, onClick }: {
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 13, background: 'rgba(255,255,255,0.16)' }}>
-      <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label}</div>
       <div style={{ fontSize: 15, fontWeight: 800, marginTop: 2 }}>{value}</div>
     </div>
   )

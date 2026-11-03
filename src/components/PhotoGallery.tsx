@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom'
 import { useT } from '../lib/i18n'
 import { useNativeOverlay } from '../lib/nativeGlass'
 
-// Artwork from Искра's Loop icon family (ChevronRight / X).
+import { ChevronLeft, ChevronRight, X } from './icons/appIcons'
+
 function GalleryIcon({ close = false, left = false }: { close?: boolean; left?: boolean }) {
-  return <svg aria-hidden="true" width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: left ? 'rotate(180deg)' : undefined }}>
-    <path d={close ? 'M7 5q9 12 19 21M26 5Q16 15 5 27' : 'M10 5q7 6 13 11-7 6-14 12'} />
-  </svg>
+  const Icon = close ? X : left ? ChevronLeft : ChevronRight
+  return <Icon size={24} />
 }
 
 const control: CSSProperties = { width: 48, height: 48, borderRadius: 24, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.12)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }

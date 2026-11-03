@@ -1,3 +1,4 @@
+@import './styles/widgets.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -593,6 +594,11 @@ textarea:not([style*="background: transparent"]):not([style*="background: none"]
 }
 /* Docked-pill rows (position:fixed) share the same spring feel */
 .docked-pills-row {
+  /* Все кнопки «Назад» в появляющейся при прокрутке шапке совпадают
+     с соседними таблетками. В обычной строке BackCircle остаётся без тени. */
+  --back-circle-border: var(--color-border-glass);
+  --back-circle-opacity: 0.86;
+  --back-circle-shadow: var(--shadow-lg);
   transform: translateY(var(--topbar-spring-y, 0px));
 }
 
@@ -1185,4 +1191,13 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 .testly-task-frame { height: 760px; }
 @media (max-width: 767px) {
   .testly-task-frame { height: min(760px, calc(100svh - 176px)); }
+}
+
+/* Text windows are measured by textFades; mask only when their content overflows. */
+.text-fade { overflow:hidden; text-overflow:clip; white-space:nowrap; min-width:0; --iskra-text-fade-lines:1; }
+.text-fade-2 { display:block; overflow:hidden; max-height:2lh; --iskra-text-fade-lines:2; }
+.loop-select option { -webkit-text-fill-color: var(--color-text); color: var(--color-text); background: var(--color-bg); }
+@media (forced-colors: active) {
+  .loop-select select { -webkit-text-fill-color: currentColor !important; }
+  .loop-select-label { display: none !important; }
 }

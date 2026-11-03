@@ -191,7 +191,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const track = results[0].value
     const scope = track.scope
     const progress = track.progress ?? get().progress
-    const schedule  = val(1, [] as Awaited<ReturnType<typeof fetchScheduleDays>>)
+    const schedule  = val(1, get().scheduleDays)
     const catalog   = track.subjects
     const quizQ     = val(2, [] as Awaited<ReturnType<typeof fetchQuizQuestions>>)
     const facts     = val(3, [] as Awaited<ReturnType<typeof fetchScienceFacts>>)
@@ -555,4 +555,21 @@ export function subjectAliases(idOrName: string | undefined): string[] {
     .filter(s => getSubject(s.subject)?.id === def.id)
     .map(s => s.id)
   return [...new Set([def.id, def.name, ...courseIds])]
+}
+
+/** Update the track immediately, without waiting for a realtime round trip. */
+export function publishVideoWatch(lessonId: string, watch: import('../lib/videoProgress').VideoWatch) {
+  useStudentData.setState(state => {
+    const ref = `video-${lessonId}`
+    const progress: ProgressMap = { ...state.progress, [ref]: {
+      ...(state.progress[ref] ?? { status: 'locked', score: null, comment: '', reviewComment: '',
+      reviewAttachments: { photos: [], board: null }, hardSubmitted: false,
+      hardTaskBlocks: [], hardReviewBlocks: [] }), watch,
+    } }
+    return { progress, subjects: state.subjects.map(subject => ({ ...subject,
+      modules: subject.modules.map(module => ({ ...module,
+        lessons: module.lessons.map(lesson => lesson.id === lessonId ? { ...lesson, watch } : lesson),
+      })),
+    })) }
+  })
 }

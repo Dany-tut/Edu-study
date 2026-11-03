@@ -1,0 +1,4 @@
+chrome 320 [[0,"linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"],[122,"linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"],[244,"linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"]]
+chrome 1440 [[0,"linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"],[0,"linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"],[0,"linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"]]
+yandex 320 [[0,"linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"],[122,"linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"],[244,"linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"]]
+yandex 1440 [[0,"linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"],[0,"linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"],[0,"linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)"]]

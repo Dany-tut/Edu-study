@@ -1,12 +1,13 @@
-import { type ReactNode, type CSSProperties, useLayoutEffect } from 'react'
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
 import { GLASS, type GlassHeader } from '../lib/nativeGlass'
-import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
+import { useOverlayScroll } from './teacher/OverlayScroll'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import MobileGlassHeader from './MobileGlassHeader'
+import './mobileInteraction.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
@@ -64,12 +65,46 @@ export default function MobileScreen({
    *  следующем открытии экрана. */
   restoreKey?: string
 }) {
+  const keyboardOpen = useKeyboardOpen()
+  const rootRef = useRef<HTMLDivElement>(null)
+  const dockRef = useRef<HTMLDivElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
+  const [topClearance, setTopClearance] = useState(0)
+  const [dockClearance, setDockClearance] = useState(0)
+  // Measure the actual occupied bottom zone: buttons, errors and safe area can
+  // all change its height. The content dissolves BEFORE the controls.
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    const dock = dockRef.current
+    if (!root) return
+    const measure = () => {
+      const bounds = root.getBoundingClientRect()
+      const bottom = dock ? Math.max(0, Math.ceil(bounds.bottom - dock.getBoundingClientRect().top)) : 0
+      const top = topRef.current ? Math.max(0, Math.ceil(topRef.current.getBoundingClientRect().bottom - bounds.top)) : 0
+      setDockClearance(old => old === bottom ? old : bottom)
+      setTopClearance(old => old === top ? old : top)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(root)
+    if (dock) observer.observe(dock)
+    if (topRef.current) observer.observe(topRef.current)
+    return () => observer.disconnect()
+  }, [!!bottomDock, bottomDockRaise, keyboardOpen, topZone != null, !!glassHeader])
   const TOP_ZONE = topPad
   const { ref: bodyRef, fade, onScroll } = useOverlayScroll()
-  const keyboardOpen = useKeyboardOpen()
   // Вход шапки ждёт первого нарисованного кадра — иначе его съедает сборка
   // экрана (lib/useEnterAfterPaint.ts).
   const entered = useEnterAfterPaint()
+  // Both chrome zones dissolve content alpha; controls stay outside the mask.
+  const topFadeEnd = topClearance > 0 ? topClearance + 24 : 24
+  const bottomFadeStart = dockClearance > 0 && !keyboardOpen
+    ? `max(${topFadeEnd}px, calc(100% - ${dockClearance + 56}px))`
+    : 'calc(100% - 100px)'
+  const bottomFadeEnd = dockClearance > 0 && !keyboardOpen ? `calc(100% - ${dockClearance}px)` : '100%'
+  const contentMask = fade.top > 0 || fade.bottom > 0
+    ? `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0px, rgba(0,0,0,${1 - fade.top}) ${topClearance}px, #000 ${topFadeEnd}px, #000 ${bottomFadeStart}, rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
+    : undefined
 
   // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
   // одним присваиванием не обойтись: держим цель, пока страница дорастает до
@@ -131,6 +166,8 @@ export default function MobileScreen({
 
   return (
     <div
+      ref={rootRef}
+      className="mobile-screen"
       style={{
         position: 'relative',
         height: '100dvh',
@@ -143,7 +180,10 @@ export default function MobileScreen({
     >
       {/* В приложении на iOS шапку рисует система (стеклянные капсулы) — веб-пилюли
           не рендерим, место под них (topPad) остаётся. */}
-      {GLASS && glassHeader && <MobileGlassHeader {...glassHeader} />}
+      {GLASS && glassHeader && <>
+        <MobileGlassHeader {...glassHeader} />
+        <div ref={topRef} aria-hidden="true" style={{ position: 'absolute', top: TOP_INSET, height: 44, width: 0, visibility: 'hidden', pointerEvents: 'none' }} />
+      </>}
 
       {/* TOP — floating glass widget zone. pointer-events pass through empty areas. */}
       {topZone != null && !(GLASS && glassHeader) && (
@@ -151,6 +191,7 @@ export default function MobileScreen({
           // Верхние кнопки на свайпе «назад» стоят, а не едут: по линии стыка
           // они сменяются кнопками нижнего экрана (lib/useSwipeBack.ts).
           data-swipe-pin="top"
+          ref={topRef}
           style={{
             position: 'absolute',
             top: TOP_INSET,
@@ -190,12 +231,13 @@ export default function MobileScreen({
           overflowX: 'clip',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
-          ...fadeMask(fade, 24, bottomDock ? bottomDockRaise + 100 : 100),
-          paddingTop: topZone != null ? `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)` : `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`,
+          maskImage: contentMask,
+          WebkitMaskImage: contentMask,
+          paddingTop: topZone != null || (GLASS && glassHeader) ? `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)` : `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`,
           paddingLeft: 16,
           paddingRight: 16,
           // Bottom: home-indicator safe-area + dock/nav clearance.
-          paddingBottom: `calc(${SAFE_BOTTOM} + ${MOBILE_EDGE + 92 + bottomDockRaise}px)`,
+          paddingBottom: dockClearance > 0 && !keyboardOpen ? dockClearance + 24 : `calc(${SAFE_BOTTOM} + ${MOBILE_EDGE + 92 + bottomDockRaise}px)`,
         }}
       >
         {children}
@@ -204,6 +246,8 @@ export default function MobileScreen({
       {/* BOTTOM — fixed dock: page controls + nav. 44px off edge + safe-area. */}
       {bottomDock != null && !keyboardOpen && (
         <div
+          ref={dockRef}
+          data-mobile-dock
           style={{
             position: 'absolute',
             left: 0,
@@ -221,18 +265,4 @@ export default function MobileScreen({
       )}
     </div>
   )
-}
-
-/** Bottom fade so list content melts into the dock instead of hard-cutting. */
-export function bottomDockFade(): CSSProperties {
-  return {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 120,
-    zIndex: 65,
-    pointerEvents: 'none',
-    background: 'linear-gradient(to top, var(--color-bg), transparent)',
-  }
 }

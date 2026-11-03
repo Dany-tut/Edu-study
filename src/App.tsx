@@ -4,7 +4,6 @@ import { applyLessonParticipation, fetchLessonParticipation } from './lib/lesson
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
-import DashboardPage from './pages/DashboardPage'
 import StudentLoginPage from './pages/StudentLoginPage'
 import NativeEntryPage from './pages/NativeEntryPage'
 import LandingPage from './pages/LandingPage'
@@ -17,6 +16,9 @@ import LandingPage from './pages/LandingPage'
 // разу их не увидев. Точки входа взаимоисключающие (или #/teacher, или
 // кабинет ученика), так что ленивая загрузка не отнимает ничего у первого
 // кадра ни у той стороны, ни у другой.
+// The student workspace is mutually exclusive with native entry and teacher sign-in.
+// Keep its lesson, course-track and widget code out of those startup paths.
+const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
 const TeacherWorkspace = lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand')))
 const JournalStand = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand'))) : null
 const ExampleGroups = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/ExampleGroups'))) : null
@@ -103,12 +105,10 @@ function useHashRoute() {
 }
 
 export default function App() {
-  const hash = useHashRoute()
-  const cabinet = !hash.startsWith('#/landing') && (Boolean(getStudentSession()) || !['', '#', '#/'].includes(hash))
   // Хост подтверждений — один на всё приложение, выше любого роута: спросить
   // могут и из кабинета, и из лендинга, и во время редиректа.
   return (
-    <LoopIconProvider enabled={cabinet}>
+    <LoopIconProvider>
       <AppRoutes />
       <ConfirmHost />
     </LoopIconProvider>
@@ -358,7 +358,7 @@ function AppRoutes() {
   // behind it) so a fault in the gate can never blank the app.
   return (
     <>
-      <DashboardPage />
+      <Chunk><DashboardPage /></Chunk>
       {!consented && <ConsentOverlay onAccept={() => setConsented(true)} />}
       {/* Install banner shows only once consent is given (student) */}
       {consented && <InstallPrompt />}

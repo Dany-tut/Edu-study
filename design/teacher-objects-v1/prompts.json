@@ -1,0 +1,59 @@
+{
+  "tool": "built-in imagegen",
+  "assets": [
+    {
+      "slug": "results",
+      "label": "Результат работ",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: A sculptural small bar chart: three rounded translucent lavender crystal columns rising out of one milky ceramic plinth; tiny amber sphere on tallest bar.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-0adeca07-1d12-4896-bb9a-e97537c5e4f2.png"
+    },
+    {
+      "slug": "overdue",
+      "label": "Просрочка",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: A beautiful round cream ceramic desk clock with thick translucent pale amber glass rim, lavender hands and tiny honey amber winding crown. No digits.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-15dad597-c6bd-46ea-8031-ab19323a351d.png"
+    },
+    {
+      "slug": "topic",
+      "label": "Тема для разбора",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: Three overlapping thick rounded study cards of milky ceramic, held by a translucent mint acrylic clip; recessed short horizontal marks, one small lavender inset.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-263cd7e9-25ec-4f6e-acc9-ec7486108c8d.png"
+    },
+    {
+      "slug": "trend",
+      "label": "Вектор результата",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: An upward curving physical arrow made of thick translucent lavender acrylic rising from a low milky ceramic curved ramp, tiny amber sphere at the starting point. Strong simple upward silhouette.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-2b518bc1-3f51-42b2-9db6-087ad834d0a0.png"
+    },
+    {
+      "slug": "goal",
+      "label": "Цель ученика",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: A small sculptural finish flag: pale sky blue translucent acrylic waving flag on a milky ceramic pole, sitting on a round layered ceramic target base with pale blue glass rings; tiny amber pin.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-bd7ba77a-5ed6-414f-9271-06c85bb0881d.png"
+    },
+    {
+      "slug": "mastery",
+      "label": "Освоение тем",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: An open small milky ceramic book with translucent pale sage green acrylic cover and a dimensional mint checkmark resting on the right page, tiny amber ribbon tab.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-841a59aa-0fe3-4769-9c9c-097cdae4bcc1.png"
+    },
+    {
+      "slug": "lag",
+      "label": "Отставание",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: A gentle elegant physical hourglass, frosted lavender gray translucent glass bulbs and milky ceramic end caps, a small quantity of honey amber sand. No alarm or warning symbolism.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-834fdb68-42e0-46a9-a66b-b8b01d7f673e.png"
+    },
+    {
+      "slug": "ontime",
+      "label": "Сдано в срок",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: A chunky milky ceramic desk calendar with pale sky blue translucent acrylic binding loops, an inset raised blue glass checkmark on its face and one tiny amber date dot. No lettering or digits.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-9977c915-0f65-4e0b-92dd-989c38a401df.png"
+    },
+    {
+      "slug": "rhythm",
+      "label": "Учебный ритм",
+      "prompt": "Use case: stylized-concept. Asset: premium 3D illustration for Iskra educational dashboard. Continue the approved Iskra desk-object family: tactile warm milky white subtly speckled ceramic, juicy luminous translucent tinted acrylic with realistic refraction, bevelled thick rounded edges, tiny honey amber accent. Sophisticated handmade collectible physical desk object, not a flat vector pictogram, not an app tile or badge. Three-quarter isometric camera, soft studio lighting upper left, soft ambient occlusion, highly polished product render. Single isolated centered object, whole silhouette fully visible, generous transparent padding, no floor, no backdrop, actual transparent alpha, no text, no logos, no labels, no watermarks. Dominant lavender identity should remain visible even with secondary mint/sky/amber variations. Subject: Four small rounded translucent mint acrylic stepping stones linked by a flowing milky ceramic ribbon, an amber pearl resting on one stone, a gentle rhythm of heights. A single coherent compact desk sculpture.",
+      "source": "/Users/dany/.codex/generated_images/01a196e9-ed1a-7030-89eb-c4c007329477/exec-a3390fb3-f9de-45aa-9c10-88934a98922e.png"
+    }
+  ]
+}

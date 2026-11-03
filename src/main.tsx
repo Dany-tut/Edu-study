@@ -1,7 +1,9 @@
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MotionConfig } from 'framer-motion'
 import './index.css'
+import { startTextFades } from './lib/textFades'
+import { initAnalytics } from './lib/analytics'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
@@ -33,8 +35,14 @@ if (Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
 {
   const { pathname, search, hash } = window.location
   const route = pathname.replace(/\/+$/, '')
-  if (import.meta.env.DEV && route === '/journal-stand') {
-    if (!hash) window.history.replaceState(null, '', pathname + search + '#/teacher/gradebook')
+  if (import.meta.env.DEV && route === '/student-track-stand') {
+    // An isolated in-memory student example, with no sign-in or database writes.
+  } else if (import.meta.env.DEV && route === '/journal-stand') {
+    // A stand opens its in-memory example immediately, without waiting for Auth.
+    // The explicit example=live link still opens the signed-in teacher's journal.
+    const standQuery = new URLSearchParams(search)
+    if (!standQuery.has('example')) standQuery.set('example', 'groups')
+    window.history.replaceState(null, '', pathname + '?' + standQuery.toString() + (hash || '#/teacher/gradebook'))
   } else if (route && route !== '/index.html') {
     const rest = hash.replace(/^#\/?/, '')
     const target = `#${route}${rest ? '/' + rest : ''}`
@@ -133,6 +141,12 @@ guardStylesheet()
   else setTimeout(warm, 2000)
 })()
 
+const StudentTrackStand = import.meta.env.DEV && window.location.pathname.replace(/\/+$/, '') === '/student-track-stand'
+  ? lazy(() => import('./components/studentTrackStand/StudentTrackStand')) : null
+
+initAnalytics()
+startTextFades()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* Системная настройка «уменьшить движение» — для всего framer-motion
@@ -140,7 +154,7 @@ createRoot(document.getElementById('root')!).render(
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
       <ErrorBoundary>
-        <App />
+        {StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
       </ErrorBoundary>
     </MotionConfig>
   </StrictMode>,

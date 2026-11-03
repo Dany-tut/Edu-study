@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -38,6 +39,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
   const accent = done ? 'var(--color-green-text)' : reminderAccent(item)
   return (
     <motion.div
+      className="ww-reminder-row"
       onClick={clickable ? onAction : undefined}
       whileTap={clickable ? { scale: 0.99 } : undefined}
       style={{
@@ -60,12 +62,12 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
       }}>
         <Icon size={18} strokeWidth={2.2} style={{ color: accent }} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="ww-reminder-info" style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: 14, fontWeight: 700,
           color: done ? 'var(--color-green-text)' : 'var(--color-text)',
           textDecoration: done ? 'line-through' : 'none',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
         }}>
           {item.text}
         </div>
@@ -73,7 +75,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
           <div style={{
             fontSize: 12, fontWeight: 500, marginTop: 2,
             color: done ? 'var(--color-green-text)' : 'var(--color-text-3)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
           }}>
             {done ? t('Готово') : item.detail}
           </div>

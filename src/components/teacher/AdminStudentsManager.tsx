@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useMemo, useState } from 'react'
 import { confirmDialog } from '../ConfirmHost'
 import { FIELD } from '../../lib/fieldStyle'
@@ -313,12 +314,12 @@ export default function AdminStudentsManager() {
                     </div>
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                           {tn(row.name) || '—'}
                         </span>
                         {row.has_account && <KeyRound size={12} strokeWidth={2} style={{ color: '#2E8F76', flexShrink: 0 }} />}
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                         {row.is_individual ? t('1:1') : row.group_name || t('без группы')}
                         {row.subject ? ` · ${tc(row.subject)}` : ''}
                         {row.progress_rows ? ` · ${row.progress_rows} ${t('уроков в прогрессе')}` : ''}

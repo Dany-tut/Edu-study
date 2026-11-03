@@ -1,3 +1,5 @@
+import { SubjectMark } from './icons/SubjectMark'
+import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { ICON_GAP } from '../lib/subjects'
 import { ChevronDown, Check } from './icons/appIcons'
@@ -106,7 +108,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
           color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
         }}
       >
-        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label(current)}</span>
+        <SubjectMark subject={current.subject} size={16} /><span style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label(current)}</span>
         <ChevronDown size={16} style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
 
@@ -134,7 +136,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
               >
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label(c)}</span>
+                <SubjectMark subject={c.subject} size={16} /><span style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label(c)}</span>
                 {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
               </button>
             )

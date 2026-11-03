@@ -4,7 +4,7 @@ import { Capacitor } from '@capacitor/core'
 import type { Provider } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { clearStudentSession, setStudentSession } from './studentSession'
-import { trackNow } from './analytics'
+import { trackNow, trackEvent } from './analytics'
 import { authErrorRu } from './authErrors'
 
 export type LoginRole = 'teacher' | 'student'
@@ -12,12 +12,40 @@ export type LoginRole = 'teacher' | 'student'
 const OAUTH_ROLE_KEY = 'iskra:oauth-role'
 const IOS_OAUTH_REDIRECT = 'iskra://auth/callback'
 const LINK_KEY = 'iskra:oauth-link'
+const ATTEMPT_KEY = 'iskra:oauth-attempt'
+let authTimer: ReturnType<typeof setTimeout> | undefined
+function beginOAuthAttempt(provider: string, kind: 'login' | 'link') {
+  clearTimeout(authTimer)
+  localStorage.setItem(ATTEMPT_KEY, JSON.stringify({ provider, kind, at: Date.now() }))
+  trackEvent('auth_started', { provider, kind })
+  authTimer = setTimeout(() => {
+    if (!hasPendingSocialAuth()) return
+    trackEvent('auth_stalled', { provider, kind, duration_ms: 180000 })
+    window.dispatchEvent(new CustomEvent('iskra:auth-error', { detail: 'Вход занимает слишком много времени. Можно закрыть окно входа и попробовать ещё раз.' }))
+  }, 180000)
+}
+function endOAuthAttempt(event: 'auth_completed' | 'auth_cancelled' | 'auth_failed') {
+  clearTimeout(authTimer)
+  let context: Record<string, unknown> = {}
+  try {
+    const attempt = JSON.parse(localStorage.getItem(ATTEMPT_KEY) || '{}')
+    context = { provider: attempt.provider, kind: attempt.kind, duration_ms: typeof attempt.at === 'number' ? Date.now() - attempt.at : undefined }
+  } catch { /* stale diagnostic context */ }
+  trackEvent(event, context)
+  localStorage.removeItem(ATTEMPT_KEY)
+  if (event !== 'auth_completed') {
+    localStorage.removeItem(OAUTH_ROLE_KEY)
+    localStorage.removeItem(LINK_KEY)
+  }
+}
+
 
 export async function connectLoginProvider(provider: 'google' | 'apple') {
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Войдите в аккаунт ещё раз перед подключением.')
   localStorage.removeItem(OAUTH_ROLE_KEY)
   localStorage.setItem(LINK_KEY, JSON.stringify({ userId: user.id, provider, time: Date.now() }))
+  beginOAuthAttempt(provider, 'link')
   try {
     const native = Capacitor.isNativePlatform()
     const { data, error } = await supabase.auth.linkIdentity({ provider, options: {
@@ -29,6 +57,7 @@ export async function connectLoginProvider(provider: 'google' | 'apple') {
     if (native) await Browser.open({ url: data.url })
     else window.location.assign(data.url)
   } catch (error) {
+    endOAuthAttempt('auth_failed')
     localStorage.removeItem(LINK_KEY)
     throw error
   }
@@ -77,6 +106,7 @@ async function finishIdentityLink() {
   localStorage.removeItem(LINK_KEY)
   clearStudentSession()
   window.location.hash = '#/teacher/profile'
+  endOAuthAttempt('auth_completed')
   window.dispatchEvent(new Event('iskra:identity-linked'))
   return true
 }
@@ -84,23 +114,26 @@ async function finishIdentityLink() {
 export async function startSocialLogin(provider: Provider, role: LoginRole) {
   localStorage.removeItem(LINK_KEY)
   localStorage.setItem(OAUTH_ROLE_KEY, role)
-  const native = Capacitor.isNativePlatform()
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: native ? IOS_OAUTH_REDIRECT : `${window.location.origin}/`,
-      // Navigate once after supabase-js has stored the PKCE verifier.
-      skipBrowserRedirect: true,
-    },
-  })
-  if (error) throw error
-  if (native) {
+  beginOAuthAttempt(provider, 'login')
+  try {
+    const native = Capacitor.isNativePlatform()
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: native ? IOS_OAUTH_REDIRECT : `${window.location.origin}/`,
+        // Navigate once after supabase-js has stored the PKCE verifier.
+        skipBrowserRedirect: true,
+      },
+    })
+    if (error) throw error
+    if (native) {
+      if (!data.url) throw new Error('Не удалось открыть страницу входа')
+      await Browser.open({ url: data.url })
+      return
+    }
     if (!data.url) throw new Error('Не удалось открыть страницу входа')
-    await Browser.open({ url: data.url })
-    return
-  }
-  if (!data.url) throw new Error('Не удалось открыть страницу входа')
-  window.location.assign(data.url)
+    window.location.assign(data.url)
+  } catch (error) { endOAuthAttempt('auth_failed'); throw error }
 }
 
 /** Exchanges the PKCE callback delivered by the native app URL scheme. */
@@ -126,7 +159,24 @@ export async function completeNativeSocialLogin(url: string) {
 
 /** Resolve the selected role to an existing Искра account after OAuth. */
 export async function finishSocialLogin() {
+  try { return await finishSocialLoginImpl() }
+  catch (error) {
+    if (hasPendingSocialAuth()) endOAuthAttempt('auth_failed')
+    throw error
+  }
+}
+async function finishSocialLoginImpl() {
   if (localStorage.getItem(LINK_KEY)) return finishIdentityLink()
+  const query = new URLSearchParams(window.location.search)
+  const fragment = new URLSearchParams(window.location.hash.slice(1))
+  if (query.has('error') || fragment.has('error')) {
+    const cancelled = (query.get('error') || fragment.get('error')) === 'access_denied'
+    endOAuthAttempt(cancelled ? 'auth_cancelled' : 'auth_failed')
+    for (const key of ['error', 'error_code', 'error_description', 'code']) query.delete(key)
+    const remaining = query.toString()
+    history.replaceState(null, '', `${location.pathname}${remaining ? '?' + remaining : ''}#/entry`)
+    throw new Error(cancelled ? 'Вход отменён. Можно попробовать ещё раз.' : 'Не удалось завершить вход. Попробуйте ещё раз.')
+  }
   const selectedRole = localStorage.getItem(OAUTH_ROLE_KEY) as LoginRole | null
   if (!selectedRole) return false
   const { data: { user } } = await supabase.auth.getUser()
@@ -143,6 +193,7 @@ export async function finishSocialLogin() {
     if (student) {
       setStudentSession({ id: student.id, name: student.name, groupId: student.group_id ?? '' })
       localStorage.removeItem(OAUTH_ROLE_KEY)
+      endOAuthAttempt('auth_completed')
       void trackNow('login', { role: 'student', method: 'oauth' })
       window.location.hash = '#/'
       window.location.reload()
@@ -159,6 +210,7 @@ export async function finishSocialLogin() {
     if (accountRole === 'teacher' || accountRole === 'admin') {
       localStorage.removeItem(OAUTH_ROLE_KEY)
       clearStudentSession()
+      endOAuthAttempt('auth_completed')
       void trackNow('login', { role: 'teacher', method: 'oauth' })
       window.location.hash = '#/teacher'
       window.location.reload()
@@ -166,6 +218,7 @@ export async function finishSocialLogin() {
     }
   }
 
+  endOAuthAttempt('auth_failed')
   await supabase.auth.signOut()
   localStorage.removeItem(OAUTH_ROLE_KEY)
   throw new Error(selectedRole === 'student'
@@ -176,19 +229,32 @@ export async function finishSocialLogin() {
 /** Handles OAuth deep links on warm and cold native launches. */
 export async function initializeNativeOAuth(onError: (message: string) => void) {
   if (!Capacitor.isNativePlatform()) return () => undefined
+  let callbackInProgress = false
+  let cancelTimer: ReturnType<typeof setTimeout> | undefined
   const handleUrl = async (url?: string) => {
-    if (!url) return
+    if (!url || !url.startsWith(IOS_OAUTH_REDIRECT)) return
+    callbackInProgress = true
+    clearTimeout(cancelTimer)
     try {
       const handled = await completeNativeSocialLogin(url)
       if (handled) await finishSocialLogin()
     } catch (error) {
+      endOAuthAttempt('auth_failed')
       localStorage.removeItem(LINK_KEY)
       await Browser.close().catch(() => undefined)
       onError(error instanceof Error ? error.message : 'Не удалось завершить вход')
-    }
+    } finally { callbackInProgress = false }
   }
   const listener = await App.addListener('appUrlOpen', ({ url }) => { void handleUrl(url) })
+  const closed = await Browser.addListener('browserFinished', () => {
+    clearTimeout(cancelTimer)
+    cancelTimer = setTimeout(() => {
+      if (callbackInProgress || !hasPendingSocialAuth()) return
+      endOAuthAttempt('auth_cancelled')
+      window.dispatchEvent(new Event('iskra:auth-cancelled'))
+    }, 750)
+  })
   const launch = await App.getLaunchUrl()
   if (launch?.url) await handleUrl(launch.url)
-  return () => { void listener.remove() }
+  return () => { clearTimeout(cancelTimer); void listener.remove(); void closed.remove() }
 }

@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { LoopTextIcon } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
@@ -93,7 +94,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
     const accentColor = lastCorrect ? correctColor : wrongColor
 
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px 14px 10px', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
         {/* Avatar — question number badge with correct/wrong ring + pulse */}
         <motion.div
           animate={pulse && !answerFlight ? { scale: [1, 1.22, 1] } : { scale: 1 }}
@@ -659,7 +660,7 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
 function TrainerProgressSkeleton() {
   return (
     <div role="status" aria-busy="true"
-      style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px 14px 10px', width: '100%', boxSizing: 'border-box' }}>
+      style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
       <span aria-hidden className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'block' }} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}>
         <span aria-hidden className="skeleton" style={{ display: 'block', width: '52%', height: 9, borderRadius: 999 }} />
@@ -754,7 +755,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
   )
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px 14px 10px', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
       {/* Кружок — сегодняшнее время против дневной цели */}
       <div style={{
         width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
@@ -955,7 +956,7 @@ function PillContent({
         // centres at 9px top/bottom. 9px left matches, so the mini pill reads
         // with equal gaps on top, bottom and left. The 14px right/bottom give
         // the expanded detail text its breathing room.
-        padding: '10px 14px 14px 10px',
+        padding: '9px 14px 14px 9px',
         width: '100%',
         boxSizing: 'border-box',
       }}
@@ -1086,7 +1087,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
   const accent = sNotifColor(latest.type)
   const hexAccent = accent.startsWith('#') ? accent : '#786AD7'
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 12px 14px 10px', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '9px 12px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
       <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
         <div style={{
           width: '100%', height: '100%', background: accent,
@@ -1106,7 +1107,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
         <div style={{ marginTop: 4 }}>
           <span style={{
             fontSize: 13, fontWeight: 500, color: 'var(--color-text-2)', lineHeight: 1.4,
-            overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',  ...textFadeLines(2),
           } as React.CSSProperties}>
             {dedupBodyS(latest.body)}
           </span>

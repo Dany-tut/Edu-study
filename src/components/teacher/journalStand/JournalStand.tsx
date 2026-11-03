@@ -1,11 +1,14 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import AttendanceEditor from './AttendanceEditor'
 import JournalSkeleton from '../JournalSkeleton'
+import { useScrollFades } from '../../../lib/useScrollFades'
+import { useIsDesktop } from '../../../lib/useIsDesktop'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import TeacherStudentDashboardPage, { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
 import { useTeacher } from '../../../store/teacherStore'
 import { useCourseJournal } from '../../../lib/useCourseJournal'
-import { OUTSIDE_COURSES, type CourseJournalData } from '../../../lib/courseJournal'
+import { OUTSIDE_COURSES, buildJournalIndex, journalCell, type JournalCell, type CourseJournalData } from '../../../lib/courseJournal'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
@@ -154,6 +157,7 @@ function Attendance({ work }: { work: StudentWork }) {
   return (
     <span>
       {work.present === true ? 'Был' : work.present === false ? 'Пропуск' : 'Нет отметки'}
+      {work.grade != null ? ` · ${work.grade}` : ''}
       {work.watched ? ' · запись изучена' : ''}
     </span>
   )
@@ -214,7 +218,8 @@ export function ProfileWorks({
       )}
       <History className="js-work-history">
         <Heading>
-          История работ <small>· {history.length}</small>
+          <span>История работ</span> <small>· {history.length}</small>
+          {collapsibleHistory && <ChevronRight className="js-history-chevron" size={16} aria-hidden="true" />}
         </Heading>
         {history.length ? (
           <div className="js-history">
@@ -248,6 +253,7 @@ export function ProfileWorks({
   )
 }
 interface MatrixProps {
+  onOpenAttendance?: (works: StudentWork[]) => void
   onOpenWork?: (studentId: string, workRef: string) => void
   onOpenAssignment?: (workRef: string) => void
   groups: Group[]
@@ -356,6 +362,7 @@ function StudentPill({ entry, work, open, close }: {
 export function Matrix(props: MatrixProps) {
   const { entries, selected, picker, groupLabel, scopeLabel, groups, set, today, example, renderReport, onReload, refreshing } = props
   const host = useRef<HTMLElement>(null)
+  useScrollFades(host, true, '.js-tabs, .js-filter-items, .jh-homework-list')
   const [reportHost, setReportHost] = useState<HTMLElement | null>(null)
   const [attention, setAttention] = useState(false)
   const [workView, setWorkView] = useState<'students' | 'assignments'>('students')
@@ -377,6 +384,7 @@ export function Matrix(props: MatrixProps) {
     aria-label={'Журнал успеваемости · ' + groupLabel}>
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
       attention={!overview && attention} toggle={() => setAttention(v => !v)} /></div>
+    {selected.tab === 'Посещаемость' && props.onOpenAttendance && <p className="cj-note">Выберите ячейку и нажмите ещё раз, чтобы поставить оценку. Нажмите название урока, чтобы заполнить весь столбец для учеников в текущем списке.</p>}
     {selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views" role="group" aria-label="Представление работ">
       <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
       <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
@@ -397,7 +405,7 @@ export function Matrix(props: MatrixProps) {
   </section>
 }
 
-function LessonMatrix({ entries, slots, selected, set, today, position, attention, onOpenWork, onOpenAssignment }: MatrixProps & {attention: boolean}) {
+function LessonMatrix({ entries, slots, selected, set, today, position, attention, onOpenWork, onOpenAssignment, onOpenAttendance }: MatrixProps & {attention: boolean}) {
   const { viewport, scroller: frame } = useScrollEdges()
   const detail = selected.workRef ?? ''
   const visible = entries.filter(e =>
@@ -493,7 +501,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     {nearest && upcoming === nearest && <span className="js-next-label" title={'Ближайшая работа · ' + shortDate(nearest)}>Ближайшая</span>}
                   </div>
                   {withWork && onOpenAssignment ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}>{col.title}</button>
-                    : <span className="js-col-title" title={col.title}>{col.title}</span>}
+                    : !withWork && onOpenAttendance ? <button type="button" className="js-col-title jh-header-link" aria-label={'Оценки за урок · ' + col.title} onClick={() => onOpenAttendance(visible.flatMap(e => e.works.filter(w => w.slot.ref === col.ref)))}>{col.title}</button> : <span className="js-col-title" title={col.title}>{col.title}</span>}
                   {withWork && <div className="js-col-source">{hasHomework && (source ? <Source value={source} /> : 'Разные источники')}
                     {nearest && upcoming === nearest && col.due === nearest && col.due !== displayDate &&
                       <time dateTime={nearest}>до {shortDate(nearest).replace(/\s\d{4}$/, '')}</time>}
@@ -517,9 +525,9 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     <button type="button" data-selected-work={active || undefined} aria-pressed={active}
                       className="js-cell" aria-label={[student.name, col.title,
                         ...(withWork ? [w.source, w.status === 'На проверке' && onOpenWork ? 'Проверить' : w.score === null ? w.status : w.score + '% · ' + w.status] : []),
-                        ...(selected.tab !== 'Работы' && w.slot.lesson ? [w.present === null ? 'Нет отметки' : w.present ? 'Был' : 'Пропуск', ...(w.watched ? ['Запись изучена'] : [])] : []),
+                        ...(selected.tab !== 'Работы' && w.slot.lesson ? [w.present === null ? 'Нет отметки' : w.present ? 'Был' : 'Пропуск', ...(w.grade != null ? ['Оценка ' + w.grade] : []), ...(w.watched ? ['Запись изучена'] : [])] : []),
                       ].join(' · ')}
-                      onClick={() => {set({ student: student.id, workRef: col.ref });if(withWork)onOpenWork?.(student.id, col.ref)}}>
+                      onClick={() => {set({ student: student.id, workRef: col.ref });if(withWork)onOpenWork?.(student.id, col.ref);else if(active)onOpenAttendance?.([w])}}>
                       {withWork && (w.status === 'На проверке' && onOpenWork ? <span className="jh-pending-action">Проверить</span> : <Badge work={w} />)}
                       {selected.tab !== 'Работы' && <small><Attendance work={w}/></small>}
                       {withWork && !source && <Source value={w.source}/>}
@@ -540,7 +548,22 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
   )
 }
 export default function JournalStand({ owner, production = false }: { owner: string; production?: boolean }) {
+  const isDesktop = useIsDesktop()
   const { data, loading, error, reload, setData } = useCourseJournal(true)
+  const [attendanceCells, setAttendanceCells] = useState<JournalCell[] | null>(null)
+  const [attendanceNotice, setAttendanceNotice] = useState('')
+  function openAttendance(works: StudentWork[]) {
+    if (!data) return
+    const journal = buildJournalIndex(data)
+    const editable = works.flatMap(w => {
+      const student = data.students.find(s => s.id === w.studentId)
+      if (!student || !w.slot.lesson) return []
+      const cell = journalCell(data, journal, student, w.slot.lesson, today)
+      return cell.event && !cell.cancelled && cell.column.lesson?.kind !== 'test' && !cell.column.recording && cell.column.lesson?.delivery_mode !== 'recording' ? [cell] : []
+    })
+    setAttendanceNotice(editable.length ? '' : 'Для этого урока нет доступного занятия в расписании. Посещаемость тестов, записей и отменённых занятий не редактируется.')
+    if (editable.length) setAttendanceCells(editable)
+  }
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
   const storageKey = 'iskra:journal-stand:' + owner
@@ -592,7 +615,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
     useTeacher.getState().setSelectedGroupId(entry.student.groupId || null)
     useTeacher.getState().setActivePage('gradebook')
   }, (entry, draft) => {
-    if (!data || data.demo || !entry.work.submission) return false
+    if (!isDesktop || !data || data.demo || !entry.work.submission) return false
     const id = nativeHomeworkReviewId(data, entry)
     if (!id) return false
     handoffHomeworkReview(id, entry.student.id, draft)
@@ -645,7 +668,10 @@ export default function JournalStand({ owner, production = false }: { owner: str
       ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {setQueueGroup(group ?? '*');useTeacher.getState().setActivePage('homework')}}/>
       : <HomeworkQueue queue={homework.queue} groups={data.groups} groupId={queueGroup} onGroup={setQueueGroup}
           onOpen={entry => homework.openQueue(entry, queueGroup === '*' ? undefined : queueGroup)}/>}</div>
-      : <div className="cj-empty" role="status">{error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}</div>
+      : <div className="cj-empty" role={error ? 'alert' : 'status'}>
+          {error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}
+          {error && <button type="button" className="cj-button" onClick={reload}>Повторить загрузку</button>}
+        </div>
   }
   if (['gradebook', 'groups', 'student'].includes(page)) {
     if (loading && !error && (!data || data.demo))
@@ -673,9 +699,10 @@ export default function JournalStand({ owner, production = false }: { owner: str
           onBack={back}
           backLabel={selected.origin === 'groups' ? 'Назад к группам' : 'Назад в журнал'}
           workPanel={
-            <><div className="jo-group-report"><StudentOverviewCard student={entry.student} report={studentOverview(entry.works,today)}
+            <><div className="jo-group-report"><StudentOverviewCard embedded student={entry.student} report={studentOverview(entry.works,today)}
               today={today} scopeLabel={scopeLabel} groupLabel={data.groups.find(g=>g.id===entry.student.groupId)?.name}/></div>
             <ProfileWorks
+              collapsibleHistory
               list={entry.works}
               today={today}
               scope={picker}
@@ -737,6 +764,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
                   )
                   return (
                     <Matrix
+                      onOpenAttendance={openAttendance}
                       onOpenWork={homework.openStudent}
                       onOpenAssignment={ref => homework.openAssignment(ref, unique.map(e => e.student.id))}
                       groups={data.groups}
@@ -776,10 +804,11 @@ export default function JournalStand({ owner, production = false }: { owner: str
                 {w}
               </p>
             ))}
+            {attendanceNotice && <p role="status" className="cj-note">{attendanceNotice}</p>}
             {content}
           </>
         )
       }
-    />{homework.dialog}</>
+    />{homework.dialog}{attendanceCells && <AttendanceEditor cells={attendanceCells} onSaved={reload} onClose={() => setAttendanceCells(null)} />}</>
   )
 }

@@ -1,0 +1,4 @@
+PASS Native browser opened, then closed without callback; foreground return
+PASS Native browser refuses to open
+FAIL Native browser open never resolves; no cancellation for two minutes
+FAIL Native browser open never resolves; timeout after 181 seconds

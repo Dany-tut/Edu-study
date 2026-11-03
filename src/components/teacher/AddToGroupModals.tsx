@@ -1,3 +1,5 @@
+import { textFadeStyle } from '../../lib/textFades'
+import { OverlayScrollArea } from './OverlayScroll'
 import { useState, useMemo } from 'react'
 import { ModalClose } from '../Modal'
 import BackCircle from '../BackCircle'
@@ -11,7 +13,7 @@ import { levelOptionsForSubject } from '../../lib/courseLevels'
 // Identity a group-enrollment reuses. Any object carrying these fields works.
 export type PersonLike = Pick<
   Student,
-  'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'
+  'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'authUserId' | 'personId'
 >
 
 const overlay = {
@@ -59,7 +61,7 @@ export function PickStudentModal({
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
-        onClick={e => e.stopPropagation()} style={card}
+        onClick={e => e.stopPropagation()} className="journal-person-dialog" style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить ученика')}</span>
@@ -77,7 +79,7 @@ export function PickStudentModal({
           />
         </div>
 
-        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
+        <OverlayScrollArea showScrollbar={false} style={{minHeight:60}} scrollStyle={{display:'flex',flexDirection:'column',gap:6}}>
           {list.length === 0 && (
             <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
               {people.length === 0 ? t('Нет учеников') : t('Никого не нашлось')}
@@ -102,17 +104,17 @@ export function PickStudentModal({
                 fontSize: 13, fontWeight: 800, color: '#fff',
               }}>{initials(tn(person.name))}</div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                   {tn(person.name)}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                   {subjects.length ? subjects.map(s => tc(s)).join(' · ') : t('Без предметов')}
                   {registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
                 </div>
               </div>
             </button>
           ))}
-        </div>
+        </OverlayScrollArea>
       </motion.div>
     </div>
   )
@@ -142,7 +144,7 @@ export function PickGroupModal({
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
-        onClick={e => e.stopPropagation()} style={card}
+        onClick={e => e.stopPropagation()} className="journal-person-dialog" style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить в группу')}</span>
@@ -160,7 +162,7 @@ export function PickGroupModal({
           />
         </div>
 
-        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
+        <OverlayScrollArea showScrollbar={false} style={{minHeight:60}} scrollStyle={{display:'flex',flexDirection:'column',gap:6}}>
           {list.length === 0 && (
             <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
               {groups.length === 0 ? t('Нет групп') : t('Уже во всех группах')}
@@ -186,7 +188,7 @@ export function PickGroupModal({
                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: g.color,
                 }}><Users size={18} /></div>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                     {g.name}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>
@@ -197,7 +199,7 @@ export function PickGroupModal({
               </button>
             )
           })}
-        </div>
+        </OverlayScrollArea>
       </motion.div>
     </div>
   )
@@ -257,7 +259,7 @@ export function AddExistingIndividualModal({
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }}
-        onClick={e => e.stopPropagation()} style={card}
+        onClick={e => e.stopPropagation()} className="journal-person-dialog" style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <span style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -279,7 +281,7 @@ export function AddExistingIndividualModal({
               <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t('Поиск по имени…')}
                 style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }} />
             </div>
-            <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
+            <OverlayScrollArea showScrollbar={false} style={{minHeight:60}} scrollStyle={{display:'flex',flexDirection:'column',gap:6}}>
               {list.length === 0 && (
                 <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
                   {people.length === 0 ? t('Нет учеников') : t('Никого не нашлось')}
@@ -301,14 +303,14 @@ export function AddExistingIndividualModal({
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff',
                   }}>{initials(tn(person.name))}</div>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(person.name)}</div>
-                    <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tn(person.name)}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                       {subjects.length ? subjects.map(s => tc(s)).join(' · ') : t('Без предметов')}{registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
                     </div>
                   </div>
                 </button>
               ))}
-            </div>
+            </OverlayScrollArea>
           </>
         )}
 

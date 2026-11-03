@@ -1,0 +1,36 @@
+
+> student-dashboard@1.0.0 check:i18n
+> node scripts/checkI18n.mjs
+
+────────────────────────────────────────────────────────────
+словарь: 5067 записей · под t(): 5947 вхождений
+❌ под t(), но без перевода: 7
+
+  src/components/CourseTrack.tsx (3)
+    Занятия модуля
+    ← Предыдущие занятия
+    Дальше есть ещё занятия →
+
+  src/components/MobileSheet.tsx (1)
+    Подробности
+
+  src/components/teacher/AiGradeCard.tsx (1)
+    Повторяем…
+
+  src/pages/teacher/TeacherLessonEditorPage.tsx (1)
+    Дождитесь загрузки урока и попробуйте ещё раз.
+
+  src/pages/teacher/TeacherHomeworkReviewPage.tsx (1)
+    Оценка, комментарий и предложения ИИ
+
+Перевод дописывается в src/lib/i18nEn.ts: ключ — русская строка целиком.
+✅ дублей ключей нет
+
+ℹ️  строк вообще без t() и без перевода: 1012
+    104  src/devFiguresHarness.tsx
+     82  src/components/teacher/journalStand/StudentWidgetConcepts.tsx
+     65  src/components/teacher/journalStand/GroupOverview.tsx
+     51  src/components/studentTrackStand/data.ts
+     47  src/components/studentTrackStand/StudentTrackStand.tsx
+     44  src/lib/lexicon.ts
+    (часть из них переводить не нужно — фикстуры, ключевые слова, маркеры)

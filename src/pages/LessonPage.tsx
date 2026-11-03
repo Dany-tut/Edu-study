@@ -1,3 +1,6 @@
+import { textFadeStyle } from '../lib/textFades'
+import { homeworkNeedsVideo } from '../lib/homeworkAccess'
+import { publishVideoWatch } from '../store/studentDataStore'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -15,7 +18,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
 import { getSubject, ICON_GAP } from '../lib/subjects'
 import {
-  emptyWatch, loadVideoWatch, saveVideoWatch, type VideoWatch,
+  emptyWatch, loadVideoWatch, saveVideoWatch, watchedSeconds, type VideoWatch,
 } from '../lib/videoProgress'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { lessonScheduleDate } from '../lib/lessonStatus'
@@ -322,7 +325,7 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
         {isLinkFile(file) ? 'URL' : fileChipLabel(file.name)}
       </div>
       <span className="min-w-0" style={{ flex: 1 }}>
-        <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+        <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{file.name}</span>
         {(err || file.size > 0) && (
           <span style={{ display: 'block', fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)' }}>
             {err ? t('не удалось скачать') : formatFileSize(file.size)}
@@ -371,8 +374,8 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
         <Icon size={16} strokeWidth={1.9} />
       </div>
       <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</p>
-        <p style={{ fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.2, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{label}</p>
+        <p style={{ fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)', marginTop: 1, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {!active ? t('файл не прикреплён')
             : err ? t('не удалось скачать')
             : busy ? t('загружаем…')
@@ -494,7 +497,7 @@ function readBasicProgress(lessonId: string, homework: LessonHomework): { unlock
   }
 }
 
-function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string }) {
+function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string; videoRequired?: boolean }) {
   const t = useT()
   const [{ unlocked, score }, setProgress] = useState(() => readBasicProgress(lessonId, homework))
   const assessment = useDashboard(s => s.lessonAssessments[lessonId])
@@ -531,7 +534,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
   const hardIconSize = (!hardUnlocked && !hardStatus) ? 18 : 20
 
   const rows = [
-    { id: 'base' as const, icon: GraduationCap, iconSize: 20, title: title ?? t('Домашка') },
+    { id: 'base' as const, icon: videoRequired ? Lock : GraduationCap, iconSize: 20, title: videoRequired ? t('Сначала просмотрите видео') : title ?? t('Домашка') },
     ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: t('Сложный уровень') }] : []),
   ]
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
@@ -561,13 +564,14 @@ function HomeworkCard({ lessonId, homework, onOpen, title }: { lessonId: string;
     >
       {rows.map(({ id, icon: Icon, iconSize, title }) => {
         const isActive = active === id
-        const locked = id === 'hard' && !hardUnlocked && !hardStatus
+        const locked = videoRequired || (id === 'hard' && !hardUnlocked && !hardStatus)
         const solidWhite = isActive && !locked
         const faintWash = (locked && hovered === id) || (id === 'base' && (unlocked || basicSubmitted) && hovered === 'base')
         const hasExtra = (id === 'base' && basicSubmitted) || (id === 'hard' && !!hardStatusLabel)
         return (
           <motion.button
             key={id}
+            disabled={locked}
             whileTap={locked ? undefined : { scale: 0.99 }}
             onClick={() => { if (!locked) onOpen() }}
             onMouseEnter={() => setHovered(id)}
@@ -747,20 +751,25 @@ export default function LessonPage() {
   // Приезжает из lesson_progress (строка `video-<урок>`) и уходит обратно
   // порциями: плеер зовёт onPersist раз в десять секунд, на паузе и на выходе.
   const [watch, setWatch] = useState<VideoWatch>(emptyWatch)
+  const [watchSyncFailed, setWatchSyncFailed] = useState(false)
   const lessonKey = lesson?.id
   const lessonSubject = lesson?.subject
   useEffect(() => {
     if (!lessonKey) return
     let alive = true
     setWatch(emptyWatch())
-    loadVideoWatch(ownerStudentIdFor(lessonSubject), lessonKey).then(w => { if (alive) setWatch(w) })
+    loadVideoWatch(ownerStudentIdFor(lessonSubject), lessonKey).then(w => { if (alive) { setWatch(w); publishVideoWatch(lessonKey, w) } })
     return () => { alive = false }
   }, [lessonKey, lessonSubject])
 
   const persistWatch = useCallback((next: VideoWatch) => {
     setWatch(next)
     if (!lessonKey || !lessonSubject) return
-    void saveVideoWatch(ownerStudentIdFor(lessonSubject), lessonKey, lessonSubject, next)
+    publishVideoWatch(lessonKey, next)
+    void saveVideoWatch(ownerStudentIdFor(lessonSubject), lessonKey, lessonSubject, next).then(() => setWatchSyncFailed(false)).catch(() => {
+      setWatchSyncFailed(true)
+      console.error('[video progress] Could not sync; local progress retained')
+    })
   }, [lessonKey, lessonSubject])
 
   useEffect(() => {
@@ -934,7 +943,7 @@ export default function LessonPage() {
             // перетекает в таблетку соседнего экрана, и разница видна.
             // «Назад» — шеврон в круге везде, как BackCircle; подпись — в aria-label.
             height: MOBILE_PILL_H, width: MOBILE_PILL_H, boxSizing: 'border-box',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'none',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
@@ -942,7 +951,7 @@ export default function LessonPage() {
         </motion.button>
 
         <h1
-          className="flex-1 min-w-0 truncate text-center"
+          className="flex-1 min-w-0 text-fade text-center"
           style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
           {t('Занятие')} #{lesson.number + 1} {tContent(lesson.title)}
@@ -1005,7 +1014,7 @@ export default function LessonPage() {
 
             <div
               ref={dockTitleRef}
-              className="min-w-0 truncate"
+              className="min-w-0 text-fade"
               style={{
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1,
                 maxWidth: dockTitleMax,
@@ -1109,10 +1118,11 @@ export default function LessonPage() {
                     ? <><CheckCircle2 size={14} /> {t('Урок засчитан — был на занятии')}</>
                     : studyProgress.completed
                     ? <><CheckCircle2 size={14} /> {t('Запись просмотрена')}</>
-                    : <>{t('Просмотрено')} {watchedPct}%</>}
+                    : <>{t('Просмотрено')} {Math.floor(watchedSeconds(watch.ranges) / 60)} / {Math.ceil((videoDuration || watch.duration) / 60)} {t('мин')} · {watchedPct}%</>}
                 </span>
               </div>
             )}
+            {watchSyncFailed && <p role="status" style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Прогресс сохранён на этом устройстве. Не удалось синхронизировать.')} <button type="button" onClick={() => persistWatch(watch)} style={{ minHeight: 44 }}>{t('Повторить')}</button></p>}
             {studyProgress.attended && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Запись можно пересмотреть для повторения.')}</p>}
           </div>
 
@@ -1331,13 +1341,13 @@ export default function LessonPage() {
         <MaterialsTile materials={detail.files.materials ?? []} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
-            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} />
+            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} videoRequired={homeworkNeedsVideo({ ...lesson, watch })} />
           </div>
         )}
         {/* Доп. домашки — такие же карточки, у каждой своя сдача (lib/extraHomework). */}
         {getExtraHomeworks(lesson).map(x => (
           <div key={x.id} style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
-            <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} title={extraHwLabel(x.index, x.total, t)} />
+            <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} videoRequired={homeworkNeedsVideo({ ...lesson, watch }, hwRef(lesson.id, x.id))} title={extraHwLabel(x.index, x.total, t)} />
           </div>
         ))}
       </div>

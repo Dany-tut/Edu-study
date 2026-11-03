@@ -1,3 +1,5 @@
+import MiniStatCard from './_MiniStatCard'
+import type { LucideIcon } from '../../icons/appIcons'
 import { TrendingUp, Clock, AlertCircle, Sparkles } from '../../icons/appIcons'
 import { useFinanceSummary } from '../../../lib/useFinances'
 import { useT } from '../../../lib/i18n'
@@ -7,7 +9,7 @@ function fmt(n: number) {
 }
 
 type KpiCardProps = {
-  icon: React.ElementType
+  icon: LucideIcon
   label: string
   value: string
   sub: string
@@ -16,45 +18,9 @@ type KpiCardProps = {
 }
 
 function KpiCard({ icon: Icon, label, value, sub, accentBg, accentColor }: KpiCardProps) {
-  return (
-    <div style={{
-      flex: 1, minWidth: 0,
-      background: 'rgba(var(--glass-rgb), 0.88)',
-      backdropFilter: 'var(--blur-glass)',
-      WebkitBackdropFilter: 'var(--blur-glass)',
-      border: '1px solid var(--color-border-medium)',
-      borderRadius: 24,
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
-      padding: '16px 18px',
-      display: 'flex', flexDirection: 'column', gap: 8,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          {label}
-        </span>
-        <div style={{
-          width: 30, height: 30, borderRadius: 10,
-          background: accentBg,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}>
-          <Icon size={14} strokeWidth={2.2} style={{ color: accentColor }} />
-        </div>
-      </div>
-
-      <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', lineHeight: 1, letterSpacing: '-0.01em' }}>
-        {value}
-      </div>
-
-      <div style={{
-        fontSize: 11, fontWeight: 600, color: accentColor,
-        background: accentBg, borderRadius: 8, padding: '4px 8px',
-        alignSelf: 'flex-start',
-      }}>
-        {sub}
-      </div>
-    </div>
-  )
+  return <div className="iskra-widget" data-stat style={{ flex: '1 1 0', minWidth: 0, height: '100%' }}>
+    <MiniStatCard icon={Icon} label={label} value={value} sub={sub} accentBg={accentBg} accentColor={accentColor} />
+  </div>
 }
 
 export default function WidgetFinanceKpi() {

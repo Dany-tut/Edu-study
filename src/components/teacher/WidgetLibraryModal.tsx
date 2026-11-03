@@ -1,23 +1,41 @@
+import { clampDeskWidget, compactDeskWidgets, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
+import { useRef, useState } from 'react'
+import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X } from '../icons/appIcons'
-import { WIDGET_REGISTRY, type WidgetDef } from './widgets/registry'
+import { X, Plus } from '../icons/appIcons'
+import { WIDGET_REGISTRY, getWidgetDef, type WidgetDef } from './widgets/registry'
 import type { LayoutItem } from '../../lib/useDeskLayouts'
+import TeacherSelect from './TeacherSelect'
+import FadeText from '../FadeText'
 import { useT } from '../../lib/i18n'
 
 type Props = {
   onClose: () => void
   onAdd: (item: LayoutItem) => void
   existingTypes: string[]
+  existingItems?: LayoutItem[]
   hiddenWidgets?: string[]
 }
 
-function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
+function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: (size: { w: number; h: number }) => void }) {
+  const width = Math.max(1, document.documentElement.clientWidth - 64)
+  const rowHeight = deskRowHeight(window.innerHeight)
+  const minimum = clampDeskWidget({ i: def.type, type: def.type, x: 0, y: 0, w: 1, h: 1, gridVersion: 2 }, def, width, rowHeight)
+  const options = [...new Set([
+    [minimum.w, minimum.h], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [3, 2], [3, 3], [3, 4], [3, 5], [4, 3], [4, 4],
+  ].map(([w, h]) => {
+    const size = clampDeskWidget({ ...minimum, w, h }, def, width, rowHeight)
+    return `${size.w}×${size.h}`
+  }))]
+  const [selected, setSelected] = useState(options[0])
+  const value = options.includes(selected) ? selected : options[0]
+  const add = () => { const [w, h] = value.split('×').map(Number); onAdd({ w, h }) }
   const t = useT()
   const Icon = def.icon
   return (
-    <button
-      onClick={onAdd}
+    <div
+      className="ww-gallery-card"
       style={{
         display: 'flex', alignItems: 'center', gap: 14,
         padding: '14px 16px', borderRadius: 14, border: '1px solid var(--color-border-medium)',
@@ -33,24 +51,29 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
         e.currentTarget.style.borderColor = 'var(--color-border-medium)'
       }}
     >
-      <div style={{
+      <div className="ww-gallery-icon" style={{
         width: 42, height: 42, borderRadius: 12, flexShrink: 0,
         background: def.iconBg,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <Icon size={20} strokeWidth={1.8} color={def.iconColor} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="ww-gallery-copy" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t(def.label)}</div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>{t(def.description)}</div>
       </div>
-      <div style={{
+      <div className="ww-gallery-size" style={{
         flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
         background: 'var(--color-bg-3)', borderRadius: 8, padding: '4px 8px',
       }}>
-        {def.defaultW}×{def.defaultH}
+        <TeacherSelect value={value} options={options} onChange={setSelected} clearable={false}
+          menuZIndex={3100} triggerStyle={{ minHeight: 44, padding: '6px 10px' }} />
       </div>
-    </button>
+      <button type="button" className="ww-gallery-add" onClick={add}
+        aria-label={`${t('Добавить виджет')}: ${t(def.label)}`}>
+        <Plus size={18} /><span>{t('Добавить')}</span>
+      </button>
+    </div>
   )
 }
 
@@ -68,21 +91,26 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
   return { x: 0, y: maxY }
 }
 
-export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hiddenWidgets }: Props) {
+export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets }: Props) {
   const t = useT()
-  const registry = hiddenWidgets?.length
-    ? WIDGET_REGISTRY.filter(def => !hiddenWidgets.includes(def.type))
-    : WIDGET_REGISTRY
-  const handleAdd = (def: WidgetDef) => {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useWidgetScrollFades(dialogRef)
+  const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !hiddenWidgets?.includes(def.type))
+  const handleAdd = (def: WidgetDef, requested: { w: number; h: number }) => {
     const id = `${def.type}-${Date.now()}`
-    const pos = findFreePosition([], def.defaultW, def.defaultH)
+    const width = Math.max(1, document.documentElement.clientWidth - 64)
+    const rowHeight = deskRowHeight(window.innerHeight)
+    const existing = compactDeskWidgets(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight))))
+    const size = clampDeskWidget({i:id, type:def.type, x:0,y:0,w:requested.w,h:requested.h,gridVersion:2},def,width,rowHeight)
+    const pos = findFreePosition(existing, size.w, size.h, deskColumns(width))
     const item: LayoutItem = {
       i: id,
       type: def.type,
       x: pos.x,
       y: pos.y,
-      w: def.defaultW,
-      h: def.defaultH,
+      gridVersion: 2,
+      w: size.w,
+      h: size.h,
       minW: def.minW,
       minH: def.minH,
       maxH: def.maxH,
@@ -104,6 +132,9 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
         }}
       >
         <motion.div
+          ref={dialogRef}
+          role="dialog" aria-modal="true" aria-label={t('Добавить виджет')}
+          className="ww-gallery-dialog"
           initial={{ scale: 0.9, opacity: 0, y: 16 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 16 }}
@@ -122,20 +153,21 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
           {/* Header */}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '20px 22px 14px',
+            padding: '20px 22px 14px', gap: 12,
             borderBottom: '1px solid var(--color-border-medium)',
             flexShrink: 0,
           }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить виджет')}</div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <FadeText lines={2} style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить виджет')}</FadeText>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>
                 {t('Кликните — виджет появится на столе')}
               </div>
             </div>
             <button
+              aria-label={t('Закрыть')}
               onClick={onClose}
               style={{
-                width: 32, height: 32, borderRadius: '50%', border: 'none',
+                width: 44, height: 44, flexShrink: 0, borderRadius: '50%', border: 'none',
                 background: 'var(--color-bg-3)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
@@ -145,12 +177,12 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
           </div>
 
           {/* Widget list */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="ww-gallery-list" style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {registry.map(def => (
               <WidgetCard
                 key={def.type}
                 def={def}
-                onAdd={() => handleAdd(def)}
+                onAdd={size => handleAdd(def, size)}
               />
             ))}
           </div>

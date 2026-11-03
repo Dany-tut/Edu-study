@@ -1,0 +1,32 @@
+{
+  "recorded_at": "2026-11-02T08:01:27.979495+00:00",
+  "base_sha": "d24b14665d8f791517a4bb3cfbffd5ae5f1031ce",
+  "note": "Uncommitted shared checkout. Hashes identify inspected files, not a clean release candidate. PostgreSQL tests use a focused synthetic schema; Auth and Storage E2E are pending staging selection.",
+  "sha256": {
+    "supabase/migrations/20261102074927_secure_roles_and_password_storage.sql": "df31d932422b4b8bd93b1913d90a7603bf6d9f989badee1af7c3757934e86f00",
+    "supabase/migrations/20261102075513_restrict_staff_resource_writes.sql": "cfa6c57c35ef0c3c31479ff066d0f28a72456ec61b693c6368f9055082aee433",
+    "supabase/functions/reset-student-password/index.ts": "685a22b79cd1a23a4f0229ad692047ca52eb89a43cfb561774f3d4b1d89c2825",
+    "supabase/functions/provision-student-account/index.ts": "1e078a6c87dee4cdc4bc2cb2b6d074e093bfcb62b229512c8bb21adfe1f67355",
+    "src/pages/JoinPage.tsx": "913400789043ff918e3e6ba9fc4524acc2f3489fa38e5dbce66c6c401131c5f6",
+    "src/pages/JoinTeacherPage.tsx": "9017b1c0f48e7c6b87d194f559de88455f2d1ec5fd04a6cf22650b9db71e23ac",
+    "src/lib/useGroups.ts": "3cd95a23e2bd8fcd2906a80f2c1396cd5b6c56bae41520361860c14e9afc8a75",
+    "src/pages/teacher/TeacherGroupsPage.tsx": "ecda43c3e49b7c1668edd8a1843991a1a00a762bf8da43060465cbcee1cf6fbf",
+    "src/data/teacherMockData.ts": "abd27f37ef2e31116276af1676ae4b2f349afc811aa4f5570030d4b9b1029fef",
+    "src/components/teacher/AddToGroupModals.tsx": "c1f02f73d1d0af89f263d97d8c11e37811fd370dffb5bbf1ba8cb805bf69de25",
+    "scripts/checkAccountSecurityDb.mjs": "281f47c79024f7267948281d2da757d6b2bb76238ab62e9829ee271995101c38",
+    "scripts/checkPasswordResetSecurity.mjs": "9a1c47769ad4bbc233470754cf988059d8a987879e6aabf2b3a3f3451ef379bc",
+    "scripts/checkProvisionSecurity.mjs": "64ffbbe68aa58e539504729b547e4eee390e4b5514518ae94299073ca0a63c16",
+    "scripts/checkCredentialsUi.mjs": "6f9412a08550d8be8638cb9ac3bf23b52808118b019418d2e597390d69ab44a5",
+    "scripts/security/clearHistoricalStudentPasswords.sql": "6e3df97a9b636b8f3d6f1280e50d998e10779bff099199f4256b99e6bf54c906"
+  },
+  "results": {
+    "postgresql_focused": "29 assertions PASS",
+    "reset_mocked_boundary": "29 cases PASS",
+    "provision_mocked_boundary": "PASS",
+    "deno_check": "PASS",
+    "build": "PASS",
+    "credentials_visual_fixture": "PASS; 6 screenshots inspected",
+    "typescript": "FAIL TeacherSelect.tsx:337 TS2339 icon",
+    "check_ui_latest": "FAIL checkOverlayFades.mjs:49 software keyboard geometry"
+  }
+}

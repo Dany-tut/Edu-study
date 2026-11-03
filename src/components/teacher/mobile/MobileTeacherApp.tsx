@@ -38,6 +38,7 @@ export default function MobileTeacherApp() {
     if (teacherPage === 'gradebook' || pendingJournal) setTab('gradebook')
   }, [teacherPage, pendingJournal])
   const [dayDetailOpen, setDayDetailOpen] = useState(false)
+  const [reviewDetailOpen, setReviewDetailOpen] = useState(false)
 
   // Admin-configured access — hide revoked tabs (mirrors the desktop gating).
   const canTab = useTeacherAccess(s => s.canTab)
@@ -66,13 +67,13 @@ export default function MobileTeacherApp() {
 
   return (
     <div className="mobile-teacher-app lg:hidden">
-      {tab === 'home'      && <MobileTeacherDay onNavigate={setTab} onDetailChange={setDayDetailOpen} />}
+      {tab === 'home'      && <MobileTeacherDay reviewCount={reviewBadge} onNavigate={setTab} onDetailChange={setDayDetailOpen} />}
       {tab === 'students'  && <MobileTeacherStudents />}
-      {tab === 'review'    && <MobileTeacherReview />}
+      {tab === 'review'    && <MobileTeacherReview onDetailChange={setReviewDetailOpen} />}
       {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
       {tab === 'profile'   && <MobileTeacherProfile onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} />}
 
-      {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />}
+      {!(tab === 'home' && dayDetailOpen || tab === 'review' && reviewDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} reviewBadge={reviewBadge} hidden={(['home','students','review','gradebook','profile'] as MTab[]).filter(isHidden)} />}
     </div>
   )
 }

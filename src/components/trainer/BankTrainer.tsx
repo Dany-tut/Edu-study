@@ -1,3 +1,4 @@
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { LoopActionLabel } from '../icons/LoopIcon'
 import { ArrowRight as LoopActionArrow } from '../icons/appIcons'
 import { LoopTextIcon } from '../icons/LoopIcon'
@@ -350,7 +351,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
     setShowSolution(s => !s)
   }
   function share() {
-    void copyToClipboard(`№${task.id} · ${task.question.replace(/<[^>]*>/g, '').slice(0, 80)}…`)
+    void copyToClipboard(`№${task.id} · ${task.question.replace(/<[^>]*>/g, '')}`)
     setCopied(true); setTimeout(() => setCopied(false), 1400)
   }
 
@@ -742,7 +743,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
       </div>
 
       {/* Question */}
-      <div style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+      <div style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0,  ...textFadeLines(3),  overflow: 'hidden' }}
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.question) }} />
 
       {/* Topic */}
@@ -1244,7 +1245,7 @@ function ProgressModal({
                   return (
                     <div key={sec}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{sec}</span>
+                        <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', flex: 1 }}>{sec}</span>
                         <span style={{ fontSize: 12, fontWeight: 700, flexShrink: 0, marginLeft: 8, color: pct === 1 ? 'var(--color-green-text)' : s.wrong > 0 ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>{s.correct}/{total}</span>
                       </div>
                       <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
@@ -1277,8 +1278,8 @@ function ProgressModal({
                         а список ошибок нужен именно чтобы узнать своё. */}
                     <span style={{
                       flex: 1, fontSize: 12, lineHeight: 1.3, color: 'var(--color-text)',
-                      display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden',
-                    }} dangerouslySetInnerHTML={{ __html: wt.question.replace(/<[^>]*>/g, '').slice(0, 160) }} />
+                        ...textFadeLines(2), overflow: 'hidden',
+                    }}>{new DOMParser().parseFromString(sanitizeHtml(wt.question), 'text/html').body.textContent}</span>
                     <span style={{ fontSize: 10, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Л.')}{wt.line}</span>
                   </div>
                 ))}
@@ -1381,7 +1382,7 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
               return (
                 <div key={sec}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{sec}</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', flex: 1 }}>{sec}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, flexShrink: 0, marginLeft: 8, color: pct === 1 ? 'var(--color-green-text)' : s.wrong > 0 ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>{s.correct}/{total}</span>
                   </div>
                   <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>

@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { scienceFactInterval } from '../data/mockData'
@@ -22,14 +23,6 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
   const fact = scienceFacts[index]
   const sz = getWidgetSizing(columns)
 
-  if (!fact) return (
-    <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
-      style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', border: '1px solid var(--color-border-glass)' }}>
-      <span style={{ fontSize: 24 }}>🔬</span>
-      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Научные факты')}</span>
-      <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
-    </div>
-  )
 
   const goTo = (i: number) => {
     setIndex(((i % scienceFacts.length) + scienceFacts.length) % scienceFacts.length)
@@ -39,10 +32,20 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
   // Auto-advance to the next fact every `scienceFactInterval` seconds. Pauses
   // while the widget is swiped off-screen; the timer restarts on manual nav.
   useEffect(() => {
-    if (!active) return
+    if (!active || scienceFacts.length === 0) return
     const id = setTimeout(() => goTo(index + 1), scienceFactInterval * 1000)
     return () => clearTimeout(id)
-  }, [active, index])
+  }, [active, index, scienceFacts.length])
+
+  if (!fact) return (
+    <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
+      style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', border: '1px solid var(--color-border-glass)' }}>
+      <span style={{ fontSize: 24 }}>🔬</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Научные факты')}</span>
+      <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
+    </div>
+  )
+
 
   return (
     <div
@@ -57,7 +60,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
     >
       {/* Photo tile — rounded with slight inset from the card edge */}
       <div
-        className="relative flex-shrink-0"
+        className="relative flex-shrink-0 ww-art"
         style={{
           width: sz.mediaWidth,
           minWidth: sz.mediaMin,
@@ -95,8 +98,8 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
       </div>
 
       {/* Content */}
-      <div className="flex min-w-0 flex-1 flex-col" style={{ padding: `${sz.padY}px ${sz.padX}px` }}>
-        <div className="mb-2 flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 flex-col ww-media-content" style={{ padding: `${sz.padY}px ${sz.padX}px` }}>
+        <div className="mb-2 flex items-center gap-3 ww-media-heading">
           <span
             style={{
               fontSize: 12 * sz.scale, fontWeight: 600, lineHeight: 1, padding: '6px 12px', borderRadius: 999,
@@ -108,7 +111,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
           </span>
         </div>
 
-        <div className="flex flex-1 items-center" style={{ minHeight: 0 }}>
+        <div className="flex flex-1 items-center ww-primary-body" style={{ minHeight: 0 }}>
           {/* Ремоунт по key — причина та же, что у картинки выше. */}
             <motion.p
               key={fact.id}
@@ -117,7 +120,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
               transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 fontSize: 18 * sz.scale, fontWeight: 500, lineHeight: sz.bodyLeading, color: 'var(--color-text)',
-                display: '-webkit-box', WebkitLineClamp: sz.clampLines, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                 ...textFadeLines(sz.clampLines),  overflow: 'hidden',
               }}
             >
               {fact.text}
@@ -125,7 +128,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
         </div>
 
         {/* Fact dots */}
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2 ww-media-pages">
           {scienceFacts.map((f, i) => (
             <button
               key={f.id}

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
 import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useWidgetScrollFades } from '../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
 import { GripVertical, Plus, Minus, X, RotateCcw } from './icons/appIcons'
 import { useDashboard } from '../store/dashboardStore'
@@ -83,6 +84,8 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
 // "Отмена" / Esc / backdrop discard them.
 export default function WidgetOrderModal({ open, onClose }: Props) {
   const t = useT()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useWidgetScrollFades(dialogRef, open)
   const savedOrder = useDashboard(s => s.widgetOrder)
   const setWidgetOrder = useDashboard(s => s.setWidgetOrder)
   const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
@@ -146,6 +149,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
           }}
         >
           <motion.div
+            ref={dialogRef} className="ww-widget-order-dialog"
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.22, ease: EASE }}

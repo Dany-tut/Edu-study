@@ -1,3 +1,4 @@
+import { textFadeLines } from '../lib/textFades'
 import { useState } from 'react'
 import { Sunrise, ArrowRight, Layers, Check, Flame } from './icons/appIcons'
 import { useDashboard } from '../store/dashboardStore'
@@ -108,7 +109,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       display: 'flex', flexDirection: 'column', gap: 10,
       minHeight: 0, overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
+      <div className="ww-reading-header" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
         <Sunrise size={16} style={{ color: palette.accent }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Доза дня')}</span>
         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
@@ -125,6 +126,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       </div>
 
       <a
+        className="ww-reading-body"
         href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
         style={{
           display: 'block', padding: '12px 12px', borderRadius: 14,
@@ -134,13 +136,13 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       >
         <div style={{
           fontSize: wide ? 16 : 15, fontWeight: 700, color: palette.text, lineHeight: 1.3,
-          overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 1,
+          overflow: 'hidden',   ...textFadeLines(1),
         }}>
           {text.title}
         </div>
         <div style={{
           fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.45, marginTop: 4,
-          overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+          overflow: 'hidden',   ...textFadeLines(2),
         }}>
           {preview(text.body)}
         </div>
@@ -149,7 +151,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
       {/* Слов списком здесь нет: виджет живёт в ряду фиксированной высоты (180px
           на десктопе), и чипсы переносились на вторую строку — карточка вылезала
           за свою рамку на соседний ряд. Обещание «ровно три слова» держит кнопка. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
+      <div className="ww-reading-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
         <a
           href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
           style={{

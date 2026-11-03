@@ -1,3 +1,6 @@
+import FadeText from './FadeText'
+import { viewportDropdownPosition, watchDropdownViewport } from '../lib/dropdownPosition'
+import { textFadeStyle } from '../lib/textFades'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -68,7 +71,7 @@ export default function MultiSelectField({
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [naming, setNaming] = useState(false)
-  const [pos, setPos] = useState<{ top: number; bottom: number; left: number; width: number; up: boolean } | null>(null)
+  const [pos, setPos] = useState<ReturnType<typeof viewportDropdownPosition> | null>(null)
   const btnRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -101,10 +104,16 @@ export default function MultiSelectField({
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
     const estH = Math.min((shown.length + (canCreate ? 1 : 0)) * (small ? 30 : 34) + 16, 248) + (creatable && createHint ? 38 : 0)
-    const up = r.bottom + estH + 12 > window.innerHeight && r.top - estH - 12 > 0
-    const left = Math.min(r.left, window.innerWidth - r.width - 8)
-    setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width, up })
+    setPos(viewportDropdownPosition(r, estH))
   }, [open, values.length, query, shown.length, small, canCreate])
+
+  useEffect(() => {
+    if (!open) return
+    return watchDropdownViewport(() => {
+      const rect = btnRef.current?.getBoundingClientRect()
+      if (rect) setPos(viewportDropdownPosition(rect, 300))
+    })
+  }, [open])
 
   const openDropdown = () => {
     setOpen(true); setQuery('')
@@ -162,9 +171,9 @@ export default function MultiSelectField({
   const chipFont = field ? 12 : small ? 10 : 11
 
   const chip = (v: string) => (
-    <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: field ? '4px 8px' : '2px 8px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t(v)}</span>
-      <span onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', cursor: 'pointer', opacity: 0.7 }}><X size={small ? 12 : 12} strokeWidth={2.5} /></span>
+    <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0, maxWidth: '100%', padding: field ? '4px 8px' : '2px 8px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
+      <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(v)}</span>
+      <button type="button" aria-label={`${t('Удалить')}: ${t(v)}`} onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', opacity: 0.7, padding: 0, background: 'none', border: 'none', color: 'inherit' }}><X size={12} strokeWidth={2.5} /></button>
     </span>
   )
 
@@ -176,7 +185,7 @@ export default function MultiSelectField({
         transition={{ layout: { type: 'spring', stiffness: 600, damping: 42, mass: 0.7 } }}
         onClick={() => { if (!open) openDropdown(); else if (!query && isEmpty) close(); else inputRef.current?.focus() }}
         style={{
-          width: '100%', boxSizing: 'border-box', padding: field?.padding ?? (small ? '6px 10px' : '8px 12px'),
+          width: '100%', minWidth: 0, boxSizing: 'border-box', padding: field?.padding ?? (small ? '6px 10px' : '8px 12px'),
           borderRadius: field?.borderRadius ?? 11,
           ...(field
             ? { border: `${field.borderWidth ?? 1}px solid ${open ? accent : field.restBorder}`, transition: 'border-color 0.15s' }
@@ -221,7 +230,7 @@ export default function MultiSelectField({
             {!field && values.map(chip)}
           </div>
         ) : isEmpty ? (
-          <span style={{ flex: 1, minWidth: 0, fontSize, color: field ? 'var(--color-muted)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+          <span style={{ flex: 1, minWidth: 0, fontSize, color: field ? 'var(--color-muted)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label}</span>
         ) : field ? (
           // В форме выбранного немного и прятать его за «+N» незачем — всё видно.
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -237,7 +246,7 @@ export default function MultiSelectField({
           </div>
         )}
         {!isEmpty ? (
-          <button type="button" onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onChange([]); if (open) inputRef.current?.focus() }}
+          <button type="button" aria-label={t('Очистить выбор')} onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onChange([]); if (open) inputRef.current?.focus() }}
             style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '0 2px', flexShrink: 0 }}>
             <X size={14} strokeWidth={2} />
           </button>
@@ -258,13 +267,13 @@ export default function MultiSelectField({
               exit={{ scale: 0.92, opacity: 0, y: pos.up ? 6 : -6 }}
               transition={{ type: 'spring', stiffness: 460, damping: 26, mass: 0.7 }}
               style={{
-                position: 'fixed', zIndex: 2000, left: pos.left, width: pos.width,
+                position: 'fixed', zIndex: 2000, left: pos.left, width: pos.width, maxHeight: pos.maxHeight,
                 ...(pos.up ? { bottom: pos.bottom } : { top: pos.top }),
                 transformOrigin: pos.up ? 'bottom left' : 'top left',
                 ...dropdownSurface,
               }}
             >
-              <ScrollFade maxHeight={224} bg={DROPDOWN_GLASS} overlayScrollbar>
+              <ScrollFade maxHeight={Math.min(224, Math.max(0, pos.maxHeight - (creatable && createHint && !typed ? 64 : 14)))} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {shown.length === 0 && !canCreate ? (
                     <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
@@ -275,7 +284,7 @@ export default function MultiSelectField({
                         style={{ ...dropdownRow(selected, { small, accent, accentBg }), fontSize }}
                         {...dropdownRowHover(selected)}
                       >
-                        <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>{t(o)}</span>
+                        <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(o)}</FadeText>
                         {selected && <Check size={14} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />}
                       </div>
                     )
@@ -286,18 +295,18 @@ export default function MultiSelectField({
                       {...dropdownRowHover(false)}
                     >
                       <Plus size={14} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />
-                      <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>{t(createLabel)} «{typed}»</span>
+                      <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(createLabel)} «{typed}»</FadeText>
                     </div>
                   )}
                 </div>
               </ScrollFade>
               {creatable && createHint && !typed && (
                 <div onMouseDown={e => { e.preventDefault(); setNaming(true); inputRef.current?.focus() }}
-                  style={{ ...dropdownRow(false, { small, accent, accentBg }), fontSize, color: accent, marginTop: 4, borderTop: '1px solid var(--color-border)', borderRadius: '0 0 9px 9px' }}
+                  style={{ ...dropdownRow(false, { small, accent, accentBg }), fontSize, lineHeight: 1.4, flexShrink: 0, color: accent, marginTop: 4, borderTop: '1px solid var(--color-border)', borderRadius: '0 0 9px 9px' }}
                   {...dropdownRowHover(false)}
                 >
                   <Plus size={14} strokeWidth={2.5} style={{ flexShrink: 0 }} />
-                  <span style={{ flex: 1, minWidth: 0 }}>{t(createHint)}</span>
+                  <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(createHint)}</FadeText>
                 </div>
               )}
             </motion.div>

@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
@@ -22,6 +23,7 @@ import {
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
+import { scheduleMove } from '../../lib/teacherSchedule'
 import BackCircle from '../../components/BackCircle'
 import { AlertStack } from '../../components/Alert'
 import { btn } from '../../lib/pillStyles'
@@ -311,7 +313,7 @@ function UploadTile({
           <p style={{
             fontSize: 12, marginTop: 2,
             color: err ? 'var(--color-red-text)' : 'var(--color-text-3)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
           }}>
             {busy ? t('Загружаем…')
               : err ? err
@@ -337,7 +339,7 @@ function UploadTile({
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 10, fontWeight: 800, color: '#fff',
               }}>{isLinkFile(f) ? 'URL' : fileExt(f.name)}</div>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{f.name}</span>
               <span style={{ flexShrink: 0, fontSize: 10, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
               <button
                 onClick={e => { e.stopPropagation(); remove(f.path) }}
@@ -484,7 +486,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
         </div>
         <div style={{ textAlign: 'center', padding: '0 20px' }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t('Запись прикреплена')}</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360, whiteSpace: 'nowrap' }}>{url}</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', ...textFadeStyle, maxWidth: 360, whiteSpace: 'nowrap' }}>{url}</div>
         </div>
         <button
           onClick={() => onChange('')}
@@ -672,7 +674,7 @@ function AudiencePicker({
                 <span style={{
                   fontSize: 12, fontWeight: 600,
                   color: r.kind === 'group' ? 'var(--color-green-text)' : 'var(--color-green-text)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
                 }}>
                   {d.name}
                 </span>
@@ -761,7 +763,7 @@ function AudiencePicker({
                           {g.icon}
                         </div>
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{g.name}</div>
                           <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{g.level} · {tc(g.subject)}</div>
                         </div>
                         <Plus size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
@@ -789,7 +791,7 @@ function AudiencePicker({
                             {initials}
                           </div>
                           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tn(s.name)}</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tn(s.name)}</div>
                             <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{g?.name ?? ''}</div>
                           </div>
                           <Plus size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
@@ -1174,7 +1176,32 @@ export default function TeacherLessonEditorPage() {
       time_end: meta.endTime || null,
     }
     if (editingScheduleId) {
-      const { error } = await supabase.from('schedule_lessons').update(scheduleBase).eq('id', editingScheduleId)
+      // A move must update the course lesson, homework deadlines and audience
+      // duplicates together. Writing date/time directly leaves the track behind.
+      if (!source || !sourceDate) {
+        setPublishErr({ tone: 'info', text: t('Дождитесь загрузки урока и попробуйте ещё раз.') })
+        return
+      }
+      if (meta.date !== sourceDate || meta.startTime !== source.time) {
+        try {
+          await scheduleMove(editingScheduleId, isoDate, meta.startTime)
+          setSourceDate(meta.date)
+          setSource(previous => previous ? {
+            ...previous, time: meta.startTime, endTime: meta.endTime,
+            topic: meta.title, lessonNumber: Number(meta.lessonNumber) || 0,
+          } : previous)
+        } catch (error) {
+          console.error('[lesson-editor] schedule move failed', error)
+          setPublishErr({ tone: 'danger', text: t('Не удалось сохранить дату и время урока — попробуйте ещё раз.') })
+          return
+        }
+      }
+      // Timing belongs to schedule_move; only editor metadata is written here.
+      const { error } = await supabase.from('schedule_lessons').update({
+        lesson_title: scheduleBase.lesson_title,
+        lesson_number: scheduleBase.lesson_number,
+        time_end: scheduleBase.time_end,
+      }).eq('id', editingScheduleId)
       if (error) {
         console.error('[lesson-editor] schedule update failed', error)
         setPublishErr({ tone: 'danger', text: t('Не удалось сохранить дату и время урока — попробуйте ещё раз.') })
@@ -1243,7 +1270,7 @@ export default function TeacherLessonEditorPage() {
           <div style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
             maxWidth: '44%', pointerEvents: 'none',
-            fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center',
+            fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', textAlign: 'center',
           }}>
             {isNew ? t('Создать урок') : t('Урок')}
             {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {tc(meta.title)}</span>}
@@ -1251,7 +1278,7 @@ export default function TeacherLessonEditorPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <DraftPublishToggle published={published} onPublish={handlePublish}
-              publishLabel={t('Опубликовать тему')} publishedLabel={t('Опубликовано')} />
+              publishLabel={t('Опубликовать')} publishedLabel={t('Опубликован')} />
           </div>
         </motion.div>
 
@@ -1275,18 +1302,18 @@ export default function TeacherLessonEditorPage() {
 
               <div
                 style={{
-                  flexShrink: 1, minWidth: 0, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  flexShrink: 1, minWidth: 0, maxWidth: 220, overflow: 'hidden',  whiteSpace: 'nowrap',
                   padding: '10px 16px', borderRadius: 999, ...dockGlass,
                   fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
                 }}
               >
-                {tc(meta.title) || (isNew ? t('Создать урок') : t('Урок'))}
-              </div>
+              <span data-text-fade="1" style={{ display: 'block', minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap' }}>{tc(meta.title) || (isNew ? t('Создать урок') : t('Урок'))}</span>
+            </div>
 
               <div style={{ flexGrow: 1, flexBasis: 0 }} />
 
               <DraftPublishToggle published={published} onPublish={handlePublish}
-                publishLabel={t('Опубликовать тему')} publishedLabel={t('Опубликовано')}
+                publishLabel={t('Опубликовать')} publishedLabel={t('Опубликован')}
                 style={{ ...dockGlass, pointerEvents: 'auto' }} />
             </motion.div>
           )}

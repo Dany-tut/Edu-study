@@ -43,6 +43,7 @@ export interface StudentWork {
   dates: string[]
   returned: boolean
   resubmitted: boolean
+  grade?: number | null
   present: boolean | null
   watched: boolean
   studied: boolean
@@ -128,7 +129,7 @@ export function buildStandIndex(data: CourseJournalData) {
       module: l?.module_id ?? null,
       topic: l ? { id: l.id, title: l.title } : undefined,
       group: a.group_id,
-      date: journalDate(a.assignedAt) ?? l?.scheduled_date ?? null,
+      date: journalDate(a.assignedAt) ?? journalDate(l?.scheduled_date),
       due: journalDate(a.due_date),
       types: typesOf(a.basicTasks ?? a.basicTask),
       required: a.status !== 'archived' && (!!a.basicTask || (Array.isArray(a.basicTasks) && a.basicTasks.length > 0) || !l),
@@ -170,7 +171,10 @@ function dayOf(iso: string) {
   return Number.isFinite(epoch) ? new Date(epoch + 3 * 3600000).toISOString().slice(0, 10) : ''
 }
 function weekOf(day: string) {
-  const d = new Date(day + 'T12:00:00Z')
+  const normalized = journalDate(day)
+  if (!normalized) return null
+  const d = new Date(normalized + 'T12:00:00Z')
+  if (!Number.isFinite(d.getTime()) || d.toISOString().slice(0, 10) !== normalized) return null
   d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
   return d.toISOString().slice(0, 10)
 }
@@ -296,6 +300,7 @@ export function studentWorks(
         dates: dates.sort(),
         returned: returnedAttempts.length > 0 || status === 'На доработке',
         resubmitted,
+        grade: cell?.grade ?? null,
         present: cell?.present ?? null,
         watched: cell?.watched ?? false,
         studied: cell?.studied ?? false,
@@ -318,10 +323,15 @@ export function workStats(works: StudentWork[], today: string) {
     const anchor = w.slot.date ?? w.slot.due
     if (anchor && anchor <= today) {
       const week = weekOf(anchor)
-      weeks.add(week)
-      if (w.submitted && !w.dates.length) unknown.add(week)
+      if (week) {
+        weeks.add(week)
+        if (w.submitted && !w.dates.length) unknown.add(week)
+      }
     }
-    for (const d of w.dates) if (d <= today) active.add(weekOf(d))
+    for (const d of w.dates) if (d <= today) {
+      const week = weekOf(d)
+      if (week) active.add(week)
+    }
   }
   const knownWeeks = [...weeks].filter((k) => !unknown.has(k) || active.has(k))
   return {

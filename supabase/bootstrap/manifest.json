@@ -1,0 +1,12 @@
+{
+  "source": "Local volume supabase_db_student-release-db, schema only; no migration-history table",
+  "data_exported": false,
+  "production_modified": false,
+  "sha256": {
+    "20261030_public_schema.sql": "8fdf8b100ead051e0223550208a7e261119a1f1f0c5adb9fffa30c702d497e3e",
+    "auth-triggers.sql": "b5b5fa9864d32c8f0d15b362484f7880383afcc622f0a2788cbafc532b013a20",
+    "buckets.sql": "c2a9f3144ab6d7503197fb503f7e5c7e6ed3f47c337fc9b44a597b7169c2c053",
+    "private-photo-helper.sql": "4aeb06938e81da156cdcef0876442ca9fc9b40fc6d8fd3e3b119aa6b3e27a041",
+    "storage-policies.sql": "246e25242291e245a05d5154d848f91dcb6a5aa4a0408bc5571b7d6392a03679"
+  }
+}

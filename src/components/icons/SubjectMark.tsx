@@ -2,7 +2,7 @@ import { Atom, BookOpen, FlaskConical, Dna, Languages, Sigma, ScrollText, PenLin
 import { useLoopIcons } from './LoopIcon'
 import { getSubject, subjectIcon } from '../../lib/subjects'
 
-/** Subject pictograms in pickers/cards follow Loop too; desktop emoji stay intact. */
+/** Subject pictograms in pickers/cards use the shared Loop family. */
 export function SubjectMark({ subject, fallback, size = 20 }: { subject?: string; fallback?: string; size?: number }) {
   const loop = useLoopIcons()
   if (!loop) return <>{fallback ?? subjectIcon(subject)}</>

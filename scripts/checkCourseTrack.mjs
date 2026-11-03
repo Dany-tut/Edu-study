@@ -35,8 +35,9 @@ globalThis.__trackTestClient = {
 const outfile = resolve('node_modules/.cache/checkCourseTrack.bundle.mjs')
 await build({
   stdin: { contents: `
+    export { courseTrackWidth, courseResumeTarget } from './src/lib/courseTrackLayout';
     export { baseNodeShape } from './src/components/CourseNodeSilhouette';
-    export { fetchStudentTrack, mergeSubjectsWithProgress, upsertLessonProgress, fetchScheduleDays, computeStats, computeSubjectStats } from './src/lib/db';
+    export { fetchStudentTrack, mergeSubjectsWithProgress, upsertLessonProgress, fetchScheduleDays, resolveScheduleLesson, computeStats, computeSubjectStats } from './src/lib/db';
     export { getDisplayLessonStatus, getTrackLessonStatus, getLessonScheduleState, getStudentScheduleState, lessonTrackStep, lessonScheduleDate } from './src/lib/lessonStatus';
     export { homeworkResult, homeworkDisplayScore, canRetakeHomework, gradedTrackResult } from './src/lib/homeworkResult';
     export { useStudentData, startCourseHomeworkRetake } from './src/store/studentDataStore';
@@ -66,6 +67,17 @@ await build({
   } }],
 })
 const m = await import(pathToFileURL(outfile).href)
+// Long courses preserve spacing and show at most fifteen lessons per viewport.
+assert.equal(m.courseTrackWidth(1440, 15), 1440)
+assert.equal(m.courseTrackWidth(1440, 50), 4800)
+assert.ok(m.courseTrackWidth(375, 15) >= 128 + 14 * 88)
+const resumeCourse = { activeModuleId: 3, modules: [
+  { id: 1, lessons: [{ id: 'old-debt', status: 'returned' }] },
+  { id: 3, lessons: [{ id: 'review', status: 'submitted' }, { id: 'resume', status: 'current' }] },
+] }
+assert.deepEqual(m.courseResumeTarget(resumeCourse), { moduleId: 3, lessonId: 'resume' })
+assert.deepEqual(m.courseResumeTarget({ modules: [] }), { moduleId: undefined, lessonId: undefined })
+
 // Shape follows the authored activity, including the two halves of a split lesson.
 const attachedVideo = { kind: 'lesson', videoUrl: 'https://example.test/video', shape: 'diamond' }
 assert.equal(m.baseNodeShape({ ...attachedVideo, status: 'unviewed' }), 'circle')
@@ -498,3 +510,64 @@ assert.equal(m.useDashboard.getState().lessonAssessments.lesson.score, 95)
 assert.equal(localStorage.getItem(draftKey), draft)
 assert.deepEqual(m.useStudentData.getState().scopeStudentIds, [student])
 console.log('PASS: track status, module access, recording timing, server grades, test answers/write errors, failed sync/reset, out-of-order loads')
+
+// Stable schedule links win over duplicate titles/numbers and stale display names.
+{
+  const first = { ...scheduledSubject, id: 'first', modules: [{ id: 1, label: 'One', lessons: [{ ...scheduled, dbId: 'uuid-first' }] }] }
+  const target = { ...scheduledSubject, id: 'second', modules: [{ id: 1, label: 'One', lessons: [{ ...scheduled, id: 'second-node', dbId: 'uuid-second' }] }] }
+  const event = { ...slot, lessonId: 'uuid-second' }
+  assert.equal(m.resolveScheduleLesson(event, [first, target]).lesson.id, 'second-node')
+  assert.equal(m.resolveScheduleLesson({ ...event, lessonId: 'deleted-uuid' }, [first, target]).lesson, null)
+  const split = { ...target, modules: [{ id: 1, label: 'One', lessons: [
+    { ...target.modules[0].lessons[0], nodeType: 'lesson' },
+    { ...target.modules[0].lessons[0], id: 'second-node~rec', nodeType: 'rec' },
+  ] }] }
+  assert.equal(m.resolveScheduleLesson({ ...event, kind: 'rec' }, [split]).lesson.id, 'second-node~rec')
+  assert.equal(m.resolveScheduleLesson({ ...event, kind: 'lesson' }, [split]).lesson.id, 'second-node')
+  assert.equal(m.resolveScheduleLesson({ ...event, kind: 'rec' }, [target]).lesson.id, 'second-node')
+  assert.equal(m.resolveScheduleLesson(slot, [first]).lesson.id, scheduled.id)
+}
+// Deduplicate group/direct copies, retaining distinct linked lessons and node kinds.
+{
+  const base = { date: today, time_start: '12:00', subject: 'Course', lesson_title: 'same', lesson_number: 1 }
+  query = request => ({ data: request.table === 'schedule_lessons' ? [
+    { ...base, id: 'one', lesson_id: 'uuid-one', node_type: 'lesson' },
+    { ...base, id: 'copy', lesson_id: 'uuid-one', node_type: 'lesson' },
+    { ...base, id: 'two', lesson_id: 'uuid-two', node_type: 'lesson' },
+    { ...base, id: 'rec', lesson_id: 'uuid-one', node_type: 'rec' },
+  ] : [], error: null })
+  const rows = (await m.fetchScheduleDays(group, student)).flatMap(day => day.lessons)
+  assert.deepEqual(rows.map(row => row.id), ['one', 'two', 'rec'])
+  assert.equal(rows[0].lessonId, 'uuid-one')
+}
+
+// A failed calendar request must not erase the last confirmed schedule.
+{
+  const saved = m.useStudentData.getState().scheduleDays
+  rpc = name => ({ data: name === 'student_track' ? payload([]) : [], error: null })
+  query = request => request.table === 'schedule_lessons'
+    ? { data: null, error: { message: 'calendar disconnected' } }
+    : { data: [], error: null }
+  await assert.rejects(m.fetchScheduleDays(group, student))
+  await m.useStudentData.getState().load()
+  assert.deepEqual(m.useStudentData.getState().scheduleDays, saved)
+}
+console.log('PASS: stable calendar links, distinct same-title events and failed-calendar preservation')
+
+// Screenshot regression: a course date without a time still appears on its day.
+{
+  rpc = () => ({ data: [], error: null })
+  query = request => ({ data: request.table === 'courses' ? [{
+    id: 'course-uuid', short_id: 'dated-course', title: 'Chemistry', subject: 'Chemistry', student_ids: [student], group_ids: [],
+    course_modules: [{ position: 1, label: 'Module', lessons: [{
+      id: 'dated-uuid', short_id: 'dated', title: 'Task 31', lesson_number: 5,
+      scheduled_date: today.split('-').reverse().join('.'), scheduled_time: null,
+    }] }],
+  }] : [], error: null })
+  const days = await m.fetchScheduleDays(group, student)
+  const row = days.find(day => day.date === today).lessons[0]
+  assert.equal(row.lessonId, 'dated-uuid')
+  assert.equal(row.time, '')
+  assert.equal(row.startsAt, undefined)
+}
+console.log('PASS: dated material without a time is visible in the calendar')

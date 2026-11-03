@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -66,7 +67,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
   const { tc } = useTc()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null)
+  const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number; width: number; listHeight: number; above: boolean } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -77,9 +78,19 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
     if (!open) return
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
-    const width = Math.min(420, Math.max(320, r.width))
-    setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), top: r.bottom + 8, width })
-  }, [open])
+    const width = Math.min(420, Math.max(320, r.width), window.innerWidth - 16)
+    const aboveSpace = Math.max(0, r.top - 16)
+    const belowSpace = Math.max(0, window.innerHeight - r.bottom - 16)
+    const chrome = 14 + (subjects.length >= SEARCH_FROM ? 46 : 0)
+    const desiredHeight = Math.min(360, subjects.length * 42 - 2) + chrome
+    const above = desiredHeight > belowSpace && aboveSpace > belowSpace
+    const available = above ? aboveSpace : belowSpace
+    setPos({
+      left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), width, above,
+      ...(above ? { bottom: window.innerHeight - r.top + 8 } : { top: r.bottom + 8 }),
+      listHeight: Math.max(0, Math.min(360, available - chrome)),
+    })
+  }, [open, subjects.length])
 
   // Закрываем по клику мимо, Esc, прокрутке и ресайзу — список стоит fixed и
   // от кнопки на прокрутке отъехал бы.
@@ -130,7 +141,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
           cursor: many ? 'pointer' : 'default', transition: 'border-color 0.15s',
         }}
       >
-        <span style={{ ...TEXT_LIFT, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc(active.name)}</span>
+        <span style={{ ...TEXT_LIFT, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(active.name)}</span>
         <span style={{ ...TEXT_LIFT, fontSize: 12, fontWeight: 500, color: 'var(--color-purple)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{coursePct(active)}%</span>
         {many && (
           <ChevronDown size={14} strokeWidth={2.4} style={{ flexShrink: 0, color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
@@ -143,11 +154,11 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
             <motion.div
               ref={menuRef}
               role="listbox"
-              initial={{ scale: 0.96, opacity: 0, y: -6 }}
+              initial={{ scale: 0.96, opacity: 0, y: pos.above ? 6 : -6 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: -6 }}
+              exit={{ scale: 0.96, opacity: 0, y: pos.above ? 6 : -6 }}
               transition={{ type: 'spring', stiffness: 460, damping: 30, mass: 0.7 }}
-              style={{ position: 'fixed', zIndex: Z.dropdown, left: pos.left, top: pos.top, width: pos.width, transformOrigin: 'top left', ...dropdownSurface, borderRadius: 18 }}
+              style={{ position: 'fixed', zIndex: Z.dropdown, left: pos.left, top: pos.top, bottom: pos.bottom, width: pos.width, transformOrigin: pos.above ? 'bottom left' : 'top left', ...dropdownSurface, borderRadius: 18 }}
             >
               {subjects.length >= SEARCH_FROM && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 38, padding: '0 12px', margin: '2px 2px 6px', borderRadius: 12, background: 'var(--color-bg-input)', cursor: 'text' }}>
@@ -161,7 +172,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
                   />
                 </label>
               )}
-              <ScrollFade maxHeight={360} bg={DROPDOWN_GLASS} overlayScrollbar>
+              <ScrollFade maxHeight={pos.listHeight} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {shown.length === 0 && (
                     <div style={{ padding: '8px 12px', fontSize: 13, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
@@ -202,10 +213,12 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
 
 type ModuleId = Subject['modules'][number]['id']
 
-export function ModuleChain({ subject, activeId, onSelect }: {
+export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDebts }: {
   subject: Subject
   activeId: ModuleId | undefined
   onSelect: (id: ModuleId) => void
+  debtCounts?: Readonly<Record<number, number>>
+  onOpenDebts?: (id: ModuleId) => void
 }) {
   const t = useT()
   const { tc } = useTc()
@@ -222,6 +235,8 @@ export function ModuleChain({ subject, activeId, onSelect }: {
         const isActive = mod.id === activeId
         const name = tc(mod.label) || t('Уроки')
         const num = i + 1
+        const debts = debtCounts?.[mod.id] ?? 0
+        const debtBadge = debts > 0 && <button type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`} onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)} style={{ border: 0, borderRadius: 999, minWidth: 20, height: 20, padding: '0 5px', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700, cursor: 'pointer', position: 'absolute', top: -6, right: -6, zIndex: 1 }}>{debts}</button>
 
         if (isActive) {
           return (
@@ -229,7 +244,7 @@ export function ModuleChain({ subject, activeId, onSelect }: {
               key={mod.id}
               data-module-tab={mod.id}
               style={{
-                ...ACTIVE_PILL, height: BAR_H, padding: '0 14px 0 5px', borderRadius: 999,
+                ...ACTIVE_PILL, position: 'relative', height: BAR_H, padding: '0 14px 0 5px', borderRadius: 999,
                 display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0, whiteSpace: 'nowrap',
               }}
             >
@@ -245,6 +260,7 @@ export function ModuleChain({ subject, activeId, onSelect }: {
               {pct > 0 && (
                 <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
               )}
+              {debtBadge}
             </div>
           )
         }
@@ -254,10 +270,11 @@ export function ModuleChain({ subject, activeId, onSelect }: {
           : pct > 0 && !isDone ? `${num} · ${name} · ${pct}%` : `${num} · ${name}`
 
         return (
-          <Tooltip key={mod.id} label={label}>
+          <div key={mod.id} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}><Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
             <motion.button
               type="button"
               data-module-tab={mod.id}
+              aria-label={label}
               disabled={isLocked}
               whileHover={isLocked ? undefined : { scale: 1.08 }}
               whileTap={isLocked ? undefined : { scale: 0.94 }}
@@ -277,7 +294,7 @@ export function ModuleChain({ subject, activeId, onSelect }: {
                 ? <Check size={14} strokeWidth={2.8} />
                 : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
             </motion.button>
-          </Tooltip>
+          </Tooltip>{debtBadge}</div>
         )
       })}
     </div>

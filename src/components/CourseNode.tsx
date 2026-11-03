@@ -20,6 +20,7 @@ import { SeasonCurrentNode } from './season/Season'
 import { useSeason } from '../lib/season'
 import type { ScheduleState } from '../lib/scheduleState'
 import ScheduleStatusBadge from './ScheduleStatusBadge'
+import type { LessonAssessment } from '../lib/lessonAssessments'
 
 type IconProps = { color?: string; size?: number }
 type CustomIcon = (props: IconProps) => ReactElement
@@ -56,12 +57,17 @@ export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: strin
 }
 
 interface Props {
+  /** Optional local preview; real nodes continue to use the student's assessment. */
+  assessmentOverride?: LessonAssessment
+  overdueLabel?: string
   lesson: Lesson
   status: TrackLessonStatus
   scheduleState?: ScheduleState | null
   index: number
   isSelected?: boolean
   isHighlighted?: boolean
+  scrollHighlight?: boolean
+  isCurrent?: boolean
   onSelect?: (lesson: Lesson) => void
   onHardSelect?: (lesson: Lesson) => void
   /** Праздничная тема рисует фонарь/конфету только на ОДНОМ уроке — первом текущем:
@@ -69,18 +75,19 @@ interface Props {
   seasonMark?: boolean
 }
 
-export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect, seasonMark = false }: Props) {
+export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false, assessmentOverride, overdueLabel }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
   const { tc } = useTc()
   const dark = useTheme(s => s.dark)
-  const assessment = useDashboard(s => s.lessonAssessments[lesson.id])
+  const storedAssessment = useDashboard(s => s.lessonAssessments[lesson.id])
+  const assessment = assessmentOverride ?? storedAssessment
 
   useEffect(() => {
-    if (isHighlighted) {
+    if (isHighlighted && scrollHighlight) {
       wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
     }
-  }, [isHighlighted])
+  }, [isHighlighted, scrollHighlight])
 
   const grade = gradedTrackResult(lesson)
   const displayStatus = grade?.status ?? status
@@ -89,8 +96,8 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
   const caption = step ? tr(trackStepLabel[step]) : null
   const statusText = tr(lessonStatusLabel(displayStatus, lesson.kind))
   const progressDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
-  const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && (scheduleState.isCurrent || scheduleState.hasEnded || scheduleState.phase === 'cancelled')
-  const scheduleLabel = showScheduleStatus ? (scheduleState.recordingAvailable ? 'Запись доступна' : scheduleState.label) : null
+  const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && !scheduleState.recordingAvailable && (scheduleState.isCurrent || scheduleState.phase === 'cancelled')
+  const scheduleLabel = showScheduleStatus ? scheduleState.label : null
   const statusDescription = scheduleLabel && !progressDescription.includes(tr(scheduleLabel)) ? `${tr(scheduleLabel)} · ${progressDescription}` : progressDescription
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
@@ -130,7 +137,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
-    <div ref={wrapperRef} className="season-node-wrap relative flex-shrink-0" style={{ width: size, height: size }}>
+    <div ref={wrapperRef} className="season-node-wrap relative flex-shrink-0" style={{ width: size, height: size, borderRadius: nodeRadius, outline: isCurrent ? '2px solid var(--color-accent)' : undefined, outlineOffset: isCurrent ? 5 : undefined }}>
       {isHighlighted && !silhouette && (
         <div
           className="course-node-flash-ring"
@@ -197,7 +204,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
           ...(silhouette === 'screen' && { left: -4, right: -4 }),
           rotate: isDiamond ? '45deg' : '0deg',
         }}
-        aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lesson.number + 1}: ${tc(lesson.title)} · ${statusDescription}`}
+        aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lesson.number + 1}: ${tc(lesson.title)} · ${statusDescription}${overdueLabel ? ` · ${overdueLabel}` : ''}`}
         title={statusDescription}
       >
         {silhouette && <CourseNodeSilhouette shape={silhouette} tone={palette} active={isActive} highlighted={isHighlighted} />}
@@ -207,6 +214,8 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
       </motion.button>
 
       {seasonNode && <SeasonCurrentNode size={size} />}
+
+      {overdueLabel && <span title={overdueLabel} aria-label={overdueLabel} style={{ position: 'absolute', right: -6, top: -7, zIndex: 12, width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', border: '2px solid var(--color-bg)', pointerEvents: 'none' }}><CircleAlert size={14} /></span>}
 
       {/* Hard satellite circle — appears half-overlapping from the right */}
       {showHardSatellite && (

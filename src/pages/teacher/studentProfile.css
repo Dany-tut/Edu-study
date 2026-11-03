@@ -1,0 +1,55 @@
+/* Profile identity uses the same surface and border as the work report. */
+.student-profile-content { padding: 0 64px 56px; }
+.student-profile-content.is-in-drawer { padding: 12px 12px 24px; }
+.student-profile-hero { display: flex; align-items: center; gap: 18px; padding: 20px; margin-bottom: 14px; border: 1px solid var(--color-border-soft); border-radius: 22px; background: var(--color-bg-card); color: var(--color-text); }
+.student-profile-identity { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+.student-profile-avatar { display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; flex: none; border-radius: 50%; background: var(--color-purple-soft); color: var(--color-accent); font-weight: 700; }
+.student-profile-person { min-width: 0; }
+.student-profile-person h1 { margin: 0; font-size: clamp(22px, 2.3vw, 28px); font-weight: 720; line-height: 1.2; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.student-profile-context, .student-profile-meta { display: flex; flex-wrap: wrap; gap: 5px 14px; color: var(--color-text-3); }
+.student-profile-context { margin-top: 6px; font-size: 13px; }
+.student-profile-context > span { overflow-wrap: anywhere; }
+.student-profile-meta { margin-top: 8px; font-size: 12px; line-height: 1.5; }
+.student-profile-meta:empty, .student-profile-contacts:empty { display: none; }
+.student-profile-meta b { color: var(--color-text-2); font-weight: 600; }
+.student-profile-contacts { display: flex; flex-wrap: wrap; gap: 8px; flex: none; }
+.student-profile-contacts a { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--color-border-soft); border-radius: 12px; background: var(--color-bg-card); color: var(--color-accent); text-decoration: none; }
+.student-profile-contacts a:hover { background: var(--color-purple-soft); }
+.student-profile-contacts a:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.student-profile-hero[data-in-drawer] { padding: 14px; border-radius: 16px; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.student-profile-hero[data-in-drawer] .student-profile-meta { margin-top: 0; }
+@media (max-width: 680px) {
+  .student-profile-content:not(.is-in-drawer) { padding-inline: 16px; }
+  .student-profile-hero { flex-wrap: wrap; align-items: flex-start; padding: 16px; gap: 14px; }
+  .student-profile-identity { align-items: flex-start; }
+  .student-profile-contacts { margin-left: auto; }
+}
+
+/* Size columns by the actual profile width, including its drawer presentation. */
+.student-profile-content { container-type: inline-size; }
+.student-profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.student-profile-column { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.student-profile-section-title { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; color: var(--color-text); font-size: 14px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.student-profile-empty { color: var(--color-text-3); font-size: 12px; line-height: 1.6; }
+.student-profile-trainer-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+@container (max-width: 700px) {
+  .student-profile-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .student-profile-column { gap: 12px; }
+}
+@container (max-width: 380px) {
+  .student-profile-trainer-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.student-profile-kpi { min-width: 0; padding: 16px 18px; }
+.is-in-drawer .student-profile-kpi { padding: 10px 6px; }
+.student-profile-kpi > div { min-width: 0; }
+.student-profile-kpi > div > svg { flex-shrink: 0; }
+.student-profile-kpi > div > span { min-width: 0; overflow-wrap: anywhere; }
+@container (max-width: 380px) {
+  .student-profile-kpi { padding: 10px 6px; }
+}
+
+.student-profile-kpi-label { display: flex; align-items: center; gap: 6px; }
+@container (max-width: 380px) {
+  .student-profile-kpi-label { flex-direction: column; align-items: flex-start; }
+}

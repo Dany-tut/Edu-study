@@ -1,0 +1,2 @@
+Mobile gestures: cancel/multitouch, stale flick, nested scrolling, editing, no-drag handles, horizontal rows and top-dialog isolation passed
+Keyboard: Safari/PWA/panning/native resizing, browser chrome and pinch zoom fixtures passed

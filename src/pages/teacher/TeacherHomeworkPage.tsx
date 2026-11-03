@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import HomeworkAttemptPanel from '../../components/HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from '../../components/HomeworkAttemptHistorySection'
 import { getViewAs } from '../../lib/owner'
@@ -319,7 +320,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
 
       {/* Title + two inline segments: основное / сложное */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', maxWidth: 280 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 6 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', marginBottom: 6 }}>
           {tc(hw.title) || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t('Без названия')}</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -554,7 +555,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                   }}>
                     {initials}
                   </div>
-                  <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                     {s.name}
                   </span>
                   {/* Two-status icons: submitted + reviewed */}
@@ -618,10 +619,10 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
         {initials}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {tn(sub.studentName)}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {tc(sub.lessonTitle) || sub.baseRef}
         </div>
       </div>
@@ -844,7 +845,7 @@ export default function TeacherHomeworkPage() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.who}</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{item.who}</span>
                       <span style={{
                         flex: 'none', fontSize: 10, fontWeight: 700, padding: '1px 8px', borderRadius: 6,
                         background: item.kind === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
@@ -852,7 +853,7 @@ export default function TeacherHomeworkPage() {
                       }}>{item.kind === 'hard' ? `★ ${t('Сложное')}` : t('Основное')}</span>
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{item.title}</span>
+                      <span style={{ overflow: 'hidden', ...textFadeStyle, minWidth: 0 }}>{item.title}</span>
                       <span style={{ flex: 'none', color: 'var(--color-text-3)' }}>·</span>
                       {item.steps ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flex: 'none' }}>

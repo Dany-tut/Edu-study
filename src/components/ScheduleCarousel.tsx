@@ -14,7 +14,7 @@ import type { ScheduleDay } from '../data/mockData'
 const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
 const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 
-// Native horizontal scrolling also clips vertically. Reserve paint space for
+// The fixed date strip clips vertically too. Reserve paint space for
 // card shadows, then offset the viewport so the dashboard rows do not move.
 // Fade alpha rather than painting a solid overlay over the seasonal backdrop.
 const SHADOW_PAD = 96
@@ -96,8 +96,8 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
       // масштаб и приглушение боковых (как в ScheduleCard). Иначе при загрузке
       // карточки прыгали: заглушка была ниже/уже и прижата к низу.
       return (
-        <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Расписание не добавлено')} className="relative" style={{ height: stripHeight }}>
-          <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
+        <div ref={wrapRef} role="status" aria-busy="true" aria-label={t('Загрузка…')} className="relative" style={{ height: stripHeight }}>
+          <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ overflowX: 'hidden', height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
           {offsets.map(offset => {
             const d = Math.abs(offset)
             const w = d === 0 ? (centerWidth ?? (mobile ? 300 : 480)) : slotWidth[d]
@@ -105,7 +105,14 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
             const opacity = d === 0 ? 1 : d === 1 ? 0.72 : d === 2 ? 0.48 : 0.3
             return (
               <div key={offset} data-schedule-day={offset === 0 ? 'selected' : undefined} className="flex-shrink-0 h-full" style={{ width: w, transform: `scale(${scale})`, opacity }}>
-                <Skeleton w="100%" style={{ height: stripHeight }} radius={28} />
+                <div className={`ssr-skeleton-card${d === 0 ? ' ssr-skeleton-card-center' : ''}`}>
+                  <div className="ssr-skeleton-date"><Skeleton w={d === 0 ? 92 : '65%'} h={12} />{d === 0 && <Skeleton w={64} h={20} radius={12} />}</div>
+                  {d === 0 ? <div className="ssr-skeleton-lessons">{[0, 1].map(row => <div className="ssr-skeleton-lesson" key={row}>
+                    <Skeleton w={38} h={12} />
+                    <div style={{ flex: 1, minWidth: 0 }}><Skeleton w="70%" h={14} /><Skeleton w="45%" h={10} style={{ marginTop: 9 }} /></div>
+                    <Skeleton w={24} h={24} radius={8} />
+                  </div>)}</div> : <div style={{ marginTop: 20 }}><Skeleton w="85%" h={12} /><Skeleton w="65%" h={10} style={{ marginTop: 9 }} /></div>}
+                </div>
               </div>
             )
           })}
@@ -128,7 +135,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
     >
       <div ref={wrapRef} style={{ height: '100%' }}>
-      <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
+      <HScrollFade fadeMode="mask" fadeWidth={32} padTop={SHADOW_PAD} padBottom={SHADOW_PAD} style={SCROLLER_STYLE} scrollStyle={{ overflowX: 'hidden', height: '100%', alignItems: 'center', paddingLeft: pad, paddingRight: pad, justifyContent: 'flex-start' }}>
         {slots.map(slot =>
           slot.day ? (
             <ScheduleCard

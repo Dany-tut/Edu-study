@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { CalendarX2, BookOpen } from './icons/appIcons'
+import { BookOpen } from './icons/appIcons'
 import { LoopSvg } from './icons/LoopIcon'
 import { LoopArtworkVideo } from './icons/loopArtwork'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
@@ -15,6 +15,8 @@ import { getStudentScheduleState } from '../lib/lessonStatus'
 import { useStudentTz } from '../lib/studentTz'
 import ScheduleStatusBadge from './ScheduleStatusBadge'
 import ScrollFade from './ScrollFade'
+import FadeText from './FadeText'
+import './scheduleEmpty.css'
 import { useT, useTc } from '../lib/i18n'
 import { SeasonEmptyDay } from './season/Season'
 import { useSeason } from '../lib/season'
@@ -146,10 +148,22 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
         >
           <div style={{ flexShrink: 0, paddingInlineStart: 8 }}>{dateHeader(13, 10)}</div>
           {(() => {
+            if (day.lessons.length === 0) return (
+              <div className="schedule-empty">
+                {seasonEmpty ? <SeasonEmptyDay /> : (
+                  <div className="schedule-empty__content">
+                    <img className="schedule-empty__art" src="/schedule-objects-v1/calendar.webp" alt="" width={120} height={120} draggable={false} />
+                    <div className="schedule-empty__copy">
+                      <p className="schedule-empty__title">{t('Время для себя')}</p>
+                      <p className="schedule-empty__subtitle">{t('Занятий нет — можно выдохнуть')}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
             const lessonsList = (
               <div className="flex flex-col" style={{ gap: 10 }}>
-            {day.lessons.length > 0 ? (
-              day.lessons.map((lesson, lessonIndex) => {
+            {day.lessons.map((lesson, lessonIndex) => {
                 const isSelected = selectedLessonId === lesson.id
                 const st = states[lessonIndex]
                 const isUpcoming = lessonIndex === focusIndex && st.phase === 'upcoming'
@@ -180,9 +194,12 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                     }
                   }}
                   data-schedule-state={st.phase}
+                  data-ended={st.hasEnded || undefined}
                   className={`rounded-2xl flex flex-wrap items-center ${isCancelled ? 'cursor-default' : 'cursor-pointer'}`}
                   style={{
                     minHeight: 58,
+                    filter: st.hasEnded ? 'grayscale(1)' : undefined,
+                    opacity: st.hasEnded ? 0.65 : 1,
                     padding: '10px 12px 10px 16px',
                     gap: 14,
                     background: (isEmphasized || isMissed) ? pal.soft : 'var(--color-schedule-row)',
@@ -215,9 +232,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                         )
                       )}
                     </div>
-                    <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-                      {t('Занятие')} #{lesson.lessonNumber + 1} {tc(lesson.lessonTitle)}
-                    </p>
+                    <FadeText className="schedule-lesson-title" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
+                      {`${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
+                    </FadeText>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
                     <div style={{ minWidth: 54, textAlign: 'right' }}>
@@ -244,20 +261,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   )}
                 </motion.div>
                 )
-              })
-            ) : (
-              <div
-                className="rounded-2xl flex flex-col items-center justify-center text-center"
-                style={{ minHeight: 116, padding: '18px 24px', background: seasonEmpty ? 'transparent' : 'var(--color-bg-3)', color: 'var(--color-muted)' }}
-              >
-                {seasonEmpty ? <SeasonEmptyDay /> : (
-                  <>
-                    <CalendarX2 size={20} style={{ marginBottom: 8 }} />
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t('Нет запланированных занятий')}</p>
-                  </>
-                )}
-              </div>
-            )}
+              })}
               </div>
             )
             // The selected outline extends 4px; hover lifts a row another 2px.
@@ -291,14 +295,17 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             {day.lessons.length > 0 ? (
               <ScrollFade maxHeight="100%" fadeMode="mask" fadeHeight={18} scrollClassName="no-scrollbar" style={{ maxHeight: 146 }} scrollStyle={{ paddingBottom: 4 }}>
               <div className="flex flex-col gap-2">
-              {day.lessons.slice(0, 2).map(lesson => (
-                <div key={lesson.id}>
+              {day.lessons.slice(0, 2).map((lesson, lessonIndex) => (
+                <div key={lesson.id} data-ended={states[lessonIndex].hasEnded || undefined} style={{
+                  filter: states[lessonIndex].hasEnded ? 'grayscale(1)' : undefined,
+                  opacity: states[lessonIndex].hasEnded ? 0.65 : 1,
+                }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {tc(lesson.subject)}
                   </p>
-                  <p className="truncate" style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>
+                  <FadeText className="schedule-lesson-title" style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>
                     {tc(lesson.lessonTitle)}
-                  </p>
+                  </FadeText>
                   <p style={{ fontSize: 11, color: 'var(--color-muted)' }}>{lesson.time}</p>
                 </div>
               ))}

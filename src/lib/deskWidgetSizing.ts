@@ -1,0 +1,74 @@
+import type { LayoutItem } from './useDeskLayouts'
+
+export type WidgetSizeLimits = {
+  minW: number
+  minH: number
+  maxH?: number
+  minWidthPx?: number
+  minHeightPx?: number
+}
+
+export const DESK_COLUMNS = 12
+export const DESK_GAP = 8
+
+/** All widgets share cells; a 1×1 card is readable even on a small desktop. */
+export function deskColumns(width: number): number {
+  return Math.max(1, Math.min(DESK_COLUMNS, Math.floor((width + DESK_GAP) / (156 + DESK_GAP))))
+}
+export function deskRowHeight(_viewportHeight: number): number { return 116 }
+export function legacyDeskRowHeight(viewportHeight: number): number {
+  return Math.max(42, Math.min(84, (viewportHeight - 108 - 16 - 10 * DESK_GAP) / 11))
+}
+
+/** Registered types use today's rules, never stale limits from a saved desk. */
+export function widgetBounds(item: LayoutItem, definition: WidgetSizeLimits | undefined, width: number, rowHeight: number) {
+  const limits = definition ?? item
+  const columns = deskColumns(width)
+  const columnPitch = (Math.max(1, width) + DESK_GAP) / columns
+  const minW = Math.min(columns, Math.max(1, Math.ceil(limits.minW ?? 1), Math.ceil(((definition?.minWidthPx ?? 0) + DESK_GAP) / columnPitch)))
+  const minH = Math.max(1, Math.ceil(limits.minH ?? 1), Math.ceil(((definition?.minHeightPx ?? 0) + DESK_GAP) / (rowHeight + DESK_GAP)))
+  const maxH = limits.maxH == null ? undefined : Math.max(minH, Math.floor(limits.maxH))
+  return { minW, minH, maxH }
+}
+
+export function clampDeskWidget(item: LayoutItem, definition: WidgetSizeLimits | undefined, width: number, rowHeight: number, legacyRowHeight = 64): LayoutItem {
+  const limits = widgetBounds(item, definition, width, rowHeight)
+  const columns = deskColumns(width)
+  // Normalize the old 12-column/fractional layout once, preserving its physical
+  // proportions as closely as whole cells allow. No fractional sizes survive.
+  const current = item.gridVersion === 2 ? item : {
+    ...item,
+    x: item.x * columns / DESK_COLUMNS,
+    w: item.w * columns / DESK_COLUMNS,
+    y: item.y * (legacyRowHeight + DESK_GAP) / (rowHeight + DESK_GAP),
+    h: (item.h * (legacyRowHeight + DESK_GAP)) / (rowHeight + DESK_GAP),
+  }
+  const w = Math.max(limits.minW, Math.min(columns, Math.round(current.w)))
+  const h = Math.max(limits.minH, Math.min(limits.maxH ?? Infinity, Math.round(current.h)))
+  return { ...current, ...limits, gridVersion: 2, w, h, x: Math.max(0, Math.min(columns - w, Math.round(current.x))), y: Math.max(0, Math.round(current.y)) }
+}
+
+/** Pack below the exact preceding edge, always at a whole-cell boundary. */
+export function compactDeskWidgets(items: LayoutItem[]): LayoutItem[] {
+  const sorted = [...items].sort((a, b) => a.y - b.y || a.x - b.x)
+  const placed: LayoutItem[] = []
+  for (const item of sorted) {
+    let y = 0
+    for (;;) {
+      const blocker = placed.find(p => item.x < p.x + p.w && item.x + item.w > p.x && y < p.y + p.h && y + item.h > p.y)
+      if (!blocker) break
+      y = blocker.y + blocker.h
+    }
+    placed.push({ ...item, y })
+  }
+  return placed
+}
+
+/** Pointer movement selects whole cells; it never changes the cell geometry. */
+export function resizeDeskWidget(item: LayoutItem, definition: WidgetSizeLimits | undefined, dx: number, dy: number, width: number, rowHeight: number): LayoutItem {
+  const columnPitch = (width + DESK_GAP) / deskColumns(width)
+  return clampDeskWidget({ ...item,
+    w: Math.min(deskColumns(width) - item.x, item.w + Math.round(dx / columnPitch)),
+    h: item.h + Math.round(dy / (rowHeight + DESK_GAP)),
+  }, definition, width, rowHeight)
+}

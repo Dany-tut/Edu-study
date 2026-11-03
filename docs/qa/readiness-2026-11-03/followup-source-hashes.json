@@ -1,0 +1,7 @@
+{
+  "scripts/checkInterruptedSocialLogin.mjs": "aa9d14e3a8f6b853a28f7225d3ed301aef41864a9eec6ebb068f475c0d72bcc9",
+  "scripts/security/checkLocalReturnCycle.mjs": "79f221193bdbf66335fb4d498e5e87f56e3c2079aa2d941552b8eeed40c2c5db",
+  "src/components/SocialLoginButtons.tsx": "ee70524d22429a680f8c07cc958455a819f53bf40168a5d25fce6cd7e77be169",
+  "src/lib/socialAuth.ts": "6485745cfbf2157ea54c35f44e0be46cc54b9adcfb38624c03779e2e66552830",
+  "src/lib/i18nEn.ts": "a06afeae6517a3ed5dc2339d4650186c8127531c8405904a0460e33ec7d7f582"
+}

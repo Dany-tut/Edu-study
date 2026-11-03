@@ -1,3 +1,6 @@
+import FadeText from './FadeText'
+import ScrollFade from './ScrollFade'
+import { viewportDropdownPosition, watchDropdownViewport } from '../lib/dropdownPosition'
 import { useRef, useEffect, useState } from 'react'
 import EmptyState from './EmptyState'
 import CountBadge from './CountBadge'
@@ -65,12 +68,8 @@ function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notifica
         {getIcon(n.type)}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: n.read ? 500 : 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
-          {n.title}
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
-          {n.body}
-        </div>
+        <FadeText lines={2} style={{ fontSize: 13, fontWeight: n.read ? 500 : 700, color: 'var(--color-text)', lineHeight: 1.3, overflowWrap: 'anywhere' }}>{n.title}</FadeText>
+        <FadeText lines={3} style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4, overflowWrap: 'anywhere' }}>{n.body}</FadeText>
         <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>
           {timeAgo(n.createdAt)}
         </div>
@@ -100,20 +99,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
   const markAllRead   = useNotificationsStore(s => s.markAllRead)
   const openLesson    = useDashboard(s => s.openLesson)
   const popupRef      = useRef<HTMLDivElement>(null)
-  const listRef       = useRef<HTMLDivElement>(null)
-  const unread        = notifications.filter(n => !n.read).length
-  const [fadeTop, setFadeTop]       = useState(false)
-  const [fadeBottom, setFadeBottom] = useState(false)
-
-  const updateFades = () => {
-    const el = listRef.current
-    if (!el) return
-    setFadeTop(el.scrollTop > 4)
-    setFadeBottom(el.scrollTop + el.clientHeight < el.scrollHeight - 4)
-  }
-  useEffect(() => {
-    if (open) setTimeout(updateFades, 50)
-  }, [open, notifications.length])
+  const unread = notifications.filter(n => !n.read).length
 
   // Click a row → mark read, then deep-link to its lesson (if any) and close.
   const activate = (n: Notification) => {
@@ -128,21 +114,18 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
     }
   }
 
-  // Capture position at open time (avoids transform issues on parent)
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const [pos, setPos] = useState<ReturnType<typeof viewportDropdownPosition> | null>(null)
   useEffect(() => {
     if (!open) { setPos(null); return }
-    const el = anchorRef.current
-    if (!el) return
-    const r = el.getBoundingClientRect()
-    // Clamp so the 320px panel never hangs off-screen (bell sits near the
-    // right edge on mobile).
-    const half = 160, margin = 12
-    const cx = Math.min(
-      Math.max(r.left + r.width / 2, half + margin),
-      window.innerWidth - half - margin,
-    )
-    setPos({ top: r.bottom + 10, left: cx })
+    const update = () => {
+      const rect = anchorRef.current?.getBoundingClientRect()
+      if (rect) setPos(viewportDropdownPosition(rect, 440, 320, 12))
+    }
+    update()
+    const unwatchViewport = watchDropdownViewport(update)
+    window.addEventListener('resize', update)
+    window.addEventListener('scroll', update, true)
+    return () => { window.removeEventListener('resize', update); window.removeEventListener('scroll', update, true); unwatchViewport() }
   }, [open, anchorRef])
 
   // Close on outside click / Escape
@@ -164,14 +147,14 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
   const popup = (
     <AnimatePresence>
       {open && pos && (
-        <div ref={popupRef} style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 9100, transform: 'translateX(-50%)' }}>
+        <div ref={popupRef} style={{ position: 'fixed', ...(pos.up ? { bottom: pos.bottom } : { top: pos.top }), left: pos.left, width: pos.width, zIndex: 9100 }}>
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: [0.32, 0.72, 0, 1] } }}
           transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
           style={{
-            width: 320,
+            width: '100%', maxHeight: pos.maxHeight, display: 'flex', flexDirection: 'column',
             borderRadius: 20,
             overflow: 'hidden',
             transformOrigin: 'top center',
@@ -185,18 +168,16 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
           {/* Header */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '14px 14px 10px',
+            padding: '14px 14px 10px', flexShrink: 0, gap: 8,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <Bell size={16} style={{ color: 'var(--color-muted)' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-                {t('Уведомления')}
-              </span>
+              <FadeText style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Уведомления')}</FadeText>
               <CountBadge count={unread} tone="danger" />
             </div>
             {unread > 0 && (
               <button onClick={markAllRead} style={{
-                fontSize: 11, fontWeight: 600, color: 'var(--color-accent)',
+                flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-accent)',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               }}>
                 {t('Прочитать все')}
@@ -204,33 +185,11 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             )}
           </div>
 
-          {/* List with top/bottom scroll fades */}
-          <div style={{ position: 'relative', overflow: 'hidden' }}>
-            {fadeTop && (
-              <div style={{
-                position: 'absolute', top: -2, left: 0, right: 0, height: 30, zIndex: 2, pointerEvents: 'none',
-                background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.92) 0%, transparent 100%)',
-              }} />
-            )}
-            <div
-              ref={listRef}
-              className="no-scrollbar"
-              onScroll={updateFades}
-              style={{ maxHeight: 380, overflowY: 'auto', padding: '6px 6px' }}
-            >
-              {notifications.length === 0 ? (
-                <EmptyState icon={BellOff} title={t('Нет уведомлений')} style={{ background: 'transparent', border: 'none', padding: '28px 12px' }} />
-              ) : (
-                notifications.map(n => <NotifRow key={n.id} n={n} onActivate={activate} />)
-              )}
-            </div>
-            {fadeBottom && (
-              <div style={{
-                position: 'absolute', bottom: -2, left: 0, right: 0, height: 30, zIndex: 2, pointerEvents: 'none',
-                background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.92) 0%, transparent 100%)',
-              }} />
-            )}
-          </div>
+          <ScrollFade maxHeight={Math.min(380, Math.max(0, pos.maxHeight - 70))} fadeMode="mask" scrollStyle={{ padding: 6 }}>
+            {notifications.length === 0 ? (
+              <EmptyState icon={BellOff} title={t('Нет уведомлений')} style={{ background: 'transparent', border: 'none', padding: '28px 12px' }} />
+            ) : notifications.map(n => <NotifRow key={n.id} n={n} onActivate={activate} />)}
+          </ScrollFade>
         </motion.div>
         </div>
       )}

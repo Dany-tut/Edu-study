@@ -1,8 +1,9 @@
+import { textFadeStyle } from '../../../lib/textFades'
 import { openJournalTask } from '../../../lib/journalTasks'
 import { useState, useRef } from 'react'
 import Checkbox from '../../Checkbox'
 import { motion } from 'framer-motion'
-import { CheckCircle2, X as XIcon } from '../../icons/appIcons'
+import { CheckCircle2, Plus, X as XIcon } from '../../icons/appIcons'
 import { useTeacher } from '../../../store/teacherStore'
 import type { TeacherTask } from '../../../store/teacherStore'
 import CreateTaskModal from '../CreateTaskModal'
@@ -17,7 +18,7 @@ const fadeUp = (delay = 0) => ({
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{
+    <div className="ww-task-card" style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'var(--blur-glass)',
       WebkitBackdropFilter: 'var(--blur-glass)',
@@ -35,7 +36,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 
 function CardTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div className="ww-task-heading" style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
       {children}
     </div>
   )
@@ -59,6 +60,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 
   return (
     <div
+      className="ww-task-row"
       ref={rowRef}
       onClick={onClick}
       onMouseMove={handleMouseMove}
@@ -76,12 +78,12 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
     >
       {/* Общий Checkbox: своя рамка #C4B0F0 не менялась с темой. Клик не
           доходит до строки — она открывает задачу. */}
-      <span onClick={e => e.stopPropagation()} style={{ display: 'flex', flexShrink: 0 }}>
+      <span className="ww-task-check" onClick={e => e.stopPropagation()} style={{ display: 'flex', flexShrink: 0 }}>
         <Checkbox checked={task.done} onChange={() => onToggle()} />
       </span>
 
       {task.typeLabel && task.typeBg && task.typeColor && (
-        <span style={{
+        <span className="ww-task-type" style={{
           fontSize: 11, fontWeight: 600,
           background: task.typeBg, color: task.typeColor,
           borderRadius: 8, padding: '2px 8px', flexShrink: 0,
@@ -90,20 +92,21 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         </span>
       )}
 
-      <span style={{
+      <span className="ww-task-title" style={{
         flex: 1, fontSize: 13, fontWeight: 500,
         color: task.done ? 'var(--color-text-3)' : 'var(--color-text)',
         textDecoration: task.done ? 'line-through' : 'none',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
       }}>
         {(task.title || (task.typeLabel ?? t('Задача'))).replace(/@/g, '')}
       </span>
 
-      <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
+      <span className="ww-task-date" style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
         {task.date}{task.time ? ` · ${task.time}` : ''}
       </span>
 
       <button
+        className="ww-task-remove" aria-label={t('Удалить')} title={t('Удалить')}
         onClick={e => { e.stopPropagation(); onRemove() }}
         onMouseEnter={() => setShowDelete(true)}
         onMouseLeave={e => {
@@ -129,6 +132,8 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 export default function WidgetTodayTasks() {
   const t = useT()
   const tasks = useTeacher(s => s.tasks)
+  const addTask = useTeacher(s => s.addTask)
+  const [creating, setCreating] = useState(false)
   const toggleTask = useTeacher(s => s.toggleTask)
   const removeTask = useTeacher(s => s.removeTask)
   const updateTask = useTeacher(s => s.updateTask)
@@ -146,14 +151,27 @@ export default function WidgetTodayTasks() {
   const [tasksAtTop, setTasksAtTop] = useState(true)
   const [tasksAtBottom, setTasksAtBottom] = useState(false)
 
+  const addButton = <button type="button" className="ww-task-add" aria-label={t('Добавить задачу')}
+    onClick={() => setCreating(true)}><Plus size={20} /></button>
+  const createModal = creating && <CreateTaskModal
+    onClose={() => { setCreating(false); clearDrafts('createTask.') }}
+    onSave={async task => {
+      const { error } = await addTask({ typeId: task.type?.id ?? null, typeLabel: task.type?.label ?? null,
+        typeBg: task.type?.bg ?? null, typeColor: task.type?.textColor ?? null,
+        title: task.title, date: task.date, time: task.time, comment: task.comment })
+      if (error) throw new Error(error)
+    }} />
+
   if (!tasks.length) {
     return (
       <div style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+      {createModal}
         <motion.div {...fadeUp(0.26)} style={{ height: '100%' }}>
           <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <CardTitle>
               <CheckCircle2 size={14} strokeWidth={2} />
               {t('Мои задачи')}
+              {addButton}
             </CardTitle>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ fontSize: 13, color: 'var(--color-text-4)', fontWeight: 500 }}>{t('Нет задач')}</span>
@@ -177,12 +195,13 @@ export default function WidgetTodayTasks() {
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+      {createModal}
       {editingTask && (
         <CreateTaskModal
           initialTask={editingTask}
           onClose={() => { setEditingTask(null); clearDrafts('createTask.') }}
-          onSave={saved => {
-            updateTask(editingTask.id, {
+          onSave={async saved => {
+            const { error } = await updateTask(editingTask.id, {
               typeId: saved.type?.id ?? null,
               typeLabel: saved.type?.label ?? null,
               typeBg: saved.type?.bg ?? null,
@@ -192,7 +211,7 @@ export default function WidgetTodayTasks() {
               time: saved.time,
               comment: saved.comment,
             })
-            setEditingTask(null)
+            if (error) throw new Error(error)
           }}
         />
       )}
@@ -203,16 +222,16 @@ export default function WidgetTodayTasks() {
             {t('Мои задачи')}
             {pending.length > 0 && (
               <span style={{
-                marginLeft: 'auto',
                 fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
                 background: 'var(--color-purple-soft)', borderRadius: 8, padding: '2px 8px',
               }}>
                 {pending.length}
               </span>
             )}
+            {addButton}
           </CardTitle>
           <div
-            className="no-scrollbar"
+            className="no-scrollbar ww-task-list"
             onScroll={needsScroll ? e => {
               const el = e.currentTarget
               setTasksAtTop(el.scrollTop < 4)

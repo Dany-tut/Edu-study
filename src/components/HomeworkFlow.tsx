@@ -1,3 +1,5 @@
+import { HomeworkFacts } from './HomeworkFacts'
+import { textFadeStyle } from '../lib/textFades'
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
 import { isStoredTestlySubmission } from '../lib/testlySubmission'
@@ -756,7 +758,7 @@ type LegacyHardRow = {
 
 const SPRING = { type: 'spring', stiffness: 240, damping: 26 } as const
 
-const formatEstimatedTime = (minutes: number) => `~${minutes} ${tStatic('мин')}`
+
 
 
 // ─── Части домашки ───────────────────────────────────────────────────────────
@@ -2007,9 +2009,7 @@ export default function HomeworkFlow({
 
   if (!basicLevel || !hardLevel) return null
 
-  const selectedEstimatedTime = formatEstimatedTime(
-    selectedLevel === 'basic' ? basicLevel.estimatedMinutes : hardLevel.estimatedMinutes
-  )
+
 
   /**
    * Снимок работы для преподавателя: что спрашивали, что ответил ученик, как
@@ -2190,12 +2190,19 @@ export default function HomeworkFlow({
       | { v: 2; tasks: HardTaskStudentBlock[] }
       | BasicAnswersPayload,
   ) {
+    function retry() {
+      if (level === 'basic' && attachments && 'v' in attachments && attachments.v === 'basic-1') {
+        void submitBasic(attachments, score)
+      } else {
+        void submitToSupabase(level, score, comment, attachments)
+      }
+    }
     const session = getStudentSession()
     if (!session?.id) {
       // Без сессии записать некуда — но и «сдано» показывать нельзя.
       setSubmitFailed({
         text: tStatic('Ответы не отправлены — войдите в аккаунт ученика и повторите.'),
-        retry: () => { void (level === 'basic' ? submitBasic() : submitToSupabase(level, score, comment, attachments)) },
+        retry,
       })
       return false
     }
@@ -2244,7 +2251,7 @@ export default function HomeworkFlow({
       })
       setSubmitFailed({
         text: tStatic('Ответы не отправлены — проверьте связь и повторите.'),
-        retry: () => { void (level === 'basic' ? submitBasic() : submitToSupabase(level, score, comment, attachments)) },
+        retry,
       })
       return false
     }
@@ -2265,11 +2272,19 @@ export default function HomeworkFlow({
    * черновик с ответами. Теперь при сбое — красная плашка с повтором, окна нет,
    * черновик на месте.
    */
-  async function submitBasic() {
+  async function submitBasic(previous?: BasicAnswersPayload, score = basicScore) {
     if (submittingBasicRef.current) return
     submittingBasicRef.current = true
     try {
-      const ok = await submitToSupabase('basic', basicScore, '', buildBasicSnapshot())
+      const snapshot = previous ?? buildBasicSnapshot()
+      // Keep the first submission's identity even if the commit succeeds but
+      // the response is lost. Testly reconciles against its webhook separately.
+      if (!snapshot.attemptId && !onlyTestly) {
+        snapshot.attemptId = crypto.randomUUID()
+        const attemptId = snapshot.attemptId
+        setState(current => ({ ...current, attemptId }))
+      }
+      const ok = await submitToSupabase('basic', score, '', snapshot)
       if (ok) setShowResultModal('basic')
     } finally {
       submittingBasicRef.current = false
@@ -3143,7 +3158,7 @@ export default function HomeworkFlow({
           style={{
             // «Назад» — шеврон в круге везде, как BackCircle.
             gap: 4, padding: 0, width: 40, height: 40, borderRadius: 999, border: '1px solid var(--color-border-soft)',
-            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'none',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
@@ -3154,7 +3169,7 @@ export default function HomeworkFlow({
           className={`flex-1 min-w-0 flex items-center ${isMobile ? '' : 'text-center justify-center'}`}
           style={{ gap: 10, fontSize: isMobile ? 18 : 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
-          <span className="truncate">{hwTitle(homework.title, t)}</span>
+          <span className="text-fade">{hwTitle(homework.title, t)}</span>
           {!isMobile && levelPill(false)}
         </h1>
 
@@ -3204,7 +3219,7 @@ export default function HomeworkFlow({
                 ...dockGlass, pointerEvents: 'auto',
               }}
             >
-              <span className="truncate" style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+              <span className="text-fade" style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                 <motion.span
                   initial={false}
                   animate={{ maxWidth: topBarCompact ? 200 : 0, opacity: topBarCompact ? 1 : 0 }}
@@ -3213,7 +3228,7 @@ export default function HomeworkFlow({
                 >
                   {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
                 </motion.span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                   {tcStatic(extraTitle ? extraTitle[2] : homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
                 </span>
                 <motion.span
@@ -3311,16 +3326,7 @@ export default function HomeworkFlow({
               gap: 12,
             }}
           >
-            <InfoRow label={t('Дедлайн')} value={basicLevel.dueDate} />
-            <InfoRow label={t('Время')} value={selectedEstimatedTime} />
-            <InfoRow label={t('Формат')} value={selectedLevel === 'basic' ? t('Тест с автопроверкой') : t('Проверка преподавателем')} />
-            <InfoRow
-              label={t('% справившихся')}
-              value={`${selectedLevel === 'basic' ? basicLevel.peerCompletionRate : hardLevel.peerCompletionRate}%`}
-            />
-            {selectedLevel === 'basic' && basicLevel.peerAverageScore != null && (
-              <InfoRow label={t('Средний балл')} value={`${basicLevel.peerAverageScore}`} />
-            )}
+            <HomeworkFacts level={selectedLevel === 'basic' ? basicLevel : hardLevel} t={t} />
           </div>
 
           {selectedLevel === 'hard' && hardLevel.teacherTask?.acceptedFormats && (
@@ -4525,7 +4531,7 @@ export default function HomeworkFlow({
                       {/* Подтверждение длиннее обычной подписи, и по умолчанию
                           оно разрывалось на вторую строку — кнопка прыгала в
                           высоту прямо под пальцем. Держим в одну строку. */}
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                         {confirmSubmitAsIs
                           ? `${t('Точно сдать?')} ${basicUnanswered.length} ${t('без ответа')}`
                           : t('Сдать как есть')}
@@ -4705,14 +4711,7 @@ export default function HomeworkFlow({
   )
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between" style={{ gap: 12 }}>
-      <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', textAlign: 'right' }}>{value}</span>
-    </div>
-  )
-}
+
 
 /**
  * Плитка метрики итогов. Все три одинаковой плотности: залитая «Верно» на

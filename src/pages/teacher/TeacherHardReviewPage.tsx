@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Star, ClipboardList } from '../../components/icons/appIcons'
@@ -10,7 +11,7 @@ import {
 import { openHardSubHomework } from '../../lib/teacherNav'
 import { clearDrafts, readDraft, writeDraft } from '../../lib/useDraft'
 import AiGradeCard from '../../components/teacher/AiGradeCard'
-import { useAiGrades, confirmAiGrade } from '../../lib/useAiGrades'
+import { useAiGrades, confirmAiGrade, requestAiGrade } from '../../lib/useAiGrades'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
 import { useT, useTc } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -130,7 +131,7 @@ export default function TeacherHardReviewPage() {
         <BackCircle onClick={() => setActivePage('homework')} label="Назад" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <Star size={16} style={{ color: 'var(--color-accent)' }} fill="currentColor" />
-          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
             {t('Хард-уровень')} · {tc(sub.lessonTitle) || sub.baseRef}
           </span>
           <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: statusBg, padding: '4px 10px', borderRadius: 8 }}>
@@ -187,6 +188,7 @@ export default function TeacherHardReviewPage() {
           {aiGrade && (aiTask || aiGrade.status === 'pending' || aiGrade.status === 'working' || aiGrade.status === 'error') && (
             <AiGradeCard
               grade={aiGrade}
+              onRetry={async()=>{const result=await requestAiGrade(sub.id,true);if(!result.ok)throw new Error(result.error);await reloadAi()}}
               task={aiTask}
               done={taskDone}
               onAccept={() => {

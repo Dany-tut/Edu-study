@@ -1,3 +1,5 @@
+import { Table as LoopUiTable } from '../../components/icons/appIcons'
+import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, type CourseSlot } from '../../lib/courseScheduleSync'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
@@ -19,6 +21,7 @@ import {
   ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock,
 } from '../../components/icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
+import FadeText from '../../components/FadeText'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import { LessonLinkPanel } from '../../components/teacher/LessonLinkAttach'
 import { detectDisk, DiskLogo } from '../../components/teacher/DiskLink'
@@ -509,7 +512,7 @@ const ACCESS_SELECT_W = 168
  * ряд. Длинное имя обрезается многоточием, целиком его показывает title.
  */
 const oneLine: React.CSSProperties = {
-  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle,
 }
 
 function AccessModeSelect({
@@ -1676,7 +1679,7 @@ function CenterRecording({
               : <Video size={14} style={{ color: 'var(--color-green-text)' }} />}
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
               {lesson.videoUrl}
             </span>
             {disk && (
@@ -2300,12 +2303,12 @@ function CenterLesson({
                       overflow: 'hidden', color: err ? 'var(--color-red-text)' : (has || dragOver) ? 'var(--color-green-text)' : 'var(--color-muted)',
                     }}>
                       {busy ? <span>{t('Загружаем…')}</span>
-                        : err ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err}</span>
+                        : err ? <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{err}</span>
                         : dragOver ? <span>{t('Отпустите сюда')}</span>
                         : !has ? <span>{multiple ? t('Перетащите файлы') : t('Перетащите файл')}</span>
                         : multiple ? <span>{files.length === 1 ? t('1 файл') : `${files.length} ${t('файлов')}`}</span>
-                        : link ? <><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{files[0].name}</span><ExternalLink size={10} style={{ flexShrink: 0 }} /></>
-                        : <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{files[0].name} · {formatFileSize(files[0].size)}</span>}
+                        : link ? <><span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{files[0].name}</span><ExternalLink size={10} style={{ flexShrink: 0 }} /></>
+                        : <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{files[0].name} · {formatFileSize(files[0].size)}</span>}
                     </div>
                   </div>
                 </button>
@@ -2322,7 +2325,7 @@ function CenterLesson({
                         {isLinkFile(f)
                           ? <Link2 size={11} style={{ flexShrink: 0, color: 'var(--color-green-text)' }} />
                           : <FileText size={11} style={{ flexShrink: 0, color: 'var(--color-muted)' }} />}
-                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{f.name}</span>
                         {!isLinkFile(f) && <span style={{ flexShrink: 0, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>}
                         <button
                           onClick={() => removeFile(slot, f)}
@@ -2583,7 +2586,7 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
         }}
       >
         {Icon && <Icon size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />}
-        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {selected?.label ?? placeholder ?? '—'}
         </span>
         <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
@@ -2947,7 +2950,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
         }}>
           {index + 1}. {t(cfg.label)}
         </div>
-        <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {task.question || <span style={{ fontStyle: 'italic' }}>{t('без текста')}</span>}
         </div>
         <button
@@ -3989,9 +3992,8 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                     style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}
                   >
                     <Plus size={12} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-green-text)' }} />
-                    <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {bt.questionTable ? '📊 ' : ''}{bt.question || t('Без текста')}
-                    </span>
+                    {bt.questionTable && <LoopUiTable size={13} style={{ flexShrink: 0, marginTop: 2 }} />}
+                    <span style={{ minWidth: 0, overflow: 'hidden', ...textFadeLines(2) }}>{bt.question || t('Без текста')}</span>
                   </button>
                 ))}
                 {filtered.length === 0 && (
@@ -4498,7 +4500,7 @@ function StudentsLeftPanel({
               }}>
                 {tn(s.name).slice(0, 1).toUpperCase()}
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
+              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
                 {tn(s.name)}
               </span>
               {on ? <Check size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
@@ -4528,7 +4530,7 @@ function StudentsLeftPanel({
               }}>
                 <Users size={14} style={{ color: on ? '#fff' : 'var(--color-muted)' }} />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
+              <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
                 {g.name}
               </span>
               {on ? <Check size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
@@ -4678,7 +4680,7 @@ function CenterLessonStudents({
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Users size={14} style={{ color: '#fff' }} />
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{g.name}</span>
                     <AccessModeSelect
                       value={gm === 'mixed' ? '' : gm}
                       onChange={v => setGroupMode(g.id, v)}
@@ -4695,7 +4697,7 @@ function CenterLessonStudents({
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     {tn(s.name).slice(0, 1).toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn(s.name)}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tn(s.name)}</span>
                   <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
                 </div>
               ))}
@@ -4819,7 +4821,7 @@ function LessonRow({
       <span style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
         color: selected ? 'var(--color-green-text)' : 'var(--color-text)',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
       }}>
         {tc(lesson.title) || (lesson.kind === 'test' ? t('Тест без названия') : t('Урок без названия'))}
       </span>
@@ -5274,7 +5276,7 @@ function RightPanelLessons({
                     style={{
                       display: 'block', fontSize: 12, fontWeight: 700,
                       color: editingModuleId === mod.id ? 'transparent' : (isActive ? 'var(--color-green-text)' : 'var(--color-text)'),
-                      textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',
                     }}
                   >
                     {tc(mod.label)}
@@ -5838,6 +5840,8 @@ export default function TeacherCourseEditorPage() {
 
   const [savedFlash, setSavedFlash] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [autosaving, setAutosaving] = useState(0)
+  const [publicationPending, setPublicationPending] = useState(false)
   const [publishErr, setPublishErr] = useState<string | null>(null)
   // Отпечаток серверной версии, с которой открыли курс. Сравнивается перед
   // каждой записью — см. syncAccessToSupabase.
@@ -5863,7 +5867,7 @@ export default function TeacherCourseEditorPage() {
   useEffect(() => {
     // Курс ещё догружается — писать нечего: сохранение идёт целиком и затёрло
     // бы конспекты с домашками, которых пока нет в состоянии.
-    if (course.heavyPending) return
+    if (course.heavyPending || publicationPending) return
     if (!course.dbCourseId && !course.title.trim()) return
     if (!autosaveArmed.current) {
       autosaveArmed.current = true
@@ -5875,7 +5879,7 @@ export default function TeacherCourseEditorPage() {
       runAutosave(course)
     }, 900)
     return () => clearTimeout(t)
-  }, [course])
+  }, [course, publicationPending])
 
   // «Сохранено!» — только после ответа базы. Раньше подпись мигала сразу, до
   // записи, и при неудаче врала: учитель видел «Сохранено!», а в базе пусто.
@@ -5889,6 +5893,7 @@ export default function TeacherCourseEditorPage() {
   const latestSync = useRef(syncAccessToSupabase)
   latestSync.current = syncAccessToSupabase
   function runAutosave(c: CourseEdData) {
+    setAutosaving(n => n + 1)
     const seq = draftSeq.current
     return syncAccessToSupabase(c).then(ok => {
       clearCourseDraftAfterSync(seq, ok)
@@ -5896,7 +5901,7 @@ export default function TeacherCourseEditorPage() {
       if (ok) { setPublishErr(null); flash() }
       else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
       return ok
-    })
+    }).finally(() => setAutosaving(n => n - 1))
   }
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => { if (unsaved.current) { e.preventDefault(); e.returnValue = '' } }
@@ -6623,6 +6628,7 @@ export default function TeacherCourseEditorPage() {
   }
 
   function handlePublish() {
+    if (saving) return
     if (course.heavyPending) { setPublishErr(HEAVY_WAIT_MSG()); return }
     const blocker = publishBlocker(course)
     if (blocker) {
@@ -6631,30 +6637,36 @@ export default function TeacherCourseEditorPage() {
     }
     if (alertMissingAnswers(courseMissingAnswers(course))) return
     setPublishErr(null)
-    const updated = { ...course, status: 'published' as const }
-    setCourse(updated)
-    setCourseEdited(JSON.stringify(updated))
-    // setCourse above bumps draftSeq on the next render — capture seq+1 so the
-    // status flip itself doesn't block the post-save draft cleanup.
-    const seq = draftSeq.current + 1
-    setSaving(true)
-    Promise.all([syncAccessToSupabase(updated), new Promise(r => setTimeout(r, 550))]).then(([ok]) => {
-      setSaving(false)
-      clearCourseDraftAfterSync(seq, ok as boolean)
-      if (ok) flash()
-      else setPublishErr(t('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.'))
-    })
+    persistPublicationStatus('published')
   }
 
   function handleUnpublish() {
-    const updated = { ...course, status: 'draft' as const }
-    setCourse(updated)
-    setCourseEdited(JSON.stringify(updated))
-    const seq = draftSeq.current + 1
-    syncAccessToSupabase(updated).then(ok => {
-      clearCourseDraftAfterSync(seq, ok)
-      if (ok) { setPublishErr(null); flash() }
-      else setPublishErr(t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+    if (saving || course.heavyPending) return
+    setPublishErr(null)
+    persistPublicationStatus('draft')
+  }
+
+  // Не меняем локальный статус до ответа сервера. Пока запись в очереди,
+  // автосохранение приостановлено: оно не должно записать старый статус следом.
+  // Правки, внесённые во время публикации, сохранятся после её завершения.
+  function persistPublicationStatus(status: CourseEdData['status']) {
+    const updated = { ...course, status }
+    const seq = draftSeq.current
+    setPublicationPending(true)
+    setSaving(true)
+    Promise.all([syncAccessToSupabase(updated).catch(() => false), new Promise(r => setTimeout(r, 550))]).then(([ok]) => {
+      clearCourseDraftAfterSync(seq, ok as boolean)
+      if (ok) {
+        setCourse(c => ({ ...c, status }))
+        setCourseEdited(JSON.stringify({ ...latestCourse.current, status }))
+        flash()
+      } else {
+        setPublishErr(status === 'published'
+          ? t('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
+          : t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+      }
+      setSaving(false)
+      setPublicationPending(false)
     })
   }
 
@@ -6697,8 +6709,8 @@ export default function TeacherCourseEditorPage() {
       if (lab && lab.offsetWidth) seedLabelW.current = lab.offsetWidth
       // Меряем по РАЗВЁРНУТОЙ правой группе — иначе решение зависело бы от себя.
       const fullRight = rw + (lab ? 0 : seedLabelW.current)
-      const room = h.clientWidth - 2 * (Math.max(lw, fullRight) + 12)
-      const titleW = headTitleRef.current?.scrollWidth ?? 0
+      const room = h.clientWidth - 2 * (Math.max(lw, fullRight) + 36)
+      const titleW = headTitleRef.current?.firstElementChild?.scrollWidth ?? 0
       setSeedCompact(titleW + 16 > room)
     }
     measure()
@@ -6760,11 +6772,16 @@ export default function TeacherCourseEditorPage() {
             )}
           </AnimatePresence>
         </div>
-        {/* Название всегда ровно по центру страницы: абсолют + симметричные
-            отступы по ширине большей группы кнопок. Длинное название не уезжает
-            под кнопки — оно обрезается многоточием. */}
-        <div style={{ position: 'absolute', left: headSideW + 12, right: headSideW + 12, top: 0, bottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <span ref={headTitleRef} className="truncate" style={{ display: 'block', maxWidth: '100%', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
+        {/* Статус сохранения под названием не меняет ширину ряда действий. */}
+        <div style={{ position: 'absolute', left: headSideW + 36, right: headSideW + 36, top: 0, height: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+          <span ref={headTitleRef} style={{ minWidth: 0, maxWidth: '100%' }}>
+            <FadeText style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</FadeText>
+          </span>
+          <span role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: 4, position: 'absolute', top: 34, height: 16, flexShrink: 0, fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+            {saving || autosaving > 0
+              ? <><Loader2 size={12} style={{ animation: 'spin 0.9s linear infinite' }} /> {t('Сохранение…')}</>
+              : savedFlash ? <><Check size={12} strokeWidth={2.5} /> {t('Сохранено!')}</> : null}
+          </span>
         </div>
         <div ref={headRightRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
@@ -6795,14 +6812,6 @@ export default function TeacherCourseEditorPage() {
               style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: '0 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
             </motion.button>
-          )}
-          {/* Черновик ⇄ опубликован одной деталью. Отдельная «Сохранить» не нужна:
-              сохранённый курс пишется автосохранением при любой правке; отклик
-              сохранения — тихая подпись слева, её раньше показывала кнопка. */}
-          {savedFlash && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, fontSize: 13, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
-              <Check size={14} strokeWidth={2.5} /> {t('Сохранено!')}
-            </span>
           )}
           <DraftPublishToggle
             published={course.status === 'published'}
@@ -7084,7 +7093,7 @@ export default function TeacherCourseEditorPage() {
                 {/* Lesson header: back + tabs */}
                 <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', flex: 1 }}>
                       {tc(selectedLesson.title) || t('Урок без названия')}
                     </span>
                     {course.dbCourseId && (() => {

@@ -1,0 +1,59 @@
+{
+  "scope": "Real local Supabase, one headless Chrome, sequential isolated student/teacher/student contexts; assignment prepared by teacher API fixture; draft localStorage only",
+  "steps": [
+    {
+      "name": "Browser invitation/signup and login",
+      "status": "PASS"
+    },
+    {
+      "name": "Local draft survives reload",
+      "status": "PASS",
+      "scope": "same browser localStorage; not server draft"
+    },
+    {
+      "name": "Student submits via browser and real server persists answers",
+      "status": "PASS",
+      "progressId": "551636f7-10c3-4f90-adee-7457377417bc",
+      "attemptId": "8cfeb1e7-219f-4f84-b597-403e395bf75c"
+    },
+    {
+      "name": "Manual answer browser submit reaches server and awaits teacher",
+      "status": "PASS",
+      "progressId": "c0d68b1c-e615-490d-85d7-585d1495a5a7",
+      "attemptId": "df0e9440-0c92-4713-8209-4e7b6f6e3aab"
+    },
+    {
+      "name": "Teacher login opens live workspace after date crash fix",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher sees actual pending student answer in browser review queue",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher saves grade 90 and comment through browser; same attempt persisted",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh browser student login sees grade 90, teacher comment and original answers in attempt history",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload preserves published result and exactly one attempt",
+      "status": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "df0e9440-0c92-4713-8209-4e7b6f6e3aab",
+      "score": 90,
+      "status": "completed",
+      "review_comment": "Хорошее объяснение. Работа зачтена."
+    }
+  ],
+  "knownLimitations": [
+    "Fresh browser shows original answers in attempt history; main disabled fields are not restored from server snapshot",
+    "AI/payment/external integrations, Windows, and all network-fault scenarios are not part of this happy-path run"
+  ],
+  "productionModified": false
+}

@@ -1,3 +1,4 @@
+import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -144,8 +145,8 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
         background: current ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
         color: current ? 'var(--color-purple)' : 'var(--color-text-2)',
       }}>
-        <span style={{ flex: 1, minWidth: 0, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {ok ? <Check size={14} /> : current ? (
+        {ok ? <Check size={14} style={{ flexShrink: 0 }} /> : <span style={{ flex: 1, minWidth: 0, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
+          {current ? (
             <>
               {t(current.name)}
               {term && (
@@ -155,7 +156,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
               )}
             </>
           ) : t('Тариф')}
-        </span>
+        </span>}
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.15 }}

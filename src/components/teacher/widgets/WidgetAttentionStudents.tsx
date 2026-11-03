@@ -1,6 +1,8 @@
-import { AlertCircle, ChevronRight, Clock } from '../../icons/appIcons'
+import { textFadeStyle } from '../../../lib/textFades'
+import { AlertCircle, ChevronRight, Clock, ArrowUpRight } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
+import FadeText from '../../FadeText'
 import { t, useT, useTc } from '../../../lib/i18n'
 
 function initials(name: string) {
@@ -34,6 +36,7 @@ export default function WidgetAttentionStudents() {
   const { tn } = useTc()
   const students = useAllStudents()
   const { groups } = useGroups()
+  const setActivePage = useTeacher(s => s.setActivePage)
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
 
   const atRisk = students
@@ -48,10 +51,10 @@ export default function WidgetAttentionStudents() {
       const db = b.paymentDue ? diffDays(b.paymentDue) : 99
       return da - db
     })
-    .slice(0, 8)
+
 
   return (
-    <div style={{
+    <div className="ww-attention-card" style={{
       width: '100%', height: '100%',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
@@ -62,8 +65,18 @@ export default function WidgetAttentionStudents() {
       // shadow on wrapper
       overflow: 'hidden',
     }}>
+      <button type="button" className="ww-attention-compact" onClick={() => setActivePage('groups')}
+        aria-label={`${t('Требуют внимания')}: ${atRisk.length}`}>
+        <div className="ww-attention-summary">
+          <FadeText lines={2} style={{ fontSize: 13, fontWeight: 600 }}>{t('Требуют внимания')}</FadeText>
+          <span className="ww-attention-value">{atRisk.length}</span>
+          <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{atRisk.length ? t('Ученики с долгом или просрочкой оплаты') : t('Все ученики в норме')}</FadeText>
+        </div>
+        <img className="ww-attention-object" src="/widget-metric-objects-v1/debt.png" alt="" aria-hidden="true" />
+        <ArrowUpRight className="ww-attention-open" size={18} aria-hidden="true" />
+      </button>
       {/* Header */}
-      <div style={{
+      <div className="ww-header" style={{
         padding: '14px 16px 10px',
         display: 'flex', alignItems: 'center', gap: 8,
         borderBottom: '1px solid var(--color-border)',
@@ -88,7 +101,7 @@ export default function WidgetAttentionStudents() {
       </div>
 
       {/* Content */}
-      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
+      <div className="no-scrollbar ww-list" style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
         {atRisk.length === 0 ? (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -99,7 +112,7 @@ export default function WidgetAttentionStudents() {
             <span style={{ fontSize: 11, color: 'var(--color-text-4)' }}>{t('никаких срочных вопросов')}</span>
           </div>
         ) : (
-          atRisk.map((s, i) => {
+          atRisk.slice(0, 8).map((s, i) => {
             const group = groups.find(g => g.id === s.groupId)
             const reason = getReason(s)
             const ReasonIcon = reason.icon
@@ -107,6 +120,7 @@ export default function WidgetAttentionStudents() {
             return (
               <div
                 key={s.id}
+                className="ww-row ww-attention-row"
                 onClick={() => openStudentDashboard(s.id, s.groupId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
@@ -118,7 +132,7 @@ export default function WidgetAttentionStudents() {
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >
                 {/* Avatar */}
-                <div style={{
+                <div className="ww-avatar" style={{
                   width: 34, height: 34, borderRadius: 11, flexShrink: 0,
                   background: reason.bg,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -128,17 +142,17 @@ export default function WidgetAttentionStudents() {
                 </div>
 
                 {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                     {tn(s.name).split(' ').slice(0, 2).join(' ')}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                  <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                     {group?.name ?? ''}
                   </div>
                 </div>
 
                 {/* Reason chip */}
-                <div style={{
+                <div className="ww-status" style={{
                   display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
                   fontSize: 11, fontWeight: 600, color: reason.color,
                   background: reason.bg, borderRadius: 8, padding: '4px 8px',

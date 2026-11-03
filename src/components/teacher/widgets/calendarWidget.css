@@ -147,9 +147,16 @@
 
   .calendar-widget-subtitle {
     white-space: normal !important;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
     overflow-wrap: anywhere;
+    --iskra-text-fade-lines: 2;
+    max-height: calc(2 * 1lh);
+    overflow: hidden;
+    display: block;
   }
+}
+
+/* Keep past lessons readable and interactive while removing their active accent. */
+.calendar-widget-lesson[data-ended] {
+  filter: grayscale(1);
+  opacity: 0.65;
 }
