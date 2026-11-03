@@ -102,6 +102,7 @@ export async function bindGroupToCourse(groupId: string, courseId: string): Prom
 // каждый слал свой (см. lib/sharedQuery.ts).
 const groupsQuery = createSharedQuery<Group[]>(async () => {
   const uid = await getOwnerId()
+  if (!uid) return []
   const { data } = await supabase
     .from('groups')
     .select('*, students(count)')
@@ -1005,6 +1006,7 @@ export function groupStudentsByPerson(students: PersonRow[]): PersonCards[] {
 // Все ученики владельца. Тоже общий запрос: хук зовут 17 компонентов.
 const allStudentsQuery = createSharedQuery<Student[]>(async () => {
   const uid = await getOwnerId()
+  if (!uid) return []
   const { data } = await supabase
     .from('students')
     .select('id,group_id,name,phone,telegram_link,parent_contact,started_at,last_visit,hw_score,test_score,trial_score,desired_score,attendance,comment,payment_due,payment_amount,last_payment,debt,invite_token,email,auth_user_id,person_id,avatar_path,lesson_balance,created_at,created_by, groups(subject, is_individual)')
