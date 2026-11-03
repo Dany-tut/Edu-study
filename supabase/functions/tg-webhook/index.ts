@@ -4,7 +4,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 Deno.serve(async (req: Request) => {
   const secret = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
-  if (secret && req.headers.get("x-telegram-bot-api-secret-token") !== secret) return new Response("forbidden", { status: 403 });
+  if (!secret || req.headers.get("x-telegram-bot-api-secret-token") !== secret) return new Response("forbidden", { status: 403 });
   let update: Record<string, any> = {}; try { update = await req.json(); } catch { return new Response("ok"); }
   const msg = update.message ?? update.edited_message; const chat = msg?.chat;
   if (!msg || !chat) return new Response("ok");
