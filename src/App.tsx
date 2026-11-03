@@ -24,6 +24,7 @@ const TeacherWorkspace = lazy(() => retryImport(() => import('./components/teach
 const JournalStand = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand'))) : null
 const ExampleGroups = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/ExampleGroups'))) : null
 const TeacherLoginPage = lazy(() => retryImport(() => import('./pages/teacher/TeacherLoginPage')))
+const TeacherRouteGate = lazy(() => retryImport(() => import('./components/teacher/TeacherRouteGate')))
 const JoinPage = lazy(() => retryImport(() => import('./pages/JoinPage')))
 const JoinTeacherPage = lazy(() => retryImport(() => import('./pages/JoinTeacherPage')))
 const DiagnosticTestPage = lazy(() => retryImport(() => import('./pages/DiagnosticTestPage')))
@@ -329,17 +330,16 @@ function AppRoutes() {
   }
 
   if (hash.startsWith('#/teacher')) {
-    if (session === undefined && !import.meta.env.DEV) return null
-    // A student's Supabase session must not unlock the teacher cabinet.
-    const isStudentAccount = session?.user?.user_metadata?.role === 'student' && session?.user?.app_metadata?.role !== 'admin'
-    if (isStudentAccount && !import.meta.env.DEV) return <Chunk><StudentLoginPage /></Chunk>
-    if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
-    return (
+    const workspace = (
       <>
         <Chunk fallback={hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : undefined}><TeacherWorkspace owner={session?.user.id ?? 'local'} production /></Chunk>
         <InstallPrompt />
       </>
     )
+    // Preserve the explicit guest-only development demo. Signed-in accounts
+    // always pass the server check; no role lookup runs on student routes.
+    if (import.meta.env.DEV && session === null) return workspace
+    return <Chunk><TeacherRouteGate session={session}>{workspace}</TeacherRouteGate></Chunk>
   }
 
   // Explicit reauthentication must be reachable even with a stale student card.
