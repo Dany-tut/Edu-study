@@ -7,9 +7,15 @@ import assert from 'node:assert/strict'
 const {chromium}=await import(process.env.ISKRA_PLAYWRIGHT_MODULE||'/tmp/iskra-icon-qa/node_modules/playwright/index.mjs')
 const root=process.env.ISKRA_LOCAL_DIR||'/tmp/iskra-local-security',base='http://127.0.0.1:5291'
 const cfg=JSON.parse(readFileSync(root+'/status.json','utf8'))
-assert.equal(new URL(cfg.API_URL).hostname,'127.0.0.1')
+const stagingRef = process.env.ISKRA_VERIFIED_STAGING_REF
+if (stagingRef) {
+  assert.match(stagingRef, /^[a-z]{20}$/)
+  assert.equal(cfg.API_URL, 'https://' + stagingRef + '.supabase.co')
+} else {
+  assert.equal(new URL(cfg.API_URL).hostname,'127.0.0.1')
+}
 const make=key=>createClient(cfg.API_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})
-const admin=make(cfg.SERVICE_ROLE_KEY),teacher=make(cfg.ANON_KEY)
+const teacher=make(cfg.ANON_KEY)
 async function ok(p){const r=await p;if(r.error)throw Error(`${r.error.code||r.error.status||''} ${r.error.message}`);return r.data}
 async function insert(c,t,row){return ok(c.from(t).insert(row).select().single())}
 const stamp=Date.now(),password=randomUUID().replaceAll('-','')
@@ -37,7 +43,7 @@ const ref='hw-'+homework.id,answer='Я сложил две тройки. <img sr
 const results=[];let browser,context,page,submission
 const dir=root+'/evidence/browser-replay-'+stamp;mkdirSync(dir,{recursive:true})
 async function step(name,fn){await fn();results.push({name,status:'PASS'});console.log('PASS:',name)}
-async function newContext(){if(context)await context.close();context=await browser.newContext({viewport:{width:1440,height:900},serviceWorkers:'block'});await context.route('**/*',r=>['127.0.0.1','localhost'].includes(new URL(r.request().url()).hostname)?r.continue():r.abort());page=await context.newPage();page.setDefaultTimeout(25000)}
+async function newContext(){if(context)await context.close();context=await browser.newContext({viewport:{width:1440,height:900},serviceWorkers:'block'});await context.route('**/*',r=>[base,new URL(cfg.API_URL).origin].includes(new URL(r.request().url()).origin)?r.continue():r.abort());page=await context.newPage();page.setDefaultTimeout(25000)}
 async function consent(){await page.getByText('Согласен(а) на обработку данных.',{exact:true}).click();await page.getByRole('button',{name:'Принимаю и продолжаю',exact:true}).click()}
 async function openHomework(){await page.goto(`${base}/#/homework/${ref}`,{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'})}
 async function pollProgress(predicate){for(let i=0;i<50;i++){const r=await ok(teacher.from('lesson_progress').select('id,status,score,attachments,review_comment').eq('student_id',student.id).eq('lesson_ref',ref).maybeSingle());if(r&&predicate(r))return r;await new Promise(r=>setTimeout(r,200))}throw Error('Expected server state not reached')}
@@ -94,5 +100,5 @@ try{
   await page.reload({waitUntil:'domcontentloaded'});await history();const attempts=await ok(teacher.from('homework_attempts').select('id,score,status').eq('progress_id',submission.id));assert.equal(attempts.length,1);assert.equal(attempts[0].id,submission.attachments.attemptId);assert.equal(attempts[0].score,90)
  })
 }catch(e){results.push({name:'browser user cycle',status:'FAIL',error:e.message.replace(/token=[^\s"&]+/g,'token=[redacted]')});console.error('FAIL:',results.at(-1).error);process.exitCode=1}
-finally{if(browser)await browser.close();writeFileSync(dir+'/result.json',JSON.stringify({scope:'Local real Auth/DB/Storage. Assignment fixture via teacher API; student signup/submit and teacher review via UI; drafts same-browser localStorage',results,productionModified:false},null,2))}
+finally{if(browser)await browser.close();writeFileSync(dir+'/result.json',JSON.stringify({scope:'Isolated test Auth/DB/Storage. Assignment fixture via teacher API; student signup/submit and teacher review via UI; drafts same-browser localStorage',results,productionModified:false},null,2))}
 console.log('Evidence:',dir)

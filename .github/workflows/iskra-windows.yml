@@ -1,0 +1,57 @@
+name: Iskra Windows
+on:
+  push:
+    branches: [qa/iskra-windows-beta]
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, msedge]
+    env:
+      ISKRA_BROWSER_CHANNEL: ${{ matrix.browser }}
+      ISKRA_VERIFIED_STAGING_REF: ${{ vars.ISKRA_VERIFIED_STAGING_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.64.1
+      - name: Build local candidate
+        env:
+          STAGING_PUBLIC_KEY: ${{ secrets.ISKRA_STAGING_PUBLISHABLE_KEY }}
+        run: |
+          $env:VITE_SUPABASE_URL = 'http://127.0.0.1:55321'
+          $env:VITE_SUPABASE_PUBLISHABLE_KEY = 'offline-ui-test'
+          if ($env:ISKRA_VERIFIED_STAGING_REF) {
+            if ($env:ISKRA_VERIFIED_STAGING_REF -notmatch '^[a-z]{20}$' -or !$env:STAGING_PUBLIC_KEY) { throw 'Incomplete staging configuration' }
+            $env:VITE_SUPABASE_URL = "https://$env:ISKRA_VERIFIED_STAGING_REF.supabase.co"
+            $env:VITE_SUPABASE_PUBLISHABLE_KEY = $env:STAGING_PUBLIC_KEY
+          }
+          npx --no-install vite build
+      - name: Check Windows browser
+        run: |
+          Start-Process node -ArgumentList 'node_modules/vite/bin/vite.js','preview','--host','127.0.0.1','--port','5291','--strictPort'
+          node scripts/security/checkWindowsBoot.mjs
+      - name: Full cycle on dedicated staging
+        if: env.ISKRA_VERIFIED_STAGING_REF != ''
+        env:
+          STAGING_PUBLIC_KEY: ${{ secrets.ISKRA_STAGING_PUBLISHABLE_KEY }}
+          STAGING_FIXTURE_ADMIN: ${{ secrets.ISKRA_STAGING_FIXTURE_ADMIN }}
+        run: |
+          $env:ISKRA_LOCAL_DIR = Join-Path $env:RUNNER_TEMP 'iskra-run'
+          New-Item -ItemType Directory $env:ISKRA_LOCAL_DIR | Out-Null
+          $env:ISKRA_PLAYWRIGHT_MODULE = 'playwright'
+          @{API_URL="https://$env:ISKRA_VERIFIED_STAGING_REF.supabase.co"; ANON_KEY=$env:STAGING_PUBLIC_KEY} | ConvertTo-Json | Set-Content "$env:ISKRA_LOCAL_DIR/status.json"
+          @{accounts=@{admin=($env:STAGING_FIXTURE_ADMIN | ConvertFrom-Json)}} | ConvertTo-Json -Depth 4 | Set-Content "$env:ISKRA_LOCAL_DIR/fixture.json"
+          node scripts/security/checkLocalUserCycle.mjs
+      - name: Require full-cycle proof
+        if: env.ISKRA_VERIFIED_STAGING_REF == ''
+        run: throw 'Windows login smoke passed. Full cycle blocked until dedicated staging is provisioned.'

@@ -125,7 +125,7 @@ function AddGroupModal({ onClose, onSave }: {
         className="journal-person-dialog"
         style={{
           background: 'var(--color-bg-input)', borderRadius: 22, padding: 28,
-          width: 420, maxWidth:'calc(100vw - 24px)', boxShadow: 'var(--shadow-5)',
+          width: 420, boxShadow: 'var(--shadow-5)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>

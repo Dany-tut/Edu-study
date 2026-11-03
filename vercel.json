@@ -51,5 +51,10 @@
         }
       ]
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "qa/iskra-windows-beta": false
+    }
+  }
 }
