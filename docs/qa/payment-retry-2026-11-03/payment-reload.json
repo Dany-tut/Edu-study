@@ -1,0 +1,24 @@
+{
+  "tag": "reload",
+  "scope": "Exact source addPayment with real production Auth/PostgREST; fixture owner/client injection; synthetic rows only",
+  "results": [
+    {
+      "scenario": "lost response after commit, module reload, then retry",
+      "status": "PASS",
+      "count": 1,
+      "ids": [
+        "6dcd3617-9856-4cb6-80a4-bb74d9089093"
+      ]
+    },
+    {
+      "scenario": "new confirmed payment with identical amount remains distinct",
+      "status": "PASS"
+    },
+    {
+      "scenario": "abort after commit then retry",
+      "status": "PASS"
+    }
+  ],
+  "commits": 3,
+  "cleanupErrors": []
+}

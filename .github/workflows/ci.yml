@@ -199,6 +199,7 @@ jobs:
           done
           npm run check:student-topbar
           npm run check:calendar-browser
+          npm run check:shelf-filters-browser
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -207,6 +208,7 @@ jobs:
           path: |
             /tmp/iskra-topbar-qa/
             /tmp/iskra-calendar-day-qa/
+            /tmp/iskra-shelf-filters/
           if-no-files-found: ignore
 
       - name: Сборка

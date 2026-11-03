@@ -1,0 +1,37 @@
+{
+  "scope": "Full UI on http://127.0.0.1:5385 with real production backend and synthetic bookkeeping rows; no money transfer",
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "b98fcdbc7beb29134355a5b26a46a68879e953df",
+    "build": 1929,
+    "version": "1.0.1929"
+  },
+  "results": [
+    {
+      "name": "Payment commits but lost response leaves recoverable input",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload then UI retry confirms original payment without duplicate",
+      "status": "PASS"
+    },
+    {
+      "name": "New independently confirmed payment remains distinct",
+      "status": "PASS"
+    },
+    {
+      "name": "Delete error is visible and keeps both server rows",
+      "status": "PASS"
+    },
+    {
+      "name": "Delete retry refreshes history immediately without reload",
+      "status": "PASS"
+    },
+    {
+      "name": "Mobile delete target and overflow start middle end",
+      "status": "PASS"
+    }
+  ]
+}

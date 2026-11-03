@@ -3,12 +3,12 @@ import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Authoritative editor metadata, loaded after navigation. Never save the
  * shelf's incomplete snapshot if this request fails or is cancelled. */
-export async function loadCourseEditorMetadata(shortId: string, signal: AbortSignal): Promise<Pick<CourseEdData, 'groupIds' | 'studentIds' | 'modules' | 'lessons'>> {
+export async function loadCourseEditorMetadata(shortId: string, signal: AbortSignal): Promise<Pick<CourseEdData, 'title' | 'subject' | 'level' | 'status' | 'description' | 'color' | 'bg' | 'seedStamp' | 'groupIds' | 'studentIds' | 'modules' | 'lessons'>> {
   let modules: CourseEdData['modules'] = []
 
   const { data: dbCourse, error } = await supabase
     .from('courses')
-    .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
+    .select('id, title, subject, level, status, description, color, bg, seed_stamp, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
     .eq('short_id', shortId)
     .abortSignal(signal)
     .single()
@@ -19,6 +19,7 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
   const dbLessons = [...((dbCourse as any).lessons ?? [])].sort((a, b) => (a.lesson_number ?? a.position ?? 0) - (b.lesson_number ?? b.position ?? 0))
   const lessons: CourseEdData['lessons'] = dbLessons.map((l: any, i: number) => ({
     id: l.short_id,
+    persistedShortId: l.short_id,
     title: l.title,
     number: (l.lesson_number ?? i) + 1,
     kind: l.kind === 'test' ? 'test' : 'lesson',
@@ -52,5 +53,12 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
   if (modules.length === 0) {
     modules = [{ id: `course-${shortId}`, label: '', expanded: true, lessonIds: lessons.map(l => l.id) }]
   }
-  return { groupIds, studentIds, modules, lessons }
+  return {
+    title: dbCourse.title, subject: dbCourse.subject, level: dbCourse.level,
+    status: dbCourse.status === 'published' ? 'published' : 'draft',
+    description: dbCourse.description ?? '',
+    color: dbCourse.color ?? 'var(--color-purple)', bg: dbCourse.bg ?? 'var(--color-purple-soft)',
+    seedStamp: dbCourse.seed_stamp ?? undefined,
+    groupIds, studentIds, modules, lessons,
+  }
 }
