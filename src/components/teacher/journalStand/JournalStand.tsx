@@ -484,8 +484,8 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
   }, [entries, columns, withWork])
   const columnCount = columns.length
   const trackCount = Math.max(1, columnCount)
-  // A per-student source needs a third line. Reserve it for the whole roster in every view.
-  const showSourceLine = columns.some(({ source }) => source === null)
+  // Reserve the source line across the roster when a work column mixes sources.
+  const showSourceLine = withWork && columns.some(({ source }) => source === null)
   const nearest = withWork ? columns.reduce<string | null>((min, { upcoming }) =>
     upcoming && (!min || upcoming < min) ? upcoming : min, null) : null
   const pendingSelection = useRef(false)
