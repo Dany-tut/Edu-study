@@ -841,6 +841,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       window.setTimeout(() => setSkipFlash(f => (f && f.n === n ? null : f)), 520)
       return
     }
+    // A second tap in another zone replaces the pending single tap too.
+    // Otherwise its timer is orphaned when tapTimer is overwritten, so even an
+    // explicit Play cannot cancel it and that older toggle fires afterwards.
+    if (tapTimer.current !== null) window.clearTimeout(tapTimer.current)
     lastTap.current = { at: now, zone }
     tapTimer.current = window.setTimeout(() => {
       tapTimer.current = null
