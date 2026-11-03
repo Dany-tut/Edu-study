@@ -351,19 +351,6 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
                   </div>
                 )}
 
-                {editMode && (
-                  <div
-                    data-resize-bottom={item.type}
-                    aria-label={t('Изменить высоту виджета')}
-                    onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
-                    style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                      width: 64, height: 28, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 's-resize', touchAction: 'none' }}
-                  >
-                    <span style={{ width: 28, height: 4, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.55 }} />
-                  </div>
-                )}
-
                 {/* iOS-style resize corner */}
                 {editMode && (
                   <div

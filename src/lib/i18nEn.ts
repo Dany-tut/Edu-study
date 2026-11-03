@@ -10,6 +10,7 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Не удалось загрузить данные занятий. Попробуйте ещё раз.": "Could not load lesson data. Please try again.",
   "Нет напоминаний": "No reminders",
   'Карточек учеников': 'Student records',
   'Без долга по занятиям': 'No lesson debt',
