@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import ScrollFade from '../components/ScrollFade'
 import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from '../components/icons/appIcons'
@@ -19,7 +20,7 @@ type Step = 'loading' | 'form' | 'error'
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px', borderRadius: 12,
-  border: '1.5px solid var(--color-border)', fontSize: 14, outline: 'none',
+  border: '1.5px solid var(--color-border)', fontSize: 16, minHeight: 50, lineHeight: '22px', outline: 'none',
   boxSizing: 'border-box', marginTop: 6,
   // Explicit color + background: без них input берёт tailwind-preflight
   // `color: inherit` (светлый текст тёмной темы) на дефолтном белом фоне —
@@ -119,6 +120,7 @@ export default function JoinPage() {
   }
 
   return (
+    <ScrollFade maxHeight="100dvh" fadeHeight={24} style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)' }}>
     <div style={{
       minHeight: '100dvh', background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -187,17 +189,18 @@ export default function JoinPage() {
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder={t('Пароль')}
-                    style={{ ...inputStyle, marginTop: 0, paddingRight: 44, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
+                    style={{ ...inputStyle, marginTop: 0, paddingRight: 52, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
                     onKeyDown={e => e.key === 'Enter' && handleRegister()}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
                     aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
+              aria-pressed={showPassword}
                     style={{
-                      position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                      position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'none', border: 'none', padding: 4, cursor: 'pointer',
+                      width: 44, height: 44, background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                       color: 'var(--color-muted)',
                     }}
                   >
@@ -231,5 +234,6 @@ export default function JoinPage() {
         )}
       </motion.div>
     </div>
+    </ScrollFade>
   )
 }

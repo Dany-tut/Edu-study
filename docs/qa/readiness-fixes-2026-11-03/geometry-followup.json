@@ -1,0 +1,31 @@
+{
+  "time": "2026-11-03T04:26:31.961808+00:00",
+  "workspaceHead": "2dfc71679cb16dc72078a80b713f13a84bc98023",
+  "student": {
+    "origin": "http://127.0.0.1:5291",
+    "source": "current shared Vite",
+    "states": 35,
+    "browser": "Chrome headless; viewport emulation",
+    "sourceHashes": {
+      "src/pages/DashboardPage.tsx": "07e32eb57d67cf75328887ca4d6317d93913ca462af0036285fcfbdaec3b4a02",
+      "src/index.css": "696cfa46ccdfda6491ff0729edbb664a0860317d4154ceb1cd5b250bf2de55b6",
+      "scripts/checkStudentTopbarBrowser.mjs": "e8be36d4770c9b0e89a0c77b21751dd93725f0f6e1c7d4475b65f16389f68f6f"
+    },
+    "scope": "Actual components with empty REST fixtures and synthetic storage session; no real Auth/data acceptance"
+  },
+  "teacher": {
+    "origin": "http://127.0.0.1:5297",
+    "source": "/tmp/iskra-fixes-build-1793677865",
+    "states": 47,
+    "browser": "Chrome headless; viewport emulation",
+    "scope": "Actual production frontend/local synthetic Auth/API. Desktop payment opens; below 1024 only resize an already-open dialog. No payment mutations"
+  },
+  "notTested": [
+    "Full themes/palettes/fonts/contrast matrix",
+    "Edge, Safari and physical iOS/Windows",
+    "Full inventory and every interaction of all platform screens",
+    "CourseModuleBar/CourseNode transitions on final fix SHA; owned by another chat",
+    "Complete mobile finance entry; unavailable in checked shell"
+  ],
+  "productionModified": false
+}

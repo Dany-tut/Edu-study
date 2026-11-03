@@ -1,0 +1,404 @@
+{
+  "scope": "Actual production forms; invitation RPC responses are synthetic. No form submissions or registrations",
+  "results": [
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "status": "FAIL",
+      "error": "student password target {\"x\":814.5,\"y\":402.875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "status": "FAIL",
+      "error": "student password target {\"x\":606.5,\"y\":319.6875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "status": "FAIL",
+      "error": "student password target {\"x\":478.5,\"y\":464.875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "status": "FAIL",
+      "error": "student password target {\"x\":516.5,\"y\":319.6875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "status": "FAIL",
+      "error": "student password target {\"x\":219,\"y\":319.6875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "status": "FAIL",
+      "error": "student password target {\"x\":289,\"y\":374.875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":840.5,\"y\":403.375,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":632.5,\"y\":386.78125,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":504.5,\"y\":465.375,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":542.5,\"y\":386.78125,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":220,\"y\":416.671875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":288.609375,\"y\":416.671875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "action": "keyboard recovery",
+      "status": "FAIL",
+      "error": "locator.focus: Timeout 2500ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Забыли пароль?', exact: true })\u001b[22m\n"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":844.5,\"y\":480.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":636.5,\"y\":330.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":508.5,\"y\":542.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":546.5,\"y\":225.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":223,\"y\":340.15625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":293,\"y\":452.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":844.5,\"y\":531.609375,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":636.5,\"y\":434.890625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":508.5,\"y\":593.609375,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":546.5,\"y\":434.890625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":223,\"y\":486.171875,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":293,\"y\":494.1875,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "status": "FAIL",
+      "error": "student password target {\"x\":814.5,\"y\":402.875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "status": "FAIL",
+      "error": "student password target {\"x\":606.5,\"y\":319.6875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "status": "FAIL",
+      "error": "student password target {\"x\":478.5,\"y\":464.875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 844,
+      "height": 390,
+      "status": "FAIL",
+      "error": "student password target {\"x\":516.5,\"y\":319.6875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "status": "FAIL",
+      "error": "student password target {\"x\":219,\"y\":319.6875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "status": "FAIL",
+      "error": "student password target {\"x\":289,\"y\":374.875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":840.5,\"y\":403.375,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":632.5,\"y\":386.78125,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":504.5,\"y\":465.375,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 844,
+      "height": 390,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":542.5,\"y\":386.78125,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":220,\"y\":416.671875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "status": "FAIL",
+      "error": "teacher password target {\"x\":288.609375,\"y\":416.671875,\"width\":32,\"height\":32}"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "action": "keyboard recovery",
+      "status": "FAIL",
+      "error": "locator.focus: Timeout 2500ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Забыли пароль?', exact: true })\u001b[22m\n"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":844.5,\"y\":480.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":636.5,\"y\":330.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":508.5,\"y\":542.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 844,
+      "height": 390,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":546.5,\"y\":225.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":223,\"y\":340.15625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "status": "FAIL",
+      "error": "join-student password target {\"x\":293,\"y\":452.515625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":844.5,\"y\":531.609375,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":636.5,\"y\":434.890625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":508.5,\"y\":593.609375,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 844,
+      "height": 390,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":546.5,\"y\":434.890625,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":223,\"y\":486.171875,\"width\":26,\"height\":26}"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "status": "FAIL",
+      "error": "join-teacher password target {\"x\":293,\"y\":494.1875,\"width\":26,\"height\":26}"
+    }
+  ],
+  "errors": []
+}

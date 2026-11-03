@@ -1,0 +1,1 @@
+PASS: whole-ruble validation preserves accepted values and rejects signs, decimals, exponents, invalid counts and int4 overflow

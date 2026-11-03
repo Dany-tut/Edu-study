@@ -1,0 +1,8 @@
+
+> student-dashboard@1.0.0 check:feed-release
+> node scripts/checkFeedRelease.mjs
+
+PASS: feed release success
+PASS: feed release failed-ci
+PASS: feed release concurrent-main
+PASS: feed release unchanged

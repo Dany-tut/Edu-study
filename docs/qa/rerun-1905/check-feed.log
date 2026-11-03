@@ -1,0 +1,62 @@
+
+> student-dashboard@1.0.0 check:feed
+> node scripts/checkFeed.mjs
+
+Счётчики:
+  ✓ en: 45
+  ✓ ja: 44
+  ✓ ko: 52
+  ✓ pt: 43
+
+Источники:
+  ✓ en: nasa
+  ✓ en: ted
+  ✓ en: sci-retold-en
+  ✓ en: bbc-yt
+  ✓ en: cnn-yt
+  ✓ en: met-museum
+  ✓ en: two-minute-papers
+  ✓ en: vox
+  ✓ en: veritasium
+  ✓ en: natgeo
+  ✓ en: doe
+  ✓ en: the-conversation
+  ✓ en: mit-open
+  ✓ en: kurzgesagt
+  ✓ en: ted-ed
+  ✓ en: esa
+  ✓ en: boston-dynamics
+  ✓ ja: wikinews-ja
+  ✓ ja: ann-news
+  ✓ ja: quizknock
+  ✓ ja: hikakin
+  ✓ ja: tbs-news
+  ✓ ja: kevins-room
+  ✓ ja: tokai-onair
+  ✓ ja: yobinori
+  ✓ ja: miraikan
+  ✓ ja: kahaku
+  ✓ ja: yuru-cs
+  ✓ ja: jst-science
+  ✓ ko: wikinews-ko
+  ✓ ko: sbs-news
+  ✓ ko: samsung-kr
+  ✓ ko: sci-retold-ko
+  ✓ ko: ebs-docu
+  ✓ ko: kbs-world
+  ✓ ko: mbc-ent
+  ✓ ko: syuka
+  ✓ ko: chimchakman
+  ✓ ko: sherlock-hj
+  ✓ ko: nmk-museum
+  ✓ ko: knowledge-pirates
+  ✓ ko: anduel-tech
+  ✓ ko: korea-kr-health
+  ✓ ko: korea-kr-space
+  ✓ ko: korea-kr-research
+  ✓ ko: korea-kr-ai
+  ✓ ko: korea-kr-economy
+  ✓ ko: korea-kr-chip
+  ✓ pt: agencia-brasil
+
+Лента в порядке.

@@ -1,0 +1,7 @@
+
+> student-dashboard@1.0.0 check:exams
+> node scripts/checkExamClaims.mjs
+
+Заявлений: 13, источников: 6, срок свежести: 183 дней
+
+✅ Все заявления сверялись не позже 183 дней назад.

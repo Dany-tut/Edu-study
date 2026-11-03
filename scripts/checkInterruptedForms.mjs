@@ -10,8 +10,9 @@ const entry = `import React from 'react';import{createRoot}from'react-dom/client
 import Attendance from './src/components/teacher/journalStand/AttendanceEditor';
 import EmailCode from './src/components/teacher/TeacherEmailCodeLogin';
 import TeacherLogin from './src/pages/teacher/TeacherLoginPage';
+import StudentLogin from './src/pages/StudentLoginPage';
 const cells=[0,1].slice(0,window.__view==='partial'?2:1).map(i=>({student:{id:'s'+i,name:'QA Ученик '+i},column:{title:'QA Урок'},event:{id:'event'+i,group_id:'group',date:'2026-11-03',time_start:'10:00',lesson_title:'QA Урок'},present:null,grade:null}));
-let root=createRoot(document.getElementById('root'));const screen=()=>window.__view==='login'?<TeacherLogin onLogin={()=>window.__loggedIn++}/>:window.__view==='otp'?<EmailCode onLogin={()=>window.__loggedIn++}/>:<Attendance cells={cells} onClose={()=>window.__closed++} onSaved={()=>window.__saved++}/>;window.__remount=()=>{root.unmount();root=createRoot(document.getElementById('root'));root.render(screen())};root.render(screen());`
+let root=createRoot(document.getElementById('root'));const screen=()=>window.__view==='student'?<StudentLogin/>:window.__view==='login'?<TeacherLogin onLogin={()=>window.__loggedIn++}/>:window.__view==='otp'?<EmailCode onLogin={()=>window.__loggedIn++}/>:<Attendance cells={cells} onClose={()=>window.__closed++} onSaved={()=>window.__saved++}/>;window.__remount=()=>{root.unmount();root=createRoot(document.getElementById('root'));root.render(screen())};root.render(screen());`
 const mocks = {
   groups: `export const useAttendance=()=>({saveLesson:(...args)=>window.__service(...args)});`,
   auth: `export const supabase={auth:{signInWithOtp:(...args)=>window.__service(...args),verifyOtp:(...args)=>window.__service(...args),signInWithPassword:(...args)=>window.__service(...args),resetPasswordForEmail:(...args)=>window.__service(...args)}};`,
@@ -19,9 +20,9 @@ const mocks = {
   native: `export const useNativeOverlay=()=>{};`,
   keyboard: `export const useKeyboardState=()=>({inset:0,open:false});`,
   social: `export default function Social(){return null}`,
-  session: `export const clearStudentSession=()=>{};`,
+  session: `export const clearStudentSession=()=>{};export const setStudentSession=()=>{};`,
   analytics: `export const trackNow=async()=>{};export const trackEvent=()=>{};`,
-  actions: `export const passwordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};export const verifyEmailCode=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};`,
+  actions: `export const studentPasswordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error;return r?.profile??null};export const passwordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};export const verifyEmailCode=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};`,
   capacitor: `export const Capacitor={isNativePlatform:()=>true};`,
 }
 const bundle = await build({ stdin: { contents: entry, resolveDir: process.cwd(), loader: 'tsx' },
@@ -168,6 +169,58 @@ try {
     await page.evaluate(() => window.__resolve({error:null}))
     await page.getByText('Введите код из письма: second@example.invalid',{exact:true}).waitFor()
     await record('otp-cancel-retry-late-response', page, oldIgnored, {oldIgnored})
+    await context.close()
+  }
+  {
+    const { context, page } = await fixture('login')
+    await page.getByPlaceholder('Email', { exact: true }).fill('qa@example.invalid')
+    await page.getByPlaceholder('Пароль', { exact: true }).fill('synthetic-password')
+    await page.getByRole('button', { name: 'Войти', exact: true }).click()
+    await page.getByText('Забыли пароль?', { exact: true }).click()
+    await page.evaluate(() => window.__resolve({ error: null }))
+    await page.waitForTimeout(50)
+    const loginIgnored = await page.evaluate(() => window.__loggedIn === 0)
+    await page.getByRole('button', { name: 'Отправить письмо', exact: true }).click()
+    await page.getByRole('button', { name: 'Отмена', exact: true }).click()
+    await page.evaluate(() => window.__resolve({ error: null }))
+    await page.waitForTimeout(50)
+    const resetIgnored = await page.getByRole('button', { name: 'Отправить письмо', exact: true }).isVisible()
+      && await page.evaluate(() => localStorage.getItem('iskra:password-recovery-role') === null)
+    await record('password-reset-cancel-late-response', page, loginIgnored && resetIgnored, { loginIgnored, resetIgnored })
+    await context.close()
+  }
+  {
+    const { context, page } = await fixture('student')
+    await page.getByPlaceholder('Email', { exact: true }).fill('qa@example.invalid')
+    await page.getByPlaceholder('Пароль', { exact: true }).fill('synthetic-password')
+    await page.getByRole('button', { name: 'Войти', exact: true }).click()
+    await page.getByRole('button', { name: 'Забыли пароль?', exact: true }).click()
+    await page.evaluate(() => window.__resolve({ profile: { id: 'old', name: 'Old', group_id: null } }))
+    await page.waitForTimeout(50)
+    const stayedOnRecovery = await page.getByRole('button', { name: 'Отправить письмо', exact: true }).isVisible()
+    await page.getByRole('button', { name: 'Отправить письмо', exact: true }).click()
+    await page.getByRole('button', { name: 'Отмена', exact: true }).click()
+    await page.evaluate(() => window.__resolve({ error: null }))
+    await page.waitForTimeout(50)
+    const lateResetIgnored = await page.getByRole('button', { name: 'Отправить письмо', exact: true }).isVisible()
+      && await page.evaluate(() => localStorage.getItem('iskra:password-recovery-role') === null)
+    await record('student-cancel-late-response', page, stayedOnRecovery && lateResetIgnored, { stayedOnRecovery, lateResetIgnored })
+    await context.close()
+  }
+  {
+    const { context, page } = await fixture('student')
+    await page.getByPlaceholder('Email', { exact: true }).fill('qa@example.invalid')
+    await page.getByPlaceholder('Пароль', { exact: true }).fill('synthetic-password')
+    await page.getByRole('button', { name: 'Войти', exact: true }).click()
+    await page.clock.runFor(31000)
+    const recovered = await page.getByRole('button', { name: 'Войти', exact: true }).isEnabled()
+    const retained = await page.getByPlaceholder('Пароль', { exact: true }).inputValue() === 'synthetic-password'
+    await record('student-timeout-retains-form', page, recovered && retained, { recovered, retained })
+    await page.getByRole('button', { name: 'Войти', exact: true }).click()
+    await page.evaluate(() => window.__reject(Error('Profile database unavailable')))
+    await page.getByRole('alert').waitFor()
+    const safeError = !(await page.getByRole('alert').innerText()).includes('database')
+    await record('student-error-retry', page, safeError && await page.getByRole('button', { name: 'Войти', exact: true }).isEnabled(), { safeError })
     await context.close()
   }
 } finally { await browser.close() }

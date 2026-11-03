@@ -1,0 +1,1 @@
+PASS shared-client cancellation before and after reload {"scope":"Actual production bundle, shared Supabase client and real local Auth; response paused after upstream /user succeeds","interceptedResponses":1,"beforeReload":{"loginVisible":true,"persistedSession":false},"afterReload":{"loginVisible":true,"persistedSession":false}}

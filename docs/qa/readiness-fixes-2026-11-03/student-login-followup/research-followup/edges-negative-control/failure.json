@@ -1,0 +1,69 @@
+{
+  "results": [
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 808.5,
+        "y": 383.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "error": "AssertionError [ERR_ASSERTION]: student/light/1024/start wrong fade edges [{\"top\":0,\"scrollHeight\":760,\"clientHeight\":600,\"mask\":\"linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))\",\"actualTop\":true,\"actualBottom\":true,\"expectedTop\":false,\"expectedBottom\":true}]",
+  "mutation": true
+}

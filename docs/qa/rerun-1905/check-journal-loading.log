@@ -1,0 +1,10 @@
+
+> student-dashboard@1.0.0 check:journal-loading
+> esbuild scripts/checkJournalLoading.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkJournalLoading.mjs --log-level=error && node node_modules/.cache/checkJournalLoading.mjs && esbuild scripts/checkMatrixRuns.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkMatrixRuns.mjs --log-level=error && node node_modules/.cache/checkMatrixRuns.mjs && esbuild scripts/checkJournalPending.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkJournalPending.mjs --log-level=error && node node_modules/.cache/checkJournalPending.mjs
+
+Journal loading: complete pagination, timeout recovery, bounded failure and cancellation passed.
+Parallel journal: complete ordered rows, bounded concurrency, split timeout retries, required failures, tail and cancellation passed.
+PASS: fallback retains all 2107 rows across windows with two bounded responses
+PASS: sparse matrix retains exact positions and every assigned work; empty cells compressed
+PASS: journal windows cover every column on mobile/desktop, preserve tracks and respect HTML span limits
+PASS: shared pending journal preserves group/direct events, complete and partial marks, ambiguous legacy marks, separate lessons and two-hour grace

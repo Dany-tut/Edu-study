@@ -55,7 +55,7 @@ export default function AttendanceEditor({ cells, onClose, onSaved }: {
   }
   return <Modal title={cells.length === 1 ? cells[0].student.name : 'Оценки за урок'}
     subtitle={cells[0]?.column.title} width={640} onClose={close}
-    footer={<><button type="button" className="cj-button" onClick={close}>Отмена</button><button type="button" className="cj-button cj-primary" disabled={busy || !dirty} onClick={() => void save()}>{busy ? 'Сохранение…' : 'Сохранить'}</button></>}>
+    footer={<><button type="button" className="cj-button ja-action" onClick={close}>Отмена</button><button type="button" className="cj-button cj-primary ja-action" disabled={busy || !dirty} onClick={() => void save()}>{busy ? 'Сохранение…' : 'Сохранить'}</button></>}>
     <div className="course-journal ja-editor">
       <p className="cj-note">Оценка за урок — от 1 до 5. Сначала отметьте присутствие. «Без оценки» удаляет оценку.</p>
       {cells.length > 1 && <button type="button" className="cj-button" disabled={busy} onClick={() => { draft.forEach((m, i) => remember(i, { ...m, present: true })); setDraft(v => v.map(m => ({ ...m, present: true }))) }}>Все присутствовали</button>}
