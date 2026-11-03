@@ -280,7 +280,9 @@ function AppRoutes() {
     return <Chunk><OAuthConsentPage /></Chunk>
   }
 
-  if (IS_NATIVE && (hash.startsWith('#/entry') || hash === '' || hash === '#' || hash === '#/')) {
+  const studentSession = getStudentSession()
+  const isRoot = hash === '' || hash === '#' || hash === '#/'
+  if (IS_NATIVE && (hash.startsWith('#/entry') || (isRoot && !studentSession))) {
     return <Chunk><NativeEntryPage /></Chunk>
   }
 
@@ -344,7 +346,6 @@ function AppRoutes() {
   if (hash.startsWith('#/login')) return <Chunk><StudentLoginPage /></Chunk>
 
   // Public landing (главная для гостя) + student routes
-  const studentSession = getStudentSession()
   if (!studentSession) {
     // Гость с присланной ссылкой идёт в тренажёр, а не на лендинг: материал
     // языка общий, и держать его за турникетом значит, что ссылка работает
