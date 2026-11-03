@@ -49,9 +49,14 @@ const grant=p.locator('.claude-access-grant')
 await grant.waitFor()
 const g=await grant.boundingBox(), revoke=await grant.getByRole('button').boundingBox()
 assert(Math.abs(g.x+g.width-revoke.x-revoke.width)<1)
+const guide=card.getByRole('heading',{name:'Что делать с ZIP-архивом'})
+assert.equal(await guide.count(),0)
 const dl=p.waitForEvent('download');await card.getByText('Скачать для Mac').click();assert.equal((await dl).suggestedFilename(),'iskra-transcription-mac.zip')
-await card.getByText('Подключить компьютер').click();await card.getByText('Подключаем…').waitFor();await card.getByRole('alert').waitFor();fail=false
-await card.getByText('Подключить компьютер').click();await card.getByText('Отключить компьютер').click();await card.getByText('Не подключён',{exact:true}).waitFor()
+await guide.waitFor()
+await card.getByText('start.command',{exact:true}).waitFor()
+assert.equal(await card.locator('.transcription-setup li').count(),3)
+await card.getByRole('button',{name:/Подключить компьютер/}).click();await card.getByText('Подключаем…').waitFor();await card.getByRole('alert').waitFor();fail=false
+await card.getByRole('button',{name:/Подключить компьютер/}).click();await card.getByText('Отключить компьютер').waitFor();assert.equal(await guide.count(),0);await card.getByText('Отключить компьютер').click();await card.getByText('Не подключён',{exact:true}).waitFor()
 if(shots) {
  for(const [i,f] of [0,.5,1].entries()) {
   await p.evaluate(f=>{for(const [sel,key] of [['.teacher-page-scroll','scrollTop'],['.teacher-profile-header .no-scrollbar','scrollLeft']]){const el=document.querySelector(sel);el[key]=(key==='scrollTop'?el.scrollHeight-el.clientHeight:el.scrollWidth-el.clientWidth)*f}},f)

@@ -58,7 +58,7 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
     <div className="transcription-module-body">
       <p>{connected
         ? 'Чтобы расшифровать урок, откройте вкладку «Запись» в конструкторе курса.'
-        : <>Распакуйте архив и запустите <code>start.command</code>. При первом запуске Mac загрузит модели. Затем подключите компьютер к Искре.</>}</p>
+        : 'Скачайте ZIP-архив на тот Mac, на котором будете расшифровывать уроки.'}</p>
       {connected ? <div className="integration-actions">
         <button className="integration-action integration-disconnect" disabled={busy || !owner} onClick={change}>
           {busy ? 'Отключаем…' : 'Отключить компьютер'}
@@ -72,6 +72,16 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
           <span className="integration-step-number">2</span> {busy ? 'Подключаем…' : 'Подключить компьютер'}
         </button>
       </div>}
+      <div aria-live="polite" className="transcription-setup">
+        {downloadStarted && !connected && <>
+          <h4>Что делать с ZIP-архивом</h4>
+          <ol>
+            <li>Когда загрузка закончится, откройте папку «Загрузки» в Finder. Дважды нажмите на <code>iskra-transcription-mac.zip</code>. Если уже появилась папка <code>Iskra</code>, откройте её.</li>
+            <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. Откроется Терминал. При первом запуске Mac скачает модели.</li>
+            <li>Дождитесь строки <code>Running on http://127.0.0.1:18764</code>. Оставьте Терминал открытым, вернитесь в Искру и нажмите «Подключить компьютер».</li>
+          </ol>
+        </>}
+      </div>
       {message && <p className="transcription-module-error" role="alert">{message}</p>}
     </div>
   </section>
