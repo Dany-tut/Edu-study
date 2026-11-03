@@ -107,6 +107,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
       <div className="auth-page-card">
         {mode !== 'newpassword' && <AuthRoleHeader logoTone="deep" onLeave={() => action.cancel()} />}
         <AuthHero
+          compactTitle={mode === 'login'}
           hideArt={keyboard.open}
           object={mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'reminders'}
           title={mode === 'sent' ? t('Проверьте почту') : mode === 'newpassword' ? t('Придумайте новый пароль') : mode === 'reset' ? t('Восстановить пароль') : t('Вход для препода')}
@@ -209,7 +210,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           {mode === 'login' && (
             <button type="button"
               onClick={() => switchMode('reset')}
-              style={{ alignSelf: 'flex-end', minHeight: 44, padding: 0, border: 0, background: 'none', color: 'var(--color-purple)', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginTop: -4 }}
+              style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginTop: -4 }}
             >
               {t('Забыли пароль?')}
             </button>
