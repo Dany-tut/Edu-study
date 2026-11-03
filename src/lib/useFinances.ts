@@ -105,8 +105,11 @@ export async function addPayment(params: {
   try { localStorage.removeItem(key) } catch { /* Storage is optional. */ }
 }
 
-export async function deletePayment(id: string) {
-  const { error } = await supabase.from('payments').delete().eq('id', id)
+export async function deletePayment(id: string, signal?: AbortSignal) {
+  signal?.throwIfAborted()
+  const request = supabase.from('payments').delete().eq('id', id).retry(false)
+  const { error } = await (signal ? request.abortSignal(signal) : request)
+  signal?.throwIfAborted()
   if (error) throw error
 }
 

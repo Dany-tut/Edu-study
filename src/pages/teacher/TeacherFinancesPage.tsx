@@ -118,6 +118,8 @@ function StudentRow({
   const { tn } = useTc()
   const status = getStatus(student)
   const { payments, reload } = usePayments(student.id)
+  const deletion = useAsyncTask()
+  const [deleteError, setDeleteError] = useState('')
 
   const statusColor = status === 'overdue' ? 'var(--color-red-text)'
     : status === 'soon' ? '#D07020'
@@ -130,9 +132,11 @@ function StudentRow({
 
   const balance = student.lessonBalance ?? 0
 
-  async function handleDelete(id: string) {
-    await deletePayment(id)
-    onChanged()
+  function handleDelete(id: string) {
+    setDeleteError('')
+    void deletion.run(signal => deletePayment(id, signal),
+      () => { void reload(); onChanged() },
+      () => setDeleteError(t('Не удалось удалить платёж. Попробуйте ещё раз.')))
   }
 
   return (
@@ -220,6 +224,7 @@ function StudentRow({
         </div>
       </div>
 
+      {deleteError && <Alert tone="danger" text={deleteError} />}
       {/* Payment history */}
       <AnimatePresence>
         {expanded && (
@@ -255,10 +260,13 @@ function StudentRow({
                     +{fmt(p.amount)} ₽
                   </div>
                   <button
+                    aria-label={t('Удалить платёж')}
+                    disabled={deletion.busy}
                     onClick={() => handleDelete(p.id)}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: 'var(--color-text-3)', padding: 2, display: 'flex',
+                      minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center',
                     }}
                   >
                     <Trash2 size={14} />
