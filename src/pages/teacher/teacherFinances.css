@@ -1,0 +1,55 @@
+.finance-page {
+  box-sizing: border-box;
+  width: 100%;
+  margin-inline: auto;
+  padding: 28px var(--finance-gutter) 60px;
+  overflow-wrap: anywhere;
+}
+.finance-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.finance-summary > div + div { border-inline-start: 1px solid var(--color-border); }
+.finance-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 5rem 8rem auto auto;
+  grid-template-areas: "avatar student balance amount pay details";
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+.finance-row > :first-child { grid-area: avatar; }
+.finance-row > :nth-child(2) { grid-area: student; }
+.finance-balance { grid-area: balance; justify-self: end; }
+.finance-amount { grid-area: amount; text-align: end; }
+.finance-pay { grid-area: pay; }
+.finance-details {
+  grid-area: details; display: grid; place-items: center; width: 44px; height: 44px;
+  background: transparent; border: 0; color: var(--color-text-3); cursor: pointer;
+}
+@media (max-width: 700px) {
+  .finance-page { padding-inline: var(--finance-phone-gutter); --finance-filter-display: grid; --finance-filter-radius: 16px; }
+  .finance-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .finance-summary > div:nth-child(3) { border-inline-start: 0; }
+  .finance-summary > div:nth-child(n+3) { border-top: 1px solid var(--color-border); }
+  .finance-page [role="tablist"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .finance-page [role="tab"] { min-height: 44px; }
+  .finance-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "avatar student details" "balance amount pay";
+    padding: 12px; gap: 6px 8px;
+  }
+  .finance-details { justify-self: end; }
+  .finance-balance { justify-self: start; }
+  .finance-pay { min-height: 44px; }
+}
+.finance-name {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+@media (max-width: 700px) {
+  .finance-name { flex-direction: column; align-items: stretch; gap: 2px; }
+}
