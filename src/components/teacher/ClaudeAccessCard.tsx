@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { supabase, SUPABASE_URL } from '../../lib/supabase'
+import { useAsyncTask } from '../../lib/useAsyncTask'
+import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../../lib/supabase'
 import { useT } from '../../lib/i18n'
 import { btn } from '../../lib/pillStyles'
 import { confirmDialog } from '../ConfirmHost'
@@ -7,7 +8,7 @@ import { Alert } from '../Alert'
 import { Copy, Sparkles } from '../icons/appIcons'
 import './profileIntegrations.css'
 
-type Grant = { client: { id: string; name: string } }
+type Grant = { owner: string; client: { id: string; name: string } }
 const endpoint = SUPABASE_URL + '/functions/v1/iskra-mcp'
 
 export default function ClaudeAccessCard() {
@@ -16,11 +17,17 @@ export default function ClaudeAccessCard() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [service, setService] = useState<'loading' | 'ready' | 'unavailable'>('loading')
   const probe = useRef<AbortController | null>(null)
-  const [acting, setActing] = useState(false)
+  const owner = useRef<string | null>(null)
+  const { busy: acting, run: runRevoke, cancel: cancelRevoke } = useAsyncTask()
+  const { run: runCopy, cancel: cancelCopy } = useAsyncTask()
   const [notice, setNotice] = useState('')
   const sequence = useRef(0)
   const refresh = useCallback(async () => {
+    const account = owner.current
+    if (!account) return
     const seq = ++sequence.current
+    cancelRevoke()
+    cancelCopy()
     setStatus('loading')
     setService('loading')
     probe.current?.abort()
@@ -42,34 +49,64 @@ export default function ClaudeAccessCard() {
       const {data, error} = await supabase.auth.oauth.listGrants()
       if (error) throw error
       if (seq !== sequence.current) return
-      setGrants(data ?? [])
+      setGrants((data ?? []).map(g => ({ owner: account, client: g.client })))
       setStatus('ready')
     } catch {
       if (seq === sequence.current) setStatus('error')
     }
-  }, [])
+  }, [cancelRevoke, cancelCopy])
   useEffect(() => {
-    void refresh()
+    let scheduled: ReturnType<typeof setTimeout>
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id ?? null
+      if (next === owner.current) return
+      owner.current = next
+      sequence.current++
+      cancelRevoke(); cancelCopy(); probe.current?.abort()
+      setGrants([]); setNotice(''); setStatus('loading')
+      clearTimeout(scheduled)
+      // Auth callbacks run under the SDK session lock.
+      if (next) scheduled = setTimeout(refresh, 0)
+    })
     const visible = () => { if (!document.hidden) void refresh() }
     document.addEventListener('visibilitychange', visible)
-    return () => { sequence.current++; probe.current?.abort(); document.removeEventListener('visibilitychange', visible) }
-  }, [refresh])
+    return () => {
+      sequence.current++; owner.current = null
+      clearTimeout(scheduled); probe.current?.abort(); data.subscription.unsubscribe()
+      document.removeEventListener('visibilitychange', visible)
+    }
+  }, [refresh, cancelRevoke, cancelCopy])
 
-  async function revoke(grant: Grant) {
-    const ok = await confirmDialog({ title:t('Отозвать доступ?'), message:grant.client.name + ' · ' + grant.client.id, confirmLabel:t('Отозвать доступ'), tone:'danger' })
-    if (!ok) return
-    setActing(true); setNotice('')
-    try {
-      const {error} = await supabase.auth.oauth.revokeGrant({ clientId:grant.client.id })
-      if (error) throw error
-      setNotice('Доступ отозван.')
-    } catch { setNotice('Не удалось отозвать доступ. Попробуйте ещё раз.') }
-    finally { await refresh(); setActing(false) }
+  function revoke(grant: Grant) {
+    if (grant.owner !== owner.current) return
+    const generation = sequence.current
+    cancelCopy()
+    setNotice('')
+    void runRevoke(async signal => {
+      const ok = await confirmDialog({ title:t('Отозвать доступ?'), message:grant.client.name + ' · ' + grant.client.id, confirmLabel:t('Отозвать доступ'), tone:'danger' })
+      signal.throwIfAborted()
+      if (!ok || generation !== sequence.current) return false
+      const { data: { session } } = await supabase.auth.getSession()
+      signal.throwIfAborted()
+      if (!session || session.user.id !== grant.owner || owner.current !== grant.owner || generation !== sequence.current) return false
+      // Bind the DELETE to the confirmed account. The shared SDK helper would
+      // look up the current session again and cannot take an AbortSignal.
+      const url = new URL(SUPABASE_URL + '/auth/v1/user/oauth/grants')
+      url.searchParams.set('client_id', grant.client.id)
+      const response = await fetch(url, { method:'DELETE', signal, headers:{
+        apikey:SUPABASE_KEY, Authorization:'Bearer ' + session.access_token,
+      } })
+      if (!response.ok) throw new Error()
+      return true
+    }, revoked => {
+      if (revoked) { setNotice('Доступ отозван.'); void refresh() }
+    }, () => { setNotice('Не удалось отозвать доступ. Попробуйте ещё раз.'); void refresh() })
   }
 
-  async function copy() {
-    try { await navigator.clipboard.writeText(endpoint); setNotice('Адрес скопирован.') }
-    catch { setNotice('Не удалось скопировать адрес.') }
+  function copy() {
+    setNotice('')
+    void runCopy(() => navigator.clipboard.writeText(endpoint),
+      () => setNotice('Адрес скопирован.'), () => setNotice('Не удалось скопировать адрес.'))
   }
 
   return <section className="claude-access" aria-label="Claude (MCP)">
@@ -80,7 +117,7 @@ export default function ClaudeAccessCard() {
     <p>{t('В Claude откройте Settings → Connectors → Add custom connector и вставьте адрес Искры.')}</p>
     <code>{endpoint}</code>
     <div className="claude-access-actions">
-      <button type="button" style={btn('S','secondary')} onClick={copy}><Copy size={15}/>{t('Скопировать адрес')}</button>
+      <button type="button" style={btn('S','secondary')} disabled={acting} onClick={copy}><Copy size={15}/>{t('Скопировать адрес')}</button>
       <button type="button" style={btn('S','secondary')} disabled={acting || status === 'loading'} onClick={() => { setNotice(''); void refresh() }}>{t('Обновить статус')}</button>
     </div>
     <div><strong>{t('Подключённые приложения')}</strong>
