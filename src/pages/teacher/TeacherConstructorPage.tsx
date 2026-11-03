@@ -8181,8 +8181,7 @@ export default function TeacherConstructorPage() {
    * предмета): курсы и тесты хранят предмет русским именем и переводят его на
    * границе через canonSubject, а не заводят второй словарь.
    */
-  // Мультивыбор без «все»: пока у учителя несколько предметов и ни один не
-  // отмечен, витрины пусты (см. activeShelfSubjects в ShelfFilters).
+  // На курсах пустой выбор показывает все предметы.
   const [shelfSubjects, setShelfSubjects] = usePersistentState<string[]>('ctor.subjects', [])
   // Банк заданий отбирается своим набором полей, и предмет — его вершина:
   // разделы, темы, части и линии бывают только внутри ОДНОГО предмета. Отмечено
@@ -8314,10 +8313,9 @@ export default function TeacherConstructorPage() {
   )
   // Тот же расклад, что у тестов: общий предмет, по которому курсов нет, не
   // прячет витрину — он просто не сужает её.
-  // null — предметов несколько, а не отмечен ни один: курсов не показываем.
   // Курс без предмета ничьим не мешает и виден всегда.
   const courseSubjects = useShelfSubjects(shelfSubjects, subjectOpts).active
-  const courseSubjectOk = (c: Course) => { const id = canonSubject(c.subject.trim()); return !id || !!courseSubjects?.includes(id) }
+  const courseSubjectOk = (c: Course) => { const id = canonSubject(c.subject.trim()); return !id || !courseSubjects || courseSubjects.includes(id) }
   const testSubjectOf = useMemo(() => {
     const m = new Map<string, string>()
     myDiag.forEach(id => m.set(id, testSubjectName(id)))
@@ -9465,7 +9463,7 @@ export default function TeacherConstructorPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
                   <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
                   <SubjectFacet
-                    values={shelfSubjects} only={subjectOpts}
+                    values={shelfSubjects} only={subjectOpts} allowAll
                     accent="var(--color-green-text)"
                     onChange={setShelfSubjects}
                   />
@@ -9689,7 +9687,7 @@ export default function TeacherConstructorPage() {
               {/* Сетка сжимается мгновенно, а плавность даёт framer: один замер до и
                   после. CSS-переход здесь менял столбцы посреди кадров, и плитки
                   перескакивали мимо layout-анимации. */}
-              {((activeTab === 'course' && !dbLoading && !courseSubjects) || (activeTab === 'testing' && !testSubjects)) && <PickSubjectHint />}
+              {activeTab === 'testing' && !testSubjects && <PickSubjectHint />}
               <div style={{ position: 'relative', marginRight: diagShift }}>
               {diagClampH != null && <ScrollOverlays thumb={diagScroll.thumb} />}
               {/* layoutScroll: переезды плиток меряются с учётом прокрутки окна. */}

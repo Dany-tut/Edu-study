@@ -387,7 +387,7 @@ export function shelfSubjectOpts(only: string[] | undefined, mine: string[] | nu
 /**
  * Какие предметы витрина показывает сейчас — или `null`: «сначала выберите».
  *
- * «Все предметы» больше не бывает. Учителю химии ни к чему корейские полки
+ * На витринах с обязательным выбором учителю химии ни к чему корейские полки
  * вперемешку с его заданиями, а учителю трёх предметов — каша из трёх сразу.
  * Предмет один — он и показан, выбирать нечего. Несколько — витрина пуста,
  * пока в фасете не отмечен хотя бы один (можно несколько). Выбор общий на все
@@ -418,11 +418,12 @@ export function useShelfSubjects(picked: string[], only?: string[]) {
  * хранит предмет строкой («Биология» в courses.subject), переводит его на
  * границе через canonSubject/subjectNameOf, а не заводит второй словарь.
  *
- * МУЛЬТИВЫБОР, БЕЗ «ВСЕ». Клик по строке отмечает/снимает предмет, меню не
+ * МУЛЬТИВЫБОР. При allowAll пустой выбор означает «Все предметы». Клик по строке отмечает/снимает предмет, меню не
  * закрывается. Пока ничего не отмечено, таблетка просит «Выберите предмет», а
  * витрина пуста (см. activeShelfSubjects). Предмет один — таблетки нет.
  */
-export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, searchable }: {
+export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, searchable, allowAll = false }: {
+  allowAll?: boolean
   values: string[]
   onChange: (v: string[]) => void
   accent: string
@@ -451,7 +452,8 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
     const rest = values.filter(x => x !== v)
     onChange(rest.length === values.length ? [...values, v] : rest)
   }
-  const head = on.length === 0 ? t('Выберите предмет')
+  const showAll = allowAll && on.length === 0
+  const head = on.length === 0 ? t(showAll ? 'Все предметы' : 'Выберите предмет')
     : on.length === 1 ? label(on[0])
     : `${label(on[0])} +${on.length - 1}`
   return (
@@ -481,6 +483,12 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
                   fontSize: 13, color: 'var(--color-text)', fontFamily: 'inherit', outline: 'none' }} />
             )}
             <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
+              {allowAll && (
+                <button type="button" aria-pressed={showAll} onClick={() => onChange([])}
+                  style={rowStyle(showAll, soft)}>
+                  <MenuRowLabel label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><BookOpen size={16} />{t('Все предметы')}</span>} on={showAll} accent={accent} />
+                </button>
+              )}
               {rows.map((val, i) => val === FACET_SEP ? (
                 <div key={`sep${i}`} style={{ height: 1, margin: '6px 8px', background: 'var(--color-border)' }} />
               ) : (

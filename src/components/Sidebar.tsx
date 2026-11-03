@@ -638,7 +638,7 @@ export default function Sidebar() {
                     {isAdmin && (
                       <SettingsRow
                         icon={GraduationCap}
-                        label={t('В кабинет преподавателя')}
+                        label={t('В кабинет препода')}
                         onClick={() => { closePicker(); window.location.hash = '#/teacher' }}
                       />
                     )}
