@@ -1,0 +1,22 @@
+Contrast 320 light 8.84/7.75
+PASS consent UI 320 light
+Contrast 320 dark 13.20/9.32
+PASS consent UI 320 dark
+Contrast 390 light 8.84/7.75
+PASS consent UI 390 light
+Contrast 390 dark 13.20/9.32
+PASS consent UI 390 dark
+Contrast 1440 light 8.84/7.75
+PASS consent UI 1440 light
+Contrast 1440 dark 13.20/9.32
+PASS consent UI 1440 dark
+PASS Real consent UI: six sizes/themes, deny/approve, fixed actions and fades
+PASS Authenticated MCP initialize and four tools
+PASS Create own draft course and first module via OAuth MCP
+PASS Add own draft lesson and notes
+PASS Create and link own lesson test; existing test is preserved
+PASS Foreign teacher cannot read or change A course through MCP
+PASS Student cannot create or list teacher courses
+PASS Published own course rejects lesson writes
+PASS OAuth grant revocation denies existing access and refresh
+cleanup errors 0

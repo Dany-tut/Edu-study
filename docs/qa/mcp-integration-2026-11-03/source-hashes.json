@@ -1,0 +1,11 @@
+{
+  "base": "d0d03e970f446519af2b16560e7a225679a3fd55",
+  "layer": "Base + uncommitted task patch used in local full UI acceptance",
+  "sha256": {
+    "src/pages/teacher/OAuthConsentPage.tsx": "ee92d00afed168b0723bacfe533ee622da31b49b02a57fd696cce4bc80c64d64",
+    "src/lib/oauthConsent.ts": "8bcf5709671f92ed0f2fe645f231147e051b09805f563b268e63d45241e94d9b",
+    "src/components/teacher/ClaudeAccessCard.tsx": "720a4348ec8cd68f7fac701d528ae9a7e7dd748a38f934710743c8fdcaa1456d",
+    "src/components/teacher/TeacherModules.tsx": "6d1bace00ea00b046c0ed5aa220e2d96b273e8f20a8bc2c13b201d7056386632",
+    "src/lib/i18nEn.ts": "6b6c5a0167df1b39c951dee14e38228d24dde2a9197f580a1abdcbc1dbab9c80"
+  }
+}
