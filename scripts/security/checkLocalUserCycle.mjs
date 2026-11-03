@@ -5,7 +5,8 @@ import {readFileSync,writeFileSync,mkdirSync} from 'node:fs'
 import {randomUUID} from 'node:crypto'
 import assert from 'node:assert/strict'
 const {chromium}=await import(process.env.ISKRA_PLAYWRIGHT_MODULE||'/tmp/iskra-icon-qa/node_modules/playwright/index.mjs')
-const root=process.env.ISKRA_LOCAL_DIR||'/tmp/iskra-local-security',base='http://127.0.0.1:5291'
+const root=process.env.ISKRA_LOCAL_DIR||'/tmp/iskra-local-security',base=process.env.ISKRA_QA_BASE_URL||'http://127.0.0.1:5291'
+assert.equal(new URL(base).hostname,'127.0.0.1')
 const cfg=JSON.parse(readFileSync(root+'/status.json','utf8'))
 assert.equal(new URL(cfg.API_URL).hostname,'127.0.0.1')
 const make=key=>createClient(cfg.API_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})
@@ -41,12 +42,12 @@ async function newContext(){if(context)await context.close();context=await brows
 async function consent(){await page.getByText('Согласен(а) на обработку данных.',{exact:true}).click();await page.getByRole('button',{name:'Принимаю и продолжаю',exact:true}).click()}
 async function openHomework(){await page.goto(`${base}/#/homework/${ref}`,{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'})}
 async function pollProgress(predicate){for(let i=0;i<50;i++){const r=await ok(teacher.from('lesson_progress').select('id,status,score,attachments,review_comment').eq('student_id',student.id).eq('lesson_ref',ref).maybeSingle());if(r&&predicate(r))return r;await new Promise(r=>setTimeout(r,200))}throw Error('Expected server state not reached')}
-async function login(credentials){await page.goto(base+'/#/login',{waitUntil:'domcontentloaded'});await page.locator('input[type=email]').fill(credentials.email);await page.locator('input[type=password]').fill(credentials.password);await page.getByRole('button',{name:'Войти',exact:true}).click();await page.getByRole('button',{name:'Войти',exact:true}).waitFor({state:'hidden'})}
+async function login(credentials){await page.goto(base+'/#/login',{waitUntil:'domcontentloaded'});await page.locator('input[type=email]').fill(credentials.email);await page.locator('input[type=password]').fill(credentials.password);await page.getByRole('button',{name:'Войти',exact:true}).click();await page.getByPlaceholder('Email',{exact:true}).waitFor({state:'hidden'})}
 async function history(){await page.getByText('ДЗ зачтено · 90%',{exact:true}).waitFor();await page.getByRole('button',{name:/^История попыток/}).click();await page.getByText('Ответы в этой попытке',{exact:true}).click();await page.getByText(answer,{exact:true}).first().waitFor();assert.equal(await page.locator('img[onerror]').count(),0);assert.equal(await page.locator('body').getAttribute('data-qa-xss'),null);assert.ok((await page.locator('body').innerText()).includes(comment))}
 try{
  browser=await chromium.launch({channel:process.env.ISKRA_BROWSER_CHANNEL || 'chrome',headless:true,args:['--disable-background-networking','--renderer-process-limit=2','--js-flags=--max-old-space-size=512']});await newContext()
  await step('Student opens invitation and registers through UI',async()=>{
-  await page.goto(`${base}/#/join?token=${student.invite_token}`,{waitUntil:'domcontentloaded'});await page.getByPlaceholder('Email (логин)',{exact:true}).fill(studentCredentials.email);await page.getByPlaceholder('Пароль',{exact:true}).fill(studentCredentials.password);await page.getByRole('button',{name:'Войти в платформу',exact:true}).click();await consent();
+  await page.goto(`${base}/#/join?token=${student.invite_token}`,{waitUntil:'domcontentloaded'});await page.getByPlaceholder('Email (логин)',{exact:true}).fill(studentCredentials.email);await page.getByPlaceholder('Пароль',{exact:true}).fill(studentCredentials.password);await page.getByRole('button',{name:'Войти в платформу',exact:true}).click();await page.getByPlaceholder('Email (логин)',{exact:true}).waitFor({state:'hidden'});await consent();
   const linked=await ok(teacher.from('students').select('auth_user_id,temp_password').eq('id',student.id).single());assert.ok(linked.auth_user_id);assert.equal(linked.temp_password,null)
  })
  await step('Student opens assigned homework, writes answers and reloads local draft',async()=>{
@@ -93,6 +94,6 @@ try{
  await step('Reload keeps result and exactly one server attempt',async()=>{
   await page.reload({waitUntil:'domcontentloaded'});await history();const attempts=await ok(teacher.from('homework_attempts').select('id,score,status').eq('progress_id',submission.id));assert.equal(attempts.length,1);assert.equal(attempts[0].id,submission.attachments.attemptId);assert.equal(attempts[0].score,90)
  })
-}catch(e){results.push({name:'browser user cycle',status:'FAIL',error:e.message.replace(/token=[^\s"&]+/g,'token=[redacted]')});console.error('FAIL:',results.at(-1).error);process.exitCode=1}
+}catch(e){if(page){await page.screenshot({path:dir+'/failure.png',fullPage:true}).catch(()=>{});writeFileSync(dir+'/failure-text.txt',await page.locator('body').innerText().catch(()=>''))}results.push({name:'browser user cycle',status:'FAIL',error:e.message.replace(/token=[^\s"&]+/g,'token=[redacted]')});console.error('FAIL:',results.at(-1).error);process.exitCode=1}
 finally{if(browser)await browser.close();writeFileSync(dir+'/result.json',JSON.stringify({scope:'Local real Auth/DB/Storage. Assignment fixture via teacher API; student signup/submit and teacher review via UI; drafts same-browser localStorage',results,productionModified:false},null,2))}
 console.log('Evidence:',dir)
