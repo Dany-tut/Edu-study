@@ -1,0 +1,7 @@
+checkPaymentInput 0
+checkSocialAuthRecovery 0
+checkPasswordResetSecurity 0
+checkProvisionSecurity 0
+checkHomeworkAi 0
+checkSanitizeSecurity 0
+checkAccountSecurityDb 0

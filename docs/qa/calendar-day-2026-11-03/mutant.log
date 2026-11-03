@@ -1,0 +1,17 @@
+
+> student-dashboard@1.0.0 check:calendar-browser
+> node scripts/checkTeacherCalendarDay.mjs
+
+Checking 1280 820 light
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.waitForFunction: Timeout 10000ms exceeded.
+    at choose (/Users/dany/Cursor/student-dashboard/scripts/checkTeacherCalendarDay.mjs:37:15)
+    at async file:///Users/dany/Cursor/student-dashboard/scripts/checkTeacherCalendarDay.mjs:58:256 {
+  log: [],
+  name: 'TimeoutError'
+}
+
+Node.js v24.11.1

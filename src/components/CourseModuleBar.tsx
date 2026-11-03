@@ -243,7 +243,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
         const transition = { duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] as const }
 
         return (
-          <motion.div key={mod.id} layout={reduceMotion ? false : 'position'} transition={transition}
+          <div key={mod.id}
             style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', height: BAR_H, flexShrink: 0, marginRight: debts ? 10 : 0 }}>
             <Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
               <motion.button
@@ -252,8 +252,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                 aria-label={label}
                 aria-pressed={isActive}
                 disabled={isLocked}
-                whileHover={isLocked || reduceMotion ? undefined : { y: -1 }}
-                whileTap={isLocked || reduceMotion ? undefined : { scale: 0.96 }}
+                initial={false}
                 transition={transition}
                 onClick={() => { if (!isLocked) onSelect(mod.id) }}
                 style={{
@@ -262,20 +261,20 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                   display: 'inline-flex', alignItems: 'center', flexShrink: 0,
                   fontFamily: 'inherit', whiteSpace: 'nowrap',
                   background: isActive ? ACTIVE_PILL.background : isDone ? 'var(--color-green-soft)' : 'transparent',
-                  border: isActive ? ACTIVE_PILL.border : `1.5px solid ${isDone ? 'transparent' : 'var(--color-text-4)'}`,
+                  border: `1px solid ${isActive ? 'var(--color-border-glass)' : isDone ? 'transparent' : 'var(--color-text-4)'}`,
                   color: isDone ? 'var(--color-green-text)' : isLocked ? 'var(--color-muted)' : 'var(--color-text-2)',
                   opacity: isLocked ? 0.6 : 1, cursor: isLocked ? 'default' : 'pointer',
                 }}
               >
-                <span style={{ width: isActive ? BAR_H - 2 : DOT - 3, height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <motion.span style={{ width: isActive ? BAR_H - 2 : DOT - 2, height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     background: isActive ? isDone ? 'var(--color-green-soft)' : 'var(--color-accent)' : 'transparent',
                     color: isActive && !isDone ? '#fff' : 'inherit', fontSize: 12, fontWeight: 700 }}>
                     {isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
                   </span>
-                </span>
-                <motion.span initial={false} animate={{ width: isActive ? 'auto' : 0, opacity: isActive ? 1 : 0 }} transition={transition}
-                  style={{ display: 'inline-flex', overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive}>
+                </motion.span>
+                <motion.span initial={false} animate={{ opacity: isActive ? 1 : 0 }} transition={transition}
+                  style={{ display: 'inline-flex', width: isActive ? 'auto' : 0, overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, paddingLeft: debts ? 18 : 8, paddingRight: 14 }}>
                     <span style={{ ...TEXT_LIFT, fontSize: 13, fontWeight: 600, color: isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}>{name}</span>
                     {pct > 0 && <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>}
@@ -290,7 +289,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
               style={{ position: 'absolute', top: -4, left: 20, zIndex: 1, border: 0, borderRadius: 999,
                 minWidth: 20, height: 20, padding: '0 5px', background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
                 fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>{debts}</motion.button>}
-          </motion.div>
+          </div>
         )
       })}
     </div>

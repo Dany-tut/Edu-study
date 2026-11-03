@@ -1,0 +1,14 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 12000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('alert') to be visible[22m
+
+    at /Users/dany/Cursor/student-dashboard/scripts/security/checkLocalStudentLogin.mjs:11:343 {
+  log: [ "  - waiting for getByRole('alert') to be visible" ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.11.1

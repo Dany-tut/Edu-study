@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:cards
+> node scripts/checkCardParsing.mjs
+
+✅ разбор вставки и угадывание языка: 17 случаев

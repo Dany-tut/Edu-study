@@ -10,17 +10,16 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
-  "Выберите ученика для оплаты.": "Select a student for the payment.",
-  "Укажите положительную сумму в целых рублях, не больше 2 147 483 647.": "Enter a positive whole-ruble amount up to 2,147,483,647.",
-  "Укажите целое неотрицательное количество занятий.": "Enter a non-negative whole number of lessons.",
-  "Не удалось подтвердить сохранение платежа.\nПроверьте список оплат перед повтором. Введённые данные сохранены.": "Could not confirm that the payment was saved.\nCheck the payment list before trying again. Your entries have been preserved.",
-  "Выберите ученика": "Select a student",
+  "Выберите ученика": "Choose a student",
   "Не удалось загрузить данные занятий. Попробуйте ещё раз.": "Could not load lesson data. Please try again.",
-
   "Нет напоминаний": "No reminders",
   'Карточек учеников': 'Student records',
   'Без долга по занятиям': 'No lesson debt',
   'Минус по занятиям': 'Negative lesson balance',
+  "Выберите ученика для оплаты.": "Choose a student for this payment.",
+  "Укажите положительную сумму в целых рублях, не больше 2 147 483 647.": "Enter a positive amount in whole rubles, up to 2,147,483,647.",
+  "Укажите целое неотрицательное количество занятий.": "Enter a whole number of lessons, zero or more.",
+  "Не удалось подтвердить сохранение платежа.\nПроверьте список оплат перед повтором. Введённые данные сохранены.": "Could not confirm that the payment was saved.\nCheck the payment list before retrying. Your entries have been kept.",
   "Отменить вход": "Cancel sign-in",
   "Это время уже занято другим занятием.\nИзмените дату или время урока и повторите сохранение.": "Another lesson is already scheduled at this time.\nChange the date or time and save again.",
   "Вход отменён. Можно попробовать ещё раз.": "Sign-in cancelled. You can try again.",

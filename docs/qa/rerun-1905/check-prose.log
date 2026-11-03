@@ -1,0 +1,29 @@
+
+> student-dashboard@1.0.0 check:prose
+> node scripts/checkProse.mjs
+
+Типографика конспектов
+
+  ✓ endc   чисто
+  ✓ enac   чисто
+  ✓ ielt   чисто
+  ✓ ensv   чисто
+  ✓ ensp   чисто
+  ✓ kohg   чисто
+  ✓ kotp   чисто
+  ✓ kot2   чисто
+  ✓ kosv   чисто
+  ✓ jakn   чисто
+  ✓ jajl   чисто
+  ✓ jan3   чисто
+  ✓ jasv   чисто
+  ✓ ptbr   чисто
+  ✓ ptb2   чисто
+  ✓ ptsv   чисто
+  ✓ deab   чисто
+  ✓ desv   чисто
+  ✓ ruzh   чисто
+  ✓ ruvo   чисто
+  ✓ rulit  чисто
+
+Все конспекты чисты.

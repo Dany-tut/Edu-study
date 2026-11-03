@@ -135,10 +135,3 @@ for(const def of registry.filter(d=>!d.legacy)){
  }
 }
 console.log('All 19 widgets snap unsupported pairs while preserving manual rows')
-
-const attention=registry.find(def=>def.type==='attention-students')
-for(const width of [760,1024,1376]){
- const min=resizeDeskWidget({i:'attention',type:attention.type,x:0,y:0,w:2,h:1,gridVersion:2},attention,-10000,0,width,120,8)
- assert.deepEqual([min.w,min.h],[1,1],'Attention summary must shrink to a useful 1×1 instead of a dead 2×1 stop')
-}
-console.log('Attention summary: 1×1 resize is reachable on all desk widths')

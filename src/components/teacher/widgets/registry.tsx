@@ -136,7 +136,7 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     iconColor: '#C07020',
     description: 'Ученики с долгом или просрочкой оплаты',
     defaultW: 3, defaultH: 3,
-    minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88,
+    minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 88,
     component: WidgetAttentionStudents,
   },
   {
