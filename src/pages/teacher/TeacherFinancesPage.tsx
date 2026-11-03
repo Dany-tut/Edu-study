@@ -201,7 +201,7 @@ function StudentRow({
           whileTap={{ scale: 0.95 }}
           onClick={e => { e.stopPropagation(); onPay(student) }}
           style={{
-            padding: '6px 12px', borderRadius: 9,
+            padding: '6px 12px', borderRadius: 9, minHeight: 44,
             background: status === 'overdue' || status === 'soon'
               ? 'var(--grad-purple)'
               : 'var(--color-bg-3)',
@@ -348,7 +348,7 @@ export default function TeacherFinancesPage() {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => setPaying(null)}
-            style={{ height: 40,
+            style={{ height: 44,
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '0 16px', borderRadius: 12,
               background: 'var(--grad-purple)', border: 'none',
