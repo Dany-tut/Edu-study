@@ -33,3 +33,9 @@
   .transcription-module-header { grid-template-columns: 40px 1fr; row-gap: 6px; }
   .transcription-module-status { grid-column: 2; }
 }
+
+.transcription-setup:not(:empty) {padding:12px 16px;border-radius:12px;background:var(--color-bg-3);color:var(--color-text-2);font-size:13px;line-height:1.55;overflow-wrap:anywhere}
+.transcription-setup:empty {display:none}
+.transcription-setup h4 {margin:0;color:var(--color-text);font-size:14px}
+.transcription-setup ol {list-style:decimal;margin:6px 0 0;padding-inline-start:1.5em}
+.transcription-setup li + li {margin-top:5px}
