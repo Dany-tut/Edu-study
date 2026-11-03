@@ -249,3 +249,15 @@
 .ww-legacy-student-metric .iskra-mini-stat-object{display:block;position:absolute;right:18px;top:50%;transform:translateY(-50%);width:100px;height:100px;object-fit:contain;pointer-events:none}
 .ww-legacy-student-metric .iskra-mini-stat-open{display:grid;place-items:center;position:absolute;right:10px;bottom:9px;width:28px;height:28px;border:0;border-radius:50%;background:var(--color-bg-input);color:var(--color-accent);cursor:pointer}
 }
+
+/* Both resize marks share ink, round caps and a 14px inset from the card. */
+.widget-edit-glow .iskra-mini-stat-open{visibility:hidden}
+.desk-resize-control{--desk-resize-inset:14px;position:absolute;z-index:20;display:grid;place-items:center;color:var(--color-accent);touch-action:none;opacity:.75;transition:opacity .15s}
+.desk-resize-control:hover,.desk-resize-control[data-active]{opacity:1}
+.desk-resize-bottom{width:64px;height:32px;bottom:calc(var(--desk-resize-inset) - 14px);left:50%;transform:translateX(-50%);cursor:s-resize}
+.desk-resize-bottom .desk-resize-mark{width:28px;height:4px;border-radius:4px;background:currentColor;pointer-events:none}
+.desk-resize-corner{width:44px;height:44px;bottom:calc(var(--desk-resize-inset) - 11px);right:calc(var(--desk-resize-inset) - 11px);cursor:se-resize}
+.desk-resize-corner .desk-resize-mark{box-sizing:border-box;width:22px;height:22px;border-right:4px solid currentColor;border-bottom:4px solid currentColor;border-radius:0 0 18px 0;pointer-events:none}
+.desk-resize-corner::before{content:"";position:absolute;inset:9px;background:radial-gradient(circle at 22px 2px,currentColor 0 2px,transparent 2.1px),radial-gradient(circle at 2px 22px,currentColor 0 2px,transparent 2.1px);pointer-events:none}
+@media(pointer:coarse){.desk-resize-bottom{height:44px;bottom:calc(var(--desk-resize-inset) - 20px)}}
+@media(prefers-reduced-motion:reduce){.desk-resize-control{transition:none}}

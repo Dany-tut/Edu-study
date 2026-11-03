@@ -339,38 +339,25 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
                 <WidgetShell item={item} editMode={editMode} onRemove={id => onUpdateItems([...viewItems.filter(item => item.i !== id), ...desk.items.filter(item => hiddenWidgets?.includes(item.type))])} />
 
                 {editMode && (
-                  <div
-                    data-resize-bottom={item.type}
-                    aria-label={t('Изменить высоту виджета')}
-                    onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
-                    style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                      width: 64, height: 28, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 's-resize', touchAction: 'none' }}
-                  >
-                    <span style={{ width: 28, height: 4, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.55 }} />
-                  </div>
-                )}
-
-                {/* iOS-style resize corner */}
-                {editMode && (
-                  <div
-                    data-resize-handle={item.type}
-                    onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!)}
-                    style={{
-                      position: 'absolute', bottom: 6, right: 6,
-                      width: 28, height: 28, zIndex: 20,
-                      display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end',
-                      cursor: 'se-resize', touchAction: 'none',
-                    }}
-                  >
-                    <div style={{
-                      width: 18, height: 18,
-                      borderRight: `2.5px solid rgba(255,255,255,${isResizing ? 1 : 0.7})`,
-                      borderBottom: `2.5px solid rgba(255,255,255,${isResizing ? 1 : 0.7})`,
-                      borderRadius: '0 0 16px 0',
-                      transition: 'border-color 0.15s',
-                    }} />
-                  </div>
+                  <>
+                    <div
+                      data-resize-bottom={item.type}
+                      className="desk-resize-control desk-resize-bottom"
+                      data-active={isResizing || undefined}
+                      aria-label={t('Изменить высоту виджета')}
+                      onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
+                    >
+                      <span className="desk-resize-mark" />
+                    </div>
+                    <div
+                      data-resize-handle={item.type}
+                      className="desk-resize-control desk-resize-corner"
+                      data-active={isResizing || undefined}
+                      onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!)}
+                    >
+                      <span className="desk-resize-mark" />
+                    </div>
+                  </>
                 )}
               </div>
             )
