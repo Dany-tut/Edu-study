@@ -415,9 +415,9 @@ function ResultModal({
     finally { setSaving(false) }
   }
   const bannerRef = useRef<HTMLDivElement>(null)
-  // «passed» открывает CTA к харду. Если хард-уровня нет (showHard=false), даже
-  // отличный балс базы не показывает переход к харду — обычная кнопка «Продолжить».
-  const passed = showHard && context === 'basic' && score !== undefined && recommendationScore !== undefined
+  // Passing belongs to the graded basic result; optional hard content only
+  // controls the invitation to continue, never the success/error presentation.
+  const passed = context === 'basic' && score !== undefined && recommendationScore !== undefined
     ? score >= recommendationScore
     : null
 
@@ -515,7 +515,9 @@ function ResultModal({
           )}
           {passed && context === 'basic' && (
             <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', width: '100%', marginTop: -8 }}>
-              {t('База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.')}
+              {showHard
+                ? t('База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.')
+                : t('База закрыта уверенно.')}
             </p>
           )}
           {/* Та же полоса порога, что и в плашке итогов: ученик видит одну и ту
@@ -541,7 +543,7 @@ function ResultModal({
                 <span style={{ color: 'var(--color-muted)' }}>
                   {passed
                     ? t('порог пройден')
-                    : `${Math.max(0, recommendationScore - score)} ${t('до открытия харда')}`}
+                    : `${Math.max(0, recommendationScore - score)} ${showHard ? t('до открытия харда') : t('до порога')}`}
                 </span>
                 <span style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>
                   {t('порог')} {recommendationScore}
@@ -575,7 +577,7 @@ function ResultModal({
             {t('Не удалось сохранить самооценку. Попробуй ещё раз.')}
           </p>}
 
-          {passed ? (
+          {passed && showHard ? (
             <div style={{ display: 'flex', gap: 10 }}>
               <motion.button
                 whileHover={{ y: -1 }}
