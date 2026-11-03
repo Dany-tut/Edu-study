@@ -131,8 +131,6 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 
 export default function WidgetTodayTasks() {
   const t = useT()
-  const [creating,setCreating]=useState(false)
-  const addTask=useTeacher(s=>s.addTask)
   const tasks = useTeacher(s => s.tasks)
   const addTask = useTeacher(s => s.addTask)
   const [creating, setCreating] = useState(false)
