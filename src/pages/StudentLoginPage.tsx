@@ -189,7 +189,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
               {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
             </button>
           </div>}
-          {mode === 'login' && <button type="button" onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: 0, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
+          {mode === 'login' && <button type="button" onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
           <button
             type="submit"
             disabled={loading || (mode !== 'newpassword' && !email.trim()) || (mode === 'login' && !password) || (mode === 'newpassword' && !password)}
