@@ -1,3 +1,4 @@
+import LessonTranscriptPanel from '../components/LessonTranscriptPanel'
 import { useNow } from '../lib/useNow'
 import { textFadeStyle } from '../lib/textFades'
 import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
@@ -1202,6 +1203,10 @@ export default function LessonPage() {
         </div>
       )}
 
+      {lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') &&
+        <LessonTranscriptPanel transcript={lesson.transcript} time={videoTime}
+          seek={detail.videoSource && ['file','youtube','rutube'].includes(detail.videoSource.kind)
+            ? sec => { setVideoTime(sec); playerRef.current?.seekPaused(sec) } : undefined} />}
       {lesson.description?.trim() && (
         <section style={{
           padding: 24, borderRadius: 24,

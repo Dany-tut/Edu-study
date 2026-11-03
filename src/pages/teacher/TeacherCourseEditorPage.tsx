@@ -105,7 +105,11 @@ type HWTaskType = TaskTypeId
 type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
 
 
+import { TranscriptionAction, useTranscriptionOwner } from '../../components/teacher/LocalTranscription'
+import { readTranscript, type LessonTranscript } from '../../lib/localTranscription'
+
 export interface CELesson {
+  transcript?: LessonTranscript
   id: string
   /** Authoritative lesson reference; copied courses may use a random short_id. */
   persistedShortId?: string
@@ -1624,12 +1628,16 @@ function TimecodeRail({
 }
 
 function CenterRecording({
-  lesson, onUpdate,
+  lesson, onUpdate, courseKey, published, loading,
 }: {
   lesson: CELesson
+  courseKey: string
+  loading: boolean
+  published: boolean
   onUpdate: (updated: CELesson) => void
 }) {
   const t = useT()
+  const owner = useTranscriptionOwner()
   const [linkMode, setLinkMode] = useState(false)
   const [videoUrl, setVideoUrl] = useState(lesson.videoUrl ?? '')
 
@@ -1806,6 +1814,9 @@ function CenterRecording({
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      {!loading && <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} published={published}
+        existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
+        onApply={({ transcript, timecodes }) => { setVideoUrl(transcript.source); onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }} />}
       {content}
     </div>
   )
@@ -5553,6 +5564,7 @@ export default function TeacherCourseEditorPage() {
             const hw = row.homework ?? {}
             return {
               ...l,
+              transcript: l.transcript ?? readTranscript(row.content?.transcript),
               theory: l.theory ?? (theory.theory || undefined),
               theoryImages: l.theoryImages ?? theory.images,
               files: l.files ?? parseLessonFiles(row.materials),
@@ -6272,7 +6284,9 @@ export default function TeacherCourseEditorPage() {
       // Конспект → lessons.content.paragraphs, откуда его читает вкладка
       // «Конспект» у ученика. Пустой конспект пишем как {}, чтобы не затирать
       // содержимое, заведённое другим путём, пустым массивом абзацев.
-      content: lesson.theory?.trim()
+      content: {
+        ...(lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript } : {}),
+        ...(lesson.theory?.trim()
         ? {
             paragraphs: theoryToParagraphs(
               lesson.theory,
@@ -6280,7 +6294,8 @@ export default function TeacherCourseEditorPage() {
               shortIdByLessonId[lesson.id] ?? lesson.id,
             ),
           }
-        : {},
+        : {}),
+      },
       kind: lesson.kind ?? 'lesson',
       test_tasks: lesson.testTasks ?? [],
       // Файлы урока: сами объекты уже в бакете lesson-materials, здесь — их
@@ -7181,6 +7196,7 @@ export default function TeacherCourseEditorPage() {
                         смене урока, но не запускает анимацию выхода. */}
                     {lessonMode === 'recording' && (
                       <CenterRecording
+                        courseKey={course.id} loading={!!(course.metadataPending || course.heavyPending)} published={course.status === 'published'}
                         key={selectedLesson.id}
                         lesson={selectedLesson}
                         onUpdate={updateLesson}

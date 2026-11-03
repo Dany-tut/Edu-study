@@ -117,6 +117,7 @@ function useCoarsePointer(): boolean {
 
 export interface LessonVideoHandle {
   /** Открыть плеер на этой секунде (или перемотать, если он уже играет). */
+  seekPaused(seconds: number): void
   playFrom(seconds: number): void
 }
 
@@ -487,7 +488,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     doPlay()
   }, [started, doSeek, doPlay])
 
-  useImperativeHandle(ref, () => ({ playFrom }), [playFrom])
+  const [readingAt, setReadingAt] = useState<number>()
+  useImperativeHandle(ref, () => ({ playFrom, seekPaused(sec: number) {
+    if (started) { doPause(); doSeek(sec) }
+    else { setReadingAt(sec); setStartAt(sec) }
+  } }), [playFrom, started, doPause, doSeek])
 
   // ── YouTube: поднимаем плеер, когда ученик нажал «смотреть» ───────────────
   useEffect(() => {
@@ -971,7 +976,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const chevBleed = chevSize / 3
 
   const ratio = watchRatio({ ...watch, duration: duration || watch.duration })
-  const resumeAt = hasResumePoint(watch) ? watch.position : 0
+  const resumeAt = readingAt ?? (hasResumePoint(watch) ? watch.position : 0)
 
   // ── Заставка до запуска ───────────────────────────────────────────────────
   const poster = source.kind === 'youtube' && !posterFallback

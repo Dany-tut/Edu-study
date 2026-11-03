@@ -12,8 +12,11 @@ import { btn } from '../../lib/pillStyles'
 import ClaudeAccessCard from './ClaudeAccessCard'
 import { getViewAs } from '../../lib/teacherView'
 
+import { TranscriptionModuleCard, useTranscriptionOwner } from './LocalTranscription'
+
 export default function TeacherModules() {
   const t = useT()
+  const transcriptionOwner = useTranscriptionOwner()
   const { loaded, connected, email, tests, load } = useTestlyModule()
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
@@ -68,6 +71,7 @@ export default function TeacherModules() {
         {t('Подключённый модуль появляется в домашке, уроках курса и Конструкторе: через него можно добавлять задания.')}
       </div>
 
+      {transcriptionOwner && <TranscriptionModuleCard key={transcriptionOwner} owner={transcriptionOwner} />}
       <div style={{
         background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20,
         padding: 18, display: 'flex', flexDirection: 'column', gap: 14,

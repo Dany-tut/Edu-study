@@ -2002,6 +2002,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   // Урок (content)
+  const [transcript, setTranscript] = useState<LessonContentData['transcript']>()
   const [paras, setParas] = useState<LessonParagraph[]>([])
   const [quiz, setQuiz] = useState<HomeworkQuizQuestion[]>([])
   const [hardTask, setHardTask] = useState<HomeworkTeacherTask>(emptyTask)
@@ -2016,6 +2017,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     supabase.from('lessons').select('content, youtube_url, description, timecodes').eq('short_id', shortId).single().then(({ data }) => {
       if (!alive) return
       const dbc = (data?.content ?? undefined) as LessonContentData | undefined
+      setTranscript(dbc?.transcript)
       // Запасной конспект из кода — по short_id урока (см. authoredLessons.ts).
       const src = (dbc && dbc.paragraphs?.length) ? dbc : authoredLesson(shortId)
       setParas((src?.paragraphs ?? [{ id: uid(), text: '' }]).map(p => ({ ...p })))
@@ -2034,7 +2036,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     const noAnswer = quiz.flatMap((q, i) => (q.prompt.trim() || q.options.some(o => o.text.trim())) && !q.options.find(o => o.id === q.correctOptionId)?.text.trim() ? [`${t('Вопрос')} ${i + 1}`] : [])
     if (alertMissingAnswers(noAnswer, t('Впишите вариант и отметьте его правильным.'))) return
     setSaving(true); setMsg('')
-    const content: LessonContentData = { paragraphs: paras.filter(p => p.text.trim()), quiz, hardTask }
+    const content: LessonContentData = { ...(transcript && transcript.source === videoUrl.trim() ? { transcript } : {}), paragraphs: paras.filter(p => p.text.trim()), quiz, hardTask }
     const patch = {
       content,
       youtube_url: videoUrl.trim() || null,

@@ -1,3 +1,4 @@
+import { readTranscript } from './localTranscription'
 /**
  * Typed Supabase query functions for the student dashboard.
  * All functions return typed data; errors are swallowed and return null/[].
@@ -883,6 +884,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
 
 /** Конспект и домашка урока — то, что не нужно треку и приезжает вторым заходом. */
 export interface LessonHeavy {
+  transcript?: import('./localTranscription').LessonTranscript
   content?: import('../data/lessonContent').LessonContentData
   homework?: import('../data/lessonContent').AuthoredHomework
   /** Краткое описание урока. Живёт здесь, а не в скелете: на треке его никто не
@@ -941,7 +943,7 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
 
   type Row = {
     short_id: string
-    content?: { paragraphs?: unknown[] } | null
+    content?: { paragraphs?: unknown[]; transcript?: unknown } | null
     homework?: import('../data/lessonContent').AuthoredHomework | null
     description?: string | null
   }
@@ -953,7 +955,7 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
     const content = l.content && l.content.paragraphs?.length
       ? (l.content as import('../data/lessonContent').LessonContentData)
       : undefined
-    out.set(l.short_id, { content, homework, description: l.description ?? undefined })
+    out.set(l.short_id, { content, homework, transcript: readTranscript(l.content?.transcript), description: l.description ?? undefined })
   }
   return out
 }
