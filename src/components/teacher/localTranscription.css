@@ -28,11 +28,8 @@
 .transcription-module-body { border-top: 1px solid var(--color-border-soft); padding-top: 14px; display: grid; gap: 12px; }
 .transcription-module-body p { margin: 0; max-width: 68ch; font-size: 13px; line-height: 1.55; color: var(--color-text-2); }
 .transcription-module-body code { font-size: .95em; }
-.transcription-module-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.transcription-module-actions :is(a, button) { text-decoration: none; min-height: 44px; }
 .transcription-module-body .transcription-module-error { color: var(--color-red-text); }
 @container (max-width: 420px) {
   .transcription-module-header { grid-template-columns: 40px 1fr; row-gap: 6px; }
   .transcription-module-status { grid-column: 2; }
-  .transcription-module-actions > * { flex: 1 1 auto; }
 }

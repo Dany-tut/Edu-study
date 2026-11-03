@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AudioLines, Download } from '../icons/appIcons'
+import { ArrowRight, AudioLines } from '../icons/appIcons'
 import Modal from '../Modal'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
@@ -20,6 +20,12 @@ export function useTranscriptionOwner() {
 
 export function TranscriptionModuleCard({ owner }: { owner: string }) {
   const [connected, setConnected] = useState(() => !!localStorage.getItem(tokenKey(owner)))
+  const downloadKey = 'iskra.transcription.downloadStarted.' + owner
+  const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
+  function markDownloadStarted() {
+    setDownloadStarted(true)
+    localStorage.setItem(downloadKey, '1')
+  }
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   async function change() {
@@ -28,6 +34,7 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
     try {
       if (connected) {
         await localRequest('/connect', localStorage.getItem(tokenKey(owner)) || '', { method: 'DELETE' })
+        markDownloadStarted()
         localStorage.removeItem(tokenKey(owner))
       } else {
         const { token } = await localRequest('/connect', '', { method: 'POST' })
@@ -52,14 +59,19 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
       <p>{connected
         ? 'Чтобы расшифровать урок, откройте вкладку «Запись» в конструкторе курса.'
         : <>Распакуйте архив и запустите <code>start.command</code>. При первом запуске Mac загрузит модели. Затем подключите компьютер к Искре.</>}</p>
-      <div className="transcription-module-actions">
-        {!connected && <a href="/downloads/iskra-transcription-mac.zip" download style={btn('M', 'secondary')}>
-          <Download size={15} aria-hidden /> Скачать для Mac
-        </a>}
-        <button disabled={busy || !owner} onClick={change} style={btn('M', connected ? 'secondary' : 'primary')}>
-          {busy ? (connected ? 'Отключаем…' : 'Подключаем…') : (connected ? 'Отключить компьютер' : 'Подключить компьютер')}
+      {connected ? <div className="integration-actions">
+        <button className="integration-action integration-disconnect" disabled={busy || !owner} onClick={change}>
+          {busy ? 'Отключаем…' : 'Отключить компьютер'}
         </button>
-      </div>
+      </div> : <div className="integration-steps">
+        <a className="integration-action" data-primary={!downloadStarted} href="/downloads/iskra-transcription-mac.zip" download onClick={markDownloadStarted}>
+          <span className="integration-step-number">1</span> Скачать для Mac
+        </a>
+        <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
+        <button className="integration-action" data-primary={downloadStarted} disabled={!downloadStarted || busy || !owner} onClick={change}>
+          <span className="integration-step-number">2</span> {busy ? 'Подключаем…' : 'Подключить компьютер'}
+        </button>
+      </div>}
       {message && <p className="transcription-module-error" role="alert">{message}</p>}
     </div>
   </section>

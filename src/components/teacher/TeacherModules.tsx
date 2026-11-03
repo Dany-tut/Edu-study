@@ -8,7 +8,6 @@ import { connectTestly, disconnectTestly, plural, useTestlyModule, TESTLY_SITE }
 import { confirmDialog } from '../ConfirmHost'
 import { Alert } from '../Alert'
 import { TestlyTile } from '../TestlyMark'
-import { btn } from '../../lib/pillStyles'
 import ClaudeAccessCard from './ClaudeAccessCard'
 import { getViewAs } from '../../lib/teacherView'
 
@@ -106,13 +105,9 @@ export default function TeacherModules() {
                 ))}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <a href={`${TESTLY_SITE}/app`} target="_blank" rel="noopener noreferrer" style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10,
-                border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-                color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, textDecoration: 'none',
-              }}><ExternalLink size={13} /> {t('Открыть Тестли')}</a>
-              <button onClick={() => void disconnect()} disabled={busy} style={btn('S', 'secondary')}>{t('Отключить')}</button>
+            <div className="integration-actions">
+              <a className="integration-action" href={`${TESTLY_SITE}/app`} target="_blank" rel="noopener noreferrer"><ExternalLink size={13} /> {t('Открыть Тестли')}</a>
+              <button onClick={() => void disconnect()} disabled={busy} className="integration-action integration-disconnect">{t('Отключить')}</button>
             </div>
           </>
         ) : (
