@@ -101,7 +101,17 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
           <h4>Что делать с ZIP-архивом</h4>
           <ol>
             <li>Когда загрузка закончится, откройте папку «Загрузки» в Finder. Дважды нажмите на <code>iskra-transcription-mac.zip</code>. Если уже появилась папка <code>Iskra</code>, откройте её.</li>
-            <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. Откроется Терминал. При первом запуске Mac скачает модели.</li>
+            <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. При первом запуске в Терминале начнётся загрузка моделей.
+              <details className="transcription-blocked">
+                <summary>Mac пишет «Файл не был открыт»?</summary>
+                <p>Если Apple не удалось проверить файл, нажмите «Готово». Продолжайте, только если вы сами скачали этот архив из Искры и доверяете ему.</p>
+                <a className="integration-action" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Security">Открыть настройки Mac</a>
+                <p>Если настройки не открылись, в меню Apple выберите «Системные настройки», затем «Конфиденциальность и безопасность».</p>
+                <p>В разделе <strong>«Безопасность»</strong> (внизу страницы) проверьте имя файла. Найдите сообщение о блокировке <code>start.command</code> и нажмите рядом с ним <strong>«Все равно открыть»</strong>. В следующем окне ещё раз выберите «Все равно открыть» или «Открыть». Если Mac попросит, введите пароль или используйте Touch ID.</p>
+                <p><a href="https://support.apple.com/ru-ru/102445" target="_blank" rel="noreferrer">Посмотреть, где находится кнопка, на снимке Apple</a></p>
+                <p>Когда откроется Терминал, переходите к следующему пункту.</p>
+              </details>
+            </li>
             <li>Дождитесь строки <code>Running on http://127.0.0.1:18764</code>. Оставьте Терминал открытым, вернитесь в Искру и нажмите «Подключить компьютер».</li>
           </ol>
         </>}
