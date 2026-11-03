@@ -1280,7 +1280,7 @@ function ProgressModal({
                     <span style={{
                       flex: 1, fontSize: 12, lineHeight: 1.3, color: 'var(--color-text)',
                         ...textFadeLines(2), overflow: 'hidden',
-                    }} dangerouslySetInnerHTML={{ __html: wt.question.replace(/<[^>]*>/g, '') }} />
+                    }}>{new DOMParser().parseFromString(sanitizeHtml(wt.question), 'text/html').body.textContent}</span>
                     <span style={{ fontSize: 10, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Л.')}{wt.line}</span>
                   </div>
                 ))}

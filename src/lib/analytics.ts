@@ -172,7 +172,7 @@ async function performFlush(final: boolean) {
 function analyticsPath(path: unknown): string | null {
   if (typeof path !== 'string') return null
   if (path.startsWith('#') && !path.startsWith('#/')) return '#/'
-  return path.split('?', 1)[0]
+  return path.replace(/(?!^)[?#&].*$/s, '')
 }
 
 function currentPath(): string | null {
