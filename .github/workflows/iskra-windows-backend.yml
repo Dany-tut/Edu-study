@@ -30,6 +30,9 @@ jobs:
         run: |
           wsl --install -d Ubuntu-24.04 --web-download --no-launch
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # A Windows-owned WSL client keeps the distribution alive between Actions steps.
+          $keeper = Start-Process wsl.exe -PassThru -WindowStyle Hidden -ArgumentList '-d','Ubuntu-24.04','-u','root','--','sleep','2400'
+          "ISKRA_WSL_KEEPER=$($keeper.Id)" >> $env:GITHUB_ENV
           wsl -d Ubuntu-24.04 -u root -- bash scripts/security/startWindowsCiBackend.sh
       - name: Verify API access and prepare synthetic fixtures
         run: node scripts/security/checkLocalSupabase.mjs
@@ -51,6 +54,10 @@ jobs:
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             }
           } finally { Stop-Process -Id $server.Id -ErrorAction SilentlyContinue }
+      - name: Release guest
+        if: always()
+        run: |
+          if ($env:ISKRA_WSL_KEEPER) { Stop-Process -Id $env:ISKRA_WSL_KEEPER -ErrorAction SilentlyContinue }
       - uses: actions/upload-artifact@v4
         if: always()
         with:
