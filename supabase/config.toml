@@ -26,6 +26,12 @@ verify_jwt = false
 verify_jwt = false
 
 
+# User-approved MCP clients authenticate through the Iskra consent page.
+[auth.oauth_server]
+enabled = true
+authorization_url_path = "/oauth/consent"
+allow_dynamic_registration = true
+
 [functions.native-crash-webhook]
 # HMAC-SHA256 verified against raw bytes inside the handler.
 verify_jwt = false

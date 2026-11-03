@@ -1,0 +1,225 @@
+{
+  "scope": "Real WidgetLibraryModal and DeskCanvas fixture, mouse input; no server persistence E2E",
+  "desktopAdds": [
+    {
+      "type": "stat-students",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "stat-hw",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "stat-lessons",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "finance-received",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "finance-expected",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "finance-debt",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "finance-forecast",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "student-count",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "student-groups",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "student-active",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "student-debtors",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "finance-overdue",
+      "w": 2,
+      "h": 2,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "finance-activity",
+      "w": 2,
+      "h": 2,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "groups-list",
+      "w": 2,
+      "h": 2,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "attention-students",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "today-schedule",
+      "w": 2,
+      "h": 3,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "today-reminders",
+      "w": 2,
+      "h": 2,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "today-tasks",
+      "w": 2,
+      "h": 2,
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "phoneAdds": [
+    {
+      "type": "today-schedule",
+      "w": 2,
+      "h": 3,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "stat-hw",
+      "w": 1,
+      "h": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "finance-overdue",
+      "w": 2,
+      "h": 2,
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "scrolls": [
+    {
+      "case": "desktop-start",
+      "height": 789,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))",
+      "top": 0,
+      "total": 990
+    },
+    {
+      "case": "desktop-middle",
+      "height": 789,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))",
+      "top": 135,
+      "total": 990
+    },
+    {
+      "case": "desktop-end",
+      "height": 789,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))",
+      "top": 201.5,
+      "total": 990
+    },
+    {
+      "case": "mobile-start",
+      "height": 733,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))",
+      "top": 0,
+      "total": 2437
+    },
+    {
+      "case": "mobile-near-end",
+      "height": 733,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))",
+      "top": 1688,
+      "total": 2437
+    },
+    {
+      "case": "mobile-end",
+      "height": 733,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))",
+      "top": 1705,
+      "total": 2437
+    },
+    {
+      "case": "mobile-middle",
+      "height": 733,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))",
+      "top": 861,
+      "total": 2437
+    },
+    {
+      "case": "desktop-fits",
+      "height": 990,
+      "mask": "none",
+      "top": 0,
+      "total": 990
+    }
+  ],
+  "controls": 0,
+  "matrixLink": 0,
+  "close": {
+    "escape": true,
+    "crossRepeat": 5,
+    "backdrop": true,
+    "editAction": true
+  },
+  "resizeAfterAdd": {
+    "type": "stat-students",
+    "w": 2,
+    "h": 1
+  }
+}

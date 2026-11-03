@@ -204,6 +204,8 @@ jobs:
           npm run check:calendar-browser
           npm run check:shelf-filters-browser
           ISKRA_QA_OUTPUT=/tmp/iskra-google-form-qa npm run check:google-form-modal
+          ISKRA_BROWSER_CHANNEL=chromium node scripts/checkClaudeAccessRaces.mjs
+          node scripts/checkOAuthConsentRaces.mjs
 
       - uses: actions/upload-artifact@v4
         if: always()
