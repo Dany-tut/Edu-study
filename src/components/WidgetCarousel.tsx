@@ -155,7 +155,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
     if (p === 6) return <QuizWidget active={isActive} columns={columns} dialog={dialog} />
     if (p === 0) return <StatsWidget columns={columns} />
     if (p === 7) return <TrainerProgressWidget columns={columns} />
-    if (p === 8) return <StickersWidget columns={columns} />
+    if (p === 8) return <StickersWidget />
     if (p === 9) return <DailyDoseWidget columns={columns} />
     if (p === 10) return <FeedWidget columns={columns} />
     if (p === 1) return <ScienceFactsWidget active={isActive} columns={columns} />

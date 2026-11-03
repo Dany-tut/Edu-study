@@ -150,12 +150,15 @@ export function SortDropdown<V extends string>({ value, options, accent, minWidt
   onChange: (v: V) => void
 }) {
   const t = useT()
+  const trigger = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const soft = softOf(accent)
   const label = t(options.find(([v]) => v === value)?.[1] ?? options[0][1])
   return (
-    <div style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)} style={pillStyle(open)}>
+    <div style={{ position: 'relative' }}
+      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false) }}
+      onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); trigger.current?.focus() } }}>
+      <button ref={trigger} type="button" aria-expanded={open} onClick={() => setOpen(o => !o)} style={pillStyle(open)}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ minWidth, textAlign: 'left', whiteSpace: 'nowrap' }}>{label}</span>
         <Caret open={open} />
@@ -165,7 +168,8 @@ export function SortDropdown<V extends string>({ value, options, accent, minWidt
           <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }}
             style={{ ...menuStyle, minWidth: 'max(160px, 100%)', boxSizing: 'border-box' }}>
             {options.map(([val, lbl]) => (
-              <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
+              <button key={val} type="button" aria-pressed={value === val} onMouseDown={e => e.preventDefault()}
+                onClick={() => { onChange(val); setOpen(false); trigger.current?.focus() }}
                 style={rowStyle(value === val, soft)}
                 onMouseEnter={e => { e.currentTarget.style.background = soft }}
                 onMouseLeave={e => { e.currentTarget.style.background = value === val ? soft : 'transparent' }}>
@@ -216,6 +220,7 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
   iconGap?: number
   onChange: (v: string) => void
 }) {
+  const trigger = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   if (!noAll && options.filter(o => o !== FACET_SEP).length < 2) return null
@@ -233,8 +238,9 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
     // с кнопки внутрь меню, и «потерял фокус — закрылись» захлопывало список
     // сразу после открытия.
     <div style={{ position: 'relative' }}
+      onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); setQuery(''); trigger.current?.focus() } }}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
-      <button onClick={() => { setOpen(o => !o); setQuery('') }}
+      <button ref={trigger} type="button" aria-expanded={open} onClick={() => { setOpen(o => !o); setQuery('') }}
         // Выбранное значение помечаем только жирным текстом: своя яркая рамка у
         // заполненного фасета выбивалась из ряда таблеток шапки.
         style={pillStyle(open, { gap: iconGap, fontWeight: value ? 700 : 600 })}>
@@ -258,7 +264,8 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
               {rows.map((val, i) => val === FACET_SEP ? (
                 <div key={`sep${i}`} style={{ height: 1, margin: '6px 8px', background: 'var(--color-border)' }} />
               ) : (
-                <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false); setQuery('') }}
+                <button key={val || '__all'} type="button" aria-pressed={value === val} onMouseDown={e => e.preventDefault()}
+                  onClick={() => { onChange(val); setOpen(false); setQuery(''); trigger.current?.focus() }}
                   style={rowStyle(value === val, soft)}
                   onMouseEnter={e => { e.currentTarget.style.background = soft }}
                   onMouseLeave={e => { e.currentTarget.style.background = value === val ? soft : 'transparent' }}>
@@ -426,6 +433,7 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
 }) {
   const t = useT()
   const { opts, active } = useShelfSubjects(values, only)
+  const trigger = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   if (opts.length < 2) return null
@@ -448,8 +456,9 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
     : `${label(on[0])} +${on.length - 1}`
   return (
     <div style={{ position: 'relative' }}
+      onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); setQuery(''); trigger.current?.focus() } }}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
-      <button onClick={() => { setOpen(o => !o); setQuery('') }}
+      <button ref={trigger} type="button" aria-expanded={open} onClick={() => { setOpen(o => !o); setQuery('') }}
         // Таблетка как у соседей по ряду: своя обводка акцентом выбивалась из
         // ряда. Куда нажать, подсказывает строка под рядом (PickSubjectHint).
         style={pillStyle(open, { fontWeight: on.length ? 700 : 600 })}>
@@ -475,7 +484,8 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
               {rows.map((val, i) => val === FACET_SEP ? (
                 <div key={`sep${i}`} style={{ height: 1, margin: '6px 8px', background: 'var(--color-border)' }} />
               ) : (
-                <button key={val} onMouseDown={e => { e.preventDefault(); toggle(val) }}
+                <button key={val} type="button" aria-pressed={on.includes(val)} onMouseDown={e => e.preventDefault()}
+                  onClick={() => toggle(val)}
                   style={rowStyle(on.includes(val), soft)}
                   onMouseEnter={e => { e.currentTarget.style.background = soft }}
                   onMouseLeave={e => { e.currentTarget.style.background = on.includes(val) ? soft : 'transparent' }}>

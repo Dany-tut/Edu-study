@@ -1,152 +1,26 @@
-import { LoopActionLabel } from './icons/LoopIcon'
-import { ArrowRight as LoopActionArrow } from './icons/appIcons'
-// Виджет «Стикеры» — коллекция наград за принятые задания.
-// В сетке рисуем дешёвые StickerBadge (canvas 2D), а голо-рендер (WebGL)
-// включаем только для выбранного стикера в модалке: контекстов WebGL мало.
-import { useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, X } from './icons/appIcons'
-import StickerBadge from './StickerBadge'
-import Skeleton from './Skeleton'
-import HoloSticker from './HoloSticker'
-import { tierOf, STICKER_TIERS, assignEmblems } from '../lib/holo/presets'
-import { useStickers, stickerCaption, stickerLabel, type EarnedSticker } from '../lib/stickers'
+import { useState } from 'react'
 import { useT } from '../lib/i18n'
+import { stickerLabel, useStickers } from '../lib/stickers'
+import { HomeWidgetCard, Action, Value } from './HomeWidgetPresentation'
+import StickerCollectionModal from './StickerCollectionModal'
+import Skeleton from './Skeleton'
+import StickerBadge from './StickerBadge'
+import './stickerAlbum.css'
 
-export default function StickersWidget({ columns }: { columns: number }) {
+export default function StickersWidget() {
   const t = useT()
-  // emblems раздан хуком по всей коллекции: по одному хешу эмблемы повторяются,
-  // и в ряду оказывались два одинаковых стикера.
-  const { stickers, byScore, emblems, loading } = useStickers()
+  const { stickers, emblems, loading } = useStickers()
   const [open, setOpen] = useState(false)
-  const wide = columns >= 2
-  const top = stickers.slice(0, wide ? 6 : 4)
-
-  return (
-    <div style={{ width: '100%', height: '100%', padding: wide ? '20px 28px' : '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Sparkles size={16} style={{ color: 'var(--color-purple-text)' }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Стикеры')}</span>
-        </div>
-        {stickers.length > 0 && (
-          <button onClick={() => setOpen(true)} style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-purple-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <LoopActionLabel icon={LoopActionArrow} label={t('Вся коллекция →')} />
-          </button>
-        )}
-      </div>
-
-      {loading ? (
-        <div style={{ display: 'flex', gap: 8 }} aria-busy="true">
-          {[0, 1, 2].map(i => <Skeleton key={i} w={56} h={72} radius={10} />)}
-        </div>
-      ) : stickers.length === 0 ? (
-        <p style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
-          {t('Стикер даётся за принятое сложное задание и за тему разговорника, пройденную без единой ошибки. Балл 5 — голограмма.')}
-        </p>
-      ) : (
-        <>
-          <div className="ww-sticker-items" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {top.map(s => (
-              <StickerBadge key={s.id} score={s.score} label={stickerLabel(s, t)}
-                stickerId={s.id} emblem={emblems[s.id]} size={wide ? 66 : 56} onClick={() => setOpen(true)} />
-            ))}
-          </div>
-          <div className="ww-sticker-counts" style={{ display: 'flex', gap: 6, marginTop: 'auto', flexWrap: 'wrap' }}>
-            {[5, 4, 3, 2, 1].filter(s => byScore[s]).map(s => {
-              const tier = STICKER_TIERS[s as 1 | 2 | 3 | 4 | 5]
-              return (
-                <span key={s} style={{
-                  fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999,
-                  color: tier.inkDark, background: `${tier.ink}2E`,
-                }}>{s}/5 · {byScore[s]}</span>
-              )
-            })}
-          </div>
-        </>
-      )}
-
-      {open && <StickerCollectionModal stickers={stickers} onClose={() => setOpen(false)} />}
-    </div>
-  )
-}
-
-export function StickerCollectionModal({ stickers, onClose }: { stickers: EarnedSticker[]; onClose: () => void }) {
-  const t = useT()
-  const [sel, setSel] = useState<EarnedSticker | null>(stickers[0] ?? null)
-  const tier = sel ? tierOf(sel.score) : null
-  const emblems = useMemo(() => assignEmblems(stickers.map(s => s.id)), [stickers])
-
-  return createPortal(
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose}
-        style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'grid', placeItems: 'center', background: 'rgba(12, 10, 22, 0.6)', backdropFilter: 'blur(6px)', padding: 20 }}
-      >
-        <motion.div
-          initial={{ scale: 0.94, y: 14 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, opacity: 0 }}
-          onClick={e => e.stopPropagation()}
-          style={{
-            position: 'relative', width: 'min(720px, 100%)', maxHeight: '84vh', overflow: 'auto',
-            borderRadius: 24, padding: '22px 22px 20px', background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)', boxShadow: '0 30px 70px -20px rgba(20, 12, 50, 0.5)',
-          }}
-        >
-          <button onClick={onClose} aria-label={t('Закрыть')} style={{
-            position: 'absolute', top: 14, right: 14, width: 30, height: 30, borderRadius: 10,
-            border: 'none', background: 'var(--color-bg)', color: 'var(--color-muted)', cursor: 'pointer', display: 'grid', placeItems: 'center',
-          }}><X size={16} /></button>
-
-          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{t('Мои стикеры')}</div>
-          <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 14 }}>
-            {stickers.length} {t('шт. · за принятые задания и выученные темы')}
-          </div>
-
-          <div className="stickers-modal-grid" style={{ display: 'grid', gridTemplateColumns: '210px 1fr', gap: 18, alignItems: 'start' }}>
-            {/* открытый стикер — единственный WebGL-рендер на экране */}
-            <div style={{ display: 'grid', placeItems: 'center', gap: 8, position: 'sticky', top: 0 }}>
-              {sel && (
-                <>
-                  {/* без key: смену стикера HoloSticker разруливает сам —
-                      компонент не размонтируется, и пауза загрузки закрыта бейджем */}
-                  <HoloSticker
-                    score={sel.score}
-                    label={stickerLabel(sel, t)}
-                    sublabel={sel.lessonTitle.slice(0, 22)}
-                    stickerId={sel.id}
-                    emblem={emblems[sel.id]}
-                    size={200}
-                  />
-                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>«{t(tier!.name)}»</div>
-                  <div style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center', lineHeight: 1.4 }}>
-                    {stickerCaption(sel, t)}
-                    {sel.at && <><br />{new Date(sel.at).toLocaleDateString('ru-RU')}</>}
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(78px, 1fr))', gap: 10 }}>
-              {stickers.map(s => (
-                <StickerBadge
-                  key={s.id}
-                  score={s.score}
-                  label={stickerLabel(s, t)}
-                  stickerId={s.id}
-                  emblem={emblems[s.id]}
-                  size={78}
-                  onClick={() => setSel(s)}
-                  style={sel?.id === s.id ? { outline: '2px solid var(--color-accent)', outlineOffset: 3, borderRadius: '50%' } : undefined}
-                />
-              ))}
-            </div>
-          </div>
-          <style>{`@media (max-width: 620px){ .stickers-modal-grid { grid-template-columns: 1fr !important; } }`}</style>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>,
-    document.body,
-  )
+  return <>
+    <HomeWidgetCard id={8} title={t('Мои стикеры')} onOpen={() => setOpen(true)}
+      footer={<Action label={t('Коллекция')} onClick={() => setOpen(true)} />}
+      artwork={stickers.length ? <div className="sticker-fan" aria-hidden="true">
+        {stickers.slice(0, 2).map(s => <div className="sticker-cutout" key={s.id}>
+          <StickerBadge size={128} score={s.score} label={stickerLabel(s,t)} stickerId={s.id} emblem={emblems[s.id]} />
+        </div>)}
+      </div> : undefined}>
+      {loading ? <Skeleton w={88} h={18} /> : <Value label={t('Получено стикеров')}>{stickers.length}</Value>}
+    </HomeWidgetCard>
+    {open && <StickerCollectionModal stickers={stickers} loading={loading} onClose={() => setOpen(false)} />}
+  </>
 }

@@ -82,7 +82,7 @@
 .js-toolbar-slot { container: journal-tools / inline-size; flex: none; position: relative; z-index: 4; }
 .js-toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--color-border-soft); flex: none;
   position: relative; z-index: 4; background: var(--color-bg-card); }
-.js-tabs { display: inline-grid; grid-template-columns: 60px 70px 114px; flex: none; gap: 2px; padding: 3px; }
+.js-tabs { display: inline-grid; grid-template-columns: 60px 70px minmax(114px, max-content); flex: none; gap: 2px; padding: 3px; }
 .js-tabs button { min-width: 0; height: 30px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; }
 .js-tabs button svg { display: none; }
 .js-tabs button:hover, .js-scope label:hover, .js-search:hover { background: var(--color-bg-3); }
@@ -111,7 +111,7 @@
 }
 @container (max-width: 660px) {
   .js-toolbar { gap: 6px; padding: 8px; }
-  .js-tabs { grid-template-columns: repeat(3, 32px); }
+  .js-tabs { grid-template-columns: 32px 32px minmax(32px, max-content); }
   .js-tabs button { padding: 0; }
   .js-tabs button svg { display: block; }
   .js-tabs button span, .js-filter-trigger span { display: none; }
@@ -481,4 +481,15 @@
   .group-roster-toolbar .js-scope label,
   .group-roster-toolbar button { min-height: 44px; }
   .group-roster-toolbar input { font-size: 16px !important; }
+}
+
+.js-pending-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
+.js-pending-lessons { margin: 0 14px; font-size: 13px; color: var(--color-text); }
+.js-pending-lessons summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
+.js-pending-lessons p { color: var(--color-text-2); margin: 0; }
+.js-pending-lessons ul { margin: 6px 0; padding-inline-start: 20px; }
+.js-pending-lessons li { padding: 3px 0; overflow-wrap: anywhere; }
+@container (max-width: 660px) {
+  .js-tabs button:has(.js-pending-count) { padding-inline: 6px; }
+  .js-pending-lessons summary { min-height: 44px; }
 }
