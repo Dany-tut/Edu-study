@@ -1,0 +1,42 @@
+{
+  "layer": "Real production OAuth PKCE API + deployed MCP; synthetic client, not actual Claude UI",
+  "results": [
+    {
+      "name": "Dynamic registration and S256 PKCE authorization",
+      "status": "PASS"
+    },
+    {
+      "name": "Authenticated MCP initialize and four tools",
+      "status": "PASS"
+    },
+    {
+      "name": "Create own draft course and first module via OAuth MCP",
+      "status": "PASS"
+    },
+    {
+      "name": "Add own draft lesson and notes",
+      "status": "PASS"
+    },
+    {
+      "name": "Create and link own lesson test; existing test is preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "Foreign teacher cannot read or change A course through MCP",
+      "status": "PASS"
+    },
+    {
+      "name": "Student cannot create or list teacher courses",
+      "status": "PASS"
+    },
+    {
+      "name": "Published own course rejects lesson writes",
+      "status": "PASS"
+    },
+    {
+      "name": "OAuth grant revocation denies existing access and refresh",
+      "status": "PASS"
+    }
+  ],
+  "cleanupErrors": []
+}

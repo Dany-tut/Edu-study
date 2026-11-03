@@ -380,6 +380,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
         </>}
         {section === 'integrations' && <TeacherModules />}
         {section === 'settings' && <>
+          <button type="button" style={{ ...photoBtnStyle, marginBottom: 16, minHeight: 44 }} onClick={() => setPage('integrations')}>{t('Интеграции')}</button>
           <div style={{ background: 'var(--color-bg-2)', borderRadius: 20, padding: 24 }}>
             {friends.account && <button type="button" style={{ ...photoBtnStyle, marginBottom: 18 }} onClick={() => friends.setTab('profile')}>{t('Ник и видимость')}</button>}
           <div>
