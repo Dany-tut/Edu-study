@@ -252,9 +252,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                 aria-label={label}
                 aria-pressed={isActive}
                 disabled={isLocked}
-                whileTap={isLocked || reduceMotion ? undefined : { scale: 0.96 }}
                 initial={false}
-                animate={{ height: isActive ? BAR_H : DOT }}
                 transition={transition}
                 onClick={() => { if (!isLocked) onSelect(mod.id) }}
                 style={{
@@ -268,15 +266,15 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                   opacity: isLocked ? 0.6 : 1, cursor: isLocked ? 'default' : 'pointer',
                 }}
               >
-                <motion.span initial={false} animate={{ width: isActive ? BAR_H - 2 : DOT - 2 }} transition={transition} style={{ height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <motion.span style={{ width: isActive ? BAR_H - 2 : DOT - 2, height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     background: isActive ? isDone ? 'var(--color-green-soft)' : 'var(--color-accent)' : 'transparent',
                     color: isActive && !isDone ? '#fff' : 'inherit', fontSize: 12, fontWeight: 700 }}>
                     {isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
                   </span>
                 </motion.span>
-                <motion.span initial={false} animate={{ width: isActive ? 'auto' : 0, opacity: isActive ? 1 : 0 }} transition={transition}
-                  style={{ display: 'inline-flex', overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive}>
+                <motion.span initial={false} animate={{ opacity: isActive ? 1 : 0 }} transition={transition}
+                  style={{ display: 'inline-flex', width: isActive ? 'auto' : 0, overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, paddingLeft: debts ? 18 : 8, paddingRight: 14 }}>
                     <span style={{ ...TEXT_LIFT, fontSize: 13, fontWeight: 600, color: isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}>{name}</span>
                     {pct > 0 && <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>}
