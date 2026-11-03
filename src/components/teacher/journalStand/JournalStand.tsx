@@ -1,4 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import ScrollFade from '../../ScrollFade'
+import { useJournalPending, type PendingJournal } from '../../../lib/useGroups'
 import AttendanceEditor from './AttendanceEditor'
 import JournalSkeleton from '../JournalSkeleton'
 import { useScrollFades } from '../../../lib/useScrollFades'
@@ -257,6 +259,7 @@ export function ProfileWorks({
   )
 }
 interface MatrixProps {
+  pendingAttendance?: PendingJournal[]
   onOpenAttendance?: (works: StudentWork[]) => void
   onOpenWork?: (studentId: string, workRef: string) => void
   onOpenAssignment?: (workRef: string) => void
@@ -286,8 +289,8 @@ function shortDate(value: string | null) {
 function monogram(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map(v => v[0]).join('')
 }
-function MatrixTools({ selected, set, picker, attention, toggle }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
-  attention: boolean; toggle: () => void
+function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
+  attention: boolean; toggle: () => void; pendingCount: number
 }) {
   const [filters, setFilters] = useState(false)
   const area = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null)
@@ -303,12 +306,16 @@ function MatrixTools({ selected, set, picker, attention, toggle }: Pick<MatrixPr
   return (
     <div className="js-toolbar">
       <div className="cj-tabs js-tabs" role="group" aria-label="Раздел журнала">
-        {views.map(([tab, Icon]) => (
-          <button type="button" key={tab} aria-label={tab} title={tab}
-            aria-pressed={selected.tab === tab} onClick={() => set(tab === 'Обзор' ? { tab, student: '', workRef: '' } : { tab })}>
-            <Icon size={15} /><span>{tab}</span>
-          </button>
-        ))}
+        {views.map(([tab, Icon]) => {
+          const count = tab === 'Посещаемость' ? pendingCount : 0
+          const label = count ? `${tab} · незаполненные занятия · ${count}` : tab
+          return (
+            <button type="button" key={tab} aria-label={label} title={label}
+              aria-pressed={selected.tab === tab} onClick={() => set(tab === 'Обзор' ? { tab, student: '', workRef: '' } : { tab })}>
+              <Icon size={15} /><span>{tab}</span>{count > 0 && <b className="js-pending-count">{count}</b>}
+            </button>
+          )
+        })}
       </div>
       <div className="js-filter-area" ref={area} onKeyDown={e => {
         if (e.key === 'Escape' && filters) { e.stopPropagation(); setFilters(false); trigger.current?.focus() }
@@ -387,7 +394,16 @@ export function Matrix(props: MatrixProps) {
   return <section className="course-journal js-matrix" ref={host} data-report-open={drawerOpen || undefined}
     aria-label={'Журнал успеваемости · ' + groupLabel}>
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
-      attention={!overview && attention} toggle={() => setAttention(v => !v)} /></div>
+      pendingCount={props.pendingAttendance?.length ?? 0} attention={!overview && attention} toggle={() => setAttention(v => !v)} /></div>
+    {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && <details className="js-pending-lessons">
+      <summary>Незаполненная посещаемость · {props.pendingAttendance.length}</summary>
+      <ScrollFade maxHeight="min(24dvh, 180px)">
+        <p>Занятия за последние 30 дней по всем группам и ученикам. Фильтры журнала на этот список не влияют.</p>
+        <ul>{props.pendingAttendance.map(row => <li key={row.scheduleId}>
+          {[shortDate(row.date), row.timeStart.slice(0, 5), row.scopeName, row.title].filter(Boolean).join(' · ')}
+        </li>)}</ul>
+      </ScrollFade>
+    </details>}
     {selected.tab === 'Посещаемость' && props.onOpenAttendance && <p className="cj-note">Выберите ячейку и нажмите ещё раз, чтобы поставить оценку. Нажмите название урока, чтобы заполнить весь столбец для учеников в текущем списке.</p>}
     {selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views" role="group" aria-label="Представление работ">
       <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
@@ -597,6 +613,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
   const isDesktop = useIsDesktop()
+  const pendingAttendance = useJournalPending(null)
   const journalActive = ['groups', 'gradebook', 'student'].includes(page)
   const { data, loading, error, reload, setData } = useCourseJournal(true, journalActive)
   const [attendanceCells, setAttendanceCells] = useState<JournalCell[] | null>(null)
@@ -824,6 +841,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
                   )
                   return (
                     <Matrix
+                      pendingAttendance={pendingAttendance}
                       onOpenAttendance={openAttendance}
                       onOpenWork={homework.openStudent}
                       onOpenAssignment={ref => homework.openAssignment(ref, unique.map(e => e.student.id))}
