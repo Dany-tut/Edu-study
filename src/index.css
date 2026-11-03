@@ -596,6 +596,18 @@ html:has(.teacher-dashboard-root) { scrollbar-gutter: auto; }
   /* Scroll spring — all topbar pills move together */
   transform: translateY(var(--topbar-spring-y, 0px));
 }
+/* Keep the compact widget in the right grid track on every mount. Its
+   position must not depend on an observer attached to an earlier header. */
+.topbar-widget-slot {
+  position: relative;
+  min-width: 0;
+  margin-left: 20px;
+  z-index: 70;
+  pointer-events: auto;
+}
+.topbar-widget-slot [data-widget-pill] {
+  max-width: 100%;
+}
 /* Docked-pill rows (position:fixed) share the same spring feel */
 .docked-pills-row {
   /* Все кнопки «Назад» в появляющейся при прокрутке шапке совпадают

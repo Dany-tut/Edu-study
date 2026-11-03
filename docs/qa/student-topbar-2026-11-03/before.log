@@ -1,0 +1,16 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: home → diary 1: widget left=0, nav right=885.8984375
+    at check (file:///Users/dany/Cursor/student-dashboard/scripts/checkStudentTopbarBrowser.mjs:42:12)
+    at async file:///Users/dany/Cursor/student-dashboard/scripts/checkStudentTopbarBrowser.mjs:74:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

@@ -177,6 +177,32 @@ jobs:
       - name: Правила интерфейса (check:ui)
         run: npm run check:ui
 
+      - name: Переходы и геометрия мини-виджета
+        env:
+          ISKRA_PLAYWRIGHT_MODULE: playwright
+          ISKRA_BROWSER_CHANNEL: chromium
+          ISKRA_QA_OUTPUT: /tmp/iskra-topbar-qa
+          VITE_SUPABASE_URL: https://qa.invalid
+          VITE_SUPABASE_PUBLISHABLE_KEY: qa-fixture-key
+        run: |
+          npm install --no-save --package-lock=false --ignore-scripts playwright@1.64.1
+          npx playwright install --with-deps chromium
+          npx vite --host 127.0.0.1 --port 5173 --strictPort > /tmp/iskra-topbar-vite.log 2>&1 &
+          vite_pid=$!
+          trap 'kill "$vite_pid"' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:5173/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run check:student-topbar
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: student-topbar-geometry
+          path: /tmp/iskra-topbar-qa/
+          if-no-files-found: ignore
+
       - name: Сборка
         id: build
         continue-on-error: true
