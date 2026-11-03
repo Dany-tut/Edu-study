@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import {BACKEND} from './snapshot.mjs';
+const key=process.env.ISKRA_PUBLISHABLE_KEY;
+const r=await fetch(BACKEND+'/rest/v1/rpc/iskra_monitor_summary',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(10000)});
+if(!r.ok)throw Error('Private evidence unavailable; do not speculate');
+const s=await r.json();
+if(!/^[a-f0-9]{32}$/.test(s.work_revision))throw Error('Invalid work revision');
+if(s.project!=='iskra'||s.schema_version!==1||s.capture_error||Date.now()-Date.parse(s.checked_at)>180000||!Number.isSafeInteger(s.open_signals))throw Error('Untrusted/stale summary');
+if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,'needed='+String(s.open_signals>0)+'\n');
+fs.writeFileSync('monitor-context.json',JSON.stringify({source:'aggregate_only',revision:s.work_revision,open_signals:s.open_signals,evidence:'No private logs, no confirmed reproduction. Inspect code and require a failing regression before suggesting a fix.'}));

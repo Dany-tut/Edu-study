@@ -1,3 +1,4 @@
+import { setJourneyReporter, observeReloadedJourneys } from './diagnosticJourney'
 import { telemetrySource } from './telemetrySource'
 // Lightweight behavioural telemetry beacon. Automatic — no consent gate.
 // Records ids + behaviour only (no names/emails/PII). RLS enforces admin-only read.
@@ -192,21 +193,22 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   const eventPath = analyticsPath(path ?? currentPath())
   rememberDiagnosticEvent(event, eventPath, meta)
   const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || Number(meta.duration_ms) >= 3000))
+  const needsDelivery = isIncident || event === 'diagnostic_recovery'
   buffer.push({
     event,
     path: eventPath,
-    meta: { ...(isIncident ? sanitizeIncidentMeta(meta) : meta), ...(isIncident ? incidentContext() : {}), ...telemetrySource(), app_version: __APP_VERSION__, online: navigator.onLine, viewport: `${window.innerWidth}×${window.innerHeight}` },
+    meta: { ...(needsDelivery ? sanitizeIncidentMeta(meta) : meta), ...(needsDelivery ? incidentContext() : {}), ...telemetrySource(), app_version: __APP_VERSION__, online: navigator.onLine, viewport: `${window.innerWidth}×${window.innerHeight}` },
     created_at: new Date().toISOString(),
     identity: { ...identity },
     session_id: getSessionId(),
   })
-  if (isIncident) {
+  if (needsDelivery) {
     const pending = buffer[buffer.length - 1]
     incidentOutbox.set(String(pending.meta.incident_id), pending)
     if (incidentOutbox.size > 50) incidentOutbox.delete(incidentOutbox.keys().next().value!)
     persistIncidents()
   }
-  if (isIncident || buffer.length >= MAX_BUFFER) void flush()
+  if (needsDelivery || buffer.length >= MAX_BUFFER) void flush()
 }
 
 export function trackPageView(path: string, meta: Record<string, unknown> = {}) {
@@ -404,8 +406,11 @@ export function initAnalytics() {
   started = true
   getSessionId()
   restoreIncidents()
+  setJourneyReporter(trackEvent)
+  observeReloadedJourneys()
   setRequestReporter(({ event, ...meta }) => trackEvent(typeof event === 'string' ? event : 'api_request', meta))
   installRuntimeDiagnostics(trackEvent)
+  window.dispatchEvent(new Event('iskra:diagnostics-ready'))
   window.addEventListener('offline', () => trackEvent('network_offline'))
   window.addEventListener('online', () => trackEvent('network_online'))
 

@@ -58,7 +58,9 @@
     "check:student-widgets": "node scripts/checkStudentWidgetMatrix.mjs",
     "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs",
     "check:calendar-browser": "node scripts/checkTeacherCalendarDay.mjs",
-    "check:diagnostics": "node scripts/checkDiagnosticFetch.mjs && node scripts/checkTelemetryH1.mjs && node scripts/checkIncidentTelemetry.mjs && node scripts/checkIncidentDelivery.mjs"
+    "check:diagnostics": "node scripts/checkDiagnosticFetch.mjs && node scripts/checkTelemetryH1.mjs && node scripts/checkIncidentTelemetry.mjs && node scripts/checkIncidentDelivery.mjs",
+    "check:server-monitor": "node scripts/checkServerMonitor.mjs && node scripts/checkDiagnosticJourney.mjs && node scripts/checkRecoveryImports.mjs && node scripts/checkBootDiagnostics.mjs && node scripts/checkNativeCrashWebhook.mjs && node scripts/checkMutationEvidence.mjs",
+    "check:monitor-db": "node scripts/checkMonitorDb.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
@@ -66,6 +68,8 @@
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/ios": "8.4.3",
+    "@sentry/capacitor": "4.5.0",
+    "@sentry/react": "10.76.2",
     "@supabase/supabase-js": "^2.108.1",
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.5.0",

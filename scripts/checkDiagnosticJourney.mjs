@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const storage=new Map();globalThis.sessionStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)};
+const out=await build({entryPoints:['src/lib/diagnosticJourney.ts'],bundle:true,write:false,format:'esm',platform:'node'});
+const journey=await import('data:text/javascript;base64,'+Buffer.from(out.outputFiles[0].text).toString('base64'));
+const events=[];const id=journey.diagnosticFailure('lazy_module','load_failed');journey.setJourneyReporter((event,meta)=>events.push({event,meta}));
+journey.diagnosticRetry(id,'reload');journey.observeReloadedJourneys();assert(events.some(x=>x.meta.stage==='boot_observed'));assert(!events.some(x=>x.meta.evidence==='module_loaded'));
+journey.diagnosticRecovered(id,'module_loaded');assert.equal(events.filter(x=>x.event==='operation_failed').length,1);assert(events.some(x=>x.meta.evidence==='module_loaded'&&x.meta.failure_id===id));assert.equal(JSON.parse(storage.get('iskra:diagnostic-journeys')).length,0);
+journey.setJourneyReporter(()=>{throw Error('broken reporter')});assert.doesNotThrow(()=>journey.diagnosticFailure('page','render_failed'));
+globalThis.sessionStorage={getItem(){throw Error('private storage')},setItem(){throw Error('private storage')}};assert.doesNotThrow(()=>journey.diagnosticFailure('widget','render_failed'));
+console.log('Journeys: queued first failure, retry/reload correlation, explicit recovery, original failure retained, reporter/storage isolation passed');

@@ -25,3 +25,7 @@ verify_jwt = false
 # JWT is verified inside the handler; cron uses its shared secret.
 verify_jwt = false
 
+
+[functions.native-crash-webhook]
+# HMAC-SHA256 verified against raw bytes inside the handler.
+verify_jwt = false
