@@ -31,3 +31,10 @@ verify_jwt = false
 enabled = true
 authorization_url_path = "/oauth/consent"
 allow_dynamic_registration = true
+
+[functions.native-crash-webhook]
+# HMAC-SHA256 verified against raw bytes inside the handler.
+verify_jwt = false
+[functions.incident-context]
+# Timestamped HMAC; only a scoped technical allowlist leaves the private queue.
+verify_jwt = false

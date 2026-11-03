@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';import {build} from 'esbuild';
+const out=await build({entryPoints:['supabase/functions/native-crash-webhook/handler.ts'],bundle:true,write:false,format:'esm',platform:'node'});
+const {nativeCrashWebhook:handle}=await import('data:text/javascript;base64,'+Buffer.from(out.outputFiles[0].text).toString('base64'));
+const secret='fixture-only';const body=JSON.stringify({action:'created',data:{issue:{project:{id:123}},event:{release:'1.0.1',user:{email:'private@example.com'}}}});
+const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+const sig=[...new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(body)))].map(x=>x.toString(16).padStart(2,'0')).join('');
+let saved;const options={secret,project:'123',store:async row=>{saved=row;return true}};
+const request=signature=>new Request('https://fixture.invalid',{method:'POST',headers:{'sentry-hook-signature':signature},body});
+assert.equal((await handle(request(sig),options)).status,202);assert.equal(saved.event,'native_crash');assert(!JSON.stringify(saved).includes('private@'));assert.equal((await handle(request('0'.repeat(64)),options)).status,401);
+assert.equal((await handle(request(sig),{...options,project:'wrong'})).status,403);assert.equal((await handle(request(sig),{...options,secret:''})).status,503);assert.equal((await handle(request(sig),{...options,store:async()=>{throw Error('offline')}})).status,503);
+const original=saved.meta.incident_id;await handle(request(sig),options);assert.equal(saved.meta.incident_id,original);
+console.log('Native webhook: exact-byte HMAC, wrong signature/project, missing config, backend failure, replay ID and no user payload passed');
+const redacted=await build({entryPoints:['src/lib/crashEventPrivacy.ts'],bundle:true,write:false,format:'esm',platform:'node'});const {redactCrashEvent}=await import('data:text/javascript;base64,'+Buffer.from(redacted.outputFiles[0].text).toString('base64'));
+const event=redactCrashEvent({user:{email:'private@example.com'},exception:{values:[{value:'private@example.com',stacktrace:{frames:[{filename:'https://fixture/file.js?token=private',lineno:3}]}}]}});assert.equal(event.user,undefined);assert.equal(typeof event.exception.values[0].stacktrace.frames[0].lineno,'number');assert(!JSON.stringify(event).includes('private'));console.log('Crash event redaction preserves deep stack frame schema');

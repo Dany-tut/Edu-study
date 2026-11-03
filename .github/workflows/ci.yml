@@ -85,6 +85,9 @@ jobs:
       - name: Диагностическая телеметрия (H1)
         run: npm run check:diagnostics
 
+      - name: Серверный монитор и восстановление
+        run: npm run check:server-monitor && npm run check:monitor-db
+
       - name: Типы (tsc --noEmit)
         id: types
         continue-on-error: true
