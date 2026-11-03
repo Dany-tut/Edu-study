@@ -1,5 +1,5 @@
 {
-  "originHash" : "80be85e749c63f90fe9aaa773284ddc0c1c8e0f29d9bd7cd6b7da7ca478c03c5",
+  "originHash" : "0fbdd34abefa7a44bcbe4a139db0f060ede3cd5dcd0de541eb025a6cf56463f2",
   "pins" : [
     {
       "identity" : "capacitor-swift-pm",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "89e0d8ec2321025f549ddb19259a717467943b97",
         "version" : "8.4.3"
+      }
+    },
+    {
+      "identity" : "sentry-apple-binaries",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getsentry/sentry-apple-binaries",
+      "state" : {
+        "revision" : "71ed5066fa7b5b1f54ac72c6bc8666cbf80d54dd",
+        "version" : "9.28.0"
       }
     }
   ],
