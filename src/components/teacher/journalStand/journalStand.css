@@ -177,7 +177,8 @@
 .js-cell small, .js-cell .js-source { color: var(--color-text-3); font-size: 10px; line-height: 13px; }
 .js-cell > small { overflow-wrap: anywhere; }
 .js-cell .cj-badge, .js-pill .cj-badge { border-radius: 7px; padding: 3px 7px; }
-.js-name:hover, .js-cell:hover { background: var(--color-bg-3); }
+.js-cell:disabled { cursor: default; }
+.js-name:hover, .js-cell:enabled:hover { background: var(--color-bg-3); }
 .js-name[aria-pressed='true'], .js-cell[aria-pressed='true'] { background: var(--color-purple-soft); }
 .js-cell[aria-pressed='true'] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 48%, transparent); }
 .js-matrix :is(.js-name,.js-cell):focus-visible { outline-offset: -2px; }

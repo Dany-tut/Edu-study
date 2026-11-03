@@ -124,6 +124,12 @@ const rollup = (input, learner) => {
   return studentWorks(input, index, learner, scopeSlots(index, { course: '*', module: '' }), '2026-11-01')
 }
 const combined = rollup(lab, person)
+const attendanceWork = input => rollup(input, student).find(w => w.slot.ref === chem[0].id)
+assert.equal(attendanceWork(personalData).attendanceCell.event.id, personal.id)
+assert.equal(attendanceWork(personalData).attendanceCell.student.id, student.id)
+const unscheduled = attendanceWork({ ...data, events: [] })
+assert.equal(unscheduled.attendanceCell, undefined)
+assert.equal(unscheduled.attendanceReason, 'Нет занятия в расписании')
 assert.deepEqual(combined, rollup(lab, otherCard))
 assert.deepEqual(combined.filter(w => w.submitted).map(w => w.source).sort(), ['Искра', 'Искра + Тестли', 'Тестли'].sort())
 assert.equal(workStats(combined, '2026-11-01').average, 54)
