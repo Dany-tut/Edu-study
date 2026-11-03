@@ -1,3 +1,4 @@
+import { widgetNavigationProps } from './widgetNavigation'
 import { useRef, useState, useId } from 'react'
 import { Bell, ChevronRight, ArrowUpRight, CheckCircle2 } from '../../icons/appIcons'
 import { useHomeData } from '../../../lib/useHomeData'
@@ -28,7 +29,7 @@ export default function WidgetTodayReminders() {
   const active=groups.find(c=>c.type===selected)??groups[0]
   const count=(items:Reminder[])=>items.reduce((n,r)=>n+(reminderDone(r)?0:r.type==='check-hw'?(r.pendingCount??1):1),0)
   const action=active?.items.map(reminderAction).find(Boolean)
-  return <section className="teacher-reminders-panel">
+  return <section className="teacher-reminders-panel" {...widgetNavigationProps(action)} aria-label={t('Напоминания')}>
     <header className="widget-panel-header"><Bell size={17}/><h3>{t('Напоминания')}</h3>{action&&<button type="button" onClick={action} aria-label={t('Открыть')}><ArrowUpRight size={17}/></button>}</header>
     {active&&<div className="reminder-category-tabs" ref={nav} role="tablist" aria-label={t('Напоминания')}>
       {groups.map(c=><button key={c.type} type="button" role="tab" aria-selected={active.type===c.type} aria-controls={queueId} onClick={()=>{setSelected(c.type);body.current?.scrollTo({top:0})}}>{t(c.label)}<b>{count(c.items)}</b></button>)}

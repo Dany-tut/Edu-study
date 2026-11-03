@@ -90,3 +90,14 @@
 @container next-work (max-height:140px){
  .next-work-card[data-state=ready] .next-work-meta>[data-text-fade]{max-height:1lh!important;white-space:nowrap!important;--iskra-text-fade-lines:1!important}
 }
+
+/* Match the adjacent objects while reserving space for the assignment title. */
+@container next-work (width < 800px) and (height > 140px) {
+ .next-work-card[data-state=ready] { grid-template-columns:minmax(0,1fr) min(var(--ihw-art-size),35cqi); column-gap:4px; }
+ .ihw-card.next-work-card[data-state=ready] > .ihw-object {
+  --art-top-inset:.09; --art-right-inset:.04;
+  --ihw-render-size:min(var(--ihw-art-size),38cqi);
+  position:absolute; grid-area:auto; width:var(--ihw-render-size); height:var(--ihw-render-size);
+  max-width:none; max-height:none;
+ }
+}

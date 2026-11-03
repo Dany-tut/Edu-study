@@ -51,7 +51,7 @@ export const MODAL_CARD: CSSProperties = {
 
 export default function Modal({
   onClose, title, subtitle, icon, width = 540, padding = 24, zIndex = 1200,
-  footer, children, onPaste, cardStyle, backdropStyle, bodyStyle,
+  footer, children, onPaste, cardStyle, backdropStyle, bodyStyle, closeButtonStyle,
 }: {
   onClose: () => void
   /** Без заголовка шапки нет — крестик тогда рисует само содержимое. */
@@ -68,6 +68,7 @@ export default function Modal({
   onPaste?: (e: React.ClipboardEvent) => void
   cardStyle?: CSSProperties
   backdropStyle?: CSSProperties
+  closeButtonStyle?: CSSProperties
   bodyStyle?: CSSProperties
 }) {
   const t = useT()
@@ -114,7 +115,7 @@ export default function Modal({
                 <div style={{ minHeight: 36, display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3, minWidth: 0 }}>{typeof title === 'string' || typeof title === 'number' ? <FadeText lines={2} style={{ width: '100%', overflowWrap: 'anywhere' }}>{title}</FadeText> : title}</div>
                 {subtitle != null && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4, lineHeight: 1.3 }}>{typeof subtitle === 'string' || typeof subtitle === 'number' ? <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{subtitle}</FadeText> : subtitle}</div>}
               </div>
-              <ModalClose onClose={onClose} />
+              <ModalClose onClose={onClose} style={closeButtonStyle} />
             </div>
           )}
           {/* Тело: свой тонкий ползунок поверх текста (системный в тёмной теме —

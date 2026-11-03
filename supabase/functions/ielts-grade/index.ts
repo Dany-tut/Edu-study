@@ -1,3 +1,4 @@
+import { languageAiConfig, requestLanguageAi, retryLanguageAi, languageAiUserMessage, type LanguageAiConfig } from '../_shared/languageAi.ts'
 // Edge Function: оценка Writing и Speaking пробника IELTS моделью.
 //
 // ЗАЧЕМ. Listening и Reading пробника проверяются ключом прямо в браузере, а
@@ -125,31 +126,11 @@ function speakingSystem(): string {
 
 type Content = Array<{ type: 'text'; text: string }>
 
-async function askModel(key: string, model: string, system: string, content: Content) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({ model, max_tokens: 4000, system, messages: [{ role: 'user', content }] }),
-  })
-  const raw = await res.text()
-  if (!res.ok) throw new Error(`шлюз ИИ HTTP ${res.status}: ${raw.slice(0, 200)}`)
-  let body: { content?: Array<{ text?: string }>; error?: { message?: string } }
-  try { body = JSON.parse(raw) } catch { throw new Error(`шлюз ИИ вернул не JSON: ${raw.slice(0, 200)}`) }
-  if (body.error) throw new Error(`шлюз ИИ: ${body.error.message ?? 'unknown error'}`)
-  const text = (body.content ?? []).map(c => c.text ?? '').join('').trim()
-  if (!text) throw new Error('шлюз ИИ вернул пустой ответ')
-  return text
+async function askModel(config: LanguageAiConfig, model: string, system: string, content: Content) {
+  return requestLanguageAi(config, { model, system, content, maxTokens: 4000 })
 }
 
-/**
- * Ответ модели → оценка. Ключи сверяются со списком критериев: пропущенный
- * критерий — это не «ноль», а брак ответа, и такой ответ отбрасывается целиком
- * (перебор пойдёт к следующей модели).
- */
+/** Reject incomplete criteria rather than silently treating them as zero. */
 function parseGrade(text: string, wanted: { key: string; name: string }[]) {
   const body = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
   const start = body.indexOf('{')
@@ -189,13 +170,14 @@ function parseGrade(text: string, wanted: { key: string; name: string }[]) {
   return { band, criteria, strengths, fixes, lexis, summary: String(obj.summary ?? '').trim() }
 }
 
-async function grade(key: string, system: string, content: Content, wanted: { key: string; name: string }[]) {
+async function grade(config: LanguageAiConfig, system: string, content: Content, wanted: { key: string; name: string }[]) {
   const failures = new Map<string, string>()
   for (let round = 0; round < 2; round++) {
-    for (const model of MODELS) {
+    for (const model of config.models) {
       try {
-        return { ...parseGrade(await askModel(key, model, system, content), wanted), model }
+        return { ...parseGrade(await askModel(config, model, system, content), wanted), model }
       } catch (e) {
+        if (!retryLanguageAi(e)) throw e
         failures.set(model, e instanceof Error ? e.message : String(e))
       }
     }
@@ -211,7 +193,7 @@ Deno.serve(async (req) => {
   try {
     return await handle(req)
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : String(e) }, 502)
+    return json({ error: languageAiUserMessage(e) }, 502)
   }
 })
 
@@ -222,7 +204,7 @@ async function handle(req: Request): Promise<Response> {
   const url = Deno.env.get('SUPABASE_URL')!
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const aiKey = Deno.env.get('AI_API_KEY') ?? Deno.env.get('KIE_API_KEY')
+  const gateway = languageAiConfig(name => Deno.env.get(name), MODELS, API_URL)
 
   // Платно — значит только вошедший человек, не аноним со ссылкой на функцию.
   const authHeader = req.headers.get('Authorization') ?? ''
@@ -234,8 +216,8 @@ async function handle(req: Request): Promise<Response> {
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
   const { data: flags } = await admin.from('app_flags').select('key, enabled').in('key', FLAGS)
   const off = FLAGS.filter(k => !flags?.find(f => f.key === k)?.enabled)
-  if (off.length) return json({ error: `Оценка моделью выключена в админке (${off.join(', ')})` }, 409)
-  if (!aiKey) return json({ error: 'AI_API_KEY не задан в секретах функции' }, 500)
+  if (off.length) return json({ error: 'Оценка ИИ сейчас недоступна.' }, 409)
+  if (!gateway.key) return json({ error: 'Сервис ИИ сейчас недоступен. Попробуйте позже.' }, 503)
 
   let body: Record<string, unknown>
   try { body = await req.json() } catch { return json({ error: 'Пустой запрос' }, 400) }
@@ -258,7 +240,7 @@ async function handle(req: Request): Promise<Response> {
       ].filter(Boolean).join('\n\n'),
     }]
     const wanted = WRITING_CRITERIA(task)
-    return json({ ...(await grade(aiKey, writingSystem(task), content, wanted)), words })
+    return json({ ...(await grade(gateway, writingSystem(task), content, wanted)), words })
   }
 
   if (body.kind === 'speaking') {
@@ -275,7 +257,7 @@ async function handle(req: Request): Promise<Response> {
       type: 'text',
       text: `РАСШИФРОВКА ОТВЕТОВ (автоматическая):\n<<<\n${lines.join('\n\n').slice(0, TRANSCRIPT_CAP)}\n>>>`,
     }]
-    return json(await grade(aiKey, speakingSystem(), content, SPEAKING_CRITERIA))
+    return json(await grade(gateway, speakingSystem(), content, SPEAKING_CRITERIA))
   }
 
   return json({ error: 'Неизвестный вид оценки' }, 400)

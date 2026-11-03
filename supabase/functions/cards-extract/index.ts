@@ -1,3 +1,4 @@
+import { languageAiConfig, requestLanguageAi, retryLanguageAi, languageAiUserMessage, type LanguageAiConfig } from '../_shared/languageAi.ts'
 // Edge Function: карточки из фото и из ссылки.
 //
 // ЗАЧЕМ. Материал для тренажёра почти никогда не рождается в нашем редакторе:
@@ -240,31 +241,8 @@ type Content = Array<
   | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
 >
 
-async function askModel(key: string, model: string, langName: string, content: Content) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 8000,
-      system: rules(langName),
-      messages: [{ role: 'user', content }],
-    }),
-  })
-  const raw = await res.text()
-  if (!res.ok) throw new Error(`шлюз ИИ HTTP ${res.status}: ${raw.slice(0, 200)}`)
-
-  let body: { content?: Array<{ text?: string }>; error?: { message?: string } }
-  try { body = JSON.parse(raw) } catch { throw new Error(`шлюз ИИ вернул не JSON: ${raw.slice(0, 200)}`) }
-  if (body.error) throw new Error(`шлюз ИИ: ${body.error.message ?? 'unknown error'}`)
-
-  const text = (body.content ?? []).map(c => c.text ?? '').join('').trim()
-  if (!text) throw new Error('шлюз ИИ вернул пустой ответ')
-  return parseCards(text)
+async function askModel(config: LanguageAiConfig, model: string, langName: string, content: Content) {
+  return parseCards(await requestLanguageAi(config, { model, system: rules(langName), content, maxTokens: 8000 }))
 }
 
 /**
@@ -284,7 +262,7 @@ function parseCards(text: string): Card[] {
 
   return arr
     .map(x => (x && typeof x === 'object' ? x as Record<string, unknown> : null))
-    .map(x => {
+    .map((x): Card | null => {
       const term = String(x?.term ?? '').trim()
       const ru = String(x?.ru ?? '').trim()
       const note = String(x?.note ?? '').trim()
@@ -302,7 +280,7 @@ Deno.serve(async (req) => {
   try {
     return await handle(req)
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : String(e) }, 502)
+    return json({ error: languageAiUserMessage(e) }, 502)
   }
 })
 
@@ -313,7 +291,7 @@ async function handle(req: Request): Promise<Response> {
   const url        = Deno.env.get('SUPABASE_URL')!
   const anonKey    = Deno.env.get('SUPABASE_ANON_KEY')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const kieKey     = Deno.env.get('AI_API_KEY') ?? Deno.env.get('KIE_API_KEY')
+  const gateway = languageAiConfig(name => Deno.env.get(name), MODELS, API_URL)
 
   // ── Кто зовёт ─────────────────────────────────────────────────────────────
   // Роль не проверяем: карточки собирают и учитель, и ученик (флаг
@@ -411,12 +389,12 @@ async function handle(req: Request): Promise<Response> {
 
     // ── Дальше платит модель ────────────────────────────────────────────────
     if (off.length) return json({ error: `Разбор моделью выключен в админке (${off.join(', ')})` }, 409)
-    if (!kieKey) return json({ error: 'AI_API_KEY не задан в секретах функции' }, 500)
+    if (!gateway.key) return json({ error: 'Сервис ИИ сейчас недоступен. Попробуйте позже.' }, 503)
 
     const text = htmlToText(page.body)
     if (text.length < 20) return json({ error: 'На странице не нашлось текста — возможно, она собирается скриптами' }, 422)
 
-    const { cards, model } = await runModel(kieKey, langName, [
+    const { cards, model } = await runModel(gateway, langName, [
       { type: 'text', text: `Источник — страница ${src}.\n\n${text}` },
     ])
     if (!cards.length) return json({ error: 'Модель не нашла на странице слов для карточек' }, 422)
@@ -425,7 +403,7 @@ async function handle(req: Request): Promise<Response> {
 
   // ── Фото ──────────────────────────────────────────────────────────────────
   if (off.length) return json({ error: `Разбор моделью выключен в админке (${off.join(', ')})` }, 409)
-  if (!kieKey) return json({ error: 'AI_API_KEY не задан в секретах функции' }, 500)
+  if (!gateway.key) return json({ error: 'Сервис ИИ сейчас недоступен. Попробуйте позже.' }, 503)
 
   const content: Content = []
   for (const dataUrl of images) {
@@ -443,7 +421,7 @@ async function handle(req: Request): Promise<Response> {
       : 'На снимке — список слов. Разбери его.',
   })
 
-  const { cards, model } = await runModel(kieKey, langName, content)
+  const { cards, model } = await runModel(gateway, langName, content)
   if (!cards.length) return json({ error: 'На снимке не нашлось слов — попробуйте снять ближе и ровнее' }, 422)
   return finish(cards, { source: 'photo', model })
 }
@@ -452,13 +430,14 @@ async function handle(req: Request): Promise<Response> {
  * Перебор моделей. Два круга, как у разбора аналитики: первый ловит модель,
  * доступную прямо сейчас, второй — короткую просадку у провайдера.
  */
-async function runModel(key: string, langName: string, content: Content) {
+async function runModel(config: LanguageAiConfig, langName: string, content: Content) {
   const failures = new Map<string, string>()
   for (let round = 0; round < 2; round++) {
-    for (const model of MODELS) {
+    for (const model of config.models) {
       try {
-        return { cards: await askModel(key, model, langName, content), model }
+        return { cards: await askModel(config, model, langName, content), model }
       } catch (e) {
+        if (!retryLanguageAi(e)) throw e
         failures.set(model, e instanceof Error ? e.message : String(e))
       }
     }
