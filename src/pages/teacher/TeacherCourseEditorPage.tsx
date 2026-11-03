@@ -1649,7 +1649,16 @@ function CenterRecording({
   // переписывают время из соседнего окна. Прогресс просмотра учителя никуда не
   // пишется — плееру нужен только неизменный стартовый объект (иначе он на
   // каждый ре-рендер сбрасывал бы своё состояние).
-  const source = useMemo(() => parseVideoSource(lesson.videoUrl), [lesson.videoUrl])
+  const [localFile, setLocalFile] = useState<File | null>(null)
+  const [localUrl, setLocalUrl] = useState('')
+  useEffect(() => {
+    if (!localFile) return
+    const url = URL.createObjectURL(localFile)
+    setLocalUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [localFile])
+  const source = useMemo(() => lesson.videoUrl ? parseVideoSource(lesson.videoUrl) :
+    localUrl ? { kind: 'file' as const, url: localUrl } : undefined, [lesson.videoUrl, localUrl])
   // Ссылка на облачный диск — показываем бренд-логотип и название (приписку).
   const disk = useMemo(() => detectDisk(lesson.videoUrl), [lesson.videoUrl])
   const playerRef = useRef<LessonVideoHandle>(null)
@@ -1671,7 +1680,16 @@ function CenterRecording({
     setUploading(true)
     setUploadError('')
     try {
-      const uploaded = await uploadLessonFileToR2(file)
+      let uploaded: LessonFile
+      try {
+        uploaded = await uploadLessonFileToR2(file)
+      } catch {
+        if (active.current && file.size <= 2 * 1024 ** 3) {
+          setLocalFile(file)
+          return
+        }
+        throw new Error()
+      }
       if (!active.current) return
       if (!uploaded.url || !await onSaveLink(uploaded.url)) throw new Error()
     } catch {
@@ -1681,7 +1699,7 @@ function CenterRecording({
     }
   }
   const content = (transcriptionAction: React.ReactNode) => {
-  if (lesson.videoUrl && !linkMode) {
+  if ((lesson.videoUrl || localFile) && !linkMode) {
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 24px 22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1692,7 +1710,7 @@ function CenterRecording({
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
-              {lesson.videoUrl}
+              {lesson.videoUrl || localFile?.name}
             </span>
             {disk && (
               <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 9px 2px 7px', borderRadius: 999, background: 'var(--color-bg-3)', color: 'var(--color-text-3)' }}>
@@ -1706,6 +1724,8 @@ function CenterRecording({
             {t('Изменить')}
           </button>
         </div>
+
+        {localFile && !lesson.videoUrl && <small role="status">Видео открыто с компьютера. Текст и главы можно сохранить в уроке. Чтобы ученики могли смотреть запись, добавьте ссылку через «Изменить».</small>}
 
         {disk && source?.kind === 'iframe' ? (
           // Диск, который не встраивается в iframe (Яндекс, Dropbox, OneDrive,
@@ -1826,7 +1846,7 @@ function CenterRecording({
 
   return (
     <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      {loading ? content(null) : <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} published={published}
+      {loading ? content(null) : <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         onApply={({ transcript, timecodes }) => { onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }}>{content}</TranscriptionAction>}
     </div>

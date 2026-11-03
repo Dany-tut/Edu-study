@@ -126,7 +126,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
 }
 
 type Pending = { id: string; source: string }
-type Props = { owner: string; lessonKey: string; source: string; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => void }
+type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => void }
 
 function readPending(owner: string, lessonKey: string, source: string): Pending | null {
   try {
@@ -138,10 +138,11 @@ function readPending(owner: string, lessonKey: string, source: string): Pending 
 export function TranscriptionAction(props: Props & { children: (action: React.ReactNode) => React.ReactNode }) {
   const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>('entry')
   const connected = !!props.owner && !!localStorage.getItem(tokenKey(props.owner))
-  const pending = readPending(props.owner, props.lessonKey, props.source)
-  if (!props.owner || !props.source) return <>{props.children(null)}</>
+  const jobKey = props.file ? JSON.stringify([props.lessonKey, props.file.name, props.file.size, props.file.lastModified]) : props.lessonKey
+  const pending = readPending(props.owner, jobKey, props.source)
+  if (!props.owner || (!props.source && !props.file)) return <>{props.children(null)}</>
   if (view !== 'entry') return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }}>
-    {view === 'review' ? <Review key={props.source} {...props} onClose={() => setView('entry')} /> :
+    {view === 'review' ? <Review key={jobKey + props.source} {...props} lessonKey={jobKey} onClose={() => setView('entry')} /> :
       <section className="transcription-inline">
         <button type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
         {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
@@ -156,7 +157,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   </>)}</>
 }
 
-function Review({ owner, lessonKey, source, existing, published, onApply, onClose }: Props & { onClose: () => void }) {
+function Review({ owner, lessonKey, source, file, existing, published, onApply, onClose }: Props & { onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source))
@@ -168,7 +169,8 @@ function Review({ owner, lessonKey, source, existing, published, onApply, onClos
   async function start() {
     setError('')
     const form = new FormData()
-    form.append('link', source.trim())
+    if (file) form.append('video', file)
+    else form.append('link', source.trim())
     setBusy(true)
     try {
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
