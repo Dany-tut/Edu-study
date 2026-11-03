@@ -1,3 +1,4 @@
+import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { useState, useMemo } from 'react'
 import FadeText from '../../components/FadeText'
 import { useIsDesktop } from '../../lib/useIsDesktop'
@@ -331,8 +332,9 @@ export default function TeacherFinancesPage() {
   // Lifted under the topbar so content melts into the progressive-blur strip
   // instead of hard-clipping (shared scroll-under-topbar recipe).
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100 }}>
-      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '128px 24px 60px' }}>
+    <>
+      <TeacherPageScroll>
+      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -442,6 +444,8 @@ export default function TeacherFinancesPage() {
 
       </div>
 
+      </TeacherPageScroll>
+
       {/* Add payment modal */}
       <AnimatePresence>
         {paying !== undefined && (
@@ -453,6 +457,6 @@ export default function TeacherFinancesPage() {
           />
         )}
       </AnimatePresence>
-    </div>
+    </>
   )
 }
