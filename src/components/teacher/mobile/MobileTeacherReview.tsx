@@ -1,8 +1,8 @@
 import FadeText from '../../FadeText'
 import { LoopActionLabel } from '../../icons/LoopIcon'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
-import { Check, RotateCcw, Image as ImageIcon, ClipboardCheck, Loader2, PenLine, X, ChevronRight } from '../../icons/appIcons'
+import { Check, RotateCcw, Image as ImageIcon, ClipboardCheck, Loader2, PenLine, X } from '../../icons/appIcons'
 import MobileSheet from '../../MobileSheet'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
@@ -20,9 +20,6 @@ import AnswerBody from '../AnswerBody'
 import Modal from '../../Modal'
 import { TaskliIcon } from '../../icons/TaskliIcon'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
-import type { HomeworkItem } from '../../../data/teacherMockData'
-import MobileHomeworkReview from './MobileHomeworkReview'
-import { DEMO_REGULAR_SUBMISSIONS } from '../../../data/mobileReviewDemo'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -171,14 +168,11 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
   </>
 }
 
-export default function MobileTeacherReview({ onDetailChange }: { onDetailChange?: (open: boolean) => void }) {
-  const [selectedHomework, setSelectedHomework] = useState<HomeworkItem | null>(null)
-  const [demoResults, setDemoResults] = useState<Record<string, 'accepted' | 'returned'>>({})
-  useEffect(() => { onDetailChange?.(!!selectedHomework); return () => onDetailChange?.(false) }, [!!selectedHomework, onDetailChange])
+export default function MobileTeacherReview() {
   const t = useT()
   const { tc } = useTc()
   const { submissions, reviewHard } = useHardSubmissions()
-  const { homework, reload: reloadHomework } = useHomework()
+  const { homework } = useHomework()
 
   const realHard = submissions.filter(s => s.status === 'submitted')
   const realHw = homework
@@ -188,8 +182,7 @@ export default function MobileTeacherReview({ onDetailChange }: { onDetailChange
   const signedIn = useTeacherSession()
   const demo = import.meta.env.DEV && signedIn === false && realHard.length === 0 && realHw.length === 0
   const pendingHard = demo ? DEMO_HARD_SUBS : realHard
-  const demoRows = DEMO_REGULAR_SUBMISSIONS.map(s => ({ ...s, verdict: demoResults[s.id] ?? s.verdict }))
-  const pendingHw = demo ? DEMO_HW.map(h => ({ ...h, reviewedCount: h.reviewedCount + Object.keys(demoResults).length })).filter(h => h.submittedCount > h.reviewedCount) : realHw
+  const pendingHw = demo ? DEMO_HW : realHw
 
   // Demo submissions have no DB row — swallow the review action instead of
   // firing a Supabase write against a fake id.
@@ -199,8 +192,6 @@ export default function MobileTeacherReview({ onDetailChange }: { onDetailChange
     if (!ok) void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
     return ok
   }
-
-  if (selectedHomework) return <MobileHomeworkReview key={selectedHomework.id} homework={selectedHomework} demoSubmissions={demo ? demoRows : undefined} onBack={() => setSelectedHomework(null)} onPublished={(id, verdict) => { if (demo) setDemoResults(old => ({ ...old, [id]: verdict })); else void reloadHomework() }} />
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -228,14 +219,14 @@ export default function MobileTeacherReview({ onDetailChange }: { onDetailChange
               {t('ДОМАШНИЕ ЗАДАНИЯ')}
             </div>
             {pendingHw.map(h => (
-              <button type="button" key={h.id} onClick={() => { tactile(); setSelectedHomework(h) }} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+              <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
                 <ImageIcon size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{tc(h.title)}</FadeText>
                   <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>{h.groupName} · {h.submittedCount - h.reviewedCount} {t('ждут')}</div>
                 </div>
-                <ChevronRight size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-              </button>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', flexShrink: 0 }}>{t('на ПК')}</span>
+              </div>
             ))}
           </div>
         )}

@@ -58,7 +58,6 @@ export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: strin
 
 interface Props {
   /** Optional local preview; real nodes continue to use the student's assessment. */
-  overdueLabel?: string
   assessmentOverride?: LessonAssessment
   lesson: Lesson
   status: TrackLessonStatus
@@ -75,7 +74,7 @@ interface Props {
   seasonMark?: boolean
 }
 
-export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false, assessmentOverride, overdueLabel }: Props) {
+export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false, assessmentOverride }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
   const { tc } = useTc()
@@ -204,7 +203,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
           ...(silhouette === 'screen' && { left: -4, right: -4 }),
           rotate: isDiamond ? '45deg' : '0deg',
         }}
-        aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lesson.number + 1}: ${tc(lesson.title)} · ${statusDescription}${overdueLabel ? ` · ${overdueLabel}` : ''}`}
+        aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lesson.number + 1}: ${tc(lesson.title)} · ${statusDescription}`}
         title={statusDescription}
       >
         {silhouette && <CourseNodeSilhouette shape={silhouette} tone={palette} active={isActive} highlighted={isHighlighted} />}
@@ -214,8 +213,6 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
       </motion.button>
 
       {seasonNode && <SeasonCurrentNode size={size} />}
-
-      {overdueLabel && <span title={overdueLabel} aria-label={overdueLabel} style={{ position: 'absolute', right: -6, top: -7, zIndex: 12, width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', border: '2px solid var(--color-bg)', pointerEvents: 'none' }}><CircleAlert size={14} /></span>}
 
       {/* Hard satellite circle — appears half-overlapping from the right */}
       {showHardSatellite && (

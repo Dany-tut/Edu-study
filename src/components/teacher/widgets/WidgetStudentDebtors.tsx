@@ -9,8 +9,8 @@ export default function WidgetStudentDebtors() {
   const allStudents = useAllStudents()
   const { debtors } = studentBalanceStats(allStudents)
   return (
-    <MiniStatCard widgetId="student-debtors"
-      icon={AlertCircle} label={t('Минус по занятиям')}
+    <MiniStatCard
+      icon={AlertCircle} label={t('Должников')}
       value={debtors}
       sub={t('требуют внимания')}
       accentBg="var(--color-peach-soft)" accentColor="#C07020"

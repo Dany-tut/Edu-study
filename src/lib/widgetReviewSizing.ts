@@ -8,12 +8,10 @@ export function reviewLimits(def: WidgetDef, grid: Grid) {
   return widgetBounds({ i: def.type, type: def.type, x: 0, y: 0, w: 1, h: 1, gridVersion: 2 }, def, grid.width, grid.rowHeight, 8)
 }
 export function reviewAllowed(def: WidgetDef, grid: Grid, size: Size) {
-  if(def.allowedSizes && !def.allowedSizes.some(s=>s.w===size.w&&s.h===size.h)) return false
   const min = reviewLimits(def, grid)
   return size.w >= min.minW && size.w <= grid.columns && size.h >= min.minH && size.h <= Math.min(grid.rows, min.maxH ?? grid.rows)
 }
 export function reviewPresets(def: WidgetDef, grid: Grid): Size[] {
-  if(def.allowedSizes) return def.allowedSizes.filter(s=>reviewAllowed(def,grid,s)).map(s=>({...s}))
   const candidates = def.stat ? [[1, 1], [1, 2], [2, 2], [2, 3], [3, 3]]
     : def.type === 'today-schedule' ? [[2, 3], [3, 3], [3, 4], [4, 3], [4, 5]]
       : [[2, 2], [2, 3], [3, 2], [3, 3], [4, 3]]

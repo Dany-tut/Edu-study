@@ -8,7 +8,7 @@ export default function WidgetStatLessons() {
   const t = useT()
   const { todaySchedule, nextLesson, loading } = useHomeData()
   return (
-    <MiniStatCard widgetId="stat-lessons"
+    <MiniStatCard
       loading={loading}
       icon={Clock} label={t('Уроков сегодня')} value={todaySchedule.length}
       sub={nextLesson ? `${t('след.')} ${nextLesson.time} ${t('МСК')} (${mskToVietnam(nextLesson.time)} ${t('ВН')})` : t('все завершены')}

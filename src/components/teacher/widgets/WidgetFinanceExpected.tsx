@@ -7,7 +7,7 @@ export default function WidgetFinanceExpected() {
   const t = useT()
   const { expected } = useFinanceSummary()
   return (
-    <MiniStatCard widgetId="finance-expected"
+    <MiniStatCard
       icon={Clock} label={t('Ожидается')}
       value={`${expected.toLocaleString('ru-RU')} ₽`}
       sub={t('не оплачено')}

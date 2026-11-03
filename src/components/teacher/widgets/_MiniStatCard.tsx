@@ -1,13 +1,8 @@
 import { useLayoutEffect, useRef } from 'react'
 import type { LucideIcon } from '../../icons/appIcons'
-import { metricObjects } from '../../../lib/widgetMetricObjects'
-import { useTeacher } from '../../../store/teacherStore'
-import { ArrowUpRight } from '../../icons/appIcons'
-import { useT } from '../../../lib/i18n'
 import Skeleton from '../../Skeleton'
 
 type Props = {
-  widgetId?: string
   icon: LucideIcon
   label: string
   value: string | number
@@ -21,13 +16,7 @@ type Props = {
   loading?: boolean
 }
 
-export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, accentBg, accentColor, dimmed, loading }: Props) {
-  const t = useT()
-  const setActivePage = useTeacher(s=>s.setActivePage)
-  const open = () => {
-    if(widgetId==='stat-lessons') {document.querySelector('[data-widget="today-schedule"]')?.scrollIntoView({behavior:'smooth',block:'nearest'});return}
-    setActivePage(widgetId?.startsWith('finance-')?'finances':widgetId==='stat-hw'?'homework':'groups')
-  }
+export default function MiniStatCard({ icon: Icon, label, value, sub, accentBg, accentColor, dimmed, loading }: Props) {
   const measureRef = useRef<HTMLSpanElement>(null)
   const valueRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
@@ -99,8 +88,6 @@ export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, 
           {sub}
         </div>
       )}
-      {widgetId && metricObjects[widgetId] && <img className="iskra-mini-stat-object" src={metricObjects[widgetId]} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-      {widgetId && metricObjects[widgetId] && <button type="button" className="iskra-mini-stat-open" aria-label={t('Открыть')} onClick={open}><ArrowUpRight size={16}/></button>}
     </div>
   )
 }

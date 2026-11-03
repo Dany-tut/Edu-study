@@ -1,5 +1,4 @@
 import { lazy, type ComponentType } from 'react'
-import { WIDGET_LAYOUTS, type WidgetCellSize } from '../../../lib/widgetLayouts'
 import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from '../../icons/appIcons'
 import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
@@ -39,8 +38,6 @@ export type WidgetDef = {
   defaultH: number
   minW: number
   minH: number
-  allowedSizes?: readonly WidgetCellSize[]
-  unavailable?: boolean
   minWidthPx?: number
   minHeightPx?: number
   maxH?: number
@@ -59,15 +56,15 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
   { type: 'stat-students', label: 'Студентов', icon: Users, iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)', description: 'Кол-во студентов', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStatStudents },
   { type: 'stat-hw', label: 'Проверить ДЗ', icon: CheckCircle2, iconBg: 'var(--color-red-soft)', iconColor: 'var(--color-red-text)', description: 'ДЗ на проверку', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStatHW },
   { type: 'stat-lessons', label: 'Уроков сегодня', icon: Clock, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Уроки на сегодня', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStatLessons },
-  { unavailable: true, type: 'stat-earnings', label: 'За месяц', icon: TrendingUp, iconBg: 'var(--color-yellow-soft)', iconColor: 'var(--color-yellow-text)', description: 'Доход за месяц', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStatEarnings },
+  { type: 'stat-earnings', label: 'За месяц', icon: TrendingUp, iconBg: 'var(--color-yellow-soft)', iconColor: 'var(--color-yellow-text)', description: 'Доход за месяц', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStatEarnings },
   { type: 'finance-received', label: 'Получено', icon: TrendingUp, iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)', description: 'Получено в этом месяце', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetFinanceReceived },
   { type: 'finance-expected', label: 'Ожидается', icon: Clock, iconBg: 'var(--color-peach-soft)', iconColor: '#C07020', description: 'Ожидается оплата', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetFinanceExpected },
   { type: 'finance-debt', label: 'Долг', icon: AlertCircle, iconBg: 'var(--color-red-soft)', iconColor: 'var(--color-red-text)', description: 'Общий долг', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetFinanceDebt },
   { type: 'finance-forecast', label: 'Прогноз', icon: Sparkles, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Прогноз до конца месяца', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetFinanceForecast },
-  { type: 'student-count', label: 'Карточек учеников', icon: Users, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Кол-во учеников', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStudentCount },
+  { type: 'student-count', label: 'Учеников', icon: Users, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Кол-во учеников', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStudentCount },
   { type: 'student-groups', label: 'Групп', icon: Layers, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Кол-во групп', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStudentGroups },
-  { type: 'student-active', label: 'Без долга по занятиям', icon: CheckCircle2, iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)', description: 'Без задолженностей', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStudentActive },
-  { type: 'student-debtors', label: 'Минус по занятиям', icon: AlertCircle, iconBg: 'var(--color-peach-soft)', iconColor: '#C07020', description: 'Требуют внимания', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStudentDebtors },
+  { type: 'student-active', label: 'Активных', icon: CheckCircle2, iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)', description: 'Без задолженностей', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStudentActive },
+  { type: 'student-debtors', label: 'Должников', icon: AlertCircle, iconBg: 'var(--color-peach-soft)', iconColor: '#C07020', description: 'Требуют внимания', defaultW: 1, defaultH: 1, minW: 1, minH: 1, minWidthPx: 144, minHeightPx: 88, maxH: 6, stat: true, component: WidgetStudentDebtors },
   // ── Legacy combined widgets (kept for backward compat) ────────────────────
   {
     type: 'finance-kpi',
@@ -185,7 +182,7 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     component: WidgetTodayTasks,
   },
-].map(def => ({...def, allowedSizes:WIDGET_LAYOUTS[def.type]}))
+]
 
 export function getWidgetDef(type: string): WidgetDef | undefined {
   return WIDGET_REGISTRY.find(w => w.type === type)

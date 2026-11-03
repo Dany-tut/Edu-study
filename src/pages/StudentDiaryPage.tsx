@@ -165,9 +165,6 @@ export default function StudentDiaryPage({
   useEffect(() => { setSubject('*'); setCourse('*'); setState('action'); setFeedDay(null) }, [diaryOwner])
   const [sort, setSort] = useState('priority'),
     [descending, setDescending] = useState(false)
-  const pageKey = JSON.stringify([diaryOwner, subject, course, state, sort, descending, feedDay])
-  const [page, setPage] = useState({ key: '', count: 5 })
-  const visibleCount = page.key === pageKey ? page.count : 5
   const clock = wallDateTimeInTz(now.toISOString(), tz),
     today = clock.day
   useEffect(() => { setFeedDay(null) }, [today])
@@ -285,13 +282,6 @@ export default function StudentDiaryPage({
   const timeline = sort === 'priority' || sort === 'due'
     ? groupDiaryTimeline(list, feedDay, entry => diaryOverdue(entry, today), sort === 'due' && descending)
     : [{key: feedDay ?? 'all', entries: list.filter(entry => !feedDay || entry.due === feedDay)}].filter(group => group.entries.length)
-  const totalWorks = timeline.reduce((count, group) => count + group.entries.length, 0)
-  let remaining = visibleCount
-  const visibleTimeline = timeline.flatMap(group => {
-    const entries = group.entries.slice(0, remaining)
-    remaining -= entries.length
-    return entries.length ? [{ ...group, entries, total: group.entries.length }] : []
-  })
   const feedDate = (day: string) => new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
     day: 'numeric', month: 'short', timeZone: 'UTC',
   }).format(new Date(day + 'T12:00:00Z'))
@@ -421,14 +411,10 @@ export default function StudentDiaryPage({
               {feedDay === null || upcoming?.day === feedDay ? upcomingCard : null}
             </aside>
             <main className="ds-feed-timeline" aria-label={t('Лента заданий')}>
-              {visibleTimeline.map(group => <section className="ds-feed-event" key={group.key}>
-                <div className="ds-section-head"><h2>{feedTitle(group.key)}</h2><span>{group.total} {t('ДЗ')}</span></div>
+              {timeline.map(group => <section className="ds-feed-event" key={group.key}>
+                <div className="ds-section-head"><h2>{feedTitle(group.key)}</h2><span>{group.entries.length} {t('ДЗ')}</span></div>
                 <div className="ds-section ds-all-work">{group.entries.map(row)}</div>
               </section>)}
-              {totalWorks > 5 ? <div className="ds-load-more">
-                <p role="status">{t('Показано')} {Math.min(visibleCount, totalWorks)} {t('из')} {totalWorks}</p>
-                {visibleCount < totalWorks ? <button type="button" className="ds-secondary" onClick={() => setPage({ key: pageKey, count: visibleCount + 5 })}>{t('Загрузить ещё')}</button> : null}
-              </div> : null}
               {!timeline.length ? <section className="ds-section ds-all-work">{empty(pending ? 'Загружаем задания…' : feedDay ? 'На этот день заданий нет' : 'По этим фильтрам работ нет')}</section> : null}
             </main>
           </div>

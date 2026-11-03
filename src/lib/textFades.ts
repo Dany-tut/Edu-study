@@ -20,20 +20,11 @@ export function textFadeLines(value: number | string | undefined): CSSProperties
 
 type Fade = { image: string; size: string; position: string; repeat: string }
 const CLEAR: Fade = { image: '', size: '', position: '', repeat: '' }
-export function textFadeMask(width: number, height: number, contentWidth: number, contentHeight: number, lines = 1, rtl = false, lastLineOnly = false): Fade {
+export function textFadeMask(width: number, height: number, contentWidth: number, contentHeight: number, lines = 1, rtl = false): Fade {
   if (width <= 0 || height <= 0 || (contentWidth <= width + 1 && contentHeight <= height + 1)) return CLEAR
   const direction = rtl ? 'to left' : 'to right'
   const edge = Math.min(24, width / 3)
   const lastLine = `linear-gradient(${direction}, #000 calc(100% - ${edge}px), transparent)`
-  if (lastLineOnly && contentHeight > height + 1 && lines > 1) {
-    const lastHeight = height / lines
-    const precedingHeight = height - lastHeight
-    return {
-      image: `linear-gradient(#000, #000), ${lastLine}`,
-      size: `100% ${precedingHeight}px, 100% ${lastHeight}px`,
-      position: `0 0, 0 ${precedingHeight}px`, repeat: 'no-repeat',
-    }
-  }
   // An unbroken word may overflow sideways even in a multi-line text window.
   return contentHeight > height + 1 ? {
     image: `linear-gradient(to bottom, #000 calc(100% - ${Math.min(14, height / 3)}px), transparent)`,
@@ -131,7 +122,7 @@ export function startTextFades() {
       const lines = Number(raw || (element.classList.contains('text-fade') ? 1 : 0))
       const clipped = /hidden|clip/.test(css.overflowX) || /hidden|clip/.test(css.overflowY)
       const mask = lines > 0 && clipped
-        ? textFadeMask(element.clientWidth, element.clientHeight, element.scrollWidth, element.scrollHeight, lines, css.direction === 'rtl', element.getAttribute('data-text-fade-mode') === 'last-line') : CLEAR
+        ? textFadeMask(element.clientWidth, element.clientHeight, element.scrollWidth, element.scrollHeight, lines, css.direction === 'rtl') : CLEAR
       // A label mask must never hide nested actions or editable controls.
       const hasControls = !!element.querySelector('button, input, textarea, select, [contenteditable="true"]')
       const text = element.textContent?.trim() ?? ''
@@ -194,7 +185,7 @@ export function startTextFades() {
     }
     schedule()
   })
-  mutations.observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'data-text-fade', 'data-text-fade-mode'] })
+  mutations.observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'data-text-fade'] })
   const all = () => { for (const element of elements.keys()) changed.add(element); roots.add(document); schedule() }
   refresh = all
   window.addEventListener('resize', all, { passive: true })

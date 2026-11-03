@@ -37,7 +37,7 @@ if (Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
   if (import.meta.env.DEV && route === '/journal-stand') {
     if (!hash) window.history.replaceState(null, '', pathname + search + '#/teacher/gradebook')
   // The public design stand has its own entry point, outside hash routing.
-  } else if (route && route !== '/index.html' && route !== '/student-track-stand' && route !== '/student-widget-stand') {
+  } else if (route && route !== '/index.html' && route !== '/student-track-stand') {
     const rest = hash.replace(/^#\/?/, '')
     const target = `#${route}${rest ? '/' + rest : ''}`
     window.history.replaceState(null, '', `/${search}${target}`)
@@ -138,9 +138,6 @@ guardStylesheet()
 const StudentTrackStand = window.location.pathname.replace(/\/+$/, '') === '/student-track-stand'
   ? lazy(() => import('./components/studentTrackStand/StudentTrackStand')) : null
 
-const StudentWidgetStand = window.location.pathname.replace(/\/+$/, '') === '/student-widget-stand'
-  ? lazy(() => import('./components/studentWidgetStand/StudentWidgetStand')) : null
-
 startTextFades()
 
 createRoot(document.getElementById('root')!).render(
@@ -150,7 +147,7 @@ createRoot(document.getElementById('root')!).render(
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
       <ErrorBoundary>
-        {StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
+        {StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
       </ErrorBoundary>
     </MotionConfig>
   </StrictMode>,

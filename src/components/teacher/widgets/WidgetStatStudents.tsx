@@ -7,7 +7,7 @@ export default function WidgetStatStudents() {
   const t = useT()
   const { groups, totalStudents, loading } = useHomeData()
   return (
-    <MiniStatCard widgetId="stat-students"
+    <MiniStatCard
       loading={loading}
       icon={Users} label={t('Студентов')} value={totalStudents}
       sub={`${t('в')} ${groups.length} ${t('группах')}`}

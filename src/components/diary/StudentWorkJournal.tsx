@@ -119,12 +119,8 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
   useEffect(() => { setFilter('all'); setSelectedKey(null) }, [owner])
   const filtersRef = useRef<HTMLDivElement>(null)
   useScrollFades(filtersRef, true, ':scope > *')
-  const filtered = works.filter(w => filter === 'all' || filter === 'improve' && w.score !== null && w.score < w.passingScore
+  const visible = works.filter(w => filter === 'all' || filter === 'improve' && w.score !== null && w.score < w.passingScore
     || filter === 'passed' && w.score !== null && w.score >= w.passingScore || filter === 'pending' && w.state === 'pending')
-  const pageKey = JSON.stringify([owner, filter, entries.map(e => e.id)])
-  const [page, setPage] = useState({ key: '', count: 5 })
-  const visibleCount = page.key === pageKey ? page.count : 5
-  const visible = filtered.slice(0, visibleCount)
   const selected = works.find(w => w.key === selectedKey)
   const formatDate = (entry: StudentDiaryEntry) => {
     const day = diaryDay(entry.lesson.scheduledDate) ?? entry.due
@@ -183,10 +179,6 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
       </table>
       {!visible.length ? <div className="swj-empty" role="status"><p>{t(pending ? 'Загружаем задания…' : works.length ? 'По этим фильтрам работ нет' : 'Пока нет назначенных работ')}</p></div> : null}
     </div>
-    {visible.length < filtered.length ? <div className="swj-load-more">
-      <p role="status">{t('Показано')} {visible.length} {t('из')} {filtered.length}</p>
-      <button type="button" className="ds-secondary" onClick={() => setPage({ key: pageKey, count: visibleCount + 5 })}>{t('Загрузить ещё')}</button>
-    </div> : null}
     <p className="swj-footnote">{t('Средний результат — по одному лучшему завершённому итогу каждой работы. Несданные работы не считаются нулём.')}</p>
     {busy && !noDataYet ? <p className="swj-footnote" role="status">{t('Обновляем результаты и историю…')}</p> : null}
     {selected ? <JournalDetails key={selected.key} work={selected} historyError={history.error} historyPending={history.pending}

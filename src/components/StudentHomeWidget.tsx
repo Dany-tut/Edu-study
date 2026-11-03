@@ -1,5 +1,7 @@
-import { HomeWidgetPresentation, HomeTaskRow } from './HomeWidgetPresentation'
+import HomeWidgetObject from './HomeWidgetObject'
 export { default as HomeWidgetObject } from './HomeWidgetObject'
+import { ArrowRight, ChevronRight, RotateCcw } from './icons/appIcons'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
@@ -11,42 +13,67 @@ import { useFeedGlance } from '../lib/feedRead'
 import { useT, tc } from '../lib/i18n'
 import { WIDGET_META } from '../data/widgets'
 import { homeWidgetTasks, type HomeWidgetTask } from '../lib/homeWidgetTasks'
-export { HomeWidgetCard, HomeWidgetFade, HomeTaskRow } from './HomeWidgetPresentation'
 import './studentHomeWidget.css'
 
+export function HomeWidgetFade({ children, className = '' }: { children: ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [overflow,setOverflow] = useState(false)
+  useLayoutEffect(() => {
+    const element=ref.current
+    if (!element) return
+    const measure=()=>setOverflow(element.scrollHeight>element.clientHeight+1 || element.scrollWidth>element.clientWidth+1)
+    measure()
+    const observer=new ResizeObserver(measure)
+    observer.observe(element)
+    for (const child of element.children) observer.observe(child)
+    return ()=>observer.disconnect()
+  },[children])
+  return <div ref={ref} className={`ihw-fade ${className}`} data-overflow={overflow}>{children}</div>
+}
+export function HomeWidgetCard({ id, title, extra, children, footer, onOpen }: { onOpen?:()=>void;id:number;title:string;extra?:ReactNode;children:ReactNode;footer:ReactNode }) {
+  return <section className="ihw-card" data-home-widget={id} onClick={onOpen ? event => { if (!(event.target as Element).closest('button, a, input, select')) onOpen() } : undefined} style={onOpen ? { cursor: 'pointer' } : undefined}><header className="ihw-heading"><h3><HomeWidgetFade>{onOpen ? <button type="button" className="ihw-card-open" onClick={onOpen}>{title}</button> : title}</HomeWidgetFade></h3>{extra}</header><div className="ihw-body"><div className="ihw-main">{children}</div></div><HomeWidgetObject id={id}/><footer className="ihw-footer">{footer}</footer></section>
+}
+function Value({ children, label }: { children:ReactNode;label:string }) { return <div className="ihw-metric"><strong>{children}</strong><span>{label}</span></div> }
+function Copy({ title, text }: { title:string;text?:string }) { return <HomeWidgetFade className="ihw-copy"><div className="ihw-title-window"><HomeWidgetFade><h4>{title}</h4></HomeWidgetFade></div>{text && <p>{text}</p>}</HomeWidgetFade> }
+function HomeTaskMark({ returned }: { returned: boolean }) { const Icon = returned ? RotateCcw : ChevronRight; return <Icon size={22} /> }
+function Action({ label,onClick }: { label:string;onClick:()=>void }) { return <button type="button" className="ihw-action" onClick={onClick}>{label} <ArrowRight size={14} style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /></button> }
+export function HomeTaskRow({ task, onOpen }: { task:HomeWidgetTask;onOpen:()=>void }) {
+  const t=useT()
+  return <button type="button" className={`ihw-task ${task.returned?'is-returned':''}`} onClick={onOpen}><span className="ihw-task-mark" aria-hidden="true"><HomeTaskMark returned={task.returned} /></span><span className="ihw-task-copy"><HomeWidgetFade><strong>{t(task.label)}</strong></HomeWidgetFade><HomeWidgetFade className="ihw-task-topic">{tc(task.subjectName)} · {tc(task.lesson.title)}</HomeWidgetFade></span></button>
+}
 function StatsSummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),subjects=useStudentData(s=>s.subjects),progress=useStudentData(s=>s.progress),loaded=useStudentData(s=>s.loaded),activeId=useDashboard(s=>s.activeSubjectId)
   const course=subjects.find(s=>s.id===activeId)??subjects[0]
   const lessons=course?.modules.flatMap(m=>m.lessons)??[]
   const stats=course?computeSubjectStats(course,progress):null
   const hasScore=lessons.some(l=>l.points!=null)
-  return <HomeWidgetPresentation id={0} title={t('Прогресс курса')} action={t('Подробнее')} onOpen={onOpen} status={loaded?'ready':'loading'} metrics={[{value:stats?.completedTasks??0,total:stats?.totalTasks??0,label:t('Уроков пройдено')},{value:hasScore?`${stats?.avgScore}%`:'—',label:t('Средний балл')}]} progress={{value:stats?.completedTasks??0,max:stats?.totalTasks??0}}/>
+  return <HomeWidgetCard id={0} title={t('Прогресс курса')} footer={<Action label={t('Подробнее')} onClick={onOpen}/>}><div className="ihw-stats"><Value label={t('Уроков пройдено')}>{loaded?stats?.completedTasks??0:'—'}<small> / {loaded?stats?.totalTasks??0:'—'}</small></Value><Value label={t('Средний балл')}>{loaded&&hasScore?`${stats?.avgScore}%`:'—'}</Value></div><progress className="ihw-progress ihw-bottom-track" aria-label={t('Пройденные уроки')} value={stats?.completedTasks??0} max={Math.max(1,stats?.totalTasks??0)}/></HomeWidgetCard>
 }
 function FocusSummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),seconds=useDashboard(s=>s.pomoSecondsLeft),running=useDashboard(s=>s.pomoRunning),mode=useDashboard(s=>s.pomoMode),start=useDashboard(s=>s.pomoStart),pause=useDashboard(s=>s.pomoPause)
-  return <HomeWidgetPresentation id={3} title={t(mode==='focus'?'Фокус':'Перерыв')} action={t(running?'Пауза':'Начать')} onOpen={running?pause:start} secondary={t('Настройки')} onSecondary={onOpen} metrics={[{value:`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`,label:t(mode==='focus'?'Одна задача. Без отвлечений.':'Время отдохнуть')}]}/>
+  return <HomeWidgetCard id={3} title={t(mode==='focus'?'Фокус':'Перерыв')} footer={<><Action label={t(running?'Пауза':'Начать')} onClick={running?pause:start}/><button className="ihw-action ihw-secondary" type="button" onClick={onOpen}>{t('Настройки')}</button></>}><Value label={t(mode==='focus'?'Одна задача. Без отвлечений.':'Время отдохнуть')}>{Math.floor(seconds/60)}:{String(seconds%60).padStart(2,'0')}</Value></HomeWidgetCard>
 }
 function TrainerSummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),ms=useTrainerProgress(s=>s.todayMs),done=useTrainerProgress(s=>s.doneCount),wrong=useTrainerProgress(s=>s.wrongCount),subject=useTrainerProgress(s=>s.subject)
-  return <HomeWidgetPresentation id={7} title={t('Тренажёр')} action={t('Открыть тренажёр')} onOpen={onOpen} metrics={[{value:ms>0?Math.floor(ms/60000):done,label:t(ms>0?'Минут сегодня':'Решено заданий')}]} copy={{title:'',text:tc(subject)+(wrong>0?` · ${t('Ошибок')}: ${wrong}`:'')}}/>
+  return <HomeWidgetCard id={7} title={t('Тренажёр')} footer={<Action label={t('Открыть тренажёр')} onClick={onOpen}/>}><Value label={t(ms>0?'Минут сегодня':'Решено заданий')}>{ms>0?Math.floor(ms/60000):done}</Value><HomeWidgetFade className="ihw-copy"><p>{tc(subject)}{wrong>0?` · ${t('Ошибок')}: ${wrong}`:''}</p></HomeWidgetFade></HomeWidgetCard>
 }
 function AwardsSummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),{stickers,loading}=useStickers()
-  return <HomeWidgetPresentation id={8} title={t('Стикеры')} action={t('Коллекция')} onOpen={onOpen} status={loading?'loading':'ready'} metrics={[{value:stickers.length,label:t('Получено стикеров')}]} copy={{title:'',text:stickers[0]?tc(stickers[0].lessonTitle):t('Награды за принятые задания')}}/>
+  return <HomeWidgetCard id={8} title={t('Стикеры')} footer={<Action label={t('Коллекция')} onClick={onOpen}/>}><Value label={t('Получено стикеров')}>{loading?'—':stickers.length}</Value><HomeWidgetFade className="ihw-copy"><p>{stickers[0]?tc(stickers[0].lessonTitle):t('Награды за принятые задания')}</p></HomeWidgetFade></HomeWidgetCard>
 }
 function DailySummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),subjects=useStudentData(s=>s.subjects),activeId=useDashboard(s=>s.activeSubjectId)
   const course=subjects.find(s=>s.id===activeId)??subjects[0],text=useTextOfDay(getSubject(course?.subject)?.langCode)
-  return <HomeWidgetPresentation id={9} title={t('Доза дня')} extra={text&&<span className="ihw-meta">{text.level}</span>} action={t('Читать')} onOpen={onOpen} copy={{title:text?.title??t('Пять минут языка'),text:text?.body??t('Короткий текст на языке курса')}}/>
+  return <HomeWidgetCard id={9} title={t('Доза дня')} extra={text&&<span className="ihw-meta">{text.level}</span>} footer={<Action label={t('Читать')} onClick={onOpen}/>}><Copy title={text?.title??t('Пять минут языка')} text={text?.body??t('Короткий текст на языке курса')}/></HomeWidgetCard>
 }
 function FeedSummary({ onOpen }: { onOpen:()=>void }) {
   const t=useT(),{items,unread}=useFeedGlance(),item=unread[0]??items[0]
-  return <HomeWidgetPresentation id={10} title={t('Лента')} action={t('Открыть ленту')} onOpen={onOpen} copy={{title:item?.title??t('Свежие материалы'),text:item?.body??t('Ролики и заметки на языке курса')}}/>
+  return <HomeWidgetCard id={10} title={t('Лента')} footer={<Action label={t('Открыть ленту')} onClick={onOpen}/>}><Copy title={item?.title??t('Свежие материалы')} text={item?.body??t('Ролики и заметки на языке курса')}/></HomeWidgetCard>
 }
 function TasksSummary({ onOpen,onTask }: { onOpen:()=>void;onTask:(task:HomeWidgetTask)=>void }) {
   const t=useT(),subjects=useStudentData(s=>s.subjects),loaded=useStudentData(s=>s.loaded),tasks=homeWidgetTasks(subjects)
-  return <HomeWidgetPresentation id={11} title={t('Твои дела')} action={t('Все дела')+(tasks.length?` · ${tasks.length}`:'')} onOpen={onOpen} onTask={onTask} status={!loaded?'loading':tasks.length?'ready':'empty'} tasks={loaded&&tasks.length?tasks:undefined} copy={loaded&&!tasks.length?{title:t('Новых дел нет'),text:t('Практика — по желанию')}:undefined}/>
-
+  return <HomeWidgetCard id={11} onOpen={onOpen} title={t('Твои дела')} extra={<span className="ihw-meta">{t('Все курсы')}</span>} footer={<Action label={t('Все дела')+(tasks.length?` · ${tasks.length}`:'')} onClick={onOpen}/>}>
+    {!loaded?<Copy title={t('Загружаем дела')} />:tasks.length?<div className="ihw-task-list">{tasks.slice(0,2).map(task=><HomeTaskRow key={task.key} task={task} onOpen={()=>onTask(task)}/>)}</div>:<Copy title={t('Новых дел нет')} text={t('Практика — по желанию')}/>}</HomeWidgetCard>
 }
 function ContentSummary({ id,onOpen }: { id:number;onOpen:()=>void }) {
   const t=useT(),questions=useStudentData(s=>s.quizQuestions),facts=useStudentData(s=>s.scienceFacts),reactions=useStudentData(s=>s.courseReactions),memes=useStudentData(s=>s.scienceMemes)
@@ -55,7 +82,7 @@ function ContentSummary({ id,onOpen }: { id:number;onOpen:()=>void }) {
   const label=WIDGET_META.find(w=>w.id===id)?.label??'Вопрос дня'
   const title=id===6?t('Проверь себя'):id===5?q?.title:id===1?fact?.text:id===2?reaction?.equation:meme?.setup
   const text=id===6?`${t('Вопросов')}: ${questions.length}`:id===5?t('Один вопрос с объяснением'):id===1?tc(fact?.subject??''):id===2?reaction?.name:meme?.punchline
-  return <HomeWidgetPresentation id={id} title={t(label)} action={t(id===6?'Начать':id===5?'Ответить':id===2?'Проверить себя':'Открыть')} onOpen={onOpen} copy={{title:title??t('Материалы загружаются'),text}} quizTrack={id===6}/>
+  return <HomeWidgetCard id={id} title={t(label)} footer={<Action label={t(id===6?'Начать':id===5?'Ответить':id===2?'Проверить себя':'Открыть')} onClick={onOpen}/>}><Copy title={title??t('Материалы загружаются')} text={text}/>{id===6&&<div className="ihw-quiz-track ihw-bottom-track" aria-hidden="true"><i/><i/><i/><i/><i/></div>}</HomeWidgetCard>
 }
 export default function StudentHomeWidget({ id,onOpen,onTask }: { id:number;onOpen:()=>void;onTask:(task:HomeWidgetTask)=>void }) {
   if(id===0)return <StatsSummary onOpen={onOpen}/>

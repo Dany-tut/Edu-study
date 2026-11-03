@@ -1,5 +1,5 @@
 import './quizDialog.css'
-import WidgetFrame from './WidgetFrame'
+import { useWidgetScrollFades } from '../lib/useWidgetScrollFades'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useCallback, useRef, useEffect, useLayoutEffect, lazy, Suspense, type ReactNode } from 'react'
 import Modal from './Modal'
@@ -45,6 +45,14 @@ const variants = {
   enter: (dir: number) => ({ x: dir > 0 ? '130%' : '-130%', opacity: 0 }),
   center: { x: 0, opacity: 1 },
   exit: (dir: number) => ({ x: dir > 0 ? '-130%' : '130%', opacity: 0 }),
+}
+
+const WIDGET_TYPES = ['stats', 'facts', 'reactions', 'focus', 'memes', 'question', 'quiz', 'trainer', 'stickers', 'dose', 'feed', 'tasks']
+
+function WidgetFrame({ id, children, style, adaptive }: { id: number; children: ReactNode; style: React.CSSProperties; adaptive: boolean }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useWidgetScrollFades(ref)
+  return <div ref={ref} className={adaptive ? "iskra-widget" : undefined} data-widget={adaptive ? `pupil-${WIDGET_TYPES[id]}` : undefined} style={style}>{children}</div>
 }
 
 export default function WidgetCarousel({ columnsOverride, previewWidgets, leadingWidgets }: {

@@ -7,7 +7,7 @@ export default function WidgetStatHW() {
   const t = useT()
   const { pendingCount, loading } = useHomeData()
   return (
-    <MiniStatCard widgetId="stat-hw"
+    <MiniStatCard
       loading={loading}
       icon={ClipboardCheck} label={t('Проверить ДЗ')} value={pendingCount}
       sub={t('ждут ревью')}

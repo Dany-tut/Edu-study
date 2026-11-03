@@ -9,7 +9,7 @@ import { useWheelHScroll } from '../lib/useWheelHScroll'
  * fits, the extra chips go off-screen under the fade instead of wrapping onto
  * a second and third line (which shoves everything below out of the layout).
  *
- * `fade` is only used by the legacy explicit overlay mode. Alpha masks are the default.
+ * `fade` must match the surface behind the row so the gradient blends in.
  *
  * NB: an absolutely-positioned floating pill (useFloatingPill) must live in an
  * inner wrapper INSIDE `children`, not on the scroller itself — the pill's
@@ -32,7 +32,7 @@ export default function HScrollFade({
   padTop = HSCROLL_PAD_TOP,
   padBottom = 7,
   fadeWidth = 40,
-  fadeMode = 'mask',
+  fadeMode = 'overlay',
   style,
   scrollStyle,
 }: {

@@ -62,11 +62,10 @@ const fromIso = (iso: string) => wallDateTimeInTz(iso, 'Europe/Moscow')
 
 type Toast = { text: string; undo?: SchedUndo; tone?: 'danger' }
 
-export default function TeacherSchedule({ mobile = false, embedded = false, weekMode = false, onOpen, onAttendance }: {
+export default function TeacherSchedule({ mobile = false, embedded = false, onOpen, onAttendance }: {
   mobile?: boolean
   /** На Главной: своя рамка снаружи, лента скроллится внутри фиксированной высоты. */
   embedded?: boolean
-  weekMode?: boolean
   /** Нет — тап по занятию открывает меню (на телефоне редактора урока нет). */
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
@@ -78,7 +77,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
   const [visibleDates, setVisibleDates] = useState(() => ({ first: weekStart(today), last: addDays(weekStart(today), 6) }))
   const start = weekStart(day)
   const { items, reload } = useTeacherWeek(start)
-  const list = (items ?? []).filter(i => weekMode || i.date === day).sort((a,b)=>a.date.localeCompare(b.date)||(a.time??'').localeCompare(b.time??''))
+  const list = (items ?? []).filter(i => i.date === day)
   const [dir, setDir] = useState(0)
 
   const overlays = useRef<CalendarOverlayHandle>(null)
@@ -262,7 +261,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
       />
 
       <div className="calendar-widget-date" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', padding: '4px 4px 0' }}>
-        {weekMode ? `${dayLabel(start)} — ${dayLabel(addDays(start,6))}` : <>{day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}</>}
+        {day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}
       </div>
 
       {/* Лента дня */}
@@ -286,8 +285,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
           >
             {items === null ? null : list.length === 0 ? (
               <div style={{ textAlign: 'center', padding: mobile ? '36px 0' : '56px 0', fontSize: 14, color: 'var(--color-text-4)' }}>{t('Занятий нет')}</div>
-            ) : list.map((item,index) => (
-              <div key={item.id}>{weekMode&&(index===0||list[index-1].date!==item.date)&&<div className="calendar-week-day-label">{dayLabel(item.date)}</div>}
+            ) : list.map(item => (
               <Card
                 key={item.id}
                 item={item}
@@ -297,7 +295,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
                 onDragStart={(el, x, y) => { haptic(10); startDrag(item, el, x, y) }}
                 onDragMove={moveDrag}
                 onDragEnd={endDrag}
-              /></div>
+              />
             ))}
           </motion.div>
         </AnimatePresence>

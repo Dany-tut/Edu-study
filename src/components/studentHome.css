@@ -159,3 +159,48 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
   .live-student-home .schedule-card--center .schedule-open-icon { display:block; }
   .live-student-home .schedule-card--center [data-schedule-state] > div:last-child > button { width:44px; display:grid; place-items:center; }
 }
+
+/* Next work shares the illustrated, shadowed frame of the home widgets. */
+.lh-next-card { grid-template-rows:22px minmax(0,1fr) 36px; gap:6px; padding:14px 18px; }
+.lh-next-card h2 { min-width:0; margin:0; font-size:15px; line-height:22px; font-weight:650; }
+.lh-next-copy { display:flex; flex-direction:column; align-items:flex-start; gap:4px; min-width:0; }
+.lh-next-title { width:100%; margin:0; font-size:20px; line-height:24px; font-weight:600; letter-spacing:-.25px; }
+.lh-next-meta { display:block; width:100%; margin:0; font-size:12px; line-height:16px; color:var(--color-text-3); }
+.lh-next-due { display:inline-flex; max-width:100%; align-items:center; padding:3px 8px; border-radius:8px; font-size:11px; line-height:16px; white-space:nowrap; color:var(--color-purple-text); background:var(--color-purple-soft); }
+.lh-next-due[data-overdue=true] { color:var(--color-red-text); background:var(--color-red-soft); }
+.lh-next-footer { padding-top:0; border-top:0; align-items:center; justify-content:flex-start; }
+.lh-next-action { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:36px; padding:6px 14px; border:0; border-radius:12px; background:var(--grad-purple); color:var(--color-white,#fff); font:inherit; font-size:13px; line-height:20px; font-weight:600; cursor:pointer; }
+.lh-next-action svg { flex-shrink:0; }
+.lh-next-action.is-secondary { background:var(--color-purple-soft); color:var(--color-accent); }
+@media(max-width:1023px) {
+ .lh-next-card { grid-template-rows:20px minmax(0,1fr) 44px; padding:12px 16px; gap:4px; }
+ .lh-next-card .lh-next-action { min-height:44px; }
+ .lh-next-card .lh-next-title { font-size:18px; line-height:22px; }
+ .lh-next-card { --ihw-art-base:144px; --ihw-art-gutter:100px; }
+}
+@media(min-width:1024px) and (max-height:660px) {
+ .lh-next-card { grid-template-rows:18px minmax(0,1fr) 30px; padding:8px 14px; gap:4px; }
+ .lh-next-card h2 { font-size:13px; line-height:18px; }
+ .lh-next-card .lh-next-title { font-size:16px; line-height:20px; }
+ .lh-next-meta { font-size:11px; line-height:12px; }
+ .lh-next-due { padding:1px 6px; font-size:10px; line-height:14px; }
+ .lh-next-copy { gap:2px; }
+ .lh-next-action { min-height:30px; padding-block:4px; font-size:12px; }
+}
+@media(max-width:1023px) and (max-height:700px) {
+ .lh-next-card { grid-template-rows:16px minmax(0,1fr) 44px; padding:6px 12px; gap:2px; --ihw-art-base:96px; --ihw-art-gutter:64px; }
+ .lh-next-card h2 { font-size:13px; line-height:16px; }
+ .lh-next-card .lh-next-title { font-size:14px; line-height:16px; }
+ .lh-next-meta { font-size:10px; line-height:11px; }
+ .lh-next-due { padding:1px 5px; font-size:10px; line-height:12px; }
+ .lh-next-copy { gap:1px; }
+ .lh-next-action { font-size:12px; }
+}
+@media(max-width:1023px) and (max-height:600px) {
+ .lh-next-card { grid-template-rows:14px minmax(0,1fr) 44px; padding-block:4px; gap:1px; }
+ .lh-next-card h2 { font-size:12px; line-height:14px; }
+ .lh-next-card .lh-next-meta { display:none; }
+}
+@media(max-width:360px) {
+ .lh-next-card { --ihw-art-base:104px; --ihw-art-gutter:68px; }
+}

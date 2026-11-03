@@ -147,8 +147,6 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
       if (authDataChanged(event, session) && event !== 'INITIAL_SESSION') {
         setData(null)
         reload()
-      } else if (event === 'USER_UPDATED') {
-        reload()
       }
     })
     return () => { window.removeEventListener('focus', focus); subscription.unsubscribe() }

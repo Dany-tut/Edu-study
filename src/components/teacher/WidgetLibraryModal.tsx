@@ -1,11 +1,10 @@
 import { WIDGET_REVIEW_PATH, WIDGET_REVIEW_HASH } from '../../lib/widgetReviewRoute'
 import { clampDeskWidget, resolveDeskCollisions, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
-import { metricObjects } from '../../lib/widgetMetricObjects'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus } from '../icons/appIcons'
+import { X } from '../icons/appIcons'
 import { WIDGET_REGISTRY, getWidgetDef, type WidgetDef } from './widgets/registry'
 import type { LayoutItem } from '../../lib/useDeskLayouts'
 import { useT } from '../../lib/i18n'
@@ -20,12 +19,13 @@ type Props = {
   gridColumns?: number
 }
 
-function WidgetCard({ def, size, sizes, onSize, onAdd }: { def: WidgetDef; size: { w: number; h: number }; sizes: readonly {w:number;h:number}[]; onSize:(value:string)=>void; onAdd: () => void }) {
+function WidgetCard({ def, size, onAdd }: { def: WidgetDef; size: { w: number; h: number }; onAdd: () => void }) {
   const t = useT()
   const Icon = def.icon
   return (
-    <div
+    <button
       className="ww-gallery-card"
+      onClick={onAdd}
       style={{
         display: 'flex', alignItems: 'center', gap: 14,
         padding: '14px 16px', borderRadius: 14, border: '1px solid var(--color-border-medium)',
@@ -46,7 +46,7 @@ function WidgetCard({ def, size, sizes, onSize, onAdd }: { def: WidgetDef; size:
         background: def.iconBg,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <>{metricObjects[def.type]?<img src={metricObjects[def.type]} alt="" width="42" height="42" style={{objectFit:'contain'}}/>:<Icon size={20} strokeWidth={1.8} color={def.iconColor} />}</>
+        <Icon size={20} strokeWidth={1.8} color={def.iconColor} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t(def.label)}</div>
@@ -56,9 +56,9 @@ function WidgetCard({ def, size, sizes, onSize, onAdd }: { def: WidgetDef; size:
         flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
         background: 'var(--color-bg-3)', borderRadius: 8, padding: '4px 8px',
       }}>
-        <select aria-label={`${t('Размер')}: ${t(def.label)}`} value={`${size.w}x${size.h}`} onChange={e=>onSize(e.target.value)} style={{background:'none',border:0,color:'inherit',font:'inherit',minHeight:32}}>{sizes.map(s=><option key={`${s.w}x${s.h}`} value={`${s.w}x${s.h}`}>{s.w}×{s.h}</option>)}</select>
-      </div><button type="button" aria-label={`${t('Добавить')}: ${t(def.label)}`} onClick={onAdd} style={{border:0,borderRadius:10,background:'var(--color-purple-soft)',color:'var(--color-accent)',width:36,height:36,flexShrink:0,cursor:'pointer'}}><Plus size={18}/></button>
-    </div>
+        {size.w}×{size.h}
+      </div>
+    </button>
   )
 }
 
@@ -78,13 +78,12 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
 
 export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, existingItems = [], hiddenWidgets, gridWidth, gridColumns }: Props) {
   const t = useT()
-  const [selectedSizes,setSelectedSizes]=useState<Record<string,{w:number;h:number}>>({})
   const dialogRef = useRef<HTMLDivElement>(null)
   useWidgetScrollFades(dialogRef)
-  const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !def.unavailable && !hiddenWidgets?.includes(def.type))
+  const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !hiddenWidgets?.includes(def.type))
   const width = gridWidth ?? Math.max(1, document.documentElement.clientWidth - 64)
   const rowHeight = deskRowHeight(window.innerHeight)
-  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:selectedSizes[def.type]?.w??def.defaultW,h:selectedSizes[def.type]?.h??def.defaultH,gridVersion:2},def,width,rowHeight,64,gridColumns)
+  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:def.defaultW,h:def.defaultH,gridVersion:2},def,width,rowHeight,64,gridColumns)
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
     const existing = resolveDeskCollisions(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight),gridColumns)))
@@ -170,8 +169,6 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
                 key={def.type}
                 def={def}
                 size={widgetSize(def)}
-                sizes={(def.allowedSizes??[widgetSize(def)]).filter(s=>{const actual=clampDeskWidget({i:def.type,type:def.type,x:0,y:0,...s,gridVersion:2},def,width,rowHeight,64,gridColumns);return actual.w===s.w&&actual.h===s.h})}
-                onSize={value=>{const [w,h]=value.split('x').map(Number);setSelectedSizes(s=>({...s,[def.type]:{w,h}}))}}
                 onAdd={() => handleAdd(def)}
               />
             ))}

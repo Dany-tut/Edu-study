@@ -167,5 +167,3 @@
 .calendar-widget-name, .calendar-widget-subtitle { display: block; min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; flex-shrink: 0; }
 .calendar-widget-person { min-width: 0; }
 .calendar-widget-details { align-self: stretch; justify-content: center; }
-
-.calendar-week-day-label{font-size:11px;font-weight:550;color:var(--color-text-3);padding:5px 3px 8px}

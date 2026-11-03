@@ -10,15 +10,6 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
-  "Нет напоминаний": "No reminders",
-  'Карточек учеников': 'Student records',
-  'Без долга по занятиям': 'No lesson debt',
-  'Минус по занятиям': 'Negative lesson balance',
-  'Проверка сохранена': 'Review saved',
-  'Не удалось сохранить черновик. Не закрывайте экран до отправки.': 'Could not save the draft. Keep this screen open until it is submitted.',
-  'Подробности': 'Details',
-  "Не удалось загрузить данные": "Could not load data",
-  "Попробуй ещё раз": "Try again",
   "Выбери ответ": "Choose an answer",
   "Есть просроченные работы": "You have overdue assignments",
   "Сначала — просроченное": "Overdue first",
@@ -5583,6 +5574,4 @@ export const EN: Record<string, string> = {
   "Можно улучшить": "Room to improve",
   "Попытки": "Attempts",
   "Вся сетка размеров": "All widget sizes",
-  "Показано": "Showing",
-  "Загрузить ещё": "Load more",
 }

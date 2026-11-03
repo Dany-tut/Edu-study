@@ -1,7 +1,5 @@
 import FadeText from './FadeText'
-import { useEffect, useRef, useId } from 'react'
-import { useT } from '../lib/i18n'
-import { X } from './icons/appIcons'
+import { useEffect, useRef } from 'react'
 import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { createPortal } from 'react-dom'
@@ -56,8 +54,6 @@ export default function MobileSheet({
   // bottom while `children` scroll underneath it.
   footer?: ReactNode
 }) {
-  const t = useT()
-  const titleId = useId()
   const y = useMotionValue(0)
   const dragControls = useDragControls()
   const { ref: scrollRef, fade, onScroll } = useOverlayScroll()
@@ -71,41 +67,16 @@ export default function MobileSheet({
   // Мышью тянут за что угодно — у указателя мыши нет спора со скроллом.
   const startDrag = (e: ReactPointerEvent) => {
     if (e.pointerType !== 'mouse') return
-    if ((e.target as Element).closest('button, input, textarea, select, a, [contenteditable], [data-sheet-nodrag]')) return
     if (e.button !== 0) return
     dragControls.start(e)
   }
 
-  // Keep keyboard focus inside the topmost sheet and return to its opener.
+  // Esc закрывает, как и окна: шторка открывается и на ПК (узкое окно).
   useEffect(() => {
     if (!open) return
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    const isTop = () => {
-      const sheets = document.querySelectorAll('.mobile-sheet')
-      return sheets[sheets.length - 1] === sheetRef.current
-    }
-    const frame = requestAnimationFrame(() => {
-      const sheet = sheetRef.current
-      if (sheet && isTop() && !sheet.contains(document.activeElement)) sheet.focus({ preventScroll: true })
-    })
-    const onKey = (e: KeyboardEvent) => {
-      const sheet = sheetRef.current
-      if (!sheet || !isTop()) return
-      if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeRef.current(); return }
-      if (e.key !== 'Tab') return
-      const targets = Array.from(sheet.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'))
-        .filter(el => el.getClientRects().length > 0)
-      const first = targets[0], last = targets[targets.length - 1]
-      if (!first) { e.preventDefault(); sheet.focus(); return }
-      if (e.shiftKey && (document.activeElement === first || document.activeElement === sheet)) { e.preventDefault(); last.focus() }
-      else if (!e.shiftKey && (document.activeElement === last || !sheet.contains(document.activeElement))) { e.preventDefault(); first.focus() }
-    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current() }
     window.addEventListener('keydown', onKey)
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('keydown', onKey)
-      if (opener?.isConnected) opener.focus({ preventScroll: true })
-    }
+    return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
   // Палец: свой жест на touch-событиях (см. шапку файла) + замок на страницу
@@ -232,12 +203,6 @@ export default function MobileSheet({
           />
           <motion.div
             ref={sheetRef}
-            className="mobile-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={title ? titleId : undefined}
-            aria-label={title ? undefined : t('Подробности')}
-            tabIndex={-1}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -277,7 +242,7 @@ export default function MobileSheet({
                 на всей шторке; touch-action:none оставлен, чтобы здесь браузер
                 вообще не пытался ничего листать. */}
             <div
-              style={{ position: 'relative', flexShrink: 0, cursor: 'grab', touchAction: 'none', paddingBottom: 2, minHeight: 56 }}
+              style={{ flexShrink: 0, cursor: 'grab', touchAction: 'none', paddingBottom: 2 }}
             >
               <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)' }} />
@@ -287,7 +252,6 @@ export default function MobileSheet({
                   <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{title}</FadeText>
                 </div>
               )}
-              <button type="button" data-sheet-nodrag aria-label={t('Закрыть')} onClick={onClose} style={{ position: 'absolute', right: 8, top: 8, width: 44, height: 44, border: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)', cursor: 'pointer', touchAction: 'manipulation' }}><X size={20} /></button>
             </div>
             <div
               ref={scrollRef}
@@ -304,7 +268,7 @@ export default function MobileSheet({
                 // edge fades under the pinned footer. paddingTop/Bottom keep the
                 // first/last row at full opacity while at rest.
                 minHeight: 0,
-                ...fadeMask(fade, 20, footer ? 48 : 20),
+                ...fadeMask(fade, 20),
               }}
             >
               {children}

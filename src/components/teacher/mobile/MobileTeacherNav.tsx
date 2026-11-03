@@ -98,7 +98,6 @@ export default function MobileTeacherNav({
               // (RU/EN labels differ) — the dock no longer shifts between languages.
               style={{ flex: '1 1 0', minWidth: 0, minHeight: 44, position: 'relative' }}
               aria-label={t(item.label)}
-              aria-current={isActive || (active === 'gradebook' && item.id === 'profile') ? 'page' : undefined}
             >
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0 }}>
                 <TaskliIcon
