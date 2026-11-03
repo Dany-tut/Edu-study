@@ -1,3 +1,4 @@
+import { profileReadLifetime } from '../../lib/profileReadLifetime'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useCallback, useEffect, useRef } from 'react'
@@ -363,15 +364,22 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
     if (example || !student?.id) return
     const sid = student.id
     const gid = student.groupId ?? ''
-    const aid = (student as any).authUserId ?? null
     if (!workPanel) fetchStudentHwHistory(sid).then(setHwHistory)
     fetchStudentLessonHistory(sid, gid).then(setLessonHistory)
     if (!workPanel) fetchStudentScoreDynamics(sid).then(setScoreDynamics)
-    fetchStudentTrainerSections(sid, aid).then(setTrainerSections)
-    fetchStudentWrongTasks(sid, aid).then(setWrongTasks)
-    fetchStudentActivity(sid, aid).then(setActivityHeat)
-    fetchStudentSessionDays(sid, aid).then(setSessionDays)
   }, [example, student?.id, student?.groupId])
+
+  useEffect(() => {
+    if (example || !student?.id) return
+    const sid = student.id
+    const aid = student.authUserId
+    return profileReadLifetime(signal => {
+      fetchStudentTrainerSections(sid, aid, signal).then(value => { if (!signal.aborted) setTrainerSections(value) })
+      fetchStudentWrongTasks(sid, aid, signal).then(value => { if (!signal.aborted) setWrongTasks(value) })
+      fetchStudentActivity(sid, aid, signal).then(value => { if (!signal.aborted) setActivityHeat(value) })
+      fetchStudentSessionDays(sid, aid, signal).then(value => { if (!signal.aborted) setSessionDays(value) })
+    })
+  }, [example, student?.id, student?.authUserId])
 
   const [diagExpanded, setDiagExpanded] = useState(true)
 
