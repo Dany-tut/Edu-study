@@ -73,8 +73,8 @@ export function resizeDeskWidget(item: LayoutItem, definition: WidgetSizeLimits 
   }, definition, width, rowHeight, 64, preferredColumns)
 }
 
-/** The active card keeps its column; collisions only move its neighbours down.
- * Horizontal shoves leave unrelated cards stranded after a resize is reversed. */
+/** Resize/migration keep columns fixed; only actual overlaps move peers down.
+ * Drag reordering is handled separately by moveDeskWidget. */
 export function resolveDeskCollisions(items: LayoutItem[], activeId = ''): LayoutItem[] {
   const layout = items.map(item => ({ ...item }))
   const overlaps = (a: LayoutItem, b: LayoutItem) => a.i !== b.i &&
@@ -89,4 +89,40 @@ export function resolveDeskCollisions(items: LayoutItem[], activeId = ''): Layou
     if (!changed) break
   }
   return layout
+}
+
+/** Dragging across a peer reorders only the affected part of the same row.
+ * Resize still uses vertical collision resolution; free placements keep gaps. */
+export function moveDeskWidget(items: LayoutItem[], moved: LayoutItem, columns: number): LayoutItem[] {
+  const original = items.find(item => item.i === moved.i)
+  const placed = items.map(item => item.i === moved.i ? { ...moved } : { ...item })
+  if (!original) return placed
+  const overlaps = (a: LayoutItem, b: LayoutItem) => a.i !== b.i &&
+    a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
+  const collisions = items.filter(item => overlaps(moved, item))
+  if (moved.y === original.y && moved.x !== original.x && collisions.length &&
+      collisions.every(item => item.y === original.y)) {
+    const row = items.filter(item => item.y === original.y)
+      .sort((a, b) => a.x - b.x)
+    const from = row.findIndex(item => item.i === moved.i)
+    const left = moved.x < original.x
+    const targets = collisions.map(item => row.findIndex(peer => peer.i === item.i))
+    const to = left ? Math.min(...targets) : Math.max(...targets)
+    if ((left && to < from) || (!left && to > from)) {
+      const range = row.slice(Math.min(from, to), Math.max(from, to) + 1)
+      const peers = range.filter(item => item.i !== moved.i)
+      const order = left ? [moved, ...peers] : [...peers, moved]
+      // Anchor at the approached edge. Gaps outside this interval stay intact.
+      let x = left ? range[0].x : range[range.length - 1].x + range[range.length - 1].w - order.reduce((sum, item) => sum + item.w, 0)
+      const positions = new Map(order.map(item => {
+        const next = { ...item, x, y: original.y }
+        x += item.w
+        return [item.i, next] as const
+      }))
+      const reordered = items.map(item => positions.get(item.i) ?? { ...item })
+      if (reordered.every(item => item.x >= 0 && item.x + item.w <= columns &&
+          !reordered.some(other => overlaps(item, other)))) return reordered
+    }
+  }
+  return resolveDeskCollisions(placed, moved.i)
 }
