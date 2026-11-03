@@ -2,6 +2,7 @@ import { createClient, type Session, type SupabaseClient } from '@supabase/supab
 import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
 import { authTransport, fenceAuthCommit } from './authTransport'
 import { abortable } from './abortable'
+import { requireStaffAccess } from './staffAccess'
 
 // Password/code verification happens in memory. Only a still-active attempt
 // may commit the resulting session to the application's shared Auth client.
@@ -31,6 +32,11 @@ export const passwordSignIn = (email: string, password: string, signal: AbortSig
   authenticate(signal, auth => auth.signInWithPassword({ email, password }))
 export const verifyEmailCode = (email: string, token: string, signal: AbortSignal) =>
   authenticate(signal, auth => auth.verifyOtp({ email, token, type: 'email' }))
+
+export const teacherPasswordSignIn = (email: string, password: string, signal: AbortSignal) =>
+  authenticate(signal, auth => auth.signInWithPassword({ email, password }), client => requireStaffAccess(client, signal))
+export const teacherVerifyEmailCode = (email: string, token: string, signal: AbortSignal) =>
+  authenticate(signal, auth => auth.verifyOtp({ email, token, type: 'email' }), client => requireStaffAccess(client, signal))
 
 type SignInStudentProfile = { id: string; name: string; group_id: string | null }
 export async function studentPasswordSignIn(email: string, password: string, signal: AbortSignal) {

@@ -17,8 +17,9 @@ import {
   type StudentStats,
   type ProgressMap,
 } from '../lib/db'
-import { fetchStandaloneSubject, HW_SUBJECT_ID } from '../lib/standaloneHomework'
-import { getStudentSession } from '../lib/studentSession'
+import { fetchStandaloneSubject, isTransientStandaloneReadError, HW_SUBJECT_ID } from '../lib/standaloneHomework'
+import { getStudentSession, type StudentSession } from '../lib/studentSession'
+import type { Session } from '@supabase/supabase-js'
 import { startHomeworkRetake } from '../lib/homeworkAttempts'
 import { homeworkResult } from '../lib/homeworkResult'
 import { loadApLessons } from '../data/apLessonChunk'
@@ -83,6 +84,13 @@ const defaultStats: StudentStats = {
 }
 
 let loadSequence = 0
+// One in-memory slot for raw definitions only. Never retain another account,
+// group or permission context, and never cache merged progress/grades.
+let standaloneSnapshot: { scope: string; value: Subject | null } | null = null
+function standaloneScope(student: StudentSession, auth: Session | null) {
+  return JSON.stringify([student.id, student.groupId, auth?.user.id ?? null,
+    auth?.user.role ?? null, auth?.user.app_metadata ?? null, auth?.user.last_sign_in_at ?? null])
+}
 let testlySyncFlight: { owner: string; promise: Promise<unknown> } | null = null
 function syncTestlyInBackground(owner: string) {
   if (testlySyncFlight?.owner === owner) return testlySyncFlight.promise
@@ -153,6 +161,14 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const loadStarted = performance.now()
     const sequence = ++loadSequence
     const isCurrent = () => sequence === loadSequence && getStudentSession()?.id === session.id
+      && getStudentSession()?.groupId === session.groupId
+    const auth = await supabase.auth.getSession()
+    if (!isCurrent()) return
+    const scopeKey = standaloneScope(session, auth.data.session)
+    if (standaloneSnapshot?.scope !== scopeKey) {
+      standaloneSnapshot = { scope: scopeKey, value: null }
+      set(state => ({ subjects: state.subjects.filter(s => s.id !== HW_SUBJECT_ID) }))
+    }
 
     // First load after a (re)mount — used to seed the active subject/module from
     // the freshly-loaded data. Realtime re-syncs leave the user's current tab put.
@@ -211,13 +227,34 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const val = <T,>(i: number, fallback: T): T =>
       results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
     if (!isCurrent()) return
+    // getSession is local. Recheck permissions changed while the reads were in
+    // flight without adding a second auth subscription or accepting stale data.
+    const latestAuth = await supabase.auth.getSession()
+    if (!isCurrent()) return
+    if (scopeKey !== standaloneScope(session, latestAuth.data.session)) {
+      standaloneSnapshot = null
+      set(state => ({ subjects: state.subjects.filter(s => s.id !== HW_SUBJECT_ID) }))
+      return
+    }
+    const homeworkRead = results[2]
+    let hwSubject: Subject | null
+    if (homeworkRead.status === 'fulfilled') {
+      hwSubject = homeworkRead.value
+      standaloneSnapshot = { scope: scopeKey, value: hwSubject }
+    } else if (isTransientStandaloneReadError(homeworkRead.reason)) {
+      hwSubject = standaloneSnapshot?.scope === scopeKey ? standaloneSnapshot.value : null
+    } else {
+      // In particular, 401/403 and successful empty reads never reuse a snapshot.
+      hwSubject = null
+      standaloneSnapshot = { scope: scopeKey, value: null }
+    }
+    if (!hwSubject) set(state => ({ subjects: state.subjects.filter(s => s.id !== HW_SUBJECT_ID) }))
     if (results[0].status === 'rejected') throw results[0].reason
     const track = results[0].value
     const scope = track.scope
     const progress = track.progress ?? get().progress
     const schedule  = val(1, get().scheduleDays)
     const catalog   = track.subjects
-    const hwSubject = val(2, null as Awaited<ReturnType<typeof fetchStandaloneSubject>>)
 
     // Standalone-ДЗ (вне курса) — отдельный предмет-трек «Домашние задания» со
     // своей нумерацией. Кладём в каталог ДО merge, чтобы прогресс/статусы

@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { authErrorRu } from '../../lib/authErrors'
 import { useT } from '../../lib/i18n'
 import { useAsyncTask } from '../../lib/useAsyncTask'
-import { verifyEmailCode } from '../../lib/authActions'
+import { teacherVerifyEmailCode } from '../../lib/authActions'
 import { Alert } from '../Alert'
 
 export default function TeacherEmailCodeLogin({ onLogin }: { onLogin: () => void }) {
@@ -37,7 +37,7 @@ export default function TeacherEmailCodeLogin({ onLogin }: { onLogin: () => void
   }
   function verify() {
     setError('')
-    void action.run(signal => verifyEmailCode(sentTo, code.trim(), signal), onLogin, failure)
+    void action.run(signal => teacherVerifyEmailCode(sentTo, code.trim(), signal), onLogin, failure)
   }
   function changeEmail() { action.cancel(); setSentTo(''); setCode(''); setError('') }
   const field: React.CSSProperties = { width: '100%', minHeight: 48, padding: '12px 14px', boxSizing: 'border-box', borderRadius: 14, border: '1px solid var(--color-border-medium)', color: 'var(--color-text)', background: 'var(--color-bg-input)', fontSize: 16 }
