@@ -1,3 +1,4 @@
+import { useOpenStudentCabinet } from '../../lib/useOpenStudentCabinet'
 import type { FriendsModel, FriendsTab } from '../../lib/desktopFriends'
 import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -87,6 +88,7 @@ export default function TeacherTopBar({ friends }: { friends: FriendsModel }) {
   const [collapsed, setCollapsed]     = useState(false)
   const [addOpen, setAddOpen]         = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const studentCabinet = useOpenStudentCabinet(profileOpen)
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
   const pendingJournals = useJournalPending(null)
@@ -628,7 +630,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
             {teacherRole === 'admin' && (
               <motion.button whileTap={{ scale: 0.98 }}
-                onClick={() => { setProfileOpen(false); window.location.hash = '#/login?switch=student' }}
+                onClick={studentCabinet.open}
+                disabled={studentCabinet.busy} aria-busy={studentCabinet.busy}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
@@ -637,7 +640,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   <BookOpen size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{t('В ученический кабинет')}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{studentCabinet.failed ? t('Не удалось открыть кабинет. Повторить') : t('В ученический кабинет')}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Переключить роль')}</div>
                 </div>
               </motion.button>

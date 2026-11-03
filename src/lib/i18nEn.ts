@@ -528,6 +528,7 @@ export const EN: Record<string, string> = {
   'Ошибка связи': 'Check failed',
   'Выйти из аккаунта': 'Log out',
   'В кабинет преподавателя': 'Teacher cabinet',
+  'Не удалось открыть кабинет. Повторить': 'Could not open the dashboard. Try again',
   'В ученический кабинет': 'Student cabinet',
   'Переключить роль': 'Switch role',
   'Переключить тему': 'Toggle theme',

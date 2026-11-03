@@ -1,7 +1,7 @@
 import JournalSkeleton from './components/teacher/JournalSkeleton'
 import { fetchScheduleDays } from './lib/db'
 import { applyLessonParticipation, fetchLessonParticipation } from './lib/lessonParticipation'
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense, startTransition } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
 import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
@@ -98,7 +98,11 @@ const IS_NATIVE = Capacitor.isNativePlatform()
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash)
   useEffect(() => {
-    const handler = () => setHash(window.location.hash)
+    const handler = (event: HashChangeEvent) => {
+      const next = window.location.hash
+      if (next === '#/' && new URL(event.oldURL || window.location.href).hash.startsWith('#/teacher') && getStudentSession()) startTransition(() => setHash(next))
+      else setHash(next)
+    }
     window.addEventListener('hashchange', handler)
     return () => window.removeEventListener('hashchange', handler)
   }, [])

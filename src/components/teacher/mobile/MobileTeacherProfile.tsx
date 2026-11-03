@@ -1,3 +1,4 @@
+import { useOpenStudentCabinet } from '../../../lib/useOpenStudentCabinet'
 import Modal from '../../Modal'
 import TeacherModules from '../TeacherModules'
 import FadeText from '../../FadeText'
@@ -56,6 +57,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
 
 export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?: () => void }) {
   const signedIn = useTeacherSession()
+  const studentCabinet = useOpenStudentCabinet()
   const t = useT()
   const { tc, tn } = useTc()
   const { lang, setLang } = useLang()
@@ -275,11 +277,12 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
 
         {isAdmin && <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => { tactile(); window.location.hash = '#/login?switch=student' }}
+          onClick={() => { tactile(); studentCabinet.open() }}
+          disabled={studentCabinet.busy} aria-busy={studentCabinet.busy}
           className="flex items-center justify-center cursor-pointer"
           style={{ gridColumn: 'span 2', gap: 8, padding: 12, borderRadius: 24, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
         >
-          <BookOpen size={18} /> {t('В ученический кабинет')}
+          <BookOpen size={18} /> {studentCabinet.failed ? t('Не удалось открыть кабинет. Повторить') : t('В ученический кабинет')}
         </motion.button>}
 
         {/* Logout — span 2 */}

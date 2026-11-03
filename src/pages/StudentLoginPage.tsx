@@ -10,7 +10,7 @@ import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
 import { Alert } from '../components/Alert'
 import { useAsyncTask } from '../lib/useAsyncTask'
-import { linkedStudentProfile, studentPasswordSignIn } from '../lib/authActions'
+import { studentPasswordSignIn } from '../lib/authActions'
 import ScrollFade from '../components/ScrollFade'
 import SocialLoginButtons, { AuthLegalLinks } from '../components/SocialLoginButtons'
 import AuthHero from '../components/AuthHero'
@@ -40,30 +40,8 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
   const action = useAsyncTask()
   const loading = action.busy
   const [error, setError] = useState(linkExpired ? t('Ссылка устарела или уже использована. Запросите новую.') : '')
-  const [notice, setNotice] = useState('')
-
   const switchingCabinet = new URLSearchParams(window.location.hash.split('?')[1]).get('switch') === 'student'
-  const { run } = action
-  useEffect(() => {
-    if (!switchingCabinet || recovery || linkExpired) return
-    void run(async signal => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) throw error
-      if (!user) return null
-      const row = await linkedStudentProfile(supabase, user.id, signal)
-      const { data: { session } } = await supabase.auth.getSession()
-      return session?.user.id === user.id ? row : null
-    }, row => {
-      if (window.location.hash !== '#/login?switch=student') return
-      if (!row) {
-        setNotice(t('Войдите аккаунтом, к которому привязан профиль ученика.'))
-        return
-      }
-      setStudentSession({ id: row.id, name: row.name, groupId: row.group_id ?? '' })
-      window.location.replace('#/')
-      window.location.reload()
-    }, failed)
-  }, [switchingCabinet, recovery, linkExpired, run])
+  const [notice, setNotice] = useState(() => switchingCabinet ? t('Войдите аккаунтом, к которому привязан профиль ученика.') : '')
 
   useEffect(() => {
     if (mode !== 'newpassword') return
