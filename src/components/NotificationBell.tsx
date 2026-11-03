@@ -25,17 +25,18 @@ const ringVariants = {
 }
 
 type Props = {
+  friendCount?: number
   size?: number
   hoverBg?: string
   /** Called when bell is clicked so parent can open popup */
   onClick?: () => void
 }
 
-export default function NotificationBell({ size = 16, hoverBg = 'rgba(var(--accent-rgb), 0.14)', onClick }: Props) {
+export default function NotificationBell({ friendCount = 0, size = 16, hoverBg = 'rgba(var(--accent-rgb), 0.14)', onClick }: Props) {
   const t = useT()
   const notifications   = useNotificationsStore(s => s.notifications)
   const dismissLive     = useNotificationsStore(s => s.dismissLive)
-  const unread          = notifications.filter(n => !n.read).length
+  const unread          = notifications.filter(n => !n.read).length + friendCount
   const prevLiveId      = useRef<string | null>(null)
 
   const [bellState, setBellState] = useState<'idle' | 'ringing' | 'sticker'>('idle')
