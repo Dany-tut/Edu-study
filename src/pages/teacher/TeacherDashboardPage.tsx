@@ -184,7 +184,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       </Suspense>)}
 
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
-      {mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 10 }}>
+      {mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
         <button className="cj-button" style={{ minHeight: 44 }} onClick={() => setActivePage('home')}>{t('На главную')}</button>
       </div> : <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
         {/* Left spacer */}
@@ -228,10 +228,8 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.12, ease: 'easeOut' }}
-        // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
-        // paddingTop:100 — the progressive-blur recipe) must not be clipped
-        // by this wrapper, so their overflow stays visible.
-        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
+        // Clip only at the viewport so content can scroll behind the header.
+        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
         <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>} >
         {activePage === 'home' && (
