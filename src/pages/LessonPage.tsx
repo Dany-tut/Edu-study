@@ -1306,12 +1306,14 @@ export default function LessonPage() {
       )}
 
       {/* ── Materials & homework — placed BELOW the description. Compact tiles;
-          desktop keeps 4-across, mobile drops to 2 columns (4-col squeezes each
+          desktop adds equal columns for extra homework, mobile drops to 2 columns (4-col squeezes each
           tile so its content overflows onto neighbours). Homework spans full
           width on mobile. ── */}
       <div
         className="grid"
         style={{
+          gridAutoFlow: isDesktop ? 'column' : 'row',
+          gridAutoColumns: 'minmax(0, 1fr)',
           gridTemplateColumns: isDesktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
           gap: 12,
           alignItems: 'start',
