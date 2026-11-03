@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 export function isFailure(status) {
-  return status === 0 || (status >= 400 && status < 600);
+  return status === 0 || status >= 400;
 }
 
 test('synthetic API failure boundaries, including 600+', () => {
