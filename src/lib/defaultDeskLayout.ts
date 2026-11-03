@@ -4,20 +4,20 @@ import type { Desk, LayoutItem } from './useDeskLayouts'
 export function defaultDeskItems(id: string, columns = 8): LayoutItem[] {
   const item = (type: string, x: number, y: number, w: number, h: number): LayoutItem =>
     ({ i: type, type, x, y, w, h, gridVersion: 2 })
-  const stats = id === 'today' ? ['stat-students', 'stat-hw', 'stat-lessons', 'finance-received']
+  const stats = id === 'today' ? ['stat-students', 'stat-hw', 'stat-lessons', 'attention-students']
     : id === 'finances' ? ['finance-received', 'finance-expected', 'finance-debt', 'finance-forecast']
     : ['student-count', 'student-groups', 'student-active', 'student-debtors']
   if (id === 'today' && columns >= 8) return [
     ...stats.map((type, x) => item(type, x*2, 0, 2, 1)),
-    item('today-schedule', 0, 1, 4, 5),
-    item('today-reminders', 4, 1, 4, 3),
-    item('today-tasks', 4, 4, 4, 2),
+    item('today-schedule', 0, 1, 3, 5),
+    item('today-reminders', 3, 1, 3, 5),
+    item('today-tasks', 6, 1, 2, 5),
   ]
   if(id==='students'&&columns>=8) return [
     ...stats.map((type,x)=>item(type,x,0,1,1)),
     item('groups-list',0,1,4,3),item('attention-students',4,0,4,4),
   ]
-  const statW = Math.max(1, Math.floor(columns / 4))
+  const statW = id === 'today' ? Math.min(2, columns) : Math.max(1, Math.floor(columns / 4))
   const indicators = stats.map((type, n) => item(type, (n * statW) % columns, Math.floor(n * statW / columns), (id==='students'&&type!=='student-count')?1:statW, 1))
   const top = Math.ceil(4 * statW / columns)
   if (id === 'today') return [...indicators,
