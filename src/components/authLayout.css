@@ -17,16 +17,21 @@
 }
 .auth-hero { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
 .auth-hero-copy { flex: 1; min-width: 0; }
+.teacher-login-layout .auth-hero-copy { padding-inline-start: 8px; }
 .auth-hero h1 { margin: 0 0 6px; color: var(--color-text); font-size: 25px; line-height: 1.15; letter-spacing: -.03em; font-weight: 740; overflow-wrap: anywhere; }
 .auth-hero p { margin: 0; color: var(--color-muted); font-size: 14px; line-height: 1.4; }
 .auth-hero-art { width: 72px; height: 72px; flex-shrink: 0; object-fit: contain; }
 .auth-legal { margin: 12px 8px 0; text-align: center; color: var(--color-muted); font-size: 11px; line-height: 1.5; }
 .auth-legal a { color: inherit; }
 .auth-legal a:focus-visible, .auth-page-card button:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 3px; }
+@media (max-width: 600px) {
+  .auth-hero--compact-title h1 { font-size: clamp(18px, 5.35vw, 23px); }
+}
 @media (max-width: 359px) {
   .auth-page-card { padding: 20px; }
   .auth-hero { gap: 8px; }
   .auth-hero h1 { font-size: 23px; }
+  .auth-hero--compact-title h1 { font-size: 18px; }
   .auth-hero-art { width: 56px; height: 56px; }
 }
 @media (max-height: 600px) {
