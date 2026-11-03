@@ -74,7 +74,7 @@ import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../../components/LessonVideoPlayer'
 import { parseVideoSource } from '../../lib/videoSource'
 import {
-  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
+  uploadLessonFile, uploadLessonFileToR2, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { emptyWatch } from '../../lib/videoProgress'
@@ -1464,8 +1464,9 @@ function parseTimecodeList(text: string): LessonTimecode[] {
  * часто переносят из описания ролика, где секунды уже посчитаны.
  */
 function TimecodeRail({
-  codes, onChange, at, total, onSeek,
+  codes, onChange, at, total, onSeek, transcriptionAction,
 }: {
+  transcriptionAction?: React.ReactNode
   codes: LessonTimecode[]
   onChange: (next: LessonTimecode[]) => void
   at: number
@@ -1599,6 +1600,7 @@ function TimecodeRail({
         )}
       </div>
 
+      {transcriptionAction}
       <div style={{ display: 'flex', gap: 6 }}>
         <button
           onClick={addHere}
@@ -1656,7 +1658,29 @@ function CenterRecording({
   const [total, setTotal] = useState(0)
   const codes = useMemo(() => lesson.timecodes ?? [], [lesson.timecodes])
 
-  const content = (() => {
+  const fileInput = useRef<HTMLInputElement>(null)
+  const active = useRef(true)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  useEffect(() => {
+    active.current = true
+    return () => { active.current = false }
+  }, [])
+  async function addVideo(file?: File) {
+    if (!file || uploading || saveUnavailable) return
+    setUploading(true)
+    setUploadError('')
+    try {
+      const uploaded = await uploadLessonFileToR2(file)
+      if (!active.current) return
+      if (!uploaded.url || !await onSaveLink(uploaded.url)) throw new Error()
+    } catch {
+      if (active.current) setUploadError('Не удалось добавить видео. Попробуйте ещё раз или вставьте ссылку на запись.')
+    } finally {
+      if (active.current) setUploading(false)
+    }
+  }
+  const content = (transcriptionAction: React.ReactNode) => {
   if (lesson.videoUrl && !linkMode) {
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 24px 22px' }}>
@@ -1699,6 +1723,7 @@ function CenterRecording({
                 style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>
+              {transcriptionAction}
             </div>
           </div>
         ) : (
@@ -1748,7 +1773,7 @@ function CenterRecording({
             )}
           </div>
 
-          <TimecodeRail
+          <TimecodeRail transcriptionAction={transcriptionAction}
             codes={codes}
             onChange={next => onUpdate({ ...lesson, timecodes: next })}
             at={at}
@@ -1780,22 +1805,28 @@ function CenterRecording({
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => setLinkMode(true)}
+          <button disabled={uploading} onClick={() => setLinkMode(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Link2 size={14} /> {t('Вставить ссылку')}
           </button>
-          <button style={btn('M', 'secondary')}>
-            <Upload size={14} /> {t('Загрузить файл')}
+          <input ref={fileInput} type="file" accept="video/mp4,video/webm,video/quicktime,.m4v,.ogv" hidden onChange={event => {
+            const file = event.currentTarget.files?.[0]
+            event.currentTarget.value = ''
+            void addVideo(file)
+          }} />
+          <button disabled={uploading || !!saveUnavailable} title={saveUnavailable} onClick={() => fileInput.current?.click()} style={btn('M', 'secondary')}>
+            <Upload size={14} /> {uploading ? 'Загружаем видео…' : t('Загрузить файл')}
           </button>
         </div>
+        {uploadError && <p role="alert">{uploadError}</p>}
       </div>
     </div>
   )
-  })()
+  }
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      {loading ? content : <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} published={published}
+      {loading ? content(null) : <TranscriptionAction key={JSON.stringify([lesson.id,lesson.videoUrl])} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         onApply={({ transcript, timecodes }) => { onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }}>{content}</TranscriptionAction>}
     </div>

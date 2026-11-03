@@ -169,7 +169,7 @@ export async function uploadLessonFile(file: File): Promise<LessonFile> {
  * (функция отвечает notConfigured), остаётся прежняя ошибка «больше 25 МБ» с
  * советом прикрепить ссылкой на Диск.
  */
-async function uploadLessonFileToR2(file: File): Promise<LessonFile> {
+export async function uploadLessonFileToR2(file: File): Promise<LessonFile> {
   const mime = file.type || 'application/octet-stream'
   const { data, error } = await supabase.functions.invoke('r2-upload', {
     body: { name: file.name, size: file.size, mime },
