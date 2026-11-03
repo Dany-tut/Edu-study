@@ -32,3 +32,7 @@
 @media (max-height: 600px) {
   .auth-page-layout { align-items: flex-start; }
 }
+@media (pointer: coarse) {
+  .teacher-login-layout:has(input:focus) { align-items: flex-start; }
+  .teacher-login-layout:has(input:focus) .auth-hero-art { display: none; }
+}
