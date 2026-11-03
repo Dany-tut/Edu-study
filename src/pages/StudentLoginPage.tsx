@@ -13,6 +13,7 @@ import { useAsyncTask } from '../lib/useAsyncTask'
 import { studentPasswordSignIn } from '../lib/authActions'
 import ScrollFade from '../components/ScrollFade'
 import SocialLoginButtons, { AuthLegalLinks } from '../components/SocialLoginButtons'
+import AuthFadeInput from '../components/AuthFadeInput'
 import AuthHero from '../components/AuthHero'
 import AuthRoleHeader from '../components/AuthRoleHeader'
 
@@ -140,7 +141,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
           onSubmit={e => { e.preventDefault(); void handleSubmit() }}
           style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
         >
-          <input className="auth-input"
+          <AuthFadeInput className="auth-input"
             type="email"
             name="username"
             inputMode="email"
@@ -157,7 +158,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
             autoFocus
           />
           {mode !== 'reset' && <div style={{ position: 'relative' }}>
-            <input className="auth-input"
+            <AuthFadeInput className="auth-input"
               // Keep a real password input so Safari Password AutoFill can fill
               // the saved credential into this form.
               type={showPassword ? 'text' : 'password'}
