@@ -1,0 +1,53 @@
+{
+  "scope": "Real production API Auth/PostgREST/Storage. Five synthetic identities; only owned IDs. API not UI acceptance",
+  "results": [
+    {
+      "name": "anonymous person_student_rows cannot resolve A membership",
+      "status": "PASS"
+    },
+    {
+      "name": "foreign learner person_student_rows cannot resolve A membership",
+      "status": "PASS"
+    },
+    {
+      "name": "anon cannot fetch A student_track",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB cannot fetch A student_track",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB cannot fetch A student_track",
+      "status": "PASS"
+    },
+    {
+      "name": "anon cannot change A course order",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB cannot change A course order",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB cannot change A course order",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA retains own authorized track",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA retains own authorized track",
+      "status": "PASS"
+    },
+    {
+      "name": "admin retains own authorized track",
+      "status": "PASS"
+    },
+    {
+      "name": "own student reorder preserves existing access mode",
+      "status": "PASS"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "scope": "Real production API Auth/PostgREST/Storage. Five synthetic identities; only owned IDs. API not UI acceptance",
+  "results": [
+    {
+      "name": "anonymous person_student_rows cannot resolve A membership",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+    },
+    {
+      "name": "foreign learner person_student_rows cannot resolve A membership",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+    },
+    {
+      "name": "anon cannot fetch A student_track",
+      "status": "FAIL",
+      "error": "Foreign course exposed by privileged RPC"
+    },
+    {
+      "name": "studentB cannot fetch A student_track",
+      "status": "FAIL",
+      "error": "Foreign course exposed by privileged RPC"
+    },
+    {
+      "name": "teacherB cannot fetch A student_track",
+      "status": "FAIL",
+      "error": "Foreign course exposed by privileged RPC"
+    },
+    {
+      "name": "anon cannot change A course order",
+      "status": "FAIL",
+      "error": "Foreign reorder accepted"
+    },
+    {
+      "name": "studentB cannot change A course order",
+      "status": "FAIL",
+      "error": "Foreign reorder accepted"
+    },
+    {
+      "name": "teacherB cannot change A course order",
+      "status": "FAIL",
+      "error": "Foreign reorder accepted"
+    },
+    {
+      "name": "studentA retains own authorized track",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA retains own authorized track",
+      "status": "PASS"
+    },
+    {
+      "name": "admin retains own authorized track",
+      "status": "PASS"
+    },
+    {
+      "name": "own student reorder preserves existing access mode",
+      "status": "PASS"
+    }
+  ]
+}
