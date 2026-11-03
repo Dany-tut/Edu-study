@@ -1,0 +1,9 @@
+{
+  "src/components/teacher/widgets/WidgetFinanceOverdue.tsx": "e438fb934ae895cad0031f538f61bcd13db864f0c1a06383657670dfafdef7d7",
+  "src/components/teacher/widgets/WidgetTodayReminders.tsx": "53ae0729a2aa78af1facc3fbe1aa07753ae658fe78a2a8540d739a3475e3f95f",
+  "src/components/teacher/widgets/WidgetGroupsList.tsx": "9fdb277da59e6fdc597ca917d4f4ac9cd5db8f134d8e285a7b13fde15376be70",
+  "src/components/teacher/widgets/WidgetStatLessons.tsx": "f53c8372d152102d050d943e715a0e0c7122f3fef993fb6504fbddbd5780b727",
+  "src/components/teacher/widgets/_MiniStatCard.tsx": "e6195fa2df934744bfeba44b5d7061ac2ab0389558ac636ea773bf77b9b0b9a4",
+  "src/components/teacher/widgets/widgetNavigation.ts": "703a50365b23e47e6f1d9e1628f939c91b554187a88c560b815b3c9938ef4e9a",
+  "src/styles/widgets.css": "c6eaecd7b3de2b3f7c5c0a237de6105940010816a4f2caaf682882307f2c9841"
+}

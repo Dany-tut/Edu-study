@@ -29,8 +29,8 @@ export interface ImportedForm {
   questions: ImportedQuestion[]
 }
 
-export async function importGoogleForm(url: string): Promise<ImportedForm> {
-  const { data, error } = await supabase.functions.invoke('import-google-form', { body: { url } })
+export async function importGoogleForm(url: string, signal?: AbortSignal): Promise<ImportedForm> {
+  const { data, error } = await supabase.functions.invoke('import-google-form', { body: { url }, signal })
   if (error) {
     // On a non-2xx response supabase-js sets `data` to null and stashes the raw
     // Response on error.context — read it ourselves to surface our JSON { error } body.
