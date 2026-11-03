@@ -10,6 +10,18 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Сервис MCP пока недоступен": "MCP service currently unavailable",
+  "Проверяем доступность MCP…": "Checking MCP service…",
+  "Сервис MCP доступен": "MCP service available",
+  "Не удалось отозвать доступ. Попробуйте ещё раз.": "Could not revoke access. Please try again.",
+  "Не удалось проверить разрешения приложений.": "Could not check app permissions.",
+  "Приложения с доступом к вашему аккаунту": "Apps with access to your account",
+  "Подключённые приложения": "Connected apps",
+  "Доступ не выдан": "Access not granted",
+  "Адрес скопирован.": "Address copied.",
+  "Доступ отозван.": "Access revoked.",
+  "Отозвать доступ": "Revoke access",
+  "Отозвать доступ?": "Revoke access?",
   "Разделы профиля": "Profile navigation",
   "Интеграции": "Integrations",
   "Главное": "Overview",
