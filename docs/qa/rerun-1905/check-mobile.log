@@ -1,0 +1,8 @@
+
+> student-dashboard@1.0.0 check:mobile
+> node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs
+
+Mobile gestures: cancel/multitouch, stale flick, nested scrolling, editing, no-drag handles, horizontal rows and top-dialog isolation passed
+Keyboard: Safari/PWA/panning/native resizing, browser chrome and pinch zoom fixtures passed
+PASS: new attempts re-open the same progress row; legacy drafts are isolated; latest linked submissions are unique
+PASS: basic snapshots stay out of hard review; legacy hard survives; standalone and extra homework titles resolve

@@ -1,0 +1,29 @@
+
+> student-dashboard@1.0.0 check:course-track
+> node scripts/checkCourseTrack.mjs
+
+[db:upsertLessonProgress] { message: 'simulated RLS failure', code: '42501' }
+[db:fetchStudentTrack.grading] { message: 'Error: simulated disconnect' }
+[db:homework_attempts] { message: 'Error: simulated disconnect' }
+[db:fetchStudentTrack.grading] { message: 'grading metadata unavailable' }
+[db:homework_attempts] { message: 'grading metadata unavailable' }
+[db:fetchStudentTrack] { message: 'RPC unavailable' }
+[db:fetchLessonProgress] { message: 'progress unavailable' }
+[db:fetchStudentTrack] { message: 'RPC unavailable' }
+[db:fetchLessonProgress] { message: 'progress unavailable' }
+[student-ready] {"reconciled":true,"ms":1,"courses":1,"lessons":1,"progress":1}
+[db:fetchPersonScope.rpc] { message: '(data ?? []) is not iterable' }
+[student-ready] {"reconciled":true,"ms":1,"courses":1,"lessons":1,"progress":0}
+[student-ready] {"reconciled":true,"ms":0,"courses":1,"lessons":1,"progress":1}
+PASS: track status, module access, recording timing, server grades, test answers/write errors, failed sync/reset, out-of-order loads
+[student-ready] {"reconciled":false,"ms":0,"courses":1,"lessons":1,"progress":0}
+[student-ready] {"reconciled":true,"ms":0,"courses":1,"lessons":1,"progress":1}
+[student-ready] {"reconciled":false,"ms":0,"courses":1,"lessons":1,"progress":1}
+PASS: nonblocking external sync, preserved drafts, confirmed grade refresh and account isolation
+[db:fetchScheduleDays] { message: 'calendar disconnected' }
+[db:fetchScheduleDays] { message: 'calendar disconnected' }
+[student-ready] {"reconciled":true,"ms":0,"courses":1,"lessons":1,"progress":0}
+PASS: stable calendar links, distinct same-title events and failed-calendar preservation
+PASS: dated material without a time is visible in the calendar
+[db:fetchCourseStructure] { message: 'course calendar projection disconnected' }
+PASS: reported November 2 lesson shares its calendar and track date in Moscow, Bangkok and New York

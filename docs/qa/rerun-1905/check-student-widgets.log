@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:student-widgets
+> node scripts/checkStudentWidgetMatrix.mjs
+
+Student home matrix: 13 production presentations, 9 exact carousel sizes, 2214 theme/state/size cases; overflow detector regression passed

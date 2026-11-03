@@ -1,0 +1,9 @@
+
+> student-dashboard@1.0.0 check:teacher-view
+> node scripts/checkTeacherView.mjs && node scripts/checkTeacherToday.mjs && esbuild scripts/checkWorkspaceRoute.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkWorkspaceRoute.mjs --log-level=error && node node_modules/.cache/checkWorkspaceRoute.mjs
+
+PASS: clean entry/exit navigation, isolated tabs, unchanged Auth identity, sign-out and non-admin isolation
+PASS: verified admin can read target Testly context; writes, student actions, forged role and invalid targets are rejected
+PASS: read-only reports/downloads, no grade/student/course/payment/Auth/module mutations, normal writes restored on exit
+PASS: 20 consumers share one roster load, ready reads reused, owner invalidation, group/direct events, statuses and live roster edits
+PASS: all student routes hydrate; teacher, public, invitation and consent screens do not start student reads

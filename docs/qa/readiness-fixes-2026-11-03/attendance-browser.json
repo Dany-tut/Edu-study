@@ -1,0 +1,81 @@
+{
+  "cancelWhileSaving": true,
+  "draftRetained": true,
+  "lateResponseIgnored": true,
+  "interceptedPosts": 1,
+  "serverMutationSent": false,
+  "visual": [
+    {
+      "width": 1440,
+      "height": 900,
+      "position": "start",
+      "areas": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "position": "middle",
+      "areas": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "position": "end",
+      "areas": []
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "position": "start",
+      "areas": [
+        {
+          "class": "no-scrollbar",
+          "clientHeight": 320,
+          "scrollHeight": 358
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "position": "middle",
+      "areas": [
+        {
+          "class": "no-scrollbar",
+          "clientHeight": 320,
+          "scrollHeight": 358
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "position": "end",
+      "areas": [
+        {
+          "class": "no-scrollbar is-scrolling",
+          "clientHeight": 320,
+          "scrollHeight": 358
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "position": "start",
+      "areas": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "position": "middle",
+      "areas": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "position": "end",
+      "areas": []
+    }
+  ]
+}

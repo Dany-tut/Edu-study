@@ -1,0 +1,34 @@
+{
+  "scope": "Real localhost SDK/Auth, synthetic user; service key only generates the local OTP; no delivery claim",
+  "productionModified": false,
+  "results": [
+    {
+      "name": "Cancellation at token: late response cannot persist session or emit SIGNED_IN",
+      "status": "PASS"
+    },
+    {
+      "name": "Cancellation at user: late response cannot persist session or emit SIGNED_IN",
+      "status": "PASS"
+    },
+    {
+      "name": "Successful password login commits the real session",
+      "status": "PASS"
+    },
+    {
+      "name": "Real one-time email code verification commits the intended session",
+      "status": "PASS"
+    },
+    {
+      "name": "Student profile cancellation cannot commit a late session",
+      "status": "PASS"
+    },
+    {
+      "name": "Student profile failure is rejected instead of routing as a teacher",
+      "status": "PASS"
+    },
+    {
+      "name": "Student login resolves the real profile before committing the session",
+      "status": "PASS"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "scope": "Real local Edge Functions + Auth + database, synthetic accounts",
+  "results": [
+    {
+      "name": "reset student B denies missing token",
+      "status": "PASS"
+    },
+    {
+      "name": "reset student B denies invalid",
+      "status": "PASS"
+    },
+    {
+      "name": "reset student B denies studentA",
+      "status": "PASS"
+    },
+    {
+      "name": "reset student B denies teacherA",
+      "status": "PASS"
+    },
+    {
+      "name": "reset teacher B denies missing token",
+      "status": "PASS"
+    },
+    {
+      "name": "reset teacher B denies invalid",
+      "status": "PASS"
+    },
+    {
+      "name": "reset teacher B denies studentA",
+      "status": "PASS"
+    },
+    {
+      "name": "reset teacher B denies teacherA",
+      "status": "PASS"
+    },
+    {
+      "name": "owner rejects short manual password without changing Auth",
+      "status": "PASS"
+    },
+    {
+      "name": "owner reset changes real Auth, returns once and persists no plaintext",
+      "status": "PASS"
+    },
+    {
+      "name": "non-owner denied reset leaves victim password valid",
+      "status": "PASS"
+    },
+    {
+      "name": "trusted admin resets teacher B, real new password works",
+      "status": "PASS"
+    },
+    {
+      "name": "provision student scoped despite forged user metadata admin",
+      "status": "PASS"
+    },
+    {
+      "name": "teacher provisions own account without password storage",
+      "status": "PASS"
+    }
+  ],
+  "productionModified": false
+}

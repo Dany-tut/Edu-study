@@ -1,0 +1,7 @@
+
+> student-dashboard@1.0.0 check:video-access
+> node scripts/checkHomeworkVideoAccess.mjs
+
+PASS: 70% boundary, full-duration percentage, saved coverage, Drive, seeking, attendance and drafts
+PASS: scheduled homework release before start, during lesson, exact 90-minute boundary and diary exclusion
+PASS: native background 10x, paused/buffering, seeks, replay, resume, final tail and unchanged 70%

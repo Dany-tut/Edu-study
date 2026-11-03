@@ -1,0 +1,21 @@
+import fs from 'node:fs/promises';import assert from 'node:assert/strict';
+const {chromium}=await import('/tmp/iskra-icon-qa/node_modules/playwright/index.mjs');const base='http://127.0.0.1:5297',out='/Users/dany/Cursor/student-dashboard/docs/qa/readiness-fixes-2026-11-03/student-login-followup/visual';await fs.mkdir(out,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true});const results=[],errors=[];
+try{for(const theme of ['light','dark']){
+ const ctx=await browser.newContext({viewport:{width:1440,height:900},serviceWorkers:'block'});await ctx.addInitScript(t=>localStorage.setItem('theme',t),theme);await ctx.route('**/*',r=>['127.0.0.1','localhost'].includes(new URL(r.request().url()).hostname)?r.continue():r.abort());
+ await ctx.route('**/rest/v1/rpc/get_invited_student',r=>r.fulfill({contentType:'application/json',body:JSON.stringify([{id:'00000000-0000-4000-8000-000000000001',name:'QA Приглашённый ученик',group_id:null}])}));await ctx.route('**/rest/v1/rpc/get_teacher_invite',r=>r.fulfill({contentType:'application/json',body:JSON.stringify([{email:'ui-only@example.invalid',subjects:[],consumed:false}])}));
+ const page=await ctx.newPage();page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));
+ for(const [screen,path] of [['student','/#/login'],['teacher','/#/teacher'],['join-student','/#/join?token=qa-ui-only'],['join-teacher','/#/join-teacher?token=qa-ui-only']]){
+ await page.goto(base+path);const password=page.getByPlaceholder('Пароль',{exact:true});await password.waitFor();await password.fill('UIOnly-Password-123');
+ for(const [width,height] of [[1440,900],[1024,600],[320,568],[390,844]]){
+ await page.setViewportSize({width,height});await page.waitForTimeout(400);const show=()=>page.getByRole('button',{name:/^(Показать|Скрыть) пароль$/});const box=await show().boundingBox();assert.ok(box.width>=44&&box.height>=44,screen+' password target '+JSON.stringify(box));assert.ok(Number(await password.evaluate(e=>parseFloat(getComputedStyle(e).fontSize)))>=16);
+ const before=await password.inputValue();await show().focus();await page.keyboard.press('Space');assert.equal(await show().getAttribute('aria-pressed'),'true');await page.keyboard.press('Space');assert.equal(await show().getAttribute('aria-pressed'),'false');
+ for(let i=0;i<5;i++){await show().click();await show().click()}assert.equal(await password.inputValue(),before);assert.equal(await show().getAttribute('aria-pressed'),'false');
+ const positions=[];for(const pos of ['start','middle','end']){const areas=await page.evaluate(pos=>[...document.querySelectorAll('div')].filter(e=>/auto|scroll/.test(getComputedStyle(e).overflowY)&&e.scrollHeight>e.clientHeight+1).map(e=>{e.scrollTop=pos==='start'?0:pos==='end'?e.scrollHeight:(e.scrollHeight-e.clientHeight)/2;return {scrollHeight:e.scrollHeight,clientHeight:e.clientHeight}}),pos);await page.waitForTimeout(100);const masks=await page.evaluate(()=>[...document.querySelectorAll('div')].filter(e=>/auto|scroll/.test(getComputedStyle(e).overflowY)&&e.scrollHeight>e.clientHeight+1).map(e=>({top:e.scrollTop,mask:getComputedStyle(e.parentElement).maskImage})));assert.ok(masks.every(e=>e.mask!=='none'),'Missing scroll mask');if(width===320||width===1440)await page.screenshot({path:`${out}/${screen}-${theme}-${width}-${pos}.png`});positions.push({pos,areas,masks})}
+ results.push({screen,theme,width,height,passwordTarget:box,positions});
+ }
+ if(screen==='teacher'||screen==='student'){
+ await page.getByRole('button',{name:'Забыли пароль?',exact:true}).focus();await page.keyboard.press('Enter');await page.getByRole('button',{name:'Отправить письмо',exact:true}).waitFor();const back=page.getByRole('button',{name:/Назад ко входу/});await back.focus();await page.keyboard.press('Enter');await password.waitFor();assert.equal(await password.inputValue(),'UIOnly-Password-123');}
+ }
+ await ctx.close();}
+ assert.deepEqual(errors,[]);await fs.writeFile(out+'/results.json',JSON.stringify({scope:'Actual production forms; invitation RPC responses are synthetic. No form submissions or registrations',results,errors},null,2));console.log('PASS',results.length,'form/theme/viewport combinations; keyboard toggles and recovery navigation');
+}finally{await browser.close()}

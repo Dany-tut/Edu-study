@@ -1,0 +1,10 @@
+{
+  "count": 8,
+  "routes": [
+    "#/teacher",
+    "#/teacher"
+  ],
+  "final": "#/teacher",
+  "alert": 0,
+  "hasAuth": true
+}

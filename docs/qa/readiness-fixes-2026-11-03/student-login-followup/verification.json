@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-03T04:38:00.864542+00:00",
+  "head": "2dfc71679cb16dc72078a80b713f13a84bc98023",
+  "ownedSourcesMatchSnapshot": {
+    "src/lib/authActions.ts": true,
+    "src/pages/StudentLoginPage.tsx": true,
+    "src/pages/teacher/TeacherLoginPage.tsx": true,
+    "src/pages/JoinPage.tsx": true,
+    "src/pages/JoinTeacherPage.tsx": true
+  },
+  "checks": {
+    "build": "PASS",
+    "types": "PASS",
+    "ui": "PASS",
+    "forms": 12,
+    "sdkAuth": 7,
+    "actualBrowserStudentAuth": 4,
+    "visualThemeViewportCombinations": 32,
+    "homeworkReturnCycle": 10,
+    "i18n": "PASS"
+  },
+  "productionModified": false
+}

@@ -1,0 +1,6 @@
+
+> student-dashboard@1.0.0 check:text-fades
+> node scripts/checkTextFades.mjs && node scripts/checkTextFadeVisibility.mjs
+
+Text fades: all source files, guard fixtures, single/multiline/RTL/fit/resize mask cases passed
+PASS: 2000 offscreen labels cause zero layout reads; visible masks, re-entry, fitting text, node removal and older-browser fallback preserved
