@@ -4125,6 +4125,9 @@ export const EN: Record<string, string> = {
   'Искра — кабинет учителя': 'Iskra — teacher workspace',
   'Искра — кабинет ученика': 'Iskra — student workspace',
   'Вход для преподавателя': 'Teacher sign in',
+  'Вход для препода': 'Teacher sign in',
+  'Вход для ученика': 'Student sign in',
+  'Аккаунт — по приглашению администратора': 'Account by administrator invitation',
   'Поиск ученика': 'Find a student',
   'живое демо — переключайте вкладки, проверяйте работы, правьте журнал':
     'a live demo — switch tabs, review papers, edit the gradebook',

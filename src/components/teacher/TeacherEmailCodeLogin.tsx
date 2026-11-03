@@ -42,8 +42,8 @@ export default function TeacherEmailCodeLogin({ onLogin }: { onLogin: () => void
   function changeEmail() { action.cancel(); setSentTo(''); setCode(''); setError('') }
   const field: React.CSSProperties = { width: '100%', minHeight: 48, padding: '12px 14px', boxSizing: 'border-box', borderRadius: 14, border: '1px solid var(--color-border-medium)', color: 'var(--color-text)', background: 'var(--color-bg-input)', fontSize: 16 }
   const button: React.CSSProperties = { minHeight: 44, border: 0, borderRadius: 14, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650, cursor: 'pointer' }
-  return <div style={{ marginTop: 14 }}>
-    <button type="button" aria-expanded={open} onClick={() => { action.cancel(); setError(''); setOpen(value => !value) }} style={{ ...button, width: '100%' }}>{t('Войти по коду из письма')}</button>
+  return <div style={{ marginTop: 4 }}>
+    <button type="button" aria-expanded={open} onClick={() => { action.cancel(); setError(''); setOpen(value => !value) }} style={{ ...button, width: '100%', background: 'transparent' }}>{t('Войти по коду из письма')}</button>
     {open && <form onSubmit={event => { event.preventDefault(); void (sentTo ? verify() : send()) }} style={{ display: 'grid', gap: 10, marginTop: 12 }}>
       {sentTo ? <>
         <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0, overflowWrap: 'anywhere' }}>{t('Введите код из письма:')} {sentTo}</p>
