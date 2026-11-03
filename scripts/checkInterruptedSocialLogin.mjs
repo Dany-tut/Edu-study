@@ -36,7 +36,7 @@ try {
     await page.clock.install()
     await page.evaluate(mode => { window.__mode = mode; window.__opens = 0; window.__appListeners = {}; window.__browserListeners = {} }, mode)
     await page.addScriptTag({ content: bundle.outputFiles[0].text })
-    await page.getByRole('button', { name: 'Продолжить с Apple ID', exact: true }).click()
+    await page.getByRole('button', { name: 'Продолжить с Apple', exact: true }).click()
     await page.evaluate(async mode => {
       if (mode === 'resolve') await window.__browserListeners.browserFinished?.()
       if (mode === 'callback-denied') await window.__appListeners.appUrlOpen?.({ url: 'iskra://auth/callback?error=access_denied' })
@@ -54,7 +54,7 @@ try {
     if (mode === 'pending' && offeredCancel) await page.getByRole('button', { name: 'Отменить вход', exact: true }).click()
     const state = await page.getByRole('button').evaluateAll(xs => xs.map(b => ({ text: b.innerText, disabled: b.disabled })))
     const googleEnabled = state.some(b => b.text.includes('Google') && !b.disabled)
-    const appleEnabled = state.some(b => b.text.includes('Apple ID') && !b.disabled)
+    const appleEnabled = state.some(b => b.text.includes('Apple') && !b.disabled)
     const canCancel = await page.getByRole('button', { name: /Отменить|Закрыть|Другой способ/ }).count() > 0
     const pendingRole = await page.evaluate(() => localStorage.getItem('iskra:oauth-role'))
     const errorText = await page.getByRole('alert').allTextContents()
