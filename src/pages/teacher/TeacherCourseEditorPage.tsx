@@ -106,7 +106,7 @@ type HWTaskType = TaskTypeId
 type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
 
 
-import { TranscriptionAction, useTranscriptionOwner } from '../../components/teacher/LocalTranscription'
+import { TranscriptionAction, useTranscriptionOwner, type TranscriptRail } from '../../components/teacher/LocalTranscription'
 import { readTranscript, type LessonTranscript } from '../../lib/localTranscription'
 
 export interface CELesson {
@@ -1464,8 +1464,9 @@ function parseTimecodeList(text: string): LessonTimecode[] {
  * часто переносят из описания ролика, где секунды уже посчитаны.
  */
 function TimecodeRail({
-  codes, onChange, at, total, onSeek, transcriptionAction,
+  codes, onChange, at, total, onSeek, transcriptionAction, rail,
 }: {
+  rail?: TranscriptRail
   transcriptionAction?: React.ReactNode
   codes: LessonTimecode[]
   onChange: (next: LessonTimecode[]) => void
@@ -1475,7 +1476,7 @@ function TimecodeRail({
 }) {
   const t = useT()
   const [bulk, setBulk] = useState<string | null>(null)
-  const rowRefs = useRef<Array<HTMLInputElement | null>>([])
+  const rowRefs = useRef<Array<HTMLTextAreaElement | null>>([])
   const active = activeTimecodeIndex(codes, at)
 
   function patch(i: number, p: Partial<LessonTimecode>) {
@@ -1502,7 +1503,7 @@ function TimecodeRail({
   }
 
   return (
-    <div style={{
+    <div className="timecode-editor" style={{
       width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
       borderRadius: 24, padding: 16, minHeight: 0, maxHeight: PLAYER_MAX_H,
       background: 'rgba(var(--glass-rgb), 0.96)',
@@ -1520,7 +1521,9 @@ function TimecodeRail({
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
+      {rail?.tabs}
+      <ScrollFade key={rail?.lines ? 'lines' : 'chapters'} maxHeight="100%" fadeHeight={14} style={{ flex:1,minHeight:0 }}>
+        {rail?.lines ?? <>
         {codes.map((tc, i) => {
           const isActive = i === active && total > 0
           return (
@@ -1543,21 +1546,20 @@ function TimecodeRail({
                 <Play size={12} fill="currentColor" />
               </button>
               <input
-                value={tc.time}
+                aria-label={'Время главы '+(i+1)} disabled={rail?.saving} value={tc.time}
                 onChange={e => patch(i, { time: e.target.value, seconds: clockToSeconds(e.target.value) })}
                 onBlur={() => onChange(sortCodes(codes))}
                 placeholder="00:00"
                 style={{ ...inputSt, width: 62, flexShrink: 0, padding: '6px 6px', textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
               />
-              <input
-                ref={el => { rowRefs.current[i] = el }}
-                value={tc.label}
-                onChange={e => patch(i, { label: e.target.value })}
-                placeholder={t('Название главы')}
-                style={{ ...inputSt, flex: 1, minWidth: 0, padding: '6px 10px' }}
-              />
+              <span className="transcript-line-text chapter-title" data-text={tc.label + ' '}>
+                <textarea rows={1} ref={el => { rowRefs.current[i] = el }}
+                  aria-label={'Название главы '+(i+1)} disabled={rail?.saving}
+                  value={tc.label} onChange={e => patch(i, { label: e.target.value })}
+                  placeholder={t('Название главы')} />
+              </span>
               <button
-                onClick={() => onChange(codes.filter((_, j) => j !== i))}
+                aria-label={'Удалить главу '+(i+1)} disabled={rail?.saving} onClick={() => onChange(codes.filter((_, j) => j !== i))}
                 style={{
                   width: 26, height: 26, borderRadius: 8, flexShrink: 0, border: 'none', cursor: 'pointer',
                   background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
@@ -1598,11 +1600,12 @@ function TimecodeRail({
             </div>
           </div>
         )}
-      </div>
+        </>}
+      </ScrollFade>
 
       {transcriptionAction}
-      <div style={{ display: 'flex', gap: 6 }}>
-        <button
+      {!rail?.lines && <div style={{ display: 'flex', gap: 6 }}>
+        <button disabled={rail?.saving}
           onClick={addHere}
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -1614,7 +1617,7 @@ function TimecodeRail({
           <Plus size={14} /> {t('Таймкод')}
           <span style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.75 }}>{secondsToClock(at)}</span>
         </button>
-        <button
+        <button disabled={rail?.saving}
           onClick={() => setBulk(bulk === null ? '' : null)}
           title={t('Вставить списком')}
           style={{
@@ -1625,15 +1628,16 @@ function TimecodeRail({
         >
           <ListPlus size={14} />
         </button>
-      </div>
+      </div>}
     </div>
   )
 }
 
 function CenterRecording({
-  lesson, onUpdate, onSaveLink, saveUnavailable, courseKey, published, loading,
+  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading,
 }: {
   lesson: CELesson
+  onSaveTranscript: (lesson: CELesson) => Promise<boolean>
   onSaveLink: (url: string) => Promise<boolean>
   saveUnavailable?: string
   courseKey: string
@@ -1698,7 +1702,11 @@ function CenterRecording({
       if (active.current) setUploading(false)
     }
   }
-  const content = (transcriptionAction: React.ReactNode) => {
+  const content = (transcriptionAction: React.ReactNode, rail?: TranscriptRail) => {
+  const timecodePanel = <TimecodeRail rail={rail} transcriptionAction={transcriptionAction}
+    codes={rail?.draft.timecodes ?? codes} at={at} total={total}
+    onChange={timecodes => rail ? rail.change({...rail.draft, timecodes}) : onUpdate({...lesson, timecodes})}
+    onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined} />
   if ((lesson.videoUrl || localFile) && !linkMode) {
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 24px 22px' }}>
@@ -1743,7 +1751,7 @@ function CenterRecording({
                 style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>
-              {transcriptionAction}
+              {rail ? timecodePanel : transcriptionAction}
             </div>
           </div>
         ) : (
@@ -1793,13 +1801,7 @@ function CenterRecording({
             )}
           </div>
 
-          <TimecodeRail transcriptionAction={transcriptionAction}
-            codes={codes}
-            onChange={next => onUpdate({ ...lesson, timecodes: next })}
-            at={at}
-            total={total}
-            onSeek={source ? s => playerRef.current?.playFrom(s) : undefined}
-          />
+          {timecodePanel}
         </div>
         )}
       </div>
@@ -1846,9 +1848,9 @@ function CenterRecording({
 
   return (
     <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      {loading ? content(null) : <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
+      {loading || linkMode ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
-        onApply={({ transcript, timecodes }) => { onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }}>{content}</TranscriptionAction>}
+        onApply={({ transcript, timecodes }) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes })}>{content}</TranscriptionAction>}
     </div>
   )
 }
@@ -7245,6 +7247,11 @@ export default function TeacherCourseEditorPage() {
                         onUpdate={updateLesson}
                         saveUnavailable={course.metadataPending || course.heavyPending || publicationPending
                           ? t('Подождите немного') : !course.dbCourseId && !course.title.trim() ? t('Сначала укажите название курса.') : undefined}
+                        onSaveTranscript={updated => new Promise<boolean>(resolve => {
+                          if (publicationPending || linkSave.current) { resolve(false); return }
+                          linkSave.current = resolve
+                          updateLesson(updated)
+                        })}
                         onSaveLink={url => new Promise<boolean>(resolve => {
                           linkSave.current = resolve
                           setCourse(c => ({ ...c, lessons: c.lessons.map(l => l.id === selectedLesson.id ? { ...l, videoUrl: url } : l) }))

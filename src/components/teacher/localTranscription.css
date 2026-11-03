@@ -103,3 +103,25 @@
   .recording-player-layout > :first-child {flex:0 0 auto !important;width:min(100%, 40dvh);align-self:center}
   .recording-player-layout > :last-child {width:100% !important;flex:1 1 auto !important}
 }
+
+.transcript-tabs,.transcript-tools {display:flex;align-items:center;gap:4px}
+.transcript-tabs {background:var(--color-bg-3);border-radius:10px;padding:3px}
+.transcript-tabs button,.transcript-tools button:not(.transcription-rail-action) {border:0;font:inherit;cursor:pointer;color:var(--color-text-2);background:transparent}
+.transcript-tabs button {flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:650}
+.transcript-tabs small {margin-left:3px;font-variant-numeric:tabular-nums}
+.transcript-tabs button[aria-pressed=true] {background:var(--color-bg-2);color:var(--color-purple-text);box-shadow:var(--shadow-1)}
+.transcript-line {display:grid;grid-template-columns:4ch minmax(0,1fr);align-items:baseline;gap:8px;padding:6px 2px;border-bottom:1px solid var(--color-border-soft)}
+.transcript-line time {color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
+.transcript-line-text {display:grid;min-width:0}
+.transcript-line-text::after,.transcript-line-text textarea {grid-area:1/1;padding:3px 4px;border:0;font:inherit;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.transcript-line-text::after {content:attr(data-text);visibility:hidden}
+.transcript-line-text textarea {width:100%;min-width:0;min-height:0;resize:none;overflow:hidden;border-radius:5px;background:transparent;color:var(--color-text)}
+.transcript-line-text textarea:focus {background:var(--color-bg-3);outline:1px solid var(--color-control-accent)}
+.transcript-tools {border-top:1px solid var(--color-border-soft);padding-top:6px}
+.transcript-tools .transcription-rail-action,.transcript-saved {flex:1}
+.transcript-tools button:not(.transcription-rail-action) {width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
+.transcript-saved {display:flex;gap:6px;align-items:center;color:var(--color-green-text);font-size:12px;font-weight:650}
+.timecode-editor input {font-size:13px}
+@media(max-width:600px){.transcript-tabs button,.transcript-tools button:not(.transcription-rail-action){min-height:44px}.transcript-line-text::after,.transcript-line-text textarea,.timecode-editor input{font-size:16px!important}}
+.chapter-title {flex:1}
+.chapter-title textarea:hover:not(:focus),.transcript-line-text textarea:hover:not(:focus) {background:var(--color-bg-3)}

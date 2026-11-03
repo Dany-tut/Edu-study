@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { ArrowRight, AudioLines, Check, X } from '../icons/appIcons'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowRight, AudioLines, Check, Eye, RotateCcw, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import './profileIntegrations.css'
@@ -126,7 +126,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
 }
 
 type Pending = { id: string; source: string }
-type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => void }
+type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean> }
 
 function readPending(owner: string, lessonKey: string, source: string): Pending | null {
   try {
@@ -135,29 +135,81 @@ function readPending(owner: string, lessonKey: string, source: string): Pending 
   } catch { return null }
 }
 
-export function TranscriptionAction(props: Props & { children: (action: React.ReactNode) => React.ReactNode }) {
-  const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>('entry')
+export type TranscriptRail = {
+  draft: LocalDraft
+  change: (value: LocalDraft) => void
+  tabs: React.ReactNode
+  lines?: React.ReactNode
+  saving: boolean
+}
+
+export function TranscriptionAction(props: Props & { children: (action: React.ReactNode, rail?: TranscriptRail) => React.ReactNode }) {
   const connected = !!props.owner && !!localStorage.getItem(tokenKey(props.owner))
   const jobKey = props.file ? JSON.stringify([props.lessonKey, props.file.name, props.file.size, props.file.lastModified]) : props.lessonKey
-  const pending = readPending(props.owner, jobKey, props.source)
-  if (!props.owner || (!props.source && !props.file)) return <>{props.children(null)}</>
+  const storageKey = 'iskra.transcription.job.' + JSON.stringify([props.owner, jobKey])
+  const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>(() =>
+    connected && readPending(props.owner, jobKey, props.source) ? 'review' : 'entry')
+  const [working, setWorking] = useState<LocalDraft | null>(null)
+  const [tab, setTab] = useState<'chapters' | 'lines'>('chapters')
+  const [saving, setSaving] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const draft = working ?? props.existing
+  function change(value: LocalDraft) { setFailed(false); setWorking(value) }
+  const apply = async () => {
+    if (!working || saving) return
+    setSaving(true)
+    try {
+      if (!await props.onApply(working)) throw new Error()
+      localStorage.removeItem(storageKey)
+      setWorking(null)
+      setFailed(false)
+    } catch { setFailed(true) }
+    finally { setSaving(false) }
+  }
+  if (!props.owner || (!props.source && !props.file && !draft)) return <>{props.children(null)}</>
   if (view !== 'entry') return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }}>
-    {view === 'review' ? <Review key={jobKey + props.source} {...props} lessonKey={jobKey} onClose={() => setView('entry')} /> :
+    {view === 'review' ? <Review {...props} lessonKey={jobKey} onClose={() => setView('entry')}
+      onReady={result => { change(result); setTab(result.timecodes.length ? 'chapters' : 'lines'); setView('entry') }} /> :
       <section className="transcription-inline">
         <button type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
         {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
-          props.existing && <LessonTranscriptPanel transcript={props.existing.transcript} time={-1} />}
+          draft && <LessonTranscriptPanel transcript={draft.transcript} time={-1} />}
       </section>}
   </ScrollFade>
+  const open = () => setView(connected ? 'review' : 'setup')
+  if (!draft) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
+    <AudioLines size={17} />Расшифровать видео
+  </button>)}</>
+  const badChapter = draft.timecodes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
+  const badLine = draft.transcript.segments.some(line => !line.text.trim())
+  const rail: TranscriptRail = {
+    draft, change, saving,
+    tabs: <div className="transcript-tabs" role="group" aria-label="Раздел расшифровки">
+      <button aria-pressed={tab === 'chapters'} onClick={() => setTab('chapters')}>Главы <small>{draft.timecodes.length}</small></button>
+      <button aria-pressed={tab === 'lines'} onClick={() => setTab('lines')}>Реплики <small>{draft.transcript.segments.length}</small></button>
+    </div>,
+    lines: tab === 'lines' ? draft.transcript.segments.map((line, index) =>
+      <label className="transcript-line" key={index}><time>{transcriptTime(line.start)}</time>
+        <span className="transcript-line-text" data-text={line.text + ' '}>
+          <textarea rows={1} aria-label={'Реплика ' + (index + 1)} disabled={saving} value={line.text} onChange={e => change({
+            ...draft, transcript: {...draft.transcript, segments:draft.transcript.segments.map((s,i) => i === index ? {...s,text:e.target.value} : s)}
+          })} />
+        </span>
+      </label>) : undefined,
+  }
   return <>{props.children(<>
-    <button type="button" className="transcription-rail-action" onClick={() => setView(connected ? 'review' : 'setup')}>
-      <AudioLines size={17} />{pending ? 'Открыть обработку' : props.existing ? 'Открыть расшифровку' : 'Расшифровать видео'}
-    </button>
-    {props.existing && <button style={btn('M','secondary')} onClick={() => setView('preview')}>Посмотреть как ученик</button>}
-  </>)}</>
+    {(failed || badChapter || badLine) && <small role="alert">{failed ? 'Не удалось сохранить. Попробуйте ещё раз.' : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
+    <div className="transcript-tools">
+      {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
+        <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить расшифровку'}</button> :
+        <span className="transcript-saved" role="status"><Check size={15}/>Добавлено в урок</span>}
+      {!working && <button aria-label="Повторить обработку" title="Повторить обработку" onClick={open}><RotateCcw size={15}/></button>}
+      <button aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
+    </div>
+  </>,rail)}</>
 }
 
-function Review({ owner, lessonKey, source, file, existing, published, onApply, onClose }: Props & { onClose: () => void }) {
+function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { onReady: (result: LocalDraft) => void; onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source))
@@ -165,7 +217,8 @@ function Review({ owner, lessonKey, source, file, existing, published, onApply, 
   const [stage, setStage] = useState('')
   const [progress, setProgress] = useState<{ current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' }>()
   const [error, setError] = useState('')
-  const [draft, setDraft] = useState<LocalDraft | null>(() => pending ? null : existing ?? null)
+  const readyRef = useRef(onReady)
+  useEffect(() => { readyRef.current = onReady }, [onReady])
   async function start() {
     setError('')
     const form = new FormData()
@@ -194,7 +247,7 @@ function Review({ owner, lessonKey, source, file, existing, published, onApply, 
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
         const transcript = readTranscript({ source: job.source, segments: state.segments })
         if (!transcript) throw new Error('Нет реплик для проверки.')
-        setDraft({ transcript, timecodes: state.chapters.map((c: { start: number; title: string }) =>
+        readyRef.current({ transcript, timecodes: state.chapters.map((c: { start: number; title: string }) =>
           ({ seconds: c.start, time: transcriptTime(c.start), label: c.title })) })
       } catch (e) { if (active) setError((e as Error).message) }
     }
@@ -203,9 +256,6 @@ function Review({ owner, lessonKey, source, file, existing, published, onApply, 
   }, [pending, token])
   const stages = ['Видео', 'Распознаём речь', 'Читаем слайды', 'Собираем главы']
   const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
-  const validChapters = draft?.timecodes.every((chapter, index, chapters) =>
-    chapter.label.trim() && /^\d+(?::[0-5]\d){1,2}$/.test(chapter.time) &&
-    (!index || chapter.seconds > chapters[index - 1].seconds))
   const metric = progress?.unit === 'seconds' ? transcriptTime : (n: number) => String(n)
   return <section className="transcription-inline">
     <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
@@ -213,8 +263,8 @@ function Review({ owner, lessonKey, source, file, existing, published, onApply, 
       <button type="button" aria-label="К записи урока" disabled={busy} style={btn('S','secondary')} onClick={onClose}><X size={16}/></button>
     </header>
     <div className="transcription-form">
-    {!pending && !draft && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
-    {pending && !draft && !error && <>
+    {!pending && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
+    {pending && !error && <>
       <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}</small>
       <ol className="transcription-job-steps">{stages.map((step, i) => {
         const active = i === currentStep
@@ -228,20 +278,8 @@ function Review({ owner, lessonKey, source, file, existing, published, onApply, 
       {progress && progress.total > 0 && <small className="transcription-hint">{metric(progress.current)} из {metric(progress.total)} {progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи'}</small>}
     </>}
     {error && <p role="alert">{error} {pending && <button onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}>Начать заново</button>}</p>}
-    {draft && <><button style={btn('S','secondary')} onClick={() => { setDraft(null); setStage(''); setPending(null); localStorage.removeItem(key) }}>Повторить обработку</button>
-      <p>Проверьте главы и реплики. Принятые главы заменят текущие таймкоды урока.</p>
-      <h3>Главы</h3>{draft.timecodes.map((c, i) => <label key={i} style={{ display:'flex', gap:8, marginBottom:6 }}>
-        <input aria-label={'Время главы ' + (i+1)} value={c.time} style={{width:78,fontSize:16}} onChange={e=>{
-          const time=e.target.value
-          const seconds=time.split(':').reduce((total, part) => total * 60 + Number(part), 0)
-          setDraft({...draft,timecodes:draft.timecodes.map((x,j)=>j===i?{...x,time,seconds}:x)})
-        }} /> <input aria-label={'Название главы ' + (i+1)} value={c.label} onChange={e => setDraft({ ...draft, timecodes: draft.timecodes.map((x,j) => i===j ? {...x,label:e.target.value} : x) })}/></label>)}
-      {!validChapters && <p role="alert">Укажите названия глав и время в формате 0:00 по возрастанию.</p>}
-      <h3>Реплики</h3>{draft.transcript.segments.map((s,i) => <label key={i} style={{ display:'block', marginBottom:8 }}>{transcriptTime(s.start)}
-        <input style={{ display:'block', width:'100%', fontSize:16 }} value={s.text} onChange={e => setDraft({ ...draft, transcript:{ ...draft.transcript, segments:draft.transcript.segments.map((x,j)=>i===j?{...x,text:e.target.value}:x) } })}/></label>)}</>}
     </div>
-    {draft ? <button style={btn('M', 'primary')} disabled={draft.transcript.segments.some(s => !s.text.trim()) || !validChapters}
-      onClick={() => { onApply(draft); localStorage.removeItem(key); onClose() }}>{published ? 'Обновить опубликованный урок' : 'Добавить в черновик'}</button> : !pending ?
+    {!pending ?
       <button className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? 'Передаём запись…' : 'Начать расшифровку'}</button> : undefined}
   </section>
 }
