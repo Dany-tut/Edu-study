@@ -1,7 +1,7 @@
 import ProfileChips from '../../components/ProfileChips'
 import { FriendsContent } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
-import { OverlayScrollArea } from '../../components/teacher/OverlayScroll'
+import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
 import { useState, useEffect } from 'react'
 import BackCircle from '../../components/BackCircle'
@@ -227,7 +227,8 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
   }
 
   return (
-    <OverlayScrollArea style={{ flex: 1, marginTop: -100 }} scrollStyle={{ paddingTop: 100 }}>
+    <>
+      <TeacherPageScroll>
       <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
@@ -434,9 +435,10 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
 
         </>}
       </div>
+      </TeacherPageScroll>
       {cropFile && (
         <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={savePhoto} />
       )}
-    </OverlayScrollArea>
+    </>
   )
 }

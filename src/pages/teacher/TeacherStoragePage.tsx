@@ -1,3 +1,4 @@
+import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { textFadeStyle } from '../../lib/textFades'
 import { useState, useEffect, useCallback } from 'react'
 import BackCircle from '../../components/BackCircle'
@@ -99,7 +100,7 @@ export default function TeacherStoragePage() {
   const maxTableBytes = stats ? Math.max(...stats.tables.map(t => t.bytes), 1) : 1
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}><div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <TeacherPageScroll><div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <BackCircle onClick={() => setActivePage('home')} label="На главную" />
@@ -175,6 +176,6 @@ export default function TeacherStoragePage() {
         </>
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div></div>
+    </div></TeacherPageScroll>
   )
 }
