@@ -43,10 +43,10 @@
 .iskra-widget .ww-payment-row{grid-template-columns:30px minmax(0,1fr) auto;align-items:start!important}
 .iskra-widget .ww-payment-row .ww-amount{white-space:nowrap;line-height:1.4}
 .iskra-widget .ww-task-card{padding:14px!important;min-height:0;gap:0}
-.iskra-widget .ww-task-heading{min-height:44px;gap:8px!important;flex-shrink:0}
+.iskra-widget .ww-task-heading{min-height:32px;gap:8px!important;flex-shrink:0}
 .iskra-widget .ww-task-heading>svg{flex-shrink:0}
-.iskra-widget .ww-task-add{margin-left:auto;flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:12px;background:var(--color-bg-3);color:var(--color-accent);display:grid;place-items:center;cursor:pointer}
-.iskra-widget .ww-task-add svg{display:block;margin:0}
+.iskra-widget .ww-task-add{margin-left:auto;flex:0 0 32px;width:32px;height:32px;padding:0;border:0;border-radius:10px;background:var(--color-bg-3);color:var(--color-accent);display:grid;place-items:center;cursor:pointer}
+.iskra-widget .ww-task-add svg{display:block;width:17px;height:17px;margin:0}
 .iskra-widget .ww-task-list{min-height:0;flex:1 1 0;max-height:none!important;overflow-y:auto!important;mask-image:none!important;-webkit-mask-image:none!important}
 .iskra-widget .ww-task-row{display:grid!important;grid-template-columns:20px minmax(0,1fr) 24px;gap:5px 8px!important;padding:10px!important;align-items:start!important;flex-shrink:0}
 .iskra-widget .ww-task-title{grid-column:2;grid-row:1;min-height:28px;padding-top:5px;white-space:normal!important;overflow:visible!important;line-height:1.35;overflow-wrap:anywhere}
