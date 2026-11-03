@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus } from '../icons/appIcons'
 import { WIDGET_REGISTRY, getWidgetDef, type WidgetDef } from './widgets/registry'
 import type { LayoutItem } from '../../lib/useDeskLayouts'
+import TeacherSelect from './TeacherSelect'
+import FadeText from '../FadeText'
 import { useT } from '../../lib/i18n'
 
 type Props = {
@@ -41,23 +43,25 @@ function WidgetCard({ def, size, sizes, onSize, onAdd }: { def: WidgetDef; size:
         e.currentTarget.style.borderColor = 'var(--color-border-medium)'
       }}
     >
-      <div style={{
+      <div className="ww-gallery-icon" style={{
         width: 42, height: 42, borderRadius: 12, flexShrink: 0,
         background: def.iconBg,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <>{metricObjects[def.type]?<img src={metricObjects[def.type]} alt="" width="42" height="42" style={{objectFit:'contain'}}/>:<Icon size={20} strokeWidth={1.8} color={def.iconColor} />}</>
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="ww-gallery-copy" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t(def.label)}</div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>{t(def.description)}</div>
       </div>
-      <div style={{
+      <div className="ww-gallery-size" style={{
         flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-muted)',
         background: 'var(--color-bg-3)', borderRadius: 8, padding: '4px 8px',
       }}>
-        <select aria-label={`${t('Размер')}: ${t(def.label)}`} value={`${size.w}x${size.h}`} onChange={e=>onSize(e.target.value)} style={{background:'none',border:0,color:'inherit',font:'inherit',minHeight:32}}>{sizes.map(s=><option key={`${s.w}x${s.h}`} value={`${s.w}x${s.h}`}>{s.w}×{s.h}</option>)}</select>
-      </div><button type="button" aria-label={`${t('Добавить')}: ${t(def.label)}`} onClick={onAdd} style={{border:0,borderRadius:10,background:'var(--color-purple-soft)',color:'var(--color-accent)',width:36,height:36,flexShrink:0,cursor:'pointer'}}><Plus size={18}/></button>
+        <TeacherSelect value={`${size.w}x${size.h}`} options={sizes.map(s=>({value:`${s.w}x${s.h}`,label:`${s.w}×${s.h}`}))}
+          onChange={onSize} clearable={false} menuZIndex={3100} triggerStyle={{minHeight:44,padding:'6px 10px'}} />
+      </div>
+      <button type="button" className="ww-gallery-add" aria-label={`${t('Добавить')}: ${t(def.label)}`} onClick={onAdd}><Plus size={18}/><span>{t('Добавить')}</span></button>
     </div>
   )
 }
@@ -84,7 +88,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
   const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !def.unavailable && !hiddenWidgets?.includes(def.type))
   const width = gridWidth ?? Math.max(1, document.documentElement.clientWidth - 64)
   const rowHeight = deskRowHeight(window.innerHeight)
-  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:selectedSizes[def.type]?.w??def.defaultW,h:selectedSizes[def.type]?.h??def.defaultH,gridVersion:2},def,width,rowHeight,64,gridColumns)
+  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:selectedSizes[def.type]?.w??1,h:selectedSizes[def.type]?.h??1,gridVersion:2},def,width,rowHeight,64,gridColumns)
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
     const existing = resolveDeskCollisions(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight),gridColumns)))
@@ -140,12 +144,12 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
           {/* Header */}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '20px 22px 14px',
+            padding: '20px 22px 14px', gap:12,
             borderBottom: '1px solid var(--color-border-medium)',
             flexShrink: 0,
           }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить виджет')}</div>
+            <div style={{ minWidth:0, flex:1 }}>
+              <FadeText lines={2} style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить виджет')}</FadeText>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>
                 {t('Кликните — виджет появится на столе')}
               </div>
@@ -154,7 +158,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, exis
               aria-label={t('Закрыть')}
               onClick={onClose}
               style={{
-                width: 32, height: 32, borderRadius: '50%', border: 'none',
+                width: 44, height: 44, flexShrink:0, borderRadius: '50%', border: 'none',
                 background: 'var(--color-bg-3)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}

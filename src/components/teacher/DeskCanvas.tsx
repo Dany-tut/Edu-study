@@ -102,6 +102,7 @@ type DragState = {
   curGx: number;   curGy: number
 }
 type ResizeState = {
+  axis: 'both' | 'vertical'
   id: string
   startMx: number; startMy: number
   startW: number;  startH: number
@@ -223,11 +224,12 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   }, [drag, desk.items, viewItems, onUpdateItems, clampItem, columns])
 
   // ── Pointer resize handlers ───────────────────────────────────────────
-  const onResizePointerDown = useCallback((e: React.PointerEvent, item: LayoutItem) => {
+  const onResizePointerDown = useCallback((e: React.PointerEvent, item: LayoutItem, axis: ResizeState['axis'] = 'both') => {
     e.preventDefault()
     e.stopPropagation()
     e.currentTarget.setPointerCapture(e.pointerId)
     setResize({
+      axis,
       id: item.i,
       startMx: e.clientX, startMy: e.clientY,
       startW: item.w, startH: item.h,
@@ -237,7 +239,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
 
   const onResizePointerMove = useCallback((e: React.PointerEvent) => {
     if (!resize) return
-    const dx = e.clientX - resize.startMx
+    const dx = resize.axis === 'vertical' ? 0 : e.clientX - resize.startMx
     const dy = e.clientY - resize.startMy
     const item = viewItems.find(it => it.i === resize.id)!
     const def = getWidgetDef(item.type)
@@ -335,6 +337,19 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
                 }}
               >
                 <WidgetShell item={item} editMode={editMode} onRemove={id => onUpdateItems([...viewItems.filter(item => item.i !== id), ...desk.items.filter(item => hiddenWidgets?.includes(item.type))])} />
+
+                {editMode && (
+                  <div
+                    data-resize-bottom={item.type}
+                    aria-label={t('Изменить высоту виджета')}
+                    onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
+                    style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+                      width: 64, height: 28, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 's-resize', touchAction: 'none' }}
+                  >
+                    <span style={{ width: 28, height: 4, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.55 }} />
+                  </div>
+                )}
 
                 {/* iOS-style resize corner */}
                 {editMode && (

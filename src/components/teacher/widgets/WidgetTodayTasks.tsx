@@ -36,7 +36,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 
 function CardTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div className="ww-task-heading" style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
       {children}
     </div>
   )
@@ -191,14 +191,13 @@ export default function WidgetTodayTasks() {
             {t('Мои задачи')}
             {pending.length > 0 && (
               <span style={{
-                marginLeft: 'auto',
                 fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
                 background: 'var(--color-purple-soft)', borderRadius: 8, padding: '2px 8px',
               }}>
                 {pending.length}
               </span>
             )}
-            <button type="button" onClick={()=>setCreating(true)} aria-label={t('Добавить')} style={{marginLeft:'auto',width:30,height:30,border:0,borderRadius:9,background:'var(--color-bg-3)',color:'var(--color-accent)',cursor:'pointer'}}><Plus size={16}/></button>
+            <button type="button" className="ww-task-add" onClick={()=>setCreating(true)} aria-label={t('Добавить')} ><Plus size={20}/></button>
           </CardTitle>
           <div
             className="no-scrollbar ww-task-list"

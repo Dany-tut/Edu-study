@@ -29,8 +29,9 @@ const baseTrigger: React.CSSProperties = {
 export default function TeacherSelect({
   value, options, onChange, placeholder, triggerStyle, small = false,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)',
-  onAddOption, onDeleteOption, clearable = true,
+  onAddOption, onDeleteOption, clearable = true, menuZIndex = 2000,
 }: {
+  menuZIndex?: number
   value: string
   options: TeacherSelectOption[]
   onChange: (v: string) => void
@@ -264,7 +265,7 @@ export default function TeacherSelect({
               exit={{ scale: 0.92, opacity: 0, y: pos.up ? 6 : -6 }}
               transition={{ type: 'spring', stiffness: 460, damping: 26, mass: 0.7 }}
               style={{
-                position: 'fixed', zIndex: 2000,
+                position: 'fixed', zIndex: menuZIndex,
                 left: pos.left, width: pos.width, maxHeight: pos.maxHeight,
                 ...(pos.up ? { bottom: pos.bottom } : { top: pos.top }),
                 transformOrigin: pos.up ? 'bottom left' : 'top left',

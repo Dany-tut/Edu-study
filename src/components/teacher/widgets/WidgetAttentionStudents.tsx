@@ -1,7 +1,8 @@
 import { textFadeStyle } from '../../../lib/textFades'
-import { AlertCircle, ChevronRight, Clock } from '../../icons/appIcons'
+import { AlertCircle, ChevronRight, Clock, ArrowUpRight } from '../../icons/appIcons'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
+import FadeText from '../../FadeText'
 import { t, useT, useTc } from '../../../lib/i18n'
 
 function initials(name: string) {
@@ -35,6 +36,7 @@ export default function WidgetAttentionStudents() {
   const { tn } = useTc()
   const students = useAllStudents()
   const { groups } = useGroups()
+  const setActivePage = useTeacher(s => s.setActivePage)
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
 
   const atRisk = students
@@ -49,10 +51,10 @@ export default function WidgetAttentionStudents() {
       const db = b.paymentDue ? diffDays(b.paymentDue) : 99
       return da - db
     })
-    .slice(0, 8)
+
 
   return (
-    <div style={{
+    <div className="ww-attention-card" style={{
       width: '100%', height: '100%',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
@@ -63,6 +65,16 @@ export default function WidgetAttentionStudents() {
       // shadow on wrapper
       overflow: 'hidden',
     }}>
+      <button type="button" className="ww-attention-compact" onClick={() => setActivePage('groups')}
+        aria-label={`${t('Требуют внимания')}: ${atRisk.length}`}>
+        <div className="ww-attention-summary">
+          <FadeText lines={2} style={{ fontSize: 13, fontWeight: 600 }}>{t('Требуют внимания')}</FadeText>
+          <span className="ww-attention-value">{atRisk.length}</span>
+          <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{atRisk.length ? t('Ученики с долгом или просрочкой оплаты') : t('Все ученики в норме')}</FadeText>
+        </div>
+        <img className="ww-attention-object" src="/widget-metric-objects-v1/debt.png" alt="" aria-hidden="true" />
+        <ArrowUpRight className="ww-attention-open" size={18} aria-hidden="true" />
+      </button>
       {/* Header */}
       <div className="ww-header" style={{
         padding: '14px 16px 10px',
@@ -100,7 +112,7 @@ export default function WidgetAttentionStudents() {
             <span style={{ fontSize: 11, color: 'var(--color-text-4)' }}>{t('никаких срочных вопросов')}</span>
           </div>
         ) : (
-          atRisk.map((s, i) => {
+          atRisk.slice(0, 8).map((s, i) => {
             const group = groups.find(g => g.id === s.groupId)
             const reason = getReason(s)
             const ReasonIcon = reason.icon

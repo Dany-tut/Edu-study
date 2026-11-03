@@ -43,13 +43,17 @@
 .iskra-widget .ww-payment-row{grid-template-columns:30px minmax(0,1fr) auto;align-items:start!important}
 .iskra-widget .ww-payment-row .ww-amount{white-space:nowrap;line-height:1.4}
 .iskra-widget .ww-task-card{padding:14px!important;min-height:0;gap:0}
+.iskra-widget .ww-task-heading{min-height:44px;gap:8px!important;flex-shrink:0}
+.iskra-widget .ww-task-heading>svg{flex-shrink:0}
+.iskra-widget .ww-task-add{margin-left:auto;flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:12px;background:var(--color-bg-3);color:var(--color-accent);display:grid;place-items:center;cursor:pointer}
+.iskra-widget .ww-task-add svg{display:block;margin:0}
 .iskra-widget .ww-task-list{min-height:0;flex:1 1 0;max-height:none!important;overflow-y:auto!important;mask-image:none!important;-webkit-mask-image:none!important}
 .iskra-widget .ww-task-row{display:grid!important;grid-template-columns:20px minmax(0,1fr) 24px;gap:5px 8px!important;padding:10px!important;align-items:start!important;flex-shrink:0}
-.iskra-widget .ww-task-title{grid-column:2;grid-row:1;white-space:normal!important;overflow:visible!important;line-height:1.35;overflow-wrap:anywhere}
-.iskra-widget .ww-task-check{grid-column:1;grid-row:1/4;margin-top:2px}
+.iskra-widget .ww-task-title{grid-column:2;grid-row:1;min-height:28px;padding-top:5px;white-space:normal!important;overflow:visible!important;line-height:1.35;overflow-wrap:anywhere}
+.iskra-widget .ww-task-check{grid-column:1;grid-row:1;min-height:28px;align-items:center}
 .iskra-widget .ww-task-type{grid-column:2;grid-row:2;justify-self:start}
 .iskra-widget .ww-task-date{grid-column:2;grid-row:3}
-.iskra-widget .ww-task-remove{grid-column:3;grid-row:1/4;opacity:1!important;pointer-events:auto!important;width:24px!important;height:28px!important}
+.iskra-widget .ww-task-remove{grid-column:3;grid-row:1;opacity:1!important;pointer-events:auto!important;width:24px!important;height:28px!important}
 .iskra-widget .ww-reminder-row{display:grid!important;grid-template-columns:28px minmax(0,1fr) auto;gap:6px 8px!important;padding:10px!important}
 .iskra-widget .ww-reminder-row>div:first-child{width:28px!important;height:28px!important;grid-column:1;grid-row:1/3}
 .iskra-widget .ww-reminder-info{grid-column:2/4;min-width:0}
@@ -146,11 +150,17 @@
 .iskra-widget .ww-trainer-today>span{padding:3px 6px!important;white-space:nowrap}
 .iskra-widget .ww-quiz-heading>div:first-child{max-height:64px;overflow-y:auto;min-height:0}
 @container iskra-widget (max-height:160px){.iskra-widget[data-widget="pupil-trainer"]>div{gap:4px!important}.iskra-widget .ww-quiz-heading>div:first-child{max-height:40px}}
-.ww-gallery-dialog{width:min(780px,calc(100vw - 32px))!important;max-width:none!important;max-height:calc(100dvh - 32px)!important}
-.ww-gallery-list{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));align-content:start;gap:10px!important;min-height:0}
-.ww-gallery-card{min-width:0;display:grid!important;grid-template-columns:36px minmax(0,1fr) auto;gap:10px!important;padding:12px!important;align-items:center}
-.ww-gallery-card>div:first-child{width:36px!important;height:36px!important}
-.ww-gallery-card>div:last-child{font-size:10px!important;padding:4px 6px!important}
+/* Explicit slots keep wrapped labels from shifting icons and size badges. */
+.ww-gallery-dialog{width:min(860px,calc(100vw - 32px))!important;max-width:none!important;max-height:calc(100dvh - 32px)!important}
+.ww-gallery-list{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));align-content:start;gap:10px!important;min-height:0}
+.ww-gallery-card{min-width:0;display:grid!important;grid-template-columns:42px minmax(0,1fr);grid-template-rows:auto 1fr auto;gap:8px 12px!important;padding:16px!important;align-items:start!important;align-content:start}
+.ww-gallery-icon{grid-column:1;grid-row:1 / 3;align-self:start}
+.ww-gallery-copy{grid-column:2;grid-row:1;overflow-wrap:anywhere}
+.ww-gallery-copy>div:first-child{line-height:1.35;min-height:2.7em}
+.ww-gallery-size{grid-column:2;grid-row:2;width:100%;background:none!important;padding:0!important;justify-self:start;align-self:end;margin-top:4px;white-space:nowrap}
+.ww-gallery-add{grid-column:2;grid-row:3;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;border-radius:10px;background:var(--color-purple-soft);color:var(--color-accent);font:inherit;font-size:13px;cursor:pointer}
+.ww-gallery-card:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+@media(max-width:560px){.ww-gallery-list{grid-template-columns:1fr;padding:12px!important}.ww-gallery-copy>div:first-child{min-height:0}}
 .iskra-widget .ww-question-footer>div{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;min-width:0;width:100%}
 .iskra-widget .ww-question-footer>div>div{min-width:0;max-height:64px;overflow-y:auto;overflow-wrap:anywhere;padding:6px 10px!important}
 .iskra-widget .ww-timer-ring .absolute>span:last-child{font-size:11px!important;letter-spacing:0!important}
@@ -220,3 +230,13 @@
 .desk-scroll-region{scrollbar-gutter:stable}.ww-gallery-list,.size-review-main,.size-review-nav{scrollbar-gutter:stable}
 .ww-gallery-card select{max-width:90px}.ww-gallery-card>div:nth-child(2){min-width:0}
 @media(max-width:480px){.ww-gallery-card{flex-wrap:wrap}.ww-gallery-card select{font-size:16px;min-height:44px}}
+
+.ww-attention-compact{display:none}
+@container iskra-widget (max-height:160px){
+.iskra-widget .ww-attention-card>.ww-header,.iskra-widget .ww-attention-card>.ww-list{display:none!important}
+.iskra-widget .ww-attention-compact{display:flex;align-items:center;position:relative;width:100%;height:100%;padding:12px 16px;gap:8px;border:0;background:none;color:var(--color-text);text-align:left;cursor:pointer;overflow:hidden}
+.iskra-widget .ww-attention-summary{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.iskra-widget .ww-attention-value{font-size:30px;font-weight:750;line-height:1}
+.iskra-widget .ww-attention-object{width:96px;height:96px;max-width:34%;object-fit:contain;flex-shrink:0}
+.iskra-widget .ww-attention-open{position:absolute;bottom:12px;right:12px;color:var(--color-accent)}
+}
