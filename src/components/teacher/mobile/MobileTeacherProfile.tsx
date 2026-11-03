@@ -1,7 +1,7 @@
 import FadeText from '../../FadeText'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
+import { LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -52,7 +52,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
   )
 }
 
-export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?: () => void }) {
+export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets }: { onOpenJournal?: () => void; onOpenWidgets?: () => void }) {
   const signedIn = useTeacherSession()
   const t = useT()
   const { tc, tn } = useTc()
@@ -225,6 +225,17 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
             </span>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{lang === 'ru' ? 'Русский' : 'English'}</span>
           </button>
+
+          {onOpenWidgets && <button type="button"
+            onClick={() => { tactile(); onOpenWidgets() }}
+            className="flex items-center justify-between cursor-pointer"
+            style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
+          >
+            <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
+              <LayoutDashboard size={18} style={{ color: 'var(--color-muted)' }} />{t('Настроить виджеты')}
+            </span>
+            <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+          </button>}
 
           {/* Обратная связь */}
           <button
