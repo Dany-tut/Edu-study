@@ -1,3 +1,4 @@
+import ProfileChips from './ProfileChips'
 import { useT } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { friendsAction, type Contact, type FriendsModel, type FriendsTab } from '../lib/desktopFriends'
@@ -39,12 +40,25 @@ export default function DesktopFriends({ model }: { model: FriendsModel }) {
   }, [open])
   if (!account || !tab) return null
   return <Modal title={t('Друзья')} subtitle={snapshot?.handle ? '@' + snapshot.handle : t('Профиль в Искре')} icon={<Users size={24}/>} width={660} zIndex={9200} onClose={() => setTab(null)}>
-    <div className="desktop-friends" ref={panel}>
-      <nav aria-label={t('Разделы друзей')}>{(Object.keys(titles) as FriendsTab[]).map(key => <button type="button" key={key} aria-pressed={key === tab} onClick={() => setTab(key)}>{t(titles[key])}{key === 'requests' && model.incoming.length > 0 && ' · ' + model.incoming.length}</button>)}</nav>
+    <div ref={panel}><FriendsContent model={model}/></div>
+  </Modal>
+}
+
+export function FriendsContent({ model }: { model: FriendsModel }) {
+  const t = useT()
+  const { account, snapshot, tab, setTab } = model
+  if (!account || !tab) return null
+  return (
+    <div className="desktop-friends">
+      <ProfileChips label={t('Разделы друзей')} value={tab} onChange={setTab}
+        items={(Object.keys(titles) as FriendsTab[]).map(id => ({
+          id, label: t(titles[id]) + (id === 'requests' && model.incoming.length ? ' · ' + model.incoming.length : ''),
+        }))}/>
+
       {model.error && <p role="alert">{t(model.error)} <button onClick={model.refresh}>{t('Повторить')}</button></p>}
       {snapshot ? <FriendsPane key={account + tab} model={model} account={account} tab={tab}/> : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
     </div>
-  </Modal>
+  )
 }
 
 function FriendsPane({ model, account, tab }: { model: FriendsModel; account: string; tab: FriendsTab }) {

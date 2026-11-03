@@ -10,6 +10,9 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Разделы профиля": "Profile navigation",
+  "Интеграции": "Integrations",
+  "Главное": "Overview",
   "Друзья": "Friends",
   "Ник и видимость": "Handle and visibility",
   "Заявка в друзья": "Friend request",

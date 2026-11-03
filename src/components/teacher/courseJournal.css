@@ -1,3 +1,4 @@
+@import '../pillTabs.css';
 .course-journal { color: var(--color-text); min-width: 0; font-size: 13px; }
 .course-journal * { box-sizing: border-box; }
 .course-journal button, .course-journal input, .course-journal select, .course-journal textarea { font: inherit; }
@@ -42,9 +43,6 @@
 .cj-summaries strong small { font-size: 15px; color: var(--color-text-3); font-weight: 450; letter-spacing: 0; }
 .cj-summaries p { font-size: 10px; color: var(--color-text-3); line-height: 1.5; margin: 0; }
 .cj-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; }
-.cj-tabs { display: inline-flex; padding: 4px; border-radius: 999px; border: 1px solid var(--color-border-soft); background: var(--color-bg-2); gap: 3px; }
-.cj-tabs button { border: 0; border-radius: 999px; padding: 9px 16px; background: transparent; color: var(--color-text-3); font-size: 12px; white-space: nowrap; }
-.cj-tabs button[aria-pressed="true"] { color: var(--color-accent); background: var(--color-purple-soft); font-weight: 600; }
 .cj-active-filter, .cj-pending-alert { display: flex; align-items: center; gap: 8px; padding: 11px 14px; margin: 10px 0; background: var(--color-yellow-soft); color: var(--color-yellow-text); border-radius: 12px; font-size: 12px; }
 .cj-active-filter { background: var(--color-purple-soft); color: var(--color-accent); }
 .cj-active-filter button, .cj-pending-alert button { margin-left: auto; border: 0; background: transparent; color: inherit; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }

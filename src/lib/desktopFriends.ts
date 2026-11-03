@@ -12,7 +12,7 @@ export async function friendsAction<T>(account: string, operation: string, paylo
   return data as T
 }
 
-export function useDesktopFriends() {
+export function useDesktopFriends(enabled = true) {
   const [account, setAccount] = useState<string | null>(null)
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [error, setError] = useState('')
@@ -31,6 +31,7 @@ export function useDesktopFriends() {
     }
   }, [])
   useEffect(() => {
+    if (!enabled) { setAccount(null); setSnapshot(null); setTab(null); return }
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const id = !getViewAs() && !session?.user.is_anonymous ? session?.user.id ?? null : null
       if (current.current === id) return
@@ -39,7 +40,7 @@ export function useDesktopFriends() {
       setTab(null); setSnapshot(null); setError(''); setAccount(id)
     })
     return () => { data.subscription.unsubscribe(); current.current = null; version.current++ }
-  }, [])
+  }, [enabled])
   useEffect(() => {
     if (!account) return
     const visible = () => { if (document.visibilityState === 'visible') void refresh() }

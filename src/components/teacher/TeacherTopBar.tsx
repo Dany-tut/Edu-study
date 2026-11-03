@@ -1,5 +1,4 @@
-import DesktopFriends from '../DesktopFriends'
-import { useDesktopFriends } from '../../lib/desktopFriends'
+import type { FriendsModel, FriendsTab } from '../../lib/desktopFriends'
 import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownSurface } from '../../lib/dropdownStyle'
@@ -82,7 +81,7 @@ const quickActions: QuickItem[] = [
   { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу или без группы',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
 ]
 
-export default function TeacherTopBar() {
+export default function TeacherTopBar({ friends }: { friends: FriendsModel }) {
   const t = useT()
   const { tc, tn } = useTc()
   const [collapsed, setCollapsed]     = useState(false)
@@ -103,7 +102,10 @@ export default function TeacherTopBar() {
 
   // Persisted so an open modal (and its draft) re-opens after a page reload.
   const [taskModalOpen, setTaskModalOpen] = usePersistentState('createTask.open', false)
-  const friends = useDesktopFriends()
+  function openFriends(tab: FriendsTab) {
+    friends.setTab(tab)
+    setActivePage('profile-settings')
+  }
   const [feedbackOpen, setFeedbackOpen]   = useState(false)
   const [notifOpen, setNotifOpen]         = useState(false)
 
@@ -649,7 +651,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                     else useTeacher.getState().openDeskEditor()
                   }
                   if (item.action === 'theme') toggleTheme()
-                  if (item.action === 'profile') setActivePage('profile-settings')
+                  if (item.action === 'profile') { friends.setTab(null); setActivePage('profile-settings') }
                   if (item.action === 'payment') setActivePage('payment')
                   if (item.action === 'admin') setActivePage('admin')
                   if (item.action === 'dialogs') {
@@ -658,7 +660,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                     sessionStorage.setItem('feedback_view', 'dialogs')
                     setActivePage('admin')
                   }
-                  if (item.action === 'friends') friends.setTab('contacts')
+                  if (item.action === 'friends') openFriends('contacts')
                   if (item.action === 'feedback') setFeedbackOpen(true)
                   setProfileOpen(false)
                 }}
@@ -717,8 +719,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       document.body
     )}
 
-    <NotificationPopup requests={friends.incoming} onRequests={() => { setNotifOpen(false); friends.setTab('requests') }} open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
-    <DesktopFriends model={friends} />
+    <NotificationPopup requests={friends.incoming} onRequests={() => { setNotifOpen(false); openFriends('requests') }} open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
     {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
     {taskModalOpen && (
       <CreateTaskModal
