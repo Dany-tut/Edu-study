@@ -16,6 +16,13 @@ assert.match(mask(0,100,300),/to bottom, #000.*transparent\)$/)
 assert.match(mask(100,100,300),/to bottom, transparent.*transparent\)$/)
 assert.match(mask(200,100,300),/to bottom, transparent.*#000\)$/)
 assert.match(mask(20,100,300,true),/to right, transparent.*transparent\)$/)
+// A second clip at the route outlet cuts off the page before the header fade.
+const dashboard = read('src/pages/teacher/TeacherDashboardPage.tsx')
+const outletStyle = dashboard.match(/className="teacher-scroll-root"[\s\S]*?style=\{\{([^}]+)\}\}/)?.[1]
+assert.ok(outletStyle && !/overflow/.test(outletStyle), 'The teacher route outlet must leave clipping to the viewport')
+for (const page of ['ProfileSettings', 'Finances', 'Payment', 'Storage']) {
+  assert.match(read(`src/pages/teacher/Teacher${page}Page.tsx`), /<TeacherPageScroll>/, `${page} needs shared scroll fades`)
+}
 const hub=read('src/components/teacher/journalStand/HomeworkHub.tsx')
 assert.match(hub,/useScrollFades\(body, active\)/,'Homework scroll regions must keep automatic fades')
 const css=read('src/components/teacher/journalStand/homeworkReview.css')

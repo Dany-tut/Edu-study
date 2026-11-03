@@ -565,6 +565,11 @@ html:has(.teacher-dashboard-root) { scrollbar-gutter: auto; }
   padding-top: 100px;
 }
 
+.teacher-dashboard-root {
+  --teacher-header-space: 100px;
+  padding-top: var(--teacher-header-space);
+}
+
 /* Главная: расписание, виджеты и трек — по центру высоты окна. Сверху вниз
    они прижимались к шапке, и после того как курс и модули сжались в одну
    строку, под треком на большом экране оставалось ~340 px пустоты. safe —

@@ -1,3 +1,4 @@
+import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { useEffect, useState } from 'react'
 import BackCircle from '../../components/BackCircle'
 import { motion } from 'framer-motion'
@@ -95,7 +96,7 @@ export default function TeacherPaymentPage() {
   }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
+    <TeacherPageScroll>
       <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
@@ -157,6 +158,6 @@ export default function TeacherPaymentPage() {
         </div>
 
       </div>
-    </div>
+    </TeacherPageScroll>
   )
 }
