@@ -15,7 +15,6 @@ import { createPortal } from 'react-dom'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
-import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { useJournalPending } from '../../lib/useGroups'
 import ViewAsBanner from './ViewAsBanner'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
@@ -40,7 +39,6 @@ import { useDashboard } from '../../store/dashboardStore'
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
   { id: 'groups',      label: 'Группы',      icon: Users },
-  { id: 'homework',    label: 'ДЗ',          icon: ClipboardList },
   { id: 'gradebook',   label: 'Журнал',      icon: BookOpen },
   { id: 'constructor', label: 'Конструктор', icon: Layers },
   { id: 'finances',    label: 'Финансы',     icon: Wallet },
@@ -82,7 +80,7 @@ const quickActions: QuickItem[] = [
   { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу или без группы',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
 ]
 
-export default function TeacherTopBar({ standReviewCount }: { standReviewCount?: number } = {}) {
+export default function TeacherTopBar() {
   const t = useT()
   const { tc, tn } = useTc()
   const [collapsed, setCollapsed]     = useState(false)
@@ -90,12 +88,6 @@ export default function TeacherTopBar({ standReviewCount }: { standReviewCount?:
   const [profileOpen, setProfileOpen] = useState(false)
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
-  const { homework } = useHomework()
-  const { submissions: hardSubs } = useHardSubmissions()
-  const pendingHwCount = homework
-    .filter(hw => hw.status === 'active')
-    .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - hw.reviewedCount), 0)
-    + hardSubs.filter(s => s.status === 'submitted').length
   const pendingJournals = useJournalPending(null)
   const pendingJournalCount = pendingJournals.length
   const syncJournalNotifs = useNotificationsStore(s => s.syncJournalNotifs)
@@ -397,7 +389,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         {visibleNav.map(item => {
           const isActive = activePage === item.id
-          const badgeCount = item.id === 'homework' ? standReviewCount ?? pendingHwCount : item.id === 'gradebook' ? pendingJournalCount : 0
+          const badgeCount = item.id === 'gradebook' ? pendingJournalCount : 0
           return (
             <motion.button
               key={item.id}
@@ -455,7 +447,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
                 transition: 'max-width 0.38s cubic-bezier(0.42,0,0.58,1), opacity 0.22s ease-in-out',
               }}>
-                {t(standReviewCount !== undefined && item.id === 'homework' ? 'Проверка' : item.label)}
+                {t(item.label)}
               </span>
               <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5)' }} />
             </motion.button>

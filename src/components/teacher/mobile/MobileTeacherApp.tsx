@@ -31,7 +31,8 @@ const MTAB_TAB: Record<MTab, TeacherTabId | null> = {
 
 export default function MobileTeacherApp() {
   const signedIn = useTeacherSession()
-  const [tab, setTab] = useState<MTab>(() => useTeacher.getState().activePage === 'gradebook' ? 'gradebook' : 'home')
+  const [tab, setTabState] = useState<MTab>(() => useTeacher.getState().activePage === 'gradebook' ? 'gradebook' : 'home')
+  const setTab = (next: MTab) => setTabState(next === 'review' ? 'gradebook' : next)
   const teacherPage = useTeacher(s => s.activePage)
   const pendingJournal = useTeacher(s => s.pendingGradebookLessonId)
   useEffect(() => {

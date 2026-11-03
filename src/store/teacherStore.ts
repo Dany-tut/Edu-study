@@ -160,7 +160,7 @@ type TeacherStore = {
 export const HASH_TO_PAGE: Record<string, TeacherPage> = {
   '#/teacher':             'home',
   '#/teacher/groups':      'groups',
-  '#/teacher/homework':    'homework',
+  '#/teacher/homework':    'gradebook',
   '#/teacher/gradebook':   'gradebook',
   '#/teacher/constructor': 'constructor',
   '#/teacher/finances':    'finances',
@@ -241,7 +241,7 @@ function initialPage(): TeacherPage {
   if (readCardsSession()) return 'cards-editor'
   // The per-tab snapshot is the freshest record of where this tab was.
   // (course-editor is owned by the editor session above, so ignore it here.)
-  if (_nav?.page && _nav.page !== 'course-editor' && _nav.page !== 'cards-editor') return _nav.page
+  if (_nav?.page && _nav.page !== 'course-editor' && _nav.page !== 'cards-editor') return _nav.page === 'homework' ? 'gradebook' : _nav.page
   return HASH_TO_PAGE[window.location.hash] ?? 'home'
 }
 
@@ -274,7 +274,7 @@ export const useTeacher = create<TeacherStore>(set => ({
   setActivePage: page => whenMayLeave(() => {
     clearEditorSession(); clearCardsSession()
     set({
-      activePage: page, headerDocked: false, pendingGroupForm: null,
+      activePage: page === 'homework' ? 'gradebook' : page, headerDocked: false, pendingGroupForm: null,
       ...(page === 'lesson-editor' ? { editingScheduleId: null } : {}),
       ...(page === 'homework-create' ? { editingHomeworkId: null, hwPresetStudentId: null } : {}),
     })
@@ -317,8 +317,8 @@ export const useTeacher = create<TeacherStore>(set => ({
   clearEditTaskIntent: () => set({ editTaskIntent: null }),
   reviewingHwId: _nav?.reviewingHwId ?? null,
   reviewingStudentId: _nav?.reviewingStudentId ?? null,
-  reviewReturnPage: _nav?.reviewReturnPage ?? 'homework',
-  openHomeworkReview: (hwId, studentId, returnPage = 'homework') => set({ reviewingHwId: hwId, reviewingStudentId: studentId ?? null, reviewReturnPage:returnPage, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
+  reviewReturnPage: (_nav?.reviewReturnPage === 'homework' ? 'gradebook' : _nav?.reviewReturnPage) ?? 'gradebook',
+  openHomeworkReview: (hwId, studentId, returnPage = 'gradebook') => set({ reviewingHwId: hwId, reviewingStudentId: studentId ?? null, reviewReturnPage:returnPage, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
   editingHomeworkId: _nav?.editingHomeworkId ?? null,
   hwPresetStudentId: _nav?.hwPresetStudentId ?? null,
   openHomeworkCreate: presetStudentId => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: 'homework-create', editingHomeworkId: null, hwPresetStudentId: presetStudentId ?? null, headerDocked: false }) }),

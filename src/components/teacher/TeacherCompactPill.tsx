@@ -128,7 +128,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
       expanded={expanded}
       action={toCheck > 0 ? (
         <button
-          onClick={e => { e.stopPropagation(); tactile(); setActivePage('homework') }}
+          onClick={e => { e.stopPropagation(); tactile(); setActivePage('gradebook') }}
           style={{
             padding: 6, borderRadius: '50%',
             border: 'none', cursor: 'pointer',

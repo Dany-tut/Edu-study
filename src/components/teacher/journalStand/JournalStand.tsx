@@ -19,7 +19,7 @@ import StudentReportDrawer from './StudentReportDrawer'
 import GroupOverview, { StudentOverviewCard } from './GroupOverview'
 import { studentOverview, type RosterEntry } from './overviewStats'
 import HomeworkList from './HomeworkList'
-import { HomeworkQueue, HomeworkTasks, useHomeworkHub } from './HomeworkHub'
+import { HomeworkTasks, useHomeworkHub } from './HomeworkHub'
 import { applyStandReview, nativeHomeworkReviewId, type HomeworkEntry, type ReviewDecision } from './homeworkStand'
 import { handoffHomeworkReview } from './homeworkReviewHandoff'
 import { reviewHomework } from '../../../lib/useHomework'
@@ -600,7 +600,6 @@ export default function JournalStand({ owner, production = false }: { owner: str
   const scope = { course, module }
   const slots = useMemo(() => (index ? scopeSlots(index, { course, module }) : []), [index, course, module])
   const today = wallDateTimeInTz(useNow(60_000).toISOString(), 'Europe/Moscow').day
-  const [queueGroup, setQueueGroup] = useState('*')
   async function saveReview(entry: HomeworkEntry, decision: ReviewDecision) {
     if (!data || data.demo || !entry.work.submission) throw new Error('Откройте актуальную сдачу в журнале.')
     applyStandReview(data, entry, decision)
@@ -663,11 +662,11 @@ export default function JournalStand({ owner, production = false }: { owner: str
   const scopeLabel = [data?.courses.find(c=>c.id===course)?.title ?? (course===ALL_COURSES?'Все курсы и работы':'Вне курсов'), data?.modules.find(m=>m.id===module)?.label].filter(Boolean).join(' · ')
   const picker = data && <ScopePicker data={data} value={scope} onChange={changeScope} />
   let content: React.ReactNode
-  if (page === 'home' || page === 'homework') {
-    content = data && !data.demo ? <div className="jh-live-page">{page === 'home'
-      ? <HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {setQueueGroup(group ?? '*');useTeacher.getState().setActivePage('homework')}}/>
-      : <HomeworkQueue queue={homework.queue} groups={data.groups} groupId={queueGroup} onGroup={setQueueGroup}
-          onOpen={entry => homework.openQueue(entry, queueGroup === '*' ? undefined : queueGroup)}/>}</div>
+  if (page === 'home') {
+    content = data && !data.demo ? <div className="jh-live-page"><HomeworkTasks queue={homework.queue} groups={data.groups} onQueue={group => {
+          useTeacher.getState().setSelectedGroupId(group || null)
+          useTeacher.getState().setActivePage('gradebook')
+        }}/></div>
       : <div className="cj-empty" role={error ? 'alert' : 'status'}>
           {error ?? (loading ? 'Загрузка работ…' : 'Войдите в аккаунт преподавателя')}
           {error && <button type="button" className="cj-button" onClick={reload}>Повторить загрузку</button>}
@@ -795,7 +794,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
       )
   }
   return (
-    <><TeacherDashboardPage standReviewCount={homework.queue.length}
+    <><TeacherDashboardPage
       standContent={
         content && (
           <>

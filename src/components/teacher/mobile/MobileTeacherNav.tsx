@@ -24,7 +24,7 @@ export type MTab = 'home' | 'students' | 'review' | 'gradebook' | 'profile'
 const items: { id: MTab; label: string; icon: TaskliIconName }[] = [
   { id: 'home',      label: 'Мой день', icon: 'home' },
   { id: 'students',  label: 'Ученики',  icon: 'students' },
-  { id: 'review',    label: 'Проверка', icon: 'review' },
+  { id: 'gradebook', label: 'Журнал', icon: 'review' },
   { id: 'profile',   label: 'Ещё',     icon: 'profile' },
 ]
 

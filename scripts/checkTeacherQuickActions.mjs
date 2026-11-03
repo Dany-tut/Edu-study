@@ -93,4 +93,8 @@ pending = st().updateTask(row.id, { ...task, title: 'Изменённая зад
 resolveRequest({ error: null, data: { ...row, title: 'Изменённая задача' } })
 assert.equal((await pending).error, null)
 assert.equal(st().tasks[0].title, 'Изменённая задача')
+st().setActivePage('homework')
+assert.equal(st().activePage, 'gradebook', 'Retired review section must open the journal')
+st().openHomeworkReview('existing-homework')
+assert.equal(st().reviewReturnPage, 'gradebook', 'Work review returns to the journal')
 console.log('PASS: creation context, legacy links, pending forms, leave guard, confirmed task insert/update and failures')

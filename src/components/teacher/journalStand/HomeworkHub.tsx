@@ -91,7 +91,7 @@ export function HomeworkTasks({ queue, groups, onQueue }: {
           <button type="button" className="cj-button jh-review-button" onClick={() => onQueue()}>Проверить</button></div>
         {byGroup.map(id => <div className="jh-task" key={id || 'direct'}><div><h3>{groups.find(g => g.id === id)?.name ?? 'Индивидуальные ученики'}</h3>
           <p>На проверке: {queue.filter(e => e.student.groupId === id).length}</p></div>
-          <button type="button" className="js-work-link" onClick={() => onQueue(id)}>Открыть очередь <ChevronRight size={14} /></button></div>)}
+          <button type="button" className="js-work-link" onClick={() => onQueue(id)}>Открыть журнал <ChevronRight size={14} /></button></div>)}
       </> : <div className="jh-empty"><Check size={22} /><h3>Домашки проверены</h3><p>Новые сдачи появятся здесь.</p></div>}
     </div>
   </section>
