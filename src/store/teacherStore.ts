@@ -1,3 +1,4 @@
+import { studentIdFromTeacherHash } from '../lib/teacherStudentRoute'
 import { create } from 'zustand'
 import { confirmDialog } from '../components/ConfirmHost'
 import { t } from '../lib/i18n'
@@ -142,7 +143,7 @@ type TeacherStore = {
   setSelectedGroupId: (id: string | null) => void
   selectedStudentId: string | null
   setSelectedStudentId: (id: string | null) => void
-  openStudentDashboard: (studentId: string, groupId: string) => void
+  openStudentDashboard: (studentId: string, groupId: string | null) => void
   tasks: TeacherTask[]
   tasksLoaded: boolean
   loadTasks: () => Promise<void>
@@ -235,8 +236,10 @@ function writeNav(s: TeacherStore) {
 }
 
 const _nav = readNav()
+const linkedStudent = studentIdFromTeacherHash(window.location.hash)
 
 function initialPage(): TeacherPage {
+  if (linkedStudent) return 'student'
   if (readEditorSession()) return 'course-editor'
   if (readCardsSession()) return 'cards-editor'
   // The per-tab snapshot is the freshest record of where this tab was.
@@ -328,9 +331,9 @@ export const useTeacher = create<TeacherStore>(set => ({
   openHardReview: hardId => set({ reviewingHardId: hardId, activePage: 'hard-review', headerDocked: false }),
   reviewIdx: 0,
   setReviewIdx: idx => set({ reviewIdx: idx }),
-  selectedGroupId: _nav?.selectedGroupId ?? null,
+  selectedGroupId: linkedStudent ? null : _nav?.selectedGroupId ?? null,
   setSelectedGroupId: id => set({ selectedGroupId: id }),
-  selectedStudentId: _nav?.selectedStudentId ?? null,
+  selectedStudentId: linkedStudent ?? _nav?.selectedStudentId ?? null,
   setSelectedStudentId: id => set({ selectedStudentId: id }),
   openStudentDashboard: (studentId, groupId) => set({ activePage: 'student', selectedStudentId: studentId, selectedGroupId: groupId, headerDocked: false }),
   // Tasks are per-teacher and persisted in the `teacher_tasks` table, scoped by

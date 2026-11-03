@@ -5,7 +5,7 @@ import { useScrollFades } from '../../../lib/useScrollFades'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
-import TeacherStudentDashboardPage, { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
+import { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
 import { useTeacher } from '../../../store/teacherStore'
 import { useCourseJournal } from '../../../lib/useCourseJournal'
 import { OUTSIDE_COURSES, buildJournalIndex, journalCell, type JournalCell, type CourseJournalData } from '../../../lib/courseJournal'
@@ -39,6 +39,7 @@ import {
   type StudentWork,
   type WorkSource,
 } from './studentWorks'
+import { teacherStudentHash } from '../../../lib/teacherStudentRoute'
 import '../courseJournal.css'
 import './journalStand.css'
 
@@ -257,6 +258,7 @@ export function ProfileWorks({
   )
 }
 interface MatrixProps {
+  profileId?: (student: Student) => string
   onOpenAttendance?: (works: StudentWork[]) => void
   onOpenWork?: (studentId: string, workRef: string) => void
   onOpenAssignment?: (workRef: string) => void
@@ -373,6 +375,15 @@ export function Matrix(props: MatrixProps) {
   const overview = selected.tab === 'Обзор'
   const entry = entries.find(e => e.student.id === selected.student)
   const drawerOpen = !!(reportHost && entry && overview)
+  const drawerHash = drawerOpen && props.profileId ? teacherStudentHash(props.profileId(entry.student)) : null
+  useEffect(() => {
+    if (!drawerHash) return
+    const previous = window.location.hash
+    window.history.replaceState(null, '', drawerHash)
+    return () => {
+      if (window.location.hash === drawerHash) window.history.replaceState(null, '', previous)
+    }
+  }, [drawerHash])
   function closeDrawer() {
     setReportHost(null)
     requestAnimationFrame(() => host.current?.querySelector<HTMLButtonElement>('.jo-profile-link')?.focus({ preventScroll: true }))
@@ -755,7 +766,9 @@ export default function JournalStand({ owner, production = false }: { owner: str
         navigation.setActivePage(selected.origin)
       }
       content = entry ? (
-        <TeacherStudentDashboardPage
+        <StudentDashboardReport
+          student={entry.student}
+          group={data.groups.find(g => g.id === entry.student.groupId)}
           key={studentId}
           onBack={back}
           backLabel={selected.origin === 'groups' ? 'Назад к группам' : 'Назад в журнал'}
@@ -777,7 +790,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
                       (!!work.slot.group && s.groupId === work.slot.group))
                 )
                 set({
-                  student: membership?.id ?? selected.student,
+                  student: membership?.id ?? entry.student.id,
                   workRef: work.slot.ref,
                   course: membership ? work.slot.course : ALL_COURSES,
                   module: '',
@@ -824,6 +837,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
                   )
                   return (
                     <Matrix
+                      profileId={student => canonicalProfile(student).id}
                       onOpenAttendance={openAttendance}
                       onOpenWork={homework.openStudent}
                       onOpenAssignment={ref => homework.openAssignment(ref, unique.map(e => e.student.id))}
