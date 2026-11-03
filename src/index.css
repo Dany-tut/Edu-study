@@ -1116,6 +1116,13 @@ input::-webkit-contacts-auto-fill-button {
   pointer-events: none !important;
 }
 
+.teacher-login-layout { align-items: center; }
+.teacher-login-art:not([hidden]) { display: flex; justify-content: center; margin: 0 auto 16px; }
+@media (pointer: coarse) {
+  .teacher-login-layout:has(input:focus) { align-items: flex-start; }
+  .teacher-login-layout:has(input:focus) .teacher-login-art { display: none; }
+}
+
 /* Поля входа/регистрации (StudentLoginPage, JoinPage, JoinTeacherPage).
    Автозаполнение браузера рисует свой светлый фон и НЕ читает inline-стили фона,
    а inline `-webkit-text-fill-color` при этом остаётся светлым — в тёмной теме

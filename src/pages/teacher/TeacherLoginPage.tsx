@@ -102,10 +102,9 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
       inset: `env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) ${bottomInset} env(safe-area-inset-left, 0px)`,
       background: 'var(--color-bg)',
     }}>
-    <div style={{
+    <div className="teacher-login-layout" style={{
       minHeight: formHeight,
       display: 'flex',
-      alignItems: 'center',
       justifyContent: 'center',
       background: 'var(--color-bg)',
       padding: 24,
@@ -126,7 +125,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           <IskraMark size={36} />
           <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
         </div>
-        <div style={{ display: keyboard.open ? 'none' : 'flex', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div className="teacher-login-art" hidden={keyboard.open}>
           <img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'trainer'}.png`} alt="" aria-hidden="true" width={104} height={104} draggable={false} style={{ width: 104, height: 104, objectFit: 'contain' }} />
         </div>
         <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-.03em', fontWeight: 740, color: 'var(--color-text)', margin: '0 0 6px' }}>
@@ -203,6 +202,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
             />
             <button
               type="button"
+              onMouseDown={event => event.preventDefault()}
               onClick={() => setShowPassword(v => !v)}
               aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
               aria-pressed={showPassword}
