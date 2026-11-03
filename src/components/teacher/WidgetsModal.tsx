@@ -54,6 +54,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
       <motion.div
         key="widgets-backdrop"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        transition={{ duration: 0.16 }}
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 2000,
@@ -62,10 +63,13 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
         }}
       >
         <motion.div
-          initial={{ scale: 0.92, opacity: 0, y: 12 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.92, opacity: 0, y: 12 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 28, mass: 0.8 }}
+          role="dialog" aria-modal="true" aria-label={t('Виджеты')}
+          // Reorder measures row positions on mount. Scaling its ancestor while
+          // measuring makes the list correct its positions during the entrance.
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.16 }}
           onClick={e => e.stopPropagation()}
           style={{
             background: 'var(--color-bg-input)', borderRadius: 22,

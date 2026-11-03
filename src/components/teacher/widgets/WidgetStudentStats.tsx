@@ -6,6 +6,7 @@ import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useT } from '../../../lib/i18n'
 
 type StatCardProps = {
+  widgetId: string
   icon: LucideIcon
   label: string
   value: number
@@ -14,9 +15,9 @@ type StatCardProps = {
   accentColor: string
 }
 
-function StatCard({ icon: Icon, label, value, sub, accentBg, accentColor }: StatCardProps) {
-  return <div className="iskra-widget" data-stat style={{ flex: '1 1 0', minWidth: 0, height: '100%' }}>
-    <MiniStatCard icon={Icon} label={label} value={value} sub={sub} accentBg={accentBg} accentColor={accentColor} />
+function StatCard({ widgetId, icon: Icon, label, value, sub, accentBg, accentColor }: StatCardProps) {
+  return <div className="iskra-widget ww-legacy-student-metric" data-stat style={{ flex: '1 1 0', minWidth: 0, height: '100%' }}>
+    <MiniStatCard widgetId={widgetId} icon={Icon} label={label} value={value} sub={sub} accentBg={accentBg} accentColor={accentColor} />
   </div>
 }
 
@@ -32,7 +33,7 @@ export default function WidgetStudentStats() {
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
       <StatCard
-        icon={Users}
+        widgetId="student-count" icon={Users}
         label={t('Учеников')}
         value={totalStudents}
         sub={`${t('в')} ${totalGroups} ${t('группах')}`}
@@ -40,7 +41,7 @@ export default function WidgetStudentStats() {
         accentColor="var(--color-accent)"
       />
       <StatCard
-        icon={Layers}
+        widgetId="student-groups" icon={Layers}
         label={t('Групп')}
         value={totalGroups}
         sub={t('активных')}
@@ -48,7 +49,7 @@ export default function WidgetStudentStats() {
         accentColor="#3B5BDB"
       />
       <StatCard
-        icon={CheckCircle2}
+        widgetId="student-active" icon={CheckCircle2}
         label={t('Активных')}
         value={activeStudents}
         sub={t('без задолженностей')}
@@ -56,7 +57,7 @@ export default function WidgetStudentStats() {
         accentColor="var(--color-green-text)"
       />
       <StatCard
-        icon={AlertCircle}
+        widgetId="student-debtors" icon={AlertCircle}
         label={t('Должников')}
         value={debtStudents}
         sub={debtStudents > 0 ? t('требуют внимания') : t('всё в порядке')}
