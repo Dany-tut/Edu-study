@@ -1,3 +1,4 @@
+import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Student } from '../../../data/teacherMockData'
 import {
@@ -51,6 +52,12 @@ const initials = (name: string) =>
     .slice(0, 2)
     .map((w) => w[0])
     .join('')
+const REPORT_OBJECTS: Record<string, string> = {
+  "Результат работ":"results", "Есть просрочка":"overdue", "Тема для разбора":"topic",
+  "Вектор результата":"trend", "Цель ученика":"goal", "Освоение тем":"mastery",
+  "Отставание":"lag", "Сдано в срок":"ontime", "Учебный ритм":"rhythm",
+}
+
 function Tile({
   label,
   icon,
@@ -69,13 +76,14 @@ function Tile({
   graphicLabel?: string
 }) {
   return (
-    <section className={'jo-tile ' + tone}>
+    <section className={'jo-tile jo-tile--3d ' + tone}>
       <h3>
         {icon}
         {label}
       </h3>
       <div className="jo-value">{value}</div>
-      {graphic && <div className="jo-widget-graphic" aria-hidden={graphicLabel ? undefined : true}
+      <img className="jo-report-object" data-object={REPORT_OBJECTS[label]} src={`/teacher-objects-v2-shadows/${REPORT_OBJECTS[label]}.png`} alt="" aria-hidden="true" width={200} height={200} decoding="async" draggable={false} />
+      {graphic && <div className="jo-widget-graphic jo-report-data" aria-hidden={graphicLabel ? undefined : true}
         role={graphicLabel ? 'img' : undefined} aria-label={graphicLabel}>{graphic}</div>}
       <div className="jo-detail">{children}</div>
     </section>
@@ -194,7 +202,7 @@ function ReportSheet({
           {r.delta !== null ? (
             <>
               <b>
-                {percent(r.before)} → {percent(r.after)}
+                {percent(r.before)} <LoopUiArrowRight size={14} style={{display:'inline-block',verticalAlign:'middle'}} /> {percent(r.after)}
               </b>{' '}
               · средний результат.<br />
               Первые две недели — {quantity(r.beforeCount, 'работа', 'работы', 'работ')}, последние — {r.afterCount}.

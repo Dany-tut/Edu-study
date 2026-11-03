@@ -684,5 +684,82 @@
   .jo-week-stamps li { width: 18px; }
 }
 
+/* Approved Iskra ceramic/acrylic objects: a clear text column and visible overflow. */
+.jo-class-grid,.jo-bento { row-gap:40px; margin-top:32px; }
+.jo-class-grid > .jo-tile--3d,.jo-bento > .jo-tile--3d {
+  --report-object-size:clamp(120px,12cqi,176px);
+  overflow:visible; display:flex; flex-direction:column; align-items:stretch;
+  min-height:210px; padding-right:calc(var(--report-object-size) + 8px); gap:12px;
+}
+.jo-bento > .jo-tile--3d.jo-wide { --report-object-size:clamp(160px,15cqi,200px); }
+.jo-tile--3d .jo-report-object { position:absolute; top:-24px; right:-4px; width:var(--report-object-size); height:var(--report-object-size); object-fit:contain; pointer-events:none; user-select:none; }
+.jo-tile--3d.jo-topic-widget .jo-report-object,.jo-tile--3d.jo-mastery .jo-report-object { top:-42px; }
+.jo-tile--3d.jo-rhythm .jo-report-object { top:-50px; }
+.jo-tile--3d::before,.jo-tile--3d::after { display:none; }
+.jo-tile--3d h3 { margin:0; min-height:28px; }
+.jo-tile--3d h3 svg { display:none; }
+.jo-tile--3d .jo-value { margin:0; min-height:42px; overflow-wrap:anywhere; }
+.jo-tile--3d .jo-detail { margin-top:auto; min-width:0; overflow-wrap:anywhere; }
+/* Keep actual charts and percentages available; decorative vector artwork is replaced. */
+.jo-tile--3d .jo-report-data { display:none; }
+.jo-tile--3d.jo-vector .jo-report-data,.jo-tile--3d.jo-mastery .jo-report-data,.jo-tile--3d.jo-punctual .jo-report-data { display:block; position:relative; width:100%; max-width:100%; margin:0; }
+.jo-tile--3d .jo-week-stamps { flex-wrap:wrap; }
+.jo-bento .jo-tile--3d.jo-rhythm .jo-value { flex-wrap:wrap; gap:8px; }
+@container (max-width:1100px) {
+ .jo-bento { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .jo-bento > .jo-tile--3d.jo-wide { grid-column:span 2; }
+ .jo-class-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .jo-class-grid > .jo-tile--3d:first-child { grid-column:span 2; }
+}
+@container (max-width:600px) {
+ .jo-class-grid,.jo-bento { grid-template-columns:minmax(0,1fr); gap:36px; }
+ .jo-class-grid > .jo-tile--3d,.jo-bento > .jo-tile--3d,.jo-bento > .jo-tile--3d.jo-wide { grid-column:auto; --report-object-size:128px; min-height:190px; }
+}
+.jo-class-grid > .jo-tile--3d > :is(h3,.jo-value,.jo-detail),.jo-bento > .jo-tile--3d > :is(h3,.jo-value,.jo-detail) { align-self:stretch; text-align:left; }
+/* Keep long supporting copy readable beneath the artwork in small metric cards. */
+.jo-tile--3d .jo-detail { width:calc(100% + var(--report-object-size) - 16px); padding-top:8px; }
+.jo-bento > .jo-tile--3d:not(.jo-wide) { min-height:240px; }
+.jo-class-grid > .jo-tile--3d { min-height:220px; }
+
 .jo-share-tools { flex:none; width:100%; }
 .jo-share-scroll { padding-bottom:16px; }
+/* Optical anchors measured on the opaque silhouette, excluding transparent padding. */
+.jo-report-object[data-object="goal"] { --art-top-inset:0.035417; --art-right-inset:0.081250; }
+.jo-report-object[data-object="lag"] { --art-top-inset:0.058333; --art-right-inset:0.266667; }
+.jo-report-object[data-object="mastery"] { --art-top-inset:0.216667; --art-right-inset:0.135417; }
+.jo-report-object[data-object="ontime"] { --art-top-inset:0.058333; --art-right-inset:0.058333; }
+.jo-report-object[data-object="overdue"] { --art-top-inset:0.120833; --art-right-inset:0.114583; }
+.jo-report-object[data-object="results"] { --art-top-inset:0.092708; --art-right-inset:0.095833; }
+.jo-report-object[data-object="rhythm"] { --art-top-inset:0.233333; --art-right-inset:0.033333; }
+.jo-report-object[data-object="topic"] { --art-top-inset:0.197917; --art-right-inset:0.187500; }
+.jo-report-object[data-object="trend"] { --art-top-inset:0.141667; --art-right-inset:0.022917; }
+.jo-tile--3d .jo-report-object { top:calc(-12px - var(--report-object-size)*var(--art-top-inset,0)); right:calc(12px - var(--report-object-size)*var(--art-right-inset,0)); }
+/* Supersede the older per-tone pixel nudges at the same selector specificity. */
+.jo-tile--3d.jo-topic-widget .jo-report-object,.jo-tile--3d.jo-mastery .jo-report-object,.jo-tile--3d.jo-rhythm .jo-report-object { top:calc(-12px - var(--report-object-size)*var(--art-top-inset,0)); }
+/* Local light behind the object; the reading side remains quiet. */
+.jo-class-grid > .jo-tile--3d,.jo-bento > .jo-tile--3d {
+ --depth-color:var(--widget-ink,var(--color-accent));
+ background:
+  radial-gradient(ellipse 58% 100% at 100% 0%,color-mix(in srgb,var(--depth-color) 21%,transparent),transparent 76%),
+  radial-gradient(ellipse 38% 65% at 82% 9%,color-mix(in srgb,var(--color-bg-card) 88%,transparent),transparent 72%),
+  linear-gradient(120deg,color-mix(in srgb,var(--widget-wash,var(--color-purple-soft)) 42%,var(--color-bg-card)),color-mix(in srgb,var(--widget-wash,var(--color-purple-soft)) 20%,var(--color-bg-card)));
+ box-shadow:inset 0 1px 0 color-mix(in srgb,var(--color-bg-card) 85%,transparent),0 10px 28px -22px color-mix(in srgb,var(--depth-color) 35%,transparent);
+}
+.jo-class-grid > .jo-lilac { --depth-color:var(--color-accent); }
+.jo-tile--3d .jo-report-object { filter:drop-shadow(-5px 9px 7px color-mix(in srgb,var(--depth-color) 13%,transparent)); }
+
+/* Small cards share an optical height; tall silhouettes need a smaller image box. */
+.jo-bento > .jo-tile--3d:is(.jo-delay,.jo-quiet,.jo-punctual) { --report-object-size:clamp(82px,7.3cqi,108px); }
+/* Natural cast shadows are rendered into every object asset. */
+.jo-tile--3d .jo-report-object { filter:none; }
+.jo-report-object[data-object="trend"] { --art-top-inset:0.147656; --art-right-inset:0.025000; }
+.jo-report-object[data-object="goal"] { --art-top-inset:0.034375; --art-right-inset:0.081250; }
+.jo-report-object[data-object="lag"] { --art-top-inset:0.061719; --art-right-inset:0.275000; }
+.jo-report-object[data-object="ontime"] { --art-top-inset:0.058594; --art-right-inset:0.059375; }
+
+/* Opaque silhouette anchors exclude the generated soft cast shadow. */
+.jo-report-object[data-object="mastery"] { --art-top-inset:0.217187; --art-right-inset:0.132812; }
+.jo-report-object[data-object="overdue"] { --art-top-inset:0.124219; --art-right-inset:0.115625; }
+.jo-report-object[data-object="results"] { --art-top-inset:0.090625; --art-right-inset:0.079688; }
+.jo-report-object[data-object="rhythm"] { --art-top-inset:0.234375; --art-right-inset:0.032813; }
+.jo-report-object[data-object="topic"] { --art-top-inset:0.200000; --art-right-inset:0.189063; }
