@@ -2,7 +2,8 @@ import './teacherProfileHeader.css'
 import FadeText from '../../components/FadeText'
 import { copyToClipboard } from '../../lib/clipboard'
 import ProfileChips from '../../components/ProfileChips'
-import { FriendsContent } from '../../components/DesktopFriends'
+import HScrollFade from '../../components/HScrollFade'
+import { FriendsContent, FriendsTabs } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
@@ -252,6 +253,8 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
       <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         <header className="teacher-profile-header">
+          <HScrollFade fadeWidth={22} padX={2} padTop={4} padBottom={4} gap={12}
+            scrollStyle={{ display: 'grid', gridTemplateColumns: 'minmax(max-content, 1fr) max-content minmax(max-content, 1fr)', alignItems: 'center' }}>
           <div className="profile-header-identity">
             <BackCircle onClick={() => setActivePage('home')} label="На главную" />
             <div style={{ minWidth: 0 }}>
@@ -266,6 +269,8 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
               else { friends.setTab(null); setPage(id) }
             }}/>
           </div>
+          {section === 'friends' && <FriendsTabs model={friends}/>}
+          </HScrollFade>
         </header>
         {section === 'friends' && <FriendsContent model={friends}/>}
         {section === 'main' && <>
