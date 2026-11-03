@@ -19,6 +19,7 @@ import { MODAL_BACKDROP } from '../../Modal'
 import { btn } from '../../../lib/pillStyles'
 import { haptic } from '../../../lib/feedback'
 import { Z } from '../../../lib/layers'
+import { useScrollFades } from '../../../lib/useScrollFades'
 import { useT } from '../../../lib/i18n'
 import {
   useTeacherWeek, todayMsk, addDays, weekStart, scheduleMove, scheduleShift, scheduleCancel,
@@ -62,11 +63,12 @@ const fromIso = (iso: string) => wallDateTimeInTz(iso, 'Europe/Moscow')
 
 type Toast = { text: string; undo?: SchedUndo; tone?: 'danger' }
 
-export default function TeacherSchedule({ mobile = false, embedded = false, weekMode = false, onOpen, onAttendance }: {
+export default function TeacherSchedule({ mobile = false, embedded = false, readOnly = false, useWeek = useTeacherWeek, onOpen, onAttendance }: {
   mobile?: boolean
+  readOnly?: boolean
+  useWeek?: typeof useTeacherWeek
   /** На Главной: своя рамка снаружи, лента скроллится внутри фиксированной высоты. */
   embedded?: boolean
-  weekMode?: boolean
   /** Нет — тап по занятию открывает меню (на телефоне редактора урока нет). */
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
@@ -77,9 +79,10 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
   const [weekNavigation, setWeekNavigation] = useState<WeekNavigation>(() => ({ start: weekStart(today), revision: 0, offset: 0 }))
   const [visibleDates, setVisibleDates] = useState(() => ({ first: weekStart(today), last: addDays(weekStart(today), 6) }))
   const start = weekStart(day)
-  const { items, reload } = useTeacherWeek(start)
-  const list = (items ?? []).filter(i => weekMode || i.date === day).sort((a,b)=>a.date.localeCompare(b.date)||(a.time??'').localeCompare(b.time??''))
-  const [dir, setDir] = useState(0)
+  const { items, reload } = useWeek(start)
+  const feed = useRef<HTMLDivElement>(null)
+  useScrollFades(feed, embedded)
+  const list = (items ?? []).filter(i => i.date === day).sort((a,b)=>a.date.localeCompare(b.date)||(a.time??'').localeCompare(b.time??''))
 
   const overlays = useRef<CalendarOverlayHandle>(null)
   const [toast, setToast] = useState<Toast | null>(null)
@@ -92,15 +95,12 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
   const targetRef = useRef<string | null>(null)
 
   const go = (next: string, navigate = true) => {
-    setDir(next > day ? 1 : -1)
     setDay(next)
     if (navigate) {
       setWeekNavigation(navigation => ({ start: weekStart(next), revision: navigation.revision + 1, offset: 0 }))
     }
   }
-  const returnToToday = () => {
-    setWeekNavigation(navigation => ({ start: weekStart(today), revision: navigation.revision + 1, offset: 0 }))
-  }
+  const returnToToday = () => go(today)
   const moveVisibleWeek = (direction: -1 | 1) => {
     setWeekNavigation(navigation => ({ ...navigation, offset: navigation.offset + direction }))
   }
@@ -197,7 +197,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
       <div className="calendar-widget-header" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px' }}>
         <div className="calendar-widget-title" style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
         <div className="calendar-widget-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {!mobile && (
+          {!mobile && !readOnly && (
             <button
               aria-label={t('Добавить занятие')}
               onClick={() => overlays.current?.openAdd(day)}
@@ -262,11 +262,14 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
       />
 
       <div className="calendar-widget-date" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', padding: '4px 4px 0' }}>
-        {weekMode ? `${dayLabel(start)} — ${dayLabel(addDays(start,6))}` : <>{day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}</>}
+        {day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}
       </div>
 
       {/* Лента дня */}
       <div
+        ref={feed}
+        data-calendar-feed
+        data-calendar-selected-date={day}
         onTouchStart={onFeedTouchStart}
         onTouchEnd={onFeedTouchEnd}
         className={embedded ? 'no-scrollbar' : undefined}
@@ -274,33 +277,26 @@ export default function TeacherSchedule({ mobile = false, embedded = false, week
           ? { flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', position: 'relative', paddingRight: 4 }
           : { minHeight: mobile ? 150 : 280, position: 'relative' }}
       >
-        <AnimatePresence mode="popLayout" initial={false} custom={dir}>
-          <motion.div
+          <div
             key={day}
-            custom={dir}
-            initial={{ opacity: 0, x: dir * 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: dir * -40 }}
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
             style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
           >
             {items === null ? null : list.length === 0 ? (
               <div style={{ textAlign: 'center', padding: mobile ? '36px 0' : '56px 0', fontSize: 14, color: 'var(--color-text-4)' }}>{t('Занятий нет')}</div>
-            ) : list.map((item,index) => (
-              <div key={item.id}>{weekMode&&(index===0||list[index-1].date!==item.date)&&<div className="calendar-week-day-label">{dayLabel(item.date)}</div>}
+            ) : list.map(item => (
+              <div key={item.id} data-calendar-entry-id={item.id} data-calendar-entry-date={item.date}>
               <Card
                 key={item.id}
                 item={item}
                 ghost={drag?.item.id === item.id}
-                onTap={el => onOpen ? onOpen(item) : overlays.current?.openMenu(item, el.getBoundingClientRect(), el)}
-                onMenu={el => { haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect(), el) }}
-                onDragStart={(el, x, y) => { haptic(10); startDrag(item, el, x, y) }}
+                onTap={el => readOnly ? undefined : onOpen ? onOpen(item) : overlays.current?.openMenu(item, el.getBoundingClientRect(), el)}
+                onMenu={el => { if (readOnly) return; haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect(), el) }}
+                onDragStart={(el, x, y) => { if (readOnly) return; haptic(10); startDrag(item, el, x, y) }}
                 onDragMove={moveDrag}
                 onDragEnd={endDrag}
               /></div>
             ))}
-          </motion.div>
-        </AnimatePresence>
+          </div>
       </div>
 
       {/* Карточка под пальцем */}

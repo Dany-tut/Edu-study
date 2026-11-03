@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import type { useTeacherWeek } from '../../../lib/teacherSchedule'
 import TeacherSchedule from '../schedule/TeacherSchedule'
 import { useTeacher } from '../../../store/teacherStore'
 import './calendarWidget.css'
@@ -7,14 +7,11 @@ import './calendarWidget.css'
 // вкладкой: неделя в шапке, занятие зажал-и-перетащил на день, зажал-и-отпустил
 // (на ПК правая кнопка) — меню переноса. Отдельной вкладки «Расписание» больше
 // нет, перенос делается прямо отсюда.
-export default function WidgetTodaySchedule() {
-  const root=useRef<HTMLDivElement>(null)
-  const [weekMode,setWeekMode]=useState(false)
-  useEffect(()=>{const el=root.current;if(!el)return;const observer=new ResizeObserver(()=>setWeekMode(el.clientWidth>=600&&el.clientHeight>=480));observer.observe(el);return()=>observer.disconnect()},[])
+export default function WidgetTodaySchedule({ useWeek, readOnly }: { useWeek?: typeof useTeacherWeek; readOnly?: boolean } = {}) {
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
   const openGradebook = useTeacher(s => s.openGradebook)
   return (
-    <div ref={root} className="calendar-widget" style={{
+    <div className="calendar-widget" style={{
       height: '100%', width: '100%', overflow: 'hidden',
       display: 'flex', flexDirection: 'column',
       background: 'rgba(var(--glass-rgb), 0.88)',
@@ -28,7 +25,8 @@ export default function WidgetTodaySchedule() {
       <div className="calendar-widget-content">
         <TeacherSchedule
           embedded
-          weekMode={weekMode}
+          useWeek={useWeek}
+          readOnly={readOnly}
           onOpen={item => openLessonEditor(item.id)}
           onAttendance={item => openGradebook(item.id)}
         />

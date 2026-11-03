@@ -1,7 +1,7 @@
 name: Windows full classroom
 on:
   push:
-    branches: [codex/beta-invite-privacy-1103]
+    branches: [codex/beta-invite-privacy-1103, codex/calendar-acceptance-20261103]
     paths:
       - '.github/workflows/iskra-windows-backend.yml'
       - '.gitattributes'
