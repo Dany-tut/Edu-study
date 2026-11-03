@@ -1,0 +1,7 @@
+
+> student-dashboard@1.0.0 check:homework-results
+> esbuild scripts/checkHomeworkResults.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkResults.mjs --log-level=error && node node_modules/.cache/checkHomeworkResults.mjs
+
+PASS: points vs completion, zero score, pending grading, missing/retained score, reopened attempt, unknown/invalid progress
+PASS: independent retry, closed-tab completion, mixed draft not auto-submitted, final grade protected, stale notification ignored
+PASS: webhook/browser completion race, zero result accepted, returned/draft/stale/mixed work rejected

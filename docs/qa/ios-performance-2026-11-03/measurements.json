@@ -1,0 +1,21 @@
+{
+  "before": {
+    "origin": "http://127.0.0.1:24593",
+    "entryModuleBytes": 1722349,
+    "entryModuleGzipBytes": 512468,
+    "browserFirstControlMs": 566,
+    "domContentLoadedMs": 248,
+    "loadMs": 250,
+    "browserJsDecodedBytes": 1730826
+  },
+  "after": {
+    "origin": "http://127.0.0.1:24594",
+    "entryModuleBytes": 903268,
+    "entryModuleGzipBytes": 263156,
+    "browserFirstControlMs": 392,
+    "domContentLoadedMs": 74,
+    "loadMs": 74,
+    "browserJsDecodedBytes": 911712
+  },
+  "method": "single paired cold-origin headless Chromium sample, virtual-time-budget=5000; browser timings collected by root agent; static production snapshots; first visible button/input, not native TTI"
+}

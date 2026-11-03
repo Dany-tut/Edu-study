@@ -1,0 +1,25 @@
+PASS: Student opens invitation and registers through UI
+PASS: Student opens assigned homework, writes answers and reloads local draft
+PASS: Browser submission persists one pending manual attempt
+PASS: Teacher logs in, opens live review and sees original answers
+PASS: Teacher returns the first attempt with actionable feedback
+FAIL: locator.fill: Timeout 25000ms exceeded.
+Call log:
+[2m  - waiting for getByPlaceholder('Впиши слово или фразу…', { exact: true })[22m
+[2m    - locator resolved to <textarea rows="1" disabled placeholder="Впиши слово или фразу…"></textarea>[22m
+[2m    - fill("6")[22m
+[2m  - attempting fill action[22m
+[2m    2 × waiting for element to be visible, enabled and editable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying fill action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and editable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying fill action[22m
+[2m      - waiting 100ms[22m
+[2m    50 × waiting for element to be visible, enabled and editable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying fill action[22m
+[2m       - waiting 500ms[22m
+
+Evidence: /tmp/iskra-local-security/evidence/browser-return-1793672883169

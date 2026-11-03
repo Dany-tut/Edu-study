@@ -1,0 +1,22 @@
+{
+  "src/pages/teacher/TeacherFinancesPage.tsx": {
+    "workingSha256": "79a908a20ee572b4247f38a24ac7b3851134ea1510a8e32a98fde96686a167fa",
+    "frozenSha256": "79a908a20ee572b4247f38a24ac7b3851134ea1510a8e32a98fde96686a167fa",
+    "matches": true
+  },
+  "src/lib/useFinances.ts": {
+    "workingSha256": "23e3921a53c85cbdec9f650593be9bd3aa598deb6a864ce0738533f2b821fd1f",
+    "frozenSha256": "23e3921a53c85cbdec9f650593be9bd3aa598deb6a864ce0738533f2b821fd1f",
+    "matches": true
+  },
+  "src/lib/useCourseJournal.ts": {
+    "workingSha256": "4e2632e50dda3bdc71d0275ae87bacb52713a0b8366e84254f57ebdb41bf3db0",
+    "frozenSha256": "4e2632e50dda3bdc71d0275ae87bacb52713a0b8366e84254f57ebdb41bf3db0",
+    "matches": true
+  },
+  "src/pages/DashboardPage.tsx": {
+    "workingSha256": "adcf787aea5c9f8783a94a417af18d2af7b3e38ef5885c68d4a82d8166a5f3fd",
+    "frozenSha256": "adcf787aea5c9f8783a94a417af18d2af7b3e38ef5885c68d4a82d8166a5f3fd",
+    "matches": true
+  }
+}

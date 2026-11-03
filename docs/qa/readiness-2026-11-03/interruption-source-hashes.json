@@ -1,0 +1,10 @@
+{
+  "src/components/SocialLoginButtons.tsx": "dd20ead7aad79a40e3b3476bbb1a5ddb5dadeced41fb1557051ad04e4882ec3d",
+  "src/lib/socialAuth.ts": "a3839c9644f7eb9257c0dc19b77f89e590e39d9ab5ff0591422be982c0d78112",
+  "src/pages/teacher/TeacherLoginPage.tsx": "9884be0118ff8553eed255e457e794617298a1119ad208e07a5b4a6ee24639aa",
+  "src/components/teacher/TeacherEmailCodeLogin.tsx": "e99e02f17152ebcc481fd4d3f5eaf027efa5a7c5818b35ba9080863caa3d890e",
+  "src/components/teacher/journalStand/AttendanceEditor.tsx": "788f34c2cdcf9c5ebe16edca3191b9332aead9ddb0b62edd26d05a20245080cf",
+  "src/components/Modal.tsx": "74358c570514d314fb91eab6a22b5dd01a9d10b619aab816f53db1b1e6f39b16",
+  "scripts/checkInterruptedForms.mjs": "c557e907ae261219eb9f371b62997ede17b92cc1ad0f8ecfae16f22b64010b33",
+  "scripts/checkInterruptedSocialLogin.mjs": "995f857c9c92035b1e107832e9fefb6f01758d38363f0348963d85b898f3bbb7"
+}

@@ -134,6 +134,8 @@ export default function WidgetTodayTasks() {
   const [creating,setCreating]=useState(false)
   const addTask=useTeacher(s=>s.addTask)
   const tasks = useTeacher(s => s.tasks)
+  const addTask = useTeacher(s => s.addTask)
+  const [creating, setCreating] = useState(false)
   const toggleTask = useTeacher(s => s.toggleTask)
   const removeTask = useTeacher(s => s.removeTask)
   const updateTask = useTeacher(s => s.updateTask)

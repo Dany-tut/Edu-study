@@ -1,0 +1,34 @@
+{
+  "scope": "Actual UI and request construction; every payment POST intercepted before server and answered synthetic 503; no payment write reached database",
+  "results": [
+    {
+      "typed": "-100",
+      "requestAttempted": true,
+      "amount": 100,
+      "lessonsPaid": 2,
+      "visibleError": 0
+    },
+    {
+      "typed": "100.50",
+      "requestAttempted": true,
+      "amount": 10050,
+      "lessonsPaid": 2,
+      "visibleError": 0
+    },
+    {
+      "typed": "1e3",
+      "requestAttempted": true,
+      "amount": 13,
+      "lessonsPaid": 2,
+      "visibleError": 0
+    },
+    {
+      "typed": "1000",
+      "requestAttempted": true,
+      "amount": 1000,
+      "lessonsPaid": 2,
+      "visibleError": 0
+    }
+  ],
+  "recipientSelectionAvailable": false
+}

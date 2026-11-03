@@ -1,0 +1,3 @@
+FAIL Native browser opened, then closed without callback; foreground return
+PASS Native browser refuses to open
+FAIL Native browser open never resolves; two minutes pass

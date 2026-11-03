@@ -1,0 +1,131 @@
+{
+  "action": "REVIEW ONLY. No deletion performed. Regenerable node_modules in temporary Git worktrees. No matching running process found during inspection; recheck cwd and active processes before any approved cleanup. Source, Git history, lockfiles and reports remain intact.",
+  "candidates": [
+    {
+      "path": "/tmp/iskra-attendance-grades-release/node_modules",
+      "bytes": 383496192,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-back-navigation-mobile-20261102/node_modules",
+      "bytes": 383352832,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-calendar-prod-20261102-a/node_modules",
+      "bytes": 386580480,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-calendar-scroll-fix-20261102/node_modules",
+      "bytes": 386621440,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-calendar-verification-prod/node_modules",
+      "bytes": 386580480,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-details-wrap/node_modules",
+      "bytes": 382074880,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-diary-release/node_modules",
+      "bytes": 368201728,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-drive-player-release-20261102/node_modules",
+      "bytes": 384425984,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-drive-video-progress/node_modules",
+      "bytes": 573906944,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-explicit-deadline-release/node_modules",
+      "bytes": 364949504,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-homework-timing/node_modules",
+      "bytes": 375701504,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-live-student-home/node_modules",
+      "bytes": 383373312,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-loop-audit-fixes/node_modules",
+      "bytes": 383496192,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-low-home-fix/node_modules",
+      "bytes": 383365120,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-open-beta-candidate-1102/node_modules",
+      "bytes": 482328576,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-personal-demo-release/node_modules",
+      "bytes": 386793472,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-profile-release-20261102/node_modules",
+      "bytes": 364933120,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-release-20261102/node_modules",
+      "bytes": 370528256,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-release-facts/node_modules",
+      "bytes": 368197632,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-track-release/node_modules",
+      "bytes": 383352832,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-video-background-10x/node_modules",
+      "bytes": 372424704,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-video-homework-release/node_modules",
+      "bytes": 365785088,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-widget-composition/node_modules",
+      "bytes": 370794496,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-widget-prod-audit/node_modules",
+      "bytes": 383373312,
+      "sourcePreserved": true
+    },
+    {
+      "path": "/tmp/iskra-widget-reset-spacing/node_modules",
+      "bytes": 378585088,
+      "sourcePreserved": true
+    }
+  ],
+  "totalBytes": 9753223168
+}

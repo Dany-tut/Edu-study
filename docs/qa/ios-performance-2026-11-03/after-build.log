@@ -1,0 +1,228 @@
+vite v6.4.5 building for production...
+
+(!) outDir /tmp/iskra-perf-after-20261103 is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+transforming...
+✓ 2796 modules transformed.
+node_modules/lottie-web/build/player/lottie.js (14422:32): Use of eval in "node_modules/lottie-web/build/player/lottie.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+rendering chunks...
+[plugin vite:reporter] 
+(!) /Users/dany/Cursor/student-dashboard/src/components/StickersWidget.tsx is dynamically imported by /Users/dany/Cursor/student-dashboard/src/components/WidgetCarousel.tsx but also statically imported by /Users/dany/Cursor/student-dashboard/src/components/MobileStickersRow.tsx, dynamic import will not move module into another chunk.
+
+computing gzip size...
+../../../../tmp/iskra-perf-after-20261103/registerSW.js                                   0.13 kB
+../../../../tmp/iskra-perf-after-20261103/index.html                                      7.56 kB │ gzip:   3.41 kB
+../../../../tmp/iskra-perf-after-20261103/assets/pageWidth-IYRSRgdy.css                   2.62 kB │ gzip:   0.94 kB
+../../../../tmp/iskra-perf-after-20261103/assets/notificationsSync-BEFCb0wQ.css           6.59 kB │ gzip:   1.67 kB
+../../../../tmp/iskra-perf-after-20261103/assets/StudentDiaryPage-CXRpV4nx.css           20.14 kB │ gzip:   4.26 kB
+../../../../tmp/iskra-perf-after-20261103/assets/DashboardPage-GoPY7qjO.css              40.06 kB │ gzip:   8.21 kB
+../../../../tmp/iskra-perf-after-20261103/assets/index-D858hXKS.css                      65.80 kB │ gzip:  13.44 kB
+../../../../tmp/iskra-perf-after-20261103/assets/JournalStand-Buyg67Sv.css              124.52 kB │ gzip:  21.39 kB
+../../../../tmp/iskra-perf-after-20261103/assets/adaptEn-ByJlG20F.js                      0.03 kB │ gzip:   0.05 kB
+../../../../tmp/iskra-perf-after-20261103/assets/adaptJa-eeBSoN6c.js                      0.03 kB │ gzip:   0.05 kB
+../../../../tmp/iskra-perf-after-20261103/assets/adaptKo-CVaoQCul.js                      0.03 kB │ gzip:   0.05 kB
+../../../../tmp/iskra-perf-after-20261103/assets/PartyPopperLottie-DQR0lKYZ.js            0.17 kB │ gzip:   0.16 kB
+../../../../tmp/iskra-perf-after-20261103/assets/counts-D99HTrEr.js                       0.18 kB │ gzip:   0.17 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStatEarnings-BlLVp-ez.js           0.33 kB │ gzip:   0.28 kB
+../../../../tmp/iskra-perf-after-20261103/assets/web-BtKPiZMu.js                          0.38 kB │ gzip:   0.25 kB
+../../../../tmp/iskra-perf-after-20261103/assets/widgetSizing-hAgF8DeE.js                 0.45 kB │ gzip:   0.23 kB
+../../../../tmp/iskra-perf-after-20261103/assets/useWheelHScroll-DMApWTRW.js              0.72 kB │ gzip:   0.43 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordPackBooks-C0Usnxdf.js                0.79 kB │ gzip:   0.42 kB
+../../../../tmp/iskra-perf-after-20261103/assets/web-CK2y6Q7Z.js                          0.84 kB │ gzip:   0.40 kB
+../../../../tmp/iskra-perf-after-20261103/assets/TeacherSubjectsField-Bho5K02n.js         0.87 kB │ gzip:   0.55 kB
+../../../../tmp/iskra-perf-after-20261103/assets/unitFigures-CCYcSm4D.js                  0.91 kB │ gzip:   0.61 kB
+../../../../tmp/iskra-perf-after-20261103/assets/index-D_-aaE3g.js                        0.93 kB │ gzip:   0.58 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageGuides-DrCWQ6c2.js               1.20 kB │ gzip:   0.56 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStudentGroups-8T7kl9m2.js          1.30 kB │ gzip:   0.75 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetFinanceExpected-Dzt_0sgk.js        1.31 kB │ gzip:   0.79 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStatHW-K0g6qu85.js                 1.31 kB │ gzip:   0.76 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetFinanceForecast-CEWhi_6s.js        1.32 kB │ gzip:   0.78 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetFinanceReceived-BskW7VRw.js        1.32 kB │ gzip:   0.78 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStudentCount-sjn_aglF.js           1.34 kB │ gzip:   0.79 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStatStudents-BXqNCawC.js           1.34 kB │ gzip:   0.79 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStudentActive-BfE58p7L.js          1.35 kB │ gzip:   0.79 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStudentDebtors-InIhUxA6.js         1.36 kB │ gzip:   0.82 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetFinanceDebt-BPt1qkgJ.js            1.39 kB │ gzip:   0.80 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStatLessons-BOidizZH.js            1.44 kB │ gzip:   0.85 kB
+../../../../tmp/iskra-perf-after-20261103/assets/LottieIcon-B4IEWNAg.js                   1.48 kB │ gzip:   0.86 kB
+../../../../tmp/iskra-perf-after-20261103/assets/svgSheet-CuwCyTNE.js                     1.61 kB │ gzip:   0.94 kB
+../../../../tmp/iskra-perf-after-20261103/assets/HScrollFade-BIk1SyvA.js                  1.64 kB │ gzip:   0.84 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetTodaySchedule-CveSATPi.js          1.66 kB │ gzip:   0.90 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalBooks-BWeS3whW.js                1.67 kB │ gzip:   0.73 kB
+../../../../tmp/iskra-perf-after-20261103/assets/useScrollLock-CHw4UFLe.js                1.73 kB │ gzip:   0.81 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalFigures-CiG9so5A.js              1.88 kB │ gzip:   1.03 kB
+../../../../tmp/iskra-perf-after-20261103/assets/GrowTextarea-Chvo8R4D.js                 2.01 kB │ gzip:   1.12 kB
+../../../../tmp/iskra-perf-after-20261103/assets/typography-CtwKWwjL.js                   2.22 kB │ gzip:   1.23 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetFinanceKpi-C7ymqRzt.js             2.34 kB │ gzip:   1.15 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetStudentStats-C013KnK2.js           2.39 kB │ gzip:   1.22 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetTodayStats-DNihOrT9.js             2.68 kB │ gzip:   1.39 kB
+../../../../tmp/iskra-perf-after-20261103/assets/QuestionOfDayWidget-DWJz4w1M.js          2.69 kB │ gzip:   1.19 kB
+../../../../tmp/iskra-perf-after-20261103/assets/_MiniStatCard-BjDDxm6T.js                2.80 kB │ gzip:   1.28 kB
+../../../../tmp/iskra-perf-after-20261103/assets/SpeechHeard-Wmnqrp80.js                  3.01 kB │ gzip:   1.45 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageVideos-D1PeZOuo.js               3.27 kB │ gzip:   1.47 kB
+../../../../tmp/iskra-perf-after-20261103/assets/translit-CTo1T6fD.js                     3.52 kB │ gzip:   1.68 kB
+../../../../tmp/iskra-perf-after-20261103/assets/enSwear-DEcXeBMy.js                      3.74 kB │ gzip:   1.79 kB
+../../../../tmp/iskra-perf-after-20261103/assets/ScienceFactsWidget-B37-JvoX.js           3.91 kB │ gzip:   1.73 kB
+../../../../tmp/iskra-perf-after-20261103/assets/GuestTrainerPage-D5qSPUb3.js             3.94 kB │ gzip:   1.95 kB
+../../../../tmp/iskra-perf-after-20261103/assets/ReviewSession-BE9FpVzw.js                4.03 kB │ gzip:   1.67 kB
+../../../../tmp/iskra-perf-after-20261103/assets/MemesWidget-DaaIiKpv.js                  4.03 kB │ gzip:   1.72 kB
+../../../../tmp/iskra-perf-after-20261103/assets/FeedWidget-CiOGYBJh.js                   4.05 kB │ gzip:   1.78 kB
+../../../../tmp/iskra-perf-after-20261103/assets/PomodoroWidget-rNMedQEw.js               4.07 kB │ gzip:   1.77 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetGroupsList-DRvrGnJN.js             4.19 kB │ gzip:   1.65 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetFinanceActivity-Dz3dXiFV.js        4.40 kB │ gzip:   1.90 kB
+../../../../tmp/iskra-perf-after-20261103/assets/StatsWidget-CECeu8vu.js                  4.55 kB │ gzip:   1.95 kB
+../../../../tmp/iskra-perf-after-20261103/assets/DailyDoseWidget-BpdGKcSF.js              4.58 kB │ gzip:   2.06 kB
+../../../../tmp/iskra-perf-after-20261103/assets/ReactionsWidget-DMa1CfW4.js              4.60 kB │ gzip:   1.97 kB
+../../../../tmp/iskra-perf-after-20261103/assets/JoinPage-hXEphGoq.js                     5.45 kB │ gzip:   2.25 kB
+../../../../tmp/iskra-perf-after-20261103/assets/OAuthConsentPage-Cg1Gheig.js             5.60 kB │ gzip:   2.16 kB
+../../../../tmp/iskra-perf-after-20261103/assets/index-DKqavlRS.js                        5.76 kB │ gzip:   2.62 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetAttentionStudents-CRQYp83c.js      6.10 kB │ gzip:   2.34 kB
+../../../../tmp/iskra-perf-after-20261103/assets/TrainerProgressWidget-QS9tBMia.js        6.39 kB │ gzip:   2.05 kB
+../../../../tmp/iskra-perf-after-20261103/assets/VoiceRecorder-e4weK1Ue.js                6.39 kB │ gzip:   2.76 kB
+../../../../tmp/iskra-perf-after-20261103/assets/koreanEndings-CbBUb7hb.js                6.57 kB │ gzip:   2.20 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetFinanceOverdue-BOmzZllB.js         6.68 kB │ gzip:   2.55 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetTodayTasks-CAxVNXo-.js             6.88 kB │ gzip:   2.69 kB
+../../../../tmp/iskra-perf-after-20261103/assets/devStudentDemo-B4l_oaRb.js               6.90 kB │ gzip:   2.54 kB
+../../../../tmp/iskra-perf-after-20261103/assets/JoinTeacherPage-D2KKLdQr.js              6.98 kB │ gzip:   2.92 kB
+../../../../tmp/iskra-perf-after-20261103/assets/MultiSelectField-DiLp_Zt6.js             7.19 kB │ gzip:   2.77 kB
+../../../../tmp/iskra-perf-after-20261103/assets/spokenEn-CM8-T-pO.js                     7.28 kB │ gzip:   2.99 kB
+../../../../tmp/iskra-perf-after-20261103/assets/TeacherLoginPage-B_qT_Hwm.js             8.31 kB │ gzip:   3.17 kB
+../../../../tmp/iskra-perf-after-20261103/assets/transJa-CYmNinkY.js                      8.45 kB │ gzip:   3.28 kB
+../../../../tmp/iskra-perf-after-20261103/assets/WidgetTodayReminders-CznCZDUb.js         8.83 kB │ gzip:   3.32 kB
+../../../../tmp/iskra-perf-after-20261103/assets/koreanNumbers-7BjJQfyP.js                8.91 kB │ gzip:   3.26 kB
+../../../../tmp/iskra-perf-after-20261103/assets/lessonFigures-CzVhM440.js                9.67 kB │ gzip:   3.38 kB
+../../../../tmp/iskra-perf-after-20261103/assets/reviewDeck-BWC_oFq4.js                   9.88 kB │ gzip:   3.44 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageStoryFigures-DhwH5cfj.js        10.57 kB │ gzip:   3.75 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageVideosExtra-CRXytYaT.js         10.57 kB │ gzip:   3.67 kB
+../../../../tmp/iskra-perf-after-20261103/assets/bioFigures-Cnz_PUWh.js                  10.65 kB │ gzip:   3.94 kB
+../../../../tmp/iskra-perf-after-20261103/assets/seedImages-CaRb9H5y.js                  10.76 kB │ gzip:   3.06 kB
+../../../../tmp/iskra-perf-after-20261103/assets/enEveryday-BqfWct9M.js                  10.82 kB │ gzip:   4.04 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordPacksPt-YjukeXYh.js                 11.59 kB │ gzip:   4.32 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageStoryJa-Dp_BfJ2Z.js             11.68 kB │ gzip:   4.37 kB
+../../../../tmp/iskra-perf-after-20261103/assets/screeningConfig-C_rD1X_K.js             11.73 kB │ gzip:   4.68 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageStoryKo-D0-BpVt4.js             11.99 kB │ gzip:   4.42 kB
+../../../../tmp/iskra-perf-after-20261103/assets/feedPt-wHbEtJsE.js                      12.29 kB │ gzip:   5.09 kB
+../../../../tmp/iskra-perf-after-20261103/assets/QuizWidget-GDq3xX_8.js                  12.46 kB │ gzip:   4.70 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageStoryPt-BrI_r_h3.js             12.98 kB │ gzip:   4.84 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageStoryEn-C8M3bJkh.js             13.41 kB │ gzip:   5.00 kB
+../../../../tmp/iskra-perf-after-20261103/assets/feedJa-CueIqcyY.js                      14.50 kB │ gzip:   5.91 kB
+../../../../tmp/iskra-perf-after-20261103/assets/deMined-DgIb-1_B.js                     14.68 kB │ gzip:   5.58 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageStoryDe-C5-SeOAz.js             14.91 kB │ gzip:   5.49 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordPacksJa-DP6WInuw.js                 15.38 kB │ gzip:   5.79 kB
+../../../../tmp/iskra-perf-after-20261103/assets/enPhrasal-BJLtVkW7.js                   15.75 kB │ gzip:   5.73 kB
+../../../../tmp/iskra-perf-after-20261103/assets/diagnosticData-CZag-Y7-.js              15.80 kB │ gzip:   5.45 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordPacksEn-BocpepLI.js                 15.97 kB │ gzip:   6.09 kB
+../../../../tmp/iskra-perf-after-20261103/assets/feedEn-DnPtb92i.js                      16.29 kB │ gzip:   6.48 kB
+../../../../tmp/iskra-perf-after-20261103/assets/taskMetaStore-B2EHOyM0.js               16.63 kB │ gzip:   5.14 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageStoryRu-S86TMQR0.js             16.84 kB │ gzip:   5.68 kB
+../../../../tmp/iskra-perf-after-20261103/assets/ptMined-BYohzfA-.js                     17.07 kB │ gzip:   6.28 kB
+../../../../tmp/iskra-perf-after-20261103/assets/StudentDiaryPage-pe_qbJPS.js            17.73 kB │ gzip:   6.70 kB
+../../../../tmp/iskra-perf-after-20261103/assets/lexicon-CiVh6ZtC.js                     18.24 kB │ gzip:   7.33 kB
+../../../../tmp/iskra-perf-after-20261103/assets/enMined-HFNDGkz_.js                     18.45 kB │ gzip:   7.57 kB
+../../../../tmp/iskra-perf-after-20261103/assets/artworks-C_ThzLeQ.js                    19.57 kB │ gzip:   8.38 kB
+../../../../tmp/iskra-perf-after-20261103/assets/transEn-lSCjbAeH.js                     20.30 kB │ gzip:   7.42 kB
+../../../../tmp/iskra-perf-after-20261103/assets/scenesPt-IQnFTSRf.js                    21.31 kB │ gzip:   8.61 kB
+../../../../tmp/iskra-perf-after-20261103/assets/autoJa-COXcoytT.js                      21.46 kB │ gzip:   5.18 kB
+../../../../tmp/iskra-perf-after-20261103/assets/japaneseKana-CUPcjTKb.js                22.63 kB │ gzip:   8.77 kB
+../../../../tmp/iskra-perf-after-20261103/assets/transKo-BNflbtkm.js                     23.44 kB │ gzip:   7.23 kB
+../../../../tmp/iskra-perf-after-20261103/assets/TaskTypePreviewCard-C9ob4uCM.js         23.45 kB │ gzip:   6.62 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordPacksKo-BAdMx_PV.js                 25.52 kB │ gzip:   9.07 kB
+../../../../tmp/iskra-perf-after-20261103/assets/koreanHangul-B8PhLDPu.js                28.63 kB │ gzip:   9.87 kB
+../../../../tmp/iskra-perf-after-20261103/assets/pt-DyBZYtrU.js                          29.91 kB │ gzip:  11.91 kB
+../../../../tmp/iskra-perf-after-20261103/assets/sanitizeHtml-Bqer5y2l.js                30.63 kB │ gzip:  11.79 kB
+../../../../tmp/iskra-perf-after-20261103/assets/feed-outlets-BdM3KT-1.js                33.71 kB │ gzip:   8.74 kB
+../../../../tmp/iskra-perf-after-20261103/assets/autoEn-D0MpOxD5.js                      33.79 kB │ gzip:  10.10 kB
+../../../../tmp/iskra-perf-after-20261103/assets/jaMined-r6WiYDMk.js                     34.86 kB │ gzip:  11.04 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordRoots-DGNKA7Kn.js                   35.00 kB │ gzip:  10.89 kB
+../../../../tmp/iskra-perf-after-20261103/assets/scenesDe-Bq4dom4K.js                    35.94 kB │ gzip:  13.88 kB
+../../../../tmp/iskra-perf-after-20261103/assets/homeworkVideos-BT6Rkomb.js              36.24 kB │ gzip:  11.55 kB
+../../../../tmp/iskra-perf-after-20261103/assets/feedKo-DhQV23-U.js                      36.68 kB │ gzip:  12.82 kB
+../../../../tmp/iskra-perf-after-20261103/assets/russianFigures-DW-5DXOu.js              36.87 kB │ gzip:  10.73 kB
+../../../../tmp/iskra-perf-after-20261103/assets/enGrammar-Ds3ijycy.js                   39.46 kB │ gzip:  10.90 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalDialogs-BgVCvo16.js             41.41 kB │ gzip:  14.06 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordPacksRu-D1foOPBN.js                 41.69 kB │ gzip:  12.73 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordPacksDe-B7LIumOt.js                 42.53 kB │ gzip:  14.37 kB
+../../../../tmp/iskra-perf-after-20261103/assets/autoKo-CXDU0rF3.js                      44.47 kB │ gzip:  13.36 kB
+../../../../tmp/iskra-perf-after-20261103/assets/kanaStrokes-B7i4EB9J.js                 44.68 kB │ gzip:  13.59 kB
+../../../../tmp/iskra-perf-after-20261103/assets/CardImportPanel-BItaz15i.js             47.61 kB │ gzip:  13.76 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageDialogs-aRjmGrYm.js             48.13 kB │ gzip:  16.43 kB
+../../../../tmp/iskra-perf-after-20261103/assets/transPt-D-sVH8eQ.js                     51.58 kB │ gzip:  15.56 kB
+../../../../tmp/iskra-perf-after-20261103/assets/taskTypes-CF-qnYEI.js                   51.83 kB │ gzip:  17.37 kB
+../../../../tmp/iskra-perf-after-20261103/assets/enHome-kQG_zqBf.js                      52.10 kB │ gzip:  15.90 kB
+../../../../tmp/iskra-perf-after-20261103/assets/ja-DTvSbhFk.js                          52.57 kB │ gzip:  17.85 kB
+../../../../tmp/iskra-perf-after-20261103/assets/scenesRu-B2C0wxuc.js                    54.29 kB │ gzip:  16.05 kB
+../../../../tmp/iskra-perf-after-20261103/assets/ProductMock-BEmkXgzn.js                 54.99 kB │ gzip:  14.47 kB
+../../../../tmp/iskra-perf-after-20261103/assets/HardConversation-C-Ym7JTI.js            55.92 kB │ gzip:  15.84 kB
+../../../../tmp/iskra-perf-after-20261103/assets/koMined-CTDkhYjM.js                     56.37 kB │ gzip:  18.99 kB
+../../../../tmp/iskra-perf-after-20261103/assets/TaskVideo-D1a-zhEE.js                   60.86 kB │ gzip:  24.69 kB
+../../../../tmp/iskra-perf-after-20261103/assets/textbooks-CZGzh2OD.js                   61.46 kB │ gzip:  17.35 kB
+../../../../tmp/iskra-perf-after-20261103/assets/grammarDe-vr00pRuE.js                   64.24 kB │ gzip:  18.86 kB
+../../../../tmp/iskra-perf-after-20261103/assets/i18nContentEn-BTThXOXE.js               64.72 kB │ gzip:  22.89 kB
+../../../../tmp/iskra-perf-after-20261103/assets/ko-Cj8_udD5.js                          65.02 kB │ gzip:  24.31 kB
+../../../../tmp/iskra-perf-after-20261103/assets/TrainerPage-BTMY5ROp.js                 65.78 kB │ gzip:  17.55 kB
+../../../../tmp/iskra-perf-after-20261103/assets/russianVoice-BjwY-_0P.js                65.88 kB │ gzip:  17.54 kB
+../../../../tmp/iskra-perf-after-20261103/assets/autoPt-Cei4uyoS.js                      68.00 kB │ gzip:  19.83 kB
+../../../../tmp/iskra-perf-after-20261103/assets/vocabImages-DjNTgV_9.js                 68.53 kB │ gzip:  16.36 kB
+../../../../tmp/iskra-perf-after-20261103/assets/en1000-BZAUXIpU.js                      73.74 kB │ gzip:  20.86 kB
+../../../../tmp/iskra-perf-after-20261103/assets/notificationsSync-8-CmOElJ.js           74.12 kB │ gzip:  24.91 kB
+../../../../tmp/iskra-perf-after-20261103/assets/en-9SxLRpuq.js                          80.10 kB │ gzip:  28.08 kB
+../../../../tmp/iskra-perf-after-20261103/assets/DiagnosticTestPage-CaN8zHx0.js          81.89 kB │ gzip:  24.99 kB
+../../../../tmp/iskra-perf-after-20261103/assets/russianLiterature-BeIputpo.js           83.97 kB │ gzip:  21.94 kB
+../../../../tmp/iskra-perf-after-20261103/assets/spnEpisodes-BCUhfJPM.js                 86.40 kB │ gzip:  28.55 kB
+../../../../tmp/iskra-perf-after-20261103/assets/de-DFSUP5ae.js                          87.27 kB │ gzip:  30.72 kB
+../../../../tmp/iskra-perf-after-20261103/assets/apChemistryLessons-CjemXQVd.js          88.07 kB │ gzip:  27.78 kB
+../../../../tmp/iskra-perf-after-20261103/assets/grammarRu-ZrL8vkYD.js                   93.04 kB │ gzip:  22.64 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalPhrases-DIsujJnZ.js            106.92 kB │ gzip:  30.29 kB
+../../../../tmp/iskra-perf-after-20261103/assets/russianSpeech-CBmXy92U.js              107.26 kB │ gzip:  28.38 kB
+../../../../tmp/iskra-perf-after-20261103/assets/germanA1B1-DXuqNqW4.js                 109.08 kB │ gzip:  34.06 kB
+../../../../tmp/iskra-perf-after-20261103/assets/HomeworkFlow-Cw-cqfwb.js               127.30 kB │ gzip:  37.78 kB
+../../../../tmp/iskra-perf-after-20261103/assets/portugueseIntermediate-XfjrXJuj.js     128.47 kB │ gzip:  38.22 kB
+../../../../tmp/iskra-perf-after-20261103/assets/languageCourse-khGbnaru.js             131.06 kB │ gzip:  42.64 kB
+../../../../tmp/iskra-perf-after-20261103/assets/grammarJa-CO1zRlfH.js                  145.55 kB │ gzip:  38.61 kB
+../../../../tmp/iskra-perf-after-20261103/assets/pageWidth-9qZ_4hn6.js                  146.65 kB │ gzip:  51.67 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalDe-CRXHKyP-.js                 146.69 kB │ gzip:  43.38 kB
+../../../../tmp/iskra-perf-after-20261103/assets/japaneseJlptN3-DTNOaeyy.js             149.72 kB │ gzip:  42.22 kB
+../../../../tmp/iskra-perf-after-20261103/assets/portugueseCelpe-PR28W5Ka.js            153.11 kB │ gzip:  46.72 kB
+../../../../tmp/iskra-perf-after-20261103/assets/index-ADcHRVKC.js                      165.12 kB │ gzip:  45.52 kB
+../../../../tmp/iskra-perf-after-20261103/assets/bioCellLessons-C3Nd1Fzx.js             171.04 kB │ gzip:  45.52 kB
+../../../../tmp/iskra-perf-after-20261103/assets/japaneseJlpt-C0dmmFft.js               179.04 kB │ gzip:  50.63 kB
+../../../../tmp/iskra-perf-after-20261103/assets/listeningLibrary-Ddp-sE2k.js           180.72 kB │ gzip:  59.73 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalPt-BWHMy_RC.js                 182.36 kB │ gzip:  54.43 kB
+../../../../tmp/iskra-perf-after-20261103/assets/englishSprint-QgOGFuxu.js              188.35 kB │ gzip:  54.46 kB
+../../../../tmp/iskra-perf-after-20261103/assets/englishDesignCareer-uUX9oMYF.js        193.22 kB │ gzip:  58.98 kB
+../../../../tmp/iskra-perf-after-20261103/assets/englishIelts-CyMsBxi-.js               209.43 kB │ gzip:  70.43 kB
+../../../../tmp/iskra-perf-after-20261103/assets/koreanTopik-FoHyuXSW.js                230.12 kB │ gzip:  66.72 kB
+../../../../tmp/iskra-perf-after-20261103/assets/grammarEn-B3Wc_mxm.js                  240.26 kB │ gzip:  73.94 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalJa-BRcNjB-c.js                 243.21 kB │ gzip:  66.70 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalEn-GiYPb-VR.js                 245.41 kB │ gzip:  73.63 kB
+../../../../tmp/iskra-perf-after-20261103/assets/scenesJa-DP1O3Ce2.js                   248.97 kB │ gzip:  79.23 kB
+../../../../tmp/iskra-perf-after-20261103/assets/englishAdvanced-CwDg1SDg.js            256.75 kB │ gzip:  84.16 kB
+../../../../tmp/iskra-perf-after-20261103/assets/koreanTopik2-9mq6R5Im.js               269.26 kB │ gzip:  79.71 kB
+../../../../tmp/iskra-perf-after-20261103/assets/readingLibrary-1bkavDRL.js             308.47 kB │ gzip: 101.78 kB
+../../../../tmp/iskra-perf-after-20261103/assets/index.es-8P4UZBka.js                   317.33 kB │ gzip:  82.15 kB
+../../../../tmp/iskra-perf-after-20261103/assets/grammarKo-C-1kpKuc.js                  335.69 kB │ gzip:  86.58 kB
+../../../../tmp/iskra-perf-after-20261103/assets/scenesKo-ByBbfShj.js                   387.59 kB │ gzip: 122.13 kB
+../../../../tmp/iskra-perf-after-20261103/assets/DashboardPage-Cz6caZEG.js              393.27 kB │ gzip: 110.05 kB
+../../../../tmp/iskra-perf-after-20261103/assets/i18nEn-uR29cuji.js                     393.77 kB │ gzip: 127.24 kB
+../../../../tmp/iskra-perf-after-20261103/assets/bioPreULessons-22zuw7JK.js             429.07 kB │ gzip: 105.43 kB
+../../../../tmp/iskra-perf-after-20261103/assets/survivalKo-B29QGAVT.js                 517.85 kB │ gzip: 159.83 kB
+../../../../tmp/iskra-perf-after-20261103/assets/three-renderer-BSSKA3zZ.js             525.55 kB │ gzip: 135.41 kB
+../../../../tmp/iskra-perf-after-20261103/assets/index-37v65MzQ.js                      903.27 kB │ gzip: 264.93 kB
+../../../../tmp/iskra-perf-after-20261103/assets/wordGloss-dGiSBOxv.js                  998.39 kB │ gzip: 317.91 kB
+../../../../tmp/iskra-perf-after-20261103/assets/LanguageTrainer-B9ByVDyM.js          1,291.04 kB │ gzip: 413.21 kB
+../../../../tmp/iskra-perf-after-20261103/assets/scenesEn-CVgO5epg.js                 1,548.25 kB │ gzip: 514.69 kB
+../../../../tmp/iskra-perf-after-20261103/assets/JournalStand-DrbfKnLu.js             1,696.52 kB │ gzip: 439.62 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 12.80s
+
+PWA v1.3.0
+mode      generateSW
+precache  19 entries (2431.82 KiB)
+files generated
+  ../../../../tmp/iskra-perf-after-20261103/sw.js
+  ../../../../tmp/iskra-perf-after-20261103/workbox-7c1b01af.js

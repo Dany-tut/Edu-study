@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:schedule
+> esbuild scripts/checkScheduleState.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkScheduleState.mjs --log-level=error && node node_modules/.cache/checkScheduleState.mjs
+
+PASS: exact boundaries, teacher overrides, unknown ends, overnight, timezones, DST, materials and focus selection

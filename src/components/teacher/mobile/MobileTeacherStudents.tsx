@@ -67,7 +67,7 @@ function PersonRow({ student, subject, onClick }: { student: Student; subject?: 
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
     >
       <div style={{ position: 'relative', width: 40, height: 40, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {initials(tn(student.name))}
@@ -96,9 +96,9 @@ function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClic
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
     >
-      <div style={{ width: 42, height: 42, borderRadius: 12, background: `color-mix(in srgb, ${group.color} 18%, transparent)`, color: group.color, fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><SubjectMark subject={group.subject} fallback={group.icon} size={26} /></div>
+      <div style={{ width: 40, height: 40, borderRadius: 12, background: `color-mix(in srgb, ${group.color} 18%, transparent)`, color: group.color, fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><SubjectMark subject={group.subject} fallback={group.icon} size={26} /></div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <FadeText style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</FadeText>
         <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>

@@ -4,7 +4,7 @@ import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
 import { GLASS, type GlassHeader } from '../lib/nativeGlass'
-import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
+import { useOverlayScroll } from './teacher/OverlayScroll'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import MobileGlassHeader from './MobileGlassHeader'
 import './mobileInteraction.css'
@@ -175,7 +175,10 @@ export default function MobileScreen({
     >
       {/* В приложении на iOS шапку рисует система (стеклянные капсулы) — веб-пилюли
           не рендерим, место под них (topPad) остаётся. */}
-      {GLASS && glassHeader && <MobileGlassHeader {...glassHeader} />}
+      {GLASS && glassHeader && <>
+        <MobileGlassHeader {...glassHeader} />
+        <div ref={topRef} aria-hidden="true" style={{ position: 'absolute', top: TOP_INSET, height: 44, width: 0, visibility: 'hidden', pointerEvents: 'none' }} />
+      </>}
 
       {/* TOP — floating glass widget zone. pointer-events pass through empty areas. */}
       {topZone != null && !(GLASS && glassHeader) && (
@@ -183,6 +186,7 @@ export default function MobileScreen({
           // Верхние кнопки на свайпе «назад» стоят, а не едут: по линии стыка
           // они сменяются кнопками нижнего экрана (lib/useSwipeBack.ts).
           data-swipe-pin="top"
+          ref={topRef}
           style={{
             position: 'absolute',
             top: TOP_INSET,

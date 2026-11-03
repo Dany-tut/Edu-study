@@ -11,6 +11,7 @@ import { AlertStack } from '../../components/Alert'
 import IskraMark from '../../components/landing/IskraMark'
 import SocialLoginButtons from '../../components/SocialLoginButtons'
 import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogin'
+import ScrollFade from '../../components/ScrollFade'
 import { Capacitor } from '@capacitor/core'
 
 export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
@@ -92,9 +93,15 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     sent: t('Вернуться ко входу'),
   }
 
+  const formHeight = 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))'
   return (
+    <ScrollFade maxHeight={formHeight} fadeHeight={24} style={{
+      position: 'fixed',
+      inset: 'env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px)',
+      background: 'var(--color-bg)',
+    }}>
     <div style={{
-      minHeight: '100dvh',
+      minHeight: formHeight,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -272,6 +279,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         )}
       </div>
     </div>
+    </ScrollFade>
   )
 }
 

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { diagnosticFetch } from './diagnosticFetch'
 import { teacherViewFetch } from './teacherView'
 import { withRequestTiming } from './platformPerformance'
 

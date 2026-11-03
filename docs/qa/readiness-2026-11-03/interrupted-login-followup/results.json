@@ -1,0 +1,78 @@
+{
+  "productionModified": false,
+  "realIPhoneTested": false,
+  "results": [
+    {
+      "scenario": "Native browser opened, then closed without callback; foreground return",
+      "status": "PASS",
+      "state": [
+        {
+          "text": "Продолжить с Apple ID",
+          "disabled": false
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": false
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": null,
+      "controlsRecovered": true,
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    },
+    {
+      "scenario": "Native browser refuses to open",
+      "status": "PASS",
+      "state": [
+        {
+          "text": "Продолжить с Apple ID",
+          "disabled": false
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": false
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": null,
+      "controlsRecovered": true,
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    },
+    {
+      "scenario": "Native browser open never resolves; no cancellation for two minutes",
+      "status": "FAIL",
+      "state": [
+        {
+          "text": "Открываем…",
+          "disabled": true
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": true
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": "teacher",
+      "controlsRecovered": false,
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    },
+    {
+      "scenario": "Native browser open never resolves; timeout after 181 seconds",
+      "status": "FAIL",
+      "state": [
+        {
+          "text": "Продолжить с Apple ID",
+          "disabled": false
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": false
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": "teacher",
+      "controlsRecovered": true,
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    }
+  ]
+}

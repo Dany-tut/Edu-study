@@ -126,7 +126,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
 
         {/* Identity — span 2 */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
           <div style={{ position: 'relative', width: 52, height: 52, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 24, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0, textTransform: 'uppercase' }}>
             {initial}
             <AvatarPhotoFill path={photoPath} />
@@ -150,17 +150,17 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
             there files a prefilled feedback request; admin assigns it by hand. */}
         <button
           onClick={() => { tactile(); setTariffOpen(true) }}
-          style={{ gridColumn: 'span 2', padding: '14px 16px', borderRadius: 16, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff', border: 'none', textAlign: 'left', cursor: 'pointer' }}
+          style={{ gridColumn: 'span 2', padding: '14px 16px', borderRadius: 24, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', border: 'none', textAlign: 'left', cursor: 'pointer' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 14, fontWeight: 700 }}>{t('Тариф')} · {m.planName}</span>
             {quotaPct !== null
               ? <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.9 }}>{m.studentsUsed} / {m.maxStudents} {t('учеников')}</span>
-              : <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 20 }}>{t('без лимита')}</span>}
+              : <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, background: 'var(--color-bg-3)', padding: '4px 10px', borderRadius: 20 }}>{t('без лимита')}</span>}
           </div>
           {quotaPct !== null && (
-            <div style={{ height: 6, background: 'rgba(255,255,255,0.3)', borderRadius: 20, marginTop: 10, overflow: 'hidden' }}>
-              <div style={{ width: `${quotaPct}%`, height: '100%', background: '#fff', borderRadius: 20 }} />
+            <div style={{ height: 6, background: 'var(--color-border-soft)', borderRadius: 20, marginTop: 10, overflow: 'hidden' }}>
+              <div style={{ width: `${quotaPct}%`, height: '100%', background: 'var(--color-accent)', borderRadius: 20 }} />
             </div>
           )}
         </button>
@@ -182,7 +182,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
         <div style={{ gridColumn: 'span 2' }}><TeacherLoginMethods /></div>
 
         {/* Settings — span 2, grouped icon-list (C-style) */}
-        <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
+        <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
           {/* Тариф — actionable row (A-style «Повысить») */}
           <button
             onClick={() => { tactile(); setTariffOpen(true) }}
@@ -264,7 +264,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
           whileTap={{ scale: 0.97 }}
           onClick={() => { tactile(); window.location.hash = '#/' }}
           className="flex items-center justify-center cursor-pointer"
-          style={{ gridColumn: 'span 2', gap: 8, padding: 12, borderRadius: 16, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
+          style={{ gridColumn: 'span 2', gap: 8, padding: 12, borderRadius: 24, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
         >
           <BookOpen size={18} /> {t('В ученический кабинет')}
         </motion.button>}

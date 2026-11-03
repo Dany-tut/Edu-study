@@ -1,0 +1,1179 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project /tmp/iskra-xcuitest-20261103/IskraUIHarness.xcodeproj -scheme IskraUIHarness -destination "platform=iOS Simulator,id=0A07BEA5-84CF-4E89-8D16-4EE088AE7935" -derivedDataPath /tmp/iskra-xcuitest-20261103/StableDerivedData -resultBundlePath /tmp/iskra-xcuitest-20261103/CoordinateRun.xcresult CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO "-only-testing:IskraUITests/IskraUITests/test01RoleTeacherFieldsKeyboardAndSwipes"
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Writing result bundle at path:
+	/tmp/iskra-xcuitest-20261103/CoordinateRun.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'IskraUITests' in project 'IskraUIHarness' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: e7956627a017d6f0ad0d27127550ac72
+Build description path: /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/XCBuildData/e7956627a017d6f0ad0d27127550ac72.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-e829b21a6f8c9b70876ba0858053c04435d3147121984ba087c28d913653d626.sdkstatcache
+    cd /tmp/iskra-xcuitest-20261103/IskraUIHarness.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -o /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-e829b21a6f8c9b70876ba0858053c04435d3147121984ba087c28d913653d626.sdkstatcache
+
+SwiftDriver IskraUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name IskraUITests -Onone @/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -target arm64-apple-ios15.0-simulator -g -module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/Developer/Library/Frameworks -parse-as-library -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-e829b21a6f8c9b70876ba0858053c04435d3147121984ba087c28d913653d626.sdkstatcache -output-file-map /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-generated-files.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-own-target-headers.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-project-headers.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources/arm64 -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-Swift.h -working-directory /tmp/iskra-xcuitest-20261103 -experimental-emit-module-separately -disable-cmo
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ IskraUITests (in target 'IskraUITests' from project 'IskraUIHarness')
+
+SwiftCompile normal arm64 (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    
+
+SwiftCompile normal arm64 Compiling\ IskraUITests.swift /tmp/iskra-xcuitest-20261103/UITests/IskraUITests.swift (in target 'IskraUITests' from project 'IskraUIHarness')
+
+SwiftCompile normal arm64 /tmp/iskra-xcuitest-20261103/UITests/IskraUITests.swift (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    builtin-SwiftPerFileCompile IskraUITests.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling IskraUITests.swift (in target 'IskraUITests' from project 'IskraUIHarness')
+
+SwiftDriver\ Compilation IskraUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name IskraUITests -Onone @/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -target arm64-apple-ios15.0-simulator -g -module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/Developer/Library/Frameworks -parse-as-library -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-e829b21a6f8c9b70876ba0858053c04435d3147121984ba087c28d913653d626.sdkstatcache -output-file-map /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-generated-files.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-own-target-headers.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-project-headers.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources/arm64 -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-Swift.h -working-directory /tmp/iskra-xcuitest-20261103 -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for IskraUITests (in target 'IskraUITests' from project 'IskraUIHarness')
+
+SwiftDriver\ Compilation\ Requirements IskraUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name IskraUITests -Onone @/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -target arm64-apple-ios15.0-simulator -g -module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/Developer/Library/Frameworks -parse-as-library -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKStatCaches.noindex/iphonesimulator27.1-24A94232-e829b21a6f8c9b70876ba0858053c04435d3147121984ba087c28d913653d626.sdkstatcache -output-file-map /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/iskra-xcuitest-20261103/StableDerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-generated-files.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-own-target-headers.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests-project-headers.hmap -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources/arm64 -Xcc -I/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests-Swift.h -working-directory /tmp/iskra-xcuitest-20261103 -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.abi.json (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.abi.json /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.swiftsourceinfo (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.swiftsourceinfo /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Ld /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/IskraUITests normal (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios15.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk/Developer/Library/Frameworks -filelist /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.LinkFileList -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport -o /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/IskraUITests
+/tmp/iskra-xcuitest-20261103/IskraUIHarness.xcodeproj: IskraUITests: ld: warning: building for iOS-simulator-15.0, but linking with dylib '@rpath/XCTest.framework/XCTest' which was built for newer version 17.0
+/tmp/iskra-xcuitest-20261103/IskraUIHarness.xcodeproj: IskraUITests: ld: warning: building for iOS-simulator-15.0, but linking with dylib '@rpath/libXCTestSwiftSupport.dylib' which was built for newer version 17.0
+/tmp/iskra-xcuitest-20261103/IskraUIHarness.xcodeproj: IskraUITests: ld: warning: building for iOS-simulator-15.0, but linking with dylib '@rpath/XCUIAutomation.framework/XCUIAutomation' which was built for newer version 17.0
+
+ExtractAppIntentsMetadata (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v27.1.266.1.ngJ1il/Metal.xctoolchain --module-name IskraUITests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.1.sdk --xcode-version 27A9275 --platform-family iOS --deployment-target 15.0 --bundle-identifier com.dany.iskra.temporary-ui-tests --output /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest --target-triple arm64-apple-ios15.0-simulator --binary-file /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/IskraUITests --dependency-file /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests_dependency_info.dat --stringsdata-file /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.SwiftFileList --metadata-file-list /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests.DependencyMetadataFileList --static-metadata-file-list /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/IskraUITests.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/Objects-normal/arm64/IskraUITests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-11-03 10:27:18.221 appintentsmetadataprocessor[6124:4268355] Starting appintentsmetadataprocessor export
+2026-11-03 10:27:18.239 appintentsmetadataprocessor[6124:4268355] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+ProcessInfoPlistFile /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/Info.plist /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/empty-IskraUITests.plist (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    builtin-infoPlistUtility /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/empty-IskraUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/ProductTypeInfoPlistAdditions.plist -o /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/Info.plist
+
+CopySwiftLibs /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest (in target 'IskraUITests' from project 'IskraUIHarness')
+    cd /tmp/iskra-xcuitest-20261103
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/IskraUITests --scan-folder /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/Frameworks --scan-folder /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/PlugIns --scan-folder /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/SystemExtensions --scan-folder /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v27.1.266.1.ngJ1il/Metal.xctoolchain --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Products/Debug-iphonesimulator/IskraUITests-Runner.app/PlugIns/IskraUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/IskraUIHarness.build/Debug-iphonesimulator/IskraUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+PruneExplicitPrecompiledModules /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/iskra-xcuitest-20261103/StableDerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/iskra-xcuitest-20261103/StableDerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+2026-11-03 10:27:18.676 xcodebuild[5977:4267451] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-03 10:27:27.295717+0700 IskraUITests-Runner[6211:4268825] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-11-03 10:27:28.326 AM.
+Test Suite 'IskraUITests.xctest' started at 2026-11-03 10:27:28.328 AM.
+Test Suite 'IskraUITests' started at 2026-11-03 10:27:28.328 AM.
+Test Case '-[IskraUITests.IskraUITests test01RoleTeacherFieldsKeyboardAndSwipes]' started.
+    t =     0.00s Start Test at 2026-11-03 10:27:28.329 AM
+    t =     0.12s Set Up
+    t =     0.13s Terminate com.dany.iskra.debug:0
+    t =     0.13s Open com.dany.iskra.debug
+    t =     0.13s     Launch com.dany.iskra.debug
+    t =     0.36s         Setting up automation session
+    t =     0.92s         Wait for com.dany.iskra.debug to idle
+    t =     2.54s Added attachment named '01-launch'
+    t =     2.54s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     2.76s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     2.77s Added attachment named '01-launch-accessibility'
+    t =     2.78s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     2.90s Requesting snapshot of accessibility hierarchy for app with pid 6264
+ISKRA_UI_EVIDENCE 01-launch
+Attributes: Application, 0x102336f40, pid: 6264, label: 'Искра Тест'
+Element subtree:
+ →Application, 0x102336f40, pid: 6264, label: 'Искра Тест'
+    Window (Main), 0x102319410, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10231e270, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10231d840, {{0.0, 0.0}, {402.0, 874.0}}
+          WebView, 0x10231dba0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x1023190a0, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10231e5e0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10231eb30, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10231eea0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10231f5a0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x10231f220, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Искра — Кабинет ученика', Focused
+                        Other, 0x10231f8f0, {{0.0, 0.0}, {402.0, 874.0}}, label: 'основная часть', Focused
+                          Other, 0x10231fc70, {{20.0, 164.0}, {362.0, 37.0}}, label: 'заголовок раздела', Focused
+                            StaticText, 0x10231fff0, {{194.0, 170.0}, {61.0, 24.0}}, label: 'Искра', value: Искра, Focused
+                          Other, 0x102436270, {{20.0, 222.0}, {362.0, 17.0}}, Focused
+                            StaticText, 0x102436390, {{85.0, 222.0}, {232.0, 16.0}}, label: 'ОДНО ПРИЛОЖЕНИЕ · ДВЕ РОЛИ', value: ОДНО ПРИЛОЖЕНИЕ · ..., Focused
+                          Other, 0x1024364b0, {{20.0, 245.0}, {362.0, 36.0}}, label: 'С чего начнём?', value: 1, Focused
+                            StaticText, 0x1024365d0, {{96.0, 245.0}, {210.0, 36.0}}, label: 'С чего начнём?', value: С чего начнём?, Focused
+                          Other, 0x1024366f0, {{40.0, 287.0}, {322.0, 21.0}}, Focused
+                            StaticText, 0x102436810, {{80.0, 288.0}, {242.0, 19.0}}, label: 'Выберите роль, чтобы продолжить.', value: Выберите роль, что..., Focused
+                          Button, 0x102436930, {{20.0, 335.0}, {362.0, 179.0}}, label: 'Я препод. Занятия, группы и ученики', Focused
+                          Button, 0x102436a50, {{20.0, 529.0}, {362.0, 175.0}}, label: 'Я ученик. Курсы, задания и прогресс', Focused
+                          Other, 0x102118540, {{28.0, 721.0}, {346.0, 17.0}}, Focused
+                            StaticText, 0x1021188d0, {{38.0, 721.0}, {326.0, 16.0}}, label: 'Войти или создать аккаунт можно после выбора роли.', value: Войти или создать ..., Focused
+              Other, 0x102c040c0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                Other, 0x102320340, {{396.0, 808.0}, {3.0, 7.0}}
+              Other, 0x1023206d0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x102320a20, {{336.0, 868.0}, {7.0, 3.0}}
+              Other, 0x102320d80, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                Other, 0x102436b70, {{396.0, 808.0}, {3.0, 7.0}}
+              Other, 0x102436c90, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x102436db0, {{336.0, 868.0}, {7.0, 3.0}}
+    Window, 0x102321100, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102436ed0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102436ff0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x102336f40, pid: 6264, label: 'Искра Тест'
+Query chain:
+ →Find: Application 'com.dany.iskra.debug'
+  Output: {
+    Application, 0x102637460, pid: 6264, label: 'Искра Тест'
+  }
+
+    t =     2.94s Waiting 30.0s for Button (First Match) to exist
+    t =     3.97s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     3.97s         Checking existence of `Button (First Match)`
+    t =     4.08s Added attachment named '02-role'
+    t =     4.08s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     4.19s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     4.21s Added attachment named '02-role-accessibility'
+    t =     4.21s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     4.32s Requesting snapshot of accessibility hierarchy for app with pid 6264
+ISKRA_UI_EVIDENCE 02-role
+Attributes: Application, 0x10243b810, pid: 6264, label: 'Искра Тест'
+Element subtree:
+ →Application, 0x10243b810, pid: 6264, label: 'Искра Тест'
+    Window (Main), 0x10243cc80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10243d350, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10243d470, {{0.0, 0.0}, {402.0, 874.0}}
+          WebView, 0x10243d0b0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x10243d1d0, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10243d590, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10243d6b0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10243d7d0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10243d8f0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x10243da10, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Искра — Кабинет ученика', Focused
+                        Other, 0x10243db30, {{0.0, 0.0}, {402.0, 874.0}}, label: 'основная часть', Focused
+                          Other, 0x10243dc50, {{20.0, 164.0}, {362.0, 37.0}}, label: 'заголовок раздела', Focused
+                            StaticText, 0x10243dd70, {{194.0, 170.0}, {61.0, 24.0}}, label: 'Искра', value: Искра, Focused
+                          Other, 0x10243de90, {{20.0, 222.0}, {362.0, 17.0}}, Focused
+                            StaticText, 0x10243dfb0, {{85.0, 222.0}, {232.0, 16.0}}, label: 'ОДНО ПРИЛОЖЕНИЕ · ДВЕ РОЛИ', value: ОДНО ПРИЛОЖЕНИЕ · ..., Focused
+                          Other, 0x10243e0d0, {{20.0, 245.0}, {362.0, 36.0}}, label: 'С чего начнём?', value: 1, Focused
+                            StaticText, 0x10243e1f0, {{96.0, 245.0}, {210.0, 36.0}}, label: 'С чего начнём?', value: С чего начнём?, Focused
+                          Other, 0x10243e310, {{40.0, 287.0}, {322.0, 21.0}}, Focused
+                            StaticText, 0x10243e430, {{80.0, 288.0}, {242.0, 19.0}}, label: 'Выберите роль, чтобы продолжить.', value: Выберите роль, что..., Focused
+                          Button, 0x10243e550, {{20.0, 335.0}, {362.0, 179.0}}, label: 'Я препод. Занятия, группы и ученики', Focused
+                          Button, 0x10243e670, {{20.0, 529.0}, {362.0, 175.0}}, label: 'Я ученик. Курсы, задания и прогресс', Focused
+                          Other, 0x10243e790, {{28.0, 721.0}, {346.0, 17.0}}, Focused
+                            StaticText, 0x10243e8b0, {{38.0, 721.0}, {326.0, 16.0}}, label: 'Войти или создать аккаунт можно после выбора роли.', value: Войти или создать ..., Focused
+              Other, 0x10243e9d0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                Other, 0x10243eaf0, {{396.0, 808.0}, {3.0, 7.0}}
+              Other, 0x10243ec10, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x10243ed30, {{336.0, 868.0}, {7.0, 3.0}}
+              Other, 0x10243ee50, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                Other, 0x10243ef70, {{396.0, 808.0}, {3.0, 7.0}}
+              Other, 0x10243f090, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x10243f1b0, {{336.0, 868.0}, {7.0, 3.0}}
+    Window, 0x10243f2d0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10243f3f0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10243f510, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x10243b810, pid: 6264, label: 'Искра Тест'
+Query chain:
+ →Find: Application 'com.dany.iskra.debug'
+  Output: {
+    Application, 0x10243f630, pid: 6264, label: 'Искра Тест'
+  }
+
+    t =     4.34s Tap Button (First Match)
+    t =     4.34s     Wait for com.dany.iskra.debug to idle
+    t =     4.34s     Find the Button (First Match)
+    t =     4.35s     Check for interrupting elements affecting "Я препод. Занятия, группы и ученики" Button
+    t =     4.39s     Synthesize event
+    t =     4.69s     Wait for com.dany.iskra.debug to idle
+    t =     4.69s Waiting 30.0s for "Email" TextField to exist
+    t =     5.74s     Checking `Expect predicate `existsNoRetry == 1` for object "Email" TextField`
+    t =     5.75s         Checking existence of `"Email" TextField`
+    t =     5.90s Added attachment named '03-teacher-login'
+    t =     5.90s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     6.10s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     6.12s Added attachment named '03-teacher-login-accessibility'
+    t =     6.12s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     6.30s Requesting snapshot of accessibility hierarchy for app with pid 6264
+ISKRA_UI_EVIDENCE 03-teacher-login
+Attributes: Application, 0x10232cee0, pid: 6264, label: 'Искра Тест'
+Element subtree:
+ →Application, 0x10232cee0, pid: 6264, label: 'Искра Тест'
+    Window (Main), 0x10232d620, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10232e430, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10232e7b0, {{0.0, 0.0}, {402.0, 874.0}}
+          WebView, 0x10232d9a0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x10232dd40, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10232eec0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10232e0b0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10232f5b0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10232eb20, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x10232f250, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Искра — Кабинет учителя', Focused
+                        StaticText, 0x10232f900, {{95.0, 103.0}, {57.0, 23.0}}, label: 'Искра', value: Искра, Focused
+                        Other, 0x102330760, {{49.0, 153.0}, {304.0, 32.0}}, label: 'Вход для преподавателя', value: 1, Focused
+                          StaticText, 0x102330ad0, {{49.0, 153.0}, {303.0, 32.0}}, label: 'Вход для преподавателя', value: Вход для преподава..., Focused
+                        Other, 0x102330e20, {{49.0, 190.0}, {304.0, 18.0}}, Focused
+                          StaticText, 0x102330410, {{49.0, 190.0}, {126.0, 18.0}}, label: 'Войдите в аккаунт', value: Войдите в аккаунт, Focused
+                        Other, 0x102331170, {{49.0, 230.0}, {304.0, 215.0}}, label: 'форма', Focused
+                          TextField, 0x1023314e0, {{49.0, 230.0}, {304.0, 54.0}}, placeholderValue: 'Email', value: Email, Focused
+                          Other, 0x102331850, {{49.0, 298.0}, {304.0, 54.0}}, Focused
+                            TextField, 0x102331ba0, {{49.0, 298.0}, {304.0, 54.0}}, placeholderValue: 'Пароль', value: Пароль, Focused
+                            Button, 0x102332270, {{310.0, 309.0}, {33.0, 32.0}}, label: 'Показать пароль', Focused
+                          StaticText, 0x1023325d0, {{245.0, 362.0}, {108.0, 17.0}}, label: 'Забыли пароль?', value: Забыли пароль?, Focused
+                          Button, 0x102331f10, {{49.0, 397.0}, {304.0, 48.0}}, label: 'Войти', Focused
+                        StaticText, 0x102333030, {{147.0, 459.0}, {108.0, 15.0}}, label: 'или продолжить с', value: или продолжить с, Focused
+                        Button, 0x1023333d0, {{49.0, 485.0}, {304.0, 48.0}}, label: 'Продолжить с Apple ID', Focused
+                        Button, 0x102333760, {{49.0, 543.0}, {304.0, 48.0}}, label: 'Продолжить с Google', Focused
+                        Other, 0x102332930, {{49.0, 603.0}, {304.0, 32.0}}, Focused
+                          Link, 0x102333ae0, {{87.0, 604.0}, {174.0, 14.0}}, label: 'Политика конфиденциальности', Focused
+                            StaticText, 0x102333e50, {{87.0, 604.0}, {174.0, 14.0}}, label: 'Политика конфиденциальности', value: Политика конфиденц..., Focused
+                          StaticText, 0x1023341f0, {{260.0, 604.0}, {11.0, 14.0}}, label: '·', value:  · , Focused
+                          Link, 0x102334570, {{159.0, 604.0}, {156.0, 30.0}}, label: 'Условия использования', Focused
+                            StaticText, 0x1023348d0, {{159.0, 604.0}, {156.0, 30.0}}, label: 'Условия использования', value: Условия использова..., Focused
+                        Other, 0x102332c90, {{49.0, 649.0}, {304.0, 44.0}}, Focused
+                          Button, 0x102334fb0, {{49.0, 649.0}, {304.0, 44.0}}, label: 'Войти по коду из письма', Focused
+                        Other, 0x102334c40, {{49.0, 713.0}, {304.0, 36.0}}, Focused
+                          StaticText, 0x102335330, {{51.0, 713.0}, {300.0, 36.0}}, label: 'Аккаунт создаётся по ссылке-приглашению от администратора.', value: Аккаунт создаётся ..., Focused
+                        Button, 0x1023356c0, {{49.0, 759.0}, {304.0, 17.0}}, label: '← Выбрать роль', Focused
+              Other, 0x102335a40, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                Other, 0x102335db0, {{396.0, 65.0}, {3.0, 744.0}}
+              Other, 0x102336130, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x1023364b0, {{65.0, 868.0}, {272.0, 3.0}}
+              Other, 0x102336ba0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                Other, 0x102336820, {{396.0, 65.0}, {3.0, 744.0}}
+              Other, 0x1023372a0, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x102337cf0, {{65.0, 868.0}, {272.0, 3.0}}
+    Window, 0x102337600, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1023383c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102337980, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x10232cee0, pid: 6264, label: 'Искра Тест'
+Query chain:
+ →Find: Application 'com.dany.iskra.debug'
+  Output: {
+    Application, 0x102223360, pid: 6264, label: 'Искра Тест'
+  }
+
+    t =     6.33s Tap "Email" TextField[0.25, 0.50]
+    t =     6.33s     Wait for com.dany.iskra.debug to idle
+    t =     6.33s     Find the "Email" TextField
+    t =     6.34s     Check for interrupting elements affecting "Email" TextField
+    t =     6.37s     Synthesize event
+    t =     6.37s         Find the "Email" TextField
+    t =     6.39s         Find the "Email" TextField
+    t =     6.42s         Find the "Email" TextField
+    t =     6.72s     Wait for com.dany.iskra.debug to idle
+    t =     7.12s Waiting 8.0s for Keyboard (First Match) to exist
+    t =     8.16s     Checking `Expect predicate `existsNoRetry == 1` for object Keyboard (First Match)`
+    t =     8.16s         Checking existence of `Keyboard (First Match)`
+    t =     8.17s Type 'ui-only@example.in...' into "Email" TextField
+    t =     8.17s     Wait for com.dany.iskra.debug to idle
+    t =     8.17s     Find the "Email" TextField
+    t =     8.21s     Check for interrupting elements affecting "Email" TextField
+    t =     8.25s     Synthesize event
+    t =     8.83s     Wait for com.dany.iskra.debug to idle
+    t =     8.94s Added attachment named '04-email-keyboard'
+    t =     8.94s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     9.27s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     9.32s Added attachment named '04-email-keyboard-accessibility'
+    t =     9.32s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =     9.61s Requesting snapshot of accessibility hierarchy for app with pid 6264
+ISKRA_UI_EVIDENCE 04-email-keyboard
+Attributes: Application, 0x10263a2b0, pid: 6264, label: 'Искра Тест'
+Element subtree:
+ →Application, 0x10263a2b0, pid: 6264, label: 'Искра Тест'
+    Window (Main), 0x10263a000, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1026406d0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1026407f0, {{0.0, 0.0}, {402.0, 874.0}}
+          WebView, 0x102640430, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x102640550, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x102640910, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x102640a30, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x102640b50, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x102640c70, {{0.0, -8.0}, {402.0, 874.0}}
+                      Other, 0x102640d90, {{0.0, -8.0}, {402.0, 874.0}}, label: 'Искра — Кабинет учителя'
+                        StaticText, 0x102640eb0, {{95.0, 95.0}, {57.0, 23.0}}, label: 'Искра', value: Искра
+                        Other, 0x1026410f0, {{49.0, 145.0}, {304.0, 32.0}}, label: 'Вход для преподавателя', value: 1
+                          StaticText, 0x102641210, {{49.0, 145.0}, {303.0, 32.0}}, label: 'Вход для преподавателя', value: Вход для преподава...
+                        Other, 0x102641330, {{49.0, 182.0}, {304.0, 18.0}}
+                          StaticText, 0x102641450, {{49.0, 182.0}, {126.0, 18.0}}, label: 'Войдите в аккаунт', value: Войдите в аккаунт
+                        Other, 0x102641570, {{49.0, 222.0}, {304.0, 215.0}}, label: 'форма'
+                          TextField, 0x102641690, {{49.0, 222.0}, {304.0, 54.0}}, placeholderValue: 'Email', value: ui-only@example.in..., Keyboard Focused, Focused
+                          Other, 0x1026417b0, {{49.0, 290.0}, {304.0, 54.0}}
+                            TextField, 0x1026418d0, {{49.0, 290.0}, {304.0, 54.0}}, placeholderValue: 'Пароль', value: Пароль
+                            Button, 0x1026419f0, {{310.0, 301.0}, {33.0, 32.0}}, label: 'Показать пароль'
+                          StaticText, 0x102641b10, {{245.0, 354.0}, {108.0, 17.0}}, label: 'Забыли пароль?', value: Забыли пароль?
+                          Button, 0x102641c30, {{49.0, 389.0}, {304.0, 48.0}}, label: 'Войти'
+                        StaticText, 0x102641d50, {{147.0, 451.0}, {108.0, 15.0}}, label: 'или продолжить с', value: или продолжить с
+                        Button, 0x102641e70, {{49.0, 477.0}, {304.0, 48.0}}, label: 'Продолжить с Apple ID'
+                        Button, 0x102641f90, {{49.0, 535.0}, {304.0, 48.0}}, label: 'Продолжить с Google'
+                        Other, 0x1026420b0, {{49.0, 595.0}, {304.0, 32.0}}
+                          Link, 0x1026421d0, {{87.0, 596.0}, {174.0, 14.0}}, label: 'Политика конфиденциальности'
+                            StaticText, 0x1026422f0, {{87.0, 596.0}, {174.0, 14.0}}, label: 'Политика конфиденциальности', value: Политика конфиденц...
+                          StaticText, 0x102642410, {{260.0, 596.0}, {11.0, 14.0}}, label: '·', value:  · 
+                          Link, 0x102642530, {{159.0, 596.0}, {156.0, 30.0}}, label: 'Условия использования'
+                            StaticText, 0x102642650, {{159.0, 596.0}, {156.0, 30.0}}, label: 'Условия использования', value: Условия использова...
+                        Other, 0x102642770, {{49.0, 641.0}, {304.0, 44.0}}
+                          Button, 0x102642890, {{49.0, 641.0}, {304.0, 44.0}}, label: 'Войти по коду из письма'
+                        Other, 0x1026429b0, {{49.0, 705.0}, {304.0, 36.0}}
+                          StaticText, 0x102642ad0, {{51.0, 705.0}, {300.0, 36.0}}, label: 'Аккаунт создаётся по ссылке-приглашению от администратора.', value: Аккаунт создаётся ...
+                        Button, 0x102642bf0, {{49.0, 751.0}, {304.0, 17.0}}, label: '← Выбрать роль'
+              Other, 0x102642d10, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 2 %
+                Other, 0x102642e30, {{396.0, 67.3}, {3.0, 252.7}}
+              Other, 0x102642f50, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x102643070, {{65.0, 431.0}, {272.0, 3.0}}
+              Other, 0x102643190, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 2 %
+                Other, 0x1026432b0, {{396.0, 67.3}, {3.0, 252.7}}
+              Other, 0x1026433d0, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x1026434f0, {{65.0, 431.0}, {272.0, 3.0}}
+    Window, 0x102643610, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102643730, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102643850, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102643970, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x102643a90, {{0.0, 471.0}, {402.0, 68.0}}
+            Other, 0x10252e160, {{0.0, 471.0}, {402.0, 68.0}}
+              Toolbar, 0x102535b70, {{0.0, 481.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Other, 0x102535c90, {{0.0, 481.0}, {402.0, 48.0}}
+                  Other, 0x102535db0, {{16.0, 481.0}, {370.0, 48.0}}
+                    Other, 0x102535ed0, {{16.0, 481.0}, {370.0, 48.0}}
+                      Other, 0x102535ff0, {{16.0, 481.0}, {0.0, 0.0}}
+                        Other, 0x102536110, {{16.0, 481.0}, {370.0, 48.0}}
+                          Other, 0x102536230, {{16.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102536350, {{21.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102536470, {{21.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102536590, {{21.0, 486.0}, {40.0, 38.0}}, label: 'Previous', Disabled
+                          Other, 0x1025366b0, {{70.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x1025367d0, {{75.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x1025368f0, {{75.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102536a10, {{75.0, 486.0}, {40.0, 38.0}}, label: 'Next'
+                          Other, 0x102536b30, {{336.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102536c50, {{341.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102536d70, {{341.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102536e90, {{341.0, 486.0}, {40.0, 38.0}}, label: 'Done'
+          Other, 0x102536fb0, {{0.0, 539.0}, {402.0, 335.0}}, identifier: 'inputView'
+    Window, 0x1025370d0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1025371f0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102537310, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x102537430, {{0.0, 471.0}, {402.0, 68.0}}
+          Other, 0x102537550, {{0.0, 471.0}, {402.0, 403.0}}, identifier: 'UIContinuousPathIntroductionView'
+            Other, 0x102537670, {{0.0, 471.0}, {402.0, 403.0}}
+            Other, 0x102537790, {{41.0, 471.0}, {320.0, 369.0}}
+              Other, 0x1025378b0, {{41.0, 471.0}, {320.0, 253.0}}
+                ScrollView, 0x1025379d0, {{41.0, 471.0}, {320.0, 253.0}}
+                  Other, 0x102537af0, {{41.0, 471.0}, {320.0, 250.7}}
+                    Other, 0x102537c10, {{97.7, 491.0}, {207.0, 158.3}}
+                      Other, 0x102537d30, {{97.7, 525.0}, {207.0, 124.3}}
+                    StaticText, 0x102537e50, {{41.0, 669.3}, {320.0, 46.3}}, label: 'Speed up your typing by sliding your finger across the letters to compose a word.'
+              Button, 0x102537f70, {{89.0, 819.0}, {224.0, 21.0}}, label: 'Continue'
+                StaticText, 0x102538090, {{163.0, 818.3}, {76.0, 22.0}}, label: 'Continue'
+          Other, 0x1025381b0, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x1025382d0, {{0.0, 539.0}, {402.0, 44.0}}
+              Other, 0x1025383f0, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x102538510, {{0.0, -61.0}, {402.0, 1244.0}}
+                  ScrollView, 0x102538630, {{0.0, 539.0}, {402.0, 44.0}}
+                Other, 0x102538750, {{0.0, 539.0}, {402.0, 44.0}}
+                  Other, 0x102538870, {{0.0, 539.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                    Other, 0x102538990, {{0.0, 539.0}, {402.0, 44.0}}
+                      Other, 0x102538ab0, {{30.0, 539.0}, {342.0, 44.0}}
+                        Button, 0x102538bd0, {{30.0, 539.0}, {342.0, 44.0}}, label: 'Passwords'
+                          Image, 0x102538cf0, {{150.5, 553.0}, {13.0, 23.0}}, identifier: 'kb-autofill-key'
+          Other, 0x102538e10, {{0.0, 539.0}, {402.0, 335.0}}
+            Other, 0x102538f30, {{0.0, 539.0}, {402.0, 335.0}}
+              Other, 0x102539050, {{0.0, 539.0}, {402.0, 335.0}}
+          Other, 0x102539170, {{0.0, 583.0}, {402.0, 233.0}}
+            Keyboard, 0x102539290, {{0.0, 583.0}, {402.0, 233.0}}
+              Other, 0x1025393b0, {{0.0, 583.0}, {402.0, 233.0}}
+                Other, 0x1025394d0, {{0.0, 583.0}, {402.0, 233.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x1025395f0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x102539710, {{4.7, 590.0}, {39.3, 54.0}}, label: 'q'
+                  Key, 0x102539830, {{44.0, 590.0}, {39.7, 54.0}}, label: 'w'
+                  Key, 0x102539950, {{83.7, 590.0}, {39.3, 54.0}}, label: 'e'
+                  Key, 0x102539a70, {{123.0, 590.0}, {39.7, 54.0}}, label: 'r'
+                  Key, 0x102539b90, {{162.7, 590.0}, {39.3, 54.0}}, label: 't'
+                  Key, 0x102539cb0, {{202.0, 590.0}, {39.7, 54.0}}, label: 'y'
+                  Key, 0x102539dd0, {{241.7, 590.0}, {39.3, 54.0}}, label: 'u'
+                  Key, 0x102539ef0, {{281.0, 590.0}, {39.7, 54.0}}, label: 'i'
+                  Key, 0x10253a010, {{320.7, 590.0}, {39.3, 54.0}}, label: 'o'
+                  Key, 0x10253a130, {{360.0, 590.0}, {39.7, 54.0}}, label: 'p'
+                  Key, 0x10253a250, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10253a370, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10253a490, {{24.3, 644.0}, {39.3, 54.0}}, label: 'a'
+                  Key, 0x10253a5b0, {{63.7, 644.0}, {39.7, 54.0}}, label: 's'
+                  Key, 0x10253a6d0, {{103.3, 644.0}, {39.3, 54.0}}, label: 'd'
+                  Key, 0x10253a7f0, {{142.7, 644.0}, {39.7, 54.0}}, label: 'f'
+                  Key, 0x10253a910, {{182.3, 644.0}, {39.3, 54.0}}, label: 'g'
+                  Key, 0x10253aa30, {{221.7, 644.0}, {39.7, 54.0}}, label: 'h'
+                  Key, 0x10253ab50, {{261.3, 644.0}, {39.3, 54.0}}, label: 'j'
+                  Key, 0x10253ac70, {{300.7, 644.0}, {39.7, 54.0}}, label: 'k'
+                  Key, 0x10253ad90, {{340.3, 644.0}, {39.3, 54.0}}, label: 'l'
+                  Key, 0x10253aeb0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x10253afd0, {{4.7, 698.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift'
+                  Key, 0x10253b0f0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10253b210, {{63.7, 698.0}, {39.7, 54.0}}, label: 'z'
+                  Key, 0x10253b330, {{103.3, 698.0}, {39.3, 54.0}}, label: 'x'
+                  Key, 0x10253b5a0, {{142.7, 698.0}, {39.7, 54.0}}, label: 'c'
+                  Key, 0x10253b6c0, {{182.3, 698.0}, {39.3, 54.0}}, label: 'v'
+                  Key, 0x10253b7e0, {{221.7, 698.0}, {39.7, 54.0}}, label: 'b'
+                  Key, 0x10253b900, {{261.3, 698.0}, {39.3, 54.0}}, label: 'n'
+                  Key, 0x10253ba20, {{300.7, 698.0}, {39.7, 54.0}}, label: 'm'
+                  Key, 0x10253bb40, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10253bc60, {{348.0, 698.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x10253bd80, {{4.7, 752.0}, {49.3, 54.0}}, identifier: 'more', label: 'numbers'
+                  Button, 0x10253bea0, {{54.0, 752.0}, {49.3, 54.0}}, identifier: 'emoji', label: 'Emoji'
+                  Key, 0x10253bfc0, {{103.3, 752.0}, {98.7, 54.0}}, identifier: 'space', label: ' '
+                  Key, 0x10253c0e0, {{202.0, 752.0}, {49.3, 54.0}}, label: '@'
+                  Key, 0x10253c200, {{251.3, 752.0}, {49.3, 54.0}}, label: '.'
+                  Button, 0x10253c320, {{300.7, 752.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x10253c640, {{0.0, 583.0}, {402.0, 291.0}}
+            Button, 0x10253c760, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Next keyboard', value: Русская
+              StaticText, 0x10253c880, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x10253c9a0, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x10253cac0, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x10253cbe0, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x10253cd00, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x10263a2b0, pid: 6264, label: 'Искра Тест'
+Query chain:
+ →Find: Application 'com.dany.iskra.debug'
+  Output: {
+    Application, 0x102440f20, pid: 6264, label: 'Искра Тест'
+  }
+
+    t =     9.66s Waiting 5.0s for "Пароль" TextField to exist
+    t =    10.70s     Checking `Expect predicate `existsNoRetry == 1` for object "Пароль" TextField`
+    t =    10.70s         Checking existence of `"Пароль" TextField`
+    t =    10.75s Tap "Пароль" TextField[0.25, 0.50]
+    t =    10.75s     Wait for com.dany.iskra.debug to idle
+    t =    10.75s     Find the "Пароль" TextField
+    t =    10.79s     Check for interrupting elements affecting "Пароль" TextField
+    t =    10.83s     Synthesize event
+    t =    10.84s         Find the "Пароль" TextField
+    t =    10.88s         Find the "Пароль" TextField
+    t =    10.93s         Find the "Пароль" TextField
+    t =    11.26s     Wait for com.dany.iskra.debug to idle
+    t =    11.39s Type 'UI-only-not-submit...' into "Пароль" TextField
+    t =    11.40s     Wait for com.dany.iskra.debug to idle
+    t =    11.65s     Find the "Пароль" TextField
+    t =    11.69s     Check for interrupting elements affecting "Пароль" TextField
+    t =    11.75s     Synthesize event
+    t =    12.38s     Wait for com.dany.iskra.debug to idle
+    t =    12.39s Find the "Пароль" TextField
+    t =    12.43s Checking existence of `Keyboard (First Match)`
+    t =    12.44s Find the "Пароль" TextField
+    t =    12.48s Find the Keyboard (First Match)
+    t =    12.58s Added attachment named '05-password-keyboard'
+    t =    12.58s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    12.86s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    12.90s Added attachment named '05-password-keyboard-accessibility'
+    t =    12.91s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    13.18s Requesting snapshot of accessibility hierarchy for app with pid 6264
+ISKRA_UI_EVIDENCE 05-password-keyboard
+Attributes: Application, 0x1022228a0, pid: 6264, label: 'Искра Тест'
+Element subtree:
+ →Application, 0x1022228a0, pid: 6264, label: 'Искра Тест'
+    Window (Main), 0x102225fd0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1022223d0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10222d1f0, {{0.0, 0.0}, {402.0, 874.0}}
+          WebView, 0x10222cf50, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x10222d070, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10222d310, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10222d430, {{0.0, 0.0}, {402.0, 875.0}}
+                  Other, 0x10222d550, {{0.0, 0.0}, {402.0, 875.0}}
+                    Other, 0x10222d670, {{0.0, -90.0}, {402.0, 875.0}}
+                      Other, 0x10222d790, {{0.0, -90.0}, {402.0, 875.0}}, label: 'Искра — Кабинет учителя'
+                        StaticText, 0x10222d8b0, {{95.0, 13.0}, {57.0, 24.0}}, label: 'Искра', value: Искра
+                        Other, 0x10222d9d0, {{49.0, 63.0}, {304.0, 33.0}}, label: 'Вход для преподавателя', value: 1
+                          StaticText, 0x10222daf0, {{49.0, 63.0}, {303.0, 33.0}}, label: 'Вход для преподавателя', value: Вход для преподава...
+                        Other, 0x10222dc10, {{49.0, 100.0}, {304.0, 19.0}}
+                          StaticText, 0x10222dd30, {{49.0, 100.0}, {126.0, 19.0}}, label: 'Войдите в аккаунт', value: Войдите в аккаунт
+                        Other, 0x10222de50, {{49.0, 140.0}, {304.0, 216.0}}, label: 'форма'
+                          TextField, 0x10222df70, {{49.0, 140.0}, {304.0, 55.0}}, placeholderValue: 'Email', value: ui-only@example.in...
+                          Other, 0x10222e090, {{49.0, 208.0}, {304.0, 55.0}}
+                            TextField, 0x10222e1b0, {{49.0, 208.0}, {304.0, 55.0}}, placeholderValue: 'Пароль', value: UI-only-not-submit..., Keyboard Focused, Focused
+                            Button, 0x10222e2d0, {{310.0, 219.0}, {33.0, 33.0}}, label: 'Показать пароль'
+                          StaticText, 0x10222e3f0, {{245.0, 272.0}, {108.0, 18.0}}, label: 'Забыли пароль?', value: Забыли пароль?
+                          Button, 0x10222e510, {{49.0, 307.0}, {304.0, 49.0}}, label: 'Войти'
+                        StaticText, 0x10222e630, {{147.0, 369.0}, {108.0, 16.0}}, label: 'или продолжить с', value: или продолжить с
+                        Button, 0x10222e750, {{49.0, 395.0}, {304.0, 49.0}}, label: 'Продолжить с Apple ID'
+                        Button, 0x10222e870, {{49.0, 453.0}, {304.0, 49.0}}, label: 'Продолжить с Google'
+                        Other, 0x10222e990, {{49.0, 513.0}, {304.0, 33.0}}
+                          Link, 0x10222eab0, {{87.0, 514.0}, {174.0, 15.0}}, label: 'Политика конфиденциальности'
+                            StaticText, 0x10222ebd0, {{87.0, 514.0}, {174.0, 15.0}}, label: 'Политика конфиденциальности', value: Политика конфиденц...
+                          StaticText, 0x10222ecf0, {{260.0, 514.0}, {11.0, 15.0}}, label: '·', value:  · 
+                          Link, 0x10222ee10, {{159.0, 514.0}, {156.0, 31.0}}, label: 'Условия использования'
+                            StaticText, 0x10222ef30, {{159.0, 514.0}, {156.0, 31.0}}, label: 'Условия использования', value: Условия использова...
+                        Other, 0x10222f050, {{49.0, 559.0}, {304.0, 45.0}}
+                          Button, 0x10222f170, {{49.0, 559.0}, {304.0, 45.0}}, label: 'Войти по коду из письма'
+                        Other, 0x10222f290, {{49.0, 623.0}, {304.0, 37.0}}
+                          StaticText, 0x10222f3b0, {{51.0, 623.0}, {300.0, 37.0}}, label: 'Аккаунт создаётся по ссылке-приглашению от администратора.', value: Аккаунт создаётся ...
+                        Button, 0x10222f4d0, {{49.0, 669.0}, {304.0, 18.0}}, label: '← Выбрать роль'
+              Other, 0x10222f740, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 22 %
+                Other, 0x10222f860, {{396.0, 91.0}, {3.0, 252.7}}
+              Other, 0x10222f980, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x10222faa0, {{65.0, 431.0}, {272.0, 3.0}}
+              Other, 0x10222fbc0, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 22 %
+                Other, 0x10222fce0, {{396.0, 91.0}, {3.0, 252.7}}
+              Other, 0x10222fe00, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x10222ff20, {{65.0, 431.0}, {272.0, 3.0}}
+    Window, 0x102230040, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102230160, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102230280, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1022303a0, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x1022304c0, {{0.0, 471.0}, {402.0, 68.0}}
+            Other, 0x1022305e0, {{0.0, 471.0}, {402.0, 68.0}}
+              Toolbar, 0x102230700, {{0.0, 481.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Other, 0x102230820, {{0.0, 481.0}, {402.0, 48.0}}
+                  Other, 0x102230940, {{16.0, 481.0}, {370.0, 48.0}}
+                    Other, 0x102230a60, {{16.0, 481.0}, {370.0, 48.0}}
+                      Other, 0x102230b80, {{16.0, 481.0}, {0.0, 0.0}}
+                        Other, 0x102230ca0, {{16.0, 481.0}, {370.0, 48.0}}
+                          Other, 0x102230dc0, {{16.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102230ee0, {{21.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102231000, {{21.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102231120, {{21.0, 486.0}, {40.0, 38.0}}, label: 'Previous'
+                          Other, 0x102231240, {{70.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102231360, {{75.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102231480, {{75.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x1022315a0, {{75.0, 486.0}, {40.0, 38.0}}, label: 'Next', Disabled
+                          Other, 0x1022316c0, {{336.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x1022317e0, {{341.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102231900, {{341.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102231a20, {{341.0, 486.0}, {40.0, 38.0}}, label: 'Done'
+          Other, 0x102231b40, {{0.0, 539.0}, {402.0, 335.0}}, identifier: 'inputView'
+    Window, 0x102231c60, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102231d80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102231ea0, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x102231fc0, {{0.0, 471.0}, {402.0, 68.0}}
+          Other, 0x1022320e0, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x102232200, {{0.0, 539.0}, {402.0, 44.0}}
+              Other, 0x102232320, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x102232440, {{0.0, -61.0}, {402.0, 1244.0}}
+                  ScrollView, 0x102232560, {{0.0, 539.0}, {402.0, 44.0}}
+                Other, 0x102232680, {{0.0, 539.0}, {402.0, 44.0}}
+                  Other, 0x1022327a0, {{0.0, 539.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                    Other, 0x1022328c0, {{0.0, 539.0}, {402.0, 44.0}}
+                      Other, 0x1022329e0, {{0.0, 539.0}, {402.0, 44.0}}
+                        Other, 0x102232b00, {{0.0, 539.0}, {134.0, 44.0}}
+                        Other, 0x102232c20, {{134.0, 539.0}, {134.0, 44.0}}
+                        Other, 0x102232d40, {{268.0, 539.0}, {134.0, 44.0}}
+          Other, 0x102232e60, {{0.0, 539.0}, {402.0, 335.0}}
+            Other, 0x102232f80, {{0.0, 539.0}, {402.0, 335.0}}
+              Other, 0x1022330a0, {{0.0, 539.0}, {402.0, 335.0}}
+          Other, 0x1022331c0, {{0.0, 583.0}, {402.0, 233.0}}
+            Keyboard, 0x1022332e0, {{0.0, 583.0}, {402.0, 233.0}}
+              Other, 0x102233400, {{0.0, 583.0}, {402.0, 233.0}}
+                Other, 0x102233520, {{0.0, 583.0}, {402.0, 233.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x102233640, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x102233760, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x102233880, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1022339a0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x102233ac0, {{4.7, 590.0}, {35.7, 54.0}}, label: 'Й'
+                  Key, 0x102233be0, {{40.3, 590.0}, {36.0, 54.0}}, label: 'Ц'
+                  Key, 0x102233d00, {{76.3, 590.0}, {36.0, 54.0}}, label: 'У'
+                  Key, 0x102233e20, {{112.3, 590.0}, {35.7, 54.0}}, label: 'К'
+                  Key, 0x102233f40, {{148.0, 590.0}, {36.0, 54.0}}, label: 'Е'
+                  Key, 0x102234060, {{184.0, 590.0}, {36.0, 54.0}}, label: 'Н'
+                  Key, 0x102234180, {{220.0, 590.0}, {36.0, 54.0}}, label: 'Г'
+                  Key, 0x1022342a0, {{256.0, 590.0}, {35.7, 54.0}}, label: 'Ш'
+                  Key, 0x1022343c0, {{291.7, 590.0}, {36.0, 54.0}}, label: 'Щ'
+                  Key, 0x1022344e0, {{327.7, 590.0}, {36.0, 54.0}}, label: 'З'
+                  Key, 0x102234600, {{363.7, 590.0}, {36.0, 54.0}}, label: 'Х'
+                  Key, 0x102234720, {{4.7, 644.0}, {35.7, 54.0}}, label: 'Ф'
+                  Key, 0x102234840, {{40.3, 644.0}, {36.0, 54.0}}, label: 'Ы'
+                  Key, 0x102234960, {{76.3, 644.0}, {36.0, 54.0}}, label: 'В'
+                  Key, 0x102234a80, {{112.3, 644.0}, {35.7, 54.0}}, label: 'А'
+                  Key, 0x102234ba0, {{148.0, 644.0}, {36.0, 54.0}}, label: 'П'
+                  Key, 0x102234cc0, {{184.0, 644.0}, {36.0, 54.0}}, label: 'Р'
+                  Key, 0x102234de0, {{220.0, 644.0}, {36.0, 54.0}}, label: 'О'
+                  Key, 0x102234f00, {{256.0, 644.0}, {35.7, 54.0}}, label: 'Л'
+                  Key, 0x102235020, {{291.7, 644.0}, {36.0, 54.0}}, label: 'Д'
+                  Key, 0x102235140, {{327.7, 644.0}, {36.0, 54.0}}, label: 'Ж'
+                  Key, 0x102235260, {{363.7, 644.0}, {36.0, 54.0}}, label: 'Э'
+                  Button, 0x102235380, {{4.7, 698.0}, {35.7, 54.0}}, identifier: 'shift', label: 'сдвиг', Selected
+                  Key, 0x1022355f0, {{40.3, 698.0}, {36.0, 54.0}}, label: 'Я'
+                  Key, 0x102235710, {{76.3, 698.0}, {36.0, 54.0}}, label: 'Ч'
+                  Key, 0x102235830, {{112.3, 698.0}, {35.7, 54.0}}, label: 'С'
+                  Key, 0x102235950, {{148.0, 698.0}, {36.0, 54.0}}, label: 'М'
+                  Key, 0x102235a70, {{184.0, 698.0}, {36.0, 54.0}}, label: 'И'
+                  Key, 0x102235b90, {{220.0, 698.0}, {36.0, 54.0}}, label: 'Т'
+                  Key, 0x102235cb0, {{256.0, 698.0}, {35.7, 54.0}}, label: 'Ь'
+                  Key, 0x102235dd0, {{291.7, 698.0}, {36.0, 54.0}}, label: 'Б'
+                  Key, 0x102235ef0, {{327.7, 698.0}, {36.0, 54.0}}, label: 'Ю'
+                  Key, 0x102236010, {{363.7, 698.0}, {36.0, 54.0}}, identifier: 'delete', label: 'Удалить'
+                  Key, 0x102236130, {{4.7, 752.0}, {49.3, 54.0}}, identifier: 'more', label: 'цифры'
+                  Button, 0x102236250, {{54.0, 752.0}, {49.3, 54.0}}, identifier: 'emoji', label: 'Эмодзи'
+                  Key, 0x102236370, {{103.3, 752.0}, {197.3, 54.0}}, identifier: 'space', label: ' '
+                  Button, 0x102236490, {{300.7, 752.0}, {99.0, 54.0}}, identifier: 'Return', label: 'Ввод'
+          Other, 0x1022367b0, {{0.0, 583.0}, {402.0, 291.0}}
+            Button, 0x1022368d0, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Next keyboard', value: English (UK)
+              StaticText, 0x1022369f0, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x102236b10, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x102236c30, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x102236d50, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x102236e70, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x1022228a0, pid: 6264, label: 'Искра Тест'
+Query chain:
+ →Find: Application 'com.dany.iskra.debug'
+  Output: {
+    Application, 0x10234d000, pid: 6264, label: 'Искра Тест'
+  }
+
+    t =    13.23s Swipe up Application 'com.dany.iskra.debug'
+    t =    13.23s     Wait for com.dany.iskra.debug to idle
+    t =    13.23s     Find the Application 'com.dany.iskra.debug'
+    t =    13.25s     Check for interrupting elements affecting "Искра Тест" Application
+    t =    13.28s     Synthesize event
+    t =    13.70s     Wait for com.dany.iskra.debug to idle
+    t =    13.71s Checking existence of `"Email" TextField`
+    t =    13.75s Checking existence of `"Пароль" TextField`
+    t =    13.88s Added attachment named '06-after-scroll'
+    t =    13.88s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    14.16s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    14.20s Added attachment named '06-after-scroll-accessibility'
+    t =    14.20s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    14.48s Requesting snapshot of accessibility hierarchy for app with pid 6264
+ISKRA_UI_EVIDENCE 06-after-scroll
+Attributes: Application, 0x102453670, pid: 6264, label: 'Искра Тест'
+Element subtree:
+ →Application, 0x102453670, pid: 6264, label: 'Искра Тест'
+    Window (Main), 0x102453790, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102453b50, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102453c70, {{0.0, 0.0}, {402.0, 874.0}}
+          WebView, 0x1024538b0, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x1024539d0, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x102453d90, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x102453eb0, {{0.0, 0.0}, {402.0, 875.0}}
+                  Other, 0x102453fd0, {{0.0, 0.0}, {402.0, 875.0}}
+                    Other, 0x1024540f0, {{0.0, -90.0}, {402.0, 875.0}}
+                      Other, 0x102454210, {{0.0, -90.0}, {402.0, 875.0}}, label: 'Искра — Кабинет учителя'
+                        StaticText, 0x102454330, {{95.0, 13.0}, {57.0, 24.0}}, label: 'Искра', value: Искра
+                        Other, 0x102454450, {{49.0, 63.0}, {304.0, 33.0}}, label: 'Вход для преподавателя', value: 1
+                          StaticText, 0x102454570, {{49.0, 63.0}, {303.0, 33.0}}, label: 'Вход для преподавателя', value: Вход для преподава...
+                        Other, 0x102454690, {{49.0, 100.0}, {304.0, 19.0}}
+                          StaticText, 0x1024547b0, {{49.0, 100.0}, {126.0, 19.0}}, label: 'Войдите в аккаунт', value: Войдите в аккаунт
+                        Other, 0x1024548d0, {{49.0, 140.0}, {304.0, 216.0}}, label: 'форма'
+                          TextField, 0x1024549f0, {{49.0, 140.0}, {304.0, 55.0}}, placeholderValue: 'Email', value: ui-only@example.in...
+                          Other, 0x102454b10, {{49.0, 208.0}, {304.0, 55.0}}
+                            TextField, 0x102454c30, {{49.0, 208.0}, {304.0, 55.0}}, placeholderValue: 'Пароль', value: UI-only-not-submit..., Keyboard Focused, Focused
+                            Button, 0x102454d50, {{310.0, 219.0}, {33.0, 33.0}}, label: 'Показать пароль'
+                          StaticText, 0x102454e70, {{245.0, 272.0}, {108.0, 18.0}}, label: 'Забыли пароль?', value: Забыли пароль?
+                          Button, 0x102454f90, {{49.0, 307.0}, {304.0, 49.0}}, label: 'Войти'
+                        StaticText, 0x1024550b0, {{147.0, 369.0}, {108.0, 16.0}}, label: 'или продолжить с', value: или продолжить с
+                        Button, 0x1024551d0, {{49.0, 395.0}, {304.0, 49.0}}, label: 'Продолжить с Apple ID'
+                        Button, 0x1024552f0, {{49.0, 453.0}, {304.0, 49.0}}, label: 'Продолжить с Google'
+                        Other, 0x102455410, {{49.0, 513.0}, {304.0, 33.0}}
+                          Link, 0x102455530, {{87.0, 514.0}, {174.0, 15.0}}, label: 'Политика конфиденциальности'
+                            StaticText, 0x102455650, {{87.0, 514.0}, {174.0, 15.0}}, label: 'Политика конфиденциальности', value: Политика конфиденц...
+                          StaticText, 0x102455770, {{260.0, 514.0}, {11.0, 15.0}}, label: '·', value:  · 
+                          Link, 0x102455890, {{159.0, 514.0}, {156.0, 31.0}}, label: 'Условия использования'
+                            StaticText, 0x1024559b0, {{159.0, 514.0}, {156.0, 31.0}}, label: 'Условия использования', value: Условия использова...
+                        Other, 0x102455ad0, {{49.0, 559.0}, {304.0, 45.0}}
+                          Button, 0x102455bf0, {{49.0, 559.0}, {304.0, 45.0}}, label: 'Войти по коду из письма'
+                        Other, 0x102455d10, {{49.0, 623.0}, {304.0, 37.0}}
+                          StaticText, 0x102455e30, {{51.0, 623.0}, {300.0, 37.0}}, label: 'Аккаунт создаётся по ссылке-приглашению от администратора.', value: Аккаунт создаётся ...
+                        Button, 0x102455f50, {{49.0, 669.0}, {304.0, 18.0}}, label: '← Выбрать роль'
+              Other, 0x102456070, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 22 %
+                Other, 0x102456190, {{396.0, 91.0}, {3.0, 252.7}}
+              Other, 0x1024562b0, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x1024563d0, {{65.0, 431.0}, {272.0, 3.0}}
+              Other, 0x1024564f0, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 22 %
+                Other, 0x102456610, {{396.0, 91.0}, {3.0, 252.7}}
+              Other, 0x102456730, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x102456850, {{65.0, 431.0}, {272.0, 3.0}}
+    Window, 0x102456970, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102456a90, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102456bb0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102456cd0, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x102456df0, {{0.0, 471.0}, {402.0, 68.0}}
+            Other, 0x102456f10, {{0.0, 471.0}, {402.0, 68.0}}
+              Toolbar, 0x102457030, {{0.0, 481.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Other, 0x102457150, {{0.0, 481.0}, {402.0, 48.0}}
+                  Other, 0x102457270, {{16.0, 481.0}, {370.0, 48.0}}
+                    Other, 0x102457390, {{16.0, 481.0}, {370.0, 48.0}}
+                      Other, 0x1024574b0, {{16.0, 481.0}, {0.0, 0.0}}
+                        Other, 0x1024575d0, {{16.0, 481.0}, {370.0, 48.0}}
+                          Other, 0x1024576f0, {{16.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102457810, {{21.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102457930, {{21.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102457a50, {{21.0, 486.0}, {40.0, 38.0}}, label: 'Previous'
+                          Other, 0x102457b70, {{70.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102457c90, {{75.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102457db0, {{75.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102457ed0, {{75.0, 486.0}, {40.0, 38.0}}, label: 'Next', Disabled
+                          Other, 0x102457ff0, {{336.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102458110, {{341.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102458230, {{341.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102458350, {{341.0, 486.0}, {40.0, 38.0}}, label: 'Done'
+          Other, 0x102458470, {{0.0, 539.0}, {402.0, 335.0}}, identifier: 'inputView'
+    Window, 0x102458590, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1024586b0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1024587d0, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x1024588f0, {{0.0, 471.0}, {402.0, 68.0}}
+          Other, 0x102458a10, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x102458b30, {{0.0, 539.0}, {402.0, 44.0}}
+              Other, 0x102458c50, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x102458d70, {{0.0, -61.0}, {402.0, 1244.0}}
+                  ScrollView, 0x102458e90, {{0.0, 539.0}, {402.0, 44.0}}
+                Other, 0x102458fb0, {{0.0, 539.0}, {402.0, 44.0}}
+                  Other, 0x1024590d0, {{0.0, 539.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                    Other, 0x1024591f0, {{0.0, 539.0}, {402.0, 44.0}}
+                      Other, 0x10244efd0, {{0.0, 539.0}, {402.0, 44.0}}
+                        Other, 0x10244f0f0, {{0.0, 539.0}, {134.0, 44.0}}
+                        Other, 0x10244f210, {{134.0, 539.0}, {134.0, 44.0}}
+                        Other, 0x10244f330, {{268.0, 539.0}, {134.0, 44.0}}
+          Other, 0x10244f450, {{0.0, 539.0}, {402.0, 335.0}}
+            Other, 0x10244f570, {{0.0, 539.0}, {402.0, 335.0}}
+              Other, 0x10244f690, {{0.0, 539.0}, {402.0, 335.0}}
+          Other, 0x10244f7b0, {{0.0, 583.0}, {402.0, 233.0}}
+            Keyboard, 0x10244f8d0, {{0.0, 583.0}, {402.0, 233.0}}
+              Other, 0x10244f9f0, {{0.0, 583.0}, {402.0, 233.0}}
+                Other, 0x10244fb10, {{0.0, 583.0}, {402.0, 233.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x10244fc30, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10244fd50, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10244fe70, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10244ff90, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1024500b0, {{4.7, 590.0}, {35.7, 54.0}}, label: 'Й'
+                  Key, 0x1024501d0, {{40.3, 590.0}, {36.0, 54.0}}, label: 'Ц'
+                  Key, 0x1024502f0, {{76.3, 590.0}, {36.0, 54.0}}, label: 'У'
+                  Key, 0x102450410, {{112.3, 590.0}, {35.7, 54.0}}, label: 'К'
+                  Key, 0x102450530, {{148.0, 590.0}, {36.0, 54.0}}, label: 'Е'
+                  Key, 0x102450650, {{184.0, 590.0}, {36.0, 54.0}}, label: 'Н'
+                  Key, 0x102450770, {{220.0, 590.0}, {36.0, 54.0}}, label: 'Г'
+                  Key, 0x102450890, {{256.0, 590.0}, {35.7, 54.0}}, label: 'Ш'
+                  Key, 0x1024509b0, {{291.7, 590.0}, {36.0, 54.0}}, label: 'Щ'
+                  Key, 0x102450ad0, {{327.7, 590.0}, {36.0, 54.0}}, label: 'З'
+                  Key, 0x102450bf0, {{363.7, 590.0}, {36.0, 54.0}}, label: 'Х'
+                  Key, 0x102450d10, {{4.7, 644.0}, {35.7, 54.0}}, label: 'Ф'
+                  Key, 0x102459f00, {{40.3, 644.0}, {36.0, 54.0}}, label: 'Ы'
+                  Key, 0x10245a020, {{76.3, 644.0}, {36.0, 54.0}}, label: 'В'
+                  Key, 0x10245a140, {{112.3, 644.0}, {35.7, 54.0}}, label: 'А'
+                  Key, 0x10245a260, {{148.0, 644.0}, {36.0, 54.0}}, label: 'П'
+                  Key, 0x10245a380, {{184.0, 644.0}, {36.0, 54.0}}, label: 'Р'
+                  Key, 0x10245a4a0, {{220.0, 644.0}, {36.0, 54.0}}, label: 'О'
+                  Key, 0x10245a5c0, {{256.0, 644.0}, {35.7, 54.0}}, label: 'Л'
+                  Key, 0x10245a6e0, {{291.7, 644.0}, {36.0, 54.0}}, label: 'Д'
+                  Key, 0x10245a800, {{327.7, 644.0}, {36.0, 54.0}}, label: 'Ж'
+                  Key, 0x10245a920, {{363.7, 644.0}, {36.0, 54.0}}, label: 'Э'
+                  Button, 0x10245aa40, {{4.7, 698.0}, {35.7, 54.0}}, identifier: 'shift', label: 'сдвиг', Selected
+                  Key, 0x10245acb0, {{40.3, 698.0}, {36.0, 54.0}}, label: 'Я'
+                  Key, 0x10245add0, {{76.3, 698.0}, {36.0, 54.0}}, label: 'Ч'
+                  Key, 0x10245aef0, {{112.3, 698.0}, {35.7, 54.0}}, label: 'С'
+                  Key, 0x10245b010, {{148.0, 698.0}, {36.0, 54.0}}, label: 'М'
+                  Key, 0x10245b130, {{184.0, 698.0}, {36.0, 54.0}}, label: 'И'
+                  Key, 0x10245b250, {{220.0, 698.0}, {36.0, 54.0}}, label: 'Т'
+                  Key, 0x10245b370, {{256.0, 698.0}, {35.7, 54.0}}, label: 'Ь'
+                  Key, 0x10245b490, {{291.7, 698.0}, {36.0, 54.0}}, label: 'Б'
+                  Key, 0x10245b5b0, {{327.7, 698.0}, {36.0, 54.0}}, label: 'Ю'
+                  Key, 0x10245b6d0, {{363.7, 698.0}, {36.0, 54.0}}, identifier: 'delete', label: 'Удалить'
+                  Key, 0x10245b7f0, {{4.7, 752.0}, {49.3, 54.0}}, identifier: 'more', label: 'цифры'
+                  Button, 0x10245b910, {{54.0, 752.0}, {49.3, 54.0}}, identifier: 'emoji', label: 'Эмодзи'
+                  Key, 0x10245ba30, {{103.3, 752.0}, {197.3, 54.0}}, identifier: 'space', label: ' '
+                  Button, 0x10245bb50, {{300.7, 752.0}, {99.0, 54.0}}, identifier: 'Return', label: 'Ввод'
+          Other, 0x10245be70, {{0.0, 583.0}, {402.0, 291.0}}
+            Button, 0x10245bf90, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Next keyboard', value: English (UK)
+              StaticText, 0x10245c0b0, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x10245c1d0, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x10245c2f0, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x10245c410, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x10245c530, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x102453670, pid: 6264, label: 'Искра Тест'
+Query chain:
+ →Find: Application 'com.dany.iskra.debug'
+  Output: {
+    Application, 0x102551cd0, pid: 6264, label: 'Искра Тест'
+  }
+
+    t =    14.53s Press Application 'com.dany.iskra.debug'[0.01, 0.38] for 0.1 seconds, then drag to Application 'com.dany.iskra.debug'[0.65, 0.40] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    14.53s     Wait for com.dany.iskra.debug to idle
+    t =    14.53s     Find the Application 'com.dany.iskra.debug'
+    t =    14.55s     Check for interrupting elements affecting "Искра Тест" Application
+    t =    14.57s     Synthesize event
+    t =    14.58s         Find the Application 'com.dany.iskra.debug'
+    t =    14.59s         Find the Application 'com.dany.iskra.debug'
+    t =    14.61s         Find the Application 'com.dany.iskra.debug'
+    t =    14.63s         Find the Application 'com.dany.iskra.debug'
+    t =    14.65s         Find the Application 'com.dany.iskra.debug'
+    t =    15.48s     Wait for com.dany.iskra.debug to idle
+    t =    15.48s Checking existence of `"Email" TextField`
+    t =    15.52s Checking existence of `"Пароль" TextField`
+    t =    15.64s Added attachment named '07-after-edge-gesture'
+    t =    15.64s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    15.92s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    15.96s Added attachment named '07-after-edge-gesture-accessibility'
+    t =    15.96s Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    16.24s Requesting snapshot of accessibility hierarchy for app with pid 6264
+ISKRA_UI_EVIDENCE 07-after-edge-gesture
+Attributes: Application, 0x102320a20, pid: 6264, label: 'Искра Тест'
+Element subtree:
+ →Application, 0x102320a20, pid: 6264, label: 'Искра Тест'
+    Window (Main), 0x10231dba0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102328650, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102328d50, {{0.0, 0.0}, {402.0, 874.0}}
+          WebView, 0x102320340, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x102319790, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10231eb30, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x102320d80, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1023206d0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1023290e0, {{0.0, -82.0}, {402.0, 874.0}}
+                      Other, 0x102327f60, {{0.0, -82.0}, {402.0, 874.0}}, label: 'Искра — Кабинет учителя'
+                        StaticText, 0x10231d840, {{95.0, 21.0}, {57.0, 23.0}}, label: 'Искра', value: Искра
+                        Other, 0x10231eea0, {{49.0, 71.0}, {304.0, 32.0}}, label: 'Вход для преподавателя', value: 1
+                          StaticText, 0x102327460, {{49.0, 71.0}, {303.0, 32.0}}, label: 'Вход для преподавателя', value: Вход для преподава...
+                        Other, 0x102329450, {{49.0, 108.0}, {304.0, 18.0}}
+                          StaticText, 0x1023289d0, {{49.0, 108.0}, {126.0, 18.0}}, label: 'Войдите в аккаунт', value: Войдите в аккаунт
+                        Other, 0x10231e270, {{49.0, 148.0}, {304.0, 215.0}}, label: 'форма'
+                          TextField, 0x10233df90, {{49.0, 148.0}, {304.0, 54.0}}, placeholderValue: 'Email', value: ui-only@example.in...
+                          Other, 0x10233e2e0, {{49.0, 216.0}, {304.0, 54.0}}
+                            TextField, 0x10233bb20, {{49.0, 216.0}, {304.0, 54.0}}, placeholderValue: 'Пароль', value: UI-only-not-submit..., Keyboard Focused, Focused
+                            Button, 0x1023270d0, {{310.0, 227.0}, {33.0, 32.0}}, label: 'Показать пароль'
+                          StaticText, 0x10233ed50, {{245.0, 280.0}, {108.0, 17.0}}, label: 'Забыли пароль?', value: Забыли пароль?
+                          Button, 0x10233e9d0, {{49.0, 315.0}, {304.0, 48.0}}, label: 'Войти'
+                        StaticText, 0x1023450c0, {{147.0, 377.0}, {108.0, 15.0}}, label: 'или продолжить с', value: или продолжить с
+                        Button, 0x102344670, {{49.0, 403.0}, {304.0, 48.0}}, label: 'Продолжить с Apple ID'
+                        Button, 0x102330ad0, {{49.0, 461.0}, {304.0, 48.0}}, label: 'Продолжить с Google'
+                        Other, 0x102330410, {{49.0, 521.0}, {304.0, 32.0}}
+                          Link, 0x10232f900, {{87.0, 522.0}, {174.0, 14.0}}, label: 'Политика конфиденциальности'
+                            StaticText, 0x102339830, {{87.0, 522.0}, {174.0, 14.0}}, label: 'Политика конфиденциальности', value: Политика конфиденц...
+                          StaticText, 0x102340530, {{260.0, 522.0}, {11.0, 14.0}}, label: '·', value:  · 
+                          Link, 0x10234be80, {{159.0, 522.0}, {156.0, 30.0}}, label: 'Условия использования'
+                            StaticText, 0x1023190a0, {{159.0, 522.0}, {156.0, 30.0}}, label: 'Условия использования', value: Условия использова...
+                        Other, 0x102342750, {{49.0, 567.0}, {304.0, 44.0}}
+                          Button, 0x102326640, {{49.0, 567.0}, {304.0, 44.0}}, label: 'Войти по коду из письма'
+                        Other, 0x10233fb10, {{49.0, 631.0}, {304.0, 36.0}}
+                          StaticText, 0x102341d00, {{51.0, 631.0}, {300.0, 36.0}}, label: 'Аккаунт создаётся по ссылке-приглашению от администратора.', value: Аккаунт создаётся ...
+                        Button, 0x10234d000, {{49.0, 677.0}, {304.0, 17.0}}, label: '← Выбрать роль'
+              Other, 0x10233d0b0, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 20 %
+                Other, 0x102342e60, {{396.0, 88.7}, {3.0, 252.7}}
+              Other, 0x102343c30, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x1023438d0, {{65.0, 431.0}, {272.0, 3.0}}
+              Other, 0x1023431b0, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 20 %
+                Other, 0x102341970, {{396.0, 88.7}, {3.0, 252.7}}
+              Other, 0x102342400, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x102340bd0, {{65.0, 431.0}, {272.0, 3.0}}
+    Window, 0x102340f20, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1023415f0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102343550, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102342060, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x102353120, {{0.0, 471.0}, {402.0, 68.0}}
+            Other, 0x102352a40, {{0.0, 471.0}, {402.0, 68.0}}
+              Toolbar, 0x102352dc0, {{0.0, 481.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Other, 0x102352360, {{0.0, 481.0}, {402.0, 48.0}}
+                  Other, 0x102352000, {{16.0, 481.0}, {370.0, 48.0}}
+                    Other, 0x102350ee0, {{16.0, 481.0}, {370.0, 48.0}}
+                      Other, 0x102351910, {{16.0, 481.0}, {0.0, 0.0}}
+                        Other, 0x102351c90, {{16.0, 481.0}, {370.0, 48.0}}
+                          Other, 0x1023515b0, {{16.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102351260, {{21.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102350800, {{21.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102350b80, {{21.0, 486.0}, {40.0, 38.0}}, label: 'Previous'
+                          Other, 0x10234f2a0, {{70.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x10234e870, {{75.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x10233fe80, {{75.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x10234ef40, {{75.0, 486.0}, {40.0, 38.0}}, label: 'Next', Disabled
+                          Other, 0x10234e4f0, {{336.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x10234e160, {{341.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x10234da60, {{341.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x10234de00, {{341.0, 486.0}, {40.0, 38.0}}, label: 'Done'
+          Other, 0x10233f410, {{0.0, 539.0}, {402.0, 335.0}}, identifier: 'inputView'
+    Window, 0x10233e650, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102340880, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102341290, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x10233f7a0, {{0.0, 471.0}, {402.0, 68.0}}
+          Other, 0x1023258b0, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x1023401c0, {{0.0, 539.0}, {402.0, 44.0}}
+              Other, 0x10234d360, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x1023262c0, {{0.0, -61.0}, {402.0, 1244.0}}
+                  ScrollView, 0x102343f90, {{0.0, 539.0}, {402.0, 44.0}}
+                Other, 0x10231fc70, {{0.0, 539.0}, {402.0, 44.0}}
+                  Other, 0x10233ad70, {{0.0, 539.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                    Other, 0x1023534a0, {{0.0, 539.0}, {402.0, 44.0}}
+                      Other, 0x102353800, {{0.0, 539.0}, {402.0, 44.0}}
+                        Other, 0x102353ed0, {{0.0, 539.0}, {134.0, 44.0}}
+                        Other, 0x102354250, {{134.0, 539.0}, {134.0, 44.0}}
+                        Other, 0x1023526c0, {{268.0, 539.0}, {134.0, 44.0}}
+          Other, 0x102353b70, {{0.0, 539.0}, {402.0, 335.0}}
+            Other, 0x1023545b0, {{0.0, 539.0}, {402.0, 335.0}}
+              Other, 0x102354950, {{0.0, 539.0}, {402.0, 335.0}}
+          Other, 0x102354cc0, {{0.0, 583.0}, {402.0, 233.0}}
+            Keyboard, 0x1023553c0, {{0.0, 583.0}, {402.0, 233.0}}
+              Other, 0x102355e30, {{0.0, 583.0}, {402.0, 233.0}}
+                Other, 0x102355ac0, {{0.0, 583.0}, {402.0, 233.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x1023561b0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x102355040, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x102356880, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x102356510, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x102355730, {{4.7, 590.0}, {35.7, 54.0}}, label: 'Й'
+                  Key, 0x102356bf0, {{40.3, 590.0}, {36.0, 54.0}}, label: 'Ц'
+                  Key, 0x1023572a0, {{76.3, 590.0}, {36.0, 54.0}}, label: 'У'
+                  Key, 0x102356f50, {{112.3, 590.0}, {35.7, 54.0}}, label: 'К'
+                  Key, 0x102357620, {{148.0, 590.0}, {36.0, 54.0}}, label: 'Е'
+                  Key, 0x102357980, {{184.0, 590.0}, {36.0, 54.0}}, label: 'Н'
+                  Key, 0x102357d20, {{220.0, 590.0}, {36.0, 54.0}}, label: 'Г'
+                  Key, 0x1023580c0, {{256.0, 590.0}, {35.7, 54.0}}, label: 'Ш'
+                  Key, 0x102358430, {{291.7, 590.0}, {36.0, 54.0}}, label: 'Щ'
+                  Key, 0x1023587a0, {{327.7, 590.0}, {36.0, 54.0}}, label: 'З'
+                  Key, 0x102358af0, {{363.7, 590.0}, {36.0, 54.0}}, label: 'Х'
+                  Key, 0x102358e70, {{4.7, 644.0}, {35.7, 54.0}}, label: 'Ф'
+                  Key, 0x1023591c0, {{40.3, 644.0}, {36.0, 54.0}}, label: 'Ы'
+                  Key, 0x102359890, {{76.3, 644.0}, {36.0, 54.0}}, label: 'В'
+                  Key, 0x102359bf0, {{112.3, 644.0}, {35.7, 54.0}}, label: 'А'
+                  Key, 0x102359f80, {{148.0, 644.0}, {36.0, 54.0}}, label: 'П'
+                  Key, 0x10235a660, {{184.0, 644.0}, {36.0, 54.0}}, label: 'Р'
+                  Key, 0x10235a9c0, {{220.0, 644.0}, {36.0, 54.0}}, label: 'О'
+                  Key, 0x10235ad20, {{256.0, 644.0}, {35.7, 54.0}}, label: 'Л'
+                  Key, 0x10235b070, {{291.7, 644.0}, {36.0, 54.0}}, label: 'Д'
+                  Key, 0x10235a2e0, {{327.7, 644.0}, {36.0, 54.0}}, label: 'Ж'
+                  Key, 0x10235b3b0, {{363.7, 644.0}, {36.0, 54.0}}, label: 'Э'
+                  Button, 0x10235b720, {{4.7, 698.0}, {35.7, 54.0}}, identifier: 'shift', label: 'сдвиг', Selected
+                  Key, 0x10235c4a0, {{40.3, 698.0}, {36.0, 54.0}}, label: 'Я'
+                  Key, 0x10235c800, {{76.3, 698.0}, {36.0, 54.0}}, label: 'Ч'
+                  Key, 0x10235bdf0, {{112.3, 698.0}, {35.7, 54.0}}, label: 'С'
+                  Key, 0x10235cb50, {{148.0, 698.0}, {36.0, 54.0}}, label: 'М'
+                  Key, 0x10235ced0, {{184.0, 698.0}, {36.0, 54.0}}, label: 'И'
+                  Key, 0x102359530, {{220.0, 698.0}, {36.0, 54.0}}, label: 'Т'
+                  Key, 0x10235c150, {{256.0, 698.0}, {35.7, 54.0}}, label: 'Ь'
+                  Key, 0x10235d240, {{291.7, 698.0}, {36.0, 54.0}}, label: 'Б'
+                  Key, 0x10235d5b0, {{327.7, 698.0}, {36.0, 54.0}}, label: 'Ю'
+                  Key, 0x10235dc80, {{363.7, 698.0}, {36.0, 54.0}}, identifier: 'delete', label: 'Удалить'
+                  Key, 0x10235dfe0, {{4.7, 752.0}, {49.3, 54.0}}, identifier: 'more', label: 'цифры'
+                  Button, 0x10235e370, {{54.0, 752.0}, {49.3, 54.0}}, identifier: 'emoji', label: 'Эмодзи'
+                  Key, 0x10235e700, {{103.3, 752.0}, {197.3, 54.0}}, identifier: 'space', label: ' '
+                  Button, 0x10235ea70, {{300.7, 752.0}, {99.0, 54.0}}, identifier: 'Return', label: 'Ввод'
+          Other, 0x10235edd0, {{0.0, 583.0}, {402.0, 291.0}}
+            Button, 0x10235f170, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Next keyboard', value: English (UK)
+              StaticText, 0x10235f4d0, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x10235f860, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x10235fbd0, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x10235d910, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x10235ff40, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x102320a20, pid: 6264, label: 'Искра Тест'
+Query chain:
+ →Find: Application 'com.dany.iskra.debug'
+  Output: {
+    Application, 0x102654a60, pid: 6264, label: 'Искра Тест'
+  }
+
+    t =    16.29s Tear Down
+    t =    16.37s     Added attachment named 'final-state'
+    t =    16.37s     Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    16.64s     Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    16.69s     Added attachment named 'final-state-accessibility'
+    t =    16.69s     Requesting snapshot of accessibility hierarchy for app with pid 6264
+    t =    17.12s     Requesting snapshot of accessibility hierarchy for app with pid 6264
+ISKRA_UI_EVIDENCE final-state
+Attributes: Application, 0x10230b760, pid: 6264, label: 'Искра Тест'
+Element subtree:
+ →Application, 0x10230b760, pid: 6264, label: 'Искра Тест'
+    Window (Main), 0x102373e30, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10235e700, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10235e370, {{0.0, 0.0}, {402.0, 874.0}}
+          WebView, 0x102425970, {{0.0, 0.0}, {402.0, 874.0}}
+            WebView, 0x10242e790, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10242f450, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10242e410, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x102421420, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x102426e10, {{0.0, -82.0}, {402.0, 874.0}}
+                      Other, 0x102425c90, {{0.0, -82.0}, {402.0, 874.0}}, label: 'Искра — Кабинет учителя'
+                        StaticText, 0x10220bf10, {{95.0, 21.0}, {57.0, 23.0}}, label: 'Искра', value: Искра
+                        Other, 0x1024268c0, {{49.0, 71.0}, {304.0, 32.0}}, label: 'Вход для преподавателя', value: 1
+                          StaticText, 0x102409030, {{49.0, 71.0}, {303.0, 32.0}}, label: 'Вход для преподавателя', value: Вход для преподава...
+                        Other, 0x10242b0d0, {{49.0, 108.0}, {304.0, 18.0}}
+                          StaticText, 0x10242b1f0, {{49.0, 108.0}, {126.0, 18.0}}, label: 'Войдите в аккаунт', value: Войдите в аккаунт
+                        Other, 0x10242fdb0, {{49.0, 148.0}, {304.0, 215.0}}, label: 'форма'
+                          TextField, 0x10242fed0, {{49.0, 148.0}, {304.0, 54.0}}, placeholderValue: 'Email', value: ui-only@example.in...
+                          Other, 0x10242a650, {{49.0, 216.0}, {304.0, 54.0}}
+                            TextField, 0x1026365e0, {{49.0, 216.0}, {304.0, 54.0}}, placeholderValue: 'Пароль', value: UI-only-not-submit..., Keyboard Focused, Focused
+                            Button, 0x10242a770, {{310.0, 227.0}, {33.0, 32.0}}, label: 'Показать пароль'
+                          StaticText, 0x1024315c0, {{245.0, 280.0}, {108.0, 17.0}}, label: 'Забыли пароль?', value: Забыли пароль?
+                          Button, 0x1024316e0, {{49.0, 315.0}, {304.0, 48.0}}, label: 'Войти'
+                        StaticText, 0x102431800, {{147.0, 377.0}, {108.0, 15.0}}, label: 'или продолжить с', value: или продолжить с
+                        Button, 0x102110c50, {{49.0, 403.0}, {304.0, 48.0}}, label: 'Продолжить с Apple ID'
+                        Button, 0x1021188d0, {{49.0, 461.0}, {304.0, 48.0}}, label: 'Продолжить с Google'
+                        Other, 0x102119fe0, {{49.0, 521.0}, {304.0, 32.0}}
+                          Link, 0x102119a70, {{87.0, 522.0}, {174.0, 14.0}}, label: 'Политика конфиденциальности'
+                            StaticText, 0x1021196e0, {{87.0, 522.0}, {174.0, 14.0}}, label: 'Политика конфиденциальности', value: Политика конфиденц...
+                          StaticText, 0x10211af70, {{260.0, 522.0}, {11.0, 14.0}}, label: '·', value:  · 
+                          Link, 0x10211d640, {{159.0, 522.0}, {156.0, 30.0}}, label: 'Условия использования'
+                            StaticText, 0x10211d9d0, {{159.0, 522.0}, {156.0, 30.0}}, label: 'Условия использования', value: Условия использова...
+                        Other, 0x10211d2b0, {{49.0, 567.0}, {304.0, 44.0}}
+                          Button, 0x10211b680, {{49.0, 567.0}, {304.0, 44.0}}, label: 'Войти по коду из письма'
+                        Other, 0x10211cbb0, {{49.0, 631.0}, {304.0, 36.0}}
+                          StaticText, 0x10211bda0, {{51.0, 631.0}, {300.0, 36.0}}, label: 'Аккаунт создаётся по ссылке-приглашению от администратора.', value: Аккаунт создаётся ...
+                        Button, 0x10211cf30, {{49.0, 677.0}, {304.0, 17.0}}, label: '← Выбрать роль'
+              Other, 0x102118c50, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 20 %
+                Other, 0x10211c830, {{396.0, 88.7}, {3.0, 252.7}}
+              Other, 0x10211b2f0, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x10211c4a0, {{65.0, 431.0}, {272.0, 3.0}}
+              Other, 0x10211c120, {{369.0, 62.0}, {30.0, 375.0}}, label: 'Vertical scroll bar, 2 pages', value: 20 %
+                Other, 0x10211ba00, {{396.0, 88.7}, {3.0, 252.7}}
+              Other, 0x10211a860, {{62.0, 404.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                Other, 0x102117f40, {{65.0, 431.0}, {272.0, 3.0}}
+    Window, 0x10210c5d0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102114c40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10211e190, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10210d710, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x102121600, {{0.0, 471.0}, {402.0, 68.0}}
+            Other, 0x102121720, {{0.0, 471.0}, {402.0, 68.0}}
+              Toolbar, 0x102533570, {{0.0, 481.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Other, 0x102533690, {{0.0, 481.0}, {402.0, 48.0}}
+                  Other, 0x1025337b0, {{16.0, 481.0}, {370.0, 48.0}}
+                    Other, 0x1025338d0, {{16.0, 481.0}, {370.0, 48.0}}
+                      Other, 0x1025339f0, {{16.0, 481.0}, {0.0, 0.0}}
+                        Other, 0x102533b10, {{16.0, 481.0}, {370.0, 48.0}}
+                          Other, 0x102533c30, {{16.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102533d50, {{21.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102533e70, {{21.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102533f90, {{21.0, 486.0}, {40.0, 38.0}}, label: 'Previous'
+                          Other, 0x1025340b0, {{70.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x1025341d0, {{75.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x102121840, {{75.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x102121960, {{75.0, 486.0}, {40.0, 38.0}}, label: 'Next', Disabled
+                          Other, 0x102121a80, {{336.0, 481.0}, {50.0, 48.0}}
+                            Other, 0x102217720, {{341.0, 486.0}, {40.0, 38.0}}
+                              Other, 0x1022111b0, {{341.0, 486.0}, {40.0, 38.0}}
+                                Button, 0x10220de90, {{341.0, 486.0}, {40.0, 38.0}}, label: 'Done'
+          Other, 0x102636e40, {{0.0, 539.0}, {402.0, 335.0}}, identifier: 'inputView'
+    Window, 0x102636f60, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102637080, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1026371a0, {{0.0, 471.0}, {402.0, 403.0}}
+          Other, 0x1026372c0, {{0.0, 471.0}, {402.0, 68.0}}
+          Other, 0x1026373e0, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x102634680, {{0.0, 539.0}, {402.0, 44.0}}
+              Other, 0x1026347a0, {{0.0, 539.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x1026348c0, {{0.0, -61.0}, {402.0, 1244.0}}
+                  ScrollView, 0x1026349e0, {{0.0, 539.0}, {402.0, 44.0}}
+                Other, 0x102634b00, {{0.0, 539.0}, {402.0, 44.0}}
+                  Other, 0x102634c20, {{0.0, 539.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                    Other, 0x102634d40, {{0.0, 539.0}, {402.0, 44.0}}
+                      Other, 0x102634e60, {{0.0, 539.0}, {402.0, 44.0}}
+                        Other, 0x102634f80, {{0.0, 539.0}, {134.0, 44.0}}
+                        Other, 0x1026350a0, {{134.0, 539.0}, {134.0, 44.0}}
+                        Other, 0x1026351c0, {{268.0, 539.0}, {134.0, 44.0}}
+          Other, 0x1026352e0, {{0.0, 539.0}, {402.0, 335.0}}
+            Other, 0x102635400, {{0.0, 539.0}, {402.0, 335.0}}
+              Other, 0x102635520, {{0.0, 539.0}, {402.0, 335.0}}
+          Other, 0x102635640, {{0.0, 583.0}, {402.0, 233.0}}
+            Keyboard, 0x102635760, {{0.0, 583.0}, {402.0, 233.0}}
+              Other, 0x10263a260, {{0.0, 583.0}, {402.0, 233.0}}
+                Other, 0x10263a380, {{0.0, 583.0}, {402.0, 233.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x10263a4a0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10263a5c0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10263a6e0, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10263a800, {{0.0, 583.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10263a920, {{4.7, 590.0}, {35.7, 54.0}}, label: 'Й'
+                  Key, 0x10263aa40, {{40.3, 590.0}, {36.0, 54.0}}, label: 'Ц'
+                  Key, 0x10263ab60, {{76.3, 590.0}, {36.0, 54.0}}, label: 'У'
+                  Key, 0x10263ac80, {{112.3, 590.0}, {35.7, 54.0}}, label: 'К'
+                  Key, 0x10263ada0, {{148.0, 590.0}, {36.0, 54.0}}, label: 'Е'
+                  Key, 0x10263aec0, {{184.0, 590.0}, {36.0, 54.0}}, label: 'Н'
+                  Key, 0x10263afe0, {{220.0, 590.0}, {36.0, 54.0}}, label: 'Г'
+                  Key, 0x10263b100, {{256.0, 590.0}, {35.7, 54.0}}, label: 'Ш'
+                  Key, 0x102216e40, {{291.7, 590.0}, {36.0, 54.0}}, label: 'Щ'
+                  Key, 0x10a904080, {{327.7, 590.0}, {36.0, 54.0}}, label: 'З'
+                  Key, 0x10263b220, {{363.7, 590.0}, {36.0, 54.0}}, label: 'Х'
+                  Key, 0x10263b340, {{4.7, 644.0}, {35.7, 54.0}}, label: 'Ф'
+                  Key, 0x1022163d0, {{40.3, 644.0}, {36.0, 54.0}}, label: 'Ы'
+                  Key, 0x102216750, {{76.3, 644.0}, {36.0, 54.0}}, label: 'В'
+                  Key, 0x10221aec0, {{112.3, 644.0}, {35.7, 54.0}}, label: 'А'
+                  Key, 0x10220fa30, {{148.0, 644.0}, {36.0, 54.0}}, label: 'П'
+                  Key, 0x1022086c0, {{184.0, 644.0}, {36.0, 54.0}}, label: 'Р'
+                  Key, 0x1022087e0, {{220.0, 644.0}, {36.0, 54.0}}, label: 'О'
+                  Key, 0x10263b460, {{256.0, 644.0}, {35.7, 54.0}}, label: 'Л'
+                  Key, 0x10263b580, {{291.7, 644.0}, {36.0, 54.0}}, label: 'Д'
+                  Key, 0x10263b6a0, {{327.7, 644.0}, {36.0, 54.0}}, label: 'Ж'
+                  Key, 0x10263b7c0, {{363.7, 644.0}, {36.0, 54.0}}, label: 'Э'
+                  Button, 0x10263b8e0, {{4.7, 698.0}, {35.7, 54.0}}, identifier: 'shift', label: 'сдвиг', Selected
+                  Key, 0x10263bb50, {{40.3, 698.0}, {36.0, 54.0}}, label: 'Я'
+                  Key, 0x10263bc70, {{76.3, 698.0}, {36.0, 54.0}}, label: 'Ч'
+                  Key, 0x10263bd90, {{112.3, 698.0}, {35.7, 54.0}}, label: 'С'
+                  Key, 0x10263beb0, {{148.0, 698.0}, {36.0, 54.0}}, label: 'М'
+                  Key, 0x10263bfd0, {{184.0, 698.0}, {36.0, 54.0}}, label: 'И'
+                  Key, 0x10263c0f0, {{220.0, 698.0}, {36.0, 54.0}}, label: 'Т'
+                  Key, 0x10263c210, {{256.0, 698.0}, {35.7, 54.0}}, label: 'Ь'
+                  Key, 0x10263c330, {{291.7, 698.0}, {36.0, 54.0}}, label: 'Б'
+                  Key, 0x10263c450, {{327.7, 698.0}, {36.0, 54.0}}, label: 'Ю'
+                  Key, 0x10263c570, {{363.7, 698.0}, {36.0, 54.0}}, identifier: 'delete', label: 'Удалить'
+                  Key, 0x10263c690, {{4.7, 752.0}, {49.3, 54.0}}, identifier: 'more', label: 'цифры'
+                  Button, 0x102431920, {{54.0, 752.0}, {49.3, 54.0}}, identifier: 'emoji', label: 'Эмодзи'
+                  Key, 0x102431a40, {{103.3, 752.0}, {197.3, 54.0}}, identifier: 'space', label: ' '
+                  Button, 0x102431b60, {{300.7, 752.0}, {99.0, 54.0}}, identifier: 'Return', label: 'Ввод'
+          Other, 0x102431e80, {{0.0, 583.0}, {402.0, 291.0}}
+            Button, 0x10263c7b0, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Next keyboard', value: English (UK)
+              StaticText, 0x1026379b0, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x102431fa0, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1024320c0, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x1024321e0, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x102432300, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x10230b760, pid: 6264, label: 'Искра Тест'
+Query chain:
+ →Find: Application 'com.dany.iskra.debug'
+  Output: {
+    Application, 0x102432b90, pid: 6264, label: 'Искра Тест'
+  }
+
+Test Case '-[IskraUITests.IskraUITests test01RoleTeacherFieldsKeyboardAndSwipes]' passed (17.544 seconds).
+Test Suite 'IskraUITests' passed at 2026-11-03 10:27:45.875 AM.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.544 (17.546) seconds
+Test Suite 'IskraUITests.xctest' passed at 2026-11-03 10:27:45.875 AM.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.544 (17.547) seconds
+Test Suite 'Selected tests' passed at 2026-11-03 10:27:45.876 AM.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.544 (17.549) seconds
+2026-11-03 10:27:45.941 xcodebuild[5977:4267451] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-03 10:27:45.948 xcodebuild[5977:4267451] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-11-03 10:27:46.270 xcodebuild[5977:4267451] [MT] IDETestOperationsObserverDebug: 27.896 elapsed -- Testing started completed.
+2026-11-03 10:27:46.271 xcodebuild[5977:4267451] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-03 10:27:46.271 xcodebuild[5977:4267451] [MT] IDETestOperationsObserverDebug: 27.896 sec, +27.895 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/iskra-xcuitest-20261103/CoordinateRun.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,109 @@
+{
+  "userApproved": true,
+  "deleted": [
+    {
+      "path": "/tmp/iskra-attendance-grades-release/node_modules",
+      "estimatedBytes": 383496192
+    },
+    {
+      "path": "/tmp/iskra-back-navigation-mobile-20261102/node_modules",
+      "estimatedBytes": 383352832
+    },
+    {
+      "path": "/tmp/iskra-calendar-prod-20261102-a/node_modules",
+      "estimatedBytes": 386580480
+    },
+    {
+      "path": "/tmp/iskra-calendar-scroll-fix-20261102/node_modules",
+      "estimatedBytes": 386621440
+    },
+    {
+      "path": "/tmp/iskra-calendar-verification-prod/node_modules",
+      "estimatedBytes": 386580480
+    },
+    {
+      "path": "/tmp/iskra-details-wrap/node_modules",
+      "estimatedBytes": 382074880
+    },
+    {
+      "path": "/tmp/iskra-diary-release/node_modules",
+      "estimatedBytes": 368201728
+    },
+    {
+      "path": "/tmp/iskra-drive-player-release-20261102/node_modules",
+      "estimatedBytes": 384425984
+    },
+    {
+      "path": "/tmp/iskra-drive-video-progress/node_modules",
+      "estimatedBytes": 573906944
+    },
+    {
+      "path": "/tmp/iskra-explicit-deadline-release/node_modules",
+      "estimatedBytes": 364949504
+    },
+    {
+      "path": "/tmp/iskra-homework-timing/node_modules",
+      "estimatedBytes": 375701504
+    },
+    {
+      "path": "/tmp/iskra-live-student-home/node_modules",
+      "estimatedBytes": 383373312
+    },
+    {
+      "path": "/tmp/iskra-loop-audit-fixes/node_modules",
+      "estimatedBytes": 383496192
+    },
+    {
+      "path": "/tmp/iskra-low-home-fix/node_modules",
+      "estimatedBytes": 383365120
+    },
+    {
+      "path": "/tmp/iskra-open-beta-candidate-1102/node_modules",
+      "estimatedBytes": 482328576
+    },
+    {
+      "path": "/tmp/iskra-personal-demo-release/node_modules",
+      "estimatedBytes": 386793472
+    },
+    {
+      "path": "/tmp/iskra-profile-release-20261102/node_modules",
+      "estimatedBytes": 364933120
+    },
+    {
+      "path": "/tmp/iskra-release-20261102/node_modules",
+      "estimatedBytes": 370528256
+    },
+    {
+      "path": "/tmp/iskra-release-facts/node_modules",
+      "estimatedBytes": 368197632
+    },
+    {
+      "path": "/tmp/iskra-track-release/node_modules",
+      "estimatedBytes": 383352832
+    },
+    {
+      "path": "/tmp/iskra-video-background-10x/node_modules",
+      "estimatedBytes": 372424704
+    },
+    {
+      "path": "/tmp/iskra-video-homework-release/node_modules",
+      "estimatedBytes": 365785088
+    },
+    {
+      "path": "/tmp/iskra-widget-composition/node_modules",
+      "estimatedBytes": 370794496
+    },
+    {
+      "path": "/tmp/iskra-widget-prod-audit/node_modules",
+      "estimatedBytes": 383373312
+    },
+    {
+      "path": "/tmp/iskra-widget-reset-spacing/node_modules",
+      "estimatedBytes": 378585088
+    }
+  ],
+  "skipped": [],
+  "freeBeforeBytes": 11926949888,
+  "freeAfterBytes": 20586004480,
+  "sourceAndGitPreserved": true
+}

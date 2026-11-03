@@ -1,0 +1,23 @@
+{
+  "scope": "Local CPU/memory constrained Supabase; synthetic JPEG uploads then submissions, existing sessions; one wave per size; not target-service capacity",
+  "results": [
+    {
+      "size": 30,
+      "verified": 30,
+      "bytesEach": 1399318,
+      "elapsedMs": 6181,
+      "uploadP95": 5942,
+      "submitP95": 521,
+      "totalP95": 6102
+    },
+    {
+      "size": 60,
+      "verified": 60,
+      "bytesEach": 1399318,
+      "elapsedMs": 11295,
+      "uploadP95": 11076,
+      "submitP95": 616,
+      "totalP95": 11165
+    }
+  ]
+}

@@ -1,0 +1,413 @@
+{
+  "scope": "Real local Supabase Auth/PostgREST/Storage; snapshot baseline plus forward migrations",
+  "results": [
+    {
+      "name": "anon SELECT students A",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT courses A",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT homework A",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT schedule_lessons A",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT payments A",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT teacher_lesson_sessions A",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT students B",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT courses B",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT homework B",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT schedule_lessons B",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT payments B",
+      "status": "PASS"
+    },
+    {
+      "name": "anon SELECT teacher_lesson_sessions B",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT students A",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT courses A",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT homework A",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT schedule_lessons A",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT payments A",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT teacher_lesson_sessions A",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT students B",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT courses B",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT homework B",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT schedule_lessons B",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT payments B",
+      "status": "PASS"
+    },
+    {
+      "name": "admin SELECT teacher_lesson_sessions B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT students A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT courses A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT homework A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT schedule_lessons A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT payments A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT teacher_lesson_sessions A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT students B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT courses B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT homework B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT schedule_lessons B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT payments B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA SELECT teacher_lesson_sessions B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT students A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT courses A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT homework A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT schedule_lessons A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT payments A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT teacher_lesson_sessions A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT students B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT courses B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT homework B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT schedule_lessons B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT payments B",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB SELECT teacher_lesson_sessions B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT students A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT courses A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT homework A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT schedule_lessons A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT payments A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT teacher_lesson_sessions A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT students B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT courses B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT homework B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT schedule_lessons B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT payments B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA SELECT teacher_lesson_sessions B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT students A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT courses A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT homework A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT schedule_lessons A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT payments A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT teacher_lesson_sessions A",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT students B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT courses B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT homework B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT schedule_lessons B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT payments B",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB SELECT teacher_lesson_sessions B",
+      "status": "PASS"
+    },
+    {
+      "name": "anon cannot mutate A student",
+      "status": "PASS"
+    },
+    {
+      "name": "anon cannot mutate A homework",
+      "status": "PASS"
+    },
+    {
+      "name": "anon cannot use A course-access RPC",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA cannot mutate A student",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA cannot mutate A homework",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA cannot use A course-access RPC",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB cannot mutate A student",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB cannot mutate A homework",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB cannot use A course-access RPC",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB cannot mutate A student",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB cannot mutate A homework",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB cannot use A course-access RPC",
+      "status": "PASS"
+    },
+    {
+      "name": "student cannot self-promote",
+      "status": "PASS"
+    },
+    {
+      "name": "owner cannot rebind student to admin Auth",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA cannot create forged payment for A",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB cannot create forged payment for A",
+      "status": "PASS"
+    },
+    {
+      "name": "student saves draft and reads it after fresh login",
+      "status": "PASS"
+    },
+    {
+      "name": "student submits once, duplicate submission keeps one attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "foreign students and teachers cannot read or grade A attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "teacher grades; learner sees final result after new session",
+      "status": "PASS"
+    },
+    {
+      "name": "student uploads own photo",
+      "status": "PASS"
+    },
+    {
+      "name": "anon photo signed URL",
+      "status": "PASS"
+    },
+    {
+      "name": "admin photo signed URL",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherA photo signed URL",
+      "status": "PASS"
+    },
+    {
+      "name": "teacherB photo signed URL",
+      "status": "PASS"
+    },
+    {
+      "name": "studentA photo signed URL",
+      "status": "PASS"
+    },
+    {
+      "name": "studentB photo signed URL",
+      "status": "PASS"
+    },
+    {
+      "name": "student cannot upload under another student identity",
+      "status": "PASS"
+    },
+    {
+      "name": "chosen password absent in public table",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid JWT is rejected",
+      "status": "PASS"
+    }
+  ]
+}

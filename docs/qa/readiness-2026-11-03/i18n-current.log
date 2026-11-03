@@ -1,0 +1,17 @@
+
+> student-dashboard@1.0.0 check:i18n
+> node scripts/checkI18n.mjs
+
+────────────────────────────────────────────────────────────
+словарь: 5083 записей · под t(): 5992 вхождений
+✅ всё, что обёрнуто в t(), переведено
+✅ дублей ключей нет
+
+ℹ️  строк вообще без t() и без перевода: 1026
+    104  src/devFiguresHarness.tsx
+     82  src/components/teacher/journalStand/StudentWidgetConcepts.tsx
+     65  src/components/teacher/journalStand/GroupOverview.tsx
+     51  src/components/studentTrackStand/data.ts
+     46  src/components/studentTrackStand/StudentTrackStand.tsx
+     44  src/lib/lexicon.ts
+    (часть из них переводить не нужно — фикстуры, ключевые слова, маркеры)
