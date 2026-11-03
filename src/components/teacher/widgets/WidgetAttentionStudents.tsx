@@ -68,7 +68,12 @@ export default function WidgetAttentionStudents() {
       <button type="button" className="ww-attention-compact" onClick={() => setActivePage('groups')}
         aria-label={`${t('Требуют внимания')}: ${atRisk.length}`}>
         <div className="ww-attention-summary">
-          <FadeText lines={2} style={{ fontSize: 13, fontWeight: 600 }}>{t('Требуют внимания')}</FadeText>
+          <div className="ww-attention-heading iskra-mini-stat-heading">
+            <span className="iskra-mini-stat-label">{t('Требуют внимания')}</span>
+            <div className="ww-attention-icon iskra-mini-stat-icon" aria-hidden="true">
+              <AlertCircle size={14} strokeWidth={2.2} />
+            </div>
+          </div>
           <span className="ww-attention-value">{atRisk.length}</span>
           <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{atRisk.length ? t('Ученики с долгом или просрочкой оплаты') : t('Все ученики в норме')}</FadeText>
         </div>

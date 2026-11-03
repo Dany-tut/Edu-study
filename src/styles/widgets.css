@@ -266,7 +266,16 @@
 .widget-edit-glow .ww-attention-open{visibility:hidden}
 
 .iskra-widget[data-widget="attention-students"][data-grid-w="1"][data-grid-h="1"] .ww-attention-card>:is(.ww-header,.ww-list){display:none!important}
-.iskra-widget[data-widget="attention-students"][data-grid-w="1"][data-grid-h="1"] .ww-attention-compact{display:flex;padding:10px 14px}
-.iskra-widget[data-widget="attention-students"][data-grid-w="1"][data-grid-h="1"] .ww-attention-summary>:first-child{line-height:1.2!important}
-.iskra-widget[data-widget="attention-students"][data-grid-w="1"][data-grid-h="1"] .ww-attention-value{font-size:28px}
+.iskra-widget[data-widget="attention-students"][data-grid-w="1"][data-grid-h="1"] .ww-attention-compact{display:grid}
+.iskra-widget[data-widget="attention-students"][data-grid-w="1"][data-grid-h="1"] .ww-attention-summary{display:contents}
+
 .iskra-widget[data-widget="attention-students"][data-grid-w="1"][data-grid-h="1"] :is(.ww-attention-object,.ww-attention-summary>:last-child,.ww-attention-open){display:none!important}
+
+/* One-cell summaries share fixed content rows: subtitles never move the value. */
+.iskra-widget[data-grid-w="1"][data-grid-h="1"] :is(.iskra-mini-stat,.ww-attention-compact){display:grid!important;border-radius:24px!important;grid-template-rows:29px 33px minmax(0,1fr);align-content:start;align-items:start;justify-content:normal;gap:4px!important;padding:10px 14px!important}
+.iskra-widget[data-grid-w="1"][data-grid-h="1"] :is(.iskra-mini-stat-heading,.ww-attention-heading){grid-row:1;width:100%;height:29px}
+.iskra-widget[data-grid-w="1"][data-grid-h="1"] :is(.iskra-mini-stat-value,.ww-attention-value){grid-row:2;font-size:min(30px,var(--metric-font-size,999px))!important;font-weight:650;line-height:1.1}
+.iskra-widget[data-grid-w="1"][data-grid-h="1"] .iskra-mini-stat-sub{grid-row:3}
+.ww-attention-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.ww-attention-icon{display:none;align-items:center;justify-content:center;background:var(--color-peach-soft);color:var(--color-peach-text)}
+.iskra-widget[data-grid-w="1"][data-grid-h="1"] .ww-attention-icon{display:flex}
