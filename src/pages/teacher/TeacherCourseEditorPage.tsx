@@ -106,7 +106,7 @@ type HWTaskType = TaskTypeId
 type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
 
 
-import { TranscriptionAction, useTranscriptionOwner, type TranscriptRail } from '../../components/teacher/LocalTranscription'
+import { RecordingLines, TranscriptionAction, useTranscriptionOwner, type TranscriptRail } from '../../components/teacher/LocalTranscription'
 import { readTranscript, type LessonTranscript } from '../../lib/localTranscription'
 
 export interface CELesson {
@@ -1512,7 +1512,7 @@ function TimecodeRail({
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ListVideo size={16} style={{ color: 'var(--color-green-text)' }} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Таймкоды')}</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{rail ? 'Главы' : t('Таймкоды')}</span>{rail && <small className="chapter-count">{codes.length}</small>}
         <span style={{ flex: 1 }} />
         {total > 0 && (
           <span style={{ fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)' }}>
@@ -1521,9 +1521,7 @@ function TimecodeRail({
         )}
       </div>
 
-      {rail?.tabs}
-      <ScrollFade key={rail?.lines ? 'lines' : 'chapters'} maxHeight="100%" fadeHeight={14} style={{ flex:1,minHeight:0 }}>
-        {rail?.lines ?? <>
+      <ScrollFade maxHeight="100%" fadeHeight={14} style={{ flex:1,minHeight:0 }}>
         {codes.map((tc, i) => {
           const isActive = i === active && total > 0
           return (
@@ -1553,6 +1551,7 @@ function TimecodeRail({
                 style={{ ...inputSt, width: 62, flexShrink: 0, padding: '6px 6px', textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
               />
               <span className="transcript-line-text chapter-title" data-text={tc.label + ' '}>
+                <FadeText>{tc.label || t('Название главы')}</FadeText>
                 <textarea rows={1} ref={el => { rowRefs.current[i] = el }}
                   aria-label={'Название главы '+(i+1)} disabled={rail?.saving}
                   value={tc.label} onChange={e => patch(i, { label: e.target.value })}
@@ -1600,11 +1599,10 @@ function TimecodeRail({
             </div>
           </div>
         )}
-        </>}
       </ScrollFade>
 
       {transcriptionAction}
-      {!rail?.lines && <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 6 }}>
         <button disabled={rail?.saving}
           onClick={addHere}
           style={{
@@ -1628,7 +1626,7 @@ function TimecodeRail({
         >
           <ListPlus size={14} />
         </button>
-      </div>}
+      </div>
     </div>
   )
 }
@@ -1751,10 +1749,12 @@ function CenterRecording({
                 style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>
+              {rail && <RecordingLines rail={rail}/>}
               {rail ? timecodePanel : transcriptionAction}
             </div>
           </div>
         ) : (
+        <ScrollFade maxHeight="100%" style={{flex:1,minHeight:0}} scrollStyle={{height:'100%'}}>
         <div className="recording-player-layout" style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 }}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {source ? (
@@ -1799,10 +1799,12 @@ function CenterRecording({
                 <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Предпросмотра нет — таймкоды справа можно проставить вручную')}</div>
               </div>
             )}
+            {rail && <RecordingLines rail={rail}/>}
           </div>
 
           {timecodePanel}
         </div>
+        </ScrollFade>
         )}
       </div>
     )
