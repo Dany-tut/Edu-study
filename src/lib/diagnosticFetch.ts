@@ -49,6 +49,7 @@ export function diagnosticFetch(base: typeof fetch, backend: string): typeof fet
     } catch { /* Observability must never change request behavior. */ }
     const start = performance.now()
     const initial = pageContext()
+    const startOnline = navigator.onLine
     const generation = pageGeneration
     const source = telemetrySource()
     const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined)
@@ -73,8 +74,9 @@ export function diagnosticFetch(base: typeof fetch, backend: string): typeof fet
       const timedOut = name === 'TimeoutError' || (signal?.aborted && errorName(signal.reason) === 'TimeoutError')
       const cancelled = !timedOut && (name === 'AbortError' || signal?.aborted)
       emit(0, cancelled ? 'api_cancelled' : 'api_request', {
+        start_online: startOnline,
         outcome: cancelled ? 'cancelled' : timedOut ? 'timeout' : 'transport_error',
-        error_kind: cancelled ? 'abort' : timedOut ? 'timeout' : name === 'TypeError' ? 'network' : 'unknown',
+        error_kind: cancelled ? 'abort' : timedOut ? 'timeout' : name === 'SecurityError' ? 'security' : name === 'TypeError' ? 'network' : 'unknown',
       })
       // Pagehide is correlation only, never sufficient to suppress a transport failure.
       throw error

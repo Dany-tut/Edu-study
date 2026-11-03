@@ -64,8 +64,8 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
       <p>{connected
         ? 'Чтобы расшифровать урок, откройте вкладку «Запись» в конструкторе курса.'
         : 'Скачайте ZIP-архив на тот Mac, на котором будете расшифровывать уроки.'}</p>
-      <div className="integration-steps transcription-steps">
-        {connected ? <span className="integration-action transcription-step-complete"><Check size={16} aria-hidden/> Архив для Mac</span> :
+      <div className="integration-steps transcription-steps" data-connected={connected}>
+        {connected ? <span className="transcription-step-complete" role="img" aria-label="Архив для Mac" title="Архив для Mac"><Check size={16} aria-hidden/></span> :
           <a className="integration-action transcription-step" data-primary={!downloadStarted}
             data-phase={downloading ? 'download' : 'idle'} href="/downloads/iskra-transcription-mac.zip" download
             aria-disabled={downloading || busy} onClick={event => {
@@ -78,30 +78,41 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
             <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
             <span>{downloading ? 'Скачивание…' : downloadStarted ? 'Скачать ещё раз' : 'Скачать для Mac'}</span>
           </a>}
-        <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
-        <span className="integration-action transcription-step-label" data-active={downloadStarted && !downloading && !connected}>
-          {connected ? <Check size={16} aria-hidden/> : <span className="integration-step-number">2</span>}
-          Запуск на Mac
-        </span>
-        <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
+        {connected ? <span className="transcription-step-complete" role="img" aria-label="Запуск на Mac" title="Запуск на Mac"><Check size={16} aria-hidden/></span> : <>
+          <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
+          <span className="integration-action transcription-step-label" data-active={downloadStarted && !downloading}>
+            <span className="integration-step-number">2</span> Запуск на Mac
+          </span>
+          <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
+        </>}
         <button className="integration-action transcription-step" data-phase={connected ? 'done' : busy ? 'connecting' : 'idle'}
+          aria-label={connected ? 'Готово' : undefined} title={connected ? 'Компьютер подключён' : undefined}
           data-primary={downloadStarted && !downloading && !connected}
           disabled={!downloadStarted || downloading || connected || busy || !owner} onClick={change}>
           {connected ? <Check size={16} aria-hidden/> : <span className="integration-step-number">3</span>}
-          <span>{connected ? 'Готово' : busy ? 'Подключаем…' : 'Подключить компьютер'}</span>
+          {!connected && <span>{busy ? 'Подключаем…' : 'Подключить компьютер'}</span>}
         </button>
+        {connected && <button className="integration-action integration-disconnect" disabled={busy || !owner} onClick={change}
+          aria-label={busy ? 'Отключаем…' : 'Отключить компьютер'}>
+          {busy ? 'Отключаем…' : <span>Отключить<span className="transcription-device-word"> компьютер</span></span>}
+        </button>}
       </div>
-      {connected && <div className="integration-actions">
-        <button className="integration-action integration-disconnect" disabled={busy || !owner} onClick={change}>
-          {busy ? 'Отключаем…' : 'Отключить компьютер'}
-        </button>
-      </div>}
       <div aria-live="polite" className="transcription-setup">
         {downloadStarted && !downloading && !connected && <>
           <h4>Что делать с ZIP-архивом</h4>
           <ol>
             <li>Когда загрузка закончится, откройте папку «Загрузки» в Finder. Дважды нажмите на <code>iskra-transcription-mac.zip</code>. Если уже появилась папка <code>Iskra</code>, откройте её.</li>
-            <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. Откроется Терминал. При первом запуске Mac скачает модели.</li>
+            <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. При первом запуске в Терминале начнётся загрузка моделей.
+              <details className="transcription-blocked">
+                <summary>Mac пишет «Файл не был открыт»?</summary>
+                <p>Если Apple не удалось проверить файл, нажмите «Готово». Продолжайте, только если вы сами скачали этот архив из Искры и доверяете ему.</p>
+                <a className="integration-action" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Security">Открыть настройки Mac</a>
+                <p>Если настройки не открылись, в меню Apple выберите «Системные настройки», затем «Конфиденциальность и безопасность».</p>
+                <p>В разделе <strong>«Безопасность»</strong> (внизу страницы) проверьте имя файла. Найдите сообщение о блокировке <code>start.command</code> и нажмите рядом с ним <strong>«Все равно открыть»</strong>. В следующем окне ещё раз выберите «Все равно открыть» или «Открыть». Если Mac попросит, введите пароль или используйте Touch ID.</p>
+                <p><a href="https://support.apple.com/ru-ru/102445" target="_blank" rel="noreferrer">Посмотреть, где находится кнопка, на снимке Apple</a></p>
+                <p>Когда откроется Терминал, переходите к следующему пункту.</p>
+              </details>
+            </li>
             <li>Дождитесь строки <code>Running on http://127.0.0.1:18764</code>. Оставьте Терминал открытым, вернитесь в Искру и нажмите «Подключить компьютер».</li>
           </ol>
         </>}

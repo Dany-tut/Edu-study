@@ -184,6 +184,12 @@ function currentPath(): string | null {
   return location.pathname === '/' ? '#/' : location.pathname
 }
 
+// Keep user actions separately so bursts of background requests cannot evict them.
+const actions: { at: string; event: string; screen?: string }[] = []
+const actionEvents = new Set(['page_view', 'click', 'homework_submit', 'lesson_open', 'trainer_open',
+  'course_create', 'auth_started', 'network_offline', 'network_online'])
+let actionOwner = ''
+
 export function trackEvent(event: string, meta: Record<string, unknown> = {}, path?: string) {
   // Единственная дверь для ВСЕХ событий: и автоматических, и бизнесовых
   // (trackNow на входе/выходе), поэтому дев-заслонка стоит здесь, а не только
@@ -191,6 +197,17 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   if (!TELEMETRY_ON) return
   if (buffer.length >= 500) buffer.shift()
   const eventPath = analyticsPath(path ?? currentPath())
+  const owner = JSON.stringify([identity.user_id, identity.student_id])
+  if (actionOwner !== owner) { actions.length = 0; actionOwner = owner }
+  if (actionEvents.has(event)) {
+    const screen = eventPath?.match(/^#?\/((?:(?:student|teacher)\/)?(?:homework-review|homework|trainer|lesson|gradebook|courses|constructor|groups|diary|schedule|profile)|teacher|student)(?:[/?#]|$)/)?.[1]
+    actions.push({ at: new Date().toISOString(), event, ...(screen ? { screen } : {}) })
+    if (actions.length > 12) actions.shift()
+  }
+  if (event === 'api_request' && meta.status === 0) {
+    const since = Date.now() - 30 * 60_000
+    meta = { ...meta, action_trail: actions.filter(action => Date.parse(action.at) >= since) }
+  }
   rememberDiagnosticEvent(event, eventPath, meta)
   const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || Number(meta.duration_ms) >= 3000))
   const needsDelivery = isIncident || event === 'diagnostic_recovery'
