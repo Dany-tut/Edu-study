@@ -1,3 +1,4 @@
+import './checkLanguageAi.mjs'
 import './checkInitialRoute.mjs'
 // Проверка чистой логики методики: спутываемость, раскладка порций, очередь.
 //

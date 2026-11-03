@@ -306,7 +306,7 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }:
     return () => document.removeEventListener('pointerdown', outside)
   }, [filters])
   return (
-    <div className="js-toolbar">
+    <div className="js-toolbar teacher-table-toolbar">
       <div className="cj-tabs js-tabs" role="group" aria-label="Раздел журнала">
         {views.map(([tab, Icon]) => {
           const count = tab === 'Посещаемость' ? pendingCount : 0
@@ -334,7 +334,7 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }:
           </button>}
         </div>
       </div>
-      <label className="js-search" data-filtered={!!selected.search || undefined} title="Поиск ученика">
+      <label className="js-search teacher-table-search" data-filtered={!!selected.search || undefined} title="Поиск ученика">
         <Search size={15} /><input aria-label="Поиск ученика" placeholder="Поиск ученика…" value={selected.search}
           onChange={e => set({ search: e.target.value, student: '', workRef: '' })} />
       </label>
@@ -407,7 +407,7 @@ export function Matrix(props: MatrixProps) {
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
       pendingCount={props.pendingAttendance?.length ?? 0} attention={!overview && attention} toggle={() => setAttention(v => !v)} /></div>
     {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && <details className="js-pending-lessons">
-      <summary>Незаполненная посещаемость · {props.pendingAttendance.length}</summary>
+      <summary><ChevronRight size={16} aria-hidden="true" />Незаполненная посещаемость · {props.pendingAttendance.length}</summary>
       <ScrollFade maxHeight="min(24dvh, 180px)">
         <p>Занятия за последние 30 дней по всем группам и ученикам. Фильтры журнала на этот список не влияют.</p>
         <ul>{props.pendingAttendance.map(row => <li key={row.scheduleId}>
