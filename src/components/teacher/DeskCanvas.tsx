@@ -67,7 +67,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
           cursor: 'grab', pointerEvents: 'auto' }} />
       )}
 
-      {editMode && <span data-widget-size style={{position:'absolute',left:10,top:-10,zIndex:20,fontSize:11,fontWeight:700,padding:'3px 7px',borderRadius:8,background:'var(--color-bg-card)',color:'var(--color-text-2)',pointerEvents:'none'}}>{item.w}×{item.h}</span>}
+
 
       {/* Delete button */}
       {editMode && (
@@ -375,6 +375,15 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
               </div>
             )
           })}
+          {/* Size labels share a layer above every transformed card. A child's
+              z-index cannot escape its card's stacking context. */}
+          {editMode && liveItems.map(item => (
+            <span key={`size-${item.i}`} data-widget-size style={{
+              position: 'absolute', left: gx(item.x, cw, columns) + 10, top: gy(item.y, rowH) - 10,
+              zIndex: 110, fontSize: 11, fontWeight: 700, padding: '3px 7px', borderRadius: 8,
+              background: 'var(--color-bg-card)', color: 'var(--color-text-2)', pointerEvents: 'none',
+            }}>{item.w}×{item.h}</span>
+          ))}
         </div>
       )}
 

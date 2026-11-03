@@ -84,8 +84,9 @@ for (const width of [950, 1200, 1354, 1840, 2400]) {
    const calendar=reset.find(i=>i.type==='today-schedule'), reminders=reset.find(i=>i.type==='today-reminders'), tasks=reset.find(i=>i.type==='today-tasks')
    assert.deepEqual(reset.slice(0,4).map(i=>[i.x,i.y,i.w,i.h]),[[0,0,2,1],[2,0,2,1],[4,0,2,1],[6,0,2,1]])
    assert.equal(calendar.y+calendar.h,tasks.y+tasks.h)
-   assert.equal(reminders.y+reminders.h,tasks.y)
-   assert.equal(calendar.w,tasks.w)
+   assert.deepEqual(reset.slice(0,4).map(i=>i.type),['stat-students','stat-hw','stat-lessons','attention-students'])
+   assert.deepEqual([calendar,reminders,tasks].map(i=>[i.x,i.y,i.w,i.h]),[[0,1,3,5],[3,1,3,5],[6,1,2,5]])
+   assert.equal(reminders.y+reminders.h,tasks.y+tasks.h)
   }
  }
 }
