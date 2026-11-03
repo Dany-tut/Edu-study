@@ -61,3 +61,20 @@
 @media (prefers-reduced-motion:reduce) {
   .transcription-step[data-phase]::before,.transcription-setup:not(:empty) {animation:none;transition:none}
 }
+
+.transcription-blocked {margin-block:4px 2px}
+.transcription-blocked > summary {width:fit-content;padding-block:12px;font-weight:650;color:var(--color-purple-text);cursor:pointer}
+.transcription-blocked[open] > :not(summary) {margin-block:0 10px}
+.transcription-blocked .integration-action {width:auto;background:var(--color-purple-soft);color:var(--color-purple-text)}
+.transcription-blocked p a {color:var(--color-purple-text);text-decoration:underline}
+
+.transcription-steps[data-connected=true] {flex-direction:row;align-items:center;gap:5px}
+.transcription-step-complete,.transcription-steps .transcription-step[data-phase=done] {
+  display:inline-grid;place-items:center;flex:0 0 28px;width:28px;height:28px;min-height:28px;padding:0;
+  border-radius:8px;background:var(--color-green-soft);color:var(--color-green-text);
+}
+.transcription-steps[data-connected=true] .integration-disconnect {max-width:calc(100% - 99px)}
+@container (max-width:400px) {
+  .transcription-device-word {display:none}
+  .transcription-steps[data-connected=true] .integration-disconnect {width:auto}
+}
