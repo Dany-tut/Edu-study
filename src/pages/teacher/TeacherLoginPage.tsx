@@ -8,12 +8,12 @@ import { trackNow } from '../../lib/analytics'
 import { useT } from '../../lib/i18n'
 import { authErrorRu } from '../../lib/authErrors'
 import { AlertStack } from '../../components/Alert'
-import IskraMark from '../../components/landing/IskraMark'
-import SocialLoginButtons from '../../components/SocialLoginButtons'
+import AuthRoleHeader from '../../components/AuthRoleHeader'
+import SocialLoginButtons, { AuthLegalLinks } from '../../components/SocialLoginButtons'
+import AuthHero from '../../components/AuthHero'
 import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogin'
 import ScrollFade from '../../components/ScrollFade'
 import { useKeyboardState } from '../../lib/useKeyboardInset'
-import { Capacitor } from '@capacitor/core'
 import { useAsyncTask } from '../../lib/useAsyncTask'
 import { passwordSignIn } from '../../lib/authActions'
 
@@ -102,39 +102,16 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
       inset: `env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) ${bottomInset} env(safe-area-inset-left, 0px)`,
       background: 'var(--color-bg)',
     }}>
-    <div style={{
-      minHeight: formHeight,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'var(--color-bg)',
-      padding: 24,
-    }}>
-      <div style={{
-        background: 'var(--color-surface)',
-        borderRadius: 28,
-        padding: '28px clamp(22px, 6vw, 32px)',
-        width: '100%',
-        maxWidth: 402,
-        boxShadow: 'var(--shadow-2)',
-        border: '1px solid var(--color-border-glass)',
-        boxSizing: 'border-box',
-      }}>
-        {/* Знак Искры вместо эмодзи 👩‍🏫: вход учителя — такой же экран бренда,
-            как лендинг, а эмодзи-«учительница» говорит за всех, кто входит. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-          <IskraMark size={36} />
-          <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
-        </div>
-        <div style={{ display: keyboard.open ? 'none' : 'flex', justifyContent: 'center', margin: '0 auto 16px' }}>
-          <img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'trainer'}.png`} alt="" aria-hidden="true" width={104} height={104} draggable={false} style={{ width: 104, height: 104, objectFit: 'contain' }} />
-        </div>
-        <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-.03em', fontWeight: 740, color: 'var(--color-text)', margin: '0 0 6px' }}>
-          {mode === 'sent' ? t('Проверьте почту') : mode === 'newpassword' ? t('Придумайте новый пароль') : t('Вход для преподавателя')}
-        </h1>
-        {mode !== 'sent' && <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 22px' }}>
-          {titles[mode]}
-        </p>}
+    <div className="auth-page-layout teacher-login-layout" style={{ minHeight: formHeight, background: 'var(--color-bg)', paddingTop: 16, paddingBottom: 16 }}>
+    <div className="auth-page-content">
+      <div className="auth-page-card">
+        {mode !== 'newpassword' && <AuthRoleHeader logoTone="deep" onLeave={() => action.cancel()} />}
+        <AuthHero
+          hideArt={keyboard.open}
+          object={mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'reminders'}
+          title={mode === 'sent' ? t('Проверьте почту') : mode === 'newpassword' ? t('Придумайте новый пароль') : mode === 'reset' ? t('Восстановить пароль') : t('Вход для препода')}
+          subtitle={mode === 'sent' ? undefined : titles[mode]}
+        />
 
         {mode === 'sent' ? (
           <div style={{ textAlign: 'center' }}>
@@ -142,7 +119,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
             <button type="button" onClick={() => switchMode('login')} style={{ width: '100%', minHeight: 50, border: 0, borderRadius: 16, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t('Вернуться ко входу')}</button>
             <p style={{ color: 'var(--color-muted)', fontSize: 13, lineHeight: 1.45, margin: '18px 0 0' }}>{t('Если письма нет, проверьте папку «Спам».')}</p>
           </div>
-        ) : <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        ) : <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {(mode !== 'newpassword' || email) && (
             <input
               className="auth-input"
@@ -158,9 +135,9 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               readOnly={mode === 'newpassword'}
               required
               style={{
-                minHeight: 54,
+                minHeight: 48,
                 lineHeight: '22px',
-                padding: '12px 16px',
+                padding: '11px 14px',
                 borderRadius: 16,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,
@@ -189,9 +166,9 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                minHeight: 54,
+                minHeight: 48,
                 lineHeight: '22px',
-                padding: '12px 52px 12px 16px',
+                padding: '11px 52px 11px 14px',
                 borderRadius: 16,
                 border: '1.5px solid var(--color-border-medium)',
                 fontSize: 16,
@@ -203,6 +180,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
             />
             <button
               type="button"
+              onMouseDown={event => event.preventDefault()}
               onClick={() => setShowPassword(v => !v)}
               aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
               aria-pressed={showPassword}
@@ -254,7 +232,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
               fontSize: 15,
               border: 'none',
               cursor: loading ? 'not-allowed' : 'pointer',
-              marginTop: 4,
+              marginTop: 0,
             }}
           >
             {loading ? t('Загрузка...') : buttonLabels[mode]}
@@ -266,22 +244,19 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
         {mode === 'login' && <TeacherEmailCodeLogin onLogin={() => { clearStudentSession(); onLogin() }} />}
 
         {mode !== 'newpassword' && mode !== 'sent' && (
-          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
+          <p style={{ textAlign: 'center', margin: '8px 0 0', fontSize: 12, color: 'var(--color-muted)' }}>
             {mode === 'reset' ? (
               <button type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, border: 0, padding: 0, background: 'none', color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>
                 <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} />
               </button>
             ) : (
-              t('Аккаунт создаётся по ссылке-приглашению от\u00a0администратора.')
+              t('Аккаунт — по приглашению администратора')
             )}
           </p>
         )}
-        {Capacitor.isNativePlatform() && mode === 'login' && (
-          <button type="button" onClick={() => { action.cancel(); window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
-            <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
-          </button>
-        )}
       </div>
+      {mode === 'login' && <AuthLegalLinks />}
+    </div>
     </div>
     </ScrollFade>
   )
