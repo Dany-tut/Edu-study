@@ -1423,7 +1423,8 @@ export interface WrongTask {
 
 export async function fetchStudentTrainerSections(
   studentId: string,
-  authUserId?: string | null,
+  authUserId: string | null | undefined,
+  signal: AbortSignal,
 ): Promise<TrainerSection[]> {
   // confidence_log.student_id is TEXT — may be auth_user_id or student UUID
   const ids = [studentId]
@@ -1433,6 +1434,7 @@ export async function fetchStudentTrainerSections(
     .from('confidence_log')
     .select('source, correct')
     .in('student_id', ids)
+    .abortSignal(signal)
 
   if (!data || data.length === 0) return []
 
@@ -1450,7 +1452,8 @@ export async function fetchStudentTrainerSections(
 
 export async function fetchStudentWrongTasks(
   studentId: string,
-  authUserId?: string | null,
+  authUserId: string | null | undefined,
+  signal: AbortSignal,
 ): Promise<WrongTask[]> {
   const ids = [studentId]
   if (authUserId && authUserId !== studentId) ids.push(authUserId)
@@ -1461,6 +1464,7 @@ export async function fetchStudentWrongTasks(
     .in('student_id', ids)
     .eq('correct', false)
     .limit(10)
+    .abortSignal(signal)
 
   if (!data || data.length === 0) return []
 
@@ -1474,7 +1478,8 @@ export async function fetchStudentWrongTasks(
 // ─── Teacher: trainer activity heatmap (last 28 days) ────────────────────────
 export async function fetchStudentActivity(
   studentId: string,
-  authUserId?: string | null,
+  authUserId: string | null | undefined,
+  signal: AbortSignal,
 ): Promise<number[]> {
   const ids = [studentId]
   if (authUserId && authUserId !== studentId) ids.push(authUserId)
@@ -1488,6 +1493,7 @@ export async function fetchStudentActivity(
     .select('created_at')
     .in('student_id', ids)
     .gte('created_at', since.toISOString())
+    .abortSignal(signal)
 
   // Build a map: YYYY-MM-DD → count
   const counts = new Map<string, number>()
@@ -1512,7 +1518,8 @@ export async function fetchStudentActivity(
 // ─── Teacher: unique trainer session days (activity days count) ───────────────
 export async function fetchStudentSessionDays(
   studentId: string,
-  authUserId?: string | null,
+  authUserId: string | null | undefined,
+  signal: AbortSignal,
 ): Promise<number> {
   const ids = [studentId]
   if (authUserId && authUserId !== studentId) ids.push(authUserId)
@@ -1521,6 +1528,7 @@ export async function fetchStudentSessionDays(
     .from('confidence_log')
     .select('created_at')
     .in('student_id', ids)
+    .abortSignal(signal)
 
   const days = new Set(
     (data ?? []).map((row: any) => new Date(row.created_at).toISOString().slice(0, 10))
