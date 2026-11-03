@@ -2653,11 +2653,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
             >
               <Card style={{ padding: 0, overflow: 'hidden' }}>
                 {/* Table header */}
-                <div style={{
-                  padding: '14px 20px 12px',
-                  display: 'flex', flexDirection: 'column', gap: 12,
-                  borderBottom: '1px solid var(--color-border-soft)',
-                }}>
+                <div className="teacher-table-toolbar" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {/* Single header row: name left, pills center, search right */}
                   <div className="group-roster-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
                     {/* Left: group name */}
@@ -2711,11 +2707,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                     {rosterTools}
                     {/* Right: search */}
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flex: '0 0 auto' }}>
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
-                        borderRadius: 10, padding: '0 12px', width: 180, height: 40, boxSizing: 'border-box',
-                      }}>
+                      <div className="teacher-table-search">
                         <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
                         <input
                           value={searchQuery}
