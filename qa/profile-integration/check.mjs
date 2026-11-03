@@ -9,6 +9,7 @@ try {
 for (const [width,height] of [[1440,900],[768,680],[390,844],[320,568]]) for (const theme of ['light','dark']) {
 const p=await browser.newPage({viewport:{width,height}})
 p.setDefaultTimeout(7000)
+p.setDefaultNavigationTimeout(45000)
 const errors=[];p.on('pageerror',e=>errors.push(e.message))
 await p.addInitScript(({user,theme})=>{
 localStorage.setItem('sb-fixture-auth-token',JSON.stringify({access_token:'fixture',refresh_token:'fixture',expires_at:Math.floor(Date.now()/1000)+3600,token_type:'bearer',user}))
@@ -51,12 +52,34 @@ const g=await grant.boundingBox(), revoke=await grant.getByRole('button').boundi
 assert(Math.abs(g.x+g.width-revoke.x-revoke.width)<1)
 const guide=card.getByRole('heading',{name:'Что делать с ZIP-архивом'})
 assert.equal(await guide.count(),0)
+const reduced=width===390 && theme==='dark'
+if(reduced)await p.emulateMedia({reducedMotion:'reduce'})
+await card.evaluate(el=>{
+ window.stepFrames=[]
+ window.connectFrames=[]
+ function sample(){
+  if(!el.isConnected)return
+  const button=el.querySelector('.transcription-step[data-phase="download"]')
+  if(button)window.stepFrames.push(new DOMMatrix(getComputedStyle(button,'::before').transform).a)
+  const connect=el.querySelector('button[data-phase="connecting"]')
+  if(connect)window.connectFrames.push(new DOMMatrix(getComputedStyle(connect,'::before').transform).a)
+  requestAnimationFrame(sample)
+ }
+ sample()
+})
 const dl=p.waitForEvent('download');await card.getByText('Скачать для Mac').click();assert.equal((await dl).suggestedFilename(),'iskra-transcription-mac.zip')
+if(!reduced){
+ assert(await card.getByRole('button',{name:/Подключить компьютер/}).isDisabled())
+ assert.equal(await guide.count(),0)
+}
 await guide.waitFor()
+const samples=await p.evaluate(()=>window.stepFrames)
+if(!reduced)assert(samples.some(s=>s>0&&s<.5)&&samples.some(s=>s>.6&&s<1))
+
 await card.getByText('start.command',{exact:true}).waitFor()
 assert.equal(await card.locator('.transcription-setup li').count(),3)
-await card.getByRole('button',{name:/Подключить компьютер/}).click();await card.getByText('Подключаем…').waitFor();await card.getByRole('alert').waitFor();fail=false
-await card.getByRole('button',{name:/Подключить компьютер/}).click();await card.getByText('Отключить компьютер').waitFor();assert.equal(await guide.count(),0);await card.getByText('Отключить компьютер').click();await card.getByText('Не подключён',{exact:true}).waitFor()
+await card.getByRole('button',{name:/Подключить компьютер/}).click();await card.getByText('Подключаем…').waitFor();await card.getByRole('alert').waitFor();assert.equal(await card.getByText('Готово',{exact:true}).count(),0);fail=false
+await card.getByRole('button',{name:/Подключить компьютер/}).click();await card.getByText('Отключить компьютер').waitFor();await card.getByRole('button',{name:'Готово'}).waitFor();assert.equal(await guide.count(),0);await card.getByText('Отключить компьютер').click();await card.getByText('Не подключён',{exact:true}).waitFor()
 if(shots) {
  for(const [i,f] of [0,.5,1].entries()) {
   await p.evaluate(f=>{for(const [sel,key] of [['.teacher-page-scroll','scrollTop'],['.teacher-profile-header .no-scrollbar','scrollLeft']]){const el=document.querySelector(sel);el[key]=(key==='scrollTop'?el.scrollHeight-el.clientHeight:el.scrollWidth-el.clientWidth)*f}},f)
@@ -69,7 +92,9 @@ const geometry=await p.evaluate(async()=>{
  for(const f of [0,.5,1]){sc.scrollTop=(sc.scrollHeight-sc.clientHeight)*f;tabs.scrollLeft=(tabs.scrollWidth-tabs.clientWidth)*f;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));points.push([sc.scrollTop,tabs.scrollLeft,tabs.parentElement.style.maskImage])}
  return points
 })
-const frames=await p.evaluate(()=>window.navFrames.length);assert.deepEqual(errors,[]);results.push({width,height,theme,frames,geometry,nav:n,identity:h});await p.close()
+const connectSamples=await p.evaluate(()=>window.connectFrames)
+if(!reduced)assert(connectSamples.some(s=>s>0&&s<1))
+const frames=await p.evaluate(()=>window.navFrames.length);assert.deepEqual(errors,[]);results.push({width,height,theme,reduced,downloadFrames:samples.length,connectFrames:connectSamples.length,frames,geometry,nav:n,identity:h});await p.close()
 }
 await fs.writeFile(output+'/check.json',JSON.stringify(results,null,2))
 console.log(results.length+' profile scenarios passed')
