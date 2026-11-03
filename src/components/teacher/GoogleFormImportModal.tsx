@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link2, Loader2, Check } from '../icons/appIcons'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
+import Modal from '../Modal'
+import { Link2, Loader2, Check } from '../icons/appIcons'
 import { isGoogleFormUrl, importGoogleForm, type ImportedForm, type ImportedQuestion } from '../../lib/googleFormsImport'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { useT } from '../../lib/i18n'
@@ -29,9 +29,22 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
   const [excluded, setExcluded] = useState<Set<string>>(new Set())
   const [importing, setImporting] = useState(false)
 
-  function reset() {
+  const sequence = useRef(0)
+  const pending = useRef(false)
+  const controller = useRef<AbortController | null>(null)
+  const visible = useRef(open)
+  visible.current = open
+
+  const reset = useCallback(() => {
+    sequence.current++; pending.current = false; controller.current?.abort()
     setUrl(''); setLoading(false); setError(null); setForm(null); setExcluded(new Set()); setImporting(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!open) reset()
+    return () => { sequence.current++; pending.current = false; controller.current?.abort() }
+  }, [open, reset])
+
   function handleClose() {
     reset()
     onClose()
@@ -39,20 +52,24 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
 
   async function handleParse() {
     const trimmed = url.trim()
-    if (!trimmed) return
+    if (!trimmed || pending.current) return
     if (!isGoogleFormUrl(trimmed)) {
       setError(t('Это не похоже на ссылку Google Forms (forms.gle или docs.google.com/forms/...)'))
       return
     }
+    pending.current = true
+    const id = ++sequence.current
+    controller.current = new AbortController()
+    const signal = AbortSignal.any([controller.current.signal, AbortSignal.timeout(45000)])
     setLoading(true)
     setError(null)
     try {
-      const parsed = await importGoogleForm(trimmed)
-      setForm(parsed)
+      const parsed = await importGoogleForm(trimmed, signal)
+      if (visible.current && id === sequence.current) { setForm(parsed); setExcluded(new Set()) }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('Не удалось импортировать форму'))
+      if (visible.current && id === sequence.current) setError(signal.aborted ? t('Сервер не ответил вовремя. Попробуйте ещё раз.') : e instanceof Error ? e.message : t('Не удалось импортировать форму'))
     } finally {
-      setLoading(false)
+      if (id === sequence.current) { pending.current = false; setLoading(false) }
     }
   }
 
@@ -65,15 +82,19 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
   }
 
   async function handleImport() {
-    if (!form) return
+    if (!form || importing) return
     const selectedIds = form.questions.map(q => q.id).filter(id => !excluded.has(id))
     if (!selectedIds.length) return
+    const id = ++sequence.current
     setImporting(true)
+    setError(null)
     try {
       await onImport(form, selectedIds)
-      handleClose()
+      if (visible.current && id === sequence.current) handleClose()
+    } catch {
+      if (visible.current && id === sequence.current) setError(t('Не удалось импортировать форму'))
     } finally {
-      setImporting(false)
+      if (id === sequence.current) setImporting(false)
     }
   }
 
@@ -81,39 +102,14 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
 
   const selectedCount = form ? form.questions.filter(q => !excluded.has(q.id)).length : 0
 
-  return createPortal(
+  return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, backdropFilter: 'blur(4px)',
-        }}
-        onClick={handleClose}
-      >
-        <motion.div
-          initial={{ scale: 0.94, opacity: 0, y: 16 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.94, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-          onClick={e => e.stopPropagation()}
-          style={{
-            background: 'var(--color-bg-input)', borderRadius: 22, padding: '24px 24px 20px',
-            width: 480, maxWidth: '92vw', maxHeight: '84vh', display: 'flex', flexDirection: 'column',
-            boxShadow: 'var(--shadow-5)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Link2 size={20} style={{ color: 'var(--color-accent)' }} />
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Импорт из Google Forms')}</div>
-            <button onClick={handleClose} style={{ marginLeft: 'auto', width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
-              <X size={14} />
-            </button>
-          </div>
-
+      <Modal onClose={handleClose} title={t('Импорт из Google Forms')} width={520} closeButtonStyle={{ width: 44, height: 44 }}
+        icon={<Link2 size={24} style={{ color: 'var(--color-accent)' }} />}
+        footer={form ? <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button disabled={importing} onClick={() => { setForm(null); setError(null) }} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Назад')}</button>
+          <button onClick={handleImport} disabled={importing || !selectedCount} style={{ ...btn('M', 'primary'), background: 'var(--color-control-accent)', minHeight: 44 }}>{t('Импортировать')} {selectedCount || ''}</button>
+        </div> : undefined}>
           {!form && (
             <div style={{ marginTop: 14 }}>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5, marginBottom: 12 }}>
@@ -122,31 +118,30 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
               <div style={{ display: 'flex', gap: 8 }}>
                 <input
                   value={url}
-                  onChange={e => setUrl(e.target.value)}
+                  onChange={e => { setUrl(e.target.value); setError(null) }}
+                  aria-label={t('Ссылка Google Forms')}
+                  disabled={loading}
                   onKeyDown={e => { if (e.key === 'Enter') handleParse() }}
                   placeholder="https://forms.gle/..."
                   autoFocus
                   style={{
-                    flex: 1, padding: '10px 14px', borderRadius: 12, border: '1.5px solid var(--color-border)',
-                    background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none',
+                    flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: 12, border: '1.5px solid var(--color-border)',
+                    background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 16, fontFamily: 'inherit', minHeight: 44, boxSizing: 'border-box',
                   }}
                 />
                 <button
                   onClick={handleParse}
                   disabled={loading || !url.trim()}
-                  style={{ height: 40,
+                  style={{ minHeight: 44,
                     padding: '0 16px', borderRadius: 12, border: 'none', cursor: loading ? 'default' : 'pointer',
-                    background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
+                    background: 'var(--color-control-accent)', color: '#fff', fontSize: 13, fontWeight: 700,
                     display: 'flex', alignItems: 'center', gap: 6, opacity: loading || !url.trim() ? 0.6 : 1, flexShrink: 0,
                   }}
                 >
-                  {loading ? <Loader2 size={14} style={{ animation: 'gfim-spin 1s linear infinite' }} /> : null}
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : null}
                   {t('Разобрать')}
                 </button>
               </div>
-              {error && (
-                <Alert tone="danger" text={error} style={{ marginTop: 12 }} />
-              )}
             </div>
           )}
 
@@ -157,57 +152,36 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
               <div style={{ fontSize: 12, color: 'var(--color-text-3)', margin: '8px 0 6px' }}>
                 {t('Найдено вопросов:')} {form.questions.length} · {t('выбрано:')} {selectedCount}
               </div>
-              <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 2 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {form.questions.map((q, i) => (
-                  <QuestionRow key={q.id} q={q} index={i} excluded={excluded.has(q.id)} onToggle={() => toggle(q.id)} />
+                  <QuestionRow key={q.id} q={q} index={i} excluded={excluded.has(q.id)} disabled={importing} onToggle={() => toggle(q.id)} />
                 ))}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-                <button
-                  onClick={() => setForm(null)}
-                  style={btn('M', 'secondary')}
-                >
-                  {t('Назад')}
-                </button>
-                <button
-                  onClick={handleImport}
-                  disabled={importing || !selectedCount}
-                  style={{ height: 40,
-                    padding: '0 16px', borderRadius: 12, border: 'none', cursor: importing ? 'default' : 'pointer',
-                    background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
-                    opacity: importing || !selectedCount ? 0.6 : 1,
-                  }}
-                >
-                  {t('Импортировать')} {selectedCount || ''}
-                </button>
               </div>
             </>
           )}
-        </motion.div>
-      </motion.div>
-      <style>{`@keyframes gfim-spin { to { transform: rotate(360deg) } }`}</style>
-    </AnimatePresence>,
-    document.body,
+        {error && <Alert tone="danger" text={error} style={{ marginTop: 12 }} />}
+      </Modal>
+    </AnimatePresence>
   )
 }
 
-function QuestionRow({ q, index, excluded, onToggle }: { q: ImportedQuestion; index: number; excluded: boolean; onToggle: () => void }) {
+function QuestionRow({ q, index, excluded, disabled, onToggle }: { q: ImportedQuestion; index: number; excluded: boolean; disabled: boolean; onToggle: () => void }) {
   const t = useT()
   const visual = typeVisual(q.type)
   const needsAnswer = q.type !== 'extended'
   return (
-    <div
+    <button type="button" role="checkbox" aria-checked={!excluded} aria-label={q.title} disabled={disabled}
       onClick={onToggle}
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
+        display: 'flex', width: '100%', textAlign: 'left', fontFamily: 'inherit', minHeight: 44, alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 12, cursor: 'pointer',
         background: excluded ? 'var(--color-bg-3)' : 'var(--color-bg)',
         opacity: excluded ? 0.5 : 1, border: '1px solid var(--color-border-soft)',
       }}
     >
       <div style={{
         width: 20, height: 20, borderRadius: 6, border: '2px solid', flexShrink: 0, marginTop: 1,
-        borderColor: excluded ? 'var(--color-border)' : 'var(--color-accent)',
-        background: excluded ? 'transparent' : 'var(--color-accent)',
+        borderColor: excluded ? 'var(--color-border)' : 'var(--color-control-accent)',
+        background: excluded ? 'transparent' : 'var(--color-control-accent)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {!excluded && <Check size={12} style={{ color: '#fff' }} />}
@@ -233,6 +207,6 @@ function QuestionRow({ q, index, excluded, onToggle }: { q: ImportedQuestion; in
           <div style={{ fontSize: 11, color: 'var(--color-peach-text)', marginTop: 4 }}>{q.note}</div>
         )}
       </div>
-    </div>
+    </button>
   )
 }
