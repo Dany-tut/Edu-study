@@ -138,9 +138,26 @@ function readPending(owner: string, lessonKey: string, source: string): Pending 
 export type TranscriptRail = {
   draft: LocalDraft
   change: (value: LocalDraft) => void
-  tabs: React.ReactNode
-  lines?: React.ReactNode
   saving: boolean
+}
+
+export function RecordingLines({rail}: {rail: TranscriptRail}) {
+  const [editing, setEditing] = useState<number | null>(null)
+  const {draft, change, saving} = rail
+  return <section className="recording-lines" aria-label="Реплики записи">
+    <header><AudioLines size={16}/><strong>Реплики</strong><small>{draft.transcript.segments.length}</small></header>
+    <ScrollFade maxHeight="min(32dvh, 280px)" fadeHeight={12}>
+      <div>{draft.transcript.segments.map((line,index) => <div key={index} className="transcript-line">
+        <time>{transcriptTime(line.start)}</time>
+        {editing === index ? <span className="transcript-line-text" data-text={line.text + ' '}>
+          <textarea rows={1} autoFocus aria-label={'Реплика ' + (index+1)} value={line.text} disabled={saving}
+            onBlur={() => setEditing(null)} onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.blur() }}
+            onChange={e => change({...draft, transcript:{...draft.transcript, segments:draft.transcript.segments.map((s,i) =>
+              i === index ? {...s,text:e.target.value} : s)}})}/>
+        </span> : <button type="button" disabled={saving} aria-label={'Редактировать реплику ' + (index+1)} onClick={() => setEditing(index)}>{line.text || 'Введите текст'}</button>}
+      </div>)}</div>
+    </ScrollFade>
+  </section>
 }
 
 export function TranscriptionAction(props: Props & { children: (action: React.ReactNode, rail?: TranscriptRail) => React.ReactNode }) {
@@ -150,7 +167,6 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>(() =>
     connected && readPending(props.owner, jobKey, props.source) ? 'review' : 'entry')
   const [working, setWorking] = useState<LocalDraft | null>(null)
-  const [tab, setTab] = useState<'chapters' | 'lines'>('chapters')
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
   const draft = working ?? props.existing
@@ -169,7 +185,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   if (!props.owner || (!props.source && !props.file && !draft)) return <>{props.children(null)}</>
   if (view !== 'entry') return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }}>
     {view === 'review' ? <Review {...props} lessonKey={jobKey} onClose={() => setView('entry')}
-      onReady={result => { change(result); setTab(result.timecodes.length ? 'chapters' : 'lines'); setView('entry') }} /> :
+      onReady={result => { change(result); setView('entry') }} /> :
       <section className="transcription-inline">
         <button type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
         {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
@@ -182,21 +198,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   </button>)}</>
   const badChapter = draft.timecodes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
   const badLine = draft.transcript.segments.some(line => !line.text.trim())
-  const rail: TranscriptRail = {
-    draft, change, saving,
-    tabs: <div className="transcript-tabs" role="group" aria-label="Раздел расшифровки">
-      <button aria-pressed={tab === 'chapters'} onClick={() => setTab('chapters')}>Главы <small>{draft.timecodes.length}</small></button>
-      <button aria-pressed={tab === 'lines'} onClick={() => setTab('lines')}>Реплики <small>{draft.transcript.segments.length}</small></button>
-    </div>,
-    lines: tab === 'lines' ? draft.transcript.segments.map((line, index) =>
-      <label className="transcript-line" key={index}><time>{transcriptTime(line.start)}</time>
-        <span className="transcript-line-text" data-text={line.text + ' '}>
-          <textarea rows={1} aria-label={'Реплика ' + (index + 1)} disabled={saving} value={line.text} onChange={e => change({
-            ...draft, transcript: {...draft.transcript, segments:draft.transcript.segments.map((s,i) => i === index ? {...s,text:e.target.value} : s)}
-          })} />
-        </span>
-      </label>) : undefined,
-  }
+  const rail = {draft, change, saving}
   return <>{props.children(<>
     {(failed || badChapter || badLine) && <small role="alert">{failed ? 'Не удалось сохранить. Попробуйте ещё раз.' : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
     <div className="transcript-tools">
