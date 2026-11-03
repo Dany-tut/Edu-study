@@ -35,3 +35,7 @@ supabase-cli
 
 # Кэш версии CLI: пишет сам npx supabase, в гите ему делать нечего.
 supabase/.temp/
+
+# Isolated PR29 QA builds (never served by the production build)
+dist-pr29-qa/
+dist-pr29-baseline/

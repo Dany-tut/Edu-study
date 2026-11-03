@@ -1,0 +1,5 @@
+import {defineConfig} from 'vite'
+import react from '@vitejs/plugin-react'
+import {resolve} from 'node:path'
+const negative=process.env.QA_NEGATIVE==='1'
+export default defineConfig(()=>({base:negative?'/baseline/':'/',envDir:process.cwd(),plugins:[negative?{name:'pr29-negative-control',enforce:'pre' as const,transform(code:string,id:string){if(!/src\/lib\/use(Groups|Homework)\.ts$/.test(id))return;let n=0;const result=code.replace(/(const (?:groupsQuery|allStudentsQuery|homeworkQuery|hardQuery) = createSharedQuery[^\n]*\n(?:[^\n]*\n){0,4}?  const uid = await getOwnerId\(\)\n)  if \(!uid\) return \[\]\n/g,(_,prefix)=>{n++;return prefix});if(n!==2)throw Error('Expected two negative-control guards in '+id+', got '+n);return result}}:null,react()],define:{__APP_VERSION__:JSON.stringify('PR29 QA'),__APP_BUILD__:'0',__APP_COMMIT__:JSON.stringify(process.env.QA_SOURCE_SHA??'pr29-patch')},build:{outDir:negative?'dist-pr29-baseline':'dist-pr29-qa',rollupOptions:{input:{app:resolve('index.html'),ownerless:resolve('qa/ownerless/index.html')}}}}))
