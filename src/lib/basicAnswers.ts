@@ -93,7 +93,20 @@ export function parseBasicAnswers(attachments: unknown): BasicAnswersPayload | n
     selfAssessment: parseLessonSelfAssessment(a.selfAssessment),
     gradable: typeof a.gradable === 'number' ? a.gradable : 0,
     correct: typeof a.correct === 'number' ? a.correct : 0,
-    rows: a.rows as BasicAnswerRow[],
+    // Older snapshots can contain only the answer/verdict. Normalize at the
+    // storage boundary so both teacher review layouts can render them safely.
+    rows: a.rows.flatMap((row, index) => {
+      if (!row || typeof row !== 'object') return []
+      const n = Number.isInteger(row.n) && row.n > 0 ? row.n : index + 1
+      const answer = typeof row.answer === 'string' ? row.answer : ''
+      const verdict: BasicAnswerVerdict = ['correct', 'wrong', 'hint', 'review', 'skip', 'empty'].includes(row.verdict)
+        ? row.verdict : answer ? 'review' : 'empty'
+      return [{
+        ...row, n, answer, verdict,
+        prompt: typeof row.prompt === 'string' ? row.prompt : `${t('Задание')} ${n}`,
+        type: typeof row.type === 'string' ? row.type : 'unknown',
+      }]
+    }),
   }
 }
 

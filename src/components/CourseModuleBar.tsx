@@ -1,7 +1,7 @@
 import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Check, ChevronDown, Search } from './icons/appIcons'
 import type { Subject } from '../data/mockData'
 import Tooltip from './Tooltip'
@@ -222,6 +222,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
 }) {
   const t = useT()
   const { tc } = useTc()
+  const reduceMotion = useReducedMotion()
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -236,65 +237,60 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
         const name = tc(mod.label) || t('Уроки')
         const num = i + 1
         const debts = debtCounts?.[mod.id] ?? 0
-        const debtBadge = debts > 0 && <button type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`} onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)} style={{ border: 0, borderRadius: 999, minWidth: 20, height: 20, padding: '0 5px', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 700, cursor: 'pointer', position: 'absolute', top: -6, right: -6, zIndex: 1 }}>{debts}</button>
-
-        if (isActive) {
-          return (
-            <div
-              key={mod.id}
-              data-module-tab={mod.id}
-              style={{
-                ...ACTIVE_PILL, position: 'relative', height: BAR_H, padding: '0 14px 0 5px', borderRadius: 999,
-                display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0, whiteSpace: 'nowrap',
-              }}
-            >
-              <span style={{
-                width: 24, height: 24, borderRadius: 12, flexShrink: 0,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                background: isDone ? 'var(--color-green-soft)' : 'var(--color-accent)',
-                color: isDone ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700,
-              }}>
-                {isDone ? <Check size={13} strokeWidth={2.8} /> : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
-              </span>
-              <span style={{ ...TEXT_LIFT, fontSize: 13, fontWeight: 600, color: isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}>{name}</span>
-              {pct > 0 && (
-                <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
-              )}
-              {debtBadge}
-            </div>
-          )
-        }
-
         const label = isLocked && prev
           ? `${num} · ${name} — ${t('откроется после')} «${tc(prev.label) || num - 1}»`
           : pct > 0 && !isDone ? `${num} · ${name} · ${pct}%` : `${num} · ${name}`
+        const transition = { duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] as const }
 
         return (
-          <div key={mod.id} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}><Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
-            <motion.button
-              type="button"
-              data-module-tab={mod.id}
-              aria-label={label}
-              disabled={isLocked}
-              whileHover={isLocked ? undefined : { scale: 1.08 }}
-              whileTap={isLocked ? undefined : { scale: 0.94 }}
-              onClick={() => { if (!isLocked) onSelect(mod.id) }}
-              style={{
-                width: DOT, height: DOT, borderRadius: DOT / 2, flexShrink: 0, padding: 0,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
-                background: isDone ? 'var(--color-green-soft)' : 'transparent',
-                border: isDone ? '1.5px solid transparent' : '1.5px solid var(--color-text-4)',
-                color: isDone ? 'var(--color-green-text)' : isLocked ? 'var(--color-muted)' : 'var(--color-text-2)',
-                opacity: isLocked ? 0.6 : 1,
-                cursor: isLocked ? 'default' : 'pointer',
-              }}
-            >
-              {isDone
-                ? <Check size={14} strokeWidth={2.8} />
-                : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
-            </motion.button>
-          </Tooltip>{debtBadge}</div>
+          <motion.div key={mod.id} layout={reduceMotion ? false : 'position'} transition={transition}
+            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', height: BAR_H, flexShrink: 0, marginRight: debts ? 10 : 0 }}>
+            <Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
+              <motion.button
+                type="button"
+                data-module-tab={mod.id}
+                aria-label={label}
+                aria-pressed={isActive}
+                disabled={isLocked}
+                whileHover={isLocked || reduceMotion ? undefined : { y: -1 }}
+                whileTap={isLocked || reduceMotion ? undefined : { scale: 0.96 }}
+                transition={transition}
+                onClick={() => { if (!isLocked) onSelect(mod.id) }}
+                style={{
+                  ...(isActive ? ACTIVE_PILL : {}),
+                  height: isActive ? BAR_H : DOT, padding: 0, borderRadius: 999,
+                  display: 'inline-flex', alignItems: 'center', flexShrink: 0,
+                  fontFamily: 'inherit', whiteSpace: 'nowrap',
+                  background: isActive ? ACTIVE_PILL.background : isDone ? 'var(--color-green-soft)' : 'transparent',
+                  border: isActive ? ACTIVE_PILL.border : `1.5px solid ${isDone ? 'transparent' : 'var(--color-text-4)'}`,
+                  color: isDone ? 'var(--color-green-text)' : isLocked ? 'var(--color-muted)' : 'var(--color-text-2)',
+                  opacity: isLocked ? 0.6 : 1, cursor: isLocked ? 'default' : 'pointer',
+                }}
+              >
+                <span style={{ width: DOT - 3, height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    background: isActive ? isDone ? 'var(--color-green-soft)' : 'var(--color-accent)' : 'transparent',
+                    color: isActive && !isDone ? '#fff' : 'inherit', fontSize: 12, fontWeight: 700 }}>
+                    {isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
+                  </span>
+                </span>
+                <motion.span initial={false} animate={{ width: isActive ? 'auto' : 0, opacity: isActive ? 1 : 0 }} transition={transition}
+                  style={{ display: 'inline-flex', overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, paddingLeft: debts ? 18 : 8, paddingRight: 14 }}>
+                    <span style={{ ...TEXT_LIFT, fontSize: 13, fontWeight: 600, color: isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}>{name}</span>
+                    {pct > 0 && <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>}
+                  </span>
+                </motion.span>
+              </motion.button>
+            </Tooltip>
+            {/* Anchor to the number, independent of the expanding module title. */}
+            {debts > 0 && <motion.button type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`}
+              whileTap={reduceMotion ? undefined : { scale: 0.9 }}
+              onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)}
+              style={{ position: 'absolute', top: -4, left: 20, zIndex: 1, border: 0, borderRadius: 999,
+                minWidth: 20, height: 20, padding: '0 5px', background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
+                fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>{debts}</motion.button>}
+          </motion.div>
         )
       })}
     </div>

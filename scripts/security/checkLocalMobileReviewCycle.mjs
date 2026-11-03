@@ -4,7 +4,7 @@ import {readFileSync,writeFileSync,mkdirSync,chmodSync} from 'node:fs'
 import {randomUUID} from 'node:crypto'
 import assert from 'node:assert/strict'
 const root=process.env.ISKRA_LOCAL_DIR||'/tmp/iskra-local-security'
-const dir='/tmp/iskra-mobile-review-local'
+const dir=process.env.ISKRA_MOBILE_REVIEW_DIR||'/tmp/iskra-mobile-review-local'
 const cfg=JSON.parse(readFileSync(root+'/status.json','utf8'))
 assert.ok(['localhost','127.0.0.1'].includes(new URL(cfg.API_URL).hostname),'Local API only')
 const make=key=>createClient(cfg.API_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})

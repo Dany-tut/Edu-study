@@ -1,0 +1,7 @@
+{
+  "scope": "Fresh browser context with existing synthetic student session; frozen frontend",
+  "before": "http://127.0.0.1:5297/#/",
+  "after": "about:blank",
+  "diaryStillVisible": false,
+  "homeControlVisible": false
+}

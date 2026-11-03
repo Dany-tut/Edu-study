@@ -151,6 +151,22 @@ assert.deepEqual(selfResult.selfAssessment, self)
 assert.equal(selfResult.pending, true)
 assert.equal(selfResult.percent, null)
 assert.deepEqual(m.parseBasicAnswers(selfSnapshot).selfAssessment, self)
+// Legacy/incomplete snapshots must remain readable in both teacher layouts.
+const legacyAnswers = m.parseBasicAnswers({ v: 'basic-1', rows: [
+  { answer: 'Saved learner response', verdict: 'review' }, null,
+  { n: 8, prompt: 'Original question', type: 'extended', answer: 'Second response', verdict: 'correct' },
+  { n: -1, prompt: null, answer: 42, verdict: 'invalid' },
+] }).rows
+assert.equal(legacyAnswers.length, 3)
+assert.equal(legacyAnswers[0].n, 1)
+assert.equal(typeof legacyAnswers[0].prompt, 'string')
+assert.equal(legacyAnswers[0].answer, 'Saved learner response')
+assert.equal(legacyAnswers[1].n, 8)
+assert.equal(legacyAnswers[1].prompt, 'Original question')
+assert.equal(legacyAnswers[1].verdict, 'correct')
+assert.equal(legacyAnswers[2].n, 4)
+assert.equal(legacyAnswers[2].answer, '')
+assert.equal(legacyAnswers[2].verdict, 'empty')
 assert.equal(m.homeworkResult({ ...selfSnapshot, selfAssessment: { ...self, value: 5 } }, null).selfAssessment, null)
 assert.equal(m.homeworkResult({ ...selfSnapshot, selfAssessment: { ...self, value: null } }, null).selfAssessment, null)
 const selfProgress = { ...progress('submitted'), result: selfResult }

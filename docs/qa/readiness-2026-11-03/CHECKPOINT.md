@@ -40,3 +40,20 @@ Preview session 98645 на 5291 остановлен. Browser bridge session 933
 Порядок продолжения после освобождения диска: проверить ресурсы/владельцев локального стенда → полный replay возврата/новой попытки → UI создание/назначение ДЗ и расписание/журнал → матрица прерываний. Продукт остаётся без допуска к внешней бете. Production не менялся.
 
 Финально: подтверждённый browser bridge PID 75702 этого чата завершён SIGTERM после зависшего штатного close; preview остановлен. Новых работ не осталось.
+
+## Последняя контрольная точка: полный возврат, UI authoring, журнал, финансы, очистка
+
+Актуальны README.md (блок «Последний статус»), continuation-2.md, defects.md и coverage.md.
+
+1. Диск сам освободился до 12.148 GiB, затем выполнен guarded browser return replay на отдельном preview 5297: 10 PASS / 0 FAIL, safetyStop=null. Доказательства return-cycle-complete/ и return-cycle-resources.json.
+2. Пройден полноценный authoring через UI (группа/ученик/2 задания), регистрация ученика на Chrome 390×844 по приглашению, сдача, проверка, 90%, комментарий, согласование с журналом. Private fixture /tmp/iskra-local-security/ui-authoring-fixture.json (0600); private student storageState ui-authoring-student-state.json (0600). Ответы/токены не печатать. Обнаружен HW-STATUS-01: вопрос «На проверке» после completed.
+3. UI-расписание: QA Занятие для проверки журнала, новая группа, 02.11.2026 09:00–10:00 МСК, published; attendance true + grade5, ученик видит «Был на занятии». Журнал не обновился при переходе после публикации до focus — JOURNAL-REFRESH-01.
+4. Финансы: только перехват POST до БД (synthetic503), никакой оплаты не записано. PAY-AMOUNT-01 (-100→100,100.50→10050,1e3→13), PAY-RECIPIENT-01 (global payment→first student), PAY-ERROR-01 (503 без ошибки пользователю). Текущие financial source hashes совпали с frozen-снимком.
+5. OAuth partial fix появился в общей рабочей копии; проверен независимо. checkSocialAuthRecovery PASS. Expanded React/native fixture: 2 PASS / 3 FAIL — восстановление после закрытия/отказа PASS, зависшее открытие, pending intent после180с, access_denied raw copy FAIL. Не правили продуктовый OAuth в этом чате.
+6. Actual Modal/forms deferred-service suite: 2 PASS /4 FAIL. Attendance pending traps close/Escape; OTP send/verify and password/reset switch stay busy. Настоящие Auth/DB-сбои для этих кейсов ещё нужно воспроизвести на стабильном стенде. Тесты мокируют только сервисную границу; не выдавать их за real-iPhone E2E.
+7. Пользователь явно разрешил очистку 25 временных node_modules. Проверены ps и cwd через lsof, удалены только 25 папок из cleanup-candidates.json, источники/.git/lockfiles/артефакты сохранены. cleanup-result.json: free11.11→19.17 GiB, skipped0. Вопрос очистки закрыт, повторного разрешения не требуется для уже выполненного действия; новых папок не удалять по старому разрешению.
+8. Собственный preview на5297 (session92860) остановлен. Browser bridge session66747 получил exit; PID95303 принадлежит этому чату и может потребовать SIGTERM, если штатный browser.close зависнет. Другие dev-серверы и общие local Supabase не останавливались. Private final teacher state: readiness-final-teacher-state.json (0600).
+
+Следующая работа: исправить/перепроверить финансовый парсинг и обработку ошибок; завершить матрицу прерываний; реальные устройства, файлы, уведомления, перенос/отмена расписания, тренажёры, настоящие ИИ/Тестли/SMTP и target-env приёмка. Допуск к внешней бете/рынку не дан. Production не менялся, git push/deploy отсутствуют. Текущие продуктовые исходники всё ещё общая грязная копия; не релизить её целиком.
+
+Собственный browser bridge PID95303 завершён после зависшего штатного browser.close. Перед остановкой все данные/результаты сохранены.

@@ -88,10 +88,15 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     newpassword: t('Сохранить пароль'),
   }
 
+  const formHeight = 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))'
   return (
-    <ScrollFade maxHeight="100dvh" fadeHeight={24} style={{ background: 'var(--color-bg)' }}>
+    <ScrollFade maxHeight={formHeight} fadeHeight={24} style={{
+      position: 'fixed',
+      inset: 'env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px)',
+      background: 'var(--color-bg)',
+    }}>
     <div style={{
-      minHeight: '100dvh',
+      minHeight: formHeight,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

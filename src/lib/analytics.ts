@@ -36,8 +36,15 @@ function restoreIncidents() {
     if (!Array.isArray(pending)) return
     for (const e of pending.slice(-50)) {
       if (typeof e?.meta?.incident_id !== 'string' || !e.identity || !e.session_id || !e.event || Date.now() - Date.parse(e.created_at) > 86400000 || !Number.isFinite(Date.parse(e.created_at))) continue
+      e.path = analyticsPath(e.path)
+      if (Array.isArray(e.meta.breadcrumbs)) {
+        for (const crumb of e.meta.breadcrumbs) {
+          if (crumb && typeof crumb === 'object') crumb.path = analyticsPath(crumb.path)
+        }
+      }
       incidentOutbox.set(e.meta.incident_id, e); buffer.push(e)
     }
+    persistIncidents()
   } catch { /* stale outbox */ }
 }
 
@@ -162,9 +169,15 @@ async function performFlush(final: boolean) {
 // а не «/»: иначе пульсы и ошибки с главной ложились отдельной строкой «/»,
 // где ноль визитов (визит-то записан роутером как «#/»), и на вкладке
 // «Проблемы» она выглядела страницей-призраком.
+function analyticsPath(path: unknown): string | null {
+  if (typeof path !== 'string') return null
+  if (path.startsWith('#') && !path.startsWith('#/')) return '#/'
+  return path.split('?', 1)[0]
+}
+
 function currentPath(): string | null {
   if (typeof location === 'undefined') return null
-  if (location.hash.startsWith('#/')) return location.hash.split('?')[0]
+  if (location.hash.startsWith('#/')) return analyticsPath(location.hash)
   if (location.hash) return '#/'
   return location.pathname === '/' ? '#/' : location.pathname
 }
@@ -175,7 +188,7 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   // в initAnalytics — иначе роутер и логин продолжали бы писать с localhost.
   if (!TELEMETRY_ON) return
   if (buffer.length >= 500) buffer.shift()
-  const eventPath = path ?? currentPath()
+  const eventPath = analyticsPath(path ?? currentPath())
   rememberDiagnosticEvent(event, eventPath, meta)
   const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || Number(meta.duration_ms) >= 3000))
   buffer.push({
@@ -228,7 +241,6 @@ function recordDwell() {
 let lastPath = ''
 /** Call on every route change — records dwell time for the previous page. */
 export function trackPath(path: string, meta: Record<string, unknown> = {}) {
-  if (path === lastPath) return
   // Якорь внутри страницы («#modes», «#tariffs» в навигации лендинга) — не
   // переход: адрес меняется, а экран тот же. Роутер их и так не разбирает —
   // маршруты все вида «#/…». А телеметрия считала каждый такой клик уходом:
@@ -237,6 +249,8 @@ export function trackPath(path: string, meta: Record<string, unknown> = {}) {
   // висели в bounce-риске.
   if (path.startsWith('#') && !path.startsWith('#/')) return
 
+  path = analyticsPath(path) ?? '#/'
+  if (path === lastPath) return
   recordDwell()
 
   lastPath = path
@@ -398,7 +412,7 @@ export function initAnalytics() {
     let tz: string | null = null
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null } catch { /**/ }
     trackEvent('session_start', {
-      ref: document.referrer || null,
+      ref: document.referrer ? new URL(document.referrer).origin : null,
       w: window.innerWidth,
       h: window.innerHeight,
       tz,
