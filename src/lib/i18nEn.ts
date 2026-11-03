@@ -10,6 +10,10 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Входящие заявки': 'Incoming requests',
+  'Пока нет друзей': 'No friends yet',
+  'Найти друга по нику': 'Find a friend by username',
+  'Выбрать ник для заявки': 'Choose a username to send a request',
   "Открыть Claude": "Open Claude",
   "Скопировать адрес": "Copy address",
   "Сервис MCP пока недоступен": "MCP service currently unavailable",

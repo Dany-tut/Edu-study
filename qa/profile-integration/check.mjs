@@ -31,10 +31,10 @@ await p.evaluate(()=>{
 })
 await click('Друзья')
 assert.equal(await p.getByRole('navigation',{name:'Разделы друзей'}).count(),0)
-for (const name of ['Мой ник','Поиск','Заявки','Друзья']) {
+for (const name of ['Поиск','Друзья']) {
   await p.getByRole('region',{name,exact:true}).waitFor()
 }
-await click('Настройки');await click('Главное');await click('Интеграции')
+await click('Настройки');await p.getByLabel('Твой ник').waitFor();await click('Главное');await click('Интеграции')
 const card=p.locator('.transcription-module');await card.waitFor()
 const header=p.locator('.teacher-profile-identity')
 const n=await nav.boundingBox(),h=await header.boundingBox()

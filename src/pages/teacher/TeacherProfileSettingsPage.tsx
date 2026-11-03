@@ -53,7 +53,7 @@ const AVATARS: AvatarOption[] = [
 export default function TeacherProfileSettingsPage({ friends }: { friends: FriendsModel }) {
   const t = useT()
   const [page, setPage] = useState<'main' | 'integrations' | 'settings'>('main')
-  const section = friends.account && friends.tab ? 'friends' : page
+  const section = friends.account && friends.tab ? (friends.tab === 'profile' ? 'settings' : 'friends') : page
   const sections = [
     { id: 'main' as const, label: t('Главное') },
     ...(friends.account ? [{ id: 'friends' as const, label: t('Друзья') }] : []),
@@ -427,9 +427,9 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
         </>}
         {section === 'integrations' && <TeacherModules />}
         {section === 'settings' && <>
-          <button type="button" style={{ ...photoBtnStyle, marginBottom: 16, minHeight: 44 }} onClick={() => setPage('integrations')}>{t('Интеграции')}</button>
+          <button type="button" style={{ ...photoBtnStyle, marginBottom: 16, minHeight: 44 }} onClick={() => { friends.setTab(null); setPage('integrations') }}>{t('Интеграции')}</button>
           <div style={{ background: 'var(--color-bg-2)', borderRadius: 20, padding: 24 }}>
-            {friends.account && <button type="button" style={{ ...photoBtnStyle, marginBottom: 18 }} onClick={() => friends.setTab('profile')}>{t('Ник и видимость')}</button>}
+            {friends.account && <div className="friend-profile-settings"><FriendsContent model={{ ...friends, tab: 'profile' }} suggestedName={friends.account === profileOwner ? savedName : ''}/></div>}
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 6 }}>{t('Время в расписании')}</div>
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для просмотра расписания')}</div>

@@ -4,7 +4,7 @@ import { useT } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { friendsAction, type Contact, type FriendsModel, type FriendsTab } from '../lib/desktopFriends'
 import Modal from './Modal'
-import { Users } from './icons/appIcons'
+import { Search, Users } from './icons/appIcons'
 import './desktopFriends.css'
 
 const titles: Record<FriendsTab, string> = { contacts: 'Друзья', requests: 'Заявки', search: 'Поиск', profile: 'Мой ник' }
@@ -61,11 +61,7 @@ export function FriendsContent({ model, overview = false, suggestedName = '' }: 
   const t = useT()
   const { account, snapshot, tab } = model
   if (!account || !tab) return null
-  // A notification opens incoming requests at the top of the same page.
-  const overviewPanes: FriendsTab[] = tab === 'requests'
-    ? ['requests', 'contacts', 'profile', 'search']
-    : ['profile', 'search', 'requests', 'contacts']
-  const panes = overview ? overviewPanes : [tab]
+  const panes: (FriendsTab | 'outgoing')[] = overview ? ['search', 'requests', 'contacts', 'outgoing'] : [tab]
   return (
     <div className={overview ? "desktop-friends friends-overview" : "desktop-friends"}>
       {model.error && <p role="alert">{t(model.error)} <button onClick={model.refresh}>{t('Повторить')}</button></p>}
@@ -76,7 +72,7 @@ export function FriendsContent({ model, overview = false, suggestedName = '' }: 
   )
 }
 
-function FriendsPane({ model, account, tab, overview, suggestedHandle }: { model: FriendsModel; account: string; tab: FriendsTab; overview: boolean; suggestedHandle: string }) {
+function FriendsPane({ model, account, tab, overview, suggestedHandle }: { model: FriendsModel; account: string; tab: FriendsTab | 'outgoing'; overview: boolean; suggestedHandle: string }) {
   const t = useT()
   const snapshot = model.snapshot!
   const [nickDraft,setNick] = useState<string | null>(null)
@@ -102,12 +98,14 @@ function FriendsPane({ model, account, tab, overview, suggestedHandle }: { model
   }
   function rows(state: Contact['state'], empty: string) {
     const contacts = snapshot.contacts.filter(c => c.state === state)
-    return contacts.length ? contacts.map(c => <div className="friend-row" key={c.id}><strong>@{c.handle}</strong>
+    return contacts.length ? contacts.map(c => <div className="friend-row" key={c.id}> {overview && <span className="friend-avatar" aria-hidden="true">{c.handle[0].toUpperCase()}</span>}<strong>@{c.handle}</strong>
       {state === 'incoming' && <button className="friend-primary" disabled={busy} onClick={() => run(() => change('accept',c))}>{t('Принять')}</button>}
       {state !== 'friend' && <button disabled={busy} onClick={() => run(() => change(state === 'incoming' ? 'decline' : 'cancel',c))}>{state === 'incoming' ? t('Отклонить') : t('Отменить')}</button>}
     </div>) : <p>{t(empty)}</p>
   }
-  return <section aria-label={t(titles[tab])}>
+  const count = (state: Contact['state']) => snapshot.contacts.filter(contact => contact.state === state).length
+  if (overview && ((tab === 'requests' && !count('incoming') && !message) || (tab === 'outgoing' && !count('outgoing') && !message))) return null
+  return <section aria-label={t(tab === 'outgoing' ? 'Отправленные' : titles[tab])}>
     {tab === 'profile' ? <form onSubmit={e => { e.preventDefault(); void run(async () => {
       await friendsAction(account,'save',{ handle:clean(nick),searchable:visible }); await model.refresh()
       if (active.current) { setNick(null); setVisible(null); setMessage('Настройки сохранены.') }
@@ -118,22 +116,23 @@ function FriendsPane({ model, account, tab, overview, suggestedHandle }: { model
       <p>{t('Другие пользователи увидят только твой ник.')}</p>
       <button className="friend-primary" disabled={busy || !valid(nick)}>{t('Сохранить')}</button>
     </form> : !snapshot.handle && !overview ? <><h3>{t('Выбери свой ник')}</h3><p>{t('По нему друзья узнают, от кого пришла заявка.')}</p><button className="friend-primary" onClick={()=>model.setTab('profile')}>{t('Выбрать ник')}</button></> :
-    tab === 'contacts' ? <><h3>{t('Мои друзья')}</h3>{rows('friend','Пока здесь никого нет. Найди друга по его нику.')}{!overview && <button onClick={()=>model.setTab('search')}>{t('Найти друга')}</button>}</> :
-    tab === 'requests' ? <><h3>{t('Входящие')}</h3>{rows('incoming','Новых заявок нет.')}<h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</> :
-    <><h3>{t('Найти друга')}</h3>{overview && !snapshot.handle && <p>{t('Сначала сохрани свой ник.')}</p>}<form onSubmit={e=>{e.preventDefault(); void run(async()=>{
+    tab === 'contacts' ? <><h3>{t('Мои друзья')} {overview && <small>{count('friend')}</small>}</h3>{rows('friend',overview ? 'Пока нет друзей' : 'Пока здесь никого нет. Найди друга по его нику.')}{!overview && <button onClick={()=>model.setTab('search')}>{t('Найти друга')}</button>}</> :
+    tab === 'outgoing' ? <><h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</> :
+    tab === 'requests' ? <><h3>{t(overview ? 'Входящие заявки' : 'Входящие')} {overview && <small>{count('incoming')}</small>}</h3>{rows('incoming','Новых заявок нет.')}{!overview && <><h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</>}</> :
+    <><h3>{t(overview ? 'Друзья' : 'Найти друга')}</h3><form className={overview ? 'friend-search' : undefined} onSubmit={e=>{e.preventDefault(); void run(async()=>{
       setResult(null)
       const found=await friendsAction<SearchResult>(account,'search',{handle:clean(nick)})
       if(active.current) setResult(found)
-    })}}><label>{t('Точный ник')}<input placeholder="@sever_9" value={nick} maxLength={21} disabled={busy} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
-      <button className="friend-primary" disabled={busy || !snapshot.handle || !valid(nick)}>{t('Найти')}</button></form>
-      {result?.status === 'found' ? <div className="friend-row"><strong>@{result.handle}</strong><button disabled={busy} onClick={()=>run(async()=>{
+    })}}><label>{overview ? <Search size={18} aria-hidden="true"/> : t('Точный ник')}<input aria-label={t('Точный ник')} placeholder={overview ? t('Найти друга по нику') : '@sever_9'} value={nick} maxLength={21} disabled={busy} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
+      <button className="friend-primary" hidden={overview && !nick} disabled={busy || !valid(nick)}>{t('Найти')}</button></form>
+      {result?.status === 'found' ? <div className="friend-row"><strong>@{result.handle}</strong>{!snapshot.handle ? <button onClick={()=>model.setTab('profile')}>{t('Выбрать ник для заявки')}</button> : <button disabled={busy} onClick={()=>run(async()=>{
         const response=await friendsAction<SearchResult>(account,'send',{handle:result.handle,key:result.key})
         await model.refresh()
         if (!active.current) return
         if (response.status === 'sent' && overview) { setResult(null); setMessage('Заявка отправлена.') }
         else if (response.status === 'sent') model.setTab('requests')
         else setResult(response)
-      })}>{t('Отправить заявку')}</button></div> : result && <p role="status">{t(results[result.status] ?? 'Попробуй ещё раз.')}</p>}
+      })}>{t('Отправить заявку')}</button>}</div> : result && <p role="status">{t(results[result.status] ?? 'Попробуй ещё раз.')}</p>}
     </>}
     {message && <p role="status">{t(message)}</p>}
   </section>
