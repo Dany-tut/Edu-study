@@ -5585,4 +5585,5 @@ export const EN: Record<string, string> = {
   "Вся сетка размеров": "All widget sizes",
   "Показано": "Showing",
   "Загрузить ещё": "Load more",
+  "Изменить высоту виджета": "Resize widget height",
 }
