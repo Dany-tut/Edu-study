@@ -63,7 +63,10 @@
 }
 
 .transcription-blocked {margin-block:4px 2px}
-.transcription-blocked > summary {width:fit-content;padding-block:12px;font-weight:650;color:var(--color-purple-text);cursor:pointer}
+.transcription-blocked > summary {display:flex;align-items:center;gap:4px;list-style:none;width:fit-content;padding-block:12px;font-weight:650;color:var(--color-purple-text);cursor:pointer}
+.transcription-blocked > summary::-webkit-details-marker {display:none}
+.transcription-blocked > summary > svg {flex-shrink:0}
+.transcription-blocked[open] > summary > svg {transform:rotate(90deg)}
 .transcription-blocked[open] > :not(summary) {margin-block:0 10px}
 .transcription-blocked .integration-action {width:auto;background:var(--color-purple-soft);color:var(--color-purple-text)}
 .transcription-blocked p a {color:var(--color-purple-text);text-decoration:underline}
