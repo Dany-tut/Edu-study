@@ -2009,6 +2009,7 @@ export const EN: Record<string, string> = {
   "Тренажер": "Trainer",
   "Это не похоже на ссылку Google Forms (forms.gle или docs.google.com/forms/...)": "This doesn't look like a Google Forms link (forms.gle or docs.google.com/forms/...)",
   "Не удалось импортировать форму": "Failed to import the form",
+  "Ссылка Google Forms": "Google Forms link",
   "Импорт из Google Forms": "Import from Google Forms",
   "Вставьте ссылку на Google-форму с доступом «Всем, у кого есть ссылка». Правильные ответы Google не отдаёт — отметьте их вручную после импорта.": "Paste a link to a Google Form set to “Anyone with the link”. Google doesn't share the correct answers — mark them manually after import.",
   "Разобрать": "Parse",

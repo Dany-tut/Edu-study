@@ -203,6 +203,7 @@ jobs:
           npm run check:student-topbar
           npm run check:calendar-browser
           npm run check:shelf-filters-browser
+          ISKRA_QA_OUTPUT=/tmp/iskra-google-form-qa npm run check:google-form-modal
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -212,6 +213,7 @@ jobs:
             /tmp/iskra-topbar-qa/
             /tmp/iskra-calendar-day-qa/
             /tmp/iskra-shelf-filters/
+            /tmp/iskra-google-form-qa/
           if-no-files-found: ignore
 
       - name: Сборка
