@@ -18,7 +18,15 @@ export async function probe(fetcher=fetch,key=process.env.ISKRA_PUBLISHABLE_KEY)
   const json=async(url,init={})=>{const r=await fetcher(url,{...init,signal:AbortSignal.timeout(10000),redirect:'error'});if(!r.ok)throw Error('probe_failed');return r.json()};
   // Fixed targets only: no URLs or credentials from a diagnostic event are used.
   const [release,version,html]=await Promise.all([json(ROOT+'/release.json'),json(ROOT+'/version.json'),fetcher(ROOT+'/',{signal:AbortSignal.timeout(10000),redirect:'error'})]);
-  if(!html.ok || !(await html.text()).includes('id="root"') || !/^[0-9a-f]{40}$/.test(release.commit) || release.commit!==version.commit || release.version!==version.version || release.build!==version.build || release.environment!=='production')throw Error('release_probe_failed');
+  const markup=await html.text();
+  if(!html.ok || !markup.includes('id="root"') || !/^[0-9a-f]{40}$/.test(release.commit) || release.commit!==version.commit || release.version!==version.version || release.build!==version.build || release.environment!=='production')throw Error('release_probe_failed');
+  const entries=[...markup.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map(m=>new URL(m[1],ROOT));
+  const modules=entries.filter(u=>u.origin===ROOT && (/^\/assets\/[^/]+\.js$/.test(u.pathname)||u.pathname==='/boot-diagnostics.js')).slice(0,5);
+  if(!modules.some(u=>u.pathname.startsWith('/assets/')))throw Error('entry_module_missing');
+  await Promise.all(modules.map(async url=>{
+    const r=await fetcher(url.href,{signal:AbortSignal.timeout(10000),redirect:'error'});
+    if(!r.ok || !/(javascript|ecmascript)/i.test(r.headers.get('content-type')??''))throw Error('entry_asset_failed');
+  }));
   if(!key)throw Error('missing_publishable_key');
   const summary=await json(BACKEND+'/rest/v1/rpc/iskra_monitor_summary',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}'});
   return {summary,probeOk:true};
