@@ -10,6 +10,9 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Не удалось скопировать": "Could not copy",
+  "Скопировать имя": "Copy name",
+  "Скопировать ник": "Copy handle",
   "Открыть Claude": "Open Claude",
   "Скопировать адрес": "Copy address",
   "Сервис MCP пока недоступен": "MCP service currently unavailable",

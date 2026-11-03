@@ -1,3 +1,6 @@
+import './teacherProfileHeader.css'
+import FadeText from '../../components/FadeText'
+import { copyToClipboard } from '../../lib/clipboard'
 import ProfileChips from '../../components/ProfileChips'
 import { FriendsContent } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
@@ -7,7 +10,7 @@ import { useState, useEffect } from 'react'
 import BackCircle from '../../components/BackCircle'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { motion } from 'framer-motion'
-import { Save, User, Camera, X, Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon } from '../../components/icons/appIcons'
+import { Copy, Check, Save, User, Camera, X, Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon } from '../../components/icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import SubjectColorPicker, { type ColorSubject } from '../../components/SubjectColorPicker'
@@ -44,6 +47,23 @@ const AVATARS: AvatarOption[] = [
   { id: 'rocket', Icon: Rocket, gradient: 'linear-gradient(135deg, hsl(46 96% 66%), hsl(36 92% 54%))',   glow: 'hsl(41 94% 60% / 0.45)', scale: 1.04 },
   { id: 'star',   Icon: Star,   gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', glow: 'hsl(271 76% 65% / 0.45)', scale: 1.1 },
 ]
+
+function CopyProfileLabel({ value, isHandle }: { value: string; isHandle: boolean }) {
+  const t = useT()
+  const [feedback, setFeedback] = useState('')
+  useEffect(() => {
+    if (!feedback) return
+    const timer = window.setTimeout(() => setFeedback(''), 1800)
+    return () => window.clearTimeout(timer)
+  }, [feedback])
+  const action = isHandle ? t('Скопировать ник') : t('Скопировать имя')
+  return <button type="button" className="profile-header-copy" title={action} aria-label={action + ' ' + value}
+    onClick={async () => setFeedback(await copyToClipboard(value) ? 'Скопировано' : 'Не удалось скопировать')}>
+    <FadeText>{feedback ? t(feedback) : value}</FadeText>
+    {feedback === 'Скопировано' ? <Check size={12}/> : <Copy size={12}/>}
+    <span className="sr-only" role="status">{feedback && t(feedback)}</span>
+  </button>
+}
 
 export default function TeacherProfileSettingsPage({ friends }: { friends: FriendsModel }) {
   const t = useT()
@@ -231,21 +251,22 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
       <TeacherPageScroll>
       <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
-          <BackCircle onClick={() => setActivePage('home')} label="На главную" />
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Профиль')}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{name}</div>
+        <header className="teacher-profile-header">
+          <div className="profile-header-identity">
+            <BackCircle onClick={() => setActivePage('home')} label="На главную" />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Профиль')}</div>
+              {(friends.snapshot?.handle || name) && <CopyProfileLabel key={friends.snapshot?.handle || name} isHandle={!!friends.snapshot?.handle}
+                value={friends.snapshot?.handle ? '@' + friends.snapshot.handle : name} />}
+            </div>
           </div>
-        </div>
-
-        <div style={{ marginBottom: 20 }}>
-          <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {
-            if (id === 'friends') friends.setTab('contacts')
-            else { friends.setTab(null); setPage(id) }
-          }}/>
-        </div>
+          <div className="profile-header-nav">
+            <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {
+              if (id === 'friends') friends.setTab('contacts')
+              else { friends.setTab(null); setPage(id) }
+            }}/>
+          </div>
+        </header>
         {section === 'friends' && <FriendsContent model={friends}/>}
         {section === 'main' && <>
         {/* Avatar preview + picker */}

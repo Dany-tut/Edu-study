@@ -1,0 +1,20 @@
+.teacher-profile-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.profile-header-identity { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.profile-header-nav { grid-column: 2; min-width: 0; max-width: 100%; }
+.profile-header-copy {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  padding: 2px 0; border: 0; background: transparent; color: var(--color-text-2);
+  font: inherit; font-size: 12px; cursor: pointer;
+}
+.profile-header-copy svg { flex: none; }
+.profile-header-copy:hover, .profile-header-copy:focus-visible { color: var(--color-accent); }
+@media (max-width: 720px) {
+  .teacher-profile-header { grid-template-columns: minmax(0, 1fr); }
+  .profile-header-nav { grid-column: 1; justify-self: center; }
+}
