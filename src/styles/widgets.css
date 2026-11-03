@@ -152,6 +152,9 @@
 @container iskra-widget (max-height:160px){.iskra-widget[data-widget="pupil-trainer"]>div{gap:4px!important}.iskra-widget .ww-quiz-heading>div:first-child{max-height:40px}}
 /* Explicit slots keep wrapped labels from shifting icons and size badges. */
 .ww-gallery-dialog{width:min(860px,calc(100vw - 32px))!important;max-width:none!important;max-height:calc(100dvh - 32px)!important}
+html:has(.ww-gallery-dialog),body:has(.ww-gallery-dialog){overflow:hidden;overscroll-behavior:none}
+.ww-gallery-list{overscroll-behavior:contain}
+.ww-gallery-edit{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;flex-shrink:0;margin:8px 18px;border:0;border-radius:12px;background:var(--color-purple-soft);color:var(--color-purple-text);font:inherit;font-weight:600;cursor:pointer}
 .ww-gallery-list{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));align-content:start;gap:10px!important;min-height:0}
 .ww-gallery-card{min-width:0;display:grid!important;grid-template-columns:42px minmax(0,1fr);grid-template-rows:auto 1fr auto;gap:8px 12px!important;padding:16px!important;align-items:start!important;align-content:start}
 .ww-gallery-icon{grid-column:1;grid-row:1 / 3;align-self:start}
