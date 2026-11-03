@@ -481,7 +481,7 @@
   .group-roster-toolbar input { font-size: 16px !important; }
 }
 
-.js-pending-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
+.journal-nav-count, .js-pending-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
 .js-pending-lessons { margin: 0 14px; font-size: 13px; color: var(--color-text); }
 .js-pending-lessons summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
 .js-pending-lessons p { color: var(--color-text-2); margin: 0; }

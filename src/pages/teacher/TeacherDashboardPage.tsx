@@ -40,7 +40,7 @@ import { useT } from '../../lib/i18n'
 import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
 import { getOwnerId } from '../../lib/owner'
 
-export default function TeacherDashboardPage({ standContent }: { standContent?: React.ReactNode } = {}) {
+export default function TeacherDashboardPage({ standContent, pendingAttendanceCount = 0 }: { standContent?: React.ReactNode; pendingAttendanceCount?: number } = {}) {
   const t = useT()
   const sizeReview = isWidgetReviewRoute(window.location)
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
@@ -265,7 +265,17 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     </div>}
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
+    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile">
+      <nav aria-label={t('Кабинет преподавателя')}>
+        {(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p =>
+          <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>
+            {t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}
+            {p === 'gradebook' && pendingAttendanceCount > 0 && <b className="journal-nav-count">{pendingAttendanceCount}</b>}
+          </button>
+        )}
+      </nav>
+      {standContent}
+    </div> : <MobileTeacherApp />)}</Suspense>
     </>
   )
 }

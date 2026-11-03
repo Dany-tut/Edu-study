@@ -888,6 +888,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
   }
   return (
     <><TeacherDashboardPage
+      pendingAttendanceCount={pendingAttendance.length}
       standContent={
         content && (
           <>
