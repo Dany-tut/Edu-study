@@ -87,7 +87,7 @@ try {
     await page.getByText('Забыли пароль?', { exact: true }).click()
     await page.clock.runFor(181000)
     const resetBlocked = await page.locator('form button[type=submit]').isDisabled()
-    await page.getByText('← Назад ко входу', { exact: true }).click()
+    await page.getByRole('button', { name: /Назад ко входу/ }).click()
     const passwordBlocked = await page.locator('form button[type=submit]').isDisabled()
     await record('password-reset-switch-pending', page, !resetBlocked && !passwordBlocked, { resetBlocked, passwordBlocked, otherMethodAvailable: await page.getByRole('button', { name: 'Войти по коду из письма', exact: true }).isEnabled(), virtualSeconds: 181, expectation: 'Switching from a stalled password request does not block recovery and the next login' })
     await context.close()

@@ -4,19 +4,22 @@
   "results": [
     {
       "scenario": "Native browser opened, then closed without callback; foreground return",
-      "status": "FAIL",
+      "status": "PASS",
       "state": [
         {
-          "text": "Открываем…",
-          "disabled": true
+          "text": "Продолжить с Apple ID",
+          "disabled": false
         },
         {
           "text": "Продолжить с Google",
-          "disabled": true
+          "disabled": false
         }
       ],
       "canCancel": false,
-      "pendingRole": "teacher",
+      "pendingRole": null,
+      "controlsRecovered": true,
+      "safeMessage": true,
+      "errorText": [],
       "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
     },
     {
@@ -33,11 +36,38 @@
         }
       ],
       "canCancel": false,
-      "pendingRole": "teacher",
+      "pendingRole": null,
+      "controlsRecovered": true,
+      "safeMessage": true,
+      "errorText": [
+        "Не удалось открыть страницу входа"
+      ],
       "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
     },
     {
-      "scenario": "Native browser open never resolves; two minutes pass",
+      "scenario": "Provider returns access_denied in native callback",
+      "status": "FAIL",
+      "state": [
+        {
+          "text": "Продолжить с Apple ID",
+          "disabled": false
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": false
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": null,
+      "controlsRecovered": true,
+      "safeMessage": false,
+      "errorText": [
+        "access_denied"
+      ],
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    },
+    {
+      "scenario": "Native browser open never resolves; no cancellation for two minutes",
       "status": "FAIL",
       "state": [
         {
@@ -51,6 +81,31 @@
       ],
       "canCancel": false,
       "pendingRole": "teacher",
+      "controlsRecovered": false,
+      "safeMessage": true,
+      "errorText": [],
+      "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
+    },
+    {
+      "scenario": "Native browser open never resolves; timeout after 181 seconds",
+      "status": "FAIL",
+      "state": [
+        {
+          "text": "Продолжить с Apple ID",
+          "disabled": false
+        },
+        {
+          "text": "Продолжить с Google",
+          "disabled": false
+        }
+      ],
+      "canCancel": false,
+      "pendingRole": "teacher",
+      "controlsRecovered": true,
+      "safeMessage": true,
+      "errorText": [
+        "Вход занимает слишком много времени. Можно закрыть окно входа и попробовать ещё раз."
+      ],
       "scope": "Actual React component and socialAuth; native bridge and provider are fixtures"
     }
   ]
