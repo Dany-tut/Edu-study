@@ -58,6 +58,7 @@
     "check:student-widgets": "node scripts/checkStudentWidgetMatrix.mjs",
     "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs",
     "check:calendar-browser": "node scripts/checkTeacherCalendarDay.mjs",
+    "check:shelf-filters-browser": "node scripts/checkShelfFiltersBrowser.mjs",
     "check:diagnostics": "node scripts/checkDiagnosticFetch.mjs && node scripts/checkTelemetryH1.mjs && node scripts/checkIncidentTelemetry.mjs && node scripts/checkIncidentDelivery.mjs"
   },
   "dependencies": {

@@ -374,7 +374,9 @@ function TaskCard({
                                 onUpdate({ correctChoices: isCorrect ? correct.filter(x => x !== ci) : [...correct, ci] })
                               }
                             }}
-                            aria-label={t('Верный ответ')}
+                            type="button"
+                            aria-label={`${t('Верный ответ')} ${ci + 1}`}
+                            aria-pressed={(task.correctChoices ?? []).includes(ci)}
                             style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', flexShrink: 0, display: 'flex' }}
                           >
                             {/* Общие отметки: один верный — кольцо, несколько — квадрат. */}
@@ -394,6 +396,8 @@ function TaskCard({
                           />
                           {(task.choices ?? []).length > 2 && (
                             <button
+                              type="button"
+                              aria-label={`${t('Удалить вариант')} ${ci + 1}`}
                               onClick={() => {
                                 const choices = (task.choices ?? []).filter((_, i) => i !== ci)
                                 const correct = (task.correctChoices ?? []).filter(i => i !== ci).map(i => i > ci ? i - 1 : i)
