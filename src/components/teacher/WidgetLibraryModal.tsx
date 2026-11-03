@@ -25,23 +25,7 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
   const t = useT()
   const Icon = def.icon
   return (
-    <div
-      className="ww-gallery-card"
-      style={{
-        display: 'flex', alignItems: 'center', gap: 14,
-        padding: '14px 16px', borderRadius: 14, border: '1px solid var(--color-border-medium)',
-        background: 'rgba(var(--glass-rgb), 0.6)', cursor: 'pointer', textAlign: 'left',
-        transition: 'background 0.15s, border-color 0.15s',
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.background = 'rgba(var(--glass-rgb), 0.95)'
-        e.currentTarget.style.borderColor = 'var(--color-accent)'
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.background = 'rgba(var(--glass-rgb), 0.6)'
-        e.currentTarget.style.borderColor = 'var(--color-border-medium)'
-      }}
-    >
+    <div className="ww-gallery-card">
       <div className="ww-gallery-icon" style={{
         width: 42, height: 42, borderRadius: 12, flexShrink: 0,
         background: def.iconBg,
@@ -80,11 +64,13 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
   const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !def.unavailable && !hiddenWidgets?.includes(def.type))
   const width = gridWidth ?? Math.max(1, document.documentElement.clientWidth - 64)
   const rowHeight = deskRowHeight(window.innerHeight)
-  const widgetSize = (def: WidgetDef) => clampDeskWidget({i:def.type, type:def.type, x:0,y:0,w:1,h:1,gridVersion:2},def,width,rowHeight,64,gridColumns)
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
     const existing = resolveDeskCollisions(existingItems.map(item => clampDeskWidget(item, getWidgetDef(item.type), width, rowHeight, legacyDeskRowHeight(window.innerHeight),gridColumns)))
-    const size = widgetSize(def)
+    const size = clampDeskWidget(
+      { i: id, type: def.type, x: 0, y: 0, w: 1, h: 1, gridVersion: 2 },
+      def, width, rowHeight, legacyDeskRowHeight(window.innerHeight), gridColumns,
+    )
     const pos = findFreePosition(existing, size.w, size.h, deskColumns(width,gridColumns))
     const item: LayoutItem = {
       i: id,
@@ -131,7 +117,7 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
             backdropFilter: 'var(--blur-solid)',
             borderRadius: 22,
             boxShadow: 'var(--shadow-5)',
-            width: 460, maxWidth: '94vw', maxHeight: '80vh',
+            width: 520, maxWidth: '94vw', maxHeight: '80vh',
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
           }}
