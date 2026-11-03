@@ -1,3 +1,4 @@
+import TableScrollArea from '../TableScrollArea'
 import { textFadeStyle } from '../../lib/textFades'
 import { Check as LoopUiCheck } from '../icons/appIcons'
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1426,7 +1427,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {head}
         {/* Таблица шире колонки прокручивается внутри себя, а не тянет страницу. */}
-        <div style={{ overflowX: 'auto' }}>
+        <TableScrollArea>
           <table style={{ borderCollapse: 'collapse', fontSize: 13, minWidth: '100%' }}>
             <thead>
               <tr>
@@ -1453,7 +1454,7 @@ function BlockView({ block }: { block: MaterialBlock }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableScrollArea>
       </div>
     )
   }

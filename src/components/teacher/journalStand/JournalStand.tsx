@@ -614,7 +614,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
           {entry && <div aria-hidden className="js-pill-space"/>}
           </div>
         </div>
-        {(['left', 'right', 'top', 'bottom'] as const).map(side =>
+        {(['right', 'bottom'] as const).map(side =>
           <i aria-hidden key={side} className={'js-scroll-fade js-fade-' + side} />)}
         {entry && <StudentPill entry={entry} work={work} open={() => set({tab: 'Обзор', workRef:''})} close={close} />}
     </div>
