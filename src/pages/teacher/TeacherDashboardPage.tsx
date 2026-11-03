@@ -142,7 +142,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
     <TeacherSubjectsPrompt />
-    {(isDesktop || mobileTool) && <div className="dashboard-root teacher-dashboard-root" style={{ display: 'flex', position: 'relative' }}>
+    {(isDesktop || mobileTool) && <div inert={showWidgetLibrary} className="dashboard-root teacher-dashboard-root" style={{ display: 'flex', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
       {!editMode && <div aria-hidden className="edge-progressive-blur--top" />}
@@ -163,6 +163,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       {showWidgetLibrary && (<Suspense fallback={null}>
         <WidgetLibraryModal
           onClose={() => setShowWidgetLibrary(false)}
+          onEditDesk={editMode ? undefined : useTeacher.getState().openDeskEditor}
           onAdd={item => updateDeskItems(activeDesk.id, [...(widgetGrid?.deskId === activeDesk.id ? [...widgetGrid.items, ...activeDesk.items.filter(saved => hiddenWidgets?.includes(saved.type))] : activeDesk.items), item])}
           existingTypes={activeDesk.items.map(i => i.type)}
           existingItems={widgetGrid?.deskId === activeDesk.id ? widgetGrid.items : activeDesk.items}

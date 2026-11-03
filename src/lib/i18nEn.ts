@@ -1786,6 +1786,8 @@ export const EN: Record<string, string> = {
   "Отправить": "Send",
   "Настройки профиля": "Profile settings",
   "имя, аватар": "name, avatar",
+  "Рабочий стол": "Desk",
+  "Настроить на экране": "Edit on dashboard",
   "Настроить виджеты": "Configure widgets",
   "как у учеников": "same as students",
   "Светлая тема": "Light theme",
