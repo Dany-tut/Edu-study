@@ -499,7 +499,7 @@ function RoleChooser({ onClose }: { onClose: () => void }) {
         <p style={{ fontSize: 14, color: 'var(--color-text-2)', margin: '0 0 22px' }}>{t('Кто вы?')}</p>
         <div style={{ display: 'grid', gap: 12 }}>
           <button onClick={() => go('#/login')} style={roleBtn}>
-            <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT_L} 20%, transparent)`, color: ACCENT_L }}><User size={22} /></div>
+            <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT} 20%, transparent)`, color: ACCENT }}><User size={22} /></div>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Я ученик')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Вход по логину и паролю от учителя')}</div>
@@ -508,7 +508,7 @@ function RoleChooser({ onClose }: { onClose: () => void }) {
           <button onClick={() => go('#/teacher')} style={roleBtn}>
             <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT} 20%, transparent)`, color: ACCENT }}><GraduationCap size={22} /></div>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Я преподаватель')}</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Я препод')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Кабинет учителя и администратора')}</div>
             </div>
           </button>
