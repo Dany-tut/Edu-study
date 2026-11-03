@@ -12,11 +12,12 @@ const labels=new Set(['Серверный монитор отвечает','Пр
 for(const k of Object.keys(example.states)){
   const v=value.states[k];if(!v || Object.keys(v).sort().join()!=='at,code,label' || typeof v.label!=='string' || !labels.has(v.label) || !Number.isFinite(Date.parse(v.at)) || !['observing','error','unknown','detected','none','not_started'].includes(v.code))throw Error('Invalid state');
 }
-// Never create this branch from main: only a tree with this one aggregate is publicized.
+// Never create this branch from main: aggregate plus a fixed no-deploy guard only.
 let head;
 try{head=api(repo+'/git/ref/heads/'+branch).object.sha}catch{}
 const blob=api(repo+'/git/blobs','POST',{content:JSON.stringify(value,null,2)+'\n',encoding:'utf-8'});
-const tree=api(repo+'/git/trees','POST',{tree:[{path:'iskra.json',mode:'100644',type:'blob',sha:blob.sha}]});
+const guard=api(repo+'/git/blobs','POST',{content:JSON.stringify({git:{deploymentEnabled:false}})+'\n',encoding:'utf-8'});
+const tree=api(repo+'/git/trees','POST',{tree:[{path:'iskra.json',mode:'100644',type:'blob',sha:blob.sha},{path:'vercel.json',mode:'100644',type:'blob',sha:guard.sha}]});
 const commit=api(repo+'/git/commits','POST',{message:'Update Iskra aggregate monitor status',tree:tree.sha,parents:head?[head]:[]});
 if(head)api(repo+'/git/refs/heads/'+branch,'PATCH',{sha:commit.sha,force:false});
 else api(repo+'/git/refs','POST',{ref:'refs/heads/'+branch,sha:commit.sha});
