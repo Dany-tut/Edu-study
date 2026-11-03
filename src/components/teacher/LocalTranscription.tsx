@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, AudioLines, Check, Eye, RotateCcw, X } from '../icons/appIcons'
+import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import './profileIntegrations.css'
@@ -115,7 +115,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
               <details ref={blockedHelp} className="transcription-blocked" onToggle={event => {
                 if (!event.currentTarget.open) event.currentTarget.querySelector('video')?.pause()
               }}>
-                <summary>Mac пишет «Файл не был открыт»?</summary>
+                <summary><ChevronRight size={16} aria-hidden />Mac пишет «Файл не был открыт»?</summary>
                 <p>Если Apple не удалось проверить файл, нажмите «Готово». Продолжайте, только если вы сами скачали этот архив из Искры и доверяете ему.</p>
                 <a className="integration-action" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Security">Открыть настройки Mac</a>
                 <video controls playsInline preload="none" poster="/guides/mac-launch.jpg" aria-label="Как разрешить запуск start.command на Mac" src="/guides/mac-launch.mp4" />
