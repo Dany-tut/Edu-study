@@ -25,3 +25,9 @@ verify_jwt = false
 # JWT is verified inside the handler; cron uses its shared secret.
 verify_jwt = false
 
+
+# User-approved MCP clients authenticate through the Iskra consent page.
+[auth.oauth_server]
+enabled = true
+authorization_url_path = "/oauth/consent"
+allow_dynamic_registration = true
