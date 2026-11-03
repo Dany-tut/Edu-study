@@ -22,7 +22,7 @@ const TeacherCourseEditorPage = lazy(() => retryImport(() => import('./TeacherCo
 const TeacherCardSetEditorPage = lazy(() => retryImport(() => import('./TeacherCardSetEditorPage')))
 const TeacherStoragePage = lazy(() => retryImport(() => import('./TeacherStoragePage')))
 const TeacherAdminPage = lazy(() => retryImport(() => import('./TeacherAdminPage')))
-const TeacherProfileSettingsPage = lazy(() => retryImport(() => import('./TeacherProfileSettingsPage')))
+const TeacherProfileSettingsPage = lazy(() => retryImport(() => import('./TeacherProfileSettingsPage'), 3, 'teacher_profile'))
 const TeacherPaymentPage = lazy(() => retryImport(() => import('./TeacherPaymentPage')))
 const TeacherFinancesPage = lazy(() => retryImport(() => import('./TeacherFinancesPage')))
 const MobileTeacherApp = lazy(() => retryImport(() => import('../../components/teacher/mobile/MobileTeacherApp')))

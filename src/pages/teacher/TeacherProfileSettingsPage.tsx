@@ -4,7 +4,8 @@ import { FriendsContent, FriendsTabs } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
-import { useState, useEffect } from 'react'
+import { profileFormReady } from '../../lib/diagnosticJourney'
+import { useState, useEffect, useRef } from 'react'
 import BackCircle from '../../components/BackCircle'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { motion } from 'framer-motion'
@@ -67,6 +68,8 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
   // Draft-backed: survives a page reload; cleared on successful save.
   const [name,     setName]     = usePersistentState('profile.name', '')
   const [avatarId, setAvatarId] = usePersistentState('profile.avatarId', 'flower')
+  const nameInput = useRef<HTMLInputElement>(null)
+  const [profileOwner, setProfileOwner] = useState<string | null>(null)
   const [email,    setEmail]    = useState('')
   // Фото сохраняется сразу, без кнопки «Сохранить»: файл уже в хранилище.
   const [avatarPath, setAvatarPath] = useState<string | null>(null)
@@ -77,15 +80,25 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
   const [error,    setError]    = useState('')
 
   useEffect(() => {
+    let mounted = true
     getAuthUser().then(u => {
-      if (!u) return
+      if (!mounted || !u) return
+      setProfileOwner(u.id)
       if (!hadDraft.name) setName(u.user_metadata?.name ?? u.email?.split('@')[0] ?? '')
       setEmail(u.email ?? '')
       setRole(u.app_metadata?.role === 'admin' ? 'admin' : 'teacher')
       if (!hadDraft.avatarId) setAvatarId(u.user_metadata?.avatarId ?? 'flower')
       setAvatarPath(u.user_metadata?.avatarPath ?? null)
     })
+    return () => { mounted = false }
   }, [])
+
+  useEffect(() => {
+    if (profileOwner && section === 'main' && nameInput.current?.isConnected && !nameInput.current.disabled) {
+      profileFormReady(profileOwner)
+      return () => profileFormReady(null)
+    }
+  }, [profileOwner, section])
 
   // ── Цвета предметов ────────────────────────────────────────────────────────
   // База учителя: этим цветом его предмет виден и ему, и всем его ученикам —
@@ -329,6 +342,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
         {/* Form */}
         <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <input
+            ref={nameInput}
             value={name}
             onChange={e => {
               const value = e.target.value
