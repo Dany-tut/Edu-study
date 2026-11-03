@@ -1,5 +1,3 @@
-import HScrollFade from './HScrollFade'
-import ProfileChips from './ProfileChips'
 import { useT } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { friendsAction, type Contact, type FriendsModel, type FriendsTab } from '../lib/desktopFriends'
@@ -28,7 +26,7 @@ export default function DesktopFriends({ model }: { model: FriendsModel }) {
     const dialog = panel.current.closest<HTMLElement>('[role="dialog"]')
     if (!dialog) return
     const previous = document.activeElement
-    panel.current.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')?.focus()
+    if (!dialog.contains(document.activeElement)) dialog.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll:true })
     const cycle = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return
       const controls = dialog.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)')
@@ -41,30 +39,30 @@ export default function DesktopFriends({ model }: { model: FriendsModel }) {
   }, [open])
   if (!account || !tab) return null
   return <Modal title={t('Друзья')} subtitle={snapshot?.handle ? '@' + snapshot.handle : t('Профиль в Искре')} icon={<Users size={24}/>} width={660} zIndex={9200} onClose={() => setTab(null)}>
-    <div ref={panel} className="desktop-friends">
-      <HScrollFade fadeWidth={22} padX={2}><FriendsTabs model={model}/></HScrollFade>
-      <FriendsContent model={model}/>
-    </div>
+    <div ref={panel}><FriendsContent model={model}/></div>
   </Modal>
-}
-
-export function FriendsTabs({ model }: { model: FriendsModel }) {
-  const t = useT()
-  if (!model.tab) return null
-  return <ProfileChips label={t('Разделы друзей')} value={model.tab} onChange={model.setTab}
-    items={(Object.keys(titles) as FriendsTab[]).map(id => ({
-      id, label: t(titles[id]) + (id === 'requests' && model.incoming.length ? ' · ' + model.incoming.length : ''),
-    }))}/>
 }
 
 export function FriendsContent({ model }: { model: FriendsModel }) {
   const t = useT()
   const { account, snapshot, tab } = model
+  const content = useRef<HTMLDivElement>(null)
+  const loaded = Boolean(snapshot)
+  useEffect(() => {
+    if (!loaded || !tab || tab === 'contacts') return
+    const target = content.current?.querySelector<HTMLElement>(`[data-friend-section="${tab}"]`)
+    target?.focus({ preventScroll:true })
+    target?.scrollIntoView({ block:'nearest' })
+  }, [account, tab, loaded])
   if (!account || !tab) return null
   return (
-    <div className="desktop-friends">
+    <div className="desktop-friends" ref={content}>
       {model.error && <p role="alert">{t(model.error)} <button onClick={model.refresh}>{t('Повторить')}</button></p>}
-      {snapshot ? <FriendsPane key={account + tab} model={model} account={account} tab={tab}/> : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
+      {snapshot ? <div className="friend-sections" key={account}>
+        {(['profile','search','requests','contacts'] as const).map(section =>
+          <FriendsPane key={section} model={model} account={account} tab={section}/>
+        )}
+      </div> : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
     </div>
   )
 }
@@ -98,7 +96,7 @@ function FriendsPane({ model, account, tab }: { model: FriendsModel; account: st
       {state !== 'friend' && <button disabled={busy} onClick={() => run(() => change(state === 'incoming' ? 'decline' : 'cancel',c))}>{state === 'incoming' ? t('Отклонить') : t('Отменить')}</button>}
     </div>) : <p>{t(empty)}</p>
   }
-  return <section aria-label={t(titles[tab])}>
+  return <section className="friend-section" data-friend-section={tab} tabIndex={-1} aria-label={t(titles[tab])}>
     {tab === 'profile' ? <form onSubmit={e => { e.preventDefault(); void run(async () => {
       await friendsAction(account,'save',{ handle:clean(nick),searchable:visible }); await model.refresh()
       if (active.current) setMessage('Настройки сохранены.')
@@ -108,20 +106,19 @@ function FriendsPane({ model, account, tab }: { model: FriendsModel; account: st
       <label className="friend-check"><input type="checkbox" checked={visible} onChange={e=>setVisible(e.target.checked)} disabled={busy}/>{t('Можно найти меня по точному нику')}</label>
       <p>{t('Другие пользователи увидят только твой ник.')}</p>
       <button className="friend-primary" disabled={busy || !valid(nick)}>{t('Сохранить')}</button>
-    </form> : !snapshot.handle ? <><h3>{t('Выбери свой ник')}</h3><p>{t('По нему друзья узнают, от кого пришла заявка.')}</p><button className="friend-primary" onClick={()=>model.setTab('profile')}>{t('Выбрать ник')}</button></> :
-    tab === 'contacts' ? <><h3>{t('Мои друзья')}</h3>{rows('friend','Пока здесь никого нет. Найди друга по его нику.')}<button onClick={()=>model.setTab('search')}>{t('Найти друга')}</button></> :
-    tab === 'requests' ? <><h3>{t('Входящие')}</h3>{rows('incoming','Новых заявок нет.')}<h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</> :
+    </form> : tab === 'contacts' ? <><h3>{t('Мои друзья')}</h3>{rows('friend','Пока здесь никого нет. Найди друга по его нику.')}</> :
+    tab === 'requests' ? <><h3>{t('Заявки')}</h3><h4>{t('Входящие')}</h4>{rows('incoming','Новых заявок нет.')}<h4>{t('Отправленные')}</h4>{rows('outgoing','Отправленных заявок нет.')}</> :
     <><h3>{t('Найти друга')}</h3><form onSubmit={e=>{e.preventDefault(); void run(async()=>{
       setResult(null)
       const found=await friendsAction<SearchResult>(account,'search',{handle:clean(nick)})
       if(active.current) setResult(found)
-    })}}><label>{t('Точный ник')}<input placeholder="@sever_9" value={nick} maxLength={21} disabled={busy} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
-      <button className="friend-primary" disabled={busy || !valid(nick)}>{t('Найти')}</button></form>
+    })}}><label>{t('Точный ник')}<input placeholder="@sever_9" value={nick} maxLength={21} disabled={busy || !snapshot.handle} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
+      <button className="friend-primary" disabled={busy || !snapshot.handle || !valid(nick)}>{t('Найти')}</button>{!snapshot.handle && <p>{t('Чтобы искать друзей, сначала сохрани свой ник.')}</p>}</form>
       {result?.status === 'found' ? <div className="friend-row"><strong>@{result.handle}</strong><button disabled={busy} onClick={()=>run(async()=>{
         const response=await friendsAction<SearchResult>(account,'send',{handle:result.handle,key:result.key})
         await model.refresh()
         if (!active.current) return
-        if (response.status === 'sent') model.setTab('requests')
+        if (response.status === 'sent') { setResult({status:'outgoing'}); model.setTab('requests') }
         else setResult(response)
       })}>{t('Отправить заявку')}</button></div> : result && <p role="status">{t(results[result.status] ?? 'Попробуй ещё раз.')}</p>}
     </>}

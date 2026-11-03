@@ -3,7 +3,7 @@ import FadeText from '../../components/FadeText'
 import { copyToClipboard } from '../../lib/clipboard'
 import ProfileChips from '../../components/ProfileChips'
 import HScrollFade from '../../components/HScrollFade'
-import { FriendsContent, FriendsTabs } from '../../components/DesktopFriends'
+import { FriendsContent } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
@@ -269,7 +269,6 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
               else { friends.setTab(null); setPage(id) }
             }}/>
           </div>
-          {section === 'friends' && <FriendsTabs model={friends}/>}
           </HScrollFade>
         </header>
         {section === 'friends' && <FriendsContent model={friends}/>}

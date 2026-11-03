@@ -10,6 +10,7 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Чтобы искать друзей, сначала сохрани свой ник.": "Save your handle first to search for friends.",
   "Не удалось скопировать": "Could not copy",
   "Скопировать имя": "Copy name",
   "Скопировать ник": "Copy handle",

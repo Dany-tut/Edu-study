@@ -12,3 +12,10 @@
 .desktop-friends .friend-check {display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
 .friend-row {padding:12px;background:var(--color-bg);border-radius:16px}
 .friend-row strong {flex:1;overflow-wrap:anywhere}
+
+.desktop-friends {container-type:inline-size}
+.friend-sections {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.friend-section {min-width:0;padding:18px;border-radius:20px;background:var(--color-bg-2);border:1px solid var(--color-border)}
+.friend-section h4 {margin:0;font-size:14px}
+.friend-section:focus-visible {outline:2px solid var(--color-control-accent);outline-offset:-2px}
+@container (max-width: 560px) { .friend-sections {grid-template-columns:minmax(0,1fr)} }
