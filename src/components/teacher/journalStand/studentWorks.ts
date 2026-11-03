@@ -8,6 +8,7 @@ import {
   journalDate,
   OUTSIDE_COURSES,
   type CourseJournalData,
+  type JournalCell,
   type JournalColumn,
   type JournalWork,
 } from '../../../lib/courseJournal'
@@ -43,6 +44,8 @@ export interface StudentWork {
   dates: string[]
   returned: boolean
   resubmitted: boolean
+  attendanceCell?: JournalCell
+  attendanceReason?: string
   grade?: number | null
   present: boolean | null
   watched: boolean
@@ -207,6 +210,11 @@ export function studentWorks(
     const owner = members.find((m) => m.id === row?.student_id) ?? assigned[0]
     const cell = slot.lesson && owner ? journalCell(data, index.journal, owner, slot.lesson, today) : null
     if (cell?.cancelled && !row) return []
+    let attendanceReason: string | undefined
+    if (slot.lesson?.lesson?.kind === 'test') attendanceReason = 'Тест'
+    else if (slot.lesson?.recording || slot.lesson?.lesson?.delivery_mode === 'recording') attendanceReason = 'Запись урока'
+    else if (cell?.cancelled) attendanceReason = 'Занятие отменено'
+    else if (!cell?.event) attendanceReason = 'Нет занятия в расписании'
     const result = row ? homeworkResult(row.attachments, row.score, row.status, attempts) : null
     const payload = row?.attachments as {
       rows?: {
@@ -300,6 +308,8 @@ export function studentWorks(
         dates: dates.sort(),
         returned: returnedAttempts.length > 0 || status === 'На доработке',
         resubmitted,
+        attendanceCell: cell && !attendanceReason ? cell : undefined,
+        attendanceReason,
         grade: cell?.grade ?? null,
         present: cell?.present ?? null,
         watched: cell?.watched ?? false,

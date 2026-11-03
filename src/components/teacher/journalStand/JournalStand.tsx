@@ -10,7 +10,7 @@ import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
 import { useTeacher } from '../../../store/teacherStore'
 import { useCourseJournal } from '../../../lib/useCourseJournal'
-import { OUTSIDE_COURSES, buildJournalIndex, journalCell, type JournalCell, type CourseJournalData } from '../../../lib/courseJournal'
+import { OUTSIDE_COURSES, type JournalCell, type CourseJournalData } from '../../../lib/courseJournal'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
@@ -262,7 +262,7 @@ export function ProfileWorks({
 interface MatrixProps {
   profileId?: (student: Student) => string
   pendingAttendance?: PendingJournal[]
-  onOpenAttendance?: (works: StudentWork[]) => void
+  onOpenAttendance?: (cells: JournalCell[]) => void
   onOpenWork?: (studentId: string, workRef: string) => void
   onOpenAssignment?: (workRef: string) => void
   groups: Group[]
@@ -415,7 +415,7 @@ export function Matrix(props: MatrixProps) {
         </li>)}</ul>
       </ScrollFade>
     </details>}
-    {selected.tab === 'Посещаемость' && props.onOpenAttendance && <p className="cj-note">Выберите ячейку и нажмите ещё раз, чтобы поставить оценку. Нажмите название урока, чтобы заполнить весь столбец для учеников в текущем списке.</p>}
+    {selected.tab === 'Посещаемость' && props.onOpenAttendance && <p className="cj-note" role="status">Нажмите ячейку, чтобы отметить посещаемость или поставить оценку. Название урока открывает отметки для учеников из текущего списка, у которых есть это занятие в расписании.</p>}
     {selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views" role="group" aria-label="Представление работ">
       <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
       <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
@@ -449,6 +449,22 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     () => new Map(entries.map(e => [e.student.id, new Map(e.works.map(w => [w.slot.ref, w]))])), [entries]
   )
   const withWork = selected.tab === 'Работы'
+  const attendanceColumns = new Map<string, JournalCell[]>()
+  if (!withWork && onOpenAttendance) {
+    for (const { works } of visible) {
+      for (const { slot, attendanceCell } of works) {
+        if (!attendanceCell) continue
+        const cells = attendanceColumns.get(slot.ref)
+        if (cells) cells.push(attendanceCell)
+        else attendanceColumns.set(slot.ref, [attendanceCell])
+      }
+    }
+  }
+  function canFocusColumn(id: string | null | undefined, ref: string) {
+    const work = id ? byStudent.get(id)?.get(ref) : undefined
+    if (!withWork && onOpenAttendance) return id ? !!work?.attendanceCell : attendanceColumns.has(ref)
+    return id ? !!work : withWork && !!onOpenAssignment
+  }
   const columns = useMemo(() => slots.flatMap(col => {
     if (!withWork && !col.lesson) return []
     const sources = new Set<WorkSource>()
@@ -520,7 +536,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     const id = row.getAttribute('data-student-id')
     const step = event.shiftKey ? -1 : 1
     for (let i = current + step; i >= 0 && i < columns.length; i += step) {
-      if (id ? !byStudent.get(id)?.has(columns[i].col.ref) : !(withWork ? onOpenAssignment : onOpenAttendance)) continue
+      if (!canFocusColumn(id, columns[i].col.ref)) continue
       if (i >= window.start && i < window.end) return
       event.preventDefault()
       window.reveal(i)
@@ -531,7 +547,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
       const previous = row.previousElementSibling ?? row.closest('table')?.querySelector('thead tr')
       const previousId = previous?.getAttribute('data-student-id')
       for (let i = columns.length - 1; previous && i >= 0; i--) {
-        if (previousId ? !byStudent.get(previousId)?.has(columns[i].col.ref) : !(withWork ? onOpenAssignment : onOpenAttendance)) continue
+        if (!canFocusColumn(previousId, columns[i].col.ref)) continue
         if (i >= window.start && i < window.end) return
         event.preventDefault()
         window.reveal(i)
@@ -571,7 +587,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     {nearest && upcoming === nearest && <span className="js-next-label" title={'Ближайшая работа · ' + shortDate(nearest)}>Ближайшая</span>}
                   </div>
                   {withWork && onOpenAssignment ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}>{col.title}</button>
-                    : !withWork && onOpenAttendance ? <button type="button" className="js-col-title jh-header-link" aria-label={'Оценки за урок · ' + col.title} onClick={() => onOpenAttendance(visible.flatMap(e => e.works.filter(w => w.slot.ref === col.ref)))}>{col.title}</button> : <span className="js-col-title" title={col.title}>{col.title}</span>}
+                    : !withWork && onOpenAttendance && attendanceColumns.has(col.ref) ? <button type="button" className="js-col-title jh-header-link" aria-label={'Оценки за урок · ' + col.title} onClick={() => onOpenAttendance(attendanceColumns.get(col.ref)!)}>{col.title}</button> : <span className="js-col-title" title={col.title}>{col.title}</span>}
                   {withWork && <div className="js-col-source">{hasHomework && (source ? <Source value={source} /> : 'Разные источники')}
                     {nearest && upcoming === nearest && col.due === nearest && col.due !== displayDate &&
                       <time dateTime={nearest}>до {shortDate(nearest).replace(/\s\d{4}$/, '')}</time>}
@@ -592,16 +608,22 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                 {before.map((span, i) => <td key={"before-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
                 {rows.get(student.id)?.map(({ item: { col, source, upcoming }, span }) => {
                   const w = byStudent.get(student.id)?.get(col.ref)
+                  const unavailable = !withWork && !!onOpenAttendance && !w?.attendanceCell
                   const active = selected.student === student.id && detail === col.ref
                   return <td key={col.ref} aria-colindex={(columnPositions.get(col.ref) ?? 0) + 2} colSpan={span} className={!w ? 'js-unassigned-run' : undefined} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
-                    <button type="button" data-selected-work={active || undefined} aria-pressed={active}
+                    <button type="button" disabled={unavailable} data-selected-work={active || undefined} aria-pressed={active}
                       className="js-cell" aria-label={[student.name, col.title,
                         ...(withWork ? [w.source, w.status === 'На проверке' && onOpenWork ? 'Проверить' : w.score === null ? w.status : w.score + '% · ' + w.status] : []),
                         ...(selected.tab !== 'Работы' && w.slot.lesson ? [w.present === null ? 'Нет отметки' : w.present ? 'Был' : 'Пропуск', ...(w.grade != null ? ['Оценка ' + w.grade] : []), ...(w.watched ? ['Запись изучена'] : [])] : []),
+                        ...(unavailable && w.attendanceReason ? [w.attendanceReason] : []),
                       ].join(' · ')}
-                      onClick={() => {set({ student: student.id, workRef: col.ref });if(withWork)onOpenWork?.(student.id, col.ref);else if(active)onOpenAttendance?.([w])}}>
+                      onClick={() => {
+                        set({ student: student.id, workRef: col.ref })
+                        if (withWork) onOpenWork?.(student.id, col.ref)
+                        else if (w.attendanceCell) onOpenAttendance?.([w.attendanceCell])
+                      }}>
                       {withWork && (w.status === 'На проверке' && onOpenWork ? <span className="jh-pending-action">Проверить</span> : <Badge work={w} />)}
-                      {selected.tab !== 'Работы' && <small><Attendance work={w}/></small>}
+                      {selected.tab !== 'Работы' && <small>{(!unavailable || w.present != null || w.grade != null || w.watched) && <Attendance work={w}/>} {unavailable && w.attendanceReason}</small>}
                       {withWork && !source && <Source value={w.source}/>}
                     </button>
                   ) : <span className="js-stat-value" title="Не назначено">—</span>}</td>
@@ -628,19 +650,6 @@ export default function JournalStand({ owner, production = false }: { owner: str
   const journalActive = ['groups', 'gradebook', 'student'].includes(page)
   const { data, loading, error, reload, setData } = useCourseJournal(true, journalActive)
   const [attendanceCells, setAttendanceCells] = useState<JournalCell[] | null>(null)
-  const [attendanceNotice, setAttendanceNotice] = useState('')
-  function openAttendance(works: StudentWork[]) {
-    if (!data) return
-    const journal = buildJournalIndex(data)
-    const editable = works.flatMap(w => {
-      const student = data.students.find(s => s.id === w.studentId)
-      if (!student || !w.slot.lesson) return []
-      const cell = journalCell(data, journal, student, w.slot.lesson, today)
-      return cell.event && !cell.cancelled && cell.column.lesson?.kind !== 'test' && !cell.column.recording && cell.column.lesson?.delivery_mode !== 'recording' ? [cell] : []
-    })
-    setAttendanceNotice(editable.length ? '' : 'Для этого урока нет доступного занятия в расписании. Посещаемость тестов, записей и отменённых занятий не редактируется.')
-    if (editable.length) setAttendanceCells(editable)
-  }
   const storageKey = 'iskra:journal-stand:' + owner
   const [selected, setSelected] = useState<StandSelection>(() => {
     try {
@@ -856,7 +865,7 @@ export default function JournalStand({ owner, production = false }: { owner: str
                     <Matrix
                       profileId={student => canonicalProfile(student).id}
                       pendingAttendance={pendingAttendance}
-                      onOpenAttendance={openAttendance}
+                      onOpenAttendance={setAttendanceCells}
                       onOpenWork={homework.openStudent}
                       onOpenAssignment={ref => homework.openAssignment(ref, unique.map(e => e.student.id))}
                       groups={data.groups}
@@ -896,7 +905,6 @@ export default function JournalStand({ owner, production = false }: { owner: str
                 {w}
               </p>
             ))}
-            {attendanceNotice && <p role="status" className="cj-note">{attendanceNotice}</p>}
             {content}
           </>
         )
