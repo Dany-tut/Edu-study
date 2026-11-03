@@ -6,3 +6,4 @@ PASS attendance-partial-retry
 PASS otp-pending-reopen
 PASS attendance-cancel-late-response
 PASS otp-cancel-retry-late-response
+PASS password-reset-cancel-late-response

@@ -1,0 +1,12 @@
+PASS attendance-pending
+PASS otp-verification-pending
+PASS password-reset-switch-pending
+PASS attendance-reject-retry
+PASS attendance-partial-retry
+PASS otp-pending-reopen
+PASS attendance-cancel-late-response
+PASS otp-cancel-retry-late-response
+PASS password-reset-cancel-late-response
+PASS student-cancel-late-response
+PASS student-timeout-retains-form
+PASS student-error-retry

@@ -1,0 +1,7 @@
+
+> student-dashboard@1.0.0 check:course-access
+> esbuild scripts/checkCourseAccess.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkCourseAccess.mjs --log-level=error && node node_modules/.cache/checkCourseAccess.mjs && node scripts/checkCourseAccessDb.mjs
+
+PASS: stale drafts, explicit add/remove, queued saves, in-flight reversal, modes, new-course audience
+PASS: new-course grants survive partial-save retries and metadata loading
+PASS: PostgreSQL concurrency, stale-client guards, explicit revocation, group overlap, mode/order preservation, transaction rollback, teacher isolation

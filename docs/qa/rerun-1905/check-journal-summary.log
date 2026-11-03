@@ -1,0 +1,8 @@
+
+> student-dashboard@1.0.0 check:journal-summary
+> node scripts/checkJournalSummaryDb.mjs && node scripts/checkJournalSnapshotDb.mjs
+
+PASS: journal summary PostgreSQL RLS for two owners, anonymous denial, task flags/order, extra-HW IDs/dates and 500KB body excluded
+PASS: actual SQL wire decoded losslessly by browser code; truncated rows, reordered fields and incompatible encodings rejected
+PASS: compact task categories, complete grades/answers/attempts/attendance, two owners/admin, anon denial and invoker security
+PASS: complete 1610 lessons/2107 progress, related records, grades/drafts, task order, fresh rereads, shared-course scope, two owners/admin, anon denial, invoker security

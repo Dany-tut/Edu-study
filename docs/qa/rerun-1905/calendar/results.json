@@ -1,0 +1,8796 @@
+{
+  "sha": "2dfc71679cb16dc72078a80b713f13a84bc98023",
+  "results": [
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "position": "start",
+      "top": 0,
+      "max": 818,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "position": "middle",
+      "top": 409,
+      "max": 818,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "position": "end",
+      "top": 818,
+      "max": 818,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "position": "start",
+      "top": 0,
+      "max": 818,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "position": "middle",
+      "top": 409,
+      "max": 818,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "position": "end",
+      "top": 818,
+      "max": 818,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 820,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "position": "start",
+      "top": 0,
+      "max": 990,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "position": "middle",
+      "top": 495,
+      "max": 990,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "position": "end",
+      "top": 990,
+      "max": 990,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "position": "start",
+      "top": 0,
+      "max": 990,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "position": "middle",
+      "top": 495,
+      "max": 990,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "position": "end",
+      "top": 990,
+      "max": 990,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "position": "start",
+      "top": 0,
+      "max": 1225,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "position": "middle",
+      "top": 613,
+      "max": 1225,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "position": "end",
+      "top": 1225,
+      "max": 1225,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "position": "start",
+      "top": 0,
+      "max": 1225,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "position": "middle",
+      "top": 613,
+      "max": 1225,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "position": "end",
+      "top": 1225,
+      "max": 1225,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "position": "start",
+      "top": 0,
+      "max": 838,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "position": "middle",
+      "top": 419,
+      "max": 838,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "position": "end",
+      "top": 838,
+      "max": 838,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "position": "start",
+      "top": 0,
+      "max": 838,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "position": "middle",
+      "top": 419,
+      "max": 838,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "position": "end",
+      "top": 838,
+      "max": 838,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "position": "start",
+      "top": 0,
+      "max": 968,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "position": "middle",
+      "top": 484,
+      "max": 968,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "position": "end",
+      "top": 968,
+      "max": 968,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "light",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "чт 5 ноября",
+      "date": "2026-11-05",
+      "count": 3,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 3,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "пт 6 ноября",
+      "date": "2026-11-06",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "сб 7 ноября",
+      "date": "2026-11-07",
+      "count": 1,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 1,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "ср 4 ноября",
+      "date": "2026-11-04",
+      "count": 0,
+      "keyboard": true,
+      "frames": [
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 0,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "пн 2 ноября",
+      "date": "2026-11-02",
+      "count": 12,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 12,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "position": "start",
+      "top": 0,
+      "max": 968,
+      "mask": "linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "position": "middle",
+      "top": 484,
+      "max": 968,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) calc(100% - 18px), rgba(0, 0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "position": "end",
+      "top": 968,
+      "max": 968,
+      "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 18px, rgb(0, 0, 0) 100%, rgb(0, 0, 0))"
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "вт 10 ноября",
+      "date": "2026-11-10",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 600,
+      "theme": "dark",
+      "label": "вт 3 ноября",
+      "date": "2026-11-03",
+      "count": 2,
+      "keyboard": false,
+      "frames": [
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        },
+        {
+          "count": 2,
+          "correct": true,
+          "visible": true
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

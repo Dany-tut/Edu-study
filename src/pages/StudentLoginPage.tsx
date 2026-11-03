@@ -9,6 +9,9 @@ import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
 import { Alert } from '../components/Alert'
+import { useAsyncTask } from '../lib/useAsyncTask'
+import { studentPasswordSignIn } from '../lib/authActions'
+import ScrollFade from '../components/ScrollFade'
 import SocialLoginButtons from '../components/SocialLoginButtons'
 import { Capacitor } from '@capacitor/core'
 
@@ -32,7 +35,8 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const action = useAsyncTask()
+  const loading = action.busy
   const [error, setError] = useState(linkExpired ? t('Ссылка устарела или уже использована. Запросите новую.') : '')
   const [notice, setNotice] = useState('')
 
@@ -41,103 +45,70 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
     supabase.auth.getUser().then(({ data }) => { if (data.user?.email) setEmail(data.user.email) })
   }, [mode])
 
-  async function handleLogin() {
-    if (!email.trim() || !password) return
-    setLoading(true)
-    setError('')
-
-    // Normalize input the same way the browser's autofill would deliver it:
-    // iOS keyboards on a home-screen PWA can auto-capitalize the email and
-    // leave stray spaces around a hand-typed password, which then mismatch
-    // credentials that log in fine from the browser (where Keychain autofills).
-    const emailNorm = email.trim().toLowerCase()
-    // Passwords are opaque credentials: unlike email, whitespace can be part
-    // of a password and must be sent exactly as entered/autofilled.
-    const passwordNorm = password
-
-    // 1) Preferred path — Supabase Auth (students carry auth_user_id).
-    const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
-      email: emailNorm,
-      password: passwordNorm,
-    })
-    if (authData?.user) {
-      // A 1:1 student can own several subject cards (rows) sharing one auth_user_id,
-      // so fetch all and open the earliest (primary) one. maybeSingle() would throw
-      // on multiple rows — hence the ordered list + first.
-      const { data: srows } = await supabase
-        .from('students')
-        .select('id, name, group_id, created_at')
-        .eq('auth_user_id', authData.user.id)
-        .order('created_at', { ascending: true })
-      const srow = srows?.[0]
-      if (srow) {
-        setLoading(false)
-        setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id ?? '' })
-        void trackNow('login', { role: 'student', method: 'auth' })
-        const next = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('next')
-        window.location.hash = next && /^#\/(homework|lesson)\//.test(next) ? next : '#/'
+  function switchMode(next: 'login' | 'reset') {
+    action.cancel(); setMode(next); setError(''); setNotice('')
+  }
+  function failed(err: unknown) {
+    setError(t(err instanceof DOMException && err.name === 'TimeoutError'
+      ? 'Сервер не ответил вовремя. Попробуйте ещё раз.'
+      : authErrorRu(err && typeof err === 'object' ? err : { message: String(err) })))
+  }
+  function handleSubmit() {
+    setError(''); setNotice('')
+    if (mode === 'login') {
+      if (!email.trim() || !password) return
+      // Normalize email only; whitespace can be part of the password.
+      void action.run(signal => studentPasswordSignIn(email.trim().toLowerCase(), password, signal), srow => {
+        if (srow) {
+          setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id ?? '' })
+          void trackNow('login', { role: 'student', method: 'auth' })
+          const next = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('next')
+          window.location.hash = next && /^#\/(homework|lesson)\//.test(next) ? next : '#/'
+        } else {
+          // A successful empty profile read can belong to a teacher/admin.
+          clearStudentSession()
+          void trackNow('login', { role: 'teacher', method: 'auth' })
+          window.location.hash = '#/teacher'
+        }
         window.location.reload()
-        return
-      }
-      // Authed but not a student → it's a teacher/admin account. Keep the session
-      // and route to the teacher cabinet instead of rejecting the login. This makes
-      // one login screen work for everyone: the app opens at the student form (the
-      // root URL, e.g. inside the installed PWA), and a teacher who signs in here
-      // lands in their cabinet rather than seeing a false "wrong password".
-      setLoading(false)
-      clearStudentSession()
-      void trackNow('login', { role: 'teacher', method: 'auth' })
-      window.location.hash = '#/teacher'
-      window.location.reload()
+      }, failed)
       return
     }
-
-    // Раньше здесь стоял запасной путь — RPC student_login со сравнением
-    // temp_password прямым равенством, для учеников без аккаунта. Таких больше
-    // нет (03.09.2026), и сама функция удалена вместе с legacy-политиками:
-    // перебор пароля через неё не стоил ничего, ни хеша, ни лимита попыток.
-    //
-    // «Неверный пароль» на любую беду — враньё: чаще всего это пропавшая сеть
-    // или упёршийся лимит попыток, и человек чинит не то. Причину знает
-    // authErrorRu; когда она и правда в паре логин/пароль — текст тот же.
-    setLoading(false)
-    setError(t(authErrorRu(authErr, 'Неверный email или пароль')))
-  }
-
-  async function handleSubmit() {
-    if (mode === 'login') return handleLogin()
     if (mode === 'reset') {
       if (!email.trim()) return
-      setLoading(true); setError(''); setNotice('')
-      try {
-        localStorage.setItem('iskra:password-recovery-role', 'student')
+      void action.run(async signal => {
+        signal.throwIfAborted()
         const redirectTo = `${window.location.origin}${window.location.pathname}`
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo })
-        if (resetError) throw resetError
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo })
+        if (error) throw error
+      }, () => {
+        localStorage.setItem('iskra:password-recovery-role', 'student')
         setMode('sent')
-      } catch (err: any) { setError(t(authErrorRu(err))) }
-      finally { setLoading(false) }
+      }, failed)
       return
     }
     if (mode === 'newpassword') {
       if (password.length < 6) { setError(t('Пароль должен быть не менее 6 символов')); return }
-      setLoading(true); setError(''); setNotice('')
-      try {
-        const { error: updateError } = await supabase.auth.updateUser({ password })
-        if (updateError) throw updateError
-        await supabase.auth.signOut()
+      void action.run(async signal => {
+        const { error } = await supabase.auth.updateUser({ password })
+        if (error) throw error
+        signal.throwIfAborted()
+        const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' })
+        if (signOutError) throw signOutError
+      }, () => {
         localStorage.removeItem('iskra:password-recovery-role')
         clearStudentSession()
         setPassword(''); setNotice(t('Пароль обновлён. Теперь войдите с новым паролем.')); setMode('login')
         onRecoveryComplete?.()
-      } catch (err: any) { setError(t(authErrorRu(err))) }
-      finally { setLoading(false) }
+      }, failed)
     }
   }
 
   return (
+    <ScrollFade maxHeight="100dvh" fadeHeight={24} style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)' }}>
     <div style={{
       minHeight: '100dvh', background: 'var(--color-bg)',
+      boxSizing: 'border-box',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: `calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)`,
     }}>
@@ -157,7 +128,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
         </div>
 
         {mode === 'sent' ? <div style={{ textAlign: 'center' }}>
-          <button type="button" onClick={() => setMode('login')} style={{ height: 48, width: '100%', border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t('Вернуться ко входу')}</button>
+          <button type="button" onClick={() => switchMode('login')} style={{ height: 48, width: '100%', border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t('Вернуться ко входу')}</button>
           <p style={{ margin: '16px 0 0', color: 'var(--color-muted)', fontSize: 12 }}>{t('Если письма нет, проверьте папку «Спам».')}</p>
         </div> : <form
           onSubmit={e => { e.preventDefault(); void handleSubmit() }}
@@ -193,17 +164,18 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
               onChange={e => setPassword(e.target.value)}
               placeholder={mode === 'newpassword' ? t('Новый пароль') : t('Пароль')}
               aria-label={t('Пароль')}
-              style={{ ...inputStyle, paddingRight: 44 }}
+              style={{ ...inputStyle, paddingRight: 52 }}
             />
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
               aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
+              aria-pressed={showPassword}
               style={{
-                position: 'absolute', right: 10, top: '50%',
+                position: 'absolute', right: 4, top: '50%',
                 transform: 'translateY(-50%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 32, height: 32,
+                width: 44, height: 44,
                 background: 'none', border: 'none', cursor: 'pointer',
                 padding: 0, color: 'var(--color-muted)',
               }}
@@ -211,7 +183,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
               {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
             </button>
           </div>}
-          {mode === 'login' && <button type="button" onClick={() => { setMode('reset'); setError(''); setNotice('') }} style={{ alignSelf: 'flex-end', padding: 0, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
+          {mode === 'login' && <button type="button" onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: 0, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
           <button
             type="submit"
             disabled={loading || (mode !== 'newpassword' && !email.trim()) || (mode === 'login' && !password) || (mode === 'newpassword' && !password)}
@@ -225,7 +197,8 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
           >
             {loading ? t('Загрузка...') : mode === 'reset' ? t('Отправить письмо') : mode === 'newpassword' ? t('Сохранить пароль') : t('Войти')}
           </button>
-          {mode === 'reset' && <button type="button" onClick={() => { setMode('login'); setError('') }} style={{ border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
+          {loading && <button type="button" onClick={() => { action.cancel(); setError('') }} style={{ minHeight: 44, border: 0, background: 'none', color: 'var(--color-text)' }}>{t('Отмена')}</button>}
+          {mode === 'reset' && <button type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
         </form>}
 
         {mode === 'login' && <SocialLoginButtons role="student" />}
@@ -238,11 +211,12 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
 
         {mode === 'login' && <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Если забыли пароль — обратитесь к учителю')}</div>}
         {Capacitor.isNativePlatform() && (
-          <button type="button" onClick={() => { window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
+          <button type="button" onClick={() => { action.cancel(); window.location.hash = '#/entry' }} style={{ minHeight: 44, width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
             <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
           </button>
         )}
       </motion.div>
     </div>
+    </ScrollFade>
   )
 }

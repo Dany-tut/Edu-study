@@ -66,6 +66,12 @@
       "name": "otp-cancel-retry-late-response",
       "status": "PASS",
       "oldIgnored": true
+    },
+    {
+      "name": "password-reset-cancel-late-response",
+      "status": "PASS",
+      "loginIgnored": true,
+      "resetIgnored": true
     }
   ]
 }

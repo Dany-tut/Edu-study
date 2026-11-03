@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:homework-facts
+> esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{"VITE_SUPABASE_URL":"http://stub.local","VITE_SUPABASE_PUBLISHABLE_KEY":"stub"}' && node node_modules/.cache/checkHomeworkFacts.mjs
+
+Homework facts: rendered dated, undated and mixed assignments passed

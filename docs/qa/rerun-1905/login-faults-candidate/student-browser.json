@@ -1,0 +1,21 @@
+{
+  "scope": "Actual production bundle, local Auth and synthetic accounts. Profile 503 intercepted before DB; cancellation holds a real upstream response",
+  "results": [
+    {
+      "name": "Profile 503 retains login and inputs without committing Auth or routing as teacher",
+      "status": "PASS"
+    },
+    {
+      "name": "Retry after profile error enters the real student account",
+      "status": "PASS"
+    },
+    {
+      "name": "Cancel after actual profile response: no late shared session, including reload",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher login through student form still enters the teacher cabinet",
+      "status": "PASS"
+    }
+  ]
+}

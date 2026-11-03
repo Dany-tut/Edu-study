@@ -1,0 +1,26 @@
+name: Календарь — действия и данные
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  calendar:
+    name: Выбор дня, недели и прокрутка
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check:calendar-browser
+        env:
+          ISKRA_QA_OUTPUT: artifacts/calendar
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: calendar-browser
+          path: artifacts/calendar

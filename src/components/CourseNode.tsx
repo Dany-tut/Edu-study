@@ -75,7 +75,7 @@ interface Props {
   seasonMark?: boolean
 }
 
-export default function CourseNode({ lesson, status, scheduleState, index, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false, assessmentOverride, overdueLabel }: Props) {
+export default function CourseNode({ lesson, status, scheduleState, isSelected = false, isHighlighted = false, scrollHighlight = true, isCurrent = false, onSelect, onHardSelect, seasonMark = false, assessmentOverride, overdueLabel }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const tr = useT()
   const { tc } = useTc()
@@ -168,7 +168,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
         type="button"
         data-schedule-state={scheduleState?.phase}
         data-track-shape={silhouette ?? (isDiamond ? 'diamond' : isSquare ? 'square' : 'circle')}
-        initial={{ opacity: 0, scale: 0.7 }}
+        initial={false}
         whileHover={displayStatus !== 'locked' ? { scale: 1.1 } : { scale: 1.04 }}
         whileTap={{ scale: 0.92 }}
         onClick={() => {
@@ -193,7 +193,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
         transition={{
           boxShadow: { duration: 0.38, ease: [0.22, 1, 0.36, 1] },
           scale: { type: 'spring', stiffness: 320, damping: 22 },
-          opacity: { duration: 0.38, ease: [0.22, 1, 0.36, 1], delay: index * 0.04 },
+          opacity: { duration: 0.15 },
         }}
         className={cn('absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonal && !isAutoResult && 'season-node', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done', isToday && 'season-node-current', displayStatus === 'unviewed' && 'season-node-unviewed', displayStatus === 'locked' && 'season-node-locked')}
         style={{
@@ -222,9 +222,9 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
         <motion.button
           type="button"
           data-track-shape={seasonal ? 'circle' : 'rosette'}
-          initial={{ scale: 0, opacity: 0 }}
+          initial={false}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 24, delay: index * 0.04 + 0.1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 24 }}
           whileHover={{ scale: 1.15 }}
           whileTap={{ scale: 0.9 }}
           onClick={e => { e.stopPropagation(); playClick(); onHardSelect?.(lesson) }}

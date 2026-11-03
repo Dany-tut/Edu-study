@@ -1,0 +1,8 @@
+(async()=>{
+ const {page,fs}=qa;await page.reload();await page.getByRole('button',{name:'Посещаемость',exact:true}).waitFor();await page.waitForTimeout(600);await page.locator('select').selectOption('*');await page.waitForTimeout(500);if(await page.getByRole('button',{name:/^QA Бета — группа через UI/}).getAttribute('aria-pressed')!=='true')await page.getByRole('button',{name:/^QA Бета — группа через UI/}).click();await page.waitForTimeout(500);await page.getByRole('button',{name:'Посещаемость',exact:true}).click();const open=()=>page.getByRole('button',{name:'Оценки за урок · QA Занятие для проверки журнала',exact:true}).click();
+ await open();await page.waitForTimeout(400);const height=await page.getByRole('dialog').getByRole('button',{name:'Сохранить',exact:true}).evaluate(e=>e.getBoundingClientRect().height);if(height<44)throw Error('Action too small '+height);
+ await page.getByRole('dialog').getByRole('button',{name:'Отмена',exact:true}).click();
+ for(let i=0;i<5;i++){await open();await page.getByRole('dialog').getByRole('button',{name:'Отмена',exact:true}).click();await page.getByRole('dialog').waitFor({state:'hidden'});}
+ await open();const src=await fs.readFile('/tmp/iskra-local-security/actions/finance-visual.js','utf8');const visual=await eval(src.replaceAll('finance-','attendance-'));
+ await page.getByRole('dialog').getByRole('button',{name:'Отмена',exact:true}).click();await fs.writeFile('/Users/dany/Cursor/student-dashboard/docs/qa/readiness-fixes-2026-11-03/attendance-final-visual.json',JSON.stringify({scope:'Fresh final production bundle, no CSS injection',saveButtonHeight:height,repeatedOpenClose:5,pageErrors:qa.errors.filter(x=>!x.includes('Missing VITE_SUPABASE')),visual},null,2));return {height,repeatedOpenClose:5};
+})()

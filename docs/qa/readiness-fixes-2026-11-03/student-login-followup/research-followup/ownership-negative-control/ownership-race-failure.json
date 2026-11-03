@@ -1,0 +1,51 @@
+{
+  "status": "FAIL",
+  "expected": {
+    "A": {
+      "studentId": "15c1a30e-d384-48f4-bcc4-cfaf283caa96",
+      "authId": "e5a7a36c-02f7-40ce-a62f-5f687a1b0176"
+    },
+    "B": {
+      "studentId": "07ea3c1c-8f8d-47b5-99fb-d860d0f83ef5",
+      "authId": "17f2c9f8-22c5-4752-8252-39ac5168d6a0"
+    }
+  },
+  "observed": {
+    "A": {
+      "count": 1,
+      "id": "15c1a30e-d384-48f4-bcc4-cfaf283caa96"
+    },
+    "B": {
+      "count": 1,
+      "id": "07ea3c1c-8f8d-47b5-99fb-d860d0f83ef5"
+    },
+    "writes": [
+      {
+        "kind": "auth",
+        "id": "17f2c9f8-22c5-4752-8252-39ac5168d6a0",
+        "at": 1793681736982.3
+      },
+      {
+        "kind": "student",
+        "id": "07ea3c1c-8f8d-47b5-99fb-d860d0f83ef5",
+        "at": 1793681736982.5
+      },
+      {
+        "kind": "student",
+        "id": "15c1a30e-d384-48f4-bcc4-cfaf283caa96",
+        "at": 1793681738016.6
+      },
+      {
+        "kind": "student",
+        "id": "07ea3c1c-8f8d-47b5-99fb-d860d0f83ef5",
+        "at": 1793681738016.7002
+      }
+    ],
+    "final": {
+      "studentId": "07ea3c1c-8f8d-47b5-99fb-d860d0f83ef5",
+      "authId": "17f2c9f8-22c5-4752-8252-39ac5168d6a0"
+    }
+  },
+  "mutation": true,
+  "error": "AssertionError [ERR_ASSERTION]: Late A storage write detected, even if final B is correct"
+}

@@ -1,0 +1,5 @@
+
+> student-dashboard@1.0.0 check:student-topbar
+> node scripts/checkStudentTopbarBrowser.mjs
+
+PASS: 35 entry, remount, resize and interaction states; geometry checked throughout animations. Evidence: /tmp/iskra-topbar-qa
