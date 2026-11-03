@@ -4396,6 +4396,7 @@ export const EN: Record<string, string> = {
 
   // ——— Обсуждение и время ———
   'Не удалось загрузить обсуждение': 'Couldn\'t load the discussion',
+  'История платежей': 'Payment history',
   'Удалить платёж': 'Delete payment',
   'Не удалось удалить платёж. Попробуйте ещё раз.': 'Could not delete the payment. Try again.',
   'Не удалось удалить': 'Couldn\'t delete',
