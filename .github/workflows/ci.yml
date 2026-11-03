@@ -82,6 +82,9 @@ jobs:
       - name: Связка трека и календаря
         run: npm run check:course-track && npm run check:schedule && npm run check:attendance
 
+      - name: Диагностическая телеметрия (H1)
+        run: npm run check:diagnostics
+
       - name: Типы (tsc --noEmit)
         id: types
         continue-on-error: true
@@ -195,12 +198,15 @@ jobs:
             sleep 1
           done
           npm run check:student-topbar
+          npm run check:calendar-browser
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: student-topbar-geometry
-          path: /tmp/iskra-topbar-qa/
+          path: |
+            /tmp/iskra-topbar-qa/
+            /tmp/iskra-calendar-day-qa/
           if-no-files-found: ignore
 
       - name: Сборка

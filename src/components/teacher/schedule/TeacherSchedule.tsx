@@ -269,6 +269,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
       <div
         ref={feed}
         data-calendar-feed
+        data-calendar-selected-date={day}
         onTouchStart={onFeedTouchStart}
         onTouchEnd={onFeedTouchEnd}
         className={embedded ? 'no-scrollbar' : undefined}
@@ -283,7 +284,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
             {items === null ? null : list.length === 0 ? (
               <div style={{ textAlign: 'center', padding: mobile ? '36px 0' : '56px 0', fontSize: 14, color: 'var(--color-text-4)' }}>{t('Занятий нет')}</div>
             ) : list.map(item => (
-              <div key={item.id}>
+              <div key={item.id} data-calendar-entry-id={item.id} data-calendar-entry-date={item.date}>
               <Card
                 key={item.id}
                 item={item}
