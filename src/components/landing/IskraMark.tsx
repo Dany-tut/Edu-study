@@ -44,7 +44,7 @@ const CSS = `
 
 const SPARK = 'M12 2c1 6 4 9 10 10-6 1-9 4-10 10-1-6-4-9-10-10 6-1 9-4 10-10Z'
 
-export default function IskraMark({ size = 30 }: { size?: number }) {
+export default function IskraMark({ size = 30, tone = 'default' }: { size?: number; tone?: 'default' | 'deep' }) {
   const id = useId().replace(/:/g, '')
   const ref = useRef<SVGSVGElement>(null)
   // play = сколько раз наводили; 0 — ещё ни разу, знак стоит без анимации
@@ -65,8 +65,8 @@ export default function IskraMark({ size = 30 }: { size?: number }) {
       <style>{CSS}</style>
       <defs>
         <linearGradient id={tile} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#9D8BFF" />
-          <stop offset="1" stopColor="#6A5AE6" />
+          <stop offset="0" stopColor={tone === 'deep' ? '#8876EE' : '#9D8BFF'} />
+          <stop offset="1" stopColor={tone === 'deep' ? '#5949D2' : '#6A5AE6'} />
         </linearGradient>
         <linearGradient id={sheen} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fff" stopOpacity="0.14" />

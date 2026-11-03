@@ -1,7 +1,7 @@
 import { LoopActionLabel } from '../components/icons/LoopIcon'
 import { ArrowLeft as LoopBackArrow } from '../components/icons/appIcons'
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Eye, EyeOff } from '../components/icons/appIcons'
 import { supabase } from '../lib/supabase'
 import { clearStudentSession, setStudentSession } from '../lib/studentSession'
@@ -12,14 +12,15 @@ import { Alert } from '../components/Alert'
 import { useAsyncTask } from '../lib/useAsyncTask'
 import { studentPasswordSignIn } from '../lib/authActions'
 import ScrollFade from '../components/ScrollFade'
-import SocialLoginButtons from '../components/SocialLoginButtons'
-import { Capacitor } from '@capacitor/core'
+import SocialLoginButtons, { AuthLegalLinks } from '../components/SocialLoginButtons'
+import AuthHero from '../components/AuthHero'
+import AuthRoleHeader from '../components/AuthRoleHeader'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
   // shorter than the email field — iOS Safari computes a smaller intrinsic
   // height for the password-dot glyphs, which otherwise squishes the box.
-  width: '100%', padding: '12px 14px', minHeight: 50, borderRadius: 12,
+  width: '100%', padding: '11px 14px', minHeight: 48, borderRadius: 12,
   border: '1.5px solid var(--color-border-medium)', fontSize: 16,
   lineHeight: '22px', outline: 'none', boxSizing: 'border-box',
   // Explicit color + background: iOS WKWebView otherwise inherits a system
@@ -31,6 +32,7 @@ const inputStyle: React.CSSProperties = {
 
 export default function StudentLoginPage({ recovery = false, linkExpired = false, onRecoveryComplete }: { recovery?: boolean; linkExpired?: boolean; onRecoveryComplete?: () => void }) {
   const t = useT()
+  const reducedMotion = useReducedMotion()
   const [mode, setMode] = useState<'login' | 'reset' | 'sent' | 'newpassword'>(recovery ? 'newpassword' : linkExpired ? 'reset' : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -117,33 +119,26 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
 
   return (
     <ScrollFade maxHeight="100dvh" fadeHeight={24} style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)' }}>
-    <div style={{
-      minHeight: '100dvh', background: 'var(--color-bg)',
-      boxSizing: 'border-box',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: `calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)`,
-    }}>
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
+    <div className="auth-page-layout" style={{ minHeight: '100dvh', background: 'var(--color-bg)' }}>
+    <div className="auth-page-content">
+      <motion.div className="auth-page-card"
+        initial={reducedMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38 }}
-        style={{
-          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
-          width: '100%', maxWidth: 340, boxShadow: 'var(--shadow-5)',
-        }}
+        transition={{ duration: 0.2 }}
       >
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ textAlign: 'center', marginBottom: 18 }}><img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'quiz'}.png`} alt="" aria-hidden="true" width={96} height={96} draggable={false} style={{ width: 96, height: 96, objectFit: 'contain' }} /></div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{mode === 'sent' ? t('Проверьте почту') : mode === 'reset' ? t('Восстановить пароль') : mode === 'newpassword' ? t('Новый пароль') : t('Вход в кабинет')}</div>
-          <div style={{ fontSize: 14, lineHeight: 1.45, color: 'var(--color-muted)', marginTop: 4 }}>{mode === 'login' ? t('Введите email и пароль') : mode === 'reset' ? t('Отправим ссылку для смены пароля') : mode === 'sent' ? t('Мы отправили ссылку для смены пароля.') : t('Придумайте пароль не короче 6 символов')}</div>
-        </div>
+        {mode !== 'newpassword' && <AuthRoleHeader onLeave={() => action.cancel()} />}
+        <AuthHero
+          object={mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'practice'}
+          title={mode === 'sent' ? t('Проверьте почту') : mode === 'reset' ? t('Восстановить пароль') : mode === 'newpassword' ? t('Новый пароль') : t('Вход для ученика')}
+          subtitle={mode === 'login' ? t('Введите email и пароль') : mode === 'reset' ? t('Отправим ссылку для смены пароля') : mode === 'sent' ? t('Мы отправили ссылку для смены пароля.') : t('Придумайте пароль не короче 6 символов')}
+        />
 
         {mode === 'sent' ? <div style={{ textAlign: 'center' }}>
           <button type="button" onClick={() => switchMode('login')} style={{ height: 48, width: '100%', border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t('Вернуться ко входу')}</button>
           <p style={{ margin: '16px 0 0', color: 'var(--color-muted)', fontSize: 12 }}>{t('Если письма нет, проверьте папку «Спам».')}</p>
         </div> : <form
           onSubmit={e => { e.preventDefault(); void handleSubmit() }}
-          style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
         >
           <input className="auth-input"
             type="email"
@@ -199,7 +194,7 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
             type="submit"
             disabled={loading || (mode !== 'newpassword' && !email.trim()) || (mode === 'login' && !password) || (mode === 'newpassword' && !password)}
             style={{ height: 48,
-              marginTop: 8, width: '100%', padding: '0 22px',
+              marginTop: 0, width: '100%', padding: '0 22px',
               background: 'var(--grad-purple)', opacity: loading ? 0.55 : 1,
               color: '#fff', fontWeight: 700, fontSize: 15,
               border: 'none', borderRadius: 14,
@@ -220,13 +215,10 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
           <Alert tone="danger" text={error} style={{ marginTop: 12 }} />
         )}
 
-        {mode === 'login' && <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Если забыли пароль — обратитесь к учителю')}</div>}
-        {Capacitor.isNativePlatform() && (
-          <button type="button" onClick={() => { action.cancel(); window.location.hash = '#/entry' }} style={{ minHeight: 44, width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
-            <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
-          </button>
-        )}
+        {mode === 'login' && <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Если забыли пароль — обратитесь к учителю')}</div>}
       </motion.div>
+      {mode === 'login' && <AuthLegalLinks />}
+    </div>
     </div>
     </ScrollFade>
   )
