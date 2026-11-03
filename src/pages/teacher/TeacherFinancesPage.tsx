@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import FadeText from '../../components/FadeText'
+import { useIsDesktop } from '../../lib/useIsDesktop'
 import Modal from '../../components/Modal'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { Alert } from '../../components/Alert'
@@ -285,6 +287,7 @@ function StudentRow({
 
 export default function TeacherFinancesPage() {
   const t = useT()
+  const desktop = useIsDesktop()
   const students = useAllStudents()
   const { groups } = useGroups()
   const [filter, setFilter]       = useState<FilterTab>('all')
@@ -362,7 +365,7 @@ export default function TeacherFinancesPage() {
 
         {/* KPI strip */}
         <div style={{
-          display: 'flex',
+          display: 'grid', gridTemplateColumns: desktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
           background: 'var(--color-bg-2)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 16, overflow: 'hidden',
@@ -375,14 +378,15 @@ export default function TeacherFinancesPage() {
             { label: t('Прогноз'),   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={14} /> },
           ].map((item, i, arr) => (
             <div key={item.label} style={{
-              flex: 1, padding: '14px 8px', textAlign: 'center',
-              borderRight: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none',
+              minWidth: 0, padding: '14px 8px', textAlign: 'center',
+              borderRight: (desktop ? i < arr.length - 1 : i % 2 === 0) ? '1px solid var(--color-border)' : 'none',
+              borderBottom: !desktop && i < 2 ? '1px solid var(--color-border)' : 'none',
             }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                {item.icon} {item.label}
+                {item.icon} <FadeText>{item.label}</FadeText>
               </div>
               <div style={{ fontSize: 18, fontWeight: 800, color: item.color, marginTop: 4, letterSpacing: '-0.5px' }}>
-                {item.value} ₽
+                <FadeText>{`${item.value} ₽`}</FadeText>
               </div>
             </div>
           ))}
