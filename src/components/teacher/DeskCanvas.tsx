@@ -227,7 +227,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
   const onResizePointerDown = useCallback((e: React.PointerEvent, item: LayoutItem, axis: ResizeState['axis'] = 'both') => {
     e.preventDefault()
     e.stopPropagation()
-    e.currentTarget.setPointerCapture(e.pointerId)
+    containerRef.current?.setPointerCapture(e.pointerId)
     setResize({
       axis,
       id: item.i,
@@ -250,15 +250,20 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
     }
   }, [resize, viewItems, cw, rowH, columns])
 
-  const onResizePointerUp = useCallback(() => {
+  const onResizePointerUp = useCallback((e: React.PointerEvent) => {
     if (!resize) return
+    const current = viewItems.find(item => item.i === resize.id)!
+    // Read the release point as well: a quick release can arrive before the
+    // last React pointer-move render, especially with coalesced mouse events.
+    const final = resizeDeskWidget({...current,w:resize.startW,h:resize.startH},getWidgetDef(current.type),
+      resize.axis === 'vertical' ? 0 : e.clientX-resize.startMx,e.clientY-resize.startMy,cw,rowH,desk.columns)
     const withResized = viewItems.map(it =>
-      it.i === resize.id ? clampItem({ ...it, w: resize.curW, h: resize.curH }) : it
+      it.i === resize.id ? final : it
     )
     const resolved = resolveDeskCollisions(withResized, resize.id)
     onUpdateItems([...resolved, ...desk.items.filter(saved => !resolved.some(item => item.i === saved.i))])
     setResize(null)
-  }, [resize, desk.items, viewItems, onUpdateItems, clampItem, columns])
+  }, [resize, desk.items, desk.columns, viewItems, onUpdateItems, cw, rowH])
 
   // ── Render ────────────────────────────────────────────────────────────
   const gridHeight = useMemo(() => {
@@ -300,6 +305,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
           ref={containerRef}
           onPointerMove={drag ? onItemPointerMove : resize ? onResizePointerMove : undefined}
           onPointerUp={drag ? onItemPointerUp : resize ? onResizePointerUp : undefined}
+          onPointerCancel={() => { setResize(null); setDrag(null) }}
           data-desk-grid data-grid-columns={columns} data-grid-row-height={rowH}
           style={{ position: 'relative', width: '100%', height: gridHeight, ...(editMode ? {backgroundImage:'linear-gradient(to right, var(--color-border-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border-soft) 1px, transparent 1px)', backgroundSize:`${colW(cw, columns)+GAP}px ${rowH+GAP}px`} : {}) }}
         >
@@ -309,7 +315,11 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
             const isActive = isDragging || isResizing
             // Bare widgets render their own card(s); the cell must not add a
             // backing frame/shadow (would show as a stray panel behind them).
-            const bare = getWidgetDef(item.type)?.bare && !editMode
+            const definition = getWidgetDef(item.type)
+            const bare = definition?.bare && !editMode
+            const sizes = definition?.allowedSizes
+            const canResize = !sizes?.length || sizes.some(size => size.w !== item.w || size.h !== item.h)
+            const canResizeHeight = !sizes?.length || sizes.some(size => size.w === item.w && size.h !== item.h)
             return (
               <div
                 key={item.i}
@@ -340,7 +350,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
 
                 {editMode && (
                   <>
-                    <div
+                    {canResizeHeight && <div
                       data-resize-bottom={item.type}
                       className="desk-resize-control desk-resize-bottom"
                       data-active={isResizing || undefined}
@@ -348,15 +358,15 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, hiddenWid
                       onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!, 'vertical')}
                     >
                       <span className="desk-resize-mark" />
-                    </div>
-                    <div
+                    </div>}
+                    {canResize && <div
                       data-resize-handle={item.type}
                       className="desk-resize-control desk-resize-corner"
                       data-active={isResizing || undefined}
                       onPointerDown={e => onResizePointerDown(e, viewItems.find(v => v.i === item.i)!)}
                     >
                       <span className="desk-resize-mark" />
-                    </div>
+                    </div>}
                   </>
                 )}
               </div>
