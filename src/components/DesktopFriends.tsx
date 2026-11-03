@@ -1,3 +1,4 @@
+import { useT } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { friendsAction, type Contact, type FriendsModel, type FriendsTab } from '../lib/desktopFriends'
 import Modal from './Modal'
@@ -16,6 +17,7 @@ const results: Record<string,string> = {
 }
 
 export default function DesktopFriends({ model }: { model: FriendsModel }) {
+  const t = useT()
   const { account, snapshot, tab, setTab } = model
   const panel = useRef<HTMLDivElement>(null)
   const open = Boolean(account && tab)
@@ -36,16 +38,17 @@ export default function DesktopFriends({ model }: { model: FriendsModel }) {
     return () => { dialog.removeEventListener('keydown',cycle); if (previous instanceof HTMLElement && previous.isConnected) previous.focus() }
   }, [open])
   if (!account || !tab) return null
-  return <Modal title="Друзья" subtitle={snapshot?.handle ? '@' + snapshot.handle : 'Профиль в Искре'} icon={<Users size={24}/>} width={660} zIndex={9200} onClose={() => setTab(null)}>
+  return <Modal title={t('Друзья')} subtitle={snapshot?.handle ? '@' + snapshot.handle : t('Профиль в Искре')} icon={<Users size={24}/>} width={660} zIndex={9200} onClose={() => setTab(null)}>
     <div className="desktop-friends" ref={panel}>
-      <nav aria-label="Разделы друзей">{(Object.keys(titles) as FriendsTab[]).map(key => <button type="button" key={key} aria-pressed={key === tab} onClick={() => setTab(key)}>{titles[key]}{key === 'requests' && model.incoming.length > 0 && ' · ' + model.incoming.length}</button>)}</nav>
-      {model.error && <p role="alert">{model.error} <button onClick={model.refresh}>Повторить</button></p>}
-      {snapshot ? <FriendsPane key={account + tab} model={model} account={account} tab={tab}/> : !model.error && <p role="status">Загружаем профиль…</p>}
+      <nav aria-label={t('Разделы друзей')}>{(Object.keys(titles) as FriendsTab[]).map(key => <button type="button" key={key} aria-pressed={key === tab} onClick={() => setTab(key)}>{t(titles[key])}{key === 'requests' && model.incoming.length > 0 && ' · ' + model.incoming.length}</button>)}</nav>
+      {model.error && <p role="alert">{t(model.error)} <button onClick={model.refresh}>{t('Повторить')}</button></p>}
+      {snapshot ? <FriendsPane key={account + tab} model={model} account={account} tab={tab}/> : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
     </div>
   </Modal>
 }
 
 function FriendsPane({ model, account, tab }: { model: FriendsModel; account: string; tab: FriendsTab }) {
+  const t = useT()
   const snapshot = model.snapshot!
   const [nick,setNick] = useState(tab === 'profile' ? snapshot.handle ?? '' : '')
   const [visible,setVisible] = useState(snapshot.searchable)
@@ -64,42 +67,42 @@ function FriendsPane({ model, account, tab }: { model: FriendsModel; account: st
   async function change(action: string, c: Contact) {
     const changed = await friendsAction<boolean>(account, action, { id:c.id })
     await model.refresh()
-    if (active.current) setMessage(!changed ? 'Заявка уже изменилась.' : action === 'accept' ? '@'+c.handle+' теперь в друзьях.' : 'Заявка закрыта.')
+    if (active.current) setMessage(!changed ? 'Заявка уже изменилась.' : action === 'accept' ? t('@{handle} теперь в друзьях.').replace('{handle}', c.handle) : 'Заявка закрыта.')
   }
   function rows(state: Contact['state'], empty: string) {
     const contacts = snapshot.contacts.filter(c => c.state === state)
     return contacts.length ? contacts.map(c => <div className="friend-row" key={c.id}><strong>@{c.handle}</strong>
-      {state === 'incoming' && <button className="friend-primary" disabled={busy} onClick={() => run(() => change('accept',c))}>Принять</button>}
-      {state !== 'friend' && <button disabled={busy} onClick={() => run(() => change(state === 'incoming' ? 'decline' : 'cancel',c))}>{state === 'incoming' ? 'Отклонить' : 'Отменить'}</button>}
-    </div>) : <p>{empty}</p>
+      {state === 'incoming' && <button className="friend-primary" disabled={busy} onClick={() => run(() => change('accept',c))}>{t('Принять')}</button>}
+      {state !== 'friend' && <button disabled={busy} onClick={() => run(() => change(state === 'incoming' ? 'decline' : 'cancel',c))}>{state === 'incoming' ? t('Отклонить') : t('Отменить')}</button>}
+    </div>) : <p>{t(empty)}</p>
   }
-  return <section aria-label={titles[tab]}>
+  return <section aria-label={t(titles[tab])}>
     {tab === 'profile' ? <form onSubmit={e => { e.preventDefault(); void run(async () => {
       await friendsAction(account,'save',{ handle:clean(nick),searchable:visible }); await model.refresh()
       if (active.current) setMessage('Настройки сохранены.')
     }) }}>
-      <h3>Ник и видимость</h3><label>Твой ник<input value={nick} onChange={e=>setNick(e.target.value)} placeholder="@luna_7" maxLength={21} disabled={busy} /></label>
-      <p>От 4 до 20 символов. Начни с латинской буквы. Можно добавить цифры и нижнее подчёркивание.</p>
-      <label className="friend-check"><input type="checkbox" checked={visible} onChange={e=>setVisible(e.target.checked)} disabled={busy}/>Можно найти меня по точному нику</label>
-      <p>Другие пользователи увидят только твой ник.</p>
-      <button className="friend-primary" disabled={busy || !valid(nick)}>Сохранить</button>
-    </form> : !snapshot.handle ? <><h3>Выбери свой ник</h3><p>По нему друзья узнают, от кого пришла заявка.</p><button className="friend-primary" onClick={()=>model.setTab('profile')}>Выбрать ник</button></> :
-    tab === 'contacts' ? <><h3>Мои друзья</h3>{rows('friend','Пока здесь никого нет. Найди друга по его нику.')}<button onClick={()=>model.setTab('search')}>Найти друга</button></> :
-    tab === 'requests' ? <><h3>Входящие</h3>{rows('incoming','Новых заявок нет.')}<h3>Отправленные</h3>{rows('outgoing','Отправленных заявок нет.')}</> :
-    <><h3>Найти друга</h3><form onSubmit={e=>{e.preventDefault(); void run(async()=>{
+      <h3>{t('Ник и видимость')}</h3><label>{t('Твой ник')}<input value={nick} onChange={e=>setNick(e.target.value)} placeholder="@luna_7" maxLength={21} disabled={busy} /></label>
+      <p>{t('От 4 до 20 символов. Начни с латинской буквы. Можно добавить цифры и нижнее подчёркивание.')}</p>
+      <label className="friend-check"><input type="checkbox" checked={visible} onChange={e=>setVisible(e.target.checked)} disabled={busy}/>{t('Можно найти меня по точному нику')}</label>
+      <p>{t('Другие пользователи увидят только твой ник.')}</p>
+      <button className="friend-primary" disabled={busy || !valid(nick)}>{t('Сохранить')}</button>
+    </form> : !snapshot.handle ? <><h3>{t('Выбери свой ник')}</h3><p>{t('По нему друзья узнают, от кого пришла заявка.')}</p><button className="friend-primary" onClick={()=>model.setTab('profile')}>{t('Выбрать ник')}</button></> :
+    tab === 'contacts' ? <><h3>{t('Мои друзья')}</h3>{rows('friend','Пока здесь никого нет. Найди друга по его нику.')}<button onClick={()=>model.setTab('search')}>{t('Найти друга')}</button></> :
+    tab === 'requests' ? <><h3>{t('Входящие')}</h3>{rows('incoming','Новых заявок нет.')}<h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</> :
+    <><h3>{t('Найти друга')}</h3><form onSubmit={e=>{e.preventDefault(); void run(async()=>{
       setResult(null)
       const found=await friendsAction<SearchResult>(account,'search',{handle:clean(nick)})
       if(active.current) setResult(found)
-    })}}><label>Точный ник<input placeholder="@sever_9" value={nick} maxLength={21} disabled={busy} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
-      <button className="friend-primary" disabled={busy || !valid(nick)}>Найти</button></form>
+    })}}><label>{t('Точный ник')}<input placeholder="@sever_9" value={nick} maxLength={21} disabled={busy} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
+      <button className="friend-primary" disabled={busy || !valid(nick)}>{t('Найти')}</button></form>
       {result?.status === 'found' ? <div className="friend-row"><strong>@{result.handle}</strong><button disabled={busy} onClick={()=>run(async()=>{
         const response=await friendsAction<SearchResult>(account,'send',{handle:result.handle,key:result.key})
         await model.refresh()
         if (!active.current) return
         if (response.status === 'sent') model.setTab('requests')
         else setResult(response)
-      })}>Отправить заявку</button></div> : result && <p role="status">{results[result.status]}</p>}
+      })}>{t('Отправить заявку')}</button></div> : result && <p role="status">{t(results[result.status] ?? 'Попробуй ещё раз.')}</p>}
     </>}
-    {message && <p role="status">{message}</p>}
+    {message && <p role="status">{t(message)}</p>}
   </section>
 }
