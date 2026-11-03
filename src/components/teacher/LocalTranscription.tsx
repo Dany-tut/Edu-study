@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, AudioLines, Check } from '../icons/appIcons'
-import Modal from '../Modal'
+import { ArrowRight, AudioLines, Check, X } from '../icons/appIcons'
+import ScrollFade from '../ScrollFade'
+import LessonTranscriptPanel from '../LessonTranscriptPanel'
+import './profileIntegrations.css'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
 import { getOwnerId, getViewAs } from '../../lib/owner'
@@ -18,7 +20,7 @@ export function useTranscriptionOwner() {
   return owner
 }
 
-export function TranscriptionModuleCard({ owner }: { owner: string }) {
+export function TranscriptionModuleCard({ owner, onConnected }: { owner: string; onConnected?: () => void }) {
   const [connected, setConnected] = useState(() => !!localStorage.getItem(tokenKey(owner)))
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
@@ -46,6 +48,7 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
         localStorage.setItem(tokenKey(owner), token)
       }
       setConnected(!connected)
+      if (!connected) onConnected?.()
     } catch (error) { setMessage((error as Error).message) }
     finally { setBusy(false) }
   }
@@ -123,23 +126,41 @@ export function TranscriptionModuleCard({ owner }: { owner: string }) {
 }
 
 type Pending = { id: string; source: string }
-type Props = { owner: string; lessonKey: string; source: string; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => void }
+type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => void }
 
-export function TranscriptionAction(props: Props) {
-  const [open, setOpen] = useState(false)
-  if (!props.owner || !localStorage.getItem(tokenKey(props.owner))) return null
-  return <><button style={btn('M', 'secondary')} onClick={() => setOpen(true)}><AudioLines size={16} /> Расшифровка урока</button>
-    {open && <Review {...props} onClose={() => setOpen(false)} />}</>
+function readPending(owner: string, lessonKey: string, source: string): Pending | null {
+  try {
+    const job = JSON.parse(localStorage.getItem('iskra.transcription.job.' + JSON.stringify([owner, lessonKey])) || 'null')
+    return job?.source === source.trim() && typeof job.id === 'string' ? job : null
+  } catch { return null }
 }
 
-function Review({ owner, lessonKey, source, existing, published, onApply, onClose }: Props & { onClose: () => void }) {
+export function TranscriptionAction(props: Props & { children: (action: React.ReactNode) => React.ReactNode }) {
+  const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>('entry')
+  const connected = !!props.owner && !!localStorage.getItem(tokenKey(props.owner))
+  const jobKey = props.file ? JSON.stringify([props.lessonKey, props.file.name, props.file.size, props.file.lastModified]) : props.lessonKey
+  const pending = readPending(props.owner, jobKey, props.source)
+  if (!props.owner || (!props.source && !props.file)) return <>{props.children(null)}</>
+  if (view !== 'entry') return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }}>
+    {view === 'review' ? <Review key={jobKey + props.source} {...props} lessonKey={jobKey} onClose={() => setView('entry')} /> :
+      <section className="transcription-inline">
+        <button type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
+        {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
+          props.existing && <LessonTranscriptPanel transcript={props.existing.transcript} time={-1} />}
+      </section>}
+  </ScrollFade>
+  return <>{props.children(<>
+    <button type="button" className="transcription-rail-action" onClick={() => setView(connected ? 'review' : 'setup')}>
+      <AudioLines size={17} />{pending ? 'Открыть обработку' : props.existing ? 'Открыть расшифровку' : 'Расшифровать видео'}
+    </button>
+    {props.existing && <button style={btn('M','secondary')} onClick={() => setView('preview')}>Посмотреть как ученик</button>}
+  </>)}</>
+}
+
+function Review({ owner, lessonKey, source, file, existing, published, onApply, onClose }: Props & { onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
-  const [pending, setPending] = useState<Pending | null>(() => {
-    try { return JSON.parse(localStorage.getItem(key) || 'null') } catch { return null }
-  })
-  const [link, setLink] = useState(source)
-  const [file, setFile] = useState<File | null>(null)
+  const [pending, setPending] = useState(() => readPending(owner, lessonKey, source))
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState('')
   const [progress, setProgress] = useState<{ current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' }>()
@@ -147,14 +168,13 @@ function Review({ owner, lessonKey, source, existing, published, onApply, onClos
   const [draft, setDraft] = useState<LocalDraft | null>(() => pending ? null : existing ?? null)
   async function start() {
     setError('')
-    if (file && file.size > 2 * 1024 ** 3) { setError('Выберите видео размером до 2 ГиБ.'); return }
     const form = new FormData()
     if (file) form.append('video', file)
-    else form.append('link', link.trim())
+    else form.append('link', source.trim())
     setBusy(true)
     try {
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
-      const job = { id, source: link.trim() }
+      const job = { id, source: source.trim() }
       localStorage.setItem(key, JSON.stringify(job))
       setPending(job)
     } catch (e) { setError((e as Error).message) }
@@ -187,23 +207,28 @@ function Review({ owner, lessonKey, source, existing, published, onApply, onClos
     chapter.label.trim() && /^\d+(?::[0-5]\d){1,2}$/.test(chapter.time) &&
     (!index || chapter.seconds > chapters[index - 1].seconds))
   const metric = progress?.unit === 'seconds' ? transcriptTime : (n: number) => String(n)
-  return <Modal title="Расшифровка урока" subtitle="Обработка на вашем компьютере" onClose={busy ? () => {} : onClose}
-    footer={draft ? <button style={btn('M', 'primary')} disabled={draft.transcript.segments.some(s => !s.text.trim()) || !validChapters}
-      onClick={() => { onApply(draft); localStorage.removeItem(key); onClose() }}>{published ? 'Обновить опубликованный урок' : 'Добавить в черновик'}</button> : undefined}>
+  return <section className="transcription-inline">
+    <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
+      <div><strong>Расшифровка урока</strong><small>Обработка на вашем компьютере</small></div>
+      <button type="button" aria-label="К записи урока" disabled={busy} style={btn('S','secondary')} onClick={onClose}><X size={16}/></button>
+    </header>
     <div className="transcription-form">
-    {!pending && !draft && <><label>{file ? 'Ссылка для просмотра учениками (необязательно)' : 'Ссылка на запись'}<input type="url" value={link} onChange={e => setLink(e.target.value)} style={{ width: '100%' }} /></label>
-      <p><label>Или видео с компьютера <input type="file" accept="video/*,audio/*" onChange={e => setFile(e.target.files?.[0] || null)} /></label></p>
-      {file && <p>В урок попадут текст и главы. Файл останется на компьютере. Если нужна запись в плеере ученика, укажите ссылку на это же видео.</p>}
-      <button style={btn('M', 'primary')} disabled={busy || ((!!link.trim() || !file) && !/^https?:\/\//i.test(link.trim()))} onClick={start}>{busy ? 'Передаём запись…' : 'Начать обработку'}</button></>}
-    {pending && !draft && <p role="status">{stage || 'Проверяем обработку…'}</p>}
-    {pending && !draft && !error && progress && progress.total > 0 && <div>
-      <progress style={{width:'100%',accentColor:'var(--color-control-accent)'}} value={progress.current} max={progress.total} aria-label={stage} />
-      <small>{metric(progress.current)} из {metric(progress.total)} {progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи'}</small>
-    </div>}
-    {pending && !draft && !error && <ol style={{display:'flex', flexWrap:'wrap', gap:8, padding:0, listStyle:'none'}}>{stages.map((step,i)=><li key={step}
-      aria-current={i===currentStep?'step':undefined} style={{padding:'5px 10px', borderRadius:14, background:i===currentStep?'var(--color-purple-soft)':'var(--color-bg-3)'}}>{i+1}. {step}</li>)}</ol>}
-    {error && <p role="alert">{error} {pending && <button onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage('') }}>Начать заново</button>}</p>}
-    {draft && <><button style={btn('S','secondary')} onClick={() => { setDraft(null); setStage(''); setPending(null); localStorage.removeItem(key) }}>Обработать другую запись</button>
+    {!pending && !draft && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
+    {pending && !draft && !error && <>
+      <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}</small>
+      <ol className="transcription-job-steps">{stages.map((step, i) => {
+        const active = i === currentStep
+        const percent = active && progress && progress.total > 0 ? Math.min(100, Math.max(0, Math.round(progress.current / progress.total * 100))) : undefined
+        return <li key={step} aria-current={active ? 'step' : undefined}>
+          {active && <span className="transcription-fill" style={{width: (percent ?? 0) + '%'}} />}
+          <span className="transcription-number">{i < currentStep ? <Check size={14} /> : i + 1}</span>
+          <strong>{step}</strong>{active && percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}
+        </li>
+      })}</ol>
+      {progress && progress.total > 0 && <small className="transcription-hint">{metric(progress.current)} из {metric(progress.total)} {progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи'}</small>}
+    </>}
+    {error && <p role="alert">{error} {pending && <button onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}>Начать заново</button>}</p>}
+    {draft && <><button style={btn('S','secondary')} onClick={() => { setDraft(null); setStage(''); setPending(null); localStorage.removeItem(key) }}>Повторить обработку</button>
       <p>Проверьте главы и реплики. Принятые главы заменят текущие таймкоды урока.</p>
       <h3>Главы</h3>{draft.timecodes.map((c, i) => <label key={i} style={{ display:'flex', gap:8, marginBottom:6 }}>
         <input aria-label={'Время главы ' + (i+1)} value={c.time} style={{width:78,fontSize:16}} onChange={e=>{
@@ -215,5 +240,8 @@ function Review({ owner, lessonKey, source, existing, published, onApply, onClos
       <h3>Реплики</h3>{draft.transcript.segments.map((s,i) => <label key={i} style={{ display:'block', marginBottom:8 }}>{transcriptTime(s.start)}
         <input style={{ display:'block', width:'100%', fontSize:16 }} value={s.text} onChange={e => setDraft({ ...draft, transcript:{ ...draft.transcript, segments:draft.transcript.segments.map((x,j)=>i===j?{...x,text:e.target.value}:x) } })}/></label>)}</>}
     </div>
-  </Modal>
+    {draft ? <button style={btn('M', 'primary')} disabled={draft.transcript.segments.some(s => !s.text.trim()) || !validChapters}
+      onClick={() => { onApply(draft); localStorage.removeItem(key); onClose() }}>{published ? 'Обновить опубликованный урок' : 'Добавить в черновик'}</button> : !pending ?
+      <button className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? 'Передаём запись…' : 'Начать расшифровку'}</button> : undefined}
+  </section>
 }

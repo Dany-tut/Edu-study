@@ -74,7 +74,7 @@ import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../../components/LessonVideoPlayer'
 import { parseVideoSource } from '../../lib/videoSource'
 import {
-  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
+  uploadLessonFile, uploadLessonFileToR2, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { emptyWatch } from '../../lib/videoProgress'
@@ -1464,8 +1464,9 @@ function parseTimecodeList(text: string): LessonTimecode[] {
  * часто переносят из описания ролика, где секунды уже посчитаны.
  */
 function TimecodeRail({
-  codes, onChange, at, total, onSeek,
+  codes, onChange, at, total, onSeek, transcriptionAction,
 }: {
+  transcriptionAction?: React.ReactNode
   codes: LessonTimecode[]
   onChange: (next: LessonTimecode[]) => void
   at: number
@@ -1599,6 +1600,7 @@ function TimecodeRail({
         )}
       </div>
 
+      {transcriptionAction}
       <div style={{ display: 'flex', gap: 6 }}>
         <button
           onClick={addHere}
@@ -1647,7 +1649,16 @@ function CenterRecording({
   // переписывают время из соседнего окна. Прогресс просмотра учителя никуда не
   // пишется — плееру нужен только неизменный стартовый объект (иначе он на
   // каждый ре-рендер сбрасывал бы своё состояние).
-  const source = useMemo(() => parseVideoSource(lesson.videoUrl), [lesson.videoUrl])
+  const [localFile, setLocalFile] = useState<File | null>(null)
+  const [localUrl, setLocalUrl] = useState('')
+  useEffect(() => {
+    if (!localFile) return
+    const url = URL.createObjectURL(localFile)
+    setLocalUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [localFile])
+  const source = useMemo(() => lesson.videoUrl ? parseVideoSource(lesson.videoUrl) :
+    localUrl ? { kind: 'file' as const, url: localUrl } : undefined, [lesson.videoUrl, localUrl])
   // Ссылка на облачный диск — показываем бренд-логотип и название (приписку).
   const disk = useMemo(() => detectDisk(lesson.videoUrl), [lesson.videoUrl])
   const playerRef = useRef<LessonVideoHandle>(null)
@@ -1656,8 +1667,39 @@ function CenterRecording({
   const [total, setTotal] = useState(0)
   const codes = useMemo(() => lesson.timecodes ?? [], [lesson.timecodes])
 
-  const content = (() => {
-  if (lesson.videoUrl && !linkMode) {
+  const fileInput = useRef<HTMLInputElement>(null)
+  const active = useRef(true)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  useEffect(() => {
+    active.current = true
+    return () => { active.current = false }
+  }, [])
+  async function addVideo(file?: File) {
+    if (!file || uploading || saveUnavailable) return
+    setUploading(true)
+    setUploadError('')
+    try {
+      let uploaded: LessonFile
+      try {
+        uploaded = await uploadLessonFileToR2(file)
+      } catch {
+        if (active.current && file.size <= 2 * 1024 ** 3) {
+          setLocalFile(file)
+          return
+        }
+        throw new Error()
+      }
+      if (!active.current) return
+      if (!uploaded.url || !await onSaveLink(uploaded.url)) throw new Error()
+    } catch {
+      if (active.current) setUploadError('Не удалось добавить видео. Попробуйте ещё раз или вставьте ссылку на запись.')
+    } finally {
+      if (active.current) setUploading(false)
+    }
+  }
+  const content = (transcriptionAction: React.ReactNode) => {
+  if ((lesson.videoUrl || localFile) && !linkMode) {
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 24px 22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1668,7 +1710,7 @@ function CenterRecording({
           </div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
-              {lesson.videoUrl}
+              {lesson.videoUrl || localFile?.name}
             </span>
             {disk && (
               <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 9px 2px 7px', borderRadius: 999, background: 'var(--color-bg-3)', color: 'var(--color-text-3)' }}>
@@ -1682,6 +1724,8 @@ function CenterRecording({
             {t('Изменить')}
           </button>
         </div>
+
+        {localFile && !lesson.videoUrl && <small role="status">Видео открыто с компьютера. Текст и главы можно сохранить в уроке. Чтобы ученики могли смотреть запись, добавьте ссылку через «Изменить».</small>}
 
         {disk && source?.kind === 'iframe' ? (
           // Диск, который не встраивается в iframe (Яндекс, Dropbox, OneDrive,
@@ -1699,10 +1743,11 @@ function CenterRecording({
                 style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>
+              {transcriptionAction}
             </div>
           </div>
         ) : (
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 }}>
+        <div className="recording-player-layout" style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 }}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {source ? (
               <>
@@ -1748,7 +1793,7 @@ function CenterRecording({
             )}
           </div>
 
-          <TimecodeRail
+          <TimecodeRail transcriptionAction={transcriptionAction}
             codes={codes}
             onChange={next => onUpdate({ ...lesson, timecodes: next })}
             at={at}
@@ -1780,25 +1825,30 @@ function CenterRecording({
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => setLinkMode(true)}
+          <button disabled={uploading} onClick={() => setLinkMode(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Link2 size={14} /> {t('Вставить ссылку')}
           </button>
-          <button style={btn('M', 'secondary')}>
-            <Upload size={14} /> {t('Загрузить файл')}
+          <input ref={fileInput} type="file" accept="video/mp4,video/webm,video/quicktime,.m4v,.ogv" hidden onChange={event => {
+            const file = event.currentTarget.files?.[0]
+            event.currentTarget.value = ''
+            void addVideo(file)
+          }} />
+          <button disabled={uploading || !!saveUnavailable} title={saveUnavailable} onClick={() => fileInput.current?.click()} style={btn('M', 'secondary')}>
+            <Upload size={14} /> {uploading ? 'Загружаем видео…' : t('Загрузить файл')}
           </button>
         </div>
+        {uploadError && <p role="alert">{uploadError}</p>}
       </div>
     </div>
   )
-  })()
+  }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      {!loading && <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} published={published}
+    <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      {loading ? content(null) : <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
-        onApply={({ transcript, timecodes }) => { onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }} />}
-      {content}
+        onApply={({ transcript, timecodes }) => { onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }}>{content}</TranscriptionAction>}
     </div>
   )
 }
