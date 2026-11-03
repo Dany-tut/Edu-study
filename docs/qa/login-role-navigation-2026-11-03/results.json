@@ -1,0 +1,465 @@
+{
+  "results": [
+    {
+      "role": "ученика",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "target": {
+        "x": 48,
+        "y": 86,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "target": {
+        "x": 47,
+        "y": 91,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "target": {
+        "x": 214.53125,
+        "y": 56.96875,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "target": {
+        "x": 214.140625,
+        "y": 53,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "target": {
+        "x": 404.03125,
+        "y": 146.96875,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "target": {
+        "x": 430.03125,
+        "y": 114.375,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "target": {
+        "x": 740.03125,
+        "y": 84.96875,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "target": {
+        "x": 766.03125,
+        "y": 53,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "light",
+      "width": 1024,
+      "height": 500,
+      "target": {
+        "x": 532.03125,
+        "y": 48,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "light",
+      "width": 1024,
+      "height": 500,
+      "target": {
+        "x": 558.03125,
+        "y": 53,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "target": {
+        "x": 48,
+        "y": 86,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "target": {
+        "x": 47,
+        "y": 91,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "target": {
+        "x": 214.53125,
+        "y": 56.96875,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "target": {
+        "x": 214.140625,
+        "y": 53,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "target": {
+        "x": 404.03125,
+        "y": 146.96875,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "target": {
+        "x": 430.03125,
+        "y": 114.375,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "target": {
+        "x": 740.03125,
+        "y": 84.96875,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "target": {
+        "x": 766.03125,
+        "y": 53,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "ученика",
+      "theme": "dark",
+      "width": 1024,
+      "height": 500,
+      "target": {
+        "x": 532.03125,
+        "y": 48,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    },
+    {
+      "role": "препода",
+      "theme": "dark",
+      "width": 1024,
+      "height": 500,
+      "target": {
+        "x": 558.03125,
+        "y": 53,
+        "width": 116.46875,
+        "height": 44
+      },
+      "checks": [
+        "heading",
+        "asset decoded",
+        "no horizontal overflow",
+        "scroll edges",
+        "password visibility",
+        "reset/back",
+        "keyboard return",
+        "repeated cycles both roles",
+        "Escape"
+      ]
+    }
+  ],
+  "errors": []
+}

@@ -87,7 +87,7 @@ export default function LandingPage() {
   const { lang } = useLang()
   const t = useT()
   const [leadOpen, setLeadOpen] = useState(false)
-  const [chooserOpen, setChooserOpen] = useState(false)
+  const [chooserOpen, setChooserOpen] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('role') === 'choose')
   const [presetPlan, setPresetPlan] = useState<string>('')
 
   const openLead = (plan = '') => { setPresetPlan(plan); setLeadOpen(true) }
@@ -490,6 +490,15 @@ function Reveal({ children, delay = 0, style }: { children: React.ReactNode; del
 // ── Выбор роли для входа ─────────────────────────────────────────────────────
 function RoleChooser({ onClose }: { onClose: () => void }) {
   const t = useT()
+  const firstOption = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    firstOption.current?.focus({ preventScroll: true })
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
   const go = (hash: string) => { window.location.hash = hash; onClose() }
   return (
     <Backdrop onClose={onClose}>
@@ -498,7 +507,7 @@ function RoleChooser({ onClose }: { onClose: () => void }) {
         <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>{t('Личный кабинет')}</h3>
         <p style={{ fontSize: 14, color: 'var(--color-text-2)', margin: '0 0 22px' }}>{t('Кто вы?')}</p>
         <div style={{ display: 'grid', gap: 12 }}>
-          <button onClick={() => go('#/login')} style={roleBtn}>
+          <button ref={firstOption} onClick={() => go('#/login')} style={roleBtn}>
             <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT} 20%, transparent)`, color: ACCENT }}><User size={22} /></div>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Я ученик')}</div>

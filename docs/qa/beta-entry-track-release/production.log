@@ -1,0 +1,9 @@
+PASS: Student opens invitation and registers through UI
+PASS: Student opens assigned homework, writes answers and reloads local draft
+PASS: Browser submission persists one pending manual attempt
+PASS: Teacher logs in, opens live review and sees original answers
+PASS: Teacher publishes 90 percent and a comment through UI
+PASS: Fresh student login shows published result, comment and historical answers
+PASS: Reload keeps result and exactly one server attempt
+Evidence: /tmp/iskra-final-classroom-1103/evidence/browser-replay-1793682665709
+PASS fixture cleanup

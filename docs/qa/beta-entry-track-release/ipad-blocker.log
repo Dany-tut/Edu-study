@@ -1,0 +1,1 @@
+/tmp/iskra-iphone-entry.CJkrhf/IskraUIHarness.xcodeproj: error: Provisioning profile "iOS Team Provisioning Profile: *" doesn't include the currently selected device "iPad (Даня)" . (in target 'IskraUITests' from project 'IskraUIHarness')

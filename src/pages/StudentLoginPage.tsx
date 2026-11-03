@@ -13,7 +13,7 @@ import { useAsyncTask } from '../lib/useAsyncTask'
 import { studentPasswordSignIn } from '../lib/authActions'
 import ScrollFade from '../components/ScrollFade'
 import SocialLoginButtons from '../components/SocialLoginButtons'
-import { Capacitor } from '@capacitor/core'
+import AuthRoleHeader from '../components/AuthRoleHeader'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
@@ -121,9 +121,10 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
           width: '100%', maxWidth: 340, boxShadow: 'var(--shadow-5)',
         }}
       >
+        {mode !== 'newpassword' && <AuthRoleHeader onLeave={() => action.cancel()} />}
         <div style={{ marginBottom: 28 }}>
-          <div style={{ textAlign: 'center', marginBottom: 18 }}><img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'quiz'}.png`} alt="" aria-hidden="true" width={96} height={96} draggable={false} style={{ width: 96, height: 96, objectFit: 'contain' }} /></div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{mode === 'sent' ? t('Проверьте почту') : mode === 'reset' ? t('Восстановить пароль') : mode === 'newpassword' ? t('Новый пароль') : t('Вход в кабинет')}</div>
+          <div style={{ textAlign: 'center', marginBottom: 18 }}><img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'practice'}.png`} alt="" aria-hidden="true" width={96} height={96} draggable={false} style={{ display: 'block', margin: '0 auto', width: 96, height: 96, objectFit: 'contain' }} /></div>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{mode === 'sent' ? t('Проверьте почту') : mode === 'reset' ? t('Восстановить пароль') : mode === 'newpassword' ? t('Новый пароль') : t('Вход для ученика')}</h1>
           <div style={{ fontSize: 14, lineHeight: 1.45, color: 'var(--color-muted)', marginTop: 4 }}>{mode === 'login' ? t('Введите email и пароль') : mode === 'reset' ? t('Отправим ссылку для смены пароля') : mode === 'sent' ? t('Мы отправили ссылку для смены пароля.') : t('Придумайте пароль не короче 6 символов')}</div>
         </div>
 
@@ -210,11 +211,6 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
         )}
 
         {mode === 'login' && <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Если забыли пароль — обратитесь к учителю')}</div>}
-        {Capacitor.isNativePlatform() && (
-          <button type="button" onClick={() => { action.cancel(); window.location.hash = '#/entry' }} style={{ minHeight: 44, width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
-            <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Выбрать роль')} />
-          </button>
-        )}
       </motion.div>
     </div>
     </ScrollFade>

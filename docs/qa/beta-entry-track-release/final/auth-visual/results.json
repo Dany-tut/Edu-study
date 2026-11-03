@@ -1,0 +1,2046 @@
+{
+  "scope": "Actual production forms; invitation RPC responses are synthetic. No form submissions or registrations",
+  "results": [
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 808.5,
+        "y": 383.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 600.5,
+        "y": 313.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 80,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 160,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "passwordTarget": {
+        "x": 472.5,
+        "y": 445.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "passwordTarget": {
+        "x": 510.5,
+        "y": 313.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 185,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 370,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 121.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 104,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 208,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 355.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 384.15625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 380.78125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 147,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 293,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "passwordTarget": {
+        "x": 498.5,
+        "y": 446.15625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "passwordTarget": {
+        "x": 536.5,
+        "y": 380.78125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 252,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 503,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 214,
+        "y": 85.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 196,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 391,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 282.609375,
+        "y": 314.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 48,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 96,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 474.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 324.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "passwordTarget": {
+        "x": 498.5,
+        "y": 536.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "passwordTarget": {
+        "x": 536.5,
+        "y": 219.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 333.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 446.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 527.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 438.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 61,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 122,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "passwordTarget": {
+        "x": 498.5,
+        "y": 589.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "passwordTarget": {
+        "x": 536.5,
+        "y": 438.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 166,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 332,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 335.953125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 122,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 243,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 490.296875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 808.5,
+        "y": 383.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 600.5,
+        "y": 313.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 80,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 160,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "passwordTarget": {
+        "x": 472.5,
+        "y": 445.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 844,
+      "height": 390,
+      "passwordTarget": {
+        "x": 510.5,
+        "y": 313.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 185,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 370,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 121.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 104,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 208,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 355.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 384.15625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 380.78125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 147,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 293,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "passwordTarget": {
+        "x": 498.5,
+        "y": 446.15625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 844,
+      "height": 390,
+      "passwordTarget": {
+        "x": 536.5,
+        "y": 380.78125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 252,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 503,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 214,
+        "y": 85.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 196,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 391,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 282.609375,
+        "y": 314.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 48,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 96,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 474.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 324.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "passwordTarget": {
+        "x": 498.5,
+        "y": 536.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 844,
+      "height": 390,
+      "passwordTarget": {
+        "x": 536.5,
+        "y": 219.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 333.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 446.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 527.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 438.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 61,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 122,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "passwordTarget": {
+        "x": 498.5,
+        "y": 589.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 844,
+      "height": 390,
+      "passwordTarget": {
+        "x": 536.5,
+        "y": 438.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 166,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 390
+            }
+          ],
+          "masks": [
+            {
+              "top": 332,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 335.953125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 122,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 243,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 490.296875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": []
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": []
+        }
+      ],
+      "status": "PASS"
+    }
+  ],
+  "errors": []
+}
