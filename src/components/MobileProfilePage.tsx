@@ -274,7 +274,7 @@ export default function MobileProfilePage() {
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Средний балл')}</div>
                   <div className="flex items-center" style={{ gap: 8, marginTop: 6 }}>
-                    <span style={{ fontSize: 36, fontWeight: 800, lineHeight: 1 }}>{heroAvg ? `${heroAvg}%` : '—'}</span>
+                    <span style={{ fontSize: 36, fontWeight: 800, lineHeight: 1 }}>{trend.length > 0 ? `${heroAvg}%` : '—'}</span>
                     {delta !== null && (
                       <span className="flex items-center" style={{ gap: 2, fontSize: 12, fontWeight: 800, padding: '4px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.18)' }}>
                         {delta >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -551,7 +551,7 @@ export default function MobileProfilePage() {
 function ScoreChart({ data, empty }: { data: number[]; empty: string }) {
   const W = 320, H = 132
   const padT = 10, padB = 14, padR = 30, padL = 0
-  if (data.length < 2) {
+  if (data.length === 0) {
     return (
       <div
         className="flex items-center justify-center"
@@ -564,7 +564,7 @@ function ScoreChart({ data, empty }: { data: number[]; empty: string }) {
   const plotH = H - padT - padB
   const plotW = W - padL - padR
   const y = (v: number) => padT + (1 - Math.max(0, Math.min(100, v)) / 100) * plotH
-  const pts = data.map((v, i) => [padL + (i / (data.length - 1)) * plotW, y(v)] as const)
+  const pts = data.map((v, i) => [padL + (data.length === 1 ? 0.5 : i / (data.length - 1)) * plotW, y(v)] as const)
   const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
   const area = `${line} L${pts[pts.length - 1][0].toFixed(1)},${(padT + plotH).toFixed(1)} L${pts[0][0].toFixed(1)},${(padT + plotH).toFixed(1)} Z`
   const last = data[data.length - 1]
