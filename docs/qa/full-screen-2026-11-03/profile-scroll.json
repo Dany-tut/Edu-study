@@ -1,0 +1,38 @@
+[
+  {
+    "fraction": 0,
+    "scrollTop": 0,
+    "scrollHeight": 1565,
+    "height": 844,
+    "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 66px, rgb(0, 0, 0) 90px, rgb(0, 0, 0) calc(100% - 100px), rgba(0, 0, 0, 0) 100%, rgba(0, 0, 0, 0) 100%)",
+    "logout": {
+      "top": 1384.65625,
+      "bottom": 1428.90625
+    },
+    "viewport": 844
+  },
+  {
+    "fraction": 0.5,
+    "scrollTop": 361,
+    "scrollHeight": 1565,
+    "height": 844,
+    "mask": "linear-gradient(rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 66px, rgb(0, 0, 0) 90px, rgb(0, 0, 0) calc(100% - 100px), rgba(0, 0, 0, 0) 100%, rgba(0, 0, 0, 0) 100%)",
+    "logout": {
+      "top": 1023.65625,
+      "bottom": 1067.90625
+    },
+    "viewport": 844
+  },
+  {
+    "fraction": 1,
+    "scrollTop": 721,
+    "scrollHeight": 1565,
+    "height": 844,
+    "mask": "linear-gradient(rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0) 66px, rgb(0, 0, 0) 90px, rgb(0, 0, 0) calc(100% - 100px), rgb(0, 0, 0) 100%, rgb(0, 0, 0) 100%)",
+    "logout": {
+      "top": 663.65625,
+      "bottom": 707.90625
+    },
+    "viewport": 844
+  }
+]

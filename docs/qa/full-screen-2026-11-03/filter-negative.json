@@ -1,0 +1,9 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "theme": "light",
+    "status": "FAIL",
+    "error": "TimeoutError: page.waitForFunction: Timeout 6000ms exceeded."
+  }
+]

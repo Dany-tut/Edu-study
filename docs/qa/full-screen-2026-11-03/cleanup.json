@@ -1,0 +1,38 @@
+{
+  "owned": {
+    "teacherId": "f69eb3f0-e9ba-47c3-a73a-62ca272ee8f8",
+    "studentAuthId": "95a56bd6-c779-42a5-8ac7-346d11762899",
+    "studentIds": [
+      "a4461eb9-9ee8-4414-8050-46b9c7d2d780"
+    ],
+    "progressIds": [
+      "d4e9e313-c92b-4664-be13-173fe9c42bee",
+      "d031fc93-04c5-4930-9720-830eba7a2616"
+    ]
+  },
+  "deleted": {
+    "aiJobs": true,
+    "attemptHistory": true,
+    "progress": true,
+    "materialObject": true,
+    "homework": true,
+    "courses": true,
+    "students": true,
+    "groups": true,
+    "invitations": true,
+    "notifications": true,
+    "studentAuth": true,
+    "teacherAuth": true
+  },
+  "leftovers": {
+    "homework": 0,
+    "courses": 0,
+    "students": 0,
+    "groups": 0,
+    "notifications": 0,
+    "progress": 0,
+    "storage": 0,
+    "profiles": 0
+  },
+  "failures": []
+}

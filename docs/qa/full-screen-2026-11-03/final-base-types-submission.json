@@ -1,0 +1,78 @@
+{
+  "id": "d4e9e313-c92b-4664-be13-173fe9c42bee",
+  "status": "completed",
+  "score": 90,
+  "review_comment": "QA final: восемь ответов сохранены; ИИ недоступен, проверено вручную — 90%.",
+  "attachments": {
+    "v": "basic-1",
+    "rows": [
+      {
+        "n": 1,
+        "type": "single",
+        "answer": "QA correct",
+        "prompt": "QA final question single",
+        "correct": "QA correct",
+        "verdict": "correct"
+      },
+      {
+        "n": 2,
+        "type": "multi",
+        "answer": "QA first, QA third",
+        "prompt": "QA final question multi",
+        "correct": "QA first, QA third",
+        "verdict": "correct"
+      },
+      {
+        "n": 3,
+        "type": "fill",
+        "answer": "6",
+        "prompt": "QA final question fill",
+        "correct": "6",
+        "verdict": "correct"
+      },
+      {
+        "n": 4,
+        "type": "extended",
+        "answer": "QA final объяснение: 3 плюс 3 равно 6.",
+        "prompt": "QA final question extended",
+        "verdict": "review"
+      },
+      {
+        "n": 5,
+        "type": "matching",
+        "answer": "QA cat → кот; QA dog → собака",
+        "prompt": "QA final question matching",
+        "correct": "QA cat → кот; QA dog → собака",
+        "verdict": "correct"
+      },
+      {
+        "n": 6,
+        "type": "sequence",
+        "answer": "QA stage one → QA stage two",
+        "prompt": "QA final question sequence",
+        "correct": "QA stage one → QA stage two",
+        "verdict": "correct"
+      },
+      {
+        "n": 7,
+        "type": "tableFill",
+        "answer": "{\"0,1\":\"4\"}",
+        "prompt": "QA final question tableFill",
+        "verdict": "review"
+      },
+      {
+        "n": 8,
+        "type": "whiteboard",
+        "answer": "QA final рисунок: квадрат 2 на 2, площадь 4.",
+        "prompt": "QA final question whiteboard",
+        "verdict": "review"
+      }
+    ],
+    "correct": 5,
+    "gradable": 5,
+    "attemptId": "8a9e78c5-6877-41c7-ae11-2ec6b6af415f",
+    "reviewedAt": "2026-11-03T08:16:57.842957+00:00",
+    "reviewRequired": true,
+    "recommendationScore": 80
+  }
+}

@@ -1,0 +1,136 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "theme": "light",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "theme": "dark",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "theme": "light",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "theme": "dark",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "theme": "light",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "theme": "dark",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "light",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "dark",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 1024,
+    "height": 600,
+    "theme": "light",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "width": 1024,
+    "height": 600,
+    "theme": "dark",
+    "status": "PASS",
+    "actions": [
+      "sort Enter/Space/focus/Escape",
+      "facet search/Enter/focus return",
+      "subject Space/Enter/multiselect/pressed/Escape",
+      "five reopenings",
+      "pointer toggle/outside blur"
+    ]
+  },
+  {
+    "name": "OAuth pathname, trailing slash and authorization query",
+    "status": "PASS"
+  }
+]
