@@ -10,6 +10,7 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Открыть Claude": "Open Claude",
   "Скопировать адрес": "Copy address",
   "Сервис MCP пока недоступен": "MCP service currently unavailable",
   "Проверяем доступность MCP…": "Checking MCP service…",
@@ -5406,7 +5407,7 @@ export const EN: Record<string, string> = {
   "Тесты к черновым урокам": "Tests for draft lessons",
   "Публикация и доступ ученикам остаются под вашим контролем.": "You stay in control of publishing and student access.",
   "Отключить Claude": "Disconnect Claude",
-  "В Claude откройте Settings → Connectors → Add custom connector и вставьте адрес Искры.": "In Claude, open Settings → Connectors → Add custom connector and paste the Iskra address.",
+  "Скопируйте адрес Искры и вставьте его в поле MCP server URL в Claude. Форма также доступна в Customize → Connectors → Add custom connector.": "Copy the Iskra address and paste it into the MCP server URL field in Claude. You can also open the form from Customize → Connectors → Add custom connector.",
   "Скопировать адрес для Claude": "Copy address for Claude",
   "После добавления подтвердите вход и доступ в окне Искры. Это можно отменить в любой момент.": "After adding it, confirm sign-in and access in the Iskra window. You can revoke access at any time.",
   "Пока без занятий": "No lessons yet",
