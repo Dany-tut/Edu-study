@@ -1,3 +1,7 @@
+import ProfileChips from '../../components/ProfileChips'
+import { FriendsContent } from '../../components/DesktopFriends'
+import type { FriendsModel } from '../../lib/desktopFriends'
+import { OverlayScrollArea } from '../../components/teacher/OverlayScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
 import { useState, useEffect } from 'react'
 import BackCircle from '../../components/BackCircle'
@@ -41,8 +45,16 @@ const AVATARS: AvatarOption[] = [
   { id: 'star',   Icon: Star,   gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', glow: 'hsl(271 76% 65% / 0.45)', scale: 1.1 },
 ]
 
-export default function TeacherProfileSettingsPage() {
+export default function TeacherProfileSettingsPage({ friends }: { friends: FriendsModel }) {
   const t = useT()
+  const [page, setPage] = useState<'main' | 'integrations' | 'settings'>('main')
+  const section = friends.account && friends.tab ? 'friends' : page
+  const sections = [
+    { id: 'main' as const, label: t('Главное') },
+    ...(friends.account ? [{ id: 'friends' as const, label: t('Друзья') }] : []),
+    { id: 'integrations' as const, label: t('Интеграции') },
+    { id: 'settings' as const, label: t('Настройки') },
+  ]
   const setActivePage = useTeacher(s => s.setActivePage)
 
   // Snapshot before usePersistentState mirrors initial values into storage —
@@ -215,18 +227,26 @@ export default function TeacherProfileSettingsPage() {
   }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
+    <OverlayScrollArea style={{ flex: 1, marginTop: -100 }} scrollStyle={{ paddingTop: 100 }}>
       <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
           <BackCircle onClick={() => setActivePage('home')} label="На главную" />
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Настройки профиля')}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Имя, аватар и данные аккаунта')}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Профиль')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{name}</div>
           </div>
         </div>
 
+        <div style={{ marginBottom: 20 }}>
+          <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {
+            if (id === 'friends') friends.setTab('contacts')
+            else { friends.setTab(null); setPage(id) }
+          }}/>
+        </div>
+        {section === 'friends' && <FriendsContent model={friends}/>}
+        {section === 'main' && <>
         {/* Avatar preview + picker */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
           <motion.div
@@ -345,6 +365,22 @@ export default function TeacherProfileSettingsPage() {
             <span style={{ fontSize: 14, color: 'var(--color-text-3)' }}>{role === 'admin' ? t('Администратор') : t('Учитель')}</span>
           </div>
 
+          {error && (
+            <Alert tone="danger" text={error} />
+          )}
+
+          <TeacherSaveButton
+            label={t('Сохранить')} savingLabel={t('Сохраняем…')}
+            saving={saving} saved={saved} disabled={!name.trim()}
+            onClick={handleSave} icon={<Save size={16} strokeWidth={2.5} />} fullWidth
+          />
+        </div>
+
+        </>}
+        {section === 'integrations' && <TeacherModules />}
+        {section === 'settings' && <>
+          <div style={{ background: 'var(--color-bg-2)', borderRadius: 20, padding: 24 }}>
+            {friends.account && <button type="button" style={{ ...photoBtnStyle, marginBottom: 18 }} onClick={() => friends.setTab('profile')}>{t('Ник и видимость')}</button>}
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 6 }}>{t('Время в расписании')}</div>
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для просмотра расписания')}</div>
@@ -372,21 +408,8 @@ export default function TeacherProfileSettingsPage() {
             </div>
           </div>
 
-          {error && (
-            <Alert tone="danger" text={error} />
-          )}
-
-          <TeacherSaveButton
-            label={t('Сохранить')} savingLabel={t('Сохраняем…')}
-            saving={saving} saved={saved} disabled={!name.trim()}
-            onClick={handleSave} icon={<Save size={16} strokeWidth={2.5} />} fullWidth
-          />
-        </div>
-
-        {/* Модули — подключаемые продукты (Тестли): кнопки «Из Тестли» в ДЗ и уроках. */}
-        <div style={{ marginTop: 20 }}><TeacherLoginMethods /></div>
-        <TeacherModules />
-
+          </div>
+          <div style={{ marginTop: 20 }}><TeacherLoginMethods /></div>
         {/* Цвета предметов — сохраняются сразу по выбору, отдельно от имени:
             менять цвет и жать «Сохранить» внизу формы — лишний шаг. */}
         {colorSubjects.length > 0 && (
@@ -408,10 +431,11 @@ export default function TeacherProfileSettingsPage() {
           </div>
         )}
 
+        </>}
       </div>
       {cropFile && (
         <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={savePhoto} />
       )}
-    </div>
+    </OverlayScrollArea>
   )
 }

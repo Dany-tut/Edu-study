@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { isWidgetReviewRoute } from '../../lib/widgetReviewRoute'
 import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPrompt'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useDesktopFriends } from '../../lib/desktopFriends'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
 import NotificationToastContainer from '../../components/NotificationToast'
 import { useNotificationsInit } from '../../lib/notificationsSync'
@@ -48,6 +49,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
   const isDesktop = useIsDesktop()
+  const friends = useDesktopFriends(isDesktop)
   // Deep links to tools without a separate mobile screen still open that tool.
   const mobileTool = !isDesktop && ['constructor', 'course-editor', 'lesson-editor', 'cards-editor', 'finances', 'payment', 'admin', 'storage'].includes(activePage)
   const editMode = useDeskStore(s => s.editMode)
@@ -182,7 +184,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
 
         {/* Topbar — always in center column */}
         <div style={{ display: 'inline-flex', pointerEvents: 'auto' }}>
-          <TeacherTopBar />
+          <TeacherTopBar friends={friends} />
         </div>
 
         {/* Right column — widget appears/disappears independently */}
@@ -248,7 +250,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         {activePage === 'student'         && (standContent ? isDesktop && standContent : <TeacherStudentDashboardPage />)}
         {activePage === 'storage' && accessLoaded && isAdministrator && <TeacherStoragePage />}
         {activePage === 'admin' && accessLoaded && isAdministrator && <TeacherAdminPage />}
-        {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
+        {activePage === 'profile-settings' && <TeacherProfileSettingsPage friends={friends} />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}
         </Suspense>
