@@ -1,3 +1,4 @@
+import { initialRouteTarget } from './lib/initialRoute'
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MotionConfig } from 'framer-motion'
@@ -32,16 +33,8 @@ if (Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
 // тот же index.html, и открывался кабинет ученика. Путь переносим в hash до
 // того, как его кто-то прочтёт.
 {
-  const { pathname, search, hash } = window.location
-  const route = pathname.replace(/\/+$/, '')
-  if (import.meta.env.DEV && route === '/journal-stand') {
-    if (!hash) window.history.replaceState(null, '', pathname + search + '#/teacher/gradebook')
-  // The public design stand has its own entry point, outside hash routing.
-  } else if (route && route !== '/index.html' && route !== '/student-track-stand' && route !== '/student-widget-stand') {
-    const rest = hash.replace(/^#\/?/, '')
-    const target = `#${route}${rest ? '/' + rest : ''}`
-    window.history.replaceState(null, '', `/${search}${target}`)
-  }
+  const target = initialRouteTarget(window.location, import.meta.env.DEV)
+  if (target) window.history.replaceState(null, '', target)
 }
 
 // ── PostHog — после первого кадра, отдельным чанком ──────────────────────────

@@ -8,7 +8,7 @@ import {execFileSync} from 'node:child_process'
 const out=process.env.QA_OUT||process.env.ISKRA_QA_OUTPUT||'/tmp/iskra-shelf-filters'
 process.env.VITE_SUPABASE_URL||='http://127.0.0.1:9'
 process.env.VITE_SUPABASE_PUBLISHABLE_KEY||='shelf-fixture'
-const server=process.env.QA_ORIGIN?null:await createServer({cacheDir:'node_modules/.cache/shelf-filter-vite',optimizeDeps:{entries:['qa/shelf-filters/index.html']},server:{hmr:false,watch:{ignored:['**/*']},host:'127.0.0.1',port:Number(process.env.ISKRA_QA_PORT||5179),strictPort:true}})
+const server=process.env.QA_ORIGIN?null:await createServer({cacheDir:'node_modules/.cache/shelf-filter-vite',optimizeDeps:{entries:['qa/shelf-filters/index.html','index.html']},server:{hmr:false,watch:{ignored:['**/*']},host:'127.0.0.1',port:Number(process.env.ISKRA_QA_PORT||5179),strictPort:true}})
 if(server)await server.listen()
 const base=process.env.QA_ORIGIN||`http://127.0.0.1:${process.env.ISKRA_QA_PORT||5179}`
 if(!['localhost','127.0.0.1'].includes(new URL(base).hostname))throw Error('Local fixture URL required')
@@ -53,7 +53,17 @@ try{
   }catch(e){results.push({width,height,theme,status:'FAIL',error:String(e)});await page.screenshot({path:`${out}/failure-${width}-${theme}.png`}).catch(()=>{})}
   await ctx.close();writeFileSync(out+'/results.json',JSON.stringify(results,null,2))
  }
+ const consentContext=await browser.newContext({serviceWorkers:'block'}),consentPage=await consentContext.newPage()
+ try{
+  await consentPage.goto(base+'/oauth/consent/?authorization_id=qa-no-authorization',{waitUntil:'domcontentloaded'})
+  await consentPage.waitForFunction(()=>location.pathname==='/oauth/consent',null,{timeout:15000})
+  assert.equal(new URL(consentPage.url()).pathname,'/oauth/consent')
+  assert.equal(new URL(consentPage.url()).searchParams.get('authorization_id'),'qa-no-authorization')
+  results.push({name:'OAuth pathname, trailing slash and authorization query',status:'PASS'})
+ }catch(e){results.push({name:'OAuth direct consent route',status:'FAIL',error:String(e)})}
+ await consentContext.close()
 }finally{await browser.close();await server?.close()}
 writeFileSync(out+'/runtime.json',JSON.stringify({sha:execFileSync('git',['rev-parse','HEAD']).toString().trim(),sourceSha256:createHash('sha256').update(readFileSync('src/components/teacher/ShelfFilters.tsx')).digest('hex'),layer:'Populated fixture with real shared components; no backend writes'},null,2))
+writeFileSync(out+'/results.json',JSON.stringify(results,null,2))
 console.log(JSON.stringify(results.map(({width,theme,status,error})=>({width,theme,status,error}))))
 if(results.some(r=>r.status!=='PASS'))process.exitCode=1
