@@ -69,7 +69,7 @@ export async function addPayment(params: {
     lessons_paid: params.lessonsPaid,
     note: params.note ?? null,
     paid_at: new Date().toISOString(),
-  })
+  }).retry(false)
   const { error } = await (signal ? request.abortSignal(signal) : request)
   if (error) throw error
 }
@@ -79,15 +79,16 @@ export async function deletePayment(id: string) {
   if (error) throw error
 }
 
-export function useFinanceSummary() {
+export function useFinanceSummary(version = 0) {
   const [summary, setSummary] = useState<FinanceSummary>({ received: 0, expected: 0, debt: 0, forecast: 0 })
 
   useEffect(() => {
+    let active = true
     getOwnerId().then(uid => {
-      if (!uid) return
+      if (!uid || !active) return
       supabase.rpc('teacher_finance_summary', { p_teacher_id: uid })
         .then(({ data: rows }) => {
-          if (rows?.[0]) {
+          if (active && rows?.[0]) {
             const r = rows[0]
             setSummary({
               received: Number(r.received),
@@ -98,7 +99,8 @@ export function useFinanceSummary() {
           }
         })
     })
-  }, [])
+    return () => { active = false }
+  }, [version])
 
   return summary
 }

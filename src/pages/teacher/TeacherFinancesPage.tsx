@@ -12,7 +12,7 @@ import {
   Wallet, Plus, X, Check, ChevronDown, ChevronUp,
   TrendingUp, AlertCircle, Clock, CheckCircle2, Trash2,
 } from '../../components/icons/appIcons'
-import { useAllStudents, useGroups } from '../../lib/useGroups'
+import { useAllStudents, useGroups, reloadAllStudents } from '../../lib/useGroups'
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
 import { useT, useTc } from '../../lib/i18n'
 import type { Student } from '../../data/teacherMockData'
@@ -78,10 +78,10 @@ export function AddPaymentModal({ student, students, onClose, onSaved }: {
   }
   const field = { ...FIELD, fontSize: 16, minHeight: 48 }
   return <Modal title={t('Отметить оплату')} width={420} onClose={close}
-    footer={<><button type="button" className="cj-button" onClick={close}>{t('Отмена')}</button><button type="button" className="cj-button cj-primary" disabled={action.busy || !studentId || !amount} onClick={save}>{action.busy ? t('Сохраняем...') : t('Сохранить платёж')}</button></>}>
+    footer={<><button type="button" className="cj-button" style={{ minHeight: 44 }} onClick={close}>{t('Отмена')}</button><button type="button" className="cj-button cj-primary" style={{ minHeight: 44 }} disabled={action.busy || !studentId || !amount} onClick={save}>{action.busy ? t('Сохраняем...') : t('Сохранить платёж')}</button></>}>
     <div style={{ display: 'grid', gap: 14 }}>
       <label style={{ display: 'grid', gap: 6 }}>{t('Ученик')}
-        <TeacherSelect value={studentId} options={students.map(s => ({ value: s.id, label: tn(s.name) }))} onChange={setStudentId} placeholder={t('Выберите ученика')} triggerStyle={field} />
+        <TeacherSelect disabled={action.busy} clearable={!action.busy} value={studentId} options={students.map(s => ({ value: s.id, label: tn(s.name) }))} onChange={setStudentId} placeholder={t('Выберите ученика')} triggerStyle={field} />
       </label>
       <label style={{ display: 'grid', gap: 6 }}>{t('Сумма, ₽')}
         <input style={field} type="text" inputMode="numeric" placeholder="4 500" value={amount} onChange={e => setAmount(e.target.value)} disabled={action.busy} />
@@ -105,12 +105,14 @@ function StudentRow({
   onPay,
   expanded,
   onToggle,
+  onChanged,
 }: {
   student: Student
   groupName: string
   onPay: (s: Student) => void
   expanded: boolean
   onToggle: () => void
+  onChanged: () => void
 }) {
   const t = useT()
   const { tn } = useTc()
@@ -130,7 +132,7 @@ function StudentRow({
 
   async function handleDelete(id: string) {
     await deletePayment(id)
-    reload()
+    onChanged()
   }
 
   return (
@@ -277,14 +279,15 @@ export default function TeacherFinancesPage() {
   const t = useT()
   const students = useAllStudents()
   const { groups } = useGroups()
-  const summary  = useFinanceSummary()
   const [filter, setFilter]       = useState<FilterTab>('all')
   const [paying, setPaying]       = useState<Student | null | undefined>(undefined)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
+  const summary = useFinanceSummary(reloadKey)
   function handlePaid() {
     setReloadKey(k => k + 1)
+    void reloadAllStudents()
   }
 
   const studentsWithDue = useMemo(() =>
@@ -411,6 +414,7 @@ export default function TeacherFinancesPage() {
                   student={s}
                   groupName={group?.name ?? ''}
                   onPay={setPaying}
+                  onChanged={handlePaid}
                   expanded={expandedId === s.id}
                   onToggle={() => setExpandedId(expandedId === s.id ? null : s.id)}
                 />

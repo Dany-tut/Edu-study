@@ -141,4 +141,24 @@ final class IskraUITests: XCTestCase {
         for _ in 0..<10 { app.swipeUp() }
         evidence("30-local-journal-bottom", app)
     }
+
+    func test06StandaloneHardTitleReadOnly() throws {
+        let app = XCUIApplication(bundleIdentifier: "com.dany.iskra.debug")
+        currentApp = app
+        app.launch()
+        let role = app.buttons.matching(NSPredicate(format: "label CONTAINS[cd] %@", "Я препод")).firstMatch
+        if role.waitForExistence(timeout: 5) { role.tap() }
+        let reviewTab = app.tabBars.buttons["Проверка"]
+        XCTAssertTrue(reviewTab.waitForExistence(timeout: 20))
+        reviewTab.tap()
+        let assignment = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", " · QA Deadline 60")).firstMatch
+        XCTAssertTrue(assignment.waitForExistence(timeout: 15), "Real standalone hard title must replace hw UUID in the source queue")
+        evidence("31-hard-queue-title-fixed", app)
+        assignment.tap()
+        let title = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", " · QA Deadline 60")).firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 8), "Quick-review sheet must retain the resolved homework title")
+        XCTAssertFalse(title.label.contains("hw-868908be"))
+        evidence("32-hard-sheet-title-fixed", app)
+        app.buttons["Закрыть"].tap()
+    }
 }

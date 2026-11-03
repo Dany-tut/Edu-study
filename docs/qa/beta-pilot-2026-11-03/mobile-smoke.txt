@@ -1,0 +1,1 @@
+PASS 390×844 unauthenticated teacher gets login; invalid student invitation cannot open registration

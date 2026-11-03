@@ -43,7 +43,7 @@ async function consent(){await page.getByText('Согласен(а) на обр�
 async function openHomework(){await page.goto(`${base}/#/homework/${ref}`,{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'})}
 async function pollProgress(predicate){for(let i=0;i<50;i++){const r=await ok(teacher.from('lesson_progress').select('id,status,score,attachments,review_comment').eq('student_id',student.id).eq('lesson_ref',ref).maybeSingle());if(r&&predicate(r))return r;await new Promise(r=>setTimeout(r,200))}throw Error('Expected server state not reached')}
 async function login(credentials){await page.goto(base+'/#/login',{waitUntil:'domcontentloaded'});await page.locator('input[type=email]').fill(credentials.email);await page.getByPlaceholder('Пароль',{exact:true}).fill(credentials.password);await page.getByRole('button',{name:'Войти',exact:true}).click()}
-async function history(){await page.getByText('ДЗ зачтено · 90%',{exact:true}).waitFor();await page.getByRole('button',{name:/^История попыток/}).click();await page.getByRole('listitem').filter({has:page.getByText('Попытка 2',{exact:true})}).getByRole('button',{name:'Ответы в этой попытке'}).click();await page.getByText(expectedAnswer,{exact:true}).first().waitFor();assert.equal(await page.locator('img[onerror]').count(),0);assert.equal(await page.locator('body').getAttribute('data-qa-xss'),null);assert.ok((await page.locator('body').innerText()).includes(comment))}
+async function history(){await page.getByText('ДЗ зачтено · 90%',{exact:true}).waitFor();await page.getByRole('button',{name:/^История попыток/}).click();await page.getByRole('listitem').filter({has:page.getByText('Попытка 2',{exact:true})}).getByRole('button',{name:'Ответы в этой попытке'}).click();await page.getByText(expectedAnswer,{exact:true}).first().waitFor();assert.equal(await page.locator('img[onerror]').count(),0);assert.equal(await page.locator('body').getAttribute('data-qa-xss'),null);assert.ok((await page.locator('body').innerText()).includes(comment));assert.equal(await page.getByText('На проверке',{exact:true}).count(),0)}
 try{
  browser=await chromium.launch({...(process.env.ISKRA_BROWSER_EXECUTABLE ? {executablePath:process.env.ISKRA_BROWSER_EXECUTABLE} : {channel:process.env.ISKRA_BROWSER_CHANNEL || 'chrome'}),headless:true,args:['--disable-background-networking','--renderer-process-limit=2','--js-flags=--max-old-space-size=512']});await newContext()
  await step('Student opens invitation and registers through UI',async()=>{
@@ -113,8 +113,14 @@ try{
  await newContext()
  await step('Teacher opens the new attempt and sees the revised answer',async()=>{
   await login(teacherCredentials)
-  await page.getByRole('button',{name:/^Проверка/}).first().click()
-  await page.getByRole('button',{name:/^(Проверить · QA Full Cycle Learner · QA Full Browser Review|QA Full Browser Review QA Browser Group)/}).click()
+  const reminder=page.getByText('Проверить ДЗ — QA Browser Group',{exact:true})
+  const queue=page.getByRole('button',{name:/^Проверка/}).first()
+  await reminder.or(queue).first().waitFor()
+  if (await reminder.isVisible()) await reminder.click()
+  else {
+    await queue.click()
+    await page.getByRole('button',{name:/^(Проверить · QA Full Cycle Learner · QA Full Browser Review|QA Full Browser Review QA Browser Group)/}).click()
+  }
   await page.getByText(expectedAnswer,{exact:true}).first().waitFor()
  })
  await step('Teacher publishes 90 percent and a comment through UI',async()=>{

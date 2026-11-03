@@ -267,7 +267,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                   opacity: isLocked ? 0.6 : 1, cursor: isLocked ? 'default' : 'pointer',
                 }}
               >
-                <span style={{ width: DOT - 3, height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ width: isActive ? BAR_H - 2 : DOT - 3, height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     background: isActive ? isDone ? 'var(--color-green-soft)' : 'var(--color-accent)' : 'transparent',
                     color: isActive && !isDone ? '#fff' : 'inherit', fontSize: 12, fontWeight: 700 }}>

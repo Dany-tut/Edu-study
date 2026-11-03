@@ -143,7 +143,6 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
     const authDataChanged = createAuthDataChangeGuard()
     const focus = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoaded.current > 30_000) reload() }
     window.addEventListener('focus', focus)
-    window.addEventListener('iskra:journal-changed', reload)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (authDataChanged(event, session) && event !== 'INITIAL_SESSION') {
         setData(null)

@@ -1,0 +1,135 @@
+{
+  "url": "https://github.com/Dany-tut/Edu-study/actions/runs/41573202807",
+  "conclusion": "success",
+  "headSha": "8992d2f8ef3d4bda55c2e16099114594b41d74ca",
+  "steps": [
+    {
+      "name": "Set up job",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run actions/checkout@v4",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run actions/setup-node@v4",
+      "conclusion": "success"
+    },
+    {
+      "name": "Защита релизов (check:release)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Зависимости",
+      "conclusion": "success"
+    },
+    {
+      "name": "Проверка кандидата выпуска",
+      "conclusion": "success"
+    },
+    {
+      "name": "Связка трека и календаря",
+      "conclusion": "success"
+    },
+    {
+      "name": "Типы (tsc --noEmit)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Главная ученика (check:student-home)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Виды дневника (check:diary-views)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Словарь слов (check:gloss)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Английский интерфейс (check:i18n)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Полнота и параллельная загрузка журнала",
+      "conclusion": "success"
+    },
+    {
+      "name": "Изоляция личного учебного примера",
+      "conclusion": "success"
+    },
+    {
+      "name": "Просмотр кабинета преподавателя (check:teacher-view)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Переводы вопросов (check:questions)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Конспекты (check:prose)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Примеры к словам (check:examples)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Сцены (check:scenes)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Лента (check:feed)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Методика (check:logic)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Стандарт урока (check:lesson)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Позиции верных ответов (check:choicepos)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Лёгкие таблицы (check:light)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Назначения курса (check:course-access)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Границы и покрытие иконок Loop",
+      "conclusion": "success"
+    },
+    {
+      "name": "Правила интерфейса (check:ui)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Сборка",
+      "conclusion": "success"
+    },
+    {
+      "name": "Итог",
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Run actions/setup-node@v4",
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Run actions/checkout@v4",
+      "conclusion": "success"
+    },
+    {
+      "name": "Complete job",
+      "conclusion": "success"
+    }
+  ]
+}

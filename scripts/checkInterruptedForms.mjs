@@ -11,7 +11,7 @@ import Attendance from './src/components/teacher/journalStand/AttendanceEditor';
 import EmailCode from './src/components/teacher/TeacherEmailCodeLogin';
 import TeacherLogin from './src/pages/teacher/TeacherLoginPage';
 const cells=[0,1].slice(0,window.__view==='partial'?2:1).map(i=>({student:{id:'s'+i,name:'QA Ученик '+i},column:{title:'QA Урок'},event:{id:'event'+i,group_id:'group',date:'2026-11-03',time_start:'10:00',lesson_title:'QA Урок'},present:null,grade:null}));
-createRoot(document.getElementById('root')).render(window.__view==='login'?<TeacherLogin onLogin={()=>window.__loggedIn++}/>:window.__view==='otp'?<EmailCode onLogin={()=>window.__loggedIn++}/>:<Attendance cells={cells} onClose={()=>window.__closed++} onSaved={()=>window.__saved++}/>);`
+let root=createRoot(document.getElementById('root'));const screen=()=>window.__view==='login'?<TeacherLogin onLogin={()=>window.__loggedIn++}/>:window.__view==='otp'?<EmailCode onLogin={()=>window.__loggedIn++}/>:<Attendance cells={cells} onClose={()=>window.__closed++} onSaved={()=>window.__saved++}/>;window.__remount=()=>{root.unmount();root=createRoot(document.getElementById('root'));root.render(screen())};root.render(screen());`
 const mocks = {
   groups: `export const useAttendance=()=>({saveLesson:(...args)=>window.__service(...args)});`,
   auth: `export const supabase={auth:{signInWithOtp:(...args)=>window.__service(...args),verifyOtp:(...args)=>window.__service(...args),signInWithPassword:(...args)=>window.__service(...args),resetPasswordForEmail:(...args)=>window.__service(...args)}};`,
@@ -21,12 +21,13 @@ const mocks = {
   social: `export default function Social(){return null}`,
   session: `export const clearStudentSession=()=>{};`,
   analytics: `export const trackNow=async()=>{};export const trackEvent=()=>{};`,
+  actions: `export const passwordSignIn=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};export const verifyEmailCode=async(...args)=>{const r=await window.__service(...args);if(r?.error)throw r.error};`,
   capacitor: `export const Capacitor={isNativePlatform:()=>true};`,
 }
 const bundle = await build({ stdin: { contents: entry, resolveDir: process.cwd(), loader: 'tsx' },
   bundle: true, write: false, format: 'iife', loader: { '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' },
   plugins: [{ name: 'deferred-services', setup(b) {
-    b.onResolve({ filter: /SocialLoginButtons$|lib\/(studentSession|analytics)$|^@capacitor\/core$/ }, a => ({ path: /SocialLoginButtons$/.test(a.path) ? 'social' : /studentSession$/.test(a.path) ? 'session' : /analytics$/.test(a.path) ? 'analytics' : 'capacitor', namespace: 'qa' }))
+    b.onResolve({ filter: /SocialLoginButtons$|lib\/(studentSession|analytics|authActions)$|^@capacitor\/core$/ }, a => ({ path: /SocialLoginButtons$/.test(a.path) ? 'social' : /studentSession$/.test(a.path) ? 'session' : /analytics$/.test(a.path) ? 'analytics' : /authActions$/.test(a.path) ? 'actions' : 'capacitor', namespace: 'qa' }))
     b.onResolve({ filter: /lib\/(useGroups|supabase|i18n|nativeGlass|useKeyboardInset)$/ }, a => ({ path: /useGroups$/.test(a.path) ? 'groups' : /supabase$/.test(a.path) ? 'auth' : /i18n$/.test(a.path) ? 'i18n' : /nativeGlass$/.test(a.path) ? 'native' : 'keyboard', namespace: 'qa' }))
     b.onLoad({ filter: /.*/, namespace: 'qa' }, a => ({ contents: mocks[a.path], resolveDir: process.cwd() }))
   } }], logLevel: 'silent',
@@ -75,7 +76,7 @@ try {
     await page.getByRole('button', { name: 'Войти', exact: true }).click()
     await page.clock.runFor(181000)
     const changeDisabled = await page.getByRole('button', { name: 'Изменить почту', exact: true }).isDisabled()
-    const submitDisabled = await page.getByRole('button', { name: 'Загрузка...', exact: true }).isDisabled()
+    const submitDisabled = await page.getByRole('button', { name: 'Загрузка...', exact: true }).count() > 0
     await record('otp-verification-pending', page, !changeDisabled || !submitDisabled, { changeDisabled, submitDisabled, virtualSeconds: 181 })
     await context.close()
   }
@@ -87,7 +88,7 @@ try {
     await page.getByText('Забыли пароль?', { exact: true }).click()
     await page.clock.runFor(181000)
     const resetBlocked = await page.locator('form button[type=submit]').isDisabled()
-    await page.getByRole('button', { name: /Назад ко входу/ }).click()
+    await page.getByText(/Назад ко входу/).last().click()
     const passwordBlocked = await page.locator('form button[type=submit]').isDisabled()
     await record('password-reset-switch-pending', page, !resetBlocked && !passwordBlocked, { resetBlocked, passwordBlocked, otherMethodAvailable: await page.getByRole('button', { name: 'Войти по коду из письма', exact: true }).isEnabled(), virtualSeconds: 181, expectation: 'Switching from a stalled password request does not block recovery and the next login' })
     await context.close()
@@ -129,8 +130,44 @@ try {
     await page.getByRole('button', { name: 'Отправить код', exact: true }).click()
     await page.clock.runFor(181000)
     await toggle.click(); await toggle.click()
-    const locked = await page.getByRole('button', { name: 'Загрузка...', exact: true }).isDisabled()
+    const locked = await page.getByRole('button', { name: 'Загрузка...', exact: true }).count() > 0
     await record('otp-pending-reopen', page, !locked, { lockedAfterReopen: locked, virtualSeconds: 181, expectation: 'The email-code method can be retried after a stalled request; collapse/reopen must not keep it locked' })
+    await context.close()
+  }
+  {
+    const { context, page } = await fixture('attendance')
+    await page.getByRole('button', { name: 'Был', exact: true }).click()
+    await page.getByRole('button', { name: '5', exact: true }).click()
+    await page.getByRole('button', { name: 'Сохранить', exact: true }).click()
+    await page.evaluate(() => { window.__oldResolve = window.__resolve })
+    await page.getByRole('button', { name: 'Отмена', exact: true }).click()
+    await page.evaluate(() => window.__remount())
+    await page.getByRole('button', { name: 'Был', exact: true }).waitFor()
+    const retained = await page.getByRole('button', { name: 'Был', exact: true }).getAttribute('aria-pressed') === 'true'
+      && await page.getByRole('button', { name: '5', exact: true }).getAttribute('aria-pressed') === 'true'
+    const before = await page.evaluate(() => ({closed: window.__closed, saved: window.__saved}))
+    await page.evaluate(() => window.__oldResolve())
+    await page.waitForTimeout(60)
+    const after = await page.evaluate(() => ({closed: window.__closed, saved: window.__saved}))
+    await record('attendance-cancel-late-response', page, retained && JSON.stringify(before) === JSON.stringify(after), {retained, before, after})
+    await context.close()
+  }
+  {
+    const { context, page } = await fixture('otp')
+    const toggle = page.getByRole('button', {name:'Войти по коду из письма',exact:true})
+    await toggle.click()
+    await page.getByRole('textbox',{name:'Email',exact:true}).fill('first@example.invalid')
+    await page.getByRole('button',{name:'Отправить код',exact:true}).click()
+    await page.evaluate(() => {window.__oldResolve=window.__resolve})
+    await toggle.click();await toggle.click()
+    await page.getByRole('textbox',{name:'Email',exact:true}).fill('second@example.invalid')
+    await page.getByRole('button',{name:'Отправить код',exact:true}).click()
+    await page.evaluate(() => window.__oldResolve({error:null}))
+    await page.waitForTimeout(50)
+    const oldIgnored=await page.getByRole('textbox',{name:'Код из письма',exact:true}).count()===0
+    await page.evaluate(() => window.__resolve({error:null}))
+    await page.getByText('Введите код из письма: second@example.invalid',{exact:true}).waitFor()
+    await record('otp-cancel-retry-late-response', page, oldIgnored, {oldIgnored})
     await context.close()
   }
 } finally { await browser.close() }
