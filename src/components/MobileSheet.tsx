@@ -269,7 +269,7 @@ export default function MobileSheet({
               background: 'rgba(var(--glass-rgb), 0.98)',
               backdropFilter: 'var(--blur-solid)',
               WebkitBackdropFilter: 'var(--blur-solid)',
-              borderRadius: '28px 28px 0 0',
+              borderRadius: '32px 32px 0 0',
               boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
               // Низа у шторки нет: контент уходит под край экрана, как на
               // главной и в курсах. Отступ под safe-area живёт внутри —

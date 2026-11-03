@@ -1,0 +1,109 @@
+{
+  "capturedAt": "2026-11-03T11:57:44.702273+07:00",
+  "sources": [
+    {
+      "path": "docs/qa/consolidated-2026-11-03/release-observed.json",
+      "sha256": "be122ae34bac12859381080be815696ef3843c661489dce280fad4c966effe14"
+    },
+    {
+      "path": "docs/qa/consolidated-2026-11-03/version-observed.json",
+      "sha256": "881683ce3c406ee0e4a7d22d5822cb24225380538252e4d5a2595277b216fc17"
+    },
+    {
+      "path": "docs/qa/rerun-1905/production-1907.json",
+      "sha256": "4b52a9a8453690cfaaf7cbea5b6640940f64807364d46f40514b1a365c3b8a20"
+    },
+    {
+      "path": "docs/qa/rerun-1905/README.md",
+      "sha256": "bcd59bb09f912feebd57caa1d53ad8c552ac4d3ac58ba069a0ad1a689b2b73b3"
+    },
+    {
+      "path": "docs/qa/rerun-1905/windows/api-matrix.json",
+      "sha256": "0d47a2da12ee103c21c1d48a65f10052907dc202ab25447f48147de478e27066"
+    },
+    {
+      "path": "docs/qa/rerun-1905/local-db/api-matrix.json",
+      "sha256": "0d47a2da12ee103c21c1d48a65f10052907dc202ab25447f48147de478e27066"
+    },
+    {
+      "path": "docs/qa/rerun-1905/local-db/edge-auth.json",
+      "sha256": "cac80a73013e621c6270ab6a57b8d77d0da8c3cd95940f07cc4e2f895e9315bd"
+    },
+    {
+      "path": "docs/qa/rerun-1905/local-db/recovery-mail.log",
+      "sha256": "4a583335b01852adcd56d44210d53e4bfcde23ace0856d3e9cf162a792dd80ed"
+    },
+    {
+      "path": "docs/qa/rerun-1905/local-db/return.json",
+      "sha256": "ed62b0ec173bbc755deb863c156f6830077299f9d8e7a1fdd0060e6687481a5e"
+    },
+    {
+      "path": "docs/qa/rerun-1905/forms/results.json",
+      "sha256": "86a027031716fd98303f8a0a3a68a81f6d3d200ad4c19a6c22ffa8e20a5c7607"
+    },
+    {
+      "path": "docs/qa/rerun-1905/social/results.json",
+      "sha256": "2716ed65838368f2a08bcdb6665ee867bae2b7f62c839cac6e87cfd0445b14dc"
+    },
+    {
+      "path": "docs/qa/rerun-1905/auth-local/results.json",
+      "sha256": "5925f75d6d254094f718c7fb34eb5bdb86d390cd5f2e10ff26c5cf1c48222759"
+    },
+    {
+      "path": "docs/qa/rerun-1905/login-faults-candidate/student-browser.json",
+      "sha256": "6ee62c1d6cff3f94ee1f427ed4c78c7afd74bad09d0345fa4d7be04738b76b20"
+    },
+    {
+      "path": "docs/qa/readiness-fixes-2026-11-03/student-login-followup/research-followup/ownership-race.json",
+      "sha256": "326ea50b7fdc0f35f0ecea3d19e0ccde6320ca74f299904f1d19098a385b7645"
+    },
+    {
+      "path": "docs/qa/readiness-fixes-2026-11-03/student-login-followup/research-followup/edges.log",
+      "sha256": "223330b12205cb899859030ba34129eeb5f09d9a5d8171a60ff71f47fd10b126"
+    },
+    {
+      "path": "docs/qa/calendar-day-2026-11-03/README.md",
+      "sha256": "ea24067228e8e4e3f045127c2cba9e4c669f8ca78b9591672d2e40e535681180"
+    },
+    {
+      "path": "docs/qa/rerun-1905/README.md",
+      "sha256": "bcd59bb09f912feebd57caa1d53ad8c552ac4d3ac58ba069a0ad1a689b2b73b3"
+    },
+    {
+      "path": "docs/qa/rerun-1905/identities.json",
+      "sha256": "dee7907371e52f40322acf73bb3af2a556025f4d356262a3ebaaa6692b08a1d1"
+    },
+    {
+      "path": "docs/qa/readiness-fixes-2026-11-03/README.md",
+      "sha256": "8334a33d98c949c137735da51635b7e20e3aa4dba983595bc8f321fd90db1fd6"
+    },
+    {
+      "path": "docs/qa/rerun-1905/teacher-geometry/results.json",
+      "sha256": "ae39503560e59549fcac9267aa8c2c4540082bebd55c62a6ff699d560850dab4"
+    },
+    {
+      "path": "docs/qa/rerun-1905/README.md",
+      "sha256": "bcd59bb09f912feebd57caa1d53ad8c552ac4d3ac58ba069a0ad1a689b2b73b3"
+    },
+    {
+      "path": "docs/qa/readiness-2026-11-03/coverage.md",
+      "sha256": "651fece58b216d3cdaf42c5c86a84c6cc99c22c4915c64f4a9e54058d371c411"
+    },
+    {
+      "path": "docs/qa/rerun-1905/README.md",
+      "sha256": "bcd59bb09f912feebd57caa1d53ad8c552ac4d3ac58ba069a0ad1a689b2b73b3"
+    },
+    {
+      "path": "docs/qa/consolidated-2026-11-03/latest-release.json",
+      "sha256": "d2bf5ee81a4179468c09ad5aebc17ecf0be6b5b4738c0e7687b70010ed4ee340"
+    },
+    {
+      "path": "docs/qa/consolidated-2026-11-03/latest-version.json",
+      "sha256": "e45f4a50956a1ade0af3bcd21b3a70263adf93bb7068c894a6dbf51e763e28b0"
+    },
+    {
+      "path": "docs/qa/consolidated-2026-11-03/coordination.json",
+      "sha256": "c0a78f350c8fe5a244086f459e163eb0f3158f629c55d13fc8fbbfff71ae715b"
+    }
+  ]
+}

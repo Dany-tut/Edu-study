@@ -54,15 +54,22 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
       signal.throwIfAborted()
       if (mode === 'login') {
         await passwordSignIn(normalizedEmail, password, signal)
-      } else {
-        signal.throwIfAborted()
-        const result = mode === 'reset'
-          ? await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo: `${window.location.origin}${window.location.pathname}` })
-          : await supabase.auth.updateUser({ password })
-        if (result.error) throw result.error
+      } else if (mode === 'reset') {
+        // Без #/teacher: Supabase дописывает токен решёткой, и второй «#» в
+        // адресе ломал разбор. Форму нового пароля App показывает сам.
+        // Адрес должен быть в Auth → URL Configuration → Redirect URLs.
+        const redirectTo = `${window.location.origin}${window.location.pathname}`
+        const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })
+        if (error) throw error
+      } else if (mode === 'newpassword') {
+        const { error } = await supabase.auth.updateUser({ password })
+        if (error) throw error
       }
     }, () => {
-      if (mode === 'reset') { localStorage.setItem('iskra:password-recovery-role', 'teacher'); setMode('sent') }
+      if (mode === 'reset') {
+        localStorage.setItem('iskra:password-recovery-role', 'teacher')
+        setMode('sent')
+      }
       else {
         if (mode === 'newpassword') setNotice(t('Пароль обновлён. Входим…'))
         if (mode === 'login') void trackNow('login', { role: 'teacher', method: 'auth' })
