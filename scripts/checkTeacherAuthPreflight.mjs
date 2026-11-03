@@ -1,0 +1,107 @@
+// Isolated Auth is checked before shared-session commit. No network or database.
+import { build } from 'esbuild'
+import assert from 'node:assert/strict'
+const mocks = {
+  sdk: `export const createClient=()=>({auth:{signInWithPassword:()=>globalThis.__authFixture.verify(),verifyOtp:()=>globalThis.__authFixture.verify()},rpc:()=>{globalThis.__authFixture.roleCalls++;const p=Promise.resolve().then(()=>globalThis.__authFixture.role());p.abortSignal=()=>p;return p}})`,
+  shared: `export const SUPABASE_URL='http://127.0.0.1:54321';export const SUPABASE_KEY='fixture';export const supabase={auth:{setSession:async()=>{globalThis.__authFixture.commits++;return{error:null}}}}`,
+  transport: `export const authTransport=fetch=>fetch;export const fenceAuthCommit=()=>()=>{}`,
+}
+const bundle = await build({
+  entryPoints: ['src/lib/authActions.ts'],
+  bundle: true,
+  write: false,
+  platform: 'node',
+  format: 'esm',
+  plugins: [
+    {
+      name: 'auth-fixture',
+      setup(b) {
+        b.onResolve(
+          {
+            filter:
+              /^@supabase\/supabase-js$|^\.\/supabase$|^\.\/authTransport$/,
+          },
+          (a) => ({
+            path:
+              a.path === '@supabase/supabase-js'
+                ? 'sdk'
+                : a.path === './supabase'
+                  ? 'shared'
+                  : 'transport',
+            namespace: 'qa',
+          }),
+        )
+        b.onLoad({ filter: /.*/, namespace: 'qa' }, (a) => ({
+          contents: mocks[a.path],
+        }))
+      },
+    },
+  ],
+})
+const m = await import(
+  'data:text/javascript;base64,' +
+    Buffer.from(bundle.outputFiles[0].text).toString('base64')
+)
+const state = (globalThis.__authFixture = {
+  commits: 0,
+  roleCalls: 0,
+  verify: async () => ({
+    data: {
+      session: {
+        access_token: 'fixture',
+        refresh_token: 'fixture',
+        user: { id: 'legacy-without-metadata' },
+      },
+    },
+    error: null,
+  }),
+  role: async () => ({ data: false, error: null }),
+})
+const signal = () => new AbortController().signal
+await assert.rejects(
+  m.teacherPasswordSignIn('fixture@example.invalid', 'fixture', signal()),
+  (e) => e.code === 'staff_access_denied',
+)
+assert.equal(state.commits, 0)
+await assert.rejects(
+  m.teacherVerifyEmailCode('fixture@example.invalid', '123456', signal()),
+  (e) => e.code === 'staff_access_denied',
+)
+assert.equal(state.commits, 0)
+state.role = async () => ({ data: null, error: { message: 'offline' } })
+await assert.rejects(
+  m.teacherPasswordSignIn('fixture@example.invalid', 'fixture', signal()),
+  (e) => e.code === 'staff_access_check_failed',
+)
+assert.equal(state.commits, 0)
+state.role = async () => ({ data: true, error: null })
+await m.teacherPasswordSignIn('fixture@example.invalid', 'fixture', signal())
+assert.equal(state.commits, 1)
+await m.teacherVerifyEmailCode('fixture@example.invalid', '123456', signal())
+assert.equal(state.commits, 2)
+let finish, started
+const ready = new Promise((resolve) => (started = resolve))
+state.role = () => {
+  started()
+  return new Promise((resolve) => (finish = resolve))
+}
+const abort = new AbortController()
+const pending = m
+  .teacherPasswordSignIn('fixture@example.invalid', 'fixture', abort.signal)
+  .then(
+    () => false,
+    (e) => e.name === 'AbortError',
+  )
+await ready
+abort.abort()
+finish({ data: true, error: null })
+assert.equal(await pending, true)
+await new Promise((resolve) => setImmediate(resolve))
+assert.equal(state.commits, 2)
+const roleCalls = state.roleCalls
+await m.passwordSignIn('fixture@example.invalid', 'fixture', signal())
+assert.equal(state.roleCalls, roleCalls)
+assert.equal(state.commits, 3)
+console.log(
+  'Teacher Auth preflight: password/OTP denial, role error and cancellation do not commit; staff commits; generic authentication unchanged',
+)

@@ -15,9 +15,10 @@ import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogi
 import ScrollFade from '../../components/ScrollFade'
 import { useKeyboardState } from '../../lib/useKeyboardInset'
 import { useAsyncTask } from '../../lib/useAsyncTask'
-import { passwordSignIn } from '../../lib/authActions'
+import { teacherPasswordSignIn } from '../../lib/authActions'
+import { Alert } from '../../components/Alert'
 
-export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
+export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false, accessNotice, onRetryAccess }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean; accessNotice?: 'denied' | 'error'; onRetryAccess?: () => void }) {
   const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -53,7 +54,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
     void action.run(async signal => {
       signal.throwIfAborted()
       if (mode === 'login') {
-        await passwordSignIn(normalizedEmail, password, signal)
+        await teacherPasswordSignIn(normalizedEmail, password, signal)
       } else if (mode === 'reset') {
         // Без #/teacher: Supabase дописывает токен решёткой, и второй «#» в
         // адресе ломал разбор. Форму нового пароля App показывает сам.
@@ -113,6 +114,13 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           title={mode === 'sent' ? t('Проверьте почту') : mode === 'newpassword' ? t('Придумайте новый пароль') : mode === 'reset' ? t('Восстановить пароль') : t('Вход для препода')}
           subtitle={mode === 'sent' ? undefined : titles[mode]}
         />
+        {accessNotice && <Alert tone="danger" stacked
+          title={t(accessNotice === 'denied' ? 'Нет доступа к кабинету преподавателя' : 'Не удалось проверить доступ')}
+          text={t(accessNotice === 'denied' ? 'Войдите под другой учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.' : 'Проверьте подключение и попробуйте ещё раз или войдите под другой учётной записью.')} />}
+        {accessNotice === 'error' && onRetryAccess && <button type="button" onClick={onRetryAccess}
+          style={{ width: '100%', minHeight: 44, margin: '8px 0', padding: 12, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600 }}>
+          {t('Попробовать ещё раз')}
+        </button>}
 
         {mode === 'sent' ? (
           <div style={{ textAlign: 'center' }}>
