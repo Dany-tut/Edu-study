@@ -1,4 +1,9 @@
 import { useState, useMemo } from 'react'
+import Modal from '../../components/Modal'
+import TeacherSelect from '../../components/teacher/TeacherSelect'
+import { Alert } from '../../components/Alert'
+import { useAsyncTask } from '../../lib/useAsyncTask'
+import { paymentAmount, paymentLessons } from '../../lib/paymentInput'
 import CountBadge from '../../components/CountBadge'
 import Segmented from '../../components/Segmented'
 import { FIELD } from '../../lib/fieldStyle'
@@ -48,144 +53,48 @@ type FilterTab = 'all' | 'overdue' | 'soon' | 'paid'
 
 // ── AddPaymentModal ────────────────────────────────────────────────────────────
 
-function AddPaymentModal({
-  student,
-  onClose,
-  onSaved,
-}: {
-  student: Student
-  onClose: () => void
-  onSaved: () => void
+export function AddPaymentModal({ student, students, onClose, onSaved }: {
+  student: Student | null; students: Student[]; onClose: () => void; onSaved: () => void
 }) {
   const t = useT()
   const { tn } = useTc()
-  const [amount, setAmount] = useState(student.paymentAmount ? String(student.paymentAmount) : '')
+  const [studentId, setStudentId] = useState(student?.id ?? '')
+  const [amount, setAmount] = useState(student?.paymentAmount ? String(student.paymentAmount) : '')
   const [lessons, setLessons] = useState('4')
   const [note, setNote] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-
-  async function handleSave() {
-    const amt = parseInt(amount.replace(/\D/g, ''), 10)
-    if (!amt || amt <= 0) return
-    setSaving(true)
-    try {
-      await addPayment({
-        studentId: student.id,
-        amount: amt,
-        lessonsPaid: parseInt(lessons) || 0,
-        note,
-      })
-      setSaved(true)
-      setTimeout(() => { onSaved(); onClose() }, 700)
-    } catch {
-      setSaving(false)
-    }
+  const [error, setError] = useState('')
+  const action = useAsyncTask()
+  function close() { action.cancel(); onClose() }
+  function save() {
+    const selected = students.find(s => s.id === studentId)
+    const amt = paymentAmount(amount), count = paymentLessons(lessons)
+    if (!selected) { setError(t('Выберите ученика для оплаты.')); return }
+    if (amt === null) { setError(t('Укажите положительную сумму в целых рублях, не больше 2 147 483 647.')); return }
+    if (count === null) { setError(t('Укажите целое неотрицательное количество занятий.')); return }
+    setError('')
+    void action.run(signal => addPayment({ studentId: selected.id, amount: amt, lessonsPaid: count, note }, signal),
+      () => { onSaved(); onClose() },
+      () => setError(t('Не удалось подтвердить сохранение платежа.\nПроверьте список оплат перед повтором. Введённые данные сохранены.')))
   }
-
-  const inputStyle: React.CSSProperties = { ...FIELD }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(0,0,0,0.55)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.94, y: 16 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.94, y: 16 }}
-        transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-        style={{
-          background: 'var(--color-bg)',
-          border: '1px solid var(--color-border-medium)',
-          borderRadius: 20, padding: '22px 22px 20px',
-          width: 360, maxWidth: '90vw',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Отметить оплату')}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{tn(student.name)}</div>
-          </div>
-          <button onClick={onClose} style={{
-            width: 30, height: 30, borderRadius: 9,
-            background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'var(--color-text-3)',
-          }}>
-            <X size={14} />
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Сумма, ₽')}</div>
-            <input
-              style={inputStyle}
-              type="number"
-              placeholder="4 500"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Занятий оплачено')}</div>
-            <input
-              style={inputStyle}
-              type="number"
-              placeholder="4"
-              value={lessons}
-              onChange={e => setLessons(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, paddingLeft: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Заметка (необязательно)')}</div>
-            <input
-              style={inputStyle}
-              placeholder={t('Перевод на карту...')}
-              value={note}
-              onChange={e => setNote(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={handleSave}
-          disabled={saving || saved || !amount}
-          style={{
-            marginTop: 16,
-            width: '100%', padding: '12px',
-            background: saved ? 'var(--color-green-soft)' : 'var(--grad-purple)',
-            border: 'none', borderRadius: 12,
-            color: saved ? 'var(--color-green-text)' : '#fff',
-            fontSize: 14, fontWeight: 700,
-            cursor: saving || saved ? 'default' : 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            transition: 'background 0.22s',
-          } as React.CSSProperties}
-        >
-          {saved
-            ? <><Check size={16} /> {t('Сохранено')}</>
-            : saving
-              ? t('Сохраняем...')
-              : t('Сохранить платёж')
-          }
-        </motion.button>
-      </motion.div>
-    </motion.div>
-  )
+  const field = { ...FIELD, fontSize: 16, minHeight: 48 }
+  return <Modal title={t('Отметить оплату')} width={420} onClose={close}
+    footer={<><button type="button" className="cj-button" onClick={close}>{t('Отмена')}</button><button type="button" className="cj-button cj-primary" disabled={action.busy || !studentId || !amount} onClick={save}>{action.busy ? t('Сохраняем...') : t('Сохранить платёж')}</button></>}>
+    <div style={{ display: 'grid', gap: 14 }}>
+      <label style={{ display: 'grid', gap: 6 }}>{t('Ученик')}
+        <TeacherSelect value={studentId} options={students.map(s => ({ value: s.id, label: tn(s.name) }))} onChange={setStudentId} placeholder={t('Выберите ученика')} triggerStyle={field} />
+      </label>
+      <label style={{ display: 'grid', gap: 6 }}>{t('Сумма, ₽')}
+        <input style={field} type="text" inputMode="numeric" placeholder="4 500" value={amount} onChange={e => setAmount(e.target.value)} disabled={action.busy} />
+      </label>
+      <label style={{ display: 'grid', gap: 6 }}>{t('Занятий оплачено')}
+        <input style={field} type="text" inputMode="numeric" placeholder="4" value={lessons} onChange={e => setLessons(e.target.value)} disabled={action.busy} />
+      </label>
+      <label style={{ display: 'grid', gap: 6 }}>{t('Заметка (необязательно)')}
+        <input style={field} placeholder={t('Перевод на карту...')} value={note} onChange={e => setNote(e.target.value)} disabled={action.busy} />
+      </label>
+      {error && <Alert tone="danger" text={error} />}
+    </div>
+  </Modal>
 }
 
 // ── StudentRow ─────────────────────────────────────────────────────────────────
@@ -370,7 +279,7 @@ export default function TeacherFinancesPage() {
   const { groups } = useGroups()
   const summary  = useFinanceSummary()
   const [filter, setFilter]       = useState<FilterTab>('all')
-  const [paying, setPaying]       = useState<Student | null>(null)
+  const [paying, setPaying]       = useState<Student | null | undefined>(undefined)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -427,7 +336,7 @@ export default function TeacherFinancesPage() {
 
           <motion.button
             whileTap={{ scale: 0.96 }}
-            onClick={() => students[0] && setPaying(students[0])}
+            onClick={() => setPaying(null)}
             style={{ height: 40,
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '0 16px', borderRadius: 12,
@@ -514,10 +423,11 @@ export default function TeacherFinancesPage() {
 
       {/* Add payment modal */}
       <AnimatePresence>
-        {paying && (
+        {paying !== undefined && (
           <AddPaymentModal
             student={paying}
-            onClose={() => setPaying(null)}
+            students={students}
+            onClose={() => setPaying(undefined)}
             onSaved={handlePaid}
           />
         )}

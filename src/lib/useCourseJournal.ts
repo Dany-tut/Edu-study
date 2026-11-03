@@ -88,6 +88,7 @@ export function useCourseJournal(completeWorkList = false) {
     let sessionUser: string | null | undefined
     const focus = () => { if (document.visibilityState === 'visible') reload() }
     window.addEventListener('focus', focus)
+    window.addEventListener('iskra:journal-changed', reload)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const nextUser = session?.user.id ?? null
       const changed = sessionUser !== undefined && sessionUser !== nextUser
@@ -101,7 +102,7 @@ export function useCourseJournal(completeWorkList = false) {
         reload()
       }
     })
-    return () => { window.removeEventListener('focus', focus); subscription.unsubscribe() }
+    return () => { window.removeEventListener('focus', focus); window.removeEventListener('iskra:journal-changed', reload); subscription.unsubscribe() }
   }, [reload])
   const resolved = useMemo(() => data && !data.demo ? { ...data, students, groups } : data, [data, students, groups])
   return { data: resolved, loading, error, reload, setData }

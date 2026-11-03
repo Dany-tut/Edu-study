@@ -1,0 +1,10 @@
+{
+  "scope": "Real localhost Supabase Auth/PostgREST and synthetic owned data",
+  "productionModified": false,
+  "results": [
+    {
+      "name": "Synthetic teacher, claimed learner and pending manual homework created through local Auth/PostgREST",
+      "status": "PASS"
+    }
+  ]
+}

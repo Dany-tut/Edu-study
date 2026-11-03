@@ -1,0 +1,18 @@
+{
+  "scope": "Real localhost Supabase Auth/PostgREST and synthetic owned data",
+  "productionModified": false,
+  "results": [
+    {
+      "name": "Mobile teacher UI publishes 90 percent for the new attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh learner Auth login sees final score and teacher comment",
+      "status": "PASS"
+    },
+    {
+      "name": "Learner attempt history preserves returned first attempt and graded second attempt",
+      "status": "PASS"
+    }
+  ]
+}

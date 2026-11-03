@@ -1,0 +1,65 @@
+{
+  "browser": "Safari 27.2 macOS, ordinary app via native CUA; no WebDriver",
+  "origin": "http://127.0.0.1:5291",
+  "scope": "Dedicated synthetic teacher and learner, isolated localhost Supabase; teacherA/studentA data unchanged",
+  "result": "PASS",
+  "steps": [
+    {
+      "name": "Teacher signs in through Safari UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher returns first attempt with comment through Safari UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Local API confirms returned state and learner visibility",
+      "status": "PASS"
+    },
+    {
+      "name": "Learner signs in through Safari UI and sees returned state/comment",
+      "status": "PASS"
+    },
+    {
+      "name": "Learner starts a new attempt, edits both answers and submits through Safari UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Local API confirms same progress row and new attempt ID with corrected answer",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher signs in, sees corrected answer and publishes 90 percent with comment through Safari UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Local API confirms final score, comment and exactly two attempts",
+      "status": "PASS"
+    },
+    {
+      "name": "Learner signs in again and sees 90 percent through Safari UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Learner expands both attempts and their original/distinct answers and comments",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload preserves 90 percent, returned first attempt, accepted second attempt and both comments",
+      "status": "PASS"
+    }
+  ],
+  "setup": [
+    "Initial pending attempt was seeded using checkLocalMobileReviewCycle.mjs setup",
+    "Added one synthetic published course/module/lesson to this dedicated fixture so student catalog resolves standalone homework",
+    "All grading and resubmission transitions in this cycle used Safari UI; API only verified persisted state"
+  ],
+  "limitations": [
+    "Safari macOS only; no physical iPhone gestures or iOS keyboard coverage",
+    "Local AI service was unavailable; manual return and grading remained usable",
+    "Native clipboard operations intermittently timed out; final login and grading used focused AX setValue plus digit/Backspace input events",
+    "No OAuth, signup, media upload or network-failure retry coverage in this Safari cycle"
+  ],
+  "credentialsIncluded": false,
+  "productionModified": false
+}

@@ -1229,6 +1229,7 @@ export default function TeacherLessonEditorPage() {
       }
     }
 
+    window.dispatchEvent(new Event('iskra:journal-changed'))
     clearDrafts(draftNs)
     setPublished(true)
     setTimeout(() => setActivePage('home'), 1600)

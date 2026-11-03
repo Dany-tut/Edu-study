@@ -46,6 +46,11 @@ try {
   if(command==='verify-returned') {
    assert.equal(stored.status,'returned');assert.equal(stored.attachments.attemptId,f.firstAttempt);assert.equal(stored.review_comment,'Добавь уравнения реакций.');pass('Mobile teacher UI saved return and comment in real local database')
    const learnerStored=await ok(student.from('lesson_progress').select('status,review_comment').eq('id',f.progress.id).single());assert.equal(learnerStored.status,'returned');assert.equal(learnerStored.review_comment,stored.review_comment);pass('Learner Auth session reads the returned result and comment')
+  } else if(command==='verify-resubmitted') {
+   assert.equal(stored.status,'submitted');assert.ok(stored.attachments.attemptId);assert.notEqual(stored.attachments.attemptId,f.firstAttempt)
+   assert.equal(stored.attachments.rows.find(r=>r.n===2).answer,'На катоде идёт восстановление, на аноде — окисление. Добавлены уравнения реакций.')
+   f.secondAttempt=stored.attachments.attemptId;writeFileSync(dir+'/fixture.json',JSON.stringify(f,null,2));chmodSync(dir+'/fixture.json',0o600)
+   pass('Real browser learner UI persisted a new attempt and corrected answer on the same progress row')
   } else if(command==='resubmit') {
    assert.equal(stored.status,'returned')
    const attemptId=randomUUID(),answers={...stored.attachments,attemptId,draft:false,reviewedAt:null,rows:stored.attachments.rows.map(r=>r.n===2?{...r,answer:'На катоде идёт восстановление, на аноде — окисление. Добавлены уравнения реакций.'}:r)}

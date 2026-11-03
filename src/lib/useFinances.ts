@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
+import { paymentAmount, paymentLessons } from './paymentInput'
 
 export type Payment = {
   id: string
@@ -56,9 +57,12 @@ export async function addPayment(params: {
   amount: number
   lessonsPaid: number
   note?: string
-}) {
+}, signal?: AbortSignal) {
+  if (paymentAmount(String(params.amount)) === null || paymentLessons(String(params.lessonsPaid)) === null) throw new Error('Invalid payment values')
+  signal?.throwIfAborted()
   const uid = await getOwnerId()
-  const { error } = await supabase.from('payments').insert({
+  signal?.throwIfAborted()
+  const request = supabase.from('payments').insert({
     student_id: params.studentId,
     teacher_id: uid,
     amount: params.amount,
@@ -66,6 +70,7 @@ export async function addPayment(params: {
     note: params.note ?? null,
     paid_at: new Date().toISOString(),
   })
+  const { error } = await (signal ? request.abortSignal(signal) : request)
   if (error) throw error
 }
 

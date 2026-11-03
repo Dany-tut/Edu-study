@@ -11,6 +11,8 @@ import SocialLoginButtons from '../../components/SocialLoginButtons'
 import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogin'
 import ScrollFade from '../../components/ScrollFade'
 import { Capacitor } from '@capacitor/core'
+import { useAsyncTask } from '../../lib/useAsyncTask'
+import { passwordSignIn } from '../../lib/authActions'
 
 export default function TeacherLoginPage({ onLogin, recovery = false, linkExpired = false }: { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }) {
   const t = useT()
@@ -18,7 +20,8 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
   const [password, setPassword] = useState('')
   const [error, setError] = useState(linkExpired ? t('Ссылка из письма устарела или уже использована. Отправьте письмо ещё раз и откройте самое новое.') : '')
   const [notice, setNotice] = useState('')
-  const [loading, setLoading] = useState(false)
+  const action = useAsyncTask()
+  const loading = action.busy
   // Свободной регистрации нет: аккаунт учителя создаётся только по ссылке-приглашению (#/join-teacher)
   const [mode, setMode] = useState<'login' | 'reset' | 'newpassword'>(
     recovery ? 'newpassword' : linkExpired ? 'reset' : 'login',
@@ -34,47 +37,35 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
   }, [mode])
 
   function switchMode(next: 'login' | 'reset') {
+    action.cancel()
     setMode(next)
     setError('')
     setNotice('')
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-    setNotice('')
-    // iOS Keychain/autofill and pasted addresses can include capitalization or
-    // surrounding whitespace. Normalize email exactly as on student sign-in;
-    // passwords stay byte-for-byte as entered.
+    setError(''); setNotice('')
     const normalizedEmail = email.trim().toLowerCase()
-    try {
+    void action.run(async signal => {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
-        if (error) throw error
-        void trackNow('login', { role: 'teacher', method: 'auth' })
-        clearStudentSession()
-        onLogin()
-      } else if (mode === 'reset') {
-        // Без #/teacher: Supabase дописывает токен решёткой, и второй «#» в
-        // адресе ломал разбор. Форму нового пароля App показывает сам.
-        // Адрес должен быть в Auth → URL Configuration → Redirect URLs.
-        const redirectTo = `${window.location.origin}${window.location.pathname}`
-        const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })
-        if (error) throw error
-        setNotice(t('Письмо отправлено. Откройте ссылку из него — здесь же откроется форма нового пароля.'))
-      } else if (mode === 'newpassword') {
-        const { error } = await supabase.auth.updateUser({ password })
-        if (error) throw error
-        setNotice(t('Пароль обновлён. Входим…'))
-        clearStudentSession()
-        onLogin()
+        await passwordSignIn(normalizedEmail, password, signal)
+      } else {
+        signal.throwIfAborted()
+        const result = mode === 'reset'
+          ? await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo: `${window.location.origin}${window.location.pathname}` })
+          : await supabase.auth.updateUser({ password })
+        if (result.error) throw result.error
       }
-    } catch (err: any) {
-      setError(t(authErrorRu(err)))
-    } finally {
-      setLoading(false)
-    }
+    }, () => {
+      if (mode === 'reset') setNotice(t('Письмо отправлено. Откройте ссылку из него — здесь же откроется форма нового пароля.'))
+      else {
+        if (mode === 'login') void trackNow('login', { role: 'teacher', method: 'auth' })
+        clearStudentSession(); onLogin()
+      }
+    }, err => setError(err instanceof DOMException && err.name === 'TimeoutError'
+      ? t('Сервер не ответил вовремя. Попробуйте ещё раз.')
+      : t(authErrorRu(err instanceof Error ? err : { message: String(err) }))))
   }
 
   const titles: Record<typeof mode, string> = {
@@ -242,6 +233,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           >
             {loading ? t('Загрузка...') : buttonLabels[mode]}
           </button>
+          {loading && <button type="button" onClick={() => { action.cancel(); setError('') }} style={{ minHeight: 44, border: 0, background: 'transparent', color: 'var(--color-text)', cursor: 'pointer' }}>{t('Отмена')}</button>}
         </form>
 
         {mode === 'login' && <SocialLoginButtons role="teacher" />}
@@ -259,7 +251,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false, linkExpire
           </p>
         )}
         {Capacitor.isNativePlatform() && mode === 'login' && (
-          <button type="button" onClick={() => { window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
+          <button type="button" onClick={() => { action.cancel(); window.location.hash = '#/entry' }} style={{ width: '100%', border: 0, background: 'transparent', color: 'var(--color-muted)', fontSize: 13, marginTop: 10 }}>
             {t('← Выбрать роль')}
           </button>
         )}

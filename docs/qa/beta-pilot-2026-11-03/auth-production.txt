@@ -1,0 +1,5 @@
+PASS forged role and self-promotion denied
+PASS teacher invitation and role
+PASS teacher issues single-use display credential and student signs in
+PASS unauthorized reset denied, old password denied, new login works
+PASS synthetic fixture cleanup
