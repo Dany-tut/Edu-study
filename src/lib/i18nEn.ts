@@ -3688,6 +3688,8 @@ export const EN: Record<string, string> = {
   'Вариант ответа': 'Answer option',
   'Верный ответ': 'Correct answer',
   'Удалить вариант': 'Remove option',
+  'Переместить вверх': 'Move up',
+  'Переместить вниз': 'Move down',
   'Пояснение (после ответа)': 'Explanation (shown after the answer)',
   'Домашка · хард-задание (на проверку преподавателю)': 'Homework · hard task (goes to the teacher)',
   'Условие задания…': 'Task statement…',

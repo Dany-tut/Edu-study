@@ -149,7 +149,7 @@ export default function MobileProfilePage() {
       <div style={{ width: 38, flexShrink: 0 }} />
       <DynamicIsland>
         <Flame size={16} style={{ color: '#F8A23B' }} />
-        <span>{stats.streak} {t('дней')}</span>
+        <span>{stats.streak} {plural(stats.streak, ['день', 'дня', 'дней'], ['day', 'days'], lang)}</span>
         <span style={{ opacity: 0.35 }}>·</span>
         <Zap size={14} style={{ color: 'var(--color-accent)' }} />
         <span>{stats.totalPoints}</span>
@@ -274,7 +274,7 @@ export default function MobileProfilePage() {
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Средний балл')}</div>
                   <div className="flex items-center" style={{ gap: 8, marginTop: 6 }}>
-                    <span style={{ fontSize: 36, fontWeight: 800, lineHeight: 1 }}>{trend.length > 0 ? `${heroAvg}%` : '—'}</span>
+                    <span style={{ fontSize: 36, fontWeight: 800, lineHeight: 1 }}>{heroAvg !== 0 || trend.length > 0 ? `${heroAvg}%` : '—'}</span>
                     {delta !== null && (
                       <span className="flex items-center" style={{ gap: 2, fontSize: 12, fontWeight: 800, padding: '4px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.18)' }}>
                         {delta >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
