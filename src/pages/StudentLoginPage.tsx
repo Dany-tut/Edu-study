@@ -45,6 +45,14 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
     supabase.auth.getUser().then(({ data }) => { if (data.user?.email) setEmail(data.user.email) })
   }, [mode])
 
+  // Recovery returns through the root route. Carry the confirmation across
+  // the resulting remount and consume it once on the student login screen.
+  useEffect(() => {
+    if (recovery || !sessionStorage.getItem('iskra:student-password-updated')) return
+    sessionStorage.removeItem('iskra:student-password-updated')
+    setNotice(t('Пароль обновлён. Теперь войдите с новым паролем.'))
+  }, [recovery, t])
+
   function switchMode(next: 'login' | 'reset') {
     action.cancel(); setMode(next); setError(''); setNotice('')
   }
@@ -99,7 +107,10 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
         localStorage.removeItem('iskra:password-recovery-role')
         clearStudentSession()
         setPassword(''); setNotice(t('Пароль обновлён. Теперь войдите с новым паролем.')); setMode('login')
-        onRecoveryComplete?.()
+        if (onRecoveryComplete) {
+          sessionStorage.setItem('iskra:student-password-updated', '1')
+          onRecoveryComplete()
+        }
       }, failed)
     }
   }

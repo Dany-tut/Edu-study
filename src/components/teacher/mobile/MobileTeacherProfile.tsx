@@ -9,6 +9,7 @@ import TariffModal from '../TariffModal'
 import { tactile } from '../../../lib/feedback'
 import { supabase } from '../../../lib/supabase'
 import { trackNow } from '../../../lib/analytics'
+import { useTeacher } from '../../../store/teacherStore'
 import { useTheme } from '../../../store/themeStore'
 import { fetchMyPlan } from '../../../lib/plan'
 import { useFinanceSummary } from '../../../lib/useFinances'
@@ -64,6 +65,9 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
   const [tariffOpen, setTariffOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
 
+  const openPage = useTeacher(s => s.setActivePage)
+  const showFinances = useTeacherAccess(s => s.canTab('finances'))
+  const showConstructor = useTeacherAccess(s => s.canTab('constructor'))
   const isTeacher = useTeacherAccess(s => s.isTeacher)
   const mySubjects = useTeacherAccess(s => s.subjects)
   const saveSubjects = useTeacherAccess(s => s.saveSubjects)
@@ -252,13 +256,16 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
           <AppVersionRow />
         </div>
 
-        {/* Desktop tools footer — span 2, compact */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 12px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
-          <Monitor size={16} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.3 }}>
-            {t('Конструктор курсов и редактор уроков — на компьютере.')}
-          </span>
-        </div>
+        {([
+          { page: 'finances', label: t('Финансы'), Icon: Wallet, visible: showFinances },
+          { page: 'constructor', label: t('Конструктор'), Icon: Monitor, visible: showConstructor },
+        ] as const).filter(tool => tool.visible).map(({ page, label, Icon }) => (
+          <button key={page} type="button" onClick={() => openPage(page)}
+            style={{ minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', color: 'var(--color-text)' }}>
+            <Icon size={16} />{label}
+          </button>
+        ))}
 
         {isAdmin && <motion.button
           whileTap={{ scale: 0.97 }}

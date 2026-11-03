@@ -48,6 +48,8 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
   const isDesktop = useIsDesktop()
+  // Deep links to tools without a separate mobile screen still open that tool.
+  const mobileTool = !isDesktop && ['constructor', 'course-editor', 'lesson-editor', 'cards-editor', 'finances', 'payment', 'admin', 'storage'].includes(activePage)
   const editMode = useDeskStore(s => s.editMode)
   const showWidgetLibrary = useDeskStore(s => s.showWidgetLibrary)
   const setShowWidgetLibrary = useDeskStore(s => s.setShowWidgetLibrary)
@@ -67,6 +69,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   useNotificationsInit(teacherId)
 
   // Per-teacher access (admin-configured). Load once; gate nav + widgets.
+  const isAdministrator = useTeacherAccess(s => s.isAdmin)
   const accessLoaded = useTeacherAccess(s => s.loaded)
   const hiddenWidgets = useTeacherAccess(s => s.hiddenWidgets)
   const canPage = useTeacherAccess(s => s.canPage)
@@ -139,7 +142,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
     <TeacherSubjectsPrompt />
-    <div className="dashboard-root teacher-dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
+    {(isDesktop || mobileTool) && <div className="dashboard-root teacher-dashboard-root" style={{ display: 'flex', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
       {!editMode && <div aria-hidden className="edge-progressive-blur--top" />}
@@ -170,7 +173,9 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       </Suspense>)}
 
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
-      <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
+      {mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 10 }}>
+        <button className="cj-button" style={{ minHeight: 44 }} onClick={() => setActivePage('home')}>{t('На главную')}</button>
+      </div> : <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
         {/* Left spacer */}
         <div />
 
@@ -196,7 +201,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </div>}
 
       {/* Page content.
           NO AnimatePresence here: the wrapper has no exit animation, so presence
@@ -240,18 +245,18 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
         {activePage === 'cards-editor'    && <TeacherCardSetEditorPage />}
         {activePage === 'student'         && (standContent ? isDesktop && standContent : <TeacherStudentDashboardPage />)}
-        {activePage === 'storage'          && <TeacherStoragePage />}
-        {activePage === 'admin'            && <TeacherAdminPage />}
+        {activePage === 'storage' && accessLoaded && isAdministrator && <TeacherStoragePage />}
+        {activePage === 'admin' && accessLoaded && isAdministrator && <TeacherAdminPage />}
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}
         </Suspense>
       </motion.div>
 
-    </div>
+    </div>}
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
+    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
     </>
   )
 }
