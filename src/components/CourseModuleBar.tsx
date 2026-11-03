@@ -65,9 +65,10 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
 }) {
   const t = useT()
   const { tc } = useTc()
+  const reduceMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number; width: number; listHeight: number; above: boolean } | null>(null)
+  const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number; width: number; listHeight: number } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -86,7 +87,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
     const above = desiredHeight > belowSpace && aboveSpace > belowSpace
     const available = above ? aboveSpace : belowSpace
     setPos({
-      left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), width, above,
+      left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), width,
       ...(above ? { bottom: window.innerHeight - r.top + 8 } : { top: r.bottom + 8 }),
       listHeight: Math.max(0, Math.min(360, available - chrome)),
     })
@@ -154,11 +155,11 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
             <motion.div
               ref={menuRef}
               role="listbox"
-              initial={{ scale: 0.96, opacity: 0, y: pos.above ? 6 : -6 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: pos.above ? 6 : -6 }}
-              transition={{ type: 'spring', stiffness: 460, damping: 30, mass: 0.7 }}
-              style={{ position: 'fixed', zIndex: Z.dropdown, left: pos.left, top: pos.top, bottom: pos.bottom, width: pos.width, transformOrigin: pos.above ? 'bottom left' : 'top left', ...dropdownSurface, borderRadius: 18 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.12, ease: 'easeOut' }}
+              style={{ position: 'fixed', zIndex: Z.dropdown, left: pos.left, top: pos.top, bottom: pos.bottom, width: pos.width, ...dropdownSurface, borderRadius: 18 }}
             >
               {subjects.length >= SEARCH_FROM && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 38, padding: '0 12px', margin: '2px 2px 6px', borderRadius: 12, background: 'var(--color-bg-input)', cursor: 'text' }}>
