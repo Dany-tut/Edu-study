@@ -1,0 +1,41 @@
+name: Искра — серверный монитор
+on:
+  schedule:
+    - cron: '3-58/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: iskra-monitor
+  cancel-in-progress: false
+jobs:
+  observe:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Предыдущая публичная сводка
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api repos/Dany-tut/Edu-study/contents/iskra.json?ref=codex/monitor-status --jq .content | base64 --decode > /tmp/iskra-previous.json || true
+      - name: Проверить приложение и серверный сбор
+        id: probe
+        continue-on-error: true
+        env:
+          ISKRA_PUBLISHABLE_KEY: ${{ vars.ISKRA_PUBLISHABLE_KEY }}
+        run: node scripts/monitor/run.mjs
+      - name: Доставить только обезличенную сводку
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/monitor/publish.mjs
+      - name: Результат проверки
+        if: steps.probe.outcome != 'success'
+        run: exit 1

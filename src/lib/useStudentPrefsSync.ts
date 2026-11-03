@@ -1,3 +1,4 @@
+import { diagnosticFailure } from './diagnosticJourney'
 import { useEffect, useRef } from 'react'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 import { mergeWidgetOrder } from './widgetOrderMigration'
@@ -111,8 +112,8 @@ export function useStudentPrefsSync() {
         p_student: session.id,
         p_preferences: { avatarId, widgetColumns, widgetOrder, knownWidgetIds: DEFAULT_WIDGET_ORDER, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors },
       }).then(({ error }) => {
-        if (error) console.warn('Student preferences sync failed:', error.code)
-      })
+        if (error) { diagnosticFailure('student_preferences', 'save_failed'); console.warn('Student preferences sync failed:', error.code) }
+      }, () => { diagnosticFailure('student_preferences', 'save_failed') })
     }, 1500)
   }, [avatarId, widgetColumns, widgetOrder, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors])
 }

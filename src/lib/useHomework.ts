@@ -1,3 +1,4 @@
+import { mutationAcknowledged, missingMutationRow } from './mutationEvidence'
 import { trackEvent } from './analytics'
 import { latestHomeworkSubmissions } from './mobileHomeworkReviewState'
 import type { HomeworkAttempt } from './homeworkResult'
@@ -397,7 +398,8 @@ export function useHomework() {
       basic_tasks: hw.basicTasks ?? [],
       created_by: await getOwnerId(),
     }).select().single()
-    if (!error) await load()
+    if (!mutationAcknowledged('create_homework', {data, error}, trackEvent)) return {data, error: error ?? missingMutationRow()}
+    await load()
     return { data, error }
   }
 
@@ -413,7 +415,7 @@ export function useHomework() {
     hardTasks?: HardTaskDef[]
     basicTasks?: unknown[]
   }) {
-    const { error } = await supabase.from('homework').update({
+    const { data: saved, error } = await supabase.from('homework').update({
       group_id: hw.groupId,
       title: hw.title,
       due_date: hw.dueDate || null,
@@ -424,14 +426,17 @@ export function useHomework() {
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
       hard_tasks: hw.hardTasks ?? [],
       basic_tasks: hw.basicTasks ?? [],
-    }).eq('id', id)
-    if (!error) await load()
+    }).eq('id', id).select('id')
+    if (!mutationAcknowledged('update_homework', {data: saved, error}, trackEvent)) return {error: error ?? missingMutationRow()}
+    await load()
     return { error }
   }
 
   async function closeHomework(id: string) {
-    await supabase.from('homework').update({ status: 'closed' }).eq('id', id)
+    const result = await supabase.from('homework').update({ status: 'closed' }).eq('id', id).select('id')
+    if (!mutationAcknowledged('close_homework', result, trackEvent)) return false
     await load()
+    return true
   }
 
   return { homework, loading, createHomework, updateHomework, closeHomework, reload: load }
@@ -550,12 +555,12 @@ export function useHardSubmissions() {
             || (reviewAttachments as { board: string | null }).board
             || (reviewAttachments as { annotation?: Annotation | null }).annotation)
     )
-    const { error } = await supabase.from('lesson_progress').update({
+    const { data: saved, error } = await supabase.from('lesson_progress').update({
       status: verdict,
       review_comment: comment || null,
       review_attachments: hasAtt ? reviewAttachments : null,
-    }).eq('id', id)
-    if (error) { console.error('[reviewHard]', error); return false }
+    }).eq('id', id).select('id')
+    if (!mutationAcknowledged('review_hard_homework', {data: saved,error}, trackEvent)) return false
     await load()
     return true
   }
@@ -568,13 +573,13 @@ export function useHardSubmissions() {
     status: 'submitted' | 'returned' | 'completed',
     score: number,
   ) {
-    const { error } = await supabase.from('lesson_progress').update({
+    const { data: saved, error } = await supabase.from('lesson_progress').update({
       status,
       score,
       review_comment: null,
       review_attachments: review,
-    }).eq('id', id)
-    if (error) { console.error('[reviewHardMulti]', error); return false }
+    }).eq('id', id).select('id')
+    if (!mutationAcknowledged('review_hard_homework', {data: saved,error}, trackEvent)) return false
     await load()
     return true
   }
