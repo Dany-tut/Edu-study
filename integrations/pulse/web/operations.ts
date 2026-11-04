@@ -1,8 +1,11 @@
+import { summaryConfig, scheduledOperations } from './scheduledSummary';
 export interface OperationState { code: string; label: string; at: string }
 export interface Operations {
   schema_version: 1; project: string; name: string; updated_at: string; last_checked_at: string | null;
   states: Record<'monitor' | 'telemetry' | 'incident' | 'hotfix' | 'release', OperationState>;
   history: Array<OperationState & { area: string }>;
+  summary_source?: 'scheduled_database';
+  external_probe?: OperationState & { last_checked_at: string | null };
 }
 export const AREA_LABELS = { monitor: 'Мониторинг', telemetry: 'Сбор событий', incident: 'Инцидент', hotfix: 'Исправление', release: 'Релиз' };
 export function parseOperations(value: unknown, project = "iskra"): Operations {
@@ -39,11 +42,23 @@ export function serverOperationsUrl(): string | null {
 
 export async function loadOperations(localUrl: string, project: string, signal: AbortSignal): Promise<Operations> {
   const remote = project === 'iskra' ? serverOperationsUrl() : null;
+  const summary = project === 'iskra' ? summaryConfig(import.meta.env.VITE_ISKRA_SUMMARY_URL, import.meta.env.VITE_ISKRA_SUMMARY_KEY) : null;
   const read = async (url: string) => {
     const r = await fetch(url, {cache: 'no-store', signal});
     if (!r.ok) throw Error('Источник статусов не ответил');
     return parseOperations(await r.json(), project);
   };
+  if (summary) {
+    const readSummary = async () => {
+      const r = await fetch(summary.url, { method: 'POST', headers: { apikey: summary.key, 'Content-Type': 'application/json' }, body: '{}', cache: 'no-store', signal });
+      if (!r.ok) throw Error('Серверный сбор Искры не ответил');
+      return r.json();
+    };
+    const [local, server, probe] = await Promise.allSettled([read(localUrl), readSummary(), remote ? read(`${remote}?t=${Date.now()}`) : Promise.resolve(null)]);
+    if (server.status === 'rejected') throw Error('Серверный сбор Искры не ответил');
+    const scheduled = scheduledOperations(server.value, probe.status === 'fulfilled' ? probe.value : null);
+    return mergeServerOperations(local.status === 'fulfilled' ? local.value : null, scheduled);
+  }
   if (!remote) return read(localUrl);
   const [local, server] = await Promise.allSettled([read(localUrl), read(`${remote}?t=${Date.now()}`)]);
   if (server.status === 'rejected') throw Error('Серверный монитор Искры не ответил');
