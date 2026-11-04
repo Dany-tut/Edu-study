@@ -193,13 +193,13 @@
 @property --chapter-trash-fade {syntax:'<length>';inherits:false;initial-value:0px}
 @media (hover:hover) and (pointer:fine) {
   .timecode-editor .editor-delete-row {position:relative}
-  .timecode-editor .editor-delete-row > .editor-delete-action {position:absolute;right:4px;top:0;bottom:0;margin:auto 0}
+  .timecode-editor .editor-delete-row > .editor-delete-action {position:absolute;right:0;top:0;bottom:0;margin:auto 0}
   .timecode-editor .editor-delete-row .chapter-title {
     --chapter-trash-fade:0px;
     mask-image:linear-gradient(to left,transparent var(--chapter-trash-fade),#000 calc(var(--chapter-trash-fade) * 1.8));
     transition:--chapter-trash-fade 0.15s;
   }
-  .timecode-editor .editor-delete-row:hover .chapter-title:not(:focus-within) {--chapter-trash-fade:30px}
+  .timecode-editor .editor-delete-row:hover .chapter-title:not(:focus-within) {--chapter-trash-fade:26px}
   /* В правке поле не уходит под мусорку: название уступает ей место. */
   .timecode-editor .editor-delete-row .chapter-title:focus-within {margin-right:32px}
 }
