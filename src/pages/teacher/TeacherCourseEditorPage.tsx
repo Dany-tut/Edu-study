@@ -3976,11 +3976,19 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHar
 
 // ─── Bank picker (collapsible «Из тренажёра» list) ───────────────────────────
 
-function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: boolean }) {
+function BankPicker({ onPick, hard, open: openProp, onToggle }: {
+  onPick: (bt: BankTask) => void
+  hard?: boolean
+  /** Управляемый режим: в закреплённом низу панели раскрыт только один список. */
+  open?: boolean
+  onToggle?: () => void
+}) {
   const t = useT()
   const bankTasks = useTaskBank(s => s.tasks)
   const loadBank = useTaskBank(s => s.load)
-  const [open, setOpen] = useState(false)
+  const [openSelf, setOpenSelf] = useState(false)
+  const open = openProp ?? openSelf
+  const setOpen = onToggle ? () => onToggle() : setOpenSelf
   const [search, setSearch] = useState('')
   useEffect(() => { loadBank() }, [loadBank])
 
@@ -4017,7 +4025,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                   style={{ ...inputSt, fontSize: 12, padding: '6px 10px 6px 26px' }}
                 />
               </div>
-              <OverlayScrollArea style={{ maxHeight: 260 }} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <OverlayScrollArea style={{ maxHeight: 'min(240px, 26vh)' }} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {filtered.slice(0, 80).map(bt => (
                   <button
                     key={bt.id}
@@ -4044,9 +4052,16 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
 }
 
 /** «Из Тестли» под «Из тренажёра»: та же пунктирная кнопка, список раскрывается под ней. */
-function TestlyButton({ onPick, addedIds }: { onPick: (x: TestlyTest) => void; addedIds: Set<string> }) {
+function TestlyButton({ onPick, addedIds, open: openProp, onToggle }: {
+  onPick: (x: TestlyTest) => void
+  addedIds: Set<string>
+  open?: boolean
+  onToggle?: () => void
+}) {
   const t = useT()
-  const [open, setOpen] = useState(false)
+  const [openSelf, setOpenSelf] = useState(false)
+  const open = openProp ?? openSelf
+  const setOpen = onToggle ? () => onToggle() : setOpenSelf
   return (
     <div>
       <button onClick={() => setOpen(o => !o)} style={{
@@ -4104,6 +4119,10 @@ function HomeworkLeftPanel({
 
   // Режим палитры: обычные типы или сложные (кнопка «★ Сложное» наверху).
   const [hardMode, setHardMode] = useState(false)
+  // Закреплённый низ: «Из тренажёра» / «Из Тестли» не уезжают с прокруткой типов.
+  // Раскрыт максимум один список, иначе два по 260 px вытесняют палитру целиком.
+  const [footOpen, setFootOpen] = useState<'bank' | 'testly' | null>(null)
+  const toggleFoot = (k: 'bank' | 'testly') => setFootOpen(o => (o === k ? null : k))
   const { ref: hwScrollRef, fade: hwFade, thumb: hwThumb, onScroll: onHwScroll } = useOverlayScroll()
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
@@ -4146,7 +4165,7 @@ function HomeworkLeftPanel({
         // overflowX hidden: с overflowY auto браузер делает auto и по X — любой
         // слишком широкий ряд (английские подписи) давал боковую прокрутку.
         flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain',
-        padding: '16px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12,
+        padding: '16px 14px 14px', display: 'flex', flexDirection: 'column', gap: 12,
         ...fadeMask(hwFade),
       }}>
       <HwSlotSwitch lesson={lesson} onUpdate={onUpdate} hwTab={hwTab} setHwTab={setHwTab}
@@ -4180,10 +4199,6 @@ function HomeworkLeftPanel({
         {palette.map(tt => (
           <TaskTypeRow key={tt.type} type={tt.type} onClick={() => addTask(tt.type, false)} />
         ))}
-        <BankPicker onPick={bt => addFromBank(bt, false)} />
-        {testlyOn
-          ? <TestlyButton addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />
-          : testlyLoaded && <TestlyLockedButton />}
       </PaletteSection>
       ) : (
       <PaletteSection title={t('СЛОЖНОЕ ЗАДАНИЕ')} count={hardCount} accent="#D97706">
@@ -4202,9 +4217,23 @@ function HomeworkLeftPanel({
             <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-peach-text)' }}>{t(tt.label)}</span>
           </button>
         ))}
-        <BankPicker hard onPick={bt => addFromBank(bt, true)} />
       </PaletteSection>
       )}
+      </div>
+      <div style={{
+        flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
+        padding: '10px 14px 14px', borderTop: '1px solid var(--color-border-soft)',
+      }}>
+        {!hardMode ? (
+          <>
+            <BankPicker open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, false)} />
+            {testlyOn
+              ? <TestlyButton open={footOpen === 'testly'} onToggle={() => toggleFoot('testly')} addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />
+              : testlyLoaded && <TestlyLockedButton />}
+          </>
+        ) : (
+          <BankPicker hard open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, true)} />
+        )}
       </div>
     </div>
   )
