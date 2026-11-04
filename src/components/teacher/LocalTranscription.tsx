@@ -262,7 +262,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     <div className="transcript-tools">
       {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить расшифровку'}</button> :
-        <span className="transcript-saved" role="status"><Check size={15}/>Добавлено в урок</span>}
+        <span className="transcript-saved" role="status"><Check size={15}/><span>Добавлено в урок</span></span>}
       {!working && <button aria-label="Повторить обработку" title="Повторить обработку" onClick={open}><RotateCcw size={15}/></button>}
       <MontageAction draft={draft} change={change} disabled={saving} />
       <button aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>

@@ -132,6 +132,13 @@
 .transcript-tools .transcription-rail-action,.transcript-saved {flex:1;height:var(--rail-control-h);min-height:0}
 .transcript-tools button:not(.transcription-rail-action) {width:var(--rail-control-h);height:var(--rail-control-h);flex:none;border-radius:10px;display:grid;place-items:center}
 .transcript-saved {display:flex;gap:6px;align-items:center;padding:0 12px;color:var(--color-green-text);font-size:13px;font-weight:700}
+/* Подпись у SF сидит ниже середины — поднимаем только текст, галочка на месте. */
+.transcript-saved > span {position:relative;top:-0.08em}
+@media (hover:hover) and (pointer:fine) {
+  .transcription-rail-action,.transcript-tools button,.transcript-tabs button {transition:background-color .15s ease,color .15s ease}
+  .transcript-tools button:not(.transcription-rail-action):hover:not(:disabled),.transcript-tabs button:not([aria-pressed=true]):hover {background:color-mix(in srgb,var(--color-text) 7%,transparent);color:var(--color-text)}
+  .transcription-rail-action:hover:not(:disabled) {background:color-mix(in srgb,var(--color-purple-soft),var(--color-purple-text) 12%)}
+}
 .timecode-editor input {font-size:13px}
 @media(max-width:600px){.timecode-editor,.transcription-inline{--rail-control-h:44px}.transcript-tabs button{min-height:44px}.transcript-line-text::after,.transcript-line-text textarea,.timecode-editor input{font-size:16px!important}}
 .chapter-title {flex:1}

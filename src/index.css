@@ -1187,6 +1187,17 @@ input::-webkit-contacts-auto-fill-button {
 .hover-row { transition: background 0.15s ease; }
 .hover-row:hover { background: var(--color-bg-3); }
 
+/* Ховер кнопок на инлайн-стилях (btn(), редактор курса): :hover в style не
+   пишется, поэтому без этого правила они не отзывались на мышь. Подложка —
+   внутренняя тень цветом текста поверх любого фона, включая градиент, поэтому
+   сам фон кнопки не трогаем. Кнопки со своей тенью и выбранные — без неё.
+   Без transition: тень с разлётом 999px анимируется заливкой от краёв. */
+@media (hover: hover) and (pointer: fine) {
+  :is(button[style]:not([style*="box-shadow"]), .ui-hover):hover:not(:disabled, [aria-disabled="true"], [aria-pressed="true"], [aria-selected="true"], [aria-current], [data-no-hover]) {
+    box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 11%, transparent) !important;
+  }
+}
+
 /* ─── Ползунок — один стиль (дизайн-система, круг 3) ──────────────────────────
    Системный ползунок синий и в каждой ОС свой (доска, пометки на ответе рисовали
    именно его). Дорожка 4 px капсулой --color-bg-5, бегунок 18 белый с тенью;
