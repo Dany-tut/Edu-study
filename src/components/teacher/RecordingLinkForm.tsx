@@ -1,8 +1,101 @@
-import { useId, useState } from 'react'
+import { useId, useRef, useState, type CSSProperties } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { btn } from '../../lib/pillStyles'
 import { useT } from '../../lib/i18n'
+import { uploadRecordingFile } from '../../lib/lessonFiles'
+import { Upload } from '../icons/appIcons'
 import TeacherSaveButton from './TeacherSaveButton'
+
+/** Только то, что parseVideoSource узнаёт по расширению как файл или звук:
+ *  иначе ссылка R2 ушла бы в iframe и показала бы голый файл. */
+const RECORDING_ACCEPT = '.mp4,.m4v,.mov,.webm,.ogv,.mp3,.m4a,.aac,.wav,.opus,.oga,.flac'
+
+/**
+ * Кнопка «Файл»: выбрать запись с компьютера, залить её в R2 и сохранить
+ * ссылкой как обычный адрес записи. Ошибку отдаёт наверх — показывает форма.
+ */
+export function RecordingFileButton({ onUploaded, onBusy, onError, disabled, label, style }: {
+  onUploaded: (url: string) => Promise<boolean>
+  onBusy?: (busy: boolean) => void
+  onError: (message: string) => void
+  disabled?: boolean
+  label?: string
+  style?: CSSProperties
+}) {
+  const t = useT()
+  const input = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function pick(file: File | undefined) {
+    if (!file) return
+    setBusy(true)
+    onBusy?.(true)
+    onError('')
+    try {
+      const url = await uploadRecordingFile(file)
+      if (!await onUploaded(url)) onError(t('Не удалось сохранить. Попробуйте ещё раз.'))
+    } catch (e) {
+      onError((e as Error).message || t('Не удалось загрузить файл'))
+    } finally {
+      setBusy(false)
+      onBusy?.(false)
+    }
+  }
+
+  return <>
+    <input ref={input} type="file" accept={RECORDING_ACCEPT} hidden
+      onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; void pick(f) }} />
+    <button type="button" disabled={disabled || busy} onClick={() => input.current?.click()}
+      style={{ ...btn('M', 'secondary'), ...style, ...(busy ? { opacity: 1, cursor: 'progress' } : {}) }}>
+      <Upload size={14} /> {busy ? t('Загружаем…') : label ?? t('Файл')}
+    </button>
+  </>
+}
+
+/** Правка записи прямо в строке над плеером: ссылка или файл, без ухода со
+ *  страницы — плеер и главы ниже остаются на месте. */
+export function RecordingInlineEdit({ initialUrl, onSave, onClose, unavailable }: {
+  initialUrl: string
+  onSave: (url: string) => Promise<boolean>
+  onClose: () => void
+  unavailable?: string
+}) {
+  const t = useT()
+  const [url, setUrl] = useState(initialUrl)
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const busy = saving || uploading
+
+  async function save() {
+    if (busy || unavailable) return
+    if (url.trim() === initialUrl.trim()) { onClose(); return }
+    setSaving(true)
+    setError('')
+    try {
+      if (await onSave(url.trim())) { onClose(); return }
+    } catch { /* Keep the editable link for retry. */ }
+    setSaving(false)
+    setError(t('Не удалось сохранить. Попробуйте ещё раз.'))
+  }
+
+  return <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 6 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+      <input value={url} readOnly={busy} autoFocus aria-label={t('Ссылка на запись')}
+        onChange={e => { setUrl(e.target.value); setError('') }}
+        onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void save(); if (e.key === 'Escape' && !busy) onClose() }}
+        placeholder={t('Вставьте ссылку RuTube / YouTube / Google Диск')}
+        style={{ ...FIELD, flex: 1, minWidth: 0, padding: '7px 12px' }} />
+      <RecordingFileButton disabled={busy || !!unavailable} onBusy={setUploading} onError={setError}
+        onUploaded={async next => { const ok = await onSave(next); if (ok) onClose(); return ok }}
+        style={{ flexShrink: 0 }} />
+      <button type="button" disabled={busy} onClick={onClose} style={{ ...btn('M', 'secondary'), flexShrink: 0 }}>{t('Отмена')}</button>
+      <TeacherSaveButton label={t('Сохранить')} savingLabel={t('Сохраняем…')} saving={saving} disabled={busy || !!unavailable}
+        onClick={save} style={{ flexShrink: 0, ...(saving ? { opacity: 1 } : {}) }} />
+    </div>
+    {(unavailable || error) && <div role="alert" style={{ fontSize: 12, color: 'var(--color-text)', paddingLeft: 13 }}>{unavailable || error}</div>}
+  </div>
+}
 
 export default function RecordingLinkForm({ initialUrl, onSave, onClose, unavailable }: {
   initialUrl: string
@@ -14,10 +107,13 @@ export default function RecordingLinkForm({ initialUrl, onSave, onClose, unavail
   const id = useId()
   const [url, setUrl] = useState(initialUrl)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const busy = saving || uploading
 
   async function save() {
-    if (saving || unavailable) return
+    if (busy || unavailable) return
     setSaving(true)
     setFailed(false)
     try {
@@ -30,17 +126,22 @@ export default function RecordingLinkForm({ initialUrl, onSave, onClose, unavail
   return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px clamp(12px, 3vw, 32px)' }}>
     <div style={{ width: '100%', minWidth: 0, maxWidth: 480, display: 'grid', gap: 12 }}>
       <label htmlFor={id} style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', paddingLeft: 13 }}>{t('Ссылка на запись')}</label>
-      <input id={id} value={url} readOnly={saving} onChange={e => { setUrl(e.target.value); setFailed(false) }}
-        onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void save(); if (e.key === 'Escape' && !saving) onClose() }}
-        placeholder={t('Вставьте ссылку RuTube / YouTube / Google Диск')}
-        style={{ ...FIELD, minWidth: 0, fontSize: 16, padding: '12px 16px' }} autoFocus />
+      <div style={{ display: 'flex', gap: 8, minWidth: 0 }}>
+        <input id={id} value={url} readOnly={busy} onChange={e => { setUrl(e.target.value); setFailed(false) }}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void save(); if (e.key === 'Escape' && !busy) onClose() }}
+          placeholder={t('Вставьте ссылку RuTube / YouTube / Google Диск')}
+          style={{ ...FIELD, flex: 1, minWidth: 0, fontSize: 16, padding: '12px 16px' }} autoFocus />
+        <RecordingFileButton disabled={busy || !!unavailable} onBusy={setUploading} onError={setUploadError}
+          onUploaded={async next => { const ok = await onSave(next); if (ok) onClose(); return ok }}
+          style={{ flexShrink: 0, minHeight: 44 }} />
+      </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button disabled={saving} onClick={onClose} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Отмена')}</button>
-        <TeacherSaveButton label={t('Сохранить')} savingLabel={t('Сохраняем…')} saving={saving} disabled={saving || !!unavailable}
+        <button disabled={busy} onClick={onClose} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Отмена')}</button>
+        <TeacherSaveButton label={t('Сохранить')} savingLabel={t('Сохраняем…')} saving={saving} disabled={busy || !!unavailable}
           onClick={save} style={{ flex: 1, minHeight: 44, ...(saving ? { opacity: 1 } : {}) }} />
       </div>
       <span role="status" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clipPath: 'inset(50%)' }}>{saving ? t('Сохраняем…') : ''}</span>
-      {(unavailable || failed) && <div role="alert" style={{ fontSize: 14, color: 'var(--color-text)' }}>{unavailable || t('Не удалось сохранить. Попробуйте ещё раз.')}</div>}
+      {(unavailable || failed || uploadError) && <div role="alert" style={{ fontSize: 14, color: 'var(--color-text)' }}>{unavailable || uploadError || t('Не удалось сохранить. Попробуйте ещё раз.')}</div>}
     </div>
   </div>
 }
