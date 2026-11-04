@@ -4899,7 +4899,7 @@ function LessonRow({
       {/* Multi-select check → checkmark; selected → trash; otherwise indicator dots */}
       {multiMode ? (
         <div style={{
-          width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+          width: 18, height: 18, borderRadius: '50%', flexShrink: 0, margin: '0 4px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: checked ? 'var(--color-green-text)' : 'transparent',
           border: checked ? 'none' : '1.5px solid var(--color-border)',
@@ -4921,7 +4921,7 @@ function LessonRow({
           <Trash2 size={14} />
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+        <div style={{ width: 26, display: 'flex', justifyContent: 'center', gap: 4, flexShrink: 0 }}>
           {lesson.kind === 'test'
             ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Вопросы')} />
             : <>
