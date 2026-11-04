@@ -1554,7 +1554,7 @@ function TimecodeRail({
                 style={{ ...inputSt, width: 62, flexShrink: 0, padding: '6px 6px', borderRadius: 8, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
               />
               <span className="transcript-line-text chapter-title" data-text={tc.label + ' '}>
-                <FadeText>{tc.label || t('Название главы')}</FadeText>
+                <FadeText lines={2} fadeMode="last-line">{tc.label || t('Название главы')}</FadeText>
                 <textarea rows={1} ref={el => { rowRefs.current[i] = el }}
                   aria-label={'Название главы '+(i+1)} disabled={rail?.saving}
                   value={tc.label} onChange={e => patch(i, { label: e.target.value })}
