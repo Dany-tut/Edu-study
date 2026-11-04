@@ -63,7 +63,7 @@ export function FriendsTabs({ model }: { model: FriendsModel }) {
     }))}/>
 }
 
-export function FriendsContent({ model, overview = false, suggestedName = '' }: { model: FriendsModel; overview?: boolean; suggestedName?: string }) {
+export function FriendsContent({ model, overview = false, polished = false, suggestedName = '' }: { model: FriendsModel; overview?: boolean; polished?: boolean; suggestedName?: string }) {
   const t = useT()
   const { account, snapshot, tab } = model
   if (!account || !tab) return null
@@ -72,13 +72,13 @@ export function FriendsContent({ model, overview = false, suggestedName = '' }: 
     <div className={overview ? "desktop-friends friends-overview" : "desktop-friends"}>
       {model.error && <p role="alert">{t(model.error)} <button onClick={model.refresh}>{t('Повторить')}</button></p>}
       {snapshot ? panes.map(pane =>
-        <FriendsPane key={account + pane} model={model} account={account} tab={pane} overview={overview} suggestedHandle={valid(suggestedName) ? clean(suggestedName) : ''}/>
+        <FriendsPane key={account + pane} model={model} account={account} tab={pane} overview={overview} polished={polished} suggestedHandle={valid(suggestedName) ? clean(suggestedName) : ''}/>
       ) : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
     </div>
   )
 }
 
-function FriendsPane({ model, account, tab, overview, suggestedHandle }: { model: FriendsModel; account: string; tab: FriendsTab | 'outgoing'; overview: boolean; suggestedHandle: string }) {
+function FriendsPane({ model, account, tab, overview, polished, suggestedHandle }: { model: FriendsModel; account: string; tab: FriendsTab | 'outgoing'; overview: boolean; polished?: boolean; suggestedHandle: string }) {
   const t = useT()
   const snapshot = model.snapshot!
   const [nickDraft,setNick] = useState<string | null>(null)
@@ -122,7 +122,7 @@ function FriendsPane({ model, account, tab, overview, suggestedHandle }: { model
       <p>{t('Другие пользователи увидят только твой ник.')}</p>
       <button className="friend-primary" disabled={busy || !valid(nick)}>{t('Сохранить')}</button>
     </form> : !snapshot.handle && !overview ? <><h3>{t('Выбери свой ник')}</h3><p>{t('По нему друзья узнают, от кого пришла заявка.')}</p><button className="friend-primary" onClick={()=>model.setTab('profile')}>{t('Выбрать ник')}</button></> :
-    tab === 'contacts' ? <><h3>{t('Мои друзья')} {overview && <small>{count('friend')}</small>}</h3>{rows('friend',overview ? 'Пока нет друзей' : 'Пока здесь никого нет. Найди друга по его нику.')}{!overview && <button onClick={()=>model.setTab('search')}>{t('Найти друга')}</button>}</> :
+    tab === 'contacts' ? <><h3>{t('Мои друзья')} {overview && <small>{count('friend')}</small>}</h3>{polished && !count('friend') ? <div className="friend-empty"><div className="friend-empty-mark"><Users size={32} aria-hidden="true"/></div><strong>{t('Добавьте первого друга')}</strong><p>{t('Введите ник друга в поиске выше. После принятия заявки он появится здесь.')}</p></div> : rows('friend',overview ? 'Пока нет друзей' : 'Пока здесь никого нет. Найди друга по его нику.')}{!overview && <button onClick={()=>model.setTab('search')}>{t('Найти друга')}</button>}</> :
     tab === 'outgoing' ? <><h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</> :
     tab === 'requests' ? <><h3>{t(overview ? 'Входящие заявки' : 'Входящие')} {overview && <small>{count('incoming')}</small>}</h3>{rows('incoming','Новых заявок нет.')}{!overview && <><h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</>}</> :
     <><h3>{t(overview ? 'Друзья' : 'Найти друга')}</h3><form className={overview ? 'friend-search' : undefined} onSubmit={e=>{e.preventDefault(); void run(async()=>{

@@ -53,7 +53,7 @@ const AVATARS: AvatarOption[] = [
 export default function TeacherProfileSettingsPage({ friends }: { friends: FriendsModel }) {
   const t = useT()
   const [page, setPage] = useState<'main' | 'integrations' | 'settings'>('main')
-  const section = friends.account && friends.tab ? (friends.tab === 'profile' ? 'settings' : 'friends') : page
+  const section = friends.account && friends.tab ? 'friends' : page
   const sections = [
     { id: 'main' as const, label: t('Главное') },
     ...(friends.account ? [{ id: 'friends' as const, label: t('Друзья') }] : []),
@@ -199,7 +199,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
   }
 
   const tzChoiceStyle = (active: boolean): React.CSSProperties => ({
-    flex: 1, minHeight: 42, borderRadius: 12, padding: '8px 10px',
+    flex: 1, minHeight: 44, borderRadius: 12, padding: '8px 10px',
     border: `1px solid ${active ? 'rgba(var(--accent-rgb), 0.45)' : 'var(--color-border-medium)'}`,
     background: active ? 'rgba(var(--accent-rgb), 0.12)' : 'var(--color-bg-3)',
     color: active ? 'var(--color-accent)' : 'var(--color-text-2)',
@@ -246,7 +246,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
 
   const photoBtnStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 6,
-    padding: '8px 12px', borderRadius: 10,
+    padding: '8px 12px', borderRadius: 10, minHeight: 44,
     border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
     color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
   }
@@ -256,13 +256,13 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
     padding: '12px 14px', borderRadius: 12,
     border: '1px solid var(--color-border-medium)',
     background: 'var(--color-bg-3)', color: 'var(--color-text)',
-    fontSize: 14, outline: 'none', fontFamily: 'inherit',
+    fontSize: 16, fontFamily: 'inherit',
   }
 
   return (
     <>
       <TeacherPageScroll>
-      <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div className="teacher-profile-page" style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px clamp(16px, 3vw, 24px) 60px' }}>
 
         <header className="teacher-profile-header">
           <div className="teacher-profile-identity">
@@ -289,10 +289,33 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
             }}/>
           </HScrollFade>
         </header>
-        {section === 'friends' && <FriendsContent model={friends} overview suggestedName={friends.account === profileOwner ? savedName : ''}/>}
-        {section === 'main' && <>
+        <div className="profile-section-heading">
+          <h2>{t(section === 'main' ? 'Личные данные' : section === 'friends' ? 'Друзья' : section === 'integrations' ? 'Интеграции' : 'Настройки')}</h2>
+          <p>{t(section === 'main' ? 'Как вас видят в Искре.' : section === 'friends' ? 'Поиск людей, заявки и ваш ник.' : section === 'integrations' ? 'Сервисы и инструменты для ваших занятий.' : 'Расписание, вход в аккаунт и оформление.')}</p>
+        </div>
+        {section === 'friends' && <div className="profile-social-grid">
+          <div className="profile-social-list">
+            <FriendsContent model={{ ...friends, tab: 'contacts' }} overview polished suggestedName={friends.account === profileOwner ? savedName : ''}/>
+          </div>
+          <aside className="profile-social-identity profile-card" aria-label={t('Ваш профиль для друзей')}>
+            <div className="profile-social-monogram" aria-hidden="true">@</div>
+            <h3>{t('Ваш ник в Искре')}</h3>
+            <p className="profile-social-caption">{t('Один ник, чтобы найти друг друга.')}</p>
+            {friends.tab === 'profile' ? <>
+              <FriendsContent model={friends} suggestedName={friends.account === profileOwner ? savedName : ''}/>
+              <button className="profile-social-edit" type="button" onClick={() => friends.setTab('contacts')}>{t('Готово')}</button>
+            </> : <>
+              <div className="profile-social-handle"><FadeText>{handle ? '@' + handle : t('Ник ещё не выбран')}</FadeText></div>
+              <p className="profile-social-visibility">{t(friends.snapshot?.searchable ? 'Вас можно найти по точному нику' : 'Поиск по нику выключен')}</p>
+              <button className="profile-social-edit" type="button" onClick={() => friends.setTab('profile')}>{t('Изменить ник и видимость')}</button>
+            </>}
+            <p className="profile-social-privacy">{t('Ваш email остаётся приватным.')}</p>
+          </aside>
+        </div>}
+        {section === 'main' && <div className="profile-main-grid">
         {/* Avatar preview + picker */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
+        <div className="profile-card profile-avatar-card">
+          <h3>{t('Аватар')}</h3>
           <motion.div
             key={avatarPath ?? avatarId}
             initial={{ scale: 0.8, opacity: 0 }}
@@ -338,7 +361,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
           </div>
 
           {/* Avatar grid — same recipe as the student sidebar picker */}
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${AVATARS.length}, 1fr)`, gap: 12, width: '100%' }}>
+          <div className="profile-avatar-grid">
             {AVATARS.map(opt => {
               const Ic = opt.Icon
               const isSelected = !avatarPath && avatarId === opt.id
@@ -368,7 +391,8 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
         </div>
 
         {/* Form */}
-        <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div className="profile-card profile-details-card">
+          <h3>{t('Данные аккаунта')}</h3>
           <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--color-text-2)' }}>
             {t('Имя в профиле')}
             <input
@@ -400,7 +424,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
 
           <div>
             <div style={{ position: 'relative' }}>
-              <input value={email} readOnly placeholder="Email" style={{ ...inputStyle, color: 'var(--color-text-3)', cursor: 'not-allowed' }} />
+              <input aria-label="Email" value={email} readOnly placeholder="Email" style={{ ...inputStyle, paddingRight: 114, color: 'var(--color-text-3)', cursor: 'not-allowed' }} />
               <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', padding: '2px 6px', borderRadius: 6, border: '1px solid var(--color-border)' }}>
                 {t('только чтение')}
               </div>
@@ -424,14 +448,12 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
           />
         </div>
 
-        </>}
-        {section === 'integrations' && <TeacherModules />}
+        </div>}
+        {section === 'integrations' && <TeacherModules showHeading={false} />}
         {section === 'settings' && <>
-          <button type="button" style={{ ...photoBtnStyle, marginBottom: 16, minHeight: 44 }} onClick={() => { friends.setTab(null); setPage('integrations') }}>{t('Интеграции')}</button>
-          <div style={{ background: 'var(--color-bg-2)', borderRadius: 20, padding: 24 }}>
-            {friends.account && <div className="friend-profile-settings"><FriendsContent model={{ ...friends, tab: 'profile' }} suggestedName={friends.account === profileOwner ? savedName : ''}/></div>}
+          <div className="profile-card">
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 6 }}>{t('Время в расписании')}</div>
+            <h3 style={{ marginBottom: 18 }}>{t('Время в расписании')}</h3>
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для просмотра расписания')}</div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
               <button type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
@@ -462,9 +484,9 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
         {/* Цвета предметов — сохраняются сразу по выбору, отдельно от имени:
             менять цвет и жать «Сохранить» внизу формы — лишний шаг. */}
         {colorSubjects.length > 0 && (
-          <div style={{ marginTop: 22 }}>
+          <div className="profile-card" style={{ marginTop: 20 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Цвета предметов')}</div>
+              <h3>{t('Цвета предметов')}</h3>
               {colorSaved && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)' }}>{t('Сохранено')}</div>}
             </div>
             <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)', marginBottom: 12 }}>
