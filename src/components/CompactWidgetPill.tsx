@@ -45,6 +45,16 @@ const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
 const PILL_WIDTH = 320
 
+// Свёрнутые подписи занимают одну строку и исчезают у правого края.
+// Прозрачная маска сохраняет стекло и тему; при раскрытии виден весь текст.
+const pillTextStyle = (expanded: boolean): React.CSSProperties => ({
+  minWidth: 0,
+  overflow: 'hidden',
+  whiteSpace: expanded ? 'normal' : 'nowrap',
+  maskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
+  WebkitMaskImage: expanded ? undefined : 'linear-gradient(to right, #000 calc(100% - 24px), transparent)',
+})
+
 // One-line "kicker" tags + accent colours per widget id.
 const META: Record<number, { kicker: string; accent: string }> = {
   0: { kicker: 'Сегодня', accent: 'var(--color-accent)' },
@@ -987,6 +997,7 @@ function PillContent({
       >
         <PillText expanded={expanded}
           style={{
+            ...pillTextStyle(expanded),
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.3,
@@ -998,6 +1009,7 @@ function PillContent({
         </PillText>
         <PillText expanded={expanded}
           style={{
+            ...pillTextStyle(expanded),
             fontSize: 14,
             fontWeight: 600,
             color: 'var(--color-text)',
