@@ -1549,7 +1549,7 @@ function TimecodeRail({
                 onChange={e => patch(i, { time: e.target.value, seconds: clockToSeconds(e.target.value) })}
                 onBlur={() => onChange(sortCodes(codes))}
                 placeholder="00:00"
-                style={{ ...inputSt, width: 62, flexShrink: 0, padding: '6px 6px', textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
+                style={{ ...inputSt, width: 62, flexShrink: 0, padding: '6px 6px', borderRadius: 8, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
               />
               <span className="transcript-line-text chapter-title" data-text={tc.label + ' '}>
                 <FadeText>{tc.label || t('Название главы')}</FadeText>
