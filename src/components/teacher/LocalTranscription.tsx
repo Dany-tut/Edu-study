@@ -25,6 +25,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
   const guide = useRef<HTMLDivElement>(null)
+  const guideVideo = useRef<HTMLVideoElement>(null)
   const [guideRun, setGuideRun] = useState(0)
   const [guidePlaying, setGuidePlaying] = useState(false)
   const setupId = useId()
@@ -123,11 +124,14 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
       <div id={setupId} aria-live="polite" className="transcription-setup">
         {downloadStarted && !downloading && (!connected || showSetup) && <>
           {guideRun > 0 && <div ref={guide} className="transcription-launch-guide">
-            <img key={guideRun + ':' + guidePlaying} src={guidePlaying ? `/guides/mac-launch-recorded.gif?run=${guideRun}` : '/guides/mac-launch-recorded.jpg'}
-              width="1280" height="900" alt="Полный путь: запуск модуля на Mac, подключение, расшифровка и проверка результата" />
+            {/* Видео, а не GIF: в GIF 64 цвета, и интерфейс шёл полосами. */}
+            <video ref={guideVideo} key={guideRun} src="/guides/mac-launch-recorded.mp4" poster="/guides/mac-launch-recorded.jpg"
+              width="1280" height="788" muted playsInline loop autoPlay={guidePlaying} preload="metadata"
+              onPlay={() => setGuidePlaying(true)} onPause={() => setGuidePlaying(false)}
+              aria-label="Полный путь: запуск модуля на Mac, подключение, расшифровка и проверка результата" />
             <div className="transcription-guide-actions">
-              <button type="button" className="integration-action" onClick={() => setGuidePlaying(value => !value)}>{guidePlaying ? 'Остановить GIF' : 'Запустить GIF'}</button>
-              <button type="button" className="integration-action" onClick={() => { setGuideRun(value => value + 1); setGuidePlaying(true) }}>Показать сначала</button>
+              <button type="button" className="integration-action" onClick={() => { const video = guideVideo.current; if (video) void (video.paused ? video.play() : video.pause()) }}>{guidePlaying ? 'Остановить' : 'Запустить'}</button>
+              <button type="button" className="integration-action" onClick={() => { const video = guideVideo.current; if (video) { video.currentTime = 0; void video.play() } }}>Показать сначала</button>
             </div>
           </div>}
           <h4>Что делать с ZIP-архивом</h4>
