@@ -1720,55 +1720,59 @@ function CenterRecording({
     onChange={timecodes => rail ? rail.change({...rail.draft, timecodes}) : onUpdate({...lesson, timecodes})}
     onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined} />
   if (lesson.videoUrl || localFile) {
+    // Строка ссылки стоит над плеером, а не на всю ширину: главы справа
+    // поднимаются до верха вкладки и показывают больше пунктов.
+    const linkRow = (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* В правке значок уступает место полю ссылки. */}
+        {!linkMode && <div style={{ width: 30, height: 30, borderRadius: 9, background: disk ? 'var(--color-bg-3)' : 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
+          {disk
+            ? <DiskLogo provider={disk.id} size={16} />
+            : <Video size={14} style={{ color: 'var(--color-green-text)' }} />}
+        </div>}
+        {linkMode ? (
+          <RecordingInlineEdit initialUrl={lesson.videoUrl ?? ''} onSave={onSaveLink}
+            onClose={() => { setLinkMode(false); setUploadError('') }} unavailable={saveUnavailable}
+            onPickFile={file => void addVideo(file)} uploading={uploading} uploadError={uploadError} />
+        ) : removeArmed ? (
+          <>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
+              {t('Удалить запись и главы?')}
+            </span>
+            <button type="button" onClick={() => setRemoveArmed(false)} style={{ ...btn('M', 'secondary'), flexShrink: 0 }}>{t('Отмена')}</button>
+            <button type="button" autoFocus onClick={removeRecording}
+              style={{ ...btn('M', 'secondary'), flexShrink: 0, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
+              <Trash2 size={14} /> {t('Удалить')}
+            </button>
+          </>
+        ) : (<>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
+            {lesson.videoUrl || localFile?.name}
+          </span>
+          {disk && (
+            <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 9px 2px 7px', borderRadius: 999, background: 'var(--color-bg-3)', color: 'var(--color-text-3)' }}>
+              <DiskLogo provider={disk.id} size={11} />
+              <span style={{ fontSize: 11, fontWeight: 700 }}>{disk.name}</span>
+            </span>
+          )}
+        </div>
+        <button onClick={() => setLinkMode(true)}
+          style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
+          {t('Изменить')}
+        </button>
+        <button type="button" onClick={() => setRemoveArmed(true)} title={t('Удалить запись')} aria-label={t('Удалить запись')}
+          style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <LoopMarkX size={15} />
+        </button>
+        </>)}
+      </div>
+    )
+    const diskOnly = !!disk && source?.kind === 'iframe'
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 16px 22px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: disk ? 'var(--color-bg-3)' : 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
-            {disk
-              ? <DiskLogo provider={disk.id} size={16} />
-              : <Video size={14} style={{ color: 'var(--color-green-text)' }} />}
-          </div>
-          {linkMode ? (
-            <RecordingInlineEdit initialUrl={lesson.videoUrl ?? ''} onSave={onSaveLink}
-              onClose={() => { setLinkMode(false); setUploadError('') }} unavailable={saveUnavailable}
-              onPickFile={file => void addVideo(file)} uploading={uploading} uploadError={uploadError} />
-          ) : removeArmed ? (
-            <>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-                {t('Удалить запись вместе с главами и расшифровкой?')}
-              </span>
-              <button type="button" onClick={() => setRemoveArmed(false)} style={{ ...btn('M', 'secondary'), flexShrink: 0 }}>{t('Отмена')}</button>
-              <button type="button" autoFocus onClick={removeRecording}
-                style={{ ...btn('M', 'secondary'), flexShrink: 0, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
-                <Trash2 size={14} /> {t('Удалить')}
-              </button>
-            </>
-          ) : (<>
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
-              {lesson.videoUrl || localFile?.name}
-            </span>
-            {disk && (
-              <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 9px 2px 7px', borderRadius: 999, background: 'var(--color-bg-3)', color: 'var(--color-text-3)' }}>
-                <DiskLogo provider={disk.id} size={11} />
-                <span style={{ fontSize: 11, fontWeight: 700 }}>{disk.name}</span>
-              </span>
-            )}
-          </div>
-          <button onClick={() => setLinkMode(true)}
-            style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
-            {t('Изменить')}
-          </button>
-          <button type="button" onClick={() => setRemoveArmed(true)} title={t('Удалить запись')} aria-label={t('Удалить запись')}
-            style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <LoopMarkX size={15} />
-          </button>
-          </>)}
-        </div>
-
-        {localFile && !lesson.videoUrl && <small role="status">Видео открыто с компьютера. Текст и главы можно сохранить в уроке. Чтобы ученики могли смотреть запись, добавьте ссылку через «Изменить».</small>}
-
-        {disk && source?.kind === 'iframe' ? (
+        {diskOnly && linkRow}
+        {diskOnly ? (
           // Диск, который не встраивается в iframe (Яндекс, Dropbox, OneDrive,
           // Облако Mail.ru, MEGA): плеера и таймкодов нет — ученик открывает
           // запись по ссылке. Google Диск сюда не попадает (kind 'gdrive').
@@ -1797,6 +1801,8 @@ function CenterRecording({
           scrollStyle={{height:'100%',boxSizing:'border-box',padding:'12px 16px 22px 24px'}}>
         <div className="recording-player-layout" style={{ '--recording-player-max-width': PLAYER_MAX_W, flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 } as React.CSSProperties}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ marginBottom: 4 }}>{linkRow}</div>
+            {localFile && !lesson.videoUrl && <small role="status">Видео открыто с компьютера. Текст и главы можно сохранить в уроке. Чтобы ученики могли смотреть запись, добавьте ссылку через «Изменить».</small>}
             {source ? (
               <>
                 <LessonVideoPlayer
