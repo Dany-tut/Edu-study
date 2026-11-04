@@ -20,7 +20,9 @@
 .friends-overview h3 small {color:var(--color-text-2);font-size:13px}
 .friends-overview .friend-search,.friends-overview .friend-search label {display:flex;align-items:center;gap:10px}
 .friends-overview .friend-search {border-radius:16px;background:var(--color-bg);padding:2px 12px;border:1px solid var(--color-border)}
-.friends-overview .friend-search:focus-within {outline:2px solid var(--color-control-accent)}
+/* One ring for the search capsule: the field opts out of the global field outline (inline transparent background), and a
+   mouse click on «Найти» no longer lights the capsule (only typing focus does). */
+.friends-overview .friend-search:has(input:focus),.friends-overview .friend-search:has(:focus-visible) {outline:1.5px solid var(--color-control-accent);outline-offset:-1.5px}
 .friends-overview .friend-search label {flex:1;min-width:0;color:var(--color-text-2)}
 .friends-overview .friend-search input {min-width:0;border:0;padding:8px 0;background:transparent;outline:0}
 .friends-overview .friend-row {padding:5px 0;min-height:48px;background:transparent;border-radius:0}

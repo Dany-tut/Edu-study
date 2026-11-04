@@ -3,11 +3,12 @@ import { supabase } from './supabase'
 import { getViewAs } from './teacherView'
 
 export type FriendsTab = 'contacts' | 'requests' | 'search' | 'profile'
-export type Contact = { id: string; handle: string; state: 'incoming' | 'outgoing' | 'friend' }
+export type PersonCard = { personKey?: string; handle: string; name?: string; role?: 'teacher' | 'student' | 'member'; avatarId?: string; avatarPath?: string | null; relationship?: 'my_teacher' | 'my_student' | null }
+export type Contact = PersonCard & { id: string; state: 'incoming' | 'outgoing' | 'friend' }
 type Snapshot = { handle: string | null; searchable: boolean; contacts: Contact[] }
 
 export async function friendsAction<T>(account: string, operation: string, payload: Record<string, unknown> = {}) {
-  const { data, error } = await supabase.rpc('desktop_friends', { expected_account: account, operation, payload })
+  const { data, error } = await supabase.rpc('desktop_people', { expected_account: account, operation, payload })
   if (error) throw new Error(error.code === '23505' ? 'Этот ник занят. Выбери другой.' : 'Не удалось выполнить действие. Попробуй ещё раз.')
   return data as T
 }
