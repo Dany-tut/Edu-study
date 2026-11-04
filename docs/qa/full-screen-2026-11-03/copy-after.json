@@ -1,0 +1,29 @@
+{
+  "results": [
+    {
+      "name": "copied content edits reach server",
+      "status": "PASS"
+    },
+    {
+      "name": "copy lesson identity comparison",
+      "initial": {
+        "id": "20ecba48-789c-4f8c-bd30-d879b00f7444",
+        "ref": "90d2ce7e7438"
+      },
+      "after": {
+        "id": "20ecba48-789c-4f8c-bd30-d879b00f7444",
+        "ref": "90d2ce7e7438"
+      }
+    },
+    {
+      "name": "copied lesson and synthetic student progress stay linked",
+      "status": "PASS"
+    },
+    {
+      "name": "fresh load preserves copied reference and authored question",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "cleanup": []
+}

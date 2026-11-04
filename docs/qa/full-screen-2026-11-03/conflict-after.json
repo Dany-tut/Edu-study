@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "name": "stale write prevented",
+      "status": "PASS"
+    },
+    {
+      "name": "take database version reloads authoritative homework",
+      "status": "PASS"
+    },
+    {
+      "name": "new change after database reload commits fresh contents",
+      "status": "PASS"
+    }
+  ],
+  "errors": []
+}

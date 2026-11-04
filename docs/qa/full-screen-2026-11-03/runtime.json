@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-11-03T08:26:26.512470+00:00",
+  "sourceCommit": "6241495eb58272076429bd4314bc21ee308fe11d",
+  "baseCommit": "cb9a7d47809ef8bdf98d29cde3ffc7cfe777c4c6",
+  "sourceHashes": {
+    "src/components/HomeworkFlow.tsx": "ee9e57d71819d1b7ea6639d867b33e78492c86f46d28be37456c30a91dd70829",
+    "src/components/MobileProfilePage.tsx": "47850192aa911f59ffa087b08a324a806624ca4fe0a892ce8d8e6da625f7b7f2",
+    "src/components/teacher/ShelfFilters.tsx": "07b794fcb3d10314d12c0de115953f9137ccbc63d7bf94721bbb3e9c0d742a5d",
+    "src/pages/teacher/TeacherCourseEditorPage.tsx": "fa81db09d44cfd3091f3bb7a770631c1eb8f16b8876c6cc77a32f66729bb01cc",
+    "src/pages/teacher/TeacherHomeworkCreatePage.tsx": "4313bd0043437ceff58a13261af9f2d4f1d14386aad7dd0fb6e106c2f5530be0",
+    "src/lib/courseEditorLoad.ts": "1e5b3b22a5c0dbba1131e3bc8bf10a7c34a4e412b7289ddd0b240fe10a5ab83b",
+    "src/lib/lessonReferences.ts": "825f5fe6365b1e0e897786cbb4203a12565aff0c7f4293f813902dc07d883e71",
+    "src/lib/initialRoute.ts": "70767acb8fd5f227d811cc7a93dd7edc85875924bab55c6305398abcdde4d7c4",
+    "src/main.tsx": "4c45429b4a867a733bc06f1750131a91c1c92ec657b727f9d89641bb47a9257f",
+    "src/lib/i18nEn.ts": "60d7ca4be4cfab2d0b129de96ddff17aacb04bea6e0246f833cf378886fc956f",
+    "scripts/checkShelfFiltersBrowser.mjs": "4aaf12dc46fd6e12a06b20160f07fc7c15a7a323d0f811d630d692814c84d668",
+    "scripts/checkLessonReferences.mjs": "c9725e4a3f99a88d9b0ff07092844f7e5924ecf7f3ee96f3ef761c7d55cf3332",
+    "scripts/checkInitialRoute.mjs": "278d9e66c234909d2521ccc0dce05cfbbf08eebea92c11a8040923deeb6036fa"
+  },
+  "layers": "Incremental task candidates; authoring began in Vite, student/provider/review runs used production build with real Supabase. Not an exact production-release acceptance.",
+  "finalEightRuntime": "c2e1ab16 + HomeworkFlow/i18nEn patch; profile positive-score predicate was committed after this build; other runtime source unchanged."
+}
