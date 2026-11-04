@@ -5,6 +5,7 @@ import MobileTeacherStudents from './MobileTeacherStudents'
 import MobileTeacherGradebook from './MobileTeacherGradebook'
 import MobileTeacherProfile from './MobileTeacherProfile'
 import { useTeacherAccess, type TeacherTabId } from '../../../lib/teacherAccess'
+import { useDeskStore } from '../../../store/deskStore'
 import { useTeacher } from '../../../store/teacherStore'
 import './mobileTeacher.css'
 
@@ -25,7 +26,8 @@ const MTAB_TAB: Record<MTab, TeacherTabId | null> = {
 // two layouts never interfere.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function MobileTeacherApp() {
+export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boolean }) {
+  const libraryOpen = useDeskStore(s => s.showWidgetLibrary)
   const [tab, setTab] = useState<MTab>(() => useTeacher.getState().activePage === 'gradebook' ? 'gradebook' : 'home')
   const teacherPage = useTeacher(s => s.activePage)
   const pendingJournal = useTeacher(s => s.pendingGradebookLessonId)
@@ -52,12 +54,12 @@ export default function MobileTeacherApp() {
   }, [tab, canTab])
 
   return (
-    <div className="mobile-teacher-app lg:hidden">
+    <div inert={libraryOpen} className="mobile-teacher-app lg:hidden">
       {tab === 'home'      && <MobileTeacherDay onNavigate={next => setTab(next === 'review' ? 'gradebook' : next)} onDetailChange={setDayDetailOpen} />}
       {tab === 'students'  && <MobileTeacherStudents />}
 
       {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
-      {tab === 'profile'   && <MobileTeacherProfile onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} />}
+      {tab === 'profile'   && <MobileTeacherProfile onOpenWidgets={widgetsReady && !isHidden('home') ? () => useDeskStore.getState().setShowWidgetLibrary(true) : undefined} onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} />}
 
       {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}
     </div>

@@ -1,6 +1,7 @@
 import { clampDeskWidget, resolveDeskCollisions, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
 import { metricObjects } from '../../lib/widgetMetricObjects'
 import { useRef } from 'react'
+import { useScrollLock } from '../../lib/useScrollLock'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -60,6 +61,7 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
   const t = useT()
   const title = onEditDesk ? t('Виджеты') : t('Добавить виджет')
   const dialogRef = useRef<HTMLDivElement>(null)
+  useScrollLock(true, dialogRef)
   useWidgetScrollFades(dialogRef)
   const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !def.unavailable && !hiddenWidgets?.includes(def.type))
   const width = gridWidth ?? Math.max(1, document.documentElement.clientWidth - 64)
