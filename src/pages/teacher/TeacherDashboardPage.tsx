@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { studentIdFromTeacherHash, teacherStudentHash } from '../../lib/teacherStudentRoute'
 import { isWidgetReviewRoute } from '../../lib/widgetReviewRoute'
 import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPrompt'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
@@ -45,9 +46,12 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   // читают палитру через реестр, поэтому карту достаточно поставить один раз.
   useTeacherSubjectColors()
   const activePage = useTeacher(s => s.activePage)
+  const studentId = useTeacher(s => s.selectedStudentId)
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
   const isDesktop = useIsDesktop()
+  // Deep links to tools without a separate mobile screen still open that tool.
+  const mobileTool = !isDesktop && ['constructor', 'course-editor', 'lesson-editor', 'cards-editor', 'finances', 'payment', 'admin', 'storage'].includes(activePage)
   const editMode = useDeskStore(s => s.editMode)
   const showWidgetLibrary = useDeskStore(s => s.showWidgetLibrary)
   const setShowWidgetLibrary = useDeskStore(s => s.setShowWidgetLibrary)
@@ -67,6 +71,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   useNotificationsInit(teacherId)
 
   // Per-teacher access (admin-configured). Load once; gate nav + widgets.
+  const isAdministrator = useTeacherAccess(s => s.isAdmin)
   const accessLoaded = useTeacherAccess(s => s.loaded)
   const hiddenWidgets = useTeacherAccess(s => s.hiddenWidgets)
   const canPage = useTeacherAccess(s => s.canPage)
@@ -86,15 +91,18 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     setActivePage(firstTab ? firstTab.id : 'profile-settings')
   }, [accessLoaded, activePage, canPage, canTab, setActivePage])
 
-  // The store hydrates activePage on load (from the per-tab nav snapshot, then the
-  // URL hash), so we don't reset it on mount anymore — that would clobber pages
-  // with no hash of their own (admin, a student dashboard, …). We only listen for
-  // browser back/forward, which fires `hashchange` for the mapped standalone pages.
+  // A student link also works when the teacher store was initialized on another screen.
   useEffect(() => {
     const onHashChange = () => {
+      const id = studentIdFromTeacherHash(window.location.hash)
+      if (id) {
+        useTeacher.getState().openStudentDashboard(id, null)
+        return
+      }
       const page = HASH_TO_PAGE[window.location.hash]
       if (page) setActivePage(page)
     }
+    if (studentIdFromTeacherHash(window.location.hash)) onHashChange()
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,11 +112,14 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   // sub-pages have no hash — their restore is handled by the nav snapshot in the store.
   useEffect(() => {
     if (sizeReview) return
-    const hash = PAGE_TO_HASH[activePage]
+    const current = useTeacher.getState()
+    if (current.activePage !== activePage || current.selectedStudentId !== studentId) return
+    const hash = activePage === 'student' && studentId ? teacherStudentHash(studentId)
+      : PAGE_TO_HASH[activePage] ?? (studentIdFromTeacherHash(window.location.hash) ? '#/teacher/gradebook' : null)
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }
-  }, [activePage, sizeReview])
+  }, [activePage, studentId, sizeReview])
 
   // Horizontal wheel / trackpad swipe switches desks (Сегодня → Финансы → Ученики …).
   // Only a dominantly-horizontal gesture counts, so vertical scrolling of widgets is
@@ -139,7 +150,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
     <TeacherSubjectsPrompt />
-    <div className="dashboard-root teacher-dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
+    {(isDesktop || mobileTool) && <div inert={showWidgetLibrary} className="dashboard-root teacher-dashboard-root" style={{ display: 'flex', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
       {!editMode && <div aria-hidden className="edge-progressive-blur--top" />}
@@ -160,6 +171,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       {showWidgetLibrary && (<Suspense fallback={null}>
         <WidgetLibraryModal
           onClose={() => setShowWidgetLibrary(false)}
+          onEditDesk={editMode ? undefined : useTeacher.getState().openDeskEditor}
           onAdd={item => updateDeskItems(activeDesk.id, [...(widgetGrid?.deskId === activeDesk.id ? [...widgetGrid.items, ...activeDesk.items.filter(saved => hiddenWidgets?.includes(saved.type))] : activeDesk.items), item])}
           existingTypes={activeDesk.items.map(i => i.type)}
           existingItems={widgetGrid?.deskId === activeDesk.id ? widgetGrid.items : activeDesk.items}
@@ -170,7 +182,9 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
       </Suspense>)}
 
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
-      <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
+      {mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
+        <button className="cj-button" style={{ minHeight: 44 }} onClick={() => setActivePage('home')}>{t('На главную')}</button>
+      </div> : <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
         {/* Left spacer */}
         <div />
 
@@ -196,7 +210,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </div>}
 
       {/* Page content.
           NO AnimatePresence here: the wrapper has no exit animation, so presence
@@ -212,10 +226,9 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.12, ease: 'easeOut' }}
-        // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
-        // paddingTop:100 — the progressive-blur recipe) must not be clipped
-        // by this wrapper, so their overflow stays visible.
-        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'cards-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
+        // The dashboard clips at the viewport. A second clip here would cut
+        // scrolling pages off below the floating header, before its fade.
+        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
         <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>} >
         {activePage === 'home' && (
@@ -240,18 +253,18 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
         {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
         {activePage === 'cards-editor'    && <TeacherCardSetEditorPage />}
         {activePage === 'student'         && (standContent ? isDesktop && standContent : <TeacherStudentDashboardPage />)}
-        {activePage === 'storage'          && <TeacherStoragePage />}
-        {activePage === 'admin'            && <TeacherAdminPage />}
+        {activePage === 'storage' && accessLoaded && isAdministrator && <TeacherStoragePage />}
+        {activePage === 'admin' && accessLoaded && isAdministrator && <TeacherAdminPage />}
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}
         </Suspense>
       </motion.div>
 
-    </div>
+    </div>}
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
+    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
     </>
   )
 }

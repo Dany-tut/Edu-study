@@ -17,7 +17,7 @@ Deno.serve(
 
         server.registerTool('list_my_courses', {
           title: 'Мои курсы в Искре',
-          description: 'Показывает только курсы, созданные в кабинете преподавателя, который подключил Claude.',
+          description: 'Показывает только курсы, созданные в кабинете преподавателя, который подключил это MCP-приложение.',
           inputSchema: z.object({ limit: z.number().int().min(1).max(100).default(50) }),
           annotations: { readOnlyHint: true, openWorldHint: false },
         }, async ({ limit }) => {
@@ -79,7 +79,7 @@ Deno.serve(
 
         server.registerTool('add_course_lesson', {
           title: 'Добавить урок в курс Искры',
-          description: 'Добавляет урок и текст конспекта в черновой курс, принадлежащий подключившему Claude преподавателю. Не изменяет чужие, расшаренные или опубликованные курсы.',
+          description: 'Добавляет урок и текст конспекта в черновой курс, принадлежащий подключившемуся преподавателю. Не изменяет чужие, расшаренные или опубликованные курсы.',
           inputSchema: z.object({
             course_id: z.string().uuid(),
             title: z.string().trim().min(1).max(160),
@@ -96,7 +96,7 @@ Deno.serve(
           const { data: course, error: courseError } = await supabase.from('courses')
             .select('id, short_id, subject, status').eq('id', course_id).eq('created_by', auth.user.id).maybeSingle()
           if (courseError || !course) return fail('Курс не найден в вашем кабинете Искры.')
-          if (course.status !== 'draft') return fail('Claude может добавлять уроки только в черновые курсы. Сначала создайте черновик или переведите курс в черновики в Искре.')
+          if (course.status !== 'draft') return fail('ИИ-приложение может добавлять уроки только в черновые курсы. Сначала создайте черновик или переведите курс в черновики в Искре.')
 
           let { data: module } = await supabase.from('course_modules').select('id')
             .eq('course_id', course.id).order('position').limit(1).maybeSingle()
@@ -164,7 +164,7 @@ Deno.serve(
           const { data: course } = await supabase.from('courses').select('id, subject, status')
             .eq('id', course_id).eq('created_by', auth.user.id).maybeSingle()
           if (!course) return fail('Курс не найден в вашем кабинете Искры.')
-          if (course.status !== 'draft') return fail('Claude может добавлять тесты только в черновые курсы. Сначала переведите курс в черновики в Искре.')
+          if (course.status !== 'draft') return fail('ИИ-приложение может добавлять тесты только в черновые курсы. Сначала переведите курс в черновики в Искре.')
           const { data: lesson } = await supabase.from('lessons').select('id, title, trainer_id')
             .eq('id', lesson_id).eq('course_id', course.id).maybeSingle()
           if (!lesson) return fail('Урок не найден в этом курсе.')

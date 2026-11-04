@@ -1,0 +1,65 @@
+{
+  "product": "Искра",
+  "date": "2026-11-03",
+  "browser": "Chrome 157.8103.24",
+  "device": {
+    "model": "iPhone 17 Pro",
+    "os": "iOS 27.2",
+    "osBuild": "24B119"
+  },
+  "snapshot": {
+    "build": {
+      "build": 1893,
+      "version": "1.0.1893",
+      "stamped": "2026-11-03T04:56:16Z",
+      "commit": "c688b13db9f049bad523334495c9f35ff7e7fd8f"
+    },
+    "entry": "assets/app-CO-Dvx1H.js",
+    "teacherChunk": "TeacherLoginPage-D_UnzUKA.js",
+    "teacherSHA256": "d1b8812298ef30b1a8e16e9c64fed388bbc0e515ceacabcc1f074fe13c444ae6",
+    "sha256Scope": "Original frozen dist file before test-only asset path remapping"
+  },
+  "results": {
+    "fullScenario": "PASS",
+    "durationSeconds": 25.321,
+    "cleanup": "PASS",
+    "cleanupSeconds": 0.939,
+    "focusedPasswordFrame": [
+      49,
+      379,
+      304,
+      55
+    ],
+    "eyeFrame": [
+      304,
+      384,
+      45,
+      45
+    ],
+    "keyboardHideButtonTop": 480.6667,
+    "scrollEmailY": [
+      441,
+      184
+    ],
+    "eyeTogglePreservesKeyboard": true,
+    "emailAndPasswordPreserved": true,
+    "submitPerformed": false,
+    "productionModified": false,
+    "lanServerStopped": true
+  },
+  "testBundle": "chrome-payload.xcresult",
+  "priorFieldChecks": {
+    "freshRuns": 2,
+    "inputAndEye": "PASS",
+    "testBundle": "chrome-repro.xcresult",
+    "fullSuite": "FAIL due to an overstrict test assertion after already reaching the scroll end"
+  },
+  "screenshots": [
+    "chrome-form.png",
+    "chrome-keyboard.png",
+    "chrome-eye-shown.png",
+    "chrome-scroll-middle.png",
+    "chrome-scroll-start.png",
+    "chrome-scroll-end.png"
+  ]
+}

@@ -1,6 +1,6 @@
 import { App } from '@capacitor/app'
 import { Browser } from '@capacitor/browser'
-import { Capacitor } from '@capacitor/core'
+import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { Provider } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { clearStudentSession, setStudentSession } from './studentSession'
@@ -14,6 +14,10 @@ const OAUTH_ROLE_KEY = 'iskra:oauth-role'
 const IOS_OAUTH_REDIRECT = 'iskra://auth/callback'
 const LINK_KEY = 'iskra:oauth-link'
 const ATTEMPT_KEY = 'iskra:oauth-attempt'
+const googleAuth = registerPlugin<{
+  open(options: { url: string }): Promise<{ url: string } | { cancelled: true }>
+  cancel(): Promise<void>
+}>('GoogleAuth')
 let generation = 0
 let oauthController: AbortController | undefined
 let authTimer: ReturnType<typeof setTimeout> | undefined
@@ -149,7 +153,21 @@ export async function startSocialLogin(provider: Provider, role: LoginRole) {
     if (error) throw error
     if (native) {
       if (!data.url) throw new Error('Не удалось открыть страницу входа')
-      await Browser.open({ url: data.url })
+      if (provider === 'google' && Capacitor.isPluginAvailable('GoogleAuth')) {
+        const signal = oauthController!.signal
+        const close = () => { void googleAuth.cancel().catch(() => undefined) }
+        signal.addEventListener('abort', close, { once: true })
+        const result = await googleAuth.open({ url: data.url }).finally(() => signal.removeEventListener('abort', close))
+        if (signal.aborted || id !== generation) return
+        if ('cancelled' in result) {
+          cancelSocialLogin()
+          return
+        }
+        if (!await completeNativeSocialLogin(result.url)) throw new Error('Google вернул неверный адрес входа.')
+        await finishSocialLogin()
+      } else {
+        await Browser.open({ url: data.url })
+      }
       return
     }
     if (!data.url) throw new Error('Не удалось открыть страницу входа')
@@ -258,7 +276,7 @@ export async function initializeNativeOAuth(onError: (message: string) => void) 
   let callbackInProgress = false
   let cancelTimer: ReturnType<typeof setTimeout> | undefined
   const handleUrl = async (url?: string) => {
-    if (!url || !url.startsWith(IOS_OAUTH_REDIRECT) || !hasPendingSocialAuth()) return
+    if (callbackInProgress || !url || !url.startsWith(IOS_OAUTH_REDIRECT) || !hasPendingSocialAuth()) return
     oauthController ??= new AbortController()
     const id = generation
     callbackInProgress = true

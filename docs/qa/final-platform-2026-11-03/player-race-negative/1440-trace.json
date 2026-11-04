@@ -1,0 +1,452 @@
+[
+  {
+    "type": "pointerdown",
+    "at": 677.3000000002794,
+    "target": "Смотреть",
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 677.7000000001863,
+    "target": "Смотреть",
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 677.8000000002794,
+    "target": "Смотреть",
+    "fullscreen": false
+  },
+  {
+    "type": "play",
+    "at": 1761.1000000000931,
+    "target": "VIDEO",
+    "time": 0,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "playing",
+    "at": 1762.4000000003725,
+    "target": "VIDEO",
+    "time": 0,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 1900.2000000001863,
+    "target": "Пауза",
+    "time": 0.083307,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 1900.8000000002794,
+    "target": "Пауза",
+    "time": 0.083307,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 1900.8000000002794,
+    "target": "Пауза",
+    "time": 0.083307,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pause",
+    "at": 1905.4000000003725,
+    "target": "VIDEO",
+    "time": 0.083307,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 1915.7000000001863,
+    "target": "DIV",
+    "time": 0.083307,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 1915.9000000003725,
+    "target": "DIV",
+    "time": 0.083307,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 1916,
+    "target": "DIV",
+    "time": 0.083307,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 2029.4000000003725,
+    "target": "Продолжить",
+    "time": 0.083307,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 2029.6000000000931,
+    "target": "Продолжить",
+    "time": 0.083307,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 2029.7000000001863,
+    "target": "Продолжить",
+    "time": 0.083307,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "play",
+    "at": 2038.6000000000931,
+    "target": "VIDEO",
+    "time": 0.121134,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "playing",
+    "at": 2041,
+    "target": "VIDEO",
+    "time": 0.121134,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 3393.600000000093,
+    "target": "Пауза",
+    "time": 1.095498,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 3393.7000000001863,
+    "target": "Пауза",
+    "time": 1.095603,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 3393.7000000001863,
+    "target": "Пауза",
+    "time": 1.095623,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 3404.8000000002794,
+    "target": "DIV",
+    "time": 1.095644,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 3405.100000000093,
+    "target": "DIV",
+    "time": 1.095644,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 3405.100000000093,
+    "target": "DIV",
+    "time": 1.095644,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pause",
+    "at": 3405.8000000002794,
+    "target": "VIDEO",
+    "time": 1.095644,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 3521.4000000003725,
+    "target": "Продолжить",
+    "time": 1.095644,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 3521.9000000003725,
+    "target": "Продолжить",
+    "time": 1.095644,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 3522.100000000093,
+    "target": "Продолжить",
+    "time": 1.095644,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "play",
+    "at": 3522.7000000001863,
+    "target": "VIDEO",
+    "time": 1.133628,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "playing",
+    "at": 3525.9000000003725,
+    "target": "VIDEO",
+    "time": 1.133628,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 4824.600000000093,
+    "target": "DIV",
+    "time": 2.063298,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 4824.800000000279,
+    "target": "DIV",
+    "time": 2.063448,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 4824.800000000279,
+    "target": "DIV",
+    "time": 2.063478,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 4933.700000000186,
+    "target": "Пауза",
+    "time": 2.140119,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 4933.9000000003725,
+    "target": "Пауза",
+    "time": 2.140308,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 4934,
+    "target": "Пауза",
+    "time": 2.140345,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pause",
+    "at": 4937.800000000279,
+    "target": "VIDEO",
+    "time": 2.140369,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 6139,
+    "target": "DIV",
+    "time": 2.140369,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 6139.300000000279,
+    "target": "DIV",
+    "time": 2.140369,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 6139.300000000279,
+    "target": "DIV",
+    "time": 2.140369,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "play",
+    "at": 7141.5,
+    "target": "VIDEO",
+    "time": 2.191134,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "playing",
+    "at": 7146.100000000093,
+    "target": "VIDEO",
+    "time": 2.191134,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 8669.200000000186,
+    "target": "Пауза",
+    "time": 3.304189,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 8670,
+    "target": "Пауза",
+    "time": 3.304774,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 8670,
+    "target": "Пауза",
+    "time": 3.304813,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pause",
+    "at": 8674.5,
+    "target": "VIDEO",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 8689.200000000186,
+    "target": "DIV",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 8689.400000000373,
+    "target": "DIV",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 8689.5,
+    "target": "DIV",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 8747.400000000373,
+    "target": "DIV",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 8747.5,
+    "target": "DIV",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 8747.600000000093,
+    "target": "DIV",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerdown",
+    "at": 8827.80000000028,
+    "target": "Продолжить",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "pointerup",
+    "at": 8827.900000000373,
+    "target": "Продолжить",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "click",
+    "at": 8828,
+    "target": "Продолжить",
+    "time": 3.304857,
+    "paused": true,
+    "fullscreen": false
+  },
+  {
+    "type": "play",
+    "at": 8828.80000000028,
+    "target": "VIDEO",
+    "time": 3.353628,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "playing",
+    "at": 8830.900000000373,
+    "target": "VIDEO",
+    "time": 3.353628,
+    "paused": false,
+    "fullscreen": false
+  },
+  {
+    "type": "pause",
+    "at": 9691.600000000093,
+    "target": "VIDEO",
+    "time": 3.962668,
+    "paused": true,
+    "fullscreen": false
+  }
+]

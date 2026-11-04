@@ -1,0 +1,10 @@
+{
+  "userId": "05b957c3-950a-4c23-b6fa-c2ea367a9145",
+  "timestamp": 1793695320483,
+  "status": 204,
+  "method": "POST",
+  "path": "/auth/v1/logout",
+  "sha": "84dea0784d0f162529077753da45908ab0121be6",
+  "stage": "student-first",
+  "expectedActorMatched": true
+}

@@ -565,6 +565,11 @@ html:has(.teacher-dashboard-root) { scrollbar-gutter: auto; }
   padding-top: 100px;
 }
 
+.teacher-dashboard-root {
+  --teacher-header-space: 100px;
+  padding-top: var(--teacher-header-space);
+}
+
 /* Главная: расписание, виджеты и трек — по центру высоты окна. Сверху вниз
    они прижимались к шапке, и после того как курс и модули сжались в одну
    строку, под треком на большом экране оставалось ~340 px пустоты. safe —
@@ -1121,13 +1126,6 @@ input::-webkit-contacts-auto-fill-button {
    а inline `-webkit-text-fill-color` при этом остаётся светлым — в тёмной теме
    получается «ввожу и ничего не видно». Перекрываем фон inset-тенью и явно
    задаём цвет текста и плейсхолдера. */
-.teacher-login-layout { align-items: center; }
-.teacher-login-art:not([hidden]) { display: flex; justify-content: center; margin: 0 auto 16px; }
-@media (pointer: coarse) {
-  .teacher-login-layout:has(input:focus) { align-items: flex-start; }
-  .teacher-login-layout:has(input:focus) .teacher-login-art { display: none; }
-}
-
 .auth-input::placeholder {
   color: var(--color-muted);
   -webkit-text-fill-color: var(--color-muted);

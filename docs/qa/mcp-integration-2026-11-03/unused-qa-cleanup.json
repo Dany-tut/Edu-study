@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "scope": "Unused isolated QA teacher prepared for external Claude; owner confirmed it was not used. Verified exact email/UUID, zero courses, signed out before deletion. Real user account/grants untouched.",
+  "coursesBefore": 0,
+  "authRemaining": 0
+}

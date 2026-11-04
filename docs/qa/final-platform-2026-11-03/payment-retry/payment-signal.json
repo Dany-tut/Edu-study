@@ -1,0 +1,24 @@
+{
+  "tag": "signal",
+  "scope": "Exact source addPayment with real production Auth/PostgREST; fixture owner/client injection; synthetic rows only",
+  "results": [
+    {
+      "scenario": "lost response after commit, module reload, then retry",
+      "status": "PASS",
+      "count": 1,
+      "ids": [
+        "31d3b29a-366f-4d24-b1bd-f77a3c35305a"
+      ]
+    },
+    {
+      "scenario": "new confirmed payment with identical amount remains distinct",
+      "status": "PASS"
+    },
+    {
+      "scenario": "abort after commit then retry",
+      "status": "PASS"
+    }
+  ],
+  "commits": 3,
+  "cleanupErrors": []
+}

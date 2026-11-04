@@ -443,6 +443,7 @@ function applyHeavy(subjects: Subject[]): Subject[] {
         return {
           ...l,
           heavyPending: false,
+          transcript: found?.transcript,
           content: rec ? undefined : found?.content,
           homework: rec
             ? { hwTasks: found?.homework?.recHwTasks, hwDate: found?.homework?.recHwDate }

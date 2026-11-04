@@ -1,0 +1,89 @@
+{
+  "sha": "3601666e22f1529dad1811ba48b1940adb2d8417",
+  "results": [
+    {
+      "key": "check:ui",
+      "status": "PASS"
+    },
+    {
+      "key": "check:logic",
+      "status": "PASS"
+    },
+    {
+      "key": "check:attendance",
+      "status": "PASS"
+    },
+    {
+      "key": "check:schedule",
+      "status": "PASS"
+    },
+    {
+      "key": "check:gradebook",
+      "status": "PASS"
+    },
+    {
+      "key": "check:journal-summary",
+      "status": "PASS"
+    },
+    {
+      "key": "check:journal-loading",
+      "status": "PASS"
+    },
+    {
+      "key": "check:course-journal",
+      "status": "PASS"
+    },
+    {
+      "key": "check:lesson",
+      "status": "PASS"
+    },
+    {
+      "key": "check:teacher-view",
+      "status": "PASS"
+    },
+    {
+      "key": "check:homework-results",
+      "status": "PASS"
+    },
+    {
+      "key": "check:course-track",
+      "status": "PASS"
+    },
+    {
+      "key": "check:homework-attempts",
+      "status": "PASS"
+    },
+    {
+      "key": "check:lesson-participation",
+      "status": "PASS"
+    },
+    {
+      "key": "check:course-access",
+      "status": "PASS"
+    },
+    {
+      "key": "check:release",
+      "status": "PASS"
+    },
+    {
+      "key": "check:diary-views",
+      "status": "PASS"
+    },
+    {
+      "key": "check:student-journal",
+      "status": "PASS"
+    },
+    {
+      "key": "check:video-access",
+      "status": "PASS"
+    },
+    {
+      "key": "check:student-home",
+      "status": "PASS"
+    },
+    {
+      "key": "check:i18n",
+      "status": "PASS"
+    }
+  ]
+}

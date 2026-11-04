@@ -1,3 +1,6 @@
+import DesktopFriends from './DesktopFriends'
+import { useDesktopFriends } from './../lib/desktopFriends'
+import { Users } from './icons/appIcons'
 import FadeText from './FadeText'
 import { motion, AnimatePresence } from 'framer-motion'
 import CountBadge from './CountBadge'
@@ -208,6 +211,7 @@ export default function Sidebar() {
   const [courseOrderOpen, setCourseOrderOpen] = useState(false)
   const [tintModalOpen, setTintModalOpen] = useState(false)
   const tintColor = useCurrentTintColor()
+  const friends = useDesktopFriends()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -634,10 +638,11 @@ export default function Sidebar() {
                     {isAdmin && (
                       <SettingsRow
                         icon={GraduationCap}
-                        label={t('В кабинет преподавателя')}
+                        label={t('В кабинет препода')}
                         onClick={() => { closePicker(); window.location.hash = '#/teacher' }}
                       />
                     )}
+                    {friends.account && <SettingsRow icon={Users} label={t('Друзья')} onClick={() => { closePicker(); friends.setTab('contacts') }} />}
                     <SettingsRow
                       icon={Settings}
                       label={t('Настройки')}
@@ -678,6 +683,7 @@ export default function Sidebar() {
                       >
                         <MenuHeader title={t('Назад')} onBack={() => setMenuView('root')} />
 
+                        {friends.account && <SettingsRow icon={Users} label={t('Ник и видимость')} onClick={() => { closePicker(); friends.setTab('profile') }} />}
                         {/* Columns picker */}
                         <div style={{ ...labelStyle, marginBottom: 8, padding: '0 8px' }}>{t('Блоков в строке')}</div>
                         <div style={{ display: 'flex', gap: 8, marginBottom: 4, padding: '0 8px' }}>
@@ -972,9 +978,9 @@ export default function Sidebar() {
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8, order: 3 }}>
         <div ref={bellRef} style={{ display: 'inline-flex' }}>
-          <NotificationBell onClick={() => setNotifOpen(o => !o)} />
+          <NotificationBell friendCount={friends.incoming.length} onClick={() => { void friends.refresh(); setNotifOpen(o => !o) }} />
         </div>
-        <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
+        <NotificationPopup requests={friends.incoming} onRequests={() => { setNotifOpen(false); friends.setTab('requests') }} open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
 
         <motion.button
           whileHover={{ scale: 1.06 }}
@@ -1003,6 +1009,7 @@ export default function Sidebar() {
     <WidgetOrderModal open={orderModalOpen} onClose={() => setOrderModalOpen(false)} />
     <CourseOrderModal open={courseOrderOpen} onClose={() => setCourseOrderOpen(false)} />
     <CourseTintModal open={tintModalOpen} onClose={() => setTintModalOpen(false)} />
+    <DesktopFriends model={friends} />
     {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
     {cropFile && <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={async b => { await savePhoto(b); setCropFile(null) }} />}
     </>

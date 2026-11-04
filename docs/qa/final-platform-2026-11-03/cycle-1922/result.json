@@ -1,0 +1,42 @@
+{
+  "scope": "Production exact SHA. Teacher account/invite and assignment fixture API; student signup/submit and teacher review UI; same-browser drafts",
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "3601666e22f1529dad1811ba48b1940adb2d8417",
+    "build": 1922,
+    "version": "1.0.1922"
+  },
+  "results": [
+    {
+      "name": "Student opens invitation and registers through UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Student opens assigned homework, writes answers and reloads local draft",
+      "status": "PASS"
+    },
+    {
+      "name": "Browser submission persists one pending manual attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher logs in, opens live review and sees original answers",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher publishes 90 percent and a comment through UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh student login shows published result, comment and historical answers",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload keeps result and exactly one server attempt",
+      "status": "PASS"
+    }
+  ],
+  "productionModified": true
+}

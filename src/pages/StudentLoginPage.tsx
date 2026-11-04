@@ -1,25 +1,26 @@
 import { LoopActionLabel } from '../components/icons/LoopIcon'
 import { ArrowLeft as LoopBackArrow } from '../components/icons/appIcons'
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Eye, EyeOff } from '../components/icons/appIcons'
 import { supabase } from '../lib/supabase'
 import { clearStudentSession, setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
-import { authErrorRu } from '../lib/authErrors'
-import { Alert } from '../components/Alert'
+import { AuthFeedbackProvider, AuthFeedbackSlot, authFailureFeedback, useAuthFeedback } from '../components/AuthFeedback'
 import { useAsyncTask } from '../lib/useAsyncTask'
 import { studentPasswordSignIn } from '../lib/authActions'
 import ScrollFade from '../components/ScrollFade'
-import SocialLoginButtons from '../components/SocialLoginButtons'
+import SocialLoginButtons, { AuthLegalLinks } from '../components/SocialLoginButtons'
+import AuthFadeInput from '../components/AuthFadeInput'
+import AuthHero from '../components/AuthHero'
 import AuthRoleHeader from '../components/AuthRoleHeader'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
   // shorter than the email field — iOS Safari computes a smaller intrinsic
   // height for the password-dot glyphs, which otherwise squishes the box.
-  width: '100%', padding: '12px 14px', minHeight: 50, borderRadius: 12,
+  width: '100%', padding: '11px 14px', minHeight: 48, borderRadius: 12,
   border: '1.5px solid var(--color-border-medium)', fontSize: 16,
   lineHeight: '22px', outline: 'none', boxSizing: 'border-box',
   // Explicit color + background: iOS WKWebView otherwise inherits a system
@@ -29,43 +30,67 @@ const inputStyle: React.CSSProperties = {
   WebkitTextFillColor: 'var(--color-text)',
 }
 
-export default function StudentLoginPage({ recovery = false, linkExpired = false, onRecoveryComplete }: { recovery?: boolean; linkExpired?: boolean; onRecoveryComplete?: () => void }) {
+type StudentLoginProps = { recovery?: boolean; linkExpired?: boolean; onRecoveryComplete?: () => void }
+export default function StudentLoginPage(props: StudentLoginProps) {
+  return <AuthFeedbackProvider><StudentLoginForm {...props} /></AuthFeedbackProvider>
+}
+
+function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryComplete }: StudentLoginProps) {
   const t = useT()
-  const [mode, setMode] = useState<'login' | 'reset' | 'sent' | 'newpassword'>(recovery ? 'newpassword' : linkExpired ? 'reset' : 'login')
+  const reducedMotion = useReducedMotion()
+  const feedback = useAuthFeedback('password')
+  const [mode, setMode] = useState<'login' | 'reset' | 'newpassword'>(recovery ? 'newpassword' : linkExpired ? 'reset' : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [mailSent, setMailSent] = useState(false)
   const action = useAsyncTask()
   const loading = action.busy
-  const [error, setError] = useState(linkExpired ? t('Ссылка устарела или уже использована. Запросите новую.') : '')
-  const [notice, setNotice] = useState('')
 
   useEffect(() => {
     if (mode !== 'newpassword') return
     supabase.auth.getUser().then(({ data }) => { if (data.user?.email) setEmail(data.user.email) })
   }, [mode])
+  useEffect(() => {
+    if (linkExpired) feedback.begin({ tone: 'danger', title: 'Ссылка устарела', text: 'Запросите новую ссылку.' })
+  }, [linkExpired, feedback.begin])
+  useEffect(() => {
+    if (recovery || !sessionStorage.getItem('iskra:student-password-updated')) return
+    sessionStorage.removeItem('iskra:student-password-updated')
+    feedback.begin({ tone: 'success', title: 'Пароль обновлён', text: 'Теперь войдите с новым паролем.' })
+  }, [recovery, feedback.begin])
 
   function switchMode(next: 'login' | 'reset') {
-    action.cancel(); setMode(next); setError(''); setNotice('')
+    action.cancel(); feedback.reset(); setMode(next); setMailSent(false)
   }
-  function failed(err: unknown) {
-    setError(t(err instanceof DOMException && err.name === 'TimeoutError'
-      ? 'Сервер не ответил вовремя. Попробуйте ещё раз.'
-      : authErrorRu(err && typeof err === 'object' ? err : { message: String(err) })))
+  function editEmail(value: string) { setEmail(value); setMailSent(false); feedback.clear() }
+  function editPassword(value: string) { setPassword(value); feedback.clear() }
+  function failed(error: unknown) { feedback.report(authFailureFeedback(error)) }
+  function cancel() {
+    action.cancel()
+    feedback.report({ tone: 'info', title: 'Действие отменено', text: 'Можно повторить попытку.' })
   }
   function handleSubmit() {
-    setError(''); setNotice('')
+    if (mode === 'reset' && mailSent) { switchMode('login'); return }
+    if (mode !== 'newpassword' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      feedback.begin({ tone: 'danger', title: 'Проверьте email', text: 'Например, name@example.com.', invalid: 'email' }); return
+    }
+    if (mode === 'login' && !password) {
+      feedback.begin({ tone: 'danger', title: 'Введите пароль', invalid: 'password' }); return
+    }
+    if (mode === 'newpassword' && password.length < 6) {
+      feedback.begin({ tone: 'danger', title: 'Слишком короткий пароль', text: 'Нужно не меньше 6 символов.', invalid: 'password' }); return
+    }
+    feedback.begin({ tone: 'info', title: mode === 'reset' ? 'Отправляем письмо…' : mode === 'newpassword' ? 'Сохраняем пароль…' : 'Проверяем данные…', busy: true, onCancel: cancel })
     if (mode === 'login') {
-      if (!email.trim() || !password) return
-      // Normalize email only; whitespace can be part of the password.
       void action.run(signal => studentPasswordSignIn(email.trim().toLowerCase(), password, signal), srow => {
+        feedback.report({ tone: 'success', title: 'Вход подтверждён', text: 'Открываем ваш кабинет.' })
         if (srow) {
           setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id ?? '' })
           void trackNow('login', { role: 'student', method: 'auth' })
           const next = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('next')
           window.location.hash = next && /^#\/(homework|lesson)\//.test(next) ? next : '#/'
         } else {
-          // A successful empty profile read can belong to a teacher/admin.
           clearStudentSession()
           void trackNow('login', { role: 'teacher', method: 'auth' })
           window.location.hash = '#/teacher'
@@ -75,7 +100,6 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
       return
     }
     if (mode === 'reset') {
-      if (!email.trim()) return
       void action.run(async signal => {
         signal.throwIfAborted()
         const redirectTo = `${window.location.origin}${window.location.pathname}`
@@ -83,59 +107,50 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
         if (error) throw error
       }, () => {
         localStorage.setItem('iskra:password-recovery-role', 'student')
-        setMode('sent')
+        setMailSent(true)
+        feedback.report({ tone: 'success', title: 'Письмо отправлено', text: 'Проверьте почту и папку «Спам».' })
       }, failed)
       return
     }
-    if (mode === 'newpassword') {
-      if (password.length < 6) { setError(t('Пароль должен быть не менее 6 символов')); return }
-      void action.run(async signal => {
-        const { error } = await supabase.auth.updateUser({ password })
-        if (error) throw error
-        signal.throwIfAborted()
-        const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' })
-        if (signOutError) throw signOutError
-      }, () => {
-        localStorage.removeItem('iskra:password-recovery-role')
-        clearStudentSession()
-        setPassword(''); setNotice(t('Пароль обновлён. Теперь войдите с новым паролем.')); setMode('login')
-        onRecoveryComplete?.()
-      }, failed)
-    }
+    void action.run(async signal => {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) throw error
+      signal.throwIfAborted()
+      const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' })
+      if (signOutError) throw signOutError
+    }, () => {
+      localStorage.removeItem('iskra:password-recovery-role')
+      clearStudentSession()
+      setPassword(''); setMode('login')
+      feedback.report({ tone: 'success', title: 'Пароль обновлён', text: 'Теперь войдите с новым паролем.' })
+      if (onRecoveryComplete) {
+        sessionStorage.setItem('iskra:student-password-updated', '1')
+        onRecoveryComplete()
+      }
+    }, failed)
   }
 
   return (
     <ScrollFade maxHeight="100dvh" fadeHeight={24} style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)' }}>
-    <div style={{
-      minHeight: '100dvh', background: 'var(--color-bg)',
-      boxSizing: 'border-box',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: `calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px)`,
-    }}>
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
+    <div className="auth-page-layout" style={{ minHeight: '100dvh', background: 'var(--color-bg)' }}>
+    <div className="auth-page-content">
+      <motion.div className="auth-page-card"
+        initial={reducedMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38 }}
-        style={{
-          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
-          width: '100%', maxWidth: 340, boxShadow: 'var(--shadow-5)',
-        }}
+        transition={{ duration: 0.2 }}
       >
-        {mode !== 'newpassword' && <AuthRoleHeader onLeave={() => action.cancel()} />}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ textAlign: 'center', marginBottom: 18 }}><img src={`/widget-objects-v2-shadows/ui/${mode === 'sent' ? 'feed' : mode === 'reset' || mode === 'newpassword' ? 'focus' : 'practice'}.png`} alt="" aria-hidden="true" width={96} height={96} draggable={false} style={{ display: 'block', margin: '0 auto', width: 96, height: 96, objectFit: 'contain' }} /></div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: 'var(--color-text)' }}>{mode === 'sent' ? t('Проверьте почту') : mode === 'reset' ? t('Восстановить пароль') : mode === 'newpassword' ? t('Новый пароль') : t('Вход для ученика')}</h1>
-          <div style={{ fontSize: 14, lineHeight: 1.45, color: 'var(--color-muted)', marginTop: 4 }}>{mode === 'login' ? t('Введите email и пароль') : mode === 'reset' ? t('Отправим ссылку для смены пароля') : mode === 'sent' ? t('Мы отправили ссылку для смены пароля.') : t('Придумайте пароль не короче 6 символов')}</div>
-        </div>
+        {mode !== 'newpassword' && <AuthRoleHeader onLeave={() => { action.cancel(); feedback.reset() }} />}
+        <AuthHero
+          object={mode === 'reset' || mode === 'newpassword' ? 'focus' : 'practice'}
+          title={mode === 'reset' ? t('Восстановить пароль') : mode === 'newpassword' ? t('Новый пароль') : t('Вход для ученика')}
+          subtitle={mode === 'login' ? t('Введите email и пароль') : mode === 'reset' ? t('Отправим ссылку для смены пароля') : t('Придумайте пароль не короче 6 символов')}
+        />
 
-        {mode === 'sent' ? <div style={{ textAlign: 'center' }}>
-          <button type="button" onClick={() => switchMode('login')} style={{ height: 48, width: '100%', border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t('Вернуться ко входу')}</button>
-          <p style={{ margin: '16px 0 0', color: 'var(--color-muted)', fontSize: 12 }}>{t('Если письма нет, проверьте папку «Спам».')}</p>
-        </div> : <form
+        <form noValidate aria-busy={feedback.busy}
           onSubmit={e => { e.preventDefault(); void handleSubmit() }}
-          style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
         >
-          <input className="auth-input"
+          <AuthFadeInput className="auth-input" aria-describedby={feedback.descriptionId}
             type="email"
             name="username"
             inputMode="email"
@@ -143,16 +158,17 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
             autoCorrect="off"
             spellCheck={false}
             autoComplete="username"
-            readOnly={mode === 'newpassword'}
+            readOnly={mode === 'newpassword' || feedback.busy}
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={e => editEmail(e.target.value)}
+            aria-invalid={feedback.message?.invalid === 'email' || feedback.message?.invalid === 'credentials'}
             placeholder="Email"
             aria-label="Email"
             style={inputStyle}
             autoFocus
           />
           {mode !== 'reset' && <div style={{ position: 'relative' }}>
-            <input className="auth-input"
+            <AuthFadeInput className="auth-input" aria-describedby={feedback.descriptionId}
               // Keep a real password input so Safari Password AutoFill can fill
               // the saved credential into this form.
               type={showPassword ? 'text' : 'password'}
@@ -162,7 +178,9 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
               spellCheck={false}
               autoComplete={mode === 'newpassword' ? 'new-password' : 'current-password'}
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={e => editPassword(e.target.value)}
+              readOnly={feedback.busy}
+              aria-invalid={feedback.message?.invalid === 'password' || feedback.message?.invalid === 'credentials'}
               placeholder={mode === 'newpassword' ? t('Новый пароль') : t('Пароль')}
               aria-label={t('Пароль')}
               style={{ ...inputStyle, paddingRight: 52 }}
@@ -184,34 +202,29 @@ export default function StudentLoginPage({ recovery = false, linkExpired = false
               {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
             </button>
           </div>}
-          {mode === 'login' && <button type="button" onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: 0, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
+          <AuthFeedbackSlot idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : 'Данные для входа выдаёт учитель.'} />
+          {mode === 'login' && <button type="button" disabled={feedback.busy} onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
           <button
             type="submit"
-            disabled={loading || (mode !== 'newpassword' && !email.trim()) || (mode === 'login' && !password) || (mode === 'newpassword' && !password)}
+            disabled={feedback.busy || loading || (mode !== 'newpassword' && !email.trim()) || (mode === 'login' && !password) || (mode === 'newpassword' && !password)}
             style={{ height: 48,
-              marginTop: 8, width: '100%', padding: '0 22px',
+              marginTop: 0, width: '100%', padding: '0 22px',
               background: 'var(--grad-purple)', opacity: loading ? 0.55 : 1,
               color: '#fff', fontWeight: 700, fontSize: 15,
               border: 'none', borderRadius: 14,
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
-            {loading ? t('Загрузка...') : mode === 'reset' ? t('Отправить письмо') : mode === 'newpassword' ? t('Сохранить пароль') : t('Войти')}
+            {loading ? t('Загрузка...') : mode === 'reset' ? (mailSent ? t('Вернуться ко входу') : t('Отправить письмо')) : mode === 'newpassword' ? t('Сохранить пароль') : t('Войти')}
           </button>
-          {loading && <button type="button" onClick={() => { action.cancel(); setError('') }} style={{ minHeight: 44, border: 0, background: 'none', color: 'var(--color-text)' }}>{t('Отмена')}</button>}
           {mode === 'reset' && <button type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
-        </form>}
+        </form>
 
         {mode === 'login' && <SocialLoginButtons role="student" />}
 
-        {notice && <Alert tone="info" text={notice} style={{ marginTop: 12 }} />}
-
-        {error && (
-          <Alert tone="danger" text={error} style={{ marginTop: 12 }} />
-        )}
-
-        {mode === 'login' && <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Если забыли пароль — обратитесь к учителю')}</div>}
       </motion.div>
+      {mode === 'login' && <AuthLegalLinks />}
+    </div>
     </div>
     </ScrollFade>
   )

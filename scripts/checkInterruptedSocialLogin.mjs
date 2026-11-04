@@ -14,7 +14,7 @@ const bundle = await build({
     b.onResolve({ filter: /^@capacitor\/(app|browser|core)$/ }, a => ({ path: a.path, namespace: 'qa' }))
     b.onResolve({ filter: /^(\.\/supabase|\.\/studentSession|\.\/analytics|\.\.\/lib\/i18n|\.\/Alert)$/ }, a => ({ path: a.path, namespace: 'qa' }))
     b.onLoad({ filter: /.*/, namespace: 'qa' }, ({ path }) => ({ resolveDir: process.cwd(), contents:
-      path === '@capacitor/core' ? `export const Capacitor={isNativePlatform:()=>true};` :
+      path === '@capacitor/core' ? `export const Capacitor={isNativePlatform:()=>true,isPluginAvailable:()=>false}; export const registerPlugin=()=>({});` :
       path === '@capacitor/app' ? `export const App={addListener:async(name,fn)=>{window.__appListeners[name]=fn;return{remove(){}}},getLaunchUrl:async()=>({})};` :
       path === '@capacitor/browser' ? `export const Browser={open:async()=>{window.__opens++;if(window.__mode==='reject')throw Error('Не удалось открыть страницу входа');if(window.__mode.startsWith('pending'))await new Promise(()=>{});},close:async()=>{},addListener:async(name,fn)=>{window.__browserListeners[name]=fn;return{remove(){}}}};` :
       path === './supabase' ? `export const supabase={auth:{signInWithOAuth:async()=>({data:{url:'https://provider.example.invalid/authorize'},error:null}),getUser:async()=>({data:{user:null},error:null})}};` :

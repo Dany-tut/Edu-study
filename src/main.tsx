@@ -37,7 +37,7 @@ if (Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
   if (import.meta.env.DEV && route === '/journal-stand') {
     if (!hash) window.history.replaceState(null, '', pathname + search + '#/teacher/gradebook')
   // The public design stand has its own entry point, outside hash routing.
-  } else if (route && route !== '/index.html' && route !== '/student-track-stand' && route !== '/student-widget-stand') {
+  } else if (route && route !== '/index.html' && route !== '/oauth/consent' && route !== '/student-track-stand' && route !== '/student-widget-stand') {
     const rest = hash.replace(/^#\/?/, '')
     const target = `#${route}${rest ? '/' + rest : ''}`
     window.history.replaceState(null, '', `/${search}${target}`)

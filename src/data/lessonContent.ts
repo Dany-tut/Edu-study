@@ -227,6 +227,7 @@ export interface LessonParagraph { id: string; text: string; reactionId?: string
 /** Authored, editable lesson body — konspekt paragraphs + homework. Stored per
  *  lesson in Supabase (`lessons.content`); when empty we fall back to code. */
 export interface LessonContentData {
+  transcript?: import('../lib/localTranscription').LessonTranscript
   paragraphs: LessonParagraph[]
   quiz: HomeworkQuizQuestion[]
   hardTask: HomeworkTeacherTask

@@ -1,3 +1,4 @@
+import LessonTranscriptPanel from '../components/LessonTranscriptPanel'
 import { useNow } from '../lib/useNow'
 import { textFadeStyle } from '../lib/textFades'
 import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
@@ -1202,6 +1203,10 @@ export default function LessonPage() {
         </div>
       )}
 
+      {lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') &&
+        <LessonTranscriptPanel transcript={lesson.transcript} time={videoTime}
+          seek={detail.videoSource && ['file','youtube','rutube'].includes(detail.videoSource.kind)
+            ? sec => { setVideoTime(sec); playerRef.current?.seekPaused(sec) } : undefined} />}
       {lesson.description?.trim() && (
         <section style={{
           padding: 24, borderRadius: 24,
@@ -1306,12 +1311,14 @@ export default function LessonPage() {
       )}
 
       {/* ── Materials & homework — placed BELOW the description. Compact tiles;
-          desktop keeps 4-across, mobile drops to 2 columns (4-col squeezes each
+          desktop adds equal columns for extra homework, mobile drops to 2 columns (4-col squeezes each
           tile so its content overflows onto neighbours). Homework spans full
           width on mobile. ── */}
       <div
         className="grid"
         style={{
+          gridAutoFlow: isDesktop ? 'column' : 'row',
+          gridAutoColumns: 'minmax(0, 1fr)',
           gridTemplateColumns: isDesktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
           gap: 12,
           alignItems: 'start',

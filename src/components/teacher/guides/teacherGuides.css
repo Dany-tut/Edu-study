@@ -1,0 +1,35 @@
+dialog.teacher-guide {
+  width:min(960px, calc(100vw - 48px), max(540px, calc(160dvh - 394px)));
+  height:min(840px, calc(100dvh - 36px)); max-height:none;
+  margin:auto; padding:0; overflow:hidden; border:1px solid var(--color-border);
+  border-radius:24px; background:var(--color-bg); color:var(--color-text);
+  font:inherit; box-shadow:0 18px 70px #16112333;
+}
+.teacher-guide::backdrop {background:#17132066}
+.teacher-guide-sheet,.teacher-guide-catalog {height:100%;box-sizing:border-box;display:grid;gap:8px;padding:12px 0}
+.teacher-guide-sheet {grid-template-rows:40px auto minmax(0,1fr) minmax(82px,auto) 44px}
+.teacher-guide-sheet > :not(.teacher-guide-media),.teacher-guide-catalog > * {margin-inline:18px;min-height:0}
+.teacher-guide-row,.teacher-guide footer {display:flex;align-items:center;gap:8px}
+.teacher-guide-row > :first-child {margin-right:auto;font-weight:650}
+.teacher-guide h2,.teacher-guide p {margin-block:0}
+.teacher-guide button,.teacher-guides-entry {font:inherit;color:var(--color-text);background:var(--color-bg-3);border:0;border-radius:12px;padding:8px 14px;cursor:pointer}
+.teacher-guide-media {display:grid;place-items:center;min-height:0;container-type:size}
+.teacher-guide-media img {display:block;width:auto;height:auto;max-height:100cqh;max-width:100cqw;border-radius:16px}
+.teacher-guide-description {display:grid;gap:6px}
+.teacher-guide-description button {margin-right:4px}
+.teacher-guide button[aria-pressed=true],.teacher-guide footer button:last-child {background:var(--color-accent);color:var(--color-on-accent,#fff)}
+.teacher-guide footer button:last-child {flex:1}
+.teacher-guide-catalog {grid-template-rows:44px minmax(0,1fr)}
+.teacher-guide-list {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.teacher-guide-list button {display:grid;text-align:left;gap:6px;min-height:86px}
+.teacher-guide-list span {color:var(--color-muted)}
+.teacher-guides-entry {margin-left:auto}
+@media(max-height:630px) {
+  dialog.teacher-guide {width:min(1080px,calc(100vw - 32px))}
+  .teacher-guide-sheet {grid-template:40px auto minmax(0,1fr) 44px / minmax(0,1.6fr) minmax(0,1fr)}
+  .teacher-guide-sheet > :not(.teacher-guide-media) {grid-column:2;margin-inline:0 12px}
+  .teacher-guide-media {grid-area:1 / 1 / -1 / 2}
+}
+.teacher-guide h2 {font-size:clamp(20px,2vw,28px);line-height:1.15;font-weight:700;letter-spacing:-.025em}
+dialog.teacher-guide:has(.teacher-guide-catalog) {height:fit-content;max-height:calc(100dvh - 36px)}
+.teacher-guide-catalog {max-height:calc(100dvh - 40px)}

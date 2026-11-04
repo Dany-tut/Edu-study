@@ -1,3 +1,5 @@
+import { useTeacherGuides } from '../../components/teacher/guides/TeacherGuides'
+import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
 import { useState, useEffect } from 'react'
 import BackCircle from '../../components/BackCircle'
@@ -42,6 +44,7 @@ const AVATARS: AvatarOption[] = [
 ]
 
 export default function TeacherProfileSettingsPage() {
+  const teacherGuides = useTeacherGuides()
   const t = useT()
   const setActivePage = useTeacher(s => s.setActivePage)
 
@@ -215,7 +218,8 @@ export default function TeacherProfileSettingsPage() {
   }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
+    <>
+      <TeacherPageScroll>
       <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
@@ -225,6 +229,7 @@ export default function TeacherProfileSettingsPage() {
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Настройки профиля')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Имя, аватар и данные аккаунта')}</div>
           </div>
+          {teacherGuides && <button className="teacher-guides-entry" onClick={teacherGuides.catalog}>{t('Подсказки')}</button>}
         </div>
 
         {/* Avatar preview + picker */}
@@ -409,9 +414,10 @@ export default function TeacherProfileSettingsPage() {
         )}
 
       </div>
+      </TeacherPageScroll>
       {cropFile && (
         <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={savePhoto} />
       )}
-    </div>
+    </>
   )
 }

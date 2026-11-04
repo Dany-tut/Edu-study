@@ -1,0 +1,18 @@
+{
+  "local": true,
+  "distinctStudents": 50,
+  "targetSeconds": 120,
+  "metrics": {
+    "read": {
+      "ok": 5400,
+      "p95ms": 92,
+      "p99ms": 615
+    },
+    "write": {
+      "ok": 600,
+      "p95ms": 469,
+      "p99ms": 932
+    }
+  },
+  "errors": []
+}

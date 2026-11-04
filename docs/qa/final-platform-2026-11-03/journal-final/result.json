@@ -1,0 +1,29 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "db86facd07ffff5c6ba4d4228458fd628109a8fa",
+    "build": 1977,
+    "version": "1.0.1977"
+  },
+  "layer": "Production full UI plus actual own backend fixtures",
+  "results": [
+    {
+      "name": "Pending2: list identities/date/time/group and attendance badge match backend schedules",
+      "status": "PASS"
+    },
+    {
+      "name": "Journal filter retains global pending list",
+      "status": "PASS"
+    },
+    {
+      "name": "Save attendance UI: remaining1, own server mark true and pending counters update",
+      "status": "PASS"
+    },
+    {
+      "name": "Save attendance UI: remaining0, own server mark true and pending counters update",
+      "status": "PASS"
+    }
+  ]
+}

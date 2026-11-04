@@ -274,6 +274,8 @@ export type HwAssignment = HomeworkItem
 
 export type HwSubmission = {
   id: string            // lesson_progress row id (used for the review write-back)
+  lessonRef?: string
+  attempts?: HomeworkAttempt[]
   hwId: string
   studentId: string
   studentName: string
@@ -609,7 +611,7 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
     const refs = lessonId ? [`hw-${hwId}`, lessonId] : [`hw-${hwId}`]
     const { data, error: queryError } = await supabase
       .from('lesson_progress')
-      .select('id, student_id, status, score, comment, attachments, review_comment, review_attachments, updated_at, students!inner(name, created_by)')
+      .select('id, student_id, lesson_ref, status, score, comment, attachments, review_comment, review_attachments, updated_at, students!inner(name, created_by), homework_attempts(id,number,status,score,passing_score,submitted_at,review_comment)')
       .in('lesson_ref', refs)
       .eq('students.created_by', uid)
       .in('status', ['submitted', 'returned', 'completed'])
@@ -619,6 +621,8 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
     setSubmissions((data ?? []).map((s: any) => ({
       id: s.id,
       hwId,
+      lessonRef: s.lesson_ref,
+      attempts: s.homework_attempts ?? [],
       studentId: s.student_id,
       studentName: (s.students as { name?: string } | null)?.name ?? '',
       submittedAt: s.updated_at ?? '',

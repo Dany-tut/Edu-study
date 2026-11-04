@@ -11,35 +11,38 @@ import { TestlyTile } from '../TestlyMark'
 import { btn } from '../../lib/pillStyles'
 import { supabase, SUPABASE_URL } from '../../lib/supabase'
 
+import { TranscriptionModuleCard, useTranscriptionOwner } from './LocalTranscription'
+
 export default function TeacherModules() {
   const t = useT()
+  const transcriptionOwner = useTranscriptionOwner()
   const { loaded, connected, email, tests, load } = useTestlyModule()
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [claudeGrants, setClaudeGrants] = useState<Array<{ client: { id: string; name: string }; granted_at: string }>>([])
-  const [claudeLoaded, setClaudeLoaded] = useState(false)
-  const [claudeError, setClaudeError] = useState('')
+  const [assistantGrants, setAssistantGrants] = useState<Array<{ client: { id: string; name: string }; granted_at: string }>>([])
+  const [assistantsLoaded, setAssistantsLoaded] = useState(false)
+  const [assistantsError, setAssistantsError] = useState('')
   const [copied, setCopied] = useState(false)
   useEffect(() => { void load() }, [load])
 
-  const claudeMcpUrl = `${SUPABASE_URL}/functions/v1/iskra-mcp`
-  async function loadClaudeGrants() {
-    setClaudeError('')
+  const mcpUrl = `${SUPABASE_URL}/functions/v1/iskra-mcp`
+  async function loadAssistantGrants() {
+    setAssistantsError('')
     try {
       const { data, error } = await supabase.auth.oauth.listGrants()
       if (error) throw error
-      setClaudeGrants((data ?? []).filter(g => /claude|anthropic/i.test(g.client.name)))
-      setClaudeLoaded(true)
+      setAssistantGrants(data ?? [])
+      setAssistantsLoaded(true)
     } catch {
-      setClaudeGrants([])
-      setClaudeLoaded(true)
-      setClaudeError(t('Проверка подключения Claude пока недоступна.'))
+      setAssistantGrants([])
+      setAssistantsLoaded(true)
+      setAssistantsError(t('Проверка подключений ИИ-помощников пока недоступна.'))
     }
   }
   useEffect(() => {
-    void loadClaudeGrants()
-    const onFocus = () => { if (document.visibilityState === 'visible') void loadClaudeGrants() }
+    void loadAssistantGrants()
+    const onFocus = () => { if (document.visibilityState === 'visible') void loadAssistantGrants() }
     document.addEventListener('visibilitychange', onFocus)
     return () => document.removeEventListener('visibilitychange', onFocus)
   }, [])
@@ -81,35 +84,33 @@ export default function TeacherModules() {
     finally { setBusy(false) }
   }
 
-  async function disconnectClaude() {
+  async function disconnectAssistant(clientId: string, clientName: string) {
     const ok = await confirmDialog({
-      title: t('Отключить Claude от Искры?'),
-      message: t('Claude больше не сможет читать и создавать материалы в вашем кабинете. Курсы, уроки и тесты останутся в Искре.'),
+      title: `${t('Отключить приложение от Искры?')} · ${clientName}`,
+      message: t('Приложение больше не сможет читать и создавать материалы в вашем кабинете. Курсы, уроки и тесты останутся в Искре.'),
       confirmLabel: t('Отключить'),
       tone: 'danger',
     })
     if (!ok) return
-    setBusy(true); setClaudeError('')
+    setBusy(true); setAssistantsError('')
     try {
-      for (const grant of claudeGrants) {
-        const { error } = await supabase.auth.oauth.revokeGrant({ clientId: grant.client.id })
-        if (error) throw error
-      }
-      await loadClaudeGrants()
+      const { error } = await supabase.auth.oauth.revokeGrant({ clientId })
+      if (error) throw error
+      await loadAssistantGrants()
     } catch {
-      setClaudeError(t('Не удалось отозвать доступ Claude. Попробуйте ещё раз.'))
+      setAssistantsError(t('Не удалось отозвать доступ приложения. Попробуйте ещё раз.'))
     } finally {
       setBusy(false)
     }
   }
 
-  async function copyClaudeUrl() {
+  async function copyMcpUrl() {
     try {
-      await navigator.clipboard.writeText(claudeMcpUrl)
+      await navigator.clipboard.writeText(mcpUrl)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
     } catch {
-      setClaudeError(t('Не удалось скопировать адрес.'))
+      setAssistantsError(t('Не удалось скопировать адрес.'))
     }
   }
 
@@ -124,6 +125,7 @@ export default function TeacherModules() {
         {t('Подключённый модуль появляется в домашке, уроках курса и Конструкторе: через него можно добавлять задания.')}
       </div>
 
+      {transcriptionOwner && <TranscriptionModuleCard key={transcriptionOwner} owner={transcriptionOwner} />}
       <div style={{
         background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20,
         padding: 18, display: 'flex', flexDirection: 'column', gap: 14,
@@ -218,19 +220,19 @@ export default function TeacherModules() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 40, height: 40, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 14, background: 'var(--color-purple-soft)', color: 'var(--color-accent)' }}><Sparkles size={21} /></div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Claude</div>
-            <div style={{ fontSize: 12, color: claudeGrants.length ? 'var(--color-green-text)' : 'var(--color-text-3)', marginTop: 2 }}>
-              {!claudeLoaded ? t('Проверяем подключение…') : claudeGrants.length ? `${t('Подключён к Искре')} · ${claudeGrants.length}` : t('Не подключён')}
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('ИИ-помощники')}</div>
+            <div style={{ fontSize: 12, color: assistantGrants.length ? 'var(--color-green-text)' : 'var(--color-text-3)', marginTop: 2 }}>
+              {!assistantsLoaded ? t('Проверяем подключение…') : assistantsError ? t('Проверка подключений ИИ-помощников пока недоступна.') : assistantGrants.length ? `${t('Подключено приложений')} · ${assistantGrants.length}` : t('Не подключены')}
             </div>
           </div>
           <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', flexShrink: 0 }}>MCP</span>
         </div>
 
         <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)' }}>
-          {t('Добавляйте курсы, уроки и тесты в Искру прямо из Claude. Доступ ограничен вашим аккаунтом преподавателя.')}
+          {t('Работайте с курсами, уроками и тестами Искры из любого приложения с поддержкой MCP. Доступ ограничен вашим аккаунтом преподавателя.')}
         </div>
 
-        {claudeGrants.length ? (
+        {!assistantsLoaded || assistantsError ? null : assistantGrants.length ? (
           <>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {[t('Ваши курсы'), t('Черновики курсов и уроков'), t('Тесты к черновым урокам')].map(s => (
@@ -238,19 +240,26 @@ export default function TeacherModules() {
               ))}
             </div>
             <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)' }}>{t('Публикация и доступ ученикам остаются под вашим контролем.')}</div>
-            <div><button type="button" onClick={() => void disconnectClaude()} disabled={busy} style={btn('S', 'secondary')}>{busy ? <Loader2 size={14} /> : null}{t('Отключить Claude')}</button></div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{assistantGrants.map(grant => (
+              <button key={grant.client.id} type="button" onClick={() => void disconnectAssistant(grant.client.id, grant.client.name)} disabled={busy} style={btn('S', 'secondary')}>
+                {busy ? <Loader2 size={14} /> : null}{t('Отключить')} · {grant.client.name}
+              </button>
+            ))}</div>
           </>
         ) : (
           <>
             <div style={{ padding: 13, borderRadius: 14, background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, lineHeight: 1.45 }}>
-              {t('В Claude откройте Settings → Connectors → Add custom connector и вставьте адрес Искры.')}
-              <div style={{ marginTop: 8, overflowWrap: 'anywhere', color: 'var(--color-text-3)', fontFamily: 'monospace', fontSize: 11 }}>{claudeMcpUrl}</div>
+              {t('Добавьте сервер Искры в настройках MCP вашего ИИ-приложения и вставьте этот адрес.')}
+              <div style={{ marginTop: 8, overflowWrap: 'anywhere', color: 'var(--color-text-3)', fontFamily: 'monospace', fontSize: 11 }}>{mcpUrl}</div>
             </div>
-            <div><button type="button" onClick={() => void copyClaudeUrl()} style={btn('S', 'secondary')}><Copy size={14} />{copied ? t('Скопировано') : t('Скопировать адрес для Claude')}</button></div>
+            <div><button type="button" onClick={() => void copyMcpUrl()} style={btn('S', 'secondary')}><Copy size={14} />{copied ? t('Скопировано') : t('Скопировать адрес MCP')}</button></div>
             <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('После добавления подтвердите вход и доступ в окне Искры. Это можно отменить в любой момент.')}</div>
           </>
         )}
-        {claudeError && <Alert tone="danger" text={claudeError} />}
+        <div style={{ fontSize: 11, lineHeight: 1.4, color: 'var(--color-text-3)' }}>
+          {t('На этапе тестирования MCP бесплатный. О будущих условиях сообщим отдельно.')}
+        </div>
+
       </div>
     </div>
   )

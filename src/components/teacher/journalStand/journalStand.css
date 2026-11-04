@@ -82,8 +82,8 @@
 .js-toolbar-slot { container: journal-tools / inline-size; flex: none; position: relative; z-index: 4; }
 .js-toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--color-border-soft); flex: none;
   position: relative; z-index: 4; background: var(--color-bg-card); }
-.js-tabs { display: inline-grid; grid-template-columns: 60px 70px 114px; flex: none; gap: 2px; padding: 3px; }
-.js-tabs button { min-width: 0; height: 30px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; }
+.js-tabs.cj-tabs { display: inline-grid; grid-template-columns: 60px 70px minmax(114px, max-content); flex: none; gap: 2px; padding: 3px; }
+.js-tabs.cj-tabs button { font-weight: 600; min-width: 0; height: 30px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; }
 .js-tabs button svg { display: none; }
 .js-tabs button:hover, .js-scope label:hover, .js-search:hover { background: var(--color-bg-3); }
 .js-tabs button[aria-pressed='true'], .js-attention[aria-pressed='true'] { color: var(--color-accent); background: var(--color-purple-soft); }
@@ -97,28 +97,30 @@
 .js-filter-items .js-scope label { min-height: 33px; }
 .js-filter-items .js-scope select { max-width: 155px; font-size: 12px; }
 .js-filter-items .js-attention, .js-filter-trigger { min-height: 33px; padding: 5px 10px; white-space: nowrap; font-size: 12px; }
-.js-filter-trigger { display: none; }
+.js-filter-area .js-filter-trigger { display: none; }
 .js-filter-trigger[data-filtered] { color: var(--color-accent); background: var(--color-purple-soft); }
 @container (max-width: 1100px) {
   .js-filter-area { margin-inline-start: auto; }
-  .js-filter-trigger { display: inline-flex; }
+  .js-filter-area .js-filter-trigger { display: inline-flex; }
   .js-filter-items { display: none; }
   .js-filter-items[data-open] { display: flex; flex-direction: column; align-items: stretch; position: absolute; z-index: 8; right: 0; top: calc(100% + 6px);
-    min-width: 210px; padding: 12px; border-radius: 16px; background: var(--color-bg-card); box-shadow: var(--shadow-4); border: 1px solid var(--color-border-soft); }
+    width: 250px; padding: 12px; border-radius: 16px; background: var(--color-bg-card); box-shadow: var(--shadow-4); border: 1px solid var(--color-border-soft); }
   .js-filter-items .js-scope { flex-direction: column; align-items: stretch; }
   .js-filter-items .js-scope select { max-width: 240px; flex: 1; }
   .js-toolbar .js-search { margin-inline-start: 0; width: 150px; }
 }
 @container (max-width: 660px) {
   .js-toolbar { gap: 6px; padding: 8px; }
-  .js-tabs { grid-template-columns: repeat(3, 32px); }
-  .js-tabs button { padding: 0; }
+  .js-tabs.cj-tabs { grid-template-columns: 44px 44px minmax(44px, max-content); }
+  .js-tabs.cj-tabs button { padding: 0; }
   .js-tabs button svg { display: block; }
   .js-tabs button span, .js-filter-trigger span { display: none; }
-  .js-filter-trigger { width: 33px; padding: 0; }
+  .js-filter-area .js-filter-trigger { width: 44px; padding: 0; }
   .js-toolbar .js-search { width: min(125px, 20%); }
 }
 @container (max-width: 440px) {
+  .js-filter-area { position: static; }
+  .js-filter-items[data-open] { right: 4px; top: 100%; max-width: calc(100% - 8px); }
   .js-toolbar .js-search { width: 33px; height: 33px; border-radius: 50%; position: relative; }
   .js-toolbar .js-search input { position: absolute; inset: 0; opacity: 0; padding: 0 10px 0 28px; }
   .js-toolbar .js-search:focus-within { position: absolute; right: 8px; width: min(225px, 76%); border-radius: 14px; background: var(--color-bg-card); }
@@ -131,11 +133,12 @@
 .js-grid-content {
   --data-col: max(var(--work-col), calc((100cqi - var(--student-col)) / var(--grid-tracks)));
   --cell-height: 44px;
-  --cell-tracks: 20px 14px;
+  --cell-tracks: auto;
   position: relative;
   width: max(100%, calc(var(--student-col) + var(--columns) * var(--data-col)));
 }
-.js-grid-content[data-source-line] { --cell-height: 60px; --cell-tracks: 20px 14px 14px; }
+.js-matrix > .cj-note { margin: 4px 14px 8px; }
+.js-grid-content[data-source-line] { --cell-height: 60px; --cell-tracks: auto auto; }
 .js-matrix table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0;
   text-align: left; font-size: 12px; font-variant-numeric: tabular-nums; }
 .js-student-col { width: var(--student-col); }
@@ -146,17 +149,12 @@
 .js-matrix th:first-child { position: sticky; left: 0; z-index: 1; border-right: 1px solid var(--color-border-soft); }
 .js-matrix thead th:first-child { z-index: 3; }
 .js-matrix .js-grid-gutter { padding: 0; }
-.js-head-slots { display: grid; grid-template: 14px 30px 15px / minmax(0, 1fr); row-gap: 3px; }
-/* Keep every column in the table and accessibility tree, while the browser
-   skips layout/paint of content far outside this two-axis viewport. The grid
-   tracks already fix header height at 65px, so scrolling cannot change it. */
-.js-head-slots { content-visibility: auto; contain-intrinsic-block-size: auto 65px; }
+.js-head-slots { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; row-gap: 3px; }
 .js-col-meta, .js-col-source { color: var(--color-text-3); font-size: 10px; font-weight: 450; line-height: 14px; }
-.js-col-meta { grid-row: 1; }
+.js-col-meta { grid-row: 1; flex-wrap: wrap; }
 .js-col-source { grid-row: 3; }
 .js-col-source .js-source { gap: 4px; font-size: inherit; }
-.js-col-title { overflow: hidden; overflow-wrap: anywhere;
-  line-height: 15px; grid-row: 2; --iskra-text-fade-lines: 2; max-height: calc(2 * 1lh); overflow: hidden; display: block; }
+.js-col-title { overflow-wrap: anywhere; line-height: 15px; grid-row: 2; }
 .js-col-student { grid-row: 2; align-self: start; line-height: 15px; display: inline-flex; align-items: center; gap: 6px; }
 .js-col-student small { background: var(--color-bg-3); color: var(--color-text-2); padding: 1px 6px; border-radius: 99px; font-size: 10px; }
 .js-matrix td[data-upcoming] { background: color-mix(in srgb, var(--color-accent) 7%, var(--color-bg-card)); }
@@ -164,22 +162,24 @@
 .js-col-meta, .js-col-source { display: flex; align-items: center; justify-content: space-between; gap: 3px; white-space: nowrap; }
 .js-next-label { font-size: 9px; color: var(--color-text-2); font-weight: 650; }
 .js-col-source time { font-size: 9px; color: var(--color-text-2); }
-.js-next-link { grid-row: 3; justify-self: start; display: flex; align-items: center; gap: 2px; padding: 0 3px; margin-left: -3px; border: 0; border-radius: 6px; background: transparent; color: var(--color-accent); white-space: nowrap; }
+.js-next-link { grid-row: 3; justify-self: start; display: flex; align-items: center; gap: 2px; padding: 0 3px; margin-left: -3px; border: 0; border-radius: 6px; background: transparent; color: var(--color-accent); text-align: left; }
+.js-next-link svg { flex: none; }
 .js-matrix .js-next-link { font-size: 10px; }
 .js-next-link:hover { background: var(--color-purple-soft); }
 .js-name, .js-cell { color: inherit; width: 100%; border: 0; border-radius: 12px; background: transparent; text-align: left; cursor: pointer; font: inherit; }
-.js-name { display: flex; align-items: center; gap: 8px; padding: 5px 7px; font-weight: 600; height: var(--cell-height); }
-.js-name > span:last-child { white-space: nowrap; text-overflow: clip; overflow: hidden; --iskra-text-fade-lines: 1; }
+.js-name { display: flex; align-items: center; gap: 8px; padding: 5px 7px; font-weight: 600; min-height: var(--cell-height); }
+.js-name > span:last-child { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; }
 .js-name .cj-avatar, .js-pill .cj-avatar { width: 28px; height: 28px; }
 .js-cell { display: grid; grid-template: var(--cell-tracks) / minmax(0, 1fr); align-content: center; align-items: center; justify-items: start; gap: 2px; padding: 4px 8px; height: var(--cell-height); }
 .js-cell { content-visibility: auto; contain-intrinsic-block-size: auto var(--cell-height); }
 .js-cell > .cj-badge { grid-row: 1; }
-.js-cell > small { grid-row: 2; }
-.js-cell > .js-source { grid-row: 3; }
+.js-cell > small { grid-row: 1; }
+.js-cell > .js-source { grid-row: 2; }
 .js-cell small, .js-cell .js-source { color: var(--color-text-3); font-size: 10px; line-height: 13px; }
-.js-cell > small { overflow: hidden; white-space: nowrap; text-overflow: clip; max-width: 100%; --iskra-text-fade-lines: 1; }
+.js-cell > small { overflow-wrap: anywhere; }
 .js-cell .cj-badge, .js-pill .cj-badge { border-radius: 7px; padding: 3px 7px; }
-.js-name:hover, .js-cell:hover { background: var(--color-bg-3); }
+.js-cell:disabled { cursor: default; }
+.js-name:hover, .js-cell:enabled:hover { background: var(--color-bg-3); }
 .js-name[aria-pressed='true'], .js-cell[aria-pressed='true'] { background: var(--color-purple-soft); }
 .js-cell[aria-pressed='true'] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 48%, transparent); }
 .js-matrix :is(.js-name,.js-cell):focus-visible { outline-offset: -2px; }
@@ -225,7 +225,6 @@
   .js-pill-open { width: 31px; padding: 0; }
   .js-pill-open span { display: none; }
   .js-matrix-viewport { --student-col: 124px; }
-  .js-name > span:last-child { white-space: normal; line-height: 14px; --iskra-text-fade-lines: 2; max-height: calc(2 * 1lh); overflow: hidden; display: block; }
 }
 @container (max-width: 540px) {
   .js-pill-result { display: none; }
@@ -481,4 +480,15 @@
   .group-roster-toolbar .js-scope label,
   .group-roster-toolbar button { min-height: 44px; }
   .group-roster-toolbar input { font-size: 16px !important; }
+}
+
+.js-pending-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
+.js-pending-lessons { margin: 0 14px; font-size: 13px; color: var(--color-text); }
+.js-pending-lessons summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
+.js-pending-lessons p { color: var(--color-text-2); margin: 0; }
+.js-pending-lessons ul { margin: 6px 0; padding-inline-start: 20px; }
+.js-pending-lessons li { padding: 3px 0; overflow-wrap: anywhere; }
+@container (max-width: 660px) {
+  .js-tabs button:has(.js-pending-count) { padding-inline: 6px; }
+  .js-pending-lessons summary { min-height: 44px; }
 }

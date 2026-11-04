@@ -1,3 +1,4 @@
+import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { useState, useMemo } from 'react'
 import Modal from '../../components/Modal'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
@@ -16,7 +17,8 @@ import { useAllStudents, useGroups, reloadAllStudents } from '../../lib/useGroup
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
 import { useT, useTc } from '../../lib/i18n'
 import type { Student } from '../../data/teacherMockData'
-import { PAGE_WIDTH } from '../../lib/pageWidth'
+import './teacherFinances.css'
+import { PAGE_GUTTER, PAGE_WIDTH } from '../../lib/pageWidth'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -141,10 +143,7 @@ function StudentRow({
     }}>
       {/* Main row */}
       <div
-        style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '12px 16px', cursor: 'pointer',
-        }}
+        className="finance-row"
         onClick={onToggle}
       >
         {/* Avatar */}
@@ -173,7 +172,7 @@ function StudentRow({
         </div>
 
         {/* Balance chip */}
-        <div style={{
+        <div className="finance-balance" style={{
           padding: '4px 8px', borderRadius: 8,
           background: balance < 0 ? 'var(--color-red-soft)' : balance === 0 ? 'var(--color-bg-3)' : 'var(--color-green-soft)',
           fontSize: 11, fontWeight: 700,
@@ -185,7 +184,7 @@ function StudentRow({
 
         {/* Amount */}
         {student.paymentAmount ? (
-          <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 4 }}>
+          <div className="finance-amount">
             <div style={{ fontSize: 14, fontWeight: 700, color: statusColor }}>
               {fmt(student.paymentAmount)} ₽
             </div>
@@ -194,6 +193,7 @@ function StudentRow({
 
         {/* Pay button */}
         <motion.button
+          className="finance-pay"
           whileTap={{ scale: 0.95 }}
           onClick={e => { e.stopPropagation(); onPay(student) }}
           style={{
@@ -215,9 +215,9 @@ function StudentRow({
         </motion.button>
 
         {/* Expand toggle */}
-        <div style={{ color: 'var(--color-text-3)', flexShrink: 0 }}>
+        <button type="button" className="finance-details" aria-label={t('История платежей') + ': ' + tn(student.name)} aria-expanded={expanded}>
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </div>
+        </button>
       </div>
 
       {/* Payment history */}
@@ -316,8 +316,11 @@ export default function TeacherFinancesPage() {
   // Lifted under the topbar so content melts into the progressive-blur strip
   // instead of hard-clipping (shared scroll-under-topbar recipe).
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100 }}>
-      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '128px 24px 60px' }}>
+    <>
+      <TeacherPageScroll>
+      <div className="finance-page" style={{ maxWidth: PAGE_WIDTH.list,
+        '--finance-gutter': PAGE_GUTTER.desk + 'px', '--finance-phone-gutter': PAGE_GUTTER.phone + 'px',
+      } as React.CSSProperties}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -340,7 +343,7 @@ export default function TeacherFinancesPage() {
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={() => setPaying(null)}
-            style={{ height: 40,
+            style={{ minHeight: 44,
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '0 16px', borderRadius: 12,
               background: 'var(--grad-purple)', border: 'none',
@@ -353,8 +356,7 @@ export default function TeacherFinancesPage() {
         </div>
 
         {/* KPI strip */}
-        <div style={{
-          display: 'flex',
+        <div className="finance-summary" style={{
           background: 'var(--color-bg-2)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 16, overflow: 'hidden',
@@ -365,10 +367,9 @@ export default function TeacherFinancesPage() {
             { label: t('Ожидается'), value: fmt(summary.expected),  color: 'var(--color-text)',        icon: <Clock size={14} /> },
             { label: t('Долг'),      value: fmt(summary.debt),      color: 'var(--color-red-text)',    icon: <AlertCircle size={14} /> },
             { label: t('Прогноз'),   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={14} /> },
-          ].map((item, i, arr) => (
+          ].map(item => (
             <div key={item.label} style={{
               flex: 1, padding: '14px 8px', textAlign: 'center',
-              borderRight: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none',
             }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 {item.icon} {item.label}
@@ -382,7 +383,7 @@ export default function TeacherFinancesPage() {
 
         {/* Filter tabs */}
         <Segmented
-          variant="filter" value={filter} onChange={setFilter} style={{ marginBottom: 14 }}
+          variant="filter" value={filter} onChange={setFilter} style={{ marginBottom: 14, display: 'var(--finance-filter-display, inline-flex)', borderRadius: 'var(--finance-filter-radius, 999px)' }}
           items={tabs.map(tab => ({
             id: tab.id, title: tab.label,
             label: tab.count ? <>{tab.label} <CountBadge count={tab.count} tone={tab.id === 'overdue' ? 'danger' : 'accent'} /></> : tab.label,
@@ -424,6 +425,7 @@ export default function TeacherFinancesPage() {
         </div>
 
       </div>
+      </TeacherPageScroll>
 
       {/* Add payment modal */}
       <AnimatePresence>
@@ -436,6 +438,6 @@ export default function TeacherFinancesPage() {
           />
         )}
       </AnimatePresence>
-    </div>
+    </>
   )
 }

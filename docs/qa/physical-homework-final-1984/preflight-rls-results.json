@@ -1,0 +1,16 @@
+[
+  {
+    "side": "A",
+    "expectedStudentId": "f08e004e-913d-46f9-906e-25f6f1b40cfc",
+    "expectedOwnerId": "332728d6-50b8-4ae1-8367-77c1065fb19c",
+    "expectedHomeworkId": "ca551db3-b44a-424b-bc27-ae0c3d39e8dd",
+    "rlsOwnAndOther": "PASS"
+  },
+  {
+    "side": "B",
+    "expectedStudentId": "e713ad41-30e8-4fa0-b03a-401cd778e2ca",
+    "expectedOwnerId": "6b54ec96-d12a-4c1f-bc61-dcb8d6192066",
+    "expectedHomeworkId": "9606e24e-4330-41a2-b0ba-a127f3c0f7d1",
+    "rlsOwnAndOther": "PASS"
+  }
+]

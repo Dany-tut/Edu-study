@@ -1,0 +1,44 @@
+.teacher-roster-card-wrap,
+.teacher-roster-card-wrap > div,
+.teacher-roster-viewport {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.teacher-roster-card-wrap {
+  flex: 1 0 auto;
+  min-height: min-content;
+}
+
+.teacher-roster-card-wrap > div {
+  flex: 1 1 auto;
+  min-height: min-content;
+}
+
+.teacher-roster-card-wrap > div > :first-child {
+  flex-shrink: 0;
+}
+
+.teacher-roster-viewport {
+  --student-col: 0px;
+  position: relative;
+  isolation: isolate;
+  contain: size;
+  flex: 1 1 auto;
+  min-height: 96px;
+}
+
+.teacher-roster-scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.teacher-roster-scroll thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-bg-2);
+}

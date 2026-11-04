@@ -107,11 +107,12 @@ export function useStudentPrefsSync() {
     if (!session?.id) return
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
-      supabase
-        .from('students')
-        .update({ preferences: { avatarId, widgetColumns, widgetOrder, knownWidgetIds: DEFAULT_WIDGET_ORDER, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors } })
-        .eq('id', session.id)
-        .then(() => {})
+      void supabase.rpc('save_student_preferences', {
+        p_student: session.id,
+        p_preferences: { avatarId, widgetColumns, widgetOrder, knownWidgetIds: DEFAULT_WIDGET_ORDER, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors },
+      }).then(({ error }) => {
+        if (error) console.warn('Student preferences sync failed:', error.code)
+      })
     }, 1500)
   }, [avatarId, widgetColumns, widgetOrder, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors])
 }

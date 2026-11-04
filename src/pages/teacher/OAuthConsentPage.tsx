@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Check, Lock, Sparkles, X } from '../../components/icons/appIcons'
+import { Check, Lock, Sparkles } from '../../components/icons/appIcons'
 import IskraMark from '../../components/landing/IskraMark'
+import { ModalClose } from '../../components/Modal'
 import TeacherLoginPage from './TeacherLoginPage'
 import { supabase } from '../../lib/supabase'
 
@@ -27,18 +28,18 @@ export default function OAuthConsentPage() {
       if (!alive) return
       if (roleError || staff !== true) {
         setSignedIn(true)
-        setProblem('Подключить Claude можно только из аккаунта преподавателя Искры.')
+        setProblem('Подключить ИИ-приложение можно только из аккаунта преподавателя Искры.')
         return
       }
       setSignedIn(true)
       if (!authorizationId) {
-        setProblem('В ссылке подключения нет запроса авторизации. Вернитесь в Claude и начните подключение ещё раз.')
+        setProblem('В ссылке подключения нет запроса авторизации. Вернитесь в приложение и начните подключение ещё раз.')
         return
       }
       const { data, error } = await supabase.auth.oauth.getAuthorizationDetails(authorizationId)
       if (!alive) return
       if (error || !data) {
-        setProblem('Запрос подключения истёк или уже закрыт. Начните подключение Искры в Claude ещё раз.')
+        setProblem('Запрос подключения истёк или уже закрыт. Начните подключение Искры в приложении ещё раз.')
         return
       }
       if ('redirect_url' in data) {
@@ -61,7 +62,7 @@ export default function OAuthConsentPage() {
       ? await supabase.auth.oauth.approveAuthorization(authorizationId, { skipBrowserRedirect: true })
       : await supabase.auth.oauth.denyAuthorization(authorizationId, { skipBrowserRedirect: true })
     if (result.error || !result.data?.redirect_url) {
-      setProblem('Не удалось завершить подключение. Вернитесь в Claude и попробуйте ещё раз.')
+      setProblem('Не удалось завершить подключение. Вернитесь в приложение и попробуйте ещё раз.')
       setBusy(false)
       return
     }
@@ -84,10 +85,11 @@ export default function OAuthConsentPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
           <IskraMark size={40} />
           <div style={{ fontSize: 14, fontWeight: 700 }}>Искра · подключение приложения</div>
+          {!problem && details && <ModalClose onClose={() => void decide(false)} style={{ marginLeft: 'auto' }} />}
         </div>
         {problem ? (
           <>
-            <h1 style={{ fontSize: 22, lineHeight: 1.2, margin: '0 0 10px' }}>Не получилось подключить Claude</h1>
+            <h1 style={{ fontSize: 22, lineHeight: 1.2, margin: '0 0 10px' }}>Не получилось подключить приложение</h1>
             <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-3)', margin: '0 0 20px' }}>{problem}</p>
             <button type="button" onClick={() => { window.location.href = '/#/teacher' }} style={primaryButton}>Перейти в Искру</button>
           </>
@@ -102,7 +104,7 @@ export default function OAuthConsentPage() {
                 <div style={{ marginTop: 2, fontSize: 12, color: 'var(--color-text-3)' }}>Запрашивает доступ к Искре</div>
               </div>
             </div>
-            <h1 style={{ fontSize: 23, lineHeight: 1.22, margin: '0 0 8px' }}>Разрешить Claude работать в вашем кабинете?</h1>
+            <h1 style={{ fontSize: 23, lineHeight: 1.22, margin: '0 0 8px' }}>Разрешить {details.client.name} работать в вашем кабинете?</h1>
             <p style={{ margin: '0 0 18px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-3)' }}>Доступ получит аккаунт преподавателя, который сейчас вошёл в Искру.</p>
             <div style={{ padding: 16, display: 'grid', gap: 12, borderRadius: 18, background: 'var(--color-bg-3)' }}>
               {[
@@ -113,10 +115,10 @@ export default function OAuthConsentPage() {
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '14px 0 18px', padding: 14, borderRadius: 16, background: 'var(--color-purple-soft)', color: 'var(--color-accent)' }}>
               <Lock size={16} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Claude не сможет открыть кабинеты других преподавателей, публиковать курсы или выдавать их ученикам. Доступ можно отозвать в профиле Искры.</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>Приложение не сможет открыть кабинеты других преподавателей, публиковать курсы или выдавать их ученикам. Доступ можно отозвать в профиле Искры.</span>
             </div>
             <button type="button" disabled={busy} onClick={() => void decide(true)} style={{ ...primaryButton, opacity: busy ? 0.65 : 1 }}>{busy ? 'Подключаем…' : 'Разрешить доступ'}</button>
-            <button type="button" disabled={busy} onClick={() => void decide(false)} style={{ width: '100%', marginTop: 10, padding: 10, border: 0, background: 'transparent', color: 'var(--color-text-3)', font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><X size={14} style={{ verticalAlign: -2, marginRight: 4 }} />Не сейчас</button>
+            <button type="button" disabled={busy} onClick={() => void decide(false)} style={{ width: '100%', minHeight: 44, marginTop: 8, padding: 10, border: 0, background: 'transparent', color: 'var(--color-text-3)', font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Не сейчас</button>
           </>
         )}
       </section>

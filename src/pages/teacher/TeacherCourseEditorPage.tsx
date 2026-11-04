@@ -1,3 +1,4 @@
+import './lessonRow.css'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
@@ -38,6 +39,7 @@ import { useGroups, useAllStudents, groupStudentsByPerson, type PersonRow } from
 import { ensureCardFillTask } from '../../lib/cardFillTask'
 import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
+import RecordingLinkForm from '../../components/teacher/RecordingLinkForm'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
 import TestlyPicker, { testlyRef } from '../../components/teacher/TestlyPicker'
@@ -104,7 +106,11 @@ type HWTaskType = TaskTypeId
 type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
 
 
+import { TranscriptionAction, useTranscriptionOwner } from '../../components/teacher/LocalTranscription'
+import { readTranscript, type LessonTranscript } from '../../lib/localTranscription'
+
 export interface CELesson {
+  transcript?: LessonTranscript
   id: string
   title: string
   number: number
@@ -1646,14 +1652,19 @@ function TimecodeRail({
 }
 
 function CenterRecording({
-  lesson, onUpdate,
+  lesson, onUpdate, onSaveLink, saveUnavailable, courseKey, published, loading,
 }: {
   lesson: CELesson
+  onSaveLink: (url: string) => Promise<boolean>
+  saveUnavailable?: string
+  courseKey: string
+  loading: boolean
+  published: boolean
   onUpdate: (updated: CELesson) => void
 }) {
   const t = useT()
+  const owner = useTranscriptionOwner()
   const [linkMode, setLinkMode] = useState(false)
-  const [videoUrl, setVideoUrl] = useState(lesson.videoUrl ?? '')
 
   // Плеер прямо в редакторе: главу ставят с текущей секунды ролика, а не
   // переписывают время из соседнего окна. Прогресс просмотра учителя никуда не
@@ -1689,7 +1700,7 @@ function CenterRecording({
               </span>
             )}
           </div>
-          <button onClick={() => { setVideoUrl(lesson.videoUrl ?? ''); setLinkMode(true) }}
+          <button onClick={() => setLinkMode(true)}
             style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
             {t('Изменить')}
           </button>
@@ -1773,29 +1784,8 @@ function CenterRecording({
     )
   }
 
-  if (linkMode) {
-    return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-        <div style={{ width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Label>{t('Ссылка на запись')}</Label>
-          <input
-            value={videoUrl}
-            onChange={e => setVideoUrl(e.target.value)}
-            placeholder={t('Вставьте ссылку RuTube / YouTube / Google Диск')}
-            style={{ ...inputSt, fontSize: 14, padding: '12px 16px' }}
-            autoFocus
-          />
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setLinkMode(false)}
-              style={btn('M', 'secondary')}>
-              {t('Отмена')}
-            </button>
-            <TeacherSaveButton label={t('Сохранить')} onClick={() => { onUpdate({ ...lesson, videoUrl }); setLinkMode(false) }} style={{ flex: 1 }} />
-          </div>
-        </div>
-      </div>
-    )
-  }
+  if (linkMode) return <RecordingLinkForm initialUrl={lesson.videoUrl ?? ''} onSave={onSaveLink}
+    onClose={() => setLinkMode(false)} unavailable={saveUnavailable} />
 
   return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1828,6 +1818,9 @@ function CenterRecording({
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      {!loading && <TranscriptionAction key={lesson.id} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} published={published}
+        existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
+        onApply={({ transcript, timecodes }) => { onUpdate({ ...lesson, videoUrl: transcript.source, transcript, timecodes }) }} />}
       {content}
     </div>
   )
@@ -4827,13 +4820,11 @@ function LessonRow({
       </span>
       {/* Open-for-students badge */}
       {isOpen && (
-        <span title={t('Открыт ученикам')} style={{
-          display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-          padding: '2px 8px 2px 6px', borderRadius: 999,
-          background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
-          fontSize: 10, fontWeight: 700,
-        }}>
-          <Unlock size={12} strokeWidth={2.5} /> {t('Открыт')}
+        <span className="lesson-row-open" title={t('Открыт ученикам')} aria-label={t('Открыт ученикам')}>
+          <Unlock size={12} strokeWidth={2.5} aria-hidden="true" />
+          <span className="lesson-row-open-label" aria-hidden="true">
+            <span><span style={{ paddingLeft: 4 }}>{t('Открыт')}</span></span>
+          </span>
         </span>
       )}
       {/* Multi-select check → checkmark; selected → trash; otherwise indicator dots */}
@@ -4849,15 +4840,23 @@ function LessonRow({
         </div>
       ) : selected ? (
         <div
+          className="lesson-row-delete"
           role="button"
+          tabIndex={0}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              e.stopPropagation()
+              onDelete()
+            }
+          }}
           aria-label={t('Удалить')}
           title={t('Удалить')}
           onClick={e => { e.stopPropagation(); onDelete() }}
           style={{
-            width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+            height: 22, borderRadius: 6, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--color-red-text)', background: 'rgba(192,48,58,0.12)', cursor: 'pointer',
-            transition: 'background 0.15s',
           }}
           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(192,48,58,0.2)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'rgba(192,48,58,0.12)')}
@@ -5570,6 +5569,7 @@ export default function TeacherCourseEditorPage() {
             const hw = row.homework ?? {}
             return {
               ...l,
+              transcript: l.transcript ?? readTranscript(row.content?.transcript),
               theory: l.theory ?? (theory.theory || undefined),
               theoryImages: l.theoryImages ?? theory.images,
               files: l.files ?? parseLessonFiles(row.materials),
@@ -5864,8 +5864,19 @@ export default function TeacherCourseEditorPage() {
   // Полчаса работы жили в sessionStorage и пропадали при выходе из вкладки.
   // Пишем черновиком, как только у курса есть название; первый рендер у такого
   // курса не пропускаем — курс, поднятый из черновика сессии, сохраняется сразу.
+  // Explicit link saves use the same draft bookkeeping and serial write queue.
+  const linkSave = useRef<((ok: boolean) => void) | null>(null)
   const autosaveArmed = useRef(false)
   useEffect(() => {
+    const finishLink = linkSave.current
+    if (finishLink) {
+      linkSave.current = null
+      autosaveArmed.current = true
+      unsaved.current = true
+      setCourseEdited(JSON.stringify(course))
+      runAutosave(course).then(finishLink, () => finishLink(false))
+      return
+    }
     // Курс ещё догружается — писать нечего: сохранение идёт целиком и затёрло
     // бы конспекты с домашками, которых пока нет в состоянии.
     if (course.heavyPending || publicationPending) return
@@ -6289,7 +6300,9 @@ export default function TeacherCourseEditorPage() {
       // Конспект → lessons.content.paragraphs, откуда его читает вкладка
       // «Конспект» у ученика. Пустой конспект пишем как {}, чтобы не затирать
       // содержимое, заведённое другим путём, пустым массивом абзацев.
-      content: lesson.theory?.trim()
+      content: {
+        ...(lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript } : {}),
+        ...(lesson.theory?.trim()
         ? {
             paragraphs: theoryToParagraphs(
               lesson.theory,
@@ -6297,7 +6310,8 @@ export default function TeacherCourseEditorPage() {
               shortIdByLessonId[lesson.id] ?? lesson.id,
             ),
           }
-        : {},
+        : {}),
+      },
       kind: lesson.kind ?? 'lesson',
       test_tasks: lesson.testTasks ?? [],
       // Файлы урока: сами объекты уже в бакете lesson-materials, здесь — их
@@ -6349,6 +6363,7 @@ export default function TeacherCourseEditorPage() {
       // already match their short_id.
       const idChanged = c.lessons.some(l => shortIdByLessonId[l.id] && shortIdByLessonId[l.id] !== l.id)
       if (idChanged) {
+        setSelectedLessonId(id => id ? shortIdByLessonId[id] ?? id : id)
         setCourse(prev => ({
           ...prev,
           lessons: prev.lessons.map(l => shortIdByLessonId[l.id] ? { ...l, id: shortIdByLessonId[l.id] } : l),
@@ -7187,9 +7202,16 @@ export default function TeacherCourseEditorPage() {
                         смене урока, но не запускает анимацию выхода. */}
                     {lessonMode === 'recording' && (
                       <CenterRecording
-                        key={selectedLesson.id}
+                        courseKey={course.id} loading={!!(course.metadataPending || course.heavyPending)} published={course.status === 'published'}
+                        key={lessonShortIdById[selectedLesson.id] ?? selectedLesson.id}
                         lesson={selectedLesson}
                         onUpdate={updateLesson}
+                        saveUnavailable={course.metadataPending || course.heavyPending || publicationPending
+                          ? t('Подождите немного') : !course.dbCourseId && !course.title.trim() ? t('Сначала укажите название курса.') : undefined}
+                        onSaveLink={url => new Promise<boolean>(resolve => {
+                          linkSave.current = resolve
+                          setCourse(c => ({ ...c, lessons: c.lessons.map(l => l.id === selectedLesson.id ? { ...l, videoUrl: url } : l) }))
+                        })}
                       />
                     )}
                     {lessonMode === 'lesson' && (

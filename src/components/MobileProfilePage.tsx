@@ -361,7 +361,7 @@ export default function MobileProfilePage() {
                 style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
-                  {t('В кабинет преподавателя')}
+                  {t('В кабинет препода')}
                 </span>
                 <ChevronRight size={18} style={{ color: 'var(--color-accent)' }} />
               </motion.button>}
@@ -453,7 +453,7 @@ export default function MobileProfilePage() {
                 style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
-                  {t('В кабинет преподавателя')}
+                  {t('В кабинет препода')}
                 </span>
                 <ChevronRight size={18} style={{ color: 'var(--color-accent)' }} />
               </motion.button>}

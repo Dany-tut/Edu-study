@@ -37,6 +37,7 @@ export interface Lesson {
   /** Quiz tasks for a test node (kind === 'test'). */
   testTasks?: TestTask[]
   /** DB-authored konspekt + homework override (from lessons.content). */
+  transcript?: import('../lib/localTranscription').LessonTranscript
   content?: import('./lessonContent').LessonContentData
   /** Teacher-authored homework from the course editor's «Домашки» tab
    *  (lessons.homework JSONB). When set with tasks, the student homework page

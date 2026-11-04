@@ -1,0 +1,3 @@
+PASS: stale drafts, explicit add/remove, queued saves, in-flight reversal, modes, new-course audience
+PASS: new-course grants survive partial-save retries and metadata loading
+PASS: PostgreSQL concurrency, stale-client guards, explicit revocation, group overlap, mode/order preservation, transaction rollback, teacher isolation

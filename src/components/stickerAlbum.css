@@ -1,0 +1,31 @@
+.ihw-card[data-home-widget="8"] { background:var(--color-bg-card); }
+.sticker-fan {
+  position:absolute; top:2%; right:3%; width:min(43%,210px); height:74%;
+  container-type:size;
+}
+.sticker-cutout { position:absolute;right:0;top:2%;width:min(70cqw,92cqh,128px);aspect-ratio:1;transform:rotate(9deg); }
+.sticker-cutout:has(+.sticker-cutout) { right:30%;top:9%;z-index:1;transform:rotate(-9deg); }
+.sticker-cutout > div { max-width:100%;max-height:100%; }
+.album-stage {
+  position:relative;text-align:center;display:grid;justify-items:center;align-content:center;padding:14px 18px 20px;border-radius:16px;
+  color:var(--color-text);background:radial-gradient(var(--color-border) .8px,transparent 1px) 0 0 / 11px 11px,var(--color-bg-3);
+}
+.album-serial,.album-position {font-size:12px;color:var(--color-text-3);font-variant-numeric:tabular-nums;}
+.album-serial {display:flex;justify-content:space-between;width:100%;}
+.album-caption { min-width:0;overflow-wrap:anywhere; }
+.album-stage h3 {font-size:24px;line-height:1.2;letter-spacing:-.035em;margin:0 0 4px;font-weight:700;}
+.album-stage p,.album-stage time {font-size:13px;line-height:1.45;margin:0;}
+.album-stage time {display:block;color:var(--color-text-3);font-size:11px;margin-top:4px;}
+.album-strip {display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:10px;}
+.album-strip button {flex:none;display:grid;place-items:center;width:74px;height:74px;background:var(--color-bg-3);border:1px solid var(--color-border);border-radius:12px;cursor:pointer;}
+.album-strip button[aria-pressed=true] {border-color:var(--color-accent);box-shadow:inset 0 0 0 1px var(--color-accent);background:var(--color-purple-soft);}
+.album-position {flex:none;color:var(--color-text-3);white-space:nowrap;}
+.album-empty {padding:40px 18px;}
+@media(max-width:500px) { .iskra-modal-card:has(.sticker-album,.album-empty) button[aria-label]:not(.album-strip button) {min-width:44px;min-height:44px;} }
+
+.holo-mobile-shelf { border-radius:20px;padding:2px 16px 8px;background:var(--color-bg-card);border:1px solid var(--color-border-glass);box-shadow:var(--shadow-3); }
+@media(max-height:620px) {
+  .album-stage { padding:10px 12px; }
+  .album-stage > div:has(>canvas) { width:178px!important;height:178px!important; }
+  .album-stage > div:has(>canvas) > div > div { max-width:130px;max-height:130px; }
+}

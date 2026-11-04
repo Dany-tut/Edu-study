@@ -1,0 +1,8 @@
+{
+  "base": "1d80bf3081f9ba4b518e5a91a6988c07568145ad",
+  "sources": {
+    "src/components/landing/IskraMark.tsx": "e004b1806ee8956cd99ef4928a0757e438437d9e59a95216e53bbeb1f988df32",
+    "src/components/AuthRoleHeader.tsx": "4fc00cab23a14d2063b9f37df43d09750869228671e86be8bc0fc8bc9a29839a",
+    "src/pages/teacher/TeacherLoginPage.tsx": "da740037cd6990a3e6f3771cd5fe2d674eabaf48ad635fb5c3698fb24fccd0eb"
+  }
+}

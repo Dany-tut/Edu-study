@@ -1,3 +1,5 @@
+import { studentIdFromTeacherHash } from '../lib/teacherStudentRoute'
+import { useDeskStore } from './deskStore'
 import { create } from 'zustand'
 import { confirmDialog } from '../components/ConfirmHost'
 import { t } from '../lib/i18n'
@@ -96,6 +98,7 @@ type TeacherStore = {
   clearPendingGradebookLesson: () => void
   // Course editor — JSON-serialized course data passed between constructor and editor pages
   editingCourseJson: string | null
+  openDeskEditor: () => void
   openCourseEditor: (courseJson: string) => void
   courseEditedJson: string | null
   setCourseEdited: (json: string | null) => void
@@ -142,7 +145,7 @@ type TeacherStore = {
   setSelectedGroupId: (id: string | null) => void
   selectedStudentId: string | null
   setSelectedStudentId: (id: string | null) => void
-  openStudentDashboard: (studentId: string, groupId: string) => void
+  openStudentDashboard: (studentId: string, groupId: string | null) => void
   tasks: TeacherTask[]
   tasksLoaded: boolean
   loadTasks: () => Promise<void>
@@ -195,7 +198,7 @@ function clearCardsSession() {
   try { sessionStorage.removeItem(CARDS_SESSION_KEY) } catch { /* unavailable — non-fatal */ }
 }
 
-// Per-tab navigation snapshot. Context-heavy sub-pages (student dashboard, HW
+// Per-tab navigation snapshot. Context-heavy sub-pages (HW
 // review, HW composer, hard review, lesson editor) have no URL hash of their own,
 // so on refresh we restore both the page AND the ids those pages need to re-fetch.
 // sessionStorage is per-tab, so a fresh tab / deep-link starts clean and honours
@@ -235,8 +238,10 @@ function writeNav(s: TeacherStore) {
 }
 
 const _nav = readNav()
+const linkedStudent = studentIdFromTeacherHash(window.location.hash)
 
 function initialPage(): TeacherPage {
+  if (linkedStudent) return 'student'
   if (readEditorSession()) return 'course-editor'
   if (readCardsSession()) return 'cards-editor'
   // The per-tab snapshot is the freshest record of where this tab was.
@@ -283,6 +288,11 @@ export const useTeacher = create<TeacherStore>(set => ({
   openGradebook: scheduleId => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) }),
   clearPendingGradebookLesson: () => set({ pendingGradebookLessonId: null }),
   editingCourseJson: readEditorSession(),
+  openDeskEditor: () => whenMayLeave(() => {
+    clearEditorSession(); clearCardsSession()
+    set({ activePage: 'home', headerDocked: false, pendingGroupForm: null })
+    useDeskStore.getState().setEditMode(true)
+  }),
   openCourseEditor: courseJson => {
     clearCardsSession()
     try { sessionStorage.setItem(EDITOR_SESSION_KEY, courseJson) } catch { /* non-fatal */ }
@@ -328,9 +338,9 @@ export const useTeacher = create<TeacherStore>(set => ({
   openHardReview: hardId => set({ reviewingHardId: hardId, activePage: 'hard-review', headerDocked: false }),
   reviewIdx: 0,
   setReviewIdx: idx => set({ reviewIdx: idx }),
-  selectedGroupId: _nav?.selectedGroupId ?? null,
+  selectedGroupId: linkedStudent ? null : _nav?.selectedGroupId ?? null,
   setSelectedGroupId: id => set({ selectedGroupId: id }),
-  selectedStudentId: _nav?.selectedStudentId ?? null,
+  selectedStudentId: linkedStudent ?? _nav?.selectedStudentId ?? null,
   setSelectedStudentId: id => set({ selectedStudentId: id }),
   openStudentDashboard: (studentId, groupId) => set({ activePage: 'student', selectedStudentId: studentId, selectedGroupId: groupId, headerDocked: false }),
   // Tasks are per-teacher and persisted in the `teacher_tasks` table, scoped by
