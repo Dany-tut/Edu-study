@@ -10,7 +10,7 @@ const LessonMontageEditor = lazy(() => import('./LessonMontageEditor'))
 
 /** Кнопка «Монтаж записи» в инструментах расшифровки и само окно. Результат —
  *  в черновик расшифровки (говорящие, реплики, решения по паузам); в урок он
- *  попадает обычной кнопкой «Сохранить расшифровку». Видео не перекодируется. */
+ *  попадает обычной кнопкой «Сохранить». Видео не перекодируется. */
 export default function MontageAction({ draft, change, disabled, file, token, trend }: { draft: LocalDraft; change: (value: LocalDraft) => void; disabled?: boolean; file?: File | null; token?: string
   trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }) {
   const [open, setOpen] = useState(false)
