@@ -1,0 +1,22 @@
+{
+  "functionVersion": 2,
+  "metadataStatus": 200,
+  "metadata": {
+    "resource": "https://igsdwvwiqnozgwczzycx.supabase.co/functions/v1/iskra-mcp",
+    "authorization_servers": [
+      "https://igsdwvwiqnozgwczzycx.supabase.co/auth/v1"
+    ],
+    "bearer_methods_supported": [
+      "header"
+    ]
+  },
+  "cors": "*",
+  "anonymousStatus": 401,
+  "challenge": "Bearer resource_metadata=\"https://igsdwvwiqnozgwczzycx.supabase.co/functions/v1/iskra-mcp/oauth-protected-resource\"",
+  "oauthDiscoveryStatus": 200,
+  "issuer": "https://igsdwvwiqnozgwczzycx.supabase.co/auth/v1",
+  "dynamicRegistration": "https://igsdwvwiqnozgwczzycx.supabase.co/auth/v1/oauth/clients/register",
+  "jwtAlgorithms": [
+    "ES256"
+  ]
+}

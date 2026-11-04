@@ -1,0 +1,17 @@
+{
+  "scope": "Production, isolated synthetic group; assignment via teacher API, registration/submission/review via UI",
+  "results": [
+    {
+      "name": "Student opens invitation and registers through UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh login with profile 503 shows error, preserves inputs, commits no shared Auth",
+      "status": "PASS"
+    },
+    {
+      "name": "Retry uses the expected synthetic student ID",
+      "status": "PASS"
+    }
+  ]
+}

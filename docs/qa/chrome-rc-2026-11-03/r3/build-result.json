@@ -1,0 +1,45 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "codex/ios-password-acceptance-1103-r3",
+    "environment": "local",
+    "commit": "cb78452a106da2d52df02ba9f5647aca0e709160",
+    "build": 1930,
+    "version": "1.0.1930"
+  },
+  "originalFrozenFilesSHA256": {
+    "version.json": "9c8d6b2e2937d4a76d0e0e9aa335378f9a2645b9b4e49092baa3c8b571490e45",
+    "index.html": "c0b9ff4827ba1acb4c82d1bcfd66cd1956897dd8ee15b98155dd6420f8c04edd",
+    "release.json": "5073dbf230a3524d8153a495d10b242d314ecdbf63d4eaec918123abd58fd1fe",
+    "assets/TeacherLoginPage-5us2f4cn.js": "af221bca3ba9b7078dbb76cbd7ec20564073a052e031748f500bf148189cc3e3"
+  },
+  "results": {
+    "form": "PASS",
+    "formSeconds": 28.521,
+    "motionEvidenceSeconds": 1.47,
+    "cleanupSeconds": 1.351,
+    "passwordAXFrame": [
+      49,
+      371,
+      304,
+      55
+    ],
+    "eyeAXFrame": [
+      304,
+      376,
+      45,
+      45
+    ],
+    "keyboardHideTop": 480.6666667,
+    "scrollEmailY": [
+      427,
+      190
+    ],
+    "rafFrames": 890,
+    "submit": false,
+    "serverStopped": true,
+    "notificationBannerAfterSeconds": 21.28,
+    "artifactRedaction": "video and late scroll PNG top140pt masked"
+  },
+  "testBundle": "/tmp/iskra-chrome-rc.twnxA6/chrome-r3.xcresult"
+}

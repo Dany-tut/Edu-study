@@ -1,0 +1,23 @@
+{
+  "namespace": "physical-final-1793694352083",
+  "cases": {
+    "A": {
+      "teacherId": "332728d6-50b8-4ae1-8367-77c1065fb19c",
+      "studentAuthId": "05b957c3-950a-4c23-b6fa-c2ea367a9145",
+      "studentId": "f08e004e-913d-46f9-906e-25f6f1b40cfc",
+      "groupId": "5f69e0e6-1ef2-43cf-afc0-0755cc819210",
+      "homeworkId": "ca551db3-b44a-424b-bc27-ae0c3d39e8dd",
+      "ref": "hw-ca551db3-b44a-424b-bc27-ae0c3d39e8dd",
+      "marker": "A"
+    },
+    "B": {
+      "teacherId": "6b54ec96-d12a-4c1f-bc61-dcb8d6192066",
+      "studentAuthId": "1dc2e828-11a8-4b78-ab63-e01e979567ea",
+      "studentId": "e713ad41-30e8-4fa0-b03a-401cd778e2ca",
+      "groupId": "73c82971-ee42-4016-83db-22db6c17c633",
+      "homeworkId": "9606e24e-4330-41a2-b0ba-a127f3c0f7d1",
+      "ref": "hw-9606e24e-4330-41a2-b0ba-a127f3c0f7d1",
+      "marker": "B"
+    }
+  }
+}

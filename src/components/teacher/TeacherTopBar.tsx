@@ -1,5 +1,6 @@
 import { useOpenStudentCabinet } from '../../lib/useOpenStudentCabinet'
 import type { FriendsModel, FriendsTab } from '../../lib/desktopFriends'
+import { useTeacherGuides } from './guides/TeacherGuides'
 import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownSurface } from '../../lib/dropdownStyle'
@@ -83,12 +84,14 @@ const quickActions: QuickItem[] = [
 ]
 
 export default function TeacherTopBar({ friends }: { friends: FriendsModel }) {
+  const teacherGuides = useTeacherGuides()
   const t = useT()
   const { tc, tn } = useTc()
   const [collapsed, setCollapsed]     = useState(false)
   const [addOpen, setAddOpen]         = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const studentCabinet = useOpenStudentCabinet(profileOpen)
+  useEffect(() => { if (profileOpen) teacherGuides?.enter('profile') }, [profileOpen, teacherGuides?.enter])
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
   const pendingJournals = useJournalPending(null)

@@ -1,0 +1,20 @@
+{
+  "sourceSha": "3e5bcfafac605ef72794ae9690c4a729c6488dde",
+  "status": "FAIL",
+  "scope": "native student login -> learner cabinet",
+  "authentication": {
+    "requestJson": true,
+    "emailMatchesFixture": true,
+    "passwordMatchesFixture": true,
+    "httpStatus": 200
+  },
+  "expected": "Learner cabinet with Diary, owned assignment A and no B",
+  "actual": "Native role chooser: С чего начнём? / Я препод / Я ученик",
+  "sourceCause": [
+    "StudentLoginPage success writes #/",
+    "App native root unconditionally renders NativeEntry"
+  ],
+  "remainingHomeworkFlow": "BLOCKED by route; no homework submitted",
+  "privateResult": "/tmp/iskra-physical-rc1925/R6VerifiedStudentLogin.xcresult",
+  "privateRecordingContainsCredentials": true
+}

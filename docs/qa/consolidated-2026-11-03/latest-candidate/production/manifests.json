@@ -1,0 +1,16 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "36e89f59b3de5a2f790af5c47ca362b13c0fdf19",
+    "build": 1944,
+    "version": "1.0.1944"
+  },
+  "version": {
+    "build": 1944,
+    "version": "1.0.1944",
+    "stamped": "2026-11-03T06:21:50Z",
+    "commit": "36e89f59b3de5a2f790af5c47ca362b13c0fdf19"
+  }
+}

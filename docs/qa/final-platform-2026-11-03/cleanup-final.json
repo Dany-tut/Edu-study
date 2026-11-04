@@ -1,0 +1,57 @@
+{
+  "scope": "Only exact fixture UUIDs from final classroom/return/finance/journal cleanup files; no broad queries or real account deletion",
+  "authUsers": 6,
+  "authRemaining": 0,
+  "results": [
+    {
+      "table": "students",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "groups",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "courses",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "payments",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "lesson_progress",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "lesson_attendance",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "teacher_lesson_sessions",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "schedule_lessons",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "notifications",
+      "remaining": 0,
+      "status": "PASS"
+    },
+    {
+      "table": "profiles",
+      "remaining": 0,
+      "status": "PASS"
+    }
+  ]
+}

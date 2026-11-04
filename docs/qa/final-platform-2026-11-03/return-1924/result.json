@@ -1,0 +1,54 @@
+{
+  "scope": "Production real Auth/DB/Storage. Assignment fixture via teacher API; student signup/submit/return/resubmit and teacher review via UI; two attempts preserved; drafts same-browser localStorage",
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "c29519cb0dfc9bca3d7f754e39d42b0b1e20dcfb",
+    "build": 1924,
+    "version": "1.0.1924"
+  },
+  "results": [
+    {
+      "name": "Student opens invitation and registers through UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Student opens assigned homework, writes answers and reloads local draft",
+      "status": "PASS"
+    },
+    {
+      "name": "Browser submission persists one pending manual attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher logs in, opens live review and sees original answers",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher returns the first attempt with actionable feedback",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh student session edits returned work and submits a distinct attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher opens the new attempt and sees the revised answer",
+      "status": "PASS"
+    },
+    {
+      "name": "Teacher publishes 90 percent and a comment through UI",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh student login shows published result, comment and historical answers",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload keeps the new result and both distinct historical attempts",
+      "status": "PASS"
+    }
+  ],
+  "productionModified": true
+}

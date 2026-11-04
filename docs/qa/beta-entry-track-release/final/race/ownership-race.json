@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "scope": "Actual frozen production UI, real local Auth/profile responses; A delayed until after B succeeds",
+  "expected": {
+    "A": {
+      "studentId": "fd6962a4-2bb8-45be-8db6-79f70304a366",
+      "authId": "4fda58cc-4d84-4e0b-a47e-0df7995628fd"
+    },
+    "B": {
+      "studentId": "6d454c6b-ad3c-43df-9009-763c9bdc88a0",
+      "authId": "1f3d6c3d-1d05-43bf-93dc-de782ce9c378"
+    }
+  },
+  "observed": {
+    "A": {
+      "count": 1,
+      "id": "fd6962a4-2bb8-45be-8db6-79f70304a366"
+    },
+    "B": {
+      "count": 1,
+      "id": "6d454c6b-ad3c-43df-9009-763c9bdc88a0"
+    },
+    "writes": [
+      {
+        "kind": "auth",
+        "id": "1f3d6c3d-1d05-43bf-93dc-de782ce9c378",
+        "at": 1793682527016.2
+      },
+      {
+        "kind": "student",
+        "id": "6d454c6b-ad3c-43df-9009-763c9bdc88a0",
+        "at": 1793682527016.5
+      }
+    ],
+    "final": {
+      "studentId": "6d454c6b-ad3c-43df-9009-763c9bdc88a0",
+      "authId": "1f3d6c3d-1d05-43bf-93dc-de782ce9c378"
+    }
+  },
+  "mutation": false
+}

@@ -9,6 +9,7 @@ import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
 import { useT, t, useTc } from '../../lib/i18n'
+import HomeworkAttemptHistorySection from '../../components/HomeworkAttemptHistorySection'
 import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 import type { BasicAnswerRow, BasicAnswersPayload } from '../../lib/basicAnswers'
 import { useAiGrades, confirmAiGrade, requestAiGrade, type AiGrade, type AiRequestResult } from '../../lib/useAiGrades'
@@ -392,6 +393,12 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
             {currentSubmission?.comment&&<p className="hr-submission-comment">{currentSubmission.comment}</p>}
             {currentAnswers?(showAiReview?currentAnswers.rows.map(row=>{const task=aiGrade?.tasks.find(task=>task.n===row.n);return <div key={row.n} className="aic-answer-block" ref={row.n===(aiGrade?.tasks.find(task=>task.points<task.max_points)?.n??1)?aiDetailsRef:undefined}><BasicAnswersList payload={{...currentAnswers,rows:[row]}} studentId={embedded?undefined:student.id} teacherReviewed={currentSubmission?.verdict==='accepted'} appearance="review" showSummary={false} passingScore={passingScore}/>{task&&<AiTaskFeedback key={student.id+':'+row.n} task={task}/>}</div>}):<BasicAnswersList payload={currentAnswers} studentId={embedded?undefined:student.id} teacherReviewed={currentSubmission?.verdict==='accepted'} appearance="review" showSummary={false} passingScore={passingScore}/>):!currentSubmission?.comment&&<p className="hr-muted">{t('Ответы этой сдачи не сохранились.')}</p>}
           </section>
+
+          {currentSubmission?.lessonRef && currentSubmission.attempts && currentSubmission.attempts.length > 1 && (
+            <HomeworkAttemptHistorySection key={currentSubmission.id} authorName={tn(student.name)}
+              studentId={currentSubmission.studentId} lessonRef={currentSubmission.lessonRef}
+              result={{ attempts: currentSubmission.attempts }} />
+          )}
 
           <section className="hr-feedback-section"><div className="hr-section-title"><h3><PenLine size={16}/>{t('Разбор преподавателя')}</h3></div>
             <ReviewAttachEditor key={student.id} photos={draft.photos} board={draft.board} onPhotos={photos=>setDraft({photos})} onBoard={board=>setDraft({board})}/>

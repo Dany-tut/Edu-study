@@ -1,0 +1,11 @@
+{
+  "steps": [
+    "connect",
+    "list_owned_test",
+    "personal_invitation",
+    "student_submitted",
+    "score_returned_to_iskra",
+    "repeat_result"
+  ],
+  "cleanupErrors": []
+}

@@ -1,0 +1,206 @@
+[
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 320,
+    "apple": {
+      "x": 37,
+      "y": 437.65625,
+      "width": 112.5,
+      "height": 48
+    },
+    "google": {
+      "x": 159.5,
+      "y": 437.65625,
+      "width": 112.5,
+      "height": 48
+    }
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 320,
+    "apple": {
+      "x": 37,
+      "y": 441.65625,
+      "width": 112.5,
+      "height": 48
+    },
+    "google": {
+      "x": 159.5,
+      "y": 441.65625,
+      "width": 112.5,
+      "height": 48
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 390,
+    "apple": {
+      "x": 41,
+      "y": 544.75,
+      "width": 143.5,
+      "height": 48
+    },
+    "google": {
+      "x": 194.5,
+      "y": 544.75,
+      "width": 143.5,
+      "height": 48
+    }
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 390,
+    "apple": {
+      "x": 41,
+      "y": 569.75,
+      "width": 143.5,
+      "height": 48
+    },
+    "google": {
+      "x": 194.5,
+      "y": 569.75,
+      "width": 143.5,
+      "height": 48
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 1440,
+    "apple": {
+      "x": 538.5,
+      "y": 572.75,
+      "width": 171,
+      "height": 48
+    },
+    "google": {
+      "x": 719.5,
+      "y": 572.75,
+      "width": 171,
+      "height": 48
+    }
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 1440,
+    "apple": {
+      "x": 538.5,
+      "y": 597.75,
+      "width": 171,
+      "height": 48
+    },
+    "google": {
+      "x": 719.5,
+      "y": 597.75,
+      "width": 171,
+      "height": 48
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 320,
+    "apple": {
+      "x": 37,
+      "y": 437.65625,
+      "width": 112.5,
+      "height": 48
+    },
+    "google": {
+      "x": 159.5,
+      "y": 437.65625,
+      "width": 112.5,
+      "height": 48
+    }
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 320,
+    "apple": {
+      "x": 37,
+      "y": 441.65625,
+      "width": 112.5,
+      "height": 48
+    },
+    "google": {
+      "x": 159.5,
+      "y": 441.65625,
+      "width": 112.5,
+      "height": 48
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 390,
+    "apple": {
+      "x": 41,
+      "y": 544.75,
+      "width": 143.5,
+      "height": 48
+    },
+    "google": {
+      "x": 194.5,
+      "y": 544.75,
+      "width": 143.5,
+      "height": 48
+    }
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 390,
+    "apple": {
+      "x": 41,
+      "y": 569.75,
+      "width": 143.5,
+      "height": 48
+    },
+    "google": {
+      "x": 194.5,
+      "y": 569.75,
+      "width": 143.5,
+      "height": 48
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 1440,
+    "apple": {
+      "x": 538.5,
+      "y": 572.75,
+      "width": 171,
+      "height": 48
+    },
+    "google": {
+      "x": 719.5,
+      "y": 572.75,
+      "width": 171,
+      "height": 48
+    }
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 1440,
+    "apple": {
+      "x": 538.5,
+      "y": 597.75,
+      "width": 171,
+      "height": 48
+    },
+    "google": {
+      "x": 719.5,
+      "y": 597.75,
+      "width": 171,
+      "height": 48
+    }
+  }
+]
