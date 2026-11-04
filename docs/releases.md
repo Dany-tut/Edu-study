@@ -90,3 +90,11 @@ fast-forward push. При ошибке CI или изменении `main` пу�
 
 Документация платформы: [Deployment Policies](https://vercel.com/docs/deployments/deployment-policy)
 и [Deployment Checks](https://vercel.com/docs/deployment-checks).
+
+## Согласованный выпуск Refresh409 · PR30 · 4 ноября 2026
+
+Владелец явно одобрил выпуск PR30, кандидат `5f894685332f002940660dbdab1a8d8e4e3db1d3`. Production-патч в `src/lib/supabase.ts` переносится без изменения: существующий navigatorLock SDK включён при наличии Web Locks; acquire timeout65s. База выпуска — `094f2aed791c11cb829cc05cc1ad80a6e47c4cad`.
+
+Приёмка точного кандидата: Chrome/WebKit, по8/8 сценариев, пять вкладок одного origin, настоящий локальный Auth/REST/RLS и production authActions. Проверены старт/явный refresh, выход с поздним refresh, смена A→B, закрытие владельца lock, transport timeout, повторный вход и отмена ожидающего входа. Детали — [карточка Refresh409](qa/refresh409-scenario.md). Физическое устройство/native и разные origin/профили не приняты; без Web Locks поведение прежнее. Выход/фиксация входа могут ждать refresh:30–33s при принудительном таймауте. Постоянный серверный conflict вне этого механизма и исторические смешанные инциденты не закрываются.
+
+Публикация — только из актуального main после release:check и зелёного check «Типы, сторожа, сборка» итогового SHA, обычным fast-forward Git push. После Git-деплоя сверить оба манифеста по полному SHA/build/version и анонимные web-сценарии Chrome/мобильного WebKit. Квитанция и post-deploy доказательства сохраняются приватно вне Git; согласие действует только на этот патч.

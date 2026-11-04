@@ -39,3 +39,4 @@ supabase/.temp/
 # Isolated PR29 QA builds (never served by the production build)
 dist-pr29-qa/
 dist-pr29-baseline/
+dist-refresh409-qa/

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, navigatorLock } from '@supabase/supabase-js'
 import { diagnosticFetch } from './diagnosticFetch'
 import { teacherViewFetch } from './teacherView'
 import { withRequestTiming } from './platformPerformance'
@@ -19,7 +19,14 @@ if (!url || !key) {
 
 // OAuth returns a one-time query code, leaving the application's hash router intact.
 export const supabase = createClient(url, key, {
-  auth: { flowType: 'pkce' }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(teacherViewFetch, url), url)) },
+  auth: {
+    flowType: 'pkce',
+    // auth-js 2.108 only single-flights within one client by default. Share
+    // its existing Auth lock across tabs using this project's storage key.
+    // Allow the SDK's 30s retry window plus one 30s transport deadline
+    // before its legacy lock helper can steal a lock.
+    ...(typeof navigator !== 'undefined' && navigator.locks ? { lock: navigatorLock, lockAcquireTimeout: 65_000 } : {}),
+  }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(teacherViewFetch, url), url)) },
 })
 
 // Адрес и ключ отдельно: на выгрузке страницы обычный клиент не годится —
