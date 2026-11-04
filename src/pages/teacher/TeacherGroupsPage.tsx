@@ -1,3 +1,4 @@
+import { profileReadLifetime } from '../../lib/profileReadLifetime'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
@@ -1538,12 +1539,15 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
   const [sessionDays, setSessionDays] = useState(0)
 
   useEffect(() => {
+    if (tab !== 'trainer') return
     const sid = student.id
-    const aid = (student as any).authUserId ?? null
-    fetchStudentTrainerSections(sid, aid).then(setTrainerSections)
-    fetchStudentWrongTasks(sid, aid).then(setWrongTasks)
-    fetchStudentSessionDays(sid, aid).then(setSessionDays)
-  }, [student.id])
+    const aid = student.authUserId
+    return profileReadLifetime(signal => {
+      fetchStudentTrainerSections(sid, aid, signal).then(value => { if (!signal.aborted) setTrainerSections(value) })
+      fetchStudentWrongTasks(sid, aid, signal).then(value => { if (!signal.aborted) setWrongTasks(value) })
+      fetchStudentSessionDays(sid, aid, signal).then(value => { if (!signal.aborted) setSessionDays(value) })
+    })
+  }, [student.id, student.authUserId, tab])
 
   return (
     <motion.div
