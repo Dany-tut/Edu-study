@@ -290,7 +290,7 @@ export default function StudentDiaryPage({
 
   return (
     <div className="student-diary">
-      <h1 className={tab === 'journal' ? 'ds-journal-title' : 'sr-only'}>{t(tab === 'journal' ? 'Мой журнал' : 'Дневник')}</h1>
+      <h1 className="sr-only">{t('Дневник')}</h1>
       <div className="ds-page-heading">
         <p>{dateLabel}</p>
       </div>

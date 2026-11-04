@@ -66,7 +66,6 @@
 .swj-attempt-head strong { font-weight: 600; }
 .swj-attempt-head time, .swj-attempt-head span { color: var(--color-text-3); font-size: 11px; }
 .swj-open-work { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 46px; border: 0; border-radius: 15px; background: var(--color-purple-soft); color: var(--color-accent); font: inherit; font-weight: 600; cursor: pointer; }
-.ds-journal-title { font-size: 27px; font-weight: 600; letter-spacing: -.7px; text-align: center; margin: 12px 0 0 !important; }
 .ds-diary-navigation { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 17px 0 24px; }
 .ds-diary-navigation button { min-height: 40px; padding: 9px 17px; border: 0; border-radius: 22px; background: transparent; font-size: 12px; }
 .ds-diary-navigation button[aria-pressed='true'] { background: var(--color-purple-soft); color: var(--color-accent); }
