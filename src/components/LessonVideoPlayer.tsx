@@ -1407,15 +1407,15 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     className="lesson-player-rate-trigger"
                     ref={rateBtnRef}
                     onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o); setRateKnob(null); setVolumeOpen(false) }}
-                    style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 6 } : { width: 'auto', padding: '0 8px', gap: 6 })}
+                    style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px' } : { width: 'auto', padding: '0 8px' })}
                     aria-label={t('Скорость')}
                     aria-expanded={rateOpen}
                   >
-                    <Gauge size={22} />
-                    {/* Ширина по самой длинной подписи («0.00×»): кнопка не дёргает соседей при смене скорости. */}
+                    {/* Ширина по самой длинной подписи («0.00×»): кнопка не дёргает соседей при смене скорости,
+                        а иконка с текущей подписью стоят по центру этой ширины одной парой. */}
                     <span className="lesson-player-rate-label">
-                      <span>{fmtRate(liveRate)}</span>
-                      <span aria-hidden="true">0.00×</span>
+                      <span><Gauge size={22} />{fmtRate(liveRate)}</span>
+                      <span aria-hidden="true"><Gauge size={22} />0.00×</span>
                     </span>
                   </button>
                   {rateOpen && ratePos && createPortal(
