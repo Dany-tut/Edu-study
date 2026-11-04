@@ -12,7 +12,7 @@ import time
 import fcntl
 
 from flask import Flask, abort, jsonify, request
-from link_video import fetch, LIMIT, DownloadUnavailable
+from link_video import fetch, downloaded, LIMIT, DownloadUnavailable
 import job_store
 
 app = Flask(__name__)
@@ -145,7 +145,10 @@ def progress(jid):
     state=job['state'].copy()
     if state['stage']=='Скачиваем видео':
         folder=(JOBS/jid)
-        try:state['bytes']=sum(p.stat().st_size for p in folder.iterdir() if p.is_file())
+        try:
+            current,total=downloaded(folder)
+            if total:state['progress']={'step':state['stage'],'current':current,'total':total,'unit':'bytes'}
+            else:state['bytes']=current
         except (FileNotFoundError, ValueError):pass
     else:
         try:
