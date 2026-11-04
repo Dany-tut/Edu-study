@@ -1,0 +1,84 @@
+{
+  "results": [
+    {
+      "name": "Fresh UI login is linked to exact fixture student",
+      "status": "PASS",
+      "detail": {
+        "pupilId": "a4461eb9-9ee8-4414-8050-46b9c7d2d780"
+      }
+    },
+    {
+      "name": "New eight-question assignment does not inherit previous answers",
+      "status": "PASS",
+      "detail": {
+        "distinctTaskIds": [
+          "final-s",
+          "final-m",
+          "final-f",
+          "final-e",
+          "final-pairs",
+          "final-seq",
+          "final-tab",
+          "final-board"
+        ]
+      }
+    },
+    {
+      "name": "Sequence moves by keyboard and exposes mobile targets of 44px",
+      "status": "PASS",
+      "detail": {
+        "width": 44,
+        "height": 44,
+        "keys": [
+          "Space",
+          "Enter"
+        ]
+      }
+    },
+    {
+      "name": "Reload keeps typed, table, choice, pair and sequence drafts",
+      "status": "PASS",
+      "detail": {
+        "taskCount": 8
+      }
+    },
+    {
+      "name": "Own submission keeps five auto verdicts and three manual types unpublished",
+      "status": "PASS",
+      "detail": {
+        "progressId": "d4e9e313-c92b-4664-be13-173fe9c42bee",
+        "correct": 5,
+        "manualTypes": [
+          "extended",
+          "tableFill",
+          "whiteboard"
+        ]
+      }
+    },
+    {
+      "name": "AI outage leaves every original answer and manual review available",
+      "status": "PASS",
+      "detail": {
+        "failure": "Controlled HTTP503 only on own teacher AI reads/requests",
+        "answers": 8
+      }
+    },
+    {
+      "name": "Manual teacher grade succeeds during AI outage",
+      "status": "PASS",
+      "detail": {
+        "score": 90,
+        "status": "completed"
+      }
+    },
+    {
+      "name": "Fresh UI login sees score, comment, eight answers and one attempt",
+      "status": "PASS",
+      "detail": {
+        "attempts": 1,
+        "score": 90
+      }
+    }
+  ],
+  "errors": []
+}

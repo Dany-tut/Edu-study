@@ -138,6 +138,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
                 <summary><ChevronRight size={16} aria-hidden />Mac пишет «Файл не был открыт»?</summary>
                 <p>Если Apple не удалось проверить файл, нажмите «Готово». Продолжайте, только если вы сами скачали этот архив из Искры и доверяете ему.</p>
                 <a className="integration-action" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Security">Открыть настройки Mac</a>
+                <video controls playsInline preload="none" poster="/guides/mac-launch.jpg" aria-label="Как разрешить запуск start.command на Mac" src="/guides/mac-launch.mp4" />
                 <p>Если настройки не открылись, в меню Apple выберите «Системные настройки», затем «Конфиденциальность и безопасность».</p>
                 <p>В разделе <strong>«Безопасность»</strong> (внизу страницы) проверьте имя файла. Найдите сообщение о блокировке <code>start.command</code> и нажмите рядом с ним <strong>«Все равно открыть»</strong>. В следующем окне ещё раз выберите «Все равно открыть» или «Открыть». Если Mac попросит, введите пароль или используйте Touch ID.</p>
                 <p>Когда откроется Терминал, переходите к следующему пункту.</p>

@@ -11,12 +11,19 @@ export type WidgetSizeLimits = {
 
 export const DESK_COLUMNS = 12
 export const DESK_GAP = 8
+const MIN_COLUMN_WIDTH = 156
+
+/** Width of the saved desk grid when editing its contents from a phone. */
+export function deskWidthForColumns(columns = DESK_COLUMNS): number {
+  return columns * (MIN_COLUMN_WIDTH + DESK_GAP) - DESK_GAP
+}
+
 export const DESK_INSET = 32
 export const DESK_TOP = 108
 
 /** All widgets share cells; a 1×1 card is readable even on a small desktop. */
 export function deskColumns(width: number, preferred?: number): number {
-  const available = Math.max(1, Math.min(DESK_COLUMNS, Math.floor((width + DESK_GAP) / (156 + DESK_GAP))))
+  const available = Math.max(1, Math.min(DESK_COLUMNS, Math.floor((width + DESK_GAP) / (MIN_COLUMN_WIDTH + DESK_GAP))))
   // Built-in desks share an eight-column template; narrow desktops use four.
   return preferred === 8 ? (available >= 8 ? 8 : Math.min(4, available)) : available
 }

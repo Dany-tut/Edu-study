@@ -1,0 +1,25 @@
+{
+  "results": [
+    {
+      "name": "copied content edits reach server",
+      "status": "PASS"
+    },
+    {
+      "name": "copy lesson identity comparison",
+      "initial": {
+        "id": "419861c2-ce99-4638-bb98-6a9e61ac2890",
+        "ref": "10608fd3373e"
+      },
+      "after": {
+        "id": "c8757105-2659-400c-b880-23fb7ab9e433",
+        "ref": "8d3d338ef4-0"
+      }
+    },
+    {
+      "status": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Editing a copied lesson must update the same DB row\n+ actual - expected\n\n+ 'c8757105-2659-400c-b880-23fb7ab9e433'\n- '419861c2-ce99-4638-bb98-6a9e61ac2890'\n\n    at file:///Users/dany/Cursor/student-dashboard/node_modules/.cache/full-screen/copy-identity-retest.mjs:28:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    }
+  ],
+  "errors": [],
+  "cleanup": []
+}

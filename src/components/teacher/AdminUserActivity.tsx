@@ -1,3 +1,4 @@
+import TableScrollArea from '../TableScrollArea'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Segmented from '../Segmented'
 import { createPortal } from 'react-dom'
@@ -141,9 +142,9 @@ const numTd: React.CSSProperties = { ...tdStyle, textAlign: 'right', fontVariant
 
 function TableShell({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ overflowX: 'auto', border: '1px solid var(--color-border-medium)', borderRadius: 14, background: 'var(--color-bg-2)' }}>
+    <TableScrollArea style={{ border: '1px solid var(--color-border-medium)', borderRadius: 14, background: 'var(--color-bg-2)' }}>
       <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 620 }}>{children}</table>
-    </div>
+    </TableScrollArea>
   )
 }
 

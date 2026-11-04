@@ -8,6 +8,7 @@ import CompactWidgetPill from '../components/CompactWidgetPill'
 import CourseTrack from '../components/CourseTrack'
 import StudentHome from '../components/StudentHome'
 import MobileBottomNav from '../components/MobileBottomNav'
+import MobileHomeworkViewport from '../components/MobileHomeworkViewport'
 import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import type { DiaryTab } from './StudentDiaryPage'
@@ -502,7 +503,16 @@ export default function DashboardPage() {
           <MobileProfilePage />
         ) : activePage === 'trainer' ? (
           <TrainerChunk />
-        ) : showMobileCatalogue ? null : (
+        ) : showMobileCatalogue ? null : showHomework && lesson && homework ? (
+          <>
+            <MobileHomeworkViewport key={homeworkRef}>
+              <Suspense fallback={<LessonLoading />}>
+                <HomeworkFlow lessonId={homeworkRef} lessonTitle={lesson.title} subject={lesson.subject} homework={homework} onBack={closeHomework} />
+              </Suspense>
+            </MobileHomeworkViewport>
+            <MobileBottomNav />
+          </>
+        ) : (
           <div style={{
             minHeight: '100dvh', background: 'var(--color-bg)',
             paddingTop: MOBILE_TOP_INSET,
@@ -518,17 +528,6 @@ export default function DashboardPage() {
                   : <LessonPage />
             ) : showHomeworkWaiting ? (
               <LessonLoading />
-            ) : showHomework && lesson && homework ? (
-              <Suspense fallback={<LessonLoading />}>
-                <HomeworkFlow
-                  key={homeworkRef}
-                  lessonId={homeworkRef}
-                  lessonTitle={lesson.title}
-                  subject={lesson.subject}
-                  homework={homework}
-                  onBack={closeHomework}
-                />
-              </Suspense>
             ) : null}
             <WindowBottomFade clearance="env(safe-area-inset-bottom, 0px) + 92px" />
             <MobileBottomNav />

@@ -97,13 +97,19 @@ export default function MobileScreen({
   // экрана (lib/useEnterAfterPaint.ts).
   const entered = useEnterAfterPaint()
   // Both chrome zones dissolve content alpha; controls stay outside the mask.
-  const topFadeEnd = topClearance > 0 ? topClearance + 24 : 24
+  const topPadding = (topZone != null || (GLASS && glassHeader))
+    ? `calc(env(safe-area-inset-top, 0px) + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)`
+    : `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
+  // Keep the ramp inside the initial padding. Only content moving into that
+  // space is faded, including the first frame of compositor-driven scrolling.
+  const topFadeEnd = `min(${topPadding}, ${topClearance + 24}px)`
+  const topFadeStart = `max(0px, calc(${topFadeEnd} - 24px))`
   const bottomFadeStart = dockClearance > 0 && !keyboardOpen
-    ? `max(${topFadeEnd}px, calc(100% - ${dockClearance + 56}px))`
+    ? `max(${topFadeEnd}, calc(100% - ${dockClearance + 56}px))`
     : 'calc(100% - 100px)'
   const bottomFadeEnd = dockClearance > 0 && !keyboardOpen ? `calc(100% - ${dockClearance}px)` : '100%'
   const contentMask = fade.top > 0 || fade.bottom > 0
-    ? `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0px, rgba(0,0,0,${1 - fade.top}) ${topClearance}px, #000 ${topFadeEnd}px, #000 ${bottomFadeStart}, rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
+    ? `linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) ${topFadeStart}, #000 ${topFadeEnd}, #000 ${bottomFadeStart}, rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
     : undefined
 
   // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
@@ -233,7 +239,7 @@ export default function MobileScreen({
           WebkitOverflowScrolling: 'touch',
           maskImage: contentMask,
           WebkitMaskImage: contentMask,
-          paddingTop: topZone != null || (GLASS && glassHeader) ? `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)` : `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`,
+          paddingTop: topPadding,
           paddingLeft: 16,
           paddingRight: 16,
           // Bottom: home-indicator safe-area + dock/nav clearance.

@@ -1,3 +1,4 @@
+import TableScrollArea from '../../components/TableScrollArea'
 import { textFadeStyle } from '../../lib/textFades'
 import { ChevronRight as LoopUiChevronRight } from '../../components/icons/appIcons'
 import { useState, useRef, useEffect, useMemo } from 'react'
@@ -922,7 +923,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
           <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? DEFAULT_IMAGE_SIZE}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
         )
         if (blockKey === 'table' && task.questionTable) return (
-          <div key="table" style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
+          <TableScrollArea key="table" style={{ borderRadius: 16, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
             <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
               <thead>
                 <tr>{task.questionTable.headers.map((h, hi, arr) => (
@@ -937,7 +938,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScrollArea>
         )
         return null
       })}

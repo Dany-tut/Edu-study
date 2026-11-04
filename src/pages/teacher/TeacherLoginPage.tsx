@@ -14,14 +14,15 @@ import TeacherEmailCodeLogin from '../../components/teacher/TeacherEmailCodeLogi
 import ScrollFade from '../../components/ScrollFade'
 import { useKeyboardState } from '../../lib/useKeyboardInset'
 import { useAsyncTask } from '../../lib/useAsyncTask'
-import { passwordSignIn } from '../../lib/authActions'
+import { teacherPasswordSignIn } from '../../lib/authActions'
+import { Alert } from '../../components/Alert'
 
-type TeacherLoginProps = { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }
+type TeacherLoginProps = { onLogin: () => void; recovery?: boolean; linkExpired?: boolean; accessNotice?: 'denied' | 'error'; onRetryAccess?: () => void }
 export default function TeacherLoginPage(props: TeacherLoginProps) {
   return <AuthFeedbackProvider><TeacherLoginForm {...props} /></AuthFeedbackProvider>
 }
 
-function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false }: TeacherLoginProps) {
+function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, accessNotice, onRetryAccess }: TeacherLoginProps) {
   const t = useT()
   const feedback = useAuthFeedback('password')
   const [email, setEmail] = useState('')
@@ -65,7 +66,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false }: Te
     feedback.begin({ tone: 'info', title: mode === 'reset' ? 'Отправляем письмо…' : mode === 'newpassword' ? 'Сохраняем пароль…' : 'Проверяем данные…', busy: true, onCancel: cancel })
     void action.run(async signal => {
       signal.throwIfAborted()
-      if (mode === 'login') await passwordSignIn(normalizedEmail, password, signal)
+      if (mode === 'login') await teacherPasswordSignIn(normalizedEmail, password, signal)
       else if (mode === 'reset') {
         const redirectTo = `${window.location.origin}${window.location.pathname}`
         const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })
@@ -113,6 +114,13 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false }: Te
           title={mode === 'code' ? t('Вход по коду') : mode === 'newpassword' ? t('Придумайте новый пароль') : mode === 'reset' ? t('Восстановить пароль') : t('Вход для препода')}
           subtitle={titles[mode]}
         />
+        {accessNotice && <Alert tone="danger" stacked
+          title={t(accessNotice === 'denied' ? 'Нет доступа к кабинету преподавателя' : 'Не удалось проверить доступ')}
+          text={t(accessNotice === 'denied' ? 'Войдите под другой учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.' : 'Проверьте подключение и попробуйте ещё раз или войдите под другой учётной записью.')} />}
+        {accessNotice === 'error' && onRetryAccess && <button type="button" onClick={onRetryAccess}
+          style={{ width: '100%', minHeight: 44, margin: '8px 0', padding: 12, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600 }}>
+          {t('Попробовать ещё раз')}
+        </button>}
 
         {mode === 'code' ? <TeacherEmailCodeLogin onLogin={() => { clearStudentSession(); onLogin() }} onBack={() => switchMode('login')} /> : <form noValidate aria-busy={feedback.busy} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <input

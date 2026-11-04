@@ -1,0 +1,282 @@
+{
+  "source": "R7 plus isolated patch",
+  "results": [
+    {
+      "label": "baseline",
+      "containsA": true,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 1065,
+        "courses": 1,
+        "lessons": 1,
+        "progress": 1
+      }
+    },
+    {
+      "label": "transient-retained",
+      "containsA": true,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 7077,
+        "courses": 1,
+        "lessons": 1,
+        "progress": 1
+      }
+    },
+    {
+      "label": "recovery-real200",
+      "containsA": true,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 902,
+        "courses": 1,
+        "lessons": 1,
+        "progress": 1
+      }
+    },
+    {
+      "label": "authoritative-empty",
+      "containsA": false,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 865,
+        "courses": 0,
+        "lessons": 0,
+        "progress": 1
+      }
+    },
+    {
+      "label": "empty-not-resurrected",
+      "containsA": false,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 7029,
+        "courses": 0,
+        "lessons": 0,
+        "progress": 1
+      }
+    },
+    {
+      "label": "recovery-again",
+      "containsA": true,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 852,
+        "courses": 1,
+        "lessons": 1,
+        "progress": 1
+      }
+    },
+    {
+      "label": "denied401",
+      "containsA": false,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 857,
+        "courses": 0,
+        "lessons": 0,
+        "progress": 1
+      }
+    },
+    {
+      "label": "recovery-before403",
+      "containsA": true,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 827,
+        "courses": 1,
+        "lessons": 1,
+        "progress": 1
+      }
+    },
+    {
+      "label": "denied403",
+      "containsA": false,
+      "containsB": false,
+      "lastReady": {
+        "reconciled": true,
+        "ms": 845,
+        "courses": 0,
+        "lessons": 0,
+        "progress": 1
+      }
+    },
+    {
+      "label": "real-B-own-session",
+      "containsA": false,
+      "containsB": true
+    }
+  ],
+  "responses": [
+    {
+      "injected": false,
+      "status": 200,
+      "rows": [
+        "QA Physical Homework A"
+      ]
+    },
+    {
+      "injected": false,
+      "status": 200,
+      "rows": [
+        "QA Physical Homework A"
+      ]
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": false,
+      "status": 200,
+      "rows": [
+        "QA Physical Homework A"
+      ]
+    },
+    {
+      "injected": false,
+      "status": 200,
+      "rows": [
+        "QA Physical Homework A"
+      ]
+    },
+    {
+      "injected": true,
+      "status": 200
+    },
+    {
+      "injected": true,
+      "status": 200,
+      "rows": []
+    },
+    {
+      "injected": true,
+      "status": 200
+    },
+    {
+      "injected": true,
+      "status": 200,
+      "rows": []
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": true,
+      "status": 503
+    },
+    {
+      "injected": false,
+      "status": 200,
+      "rows": [
+        "QA Physical Homework A"
+      ]
+    },
+    {
+      "injected": false,
+      "status": 200,
+      "rows": [
+        "QA Physical Homework A"
+      ]
+    },
+    {
+      "injected": true,
+      "status": 401
+    },
+    {
+      "injected": true,
+      "status": 401
+    },
+    {
+      "injected": false,
+      "status": 200,
+      "rows": [
+        "QA Physical Homework A"
+      ]
+    },
+    {
+      "injected": false,
+      "status": 200,
+      "rows": [
+        "QA Physical Homework A"
+      ]
+    },
+    {
+      "injected": true,
+      "status": 403
+    },
+    {
+      "injected": true,
+      "status": 403
+    }
+  ],
+  "backendDataMutated": false,
+  "notes": [
+    "real local API baseline/recovery/B",
+    "fault injected 503/200empty/401/403",
+    "auth sessions injected; no claim of auth UI E2E",
+    "only Date.now foreground sync threshold advanced, no server/data clock changes",
+    "WebSocket unsupported; external sync and app writes blocked"
+  ]
+}

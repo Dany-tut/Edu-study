@@ -33,6 +33,8 @@ export type SharedQuery<T> = {
 
 const registry = new Set<{ invalidate: () => void }>()
 
+export class NetworkReadError extends Error {}
+
 export type SharedOptions = {
   /**
    * Живая подписка: включается, когда появляется ПЕРВЫЙ подписчик, и гаснет,
@@ -47,6 +49,8 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
   let state: Snapshot<T> = { value: initial, loading: true }
   let inflight: Promise<void> | null = null
   let started = false
+  let needsRecovery = false
+  let recoveryAttached = false
   // Номер поколения: ответ на запрос, отправленный до смены пользователя, не
   // должен попасть в состояние после неё.
   let gen = 0
@@ -55,8 +59,26 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
   let unwatch: (() => void) | null = null
   let unwatchTimer: ReturnType<typeof setTimeout> | null = null
 
+  function recover() {
+    if (needsRecovery && subs.size && navigator.onLine && document.visibilityState === 'visible') void run()
+  }
+
+  function listenForRecovery(enabled: boolean) {
+    if (recoveryAttached === enabled) return
+    recoveryAttached = enabled
+    if (enabled) {
+      window.addEventListener('online', recover)
+      document.addEventListener('visibilitychange', recover)
+    } else {
+      window.removeEventListener('online', recover)
+      document.removeEventListener('visibilitychange', recover)
+    }
+  }
+
   function run(): Promise<void> {
     if (inflight) return inflight
+    needsRecovery = false
+    listenForRecovery(false)
     const my = ++gen
     inflight = fetcher()
       .then(v => { if (my === gen) state = { value: v, loading: false } })
@@ -64,9 +86,13 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
         console.error('[sharedQuery]', e)
         // Снимаем ожидание всё равно: экран, навсегда застрявший в скелетоне,
         // хуже пустого — из него пользователь не выйдет без перезагрузки.
-        if (my === gen) state = { value: state.value, loading: false }
+        if (my === gen) {
+          needsRecovery = e instanceof NetworkReadError
+          listenForRecovery(needsRecovery && subs.size > 0)
+          state = { value: state.value, loading: false }
+        }
       })
-      .finally(() => { inflight = null; emit() })
+      .finally(() => { if (my === gen) inflight = null; emit() })
     return inflight
   }
 
@@ -79,13 +105,16 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
     },
     getSnapshot: () => state,
     subscribe: cb => {
+      const first = subs.size === 0
       subs.add(cb)
+      if (needsRecovery && first) { listenForRecovery(true); recover() }
       if (opts.watch) {
         if (unwatchTimer) { clearTimeout(unwatchTimer); unwatchTimer = null }
         if (!unwatch) unwatch = opts.watch(() => { void q.reload() })
       }
       return () => {
         subs.delete(cb)
+        if (!subs.size) listenForRecovery(false)
         // Отписка с отсрочкой: StrictMode размонтирует и монтирует обратно в
         // том же кадре, и без паузы канал успел бы закрыться и открыться зря.
         if (subs.size === 0 && unwatch && !unwatchTimer) {
@@ -101,6 +130,8 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
   registry.add({
     invalidate: () => {
       gen++
+      needsRecovery = false
+      listenForRecovery(false)
       inflight = null
       state = { value: initial, loading: true }
       // Если на экране кто-то есть — сразу перечитываем под новым аккаунтом.

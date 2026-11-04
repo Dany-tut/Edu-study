@@ -20,10 +20,12 @@ const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
 // The student workspace is mutually exclusive with native entry and teacher sign-in.
 // Keep its lesson, course-track and widget code out of those startup paths.
 const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
+const FriendProfilePage = lazy(() => retryImport(() => import('./pages/FriendProfilePage')))
 const TeacherWorkspace = lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand')))
 const JournalStand = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand'))) : null
 const ExampleGroups = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/ExampleGroups'))) : null
 const TeacherLoginPage = lazy(() => retryImport(() => import('./pages/teacher/TeacherLoginPage')))
+const TeacherRouteGate = lazy(() => retryImport(() => import('./components/teacher/TeacherRouteGate')))
 const JoinPage = lazy(() => retryImport(() => import('./pages/JoinPage')))
 const JoinTeacherPage = lazy(() => retryImport(() => import('./pages/JoinTeacherPage')))
 const DiagnosticTestPage = lazy(() => retryImport(() => import('./pages/DiagnosticTestPage')))
@@ -321,6 +323,14 @@ function AppRoutes() {
     ? <Chunk><StudentLoginPage recovery onRecoveryComplete={() => { setRecovery(false); window.location.hash = '#/login' }} /></Chunk>
     : <Chunk><TeacherLoginPage onLogin={() => { setRecovery(false); localStorage.removeItem('iskra:password-recovery-role'); window.location.hash = '#/teacher' }} recovery /></Chunk>
 
+  if (hash.split('?')[0] === '#/friend') {
+    if (session === undefined) return null
+    if (!session || session.user.is_anonymous) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
+    const token = new URLSearchParams(hash.split('?')[1]).get('token') ?? ''
+    return <Chunk><FriendProfilePage key={session.user.id + token} account={session.user.id} token={token}
+      home={session.user.user_metadata?.role === 'student' ? '#/' : '#/teacher'}/></Chunk>
+  }
+
   // Local previews allow a guest teacher cabinet. Keep the real sign-in form
   // explicitly reachable so development can exercise authenticated RLS too.
   if (import.meta.env.DEV && hash === '#/teacher/login') return <Chunk><TeacherLoginPage onLogin={() => { window.location.hash = '#/teacher/gradebook' }} /></Chunk>
@@ -333,17 +343,16 @@ function AppRoutes() {
   }
 
   if (hash.startsWith('#/teacher')) {
-    if (session === undefined && !import.meta.env.DEV) return null
-    // A student's Supabase session must not unlock the teacher cabinet.
-    const isStudentAccount = session?.user?.user_metadata?.role === 'student' && session?.user?.app_metadata?.role !== 'admin'
-    if (isStudentAccount && !import.meta.env.DEV) return <Chunk><StudentLoginPage /></Chunk>
-    if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
-    return (
+    const workspace = (
       <>
         <Chunk fallback={hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : undefined}><TeacherWorkspace key={session?.user.id ?? 'local'} user={session?.user} owner={session?.user.id ?? 'local'} production /></Chunk>
         <InstallPrompt />
       </>
     )
+    // Preserve the explicit guest-only development demo. Signed-in accounts
+    // always pass the server check; no role lookup runs on student routes.
+    if (import.meta.env.DEV && session === null) return workspace
+    return <Chunk><TeacherRouteGate session={session}>{workspace}</TeacherRouteGate></Chunk>
   }
 
   // Explicit reauthentication must be reachable even with a stale student card.
