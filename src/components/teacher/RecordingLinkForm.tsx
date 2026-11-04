@@ -1,9 +1,10 @@
 import { useId, useRef, useState, type CSSProperties } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
+import AuthFadeInput from '../AuthFadeInput'
 import { btn } from '../../lib/pillStyles'
 import { useT } from '../../lib/i18n'
 import { uploadRecordingFile } from '../../lib/lessonFiles'
-import { Upload } from '../icons/appIcons'
+import { Upload, X } from '../icons/appIcons'
 import TeacherSaveButton from './TeacherSaveButton'
 
 /** Только то, что parseVideoSource узнаёт по расширению как файл или звук:
@@ -86,23 +87,30 @@ export function RecordingInlineEdit({ initialUrl, onSave, onClose, onPickFile, u
   const message = unavailable || uploadError || (failed ? t('Не удалось сохранить. Попробуйте ещё раз.') : '')
   return <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 6 }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-      <input value={url} readOnly={busy} autoFocus aria-label={t('Ссылка на запись')}
+      {/* Длинная ссылка уходит за край поля — фейд показывает, что там ещё текст. */}
+      <AuthFadeInput value={url} readOnly={busy} autoFocus aria-label={t('Ссылка на запись')}
         onChange={e => { setUrl(e.target.value); setFailed(false) }}
         onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void save(); if (e.key === 'Escape' && !busy) onClose() }}
         placeholder={t('Вставьте ссылку RuTube / YouTube / Google Диск')}
-        style={{ ...FIELD, flex: 1, minWidth: 0, padding: '7px 12px' }} />
+        fadeColor="var(--color-bg-input)" wrapStyle={{ flex: 1, minWidth: 0 }}
+        style={{ ...FIELD, padding: '7px 12px' }} />
       <input ref={fileInput} type="file" accept="video/mp4,video/webm,video/quicktime,.m4v,.ogv" hidden onChange={e => {
         const file = e.currentTarget.files?.[0]
         e.currentTarget.value = ''
         if (file) onPickFile(file)
       }} />
       <button type="button" disabled={busy || !!unavailable} onClick={() => fileInput.current?.click()}
-        style={{ ...btn('M', 'secondary'), flexShrink: 0, ...(uploading ? { opacity: 1, cursor: 'progress' } : {}) }}>
-        <Upload size={14} /> {uploading ? t('Загружаем…') : t('Файл')}
+        title={uploading ? t('Загружаем…') : t('Загрузить файл')} aria-label={uploading ? t('Загружаем…') : t('Загрузить файл')}
+        style={{ ...btn('M', 'secondary'), width: 36, padding: 0, justifyContent: 'center', flexShrink: 0, ...(uploading ? { opacity: 1, cursor: 'progress' } : {}) }}>
+        <Upload size={14} />
       </button>
-      <button type="button" disabled={busy} onClick={onClose} style={{ ...btn('M', 'secondary'), flexShrink: 0 }}>{t('Отмена')}</button>
       <TeacherSaveButton label={t('Сохранить')} savingLabel={t('Сохраняем…')} saving={saving} disabled={busy || !!unavailable}
         onClick={save} style={{ flexShrink: 0, ...(saving ? { opacity: 1 } : {}) }} />
+      {/* Крестик — выйти из правки без изменений, на том же месте, где был крестик удаления. */}
+      <button type="button" disabled={busy} onClick={onClose} title={t('Отмена')} aria-label={t('Отмена')}
+        style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'transparent', cursor: busy ? 'default' : 'pointer', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0 }}>
+        <X size={15} />
+      </button>
     </div>
     {message && <div role="alert" style={{ fontSize: 12, color: 'var(--color-text)', paddingLeft: 13 }}>{message}</div>}
   </div>
