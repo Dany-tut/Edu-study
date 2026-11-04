@@ -19,7 +19,6 @@ import MobileBell from './MobileBell'
 import { getDisplayLessonStatus, getLessonScheduleState, lessonStatusLabel, type LessonDisplayStatus } from '../lib/lessonStatus'
 import { useStudentTz } from '../lib/studentTz'
 import type { ScheduleState } from '../lib/scheduleState'
-import ScheduleStatusBadge from './ScheduleStatusBadge'
 import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
@@ -382,7 +381,6 @@ function LessonCard({ lesson, status, scheduleState, index, focused, onOpen, pal
           </span>
         </div>
         <LessonWatchStatus lesson={lesson} />
-        {scheduleState && !isLocked && (scheduleState.isCurrent || scheduleState.hasEnded || scheduleState.phase === 'cancelled') && <ScheduleStatusBadge state={scheduleState} />}
         {status === 'test_low' && <span style={{ fontSize: 11, color: v.tint }}>{t('Ниже проходного балла')} · {t('порог')} {lesson.result?.passingScore}%</span>}
       </div>
       {/* trailing */}

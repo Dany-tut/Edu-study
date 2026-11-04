@@ -9,7 +9,6 @@ import { useNow } from '../lib/useNow'
 import { getStudentScheduleState } from '../lib/lessonStatus'
 import { pickScheduleFocus } from '../lib/scheduleState'
 import { useStudentTz } from '../lib/studentTz'
-import ScheduleStatusBadge from './ScheduleStatusBadge'
 import { appFlag } from '../lib/cardGroups'
 import { useT, useTc } from '../lib/i18n'
 import CourseTrack from './CourseTrack'
@@ -279,7 +278,6 @@ function TodayCard({ date, lessons, nextDay }: { date: string | null; lessons: S
                   {l.time}
                   {states[i].phase === 'completed' && <Check size={12} strokeWidth={2.8} style={{ color: 'var(--color-green-text)' }} />}
                 </span>
-                {states[i].label && <ScheduleStatusBadge state={states[i]} label={states[i].recordingAvailable ? 'Запись доступна' : states[i].label} />}
                 <span style={{ fontSize: 14, fontWeight: 700, color: passed ? 'var(--color-text-3)' : 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(l.subject)}</span>
                 <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tc(l.lessonTitle)}</span>
               </button>

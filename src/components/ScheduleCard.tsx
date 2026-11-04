@@ -13,7 +13,6 @@ import { useNow } from '../lib/useNow'
 import { getScheduleState, pickScheduleFocus } from '../lib/scheduleState'
 import { getStudentScheduleState } from '../lib/lessonStatus'
 import { useStudentTz } from '../lib/studentTz'
-import ScheduleStatusBadge from './ScheduleStatusBadge'
 import ScrollFade from './ScrollFade'
 import { useT, useTc } from '../lib/i18n'
 import { SeasonEmptyDay } from './season/Season'
@@ -141,7 +140,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             boxShadow: 'var(--schedule-card-edge, inset 0 0 0 0 transparent), var(--shadow-3)',
           }}
         >
-          <div style={{ flexShrink: 0 }}>{dateHeader(13, 10)}</div>
+          <div style={{ flexShrink: 0, paddingInlineStart: 8 }}>{dateHeader(13, 10)}</div>
           {(() => {
             const lessonsList = (
               <div className="flex flex-col" style={{ gap: 10 }}>
@@ -180,7 +179,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   className={`rounded-2xl flex flex-wrap items-center ${isCancelled ? 'cursor-default' : 'cursor-pointer'}`}
                   style={{
                     minHeight: 58,
-                    padding: '10px 12px 10px 14px',
+                    padding: '10px 12px 10px 16px',
                     gap: 14,
                     background: (isEmphasized || isMissed) ? pal.soft : 'var(--color-schedule-row)',
                     outline: isSelected ? `2px solid ${pal.accent}` : '2px solid transparent',
@@ -193,7 +192,6 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       <span style={{ fontSize: 10, fontWeight: 700, color: (isEmphasized || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {tc(lesson.subject)}
                       </span>
-                      {st.phase !== 'today' && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
                       {isMissed && (
                         <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 8px', borderRadius: 999 }}>
                           {t('Не был на занятии')}
@@ -231,14 +229,6 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       />)}
                     </div>
                   </div>
-                  {!isCancelled && (isCurrent || isUpcoming || st.hasEnded || st.phase === 'available') && (
-                    <div style={{ flexBasis: '100%' }}>
-                      <button type="button" onClick={e => { e.stopPropagation(); openScheduledLesson(lesson) }} style={{
-                        border: 'none', borderRadius: 10, padding: '7px 11px', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                        background: isCurrent ? pal.text : 'var(--color-bg-card)', color: isCurrent ? pal.onAccent : pal.text,
-                      }}>{t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')}</button>
-                    </div>
-                  )}
                 </motion.div>
                 )
               })

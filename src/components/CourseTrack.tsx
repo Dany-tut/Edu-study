@@ -13,7 +13,6 @@ import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
 import { HARD_STYLE } from './CourseNode'
 import { getTrackLessonStatus, getLessonScheduleState, lessonScheduleDate, lessonStatusLabel, lessonTrackStep, type TrackLessonStatus } from '../lib/lessonStatus'
 import { useStudentTz } from '../lib/studentTz'
-import ScheduleStatusBadge from './ScheduleStatusBadge'
 import { hardLevelState } from '../lib/lessonAssessments'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { useNow } from '../lib/useNow'
@@ -170,7 +169,6 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const statuses = allLessons.map((lesson, i) => getTrackLessonStatus(lesson, now, scheduleStates[i]))
   const seasonMarkIndex = statuses.indexOf('today')
   const selectedLesson = allLessons.find(lesson => lesson.id === selectedLessonId) ?? null
-  const selectedScheduleState = selectedLesson ? scheduleStates[allLessons.indexOf(selectedLesson)] : null
 
   // Full-width track: nodes are distributed evenly across the available width so
   // the line always reaches the end of the row. Each lesson owns the line up to
@@ -203,11 +201,15 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
   const selectedStep = selectedLesson && selectedLessonStatus ? lessonTrackStep(selectedLesson, selectedLessonStatus) : null
   const resumeRetake = selectedStep === 'resume'
   const showRetake = hasBasicHomework && (resumeRetake || selectedStep === 'retake')
+  const isResumingRetake = showRetake && resumeRetake
   const homeworkAccepted = selectedLessonStatus === 'test_passed' || selectedLessonStatus === 'completed'
   const quietLessonButton = selectedLesson && selectedLesson.kind !== 'test' && (
     showRetake || lessonStudyProgress(selectedLesson).completed || (homeworkAccepted && !selectedLesson.videoUrl?.trim())
   )
-  const selectedDetail = selectedLessonStatus ? { ...detailStyles[selectedLessonStatus], palette: trackPalette(selectedLessonStatus) } : null
+  const selectedDetail = selectedLessonStatus ? {
+    ...detailStyles[selectedLessonStatus],
+    palette: trackPalette(isResumingRetake ? 'test_low' : selectedLessonStatus),
+  } : null
   const DetailIcon = selectedDetail?.icon
   const selectedGrade = selectedLesson ? gradedTrackResult(selectedLesson) : null
 
@@ -397,15 +399,12 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                         >
                           <DetailIcon size={14} color={selectedDetail.palette.icon} />
                           <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.25 }}>
-                            {t(showRetake && resumeRetake ? 'Пересдача ДЗ' : selectedDetail.badgeLabel ?? lessonStatusLabel(selectedLessonStatus, selectedLesson.kind))}
+                            {t(isResumingRetake ? 'Пересдача ДЗ' : selectedDetail.badgeLabel ?? lessonStatusLabel(selectedLessonStatus, selectedLesson.kind))}
                             {selectedLessonStatus === 'test_low' && selectedLesson.result && (
                               <span style={{ whiteSpace: 'nowrap' }}> · {t('порог')} {selectedLesson.result.passingScore}%</span>
                             )}
                           </span>
                         </div>
-                        {selectedScheduleState && selectedLessonStatus !== 'locked' && (selectedScheduleState.isCurrent || selectedScheduleState.hasEnded || selectedScheduleState.phase === 'cancelled') && (
-                          <ScheduleStatusBadge state={selectedScheduleState} />
-                        )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.palette.text, lineHeight: 1 }}>
                             {t('Занятие')} #{selectedLesson.number + 1}
@@ -436,7 +435,7 @@ function TrackForSubject({ subject, courseSlot }: { subject: Subject; courseSlot
                               {selectedGrade ? `${selectedGrade.percent}%` : selectedLesson.points}
                             </span>
                             <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: 'var(--color-text)', marginTop: 4 }}>
-                              {t(selectedGrade ? (selectedGrade.status === selectedLessonStatus ? 'результат' : 'лучший результат') : 'баллов')}
+                              {t(selectedGrade ? 'результат' : 'баллов')}
                             </span>
                           </div>
                         ) : (

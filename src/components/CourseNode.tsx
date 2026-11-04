@@ -19,7 +19,6 @@ import CourseNodeSilhouette, { baseNodeShape } from './CourseNodeSilhouette'
 import { SeasonCurrentNode } from './season/Season'
 import { useSeason } from '../lib/season'
 import type { ScheduleState } from '../lib/scheduleState'
-import ScheduleStatusBadge from './ScheduleStatusBadge'
 
 type IconProps = { color?: string; size?: number }
 type CustomIcon = (props: IconProps) => ReactElement
@@ -88,10 +87,7 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
   const isAutoResult = displayStatus === 'test_low' || displayStatus === 'test_passed'
   const caption = step ? tr(trackStepLabel[step]) : null
   const statusText = tr(lessonStatusLabel(displayStatus, lesson.kind))
-  const progressDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
-  const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && (scheduleState.isCurrent || scheduleState.hasEnded || scheduleState.phase === 'cancelled')
-  const scheduleLabel = showScheduleStatus ? (scheduleState.recordingAvailable ? 'Запись доступна' : scheduleState.label) : null
-  const statusDescription = scheduleLabel && !progressDescription.includes(tr(scheduleLabel)) ? `${tr(scheduleLabel)} · ${progressDescription}` : progressDescription
+  const statusDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
   const seasonal = useSeason().on('track')
@@ -263,7 +259,6 @@ export default function CourseNode({ lesson, status, scheduleState, index, isSel
           {/* В теме под фонарём/конфетой — «Урок N · сейчас», как в макетах. */}
           {seasonNode ? `${tr('Урок')} ${lesson.number + 1} · ${tr('сейчас')}` : `#${lesson.number + 1}`}
         </span>
-        {showScheduleStatus && scheduleState && <ScheduleStatusBadge state={scheduleState} />}
         {caption && (
           <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, whiteSpace: 'nowrap', marginTop: 2 }}>
             {caption}

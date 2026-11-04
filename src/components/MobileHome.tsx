@@ -16,7 +16,6 @@ import { getDisplayLessonStatus, getStudentScheduleState } from '../lib/lessonSt
 import { useNow } from '../lib/useNow'
 import { pickScheduleFocus } from '../lib/scheduleState'
 import { useStudentTz } from '../lib/studentTz'
-import ScheduleStatusBadge from './ScheduleStatusBadge'
 import MobileStickersRow from './MobileStickersRow'
 import Skeleton from './Skeleton'
 import { useStudentData } from '../store/studentDataStore'
@@ -439,7 +438,6 @@ export default function MobileHome() {
                     <span style={{ fontSize: 13, fontWeight: 800, color: st.isCurrent ? 'var(--color-accent)' : 'var(--color-text)', minWidth: 44, textDecoration: st.phase === 'cancelled' ? 'line-through' : undefined }}>{l.time}</span>
                     <span className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
                       <span className="truncate" style={{ maxWidth: '100%', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</span>
-                      {st.label && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
                     </span>
                     {st.phase !== 'cancelled' && <ChevronRight size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
                   </button>
