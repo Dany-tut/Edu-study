@@ -112,9 +112,9 @@
 .transcript-tabs button {flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:650}
 .transcript-tabs small {margin-left:3px;font-variant-numeric:tabular-nums}
 .transcript-tabs button[aria-pressed=true] {background:var(--color-bg-2);color:var(--color-purple-text);box-shadow:var(--shadow-1)}
-.transcript-line {display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:baseline;gap:8px;padding:6px 2px;border-bottom:1px solid var(--color-border-soft)}
-/* Ширина времени — в ch его же шрифта по самой длинной метке списка (--time-chars). */
-.transcript-line time {width:calc(var(--time-chars, 4) * 1ch);color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
+.transcript-line {display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:baseline;gap:4px;padding:6px 2px;border-bottom:1px solid var(--color-border-soft)}
+/* Ширина времени — в ch его же шрифта по формату списка (--time-chars), метка по центру колонки. */
+.transcript-line time {width:calc(var(--time-chars, 5) * 1ch);text-align:center;color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
 .transcript-line-text {display:grid;min-width:0}
 .transcript-line-text::after,.transcript-line-text textarea {grid-area:1/1;padding:3px 4px;border:0;font:inherit;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .transcript-line-text::after {content:attr(data-text);visibility:hidden}

@@ -175,16 +175,24 @@ export type TranscriptRail = {
   saving: boolean
 }
 
+/** Время реплики целиком и одной ширины во всём списке: 00:06 … 59:59, а если в записи есть часы — 00:00:06 … 02:20:20. */
+function lineClock(seconds: number, withHours: boolean) {
+  const s = Math.max(0, Math.floor(seconds)), two = (n: number) => String(n).padStart(2, '0')
+  const mmss = two(Math.floor(s % 3600 / 60)) + ':' + two(s % 60)
+  return withHours ? two(Math.floor(s / 3600)) + ':' + mmss : two(Math.floor(s / 60)) + ':' + two(s % 60)
+}
+
 export function RecordingLines({rail, fill}: {rail: TranscriptRail; fill?: boolean}) {
   const [editing, setEditing] = useState<number | null>(null)
   const {draft, change, saving} = rail
+  const withHours = draft.transcript.segments.some(s => s.start >= 3600)
   // fill — в левой рельсе: карточка занимает всю высоту колонки.
   return <section className={'recording-lines' + (fill ? ' is-fill' : '')} aria-label="Реплики записи">
     <header><AudioLines size={16}/><strong>Реплики</strong><small>{draft.transcript.segments.length}</small></header>
     <ScrollFade maxHeight={fill ? '100%' : 'min(32dvh, 280px)'} fadeHeight={12} style={fill ? { flex: 1, minHeight: 0 } : undefined}>
-      {/* Колонка времени — по самой длинной метке: ровная у всех реплик и не тесная у роликов длиннее часа. */}
-      <div style={{'--time-chars': Math.max(4, ...draft.transcript.segments.map(s => transcriptTime(s.start).length))} as CSSProperties}>{draft.transcript.segments.map((line,index) => <div key={index} className="transcript-line">
-        <time>{transcriptTime(line.start)}</time>
+      {/* Колонка времени — по формату списка: 5 знаков без часов, 8 с часами. */}
+      <div style={{'--time-chars': withHours ? 8 : 5} as CSSProperties}>{draft.transcript.segments.map((line,index) => <div key={index} className="transcript-line">
+        <time>{lineClock(line.start, withHours)}</time>
         {editing === index ? <span className="transcript-line-text" data-text={line.text + ' '}>
           <textarea rows={1} autoFocus aria-label={'Реплика ' + (index+1)} value={line.text} disabled={saving}
             onBlur={() => setEditing(null)} onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.blur() }}

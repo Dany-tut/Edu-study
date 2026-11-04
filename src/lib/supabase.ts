@@ -23,9 +23,11 @@ export const supabase = createClient(url, key, {
     flowType: 'pkce',
     // auth-js 2.108 only single-flights within one client by default. Share
     // its existing Auth lock across tabs using this project's storage key.
-    // Allow the SDK's 30s retry window plus one 30s transport deadline
-    // before its legacy lock helper can steal a lock.
-    ...(typeof navigator !== 'undefined' && navigator.locks ? { lock: navigatorLock, lockAcquireTimeout: 65_000 } : {}),
+    // Every getSession (the teacher gate, each REST call) waits for this lock,
+    // so a sleeping or stalled tab holding it froze the whole app on
+    // «Проверяем доступ…» for the full wait. Steal after the SDK's 5s default:
+    // a rare overlapping refresh is cheaper than a frozen cabinet.
+    ...(typeof navigator !== 'undefined' && navigator.locks ? { lock: navigatorLock, lockAcquireTimeout: 5_000 } : {}),
   }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(teacherViewFetch, url), url)) },
 })
 
