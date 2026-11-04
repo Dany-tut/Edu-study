@@ -132,13 +132,24 @@
 /* Панель глав тянется на всю высоту колонки, как правый столбец; contain:size — чтобы 25 глав не раздували ряд, список прокручивается внутри. */
 .recording-player-layout .timecode-editor {height:auto;min-height:290px;max-height:none !important;contain:size;padding:12px !important;gap:5px !important;border-radius:18px !important}
 .chapter-count,.recording-lines small {color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
-.timecode-editor input[aria-label^="Время"] {width:5.5ch !important;padding:3px 0 !important;background:transparent;border-color:transparent;font-size:12px}
-.timecode-editor .chapter-title {position:relative;align-items:center;min-height:26px;font-size:13px}
+.timecode-editor input[aria-label^="Время"] {width:5.5ch !important;height:26px;box-sizing:border-box;padding:3px 0 !important;background:transparent;border-color:transparent;font-size:12px}
+/* Название главы: до двух строк с фейдом в конце второй. Подпись, зеркало ::after
+   и поле правки — одна ячейка грида с одинаковыми отступами и межстрочным,
+   поэтому вход в правку не сдвигает текст, а строка растёт, только если
+   название длиннее двух строк. Поле тянется на высоту зеркала (stretch). */
+.timecode-editor .chapter-title {position:relative;align-self:center;min-height:26px;font-size:13px}
 .chapter-title:not(:focus-within)::after {display:none}
-.chapter-title > [data-text-fade] {grid-area:1/1;pointer-events:none;padding:3px 4px;border-radius:5px;line-height:1.45}
+.chapter-title > [data-text-fade] {grid-area:1/1;pointer-events:none;padding:3px 4px;border-radius:5px;line-height:1.45;box-sizing:content-box;align-self:center}
 .chapter-title:hover > [data-text-fade] {background:var(--color-bg-3)}
 .chapter-title textarea:not(:focus) {opacity:0;position:absolute;inset:0;height:100%}
-.chapter-title:focus-within > [data-text-fade] {display:none}
+/* !important: у FadeText инлайновый display:block — без него подпись оставалась под полем и текст двоился. */
+.chapter-title:focus-within > [data-text-fade] {display:none !important}
+/* Правка на месте — подложкой, без общего контура фокуса из index.css. */
+.timecode-editor .chapter-title.transcript-line-text textarea:focus {outline:none !important}
+/* Подложка наведения и правки — полупрозрачная от цвета текста: одинаково ложится на обычную, зелёную активную и тёмную строку. */
+.timecode-editor .chapter-title:hover > [data-text-fade],.timecode-editor .chapter-title.transcript-line-text textarea:focus {background:color-mix(in srgb,var(--color-text) 7%,transparent)}
+/* Целый межстрочный: дробные 18.85px давали полю на полпикселя меньше текста — он прокручивался в правке. */
+.timecode-editor .chapter-title::after,.timecode-editor .chapter-title textarea,.timecode-editor .chapter-title > [data-text-fade] {line-height:19px}
 .recording-lines {min-width:0;border-radius:16px;background:var(--color-bg-2);padding:10px 12px;border:1px solid var(--color-border-soft);text-align:start}
 .recording-lines.is-fill {flex:1;min-height:0;display:flex;flex-direction:column;box-shadow:var(--shadow-2)}
 .recording-lines header {display:flex;align-items:center;gap:7px;padding:2px 4px 8px;font-size:13px}
