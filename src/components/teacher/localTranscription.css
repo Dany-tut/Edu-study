@@ -123,11 +123,17 @@
    идёт с !important и весом 0,3,1 — перебиваем её весом 0,4,1. */
 :is(.recording-lines,.timecode-editor) .transcript-line-text textarea:focus {background:var(--color-bg-3);outline:none !important}
 .transcript-tools {border-top:1px solid var(--color-border-soft);padding-top:6px}
-.transcript-tools .transcription-rail-action,.transcript-saved {flex:1}
-.transcript-tools button:not(.transcription-rail-action) {width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
-.transcript-saved {display:flex;gap:6px;align-items:center;color:var(--color-green-text);font-size:12px;font-weight:650}
+/* Одна высота у всех кнопок панели глав (--rail-control-h): «Сохранить»,
+   «Сохраняем…», «Добавлено в урок», иконки и ряд «Таймкод» — при смене
+   состояния ряд не меняет высоту и список над ним не скачет. */
+.timecode-editor,.transcription-inline {--rail-control-h:40px}
+.transcription-rail-action {min-height:var(--rail-control-h, 44px)}
+.transcript-tools {min-height:var(--rail-control-h)}
+.transcript-tools .transcription-rail-action,.transcript-saved {flex:1;height:var(--rail-control-h);min-height:0}
+.transcript-tools button:not(.transcription-rail-action) {width:var(--rail-control-h);height:var(--rail-control-h);flex:none;border-radius:10px;display:grid;place-items:center}
+.transcript-saved {display:flex;gap:6px;align-items:center;padding:0 12px;color:var(--color-green-text);font-size:13px;font-weight:700}
 .timecode-editor input {font-size:13px}
-@media(max-width:600px){.transcript-tabs button,.transcript-tools button:not(.transcription-rail-action){min-height:44px}.transcript-line-text::after,.transcript-line-text textarea,.timecode-editor input{font-size:16px!important}}
+@media(max-width:600px){.timecode-editor,.transcription-inline{--rail-control-h:44px}.transcript-tabs button{min-height:44px}.transcript-line-text::after,.transcript-line-text textarea,.timecode-editor input{font-size:16px!important}}
 .chapter-title {flex:1}
 .chapter-title textarea:hover:not(:focus),.transcript-line-text textarea:hover:not(:focus) {background:var(--color-bg-3)}
 .recording-player-layout {min-height:100% !important}

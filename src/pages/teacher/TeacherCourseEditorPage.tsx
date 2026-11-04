@@ -1671,7 +1671,7 @@ function TimecodeRail({
           onClick={addHere}
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+            height: 'var(--rail-control-h, 40px)', padding: '0 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
             background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
             fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
           }}
@@ -1683,7 +1683,8 @@ function TimecodeRail({
           onClick={() => setBulk(bulk === null ? '' : null)}
           title={t('Вставить списком')}
           style={{
-            width: 38, borderRadius: 12, border: '1px solid var(--color-border-medium)',
+            width: 'var(--rail-control-h, 40px)', height: 'var(--rail-control-h, 40px)', flexShrink: 0,
+            borderRadius: 12, border: '1px solid var(--color-border-medium)',
             background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
