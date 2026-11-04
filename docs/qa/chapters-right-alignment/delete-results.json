@@ -1,0 +1,34 @@
+[
+  {
+    "touch": false,
+    "theme": "light",
+    "geometryStable": true,
+    "consistentStyles": true,
+    "deleteChapter": true,
+    "deleteLesson": true
+  },
+  {
+    "touch": false,
+    "theme": "dark",
+    "geometryStable": true,
+    "consistentStyles": true,
+    "deleteChapter": true,
+    "deleteLesson": true
+  },
+  {
+    "touch": true,
+    "theme": "light",
+    "geometryStable": true,
+    "consistentStyles": true,
+    "deleteChapter": true,
+    "deleteLesson": true
+  },
+  {
+    "touch": true,
+    "theme": "dark",
+    "geometryStable": true,
+    "consistentStyles": true,
+    "deleteChapter": true,
+    "deleteLesson": true
+  }
+]

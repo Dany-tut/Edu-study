@@ -9,3 +9,11 @@
 `npm run check:ui` — PASS. База: bcb63d86d172163e63c62392dc8fd559e0efe2a1. SHA-256 изменённых исходников:
 d7445e0c3f0cfd46486fecd0b44b6854654ff77d59df4dad0b3a5268f9c2cdd0  src/pages/teacher/TeacherCourseEditorPage.tsx
 807ba3308b66959c3caf9cf887c7aaccd7aae282061a99beb99bf0c767a59552  src/components/teacher/localTranscription.css
+
+## Дополнение: единые кнопки удаления
+
+Карточка до прогона: главы и выбранный урок, одинаковые 26×26/Loop 14 px, фон red-soft. Desktop: скрыты до hover/focus-within; touch: видны, 44×44. Место зарезервировано. Ожидание: hover не меняет геометрию; клавиатурный фокус показывает кнопку, Enter удаляет только выбранную строку; сохранение блокирует кнопку глав. Проверка fixture CenterRecording + LessonRow, light/dark, desktop/touch. Сервер, физическое устройство и остальные экраны вне области.
+
+PASS: Chrome fixture 1000×1000 desktop и 390×1000 touch, обе темы. Проверены одинаковые размеры/фон/радиус/значок, скрытие без hover, показ по hover и keyboard focus, неизменная геометрия до/после появления, удаление первой главы с проверкой следующего названия, удаление выбранного урока через Enter. Touch-кнопки видны без hover. Просмотрены desktop-light и touch-dark снимки. check:ui PASS. Геометрия в движении, disabled/loading, быстрые повторные удаления, полная серверная интеграция, физическое устройство — NOT TESTED; общий статус PARTIAL. База дополнения c807b665; SHA-256:
+1464eae6344af8c9bdbf84f90bdb437aa46a51cde8d72c405f95986873e9e387  src/pages/teacher/TeacherCourseEditorPage.tsx
+2efa7c967061c0ed5ee92cd4e5824d98d4a0d3620c7daea9daf2a75d0bf4fa04  src/components/teacher/localTranscription.css

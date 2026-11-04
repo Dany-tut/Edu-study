@@ -1525,7 +1525,7 @@ function TimecodeRail({
         {codes.map((tc, i) => {
           const isActive = i === active && total > 0
           return (
-            <div key={i} style={{
+            <div key={i} className="editor-delete-row" style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: 4, borderRadius: 12,
               background: isActive ? 'var(--color-green-soft)' : 'transparent',
               transition: 'background 0.22s',
@@ -1557,15 +1557,11 @@ function TimecodeRail({
                   value={tc.label} onChange={e => patch(i, { label: e.target.value })}
                   placeholder={t('Название главы')} />
               </span>
-              <button
-                aria-label={'Удалить главу '+(i+1)} disabled={rail?.saving} onClick={() => onChange(codes.filter((_, j) => j !== i))}
-                style={{
-                  width: 26, height: 26, borderRadius: 8, flexShrink: 0, border: 'none', cursor: 'pointer',
-                  background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
+              <button className="editor-delete-action"
+                aria-label={'Удалить главу '+(i+1)} title={t('Удалить')}
+                disabled={rail?.saving} onClick={() => onChange(codes.filter((_, j) => j !== i))}
               >
-                <Trash2 size={12} />
+                <Trash2 size={14} />
               </button>
             </div>
           )
@@ -4819,7 +4815,7 @@ function LessonRow({
   const t = useT()
   return (
     <motion.button
-      className="lesson-row"
+      className="lesson-row editor-delete-row"
       onClick={onClick}
       whileTap={{ scale: 0.98 }}
       onMouseEnter={e => { if (!selected && !checked) e.currentTarget.style.background = 'var(--color-bg-2)' }}
@@ -4878,18 +4874,14 @@ function LessonRow({
         </div>
       ) : selected ? (
         <div
-          role="button"
-          aria-label={t('Удалить')}
-          title={t('Удалить')}
+          role="button" tabIndex={0} className="editor-delete-action"
+          aria-label={t('Удалить')} title={t('Удалить')}
           onClick={e => { e.stopPropagation(); onDelete() }}
-          style={{
-            width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--color-red-text)', background: 'rgba(192,48,58,0.12)', cursor: 'pointer',
-            transition: 'background 0.15s',
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault(); e.stopPropagation(); onDelete()
+            }
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(192,48,58,0.2)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(192,48,58,0.12)')}
         >
           <Trash2 size={14} />
         </div>
