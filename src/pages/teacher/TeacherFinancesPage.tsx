@@ -1,7 +1,7 @@
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { useState, useMemo } from 'react'
 import FadeText from '../../components/FadeText'
-import { useIsDesktop } from '../../lib/useIsDesktop'
+import './teacherFinances.css'
 import Modal from '../../components/Modal'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { Alert } from '../../components/Alert'
@@ -19,7 +19,7 @@ import { useAllStudents, useGroups, reloadAllStudents } from '../../lib/useGroup
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
 import { useT, useTc } from '../../lib/i18n'
 import type { Student } from '../../data/teacherMockData'
-import { PAGE_WIDTH } from '../../lib/pageWidth'
+import { PAGE_GUTTER, PAGE_WIDTH } from '../../lib/pageWidth'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -105,7 +105,6 @@ export function AddPaymentModal({ student, students, onClose, onSaved }: {
 function StudentRow({
   student,
   groupName,
-  compact = false,
   onPay,
   expanded,
   onToggle,
@@ -113,7 +112,6 @@ function StudentRow({
 }: {
   student: Student
   groupName: string
-  compact?: boolean
   onPay: (s: Student) => void
   expanded: boolean
   onToggle: () => void
@@ -150,15 +148,12 @@ function StudentRow({
     }}>
       {/* Main row */}
       <div
-        style={{
-          display: compact ? 'grid' : 'flex', gridTemplateColumns: compact ? '34px minmax(0, 1fr) auto' : undefined, alignItems: 'center', gap: 10,
-          padding: '12px 16px', cursor: 'pointer',
-        }}
+        className="finance-row"
         onClick={onToggle}
       >
         {/* Avatar */}
         <div style={{
-          width: 34, height: 34, borderRadius: '50%', flexShrink: 0, gridColumn: compact ? 1 : undefined, gridRow: compact ? '1 / span 2' : undefined,
+          width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
           background: avatarBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 700, color: statusColor,
@@ -167,8 +162,8 @@ function StudentRow({
         </div>
 
         {/* Name + status */}
-        <div style={{ flex: 1, minWidth: 0, gridColumn: compact ? 2 : undefined, gridRow: compact ? 1 : undefined }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', flexDirection: compact ? 'column' : 'row', alignItems: compact ? 'stretch' : 'baseline', gap: compact ? 2 : 6, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="finance-name">
             <FadeText>{tn(student.name).split(' ').slice(0, 2).join(' ')}</FadeText>
             <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 400 }}>{groupName}</FadeText>
           </div>
@@ -181,9 +176,8 @@ function StudentRow({
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: compact ? 'wrap' : 'nowrap', minWidth: 0, gridColumn: compact ? 2 : undefined, gridRow: compact ? 2 : undefined }}>
         {/* Balance chip */}
-        <div style={{
+        <div className="finance-balance" style={{
           padding: '4px 8px', borderRadius: 8,
           background: balance < 0 ? 'var(--color-red-soft)' : balance === 0 ? 'var(--color-bg-3)' : 'var(--color-green-soft)',
           fontSize: 11, fontWeight: 700,
@@ -195,20 +189,20 @@ function StudentRow({
 
         {/* Amount */}
         {student.paymentAmount ? (
-          <div style={{ textAlign: 'right', flexShrink: compact ? 1 : 0, minWidth: 0, maxWidth: '100%', marginRight: compact ? 0 : 4 }}>
+          <div className="finance-amount">
             <div style={{ fontSize: 14, fontWeight: 700, color: statusColor }}>
               <FadeText>{`${fmt(student.paymentAmount)} ₽`}</FadeText>
             </div>
           </div>
         ) : null}
 
-        </div>
         {/* Pay button */}
         <motion.button
+          className="finance-pay"
           whileTap={{ scale: 0.95 }}
           onClick={e => { e.stopPropagation(); onPay(student) }}
           style={{
-            padding: '6px 12px', borderRadius: 9, minHeight: 44, gridColumn: compact ? 3 : undefined, gridRow: compact ? 2 : undefined,
+            padding: '6px 12px', borderRadius: 9, minHeight: 44,
             background: status === 'overdue' || status === 'soon'
               ? 'var(--grad-purple)'
               : 'var(--color-bg-3)',
@@ -292,7 +286,6 @@ function StudentRow({
 
 export default function TeacherFinancesPage() {
   const t = useT()
-  const desktop = useIsDesktop()
   const students = useAllStudents()
   const { groups } = useGroups()
   const [filter, setFilter]       = useState<FilterTab>('all')
@@ -334,7 +327,9 @@ export default function TeacherFinancesPage() {
   return (
     <>
       <TeacherPageScroll>
-      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div className="finance-page" style={{ maxWidth: PAGE_WIDTH.list,
+        '--finance-gutter': PAGE_GUTTER.desk + 'px', '--finance-phone-gutter': PAGE_GUTTER.phone + 'px',
+      } as React.CSSProperties}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -370,8 +365,7 @@ export default function TeacherFinancesPage() {
         </div>
 
         {/* KPI strip */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: desktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
+        <div className="finance-summary" style={{
           background: 'var(--color-bg-2)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 16, overflow: 'hidden',
@@ -382,11 +376,9 @@ export default function TeacherFinancesPage() {
             { label: t('Ожидается'), value: fmt(summary.expected),  color: 'var(--color-text)',        icon: <Clock size={14} /> },
             { label: t('Долг'),      value: fmt(summary.debt),      color: 'var(--color-red-text)',    icon: <AlertCircle size={14} /> },
             { label: t('Прогноз'),   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={14} /> },
-          ].map((item, i, arr) => (
+          ].map(item => (
             <div key={item.label} style={{
               minWidth: 0, padding: '14px 8px', textAlign: 'center',
-              borderRight: (desktop ? i < arr.length - 1 : i % 2 === 0) ? '1px solid var(--color-border)' : 'none',
-              borderBottom: !desktop && i < 2 ? '1px solid var(--color-border)' : 'none',
             }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 {item.icon} <FadeText>{item.label}</FadeText>
@@ -400,7 +392,7 @@ export default function TeacherFinancesPage() {
 
         {/* Filter tabs */}
         <Segmented
-          variant="filter" value={filter} onChange={setFilter} style={{ marginBottom: 14 }}
+          variant="filter" value={filter} onChange={setFilter} style={{ marginBottom: 14, display: 'var(--finance-filter-display, inline-flex)', borderRadius: 'var(--finance-filter-radius, 999px)' }}
           items={tabs.map(tab => ({
             id: tab.id, title: tab.label,
             label: tab.count ? <>{tab.label} <CountBadge count={tab.count} tone={tab.id === 'overdue' ? 'danger' : 'accent'} /></> : tab.label,
@@ -431,7 +423,6 @@ export default function TeacherFinancesPage() {
                   key={s.id + reloadKey}
                   student={s}
                   groupName={group?.name ?? ''}
-                  compact={!desktop}
                   onPay={setPaying}
                   onChanged={handlePaid}
                   expanded={expandedId === s.id}
