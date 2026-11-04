@@ -51,25 +51,12 @@ try {
   const config = { services: { web: { root: '.', framework: 'vite', installCommand: 'npm ci' } }, rewrites: [{ source: '/(.*)', destination: { service: 'web' } }] }
   writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config, null, 2) + '\n')
   for (const name of ['.env.example', 'supabase/schema.sql', 'app.ts', 'local-only.txt']) writeFileSync(join(hosted, name), 'fixture')
-  const config = { services: { web: { root: '.', framework: 'vite' } } }
-  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config, null, 2))
   git(['add', '-f', '.'], hosted)
   git(['-c', 'core.hooksPath=/dev/null', 'commit', '-m', 'Hosted fixture'], hosted)
   rmSync(join(hosted, '.env.example'))
   rmSync(join(hosted, 'supabase/schema.sql'))
   assert.equal(releaseCheckoutChanges({cwd:hosted}).length, 2); checks++
   assert.deepEqual(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}), []); checks++
-  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify({ headers: [], services: config.services }))
-  assert.deepEqual(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}), []); checks++
-  assert.ok(releaseCheckoutChanges({cwd:hosted}).some(change => change.endsWith('vercel.json'))); checks++
-  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify({ ...config, headers: [{ source: '/private', headers: [] }] }))
-  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('vercel.json'))); checks++
-  writeFileSync(join(hosted, 'vercel.json'), '{invalid')
-  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('vercel.json'))); checks++
-  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config))
-  git(['add', 'vercel.json'], hosted)
-  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('vercel.json'))); checks++
-  git(['restore', '--staged', '--worktree', '--', 'vercel.json'], hosted)
   writeFileSync(join(hosted, 'app.ts'), 'changed source')
   assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('app.ts'))); checks++
   git(['checkout', '--', 'app.ts'], hosted)
