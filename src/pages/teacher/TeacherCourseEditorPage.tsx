@@ -1427,6 +1427,25 @@ function clockToSeconds(raw: string): number {
   return parts.reduce((acc, p) => acc * 60 + Number(p.trim()), 0)
 }
 
+/** Время главы: «17:39» или, если ролик длиннее часа, «00:17:39» — у всех
+ *  глав одной записи одинаково, чтобы колонка шла ровно. */
+function chapterClock(total: number, withHours: boolean): string {
+  const s = Math.max(0, Math.floor(total))
+  const two = (n: number) => String(n).padStart(2, '0')
+  const tail = `${two(Math.floor((s % 3600) / 60))}:${two(s % 60)}`
+  return withHours ? `${two(Math.floor(s / 3600))}:${tail}` : tail
+}
+
+/** Набор времени без двоеточий: берём только цифры и вдвигаем их справа, как в
+ *  кассе — «1» → «00:01», «123» → «01:23». Двоеточия ставятся сами, лишние
+ *  цифры слева отбрасываются, поэтому поверх выделенного времени можно просто
+ *  печатать. */
+function maskChapterClock(raw: string, withHours: boolean): string {
+  const size = withHours ? 6 : 4
+  const digits = raw.replace(/\D/g, '').slice(-size).padStart(size, '0')
+  return (digits.match(/\d\d/g) ?? []).join(':')
+}
+
 /** Секунды → «12:30». Часы появляются только у длинных записей: у получасового
  *  ролика «0:12:30» читается как чужой формат. */
 function secondsToClock(total: number): string {
@@ -1481,6 +1500,11 @@ function TimecodeRail({
   const [bulk, setBulk] = useState<string | null>(null)
   const rowRefs = useRef<Array<HTMLTextAreaElement | null>>([])
   const active = activeTimecodeIndex(codes, at)
+  // Формат времени один на весь ролик: длиннее часа — у всех глав «00:17:39»,
+  // короче — «17:39». Иначе «59:27» и «1:02:30» стоят в колонке вразнобой.
+  const withHours = Math.max(total, ...codes.map(c => c.seconds)) >= 3600
+  const clock = (sec: number) => chapterClock(sec, withHours)
+  const [editingTime, setEditingTime] = useState<number | null>(null)
 
   function patch(i: number, p: Partial<LessonTimecode>) {
     onChange(codes.map((c, j) => (j === i ? { ...c, ...p } : c)))
@@ -1488,7 +1512,7 @@ function TimecodeRail({
 
   function addHere() {
     const s = Math.floor(at)
-    const next = sortCodes([...codes, { time: secondsToClock(s), label: '', seconds: s }])
+    const next = sortCodes([...codes, { time: clock(s), label: '', seconds: s }])
     onChange(next)
     // Фокус — в название новой главы: время уже проставлено, набирать осталось
     // только его. setTimeout, а не rAF: в превью кадры не идут.
@@ -1507,7 +1531,7 @@ function TimecodeRail({
 
   return (
     <div className="timecode-editor" style={{
-      '--time-chars': Math.max(4, secondsToClock(total).length, ...codes.map(c => c.time.length)),
+      '--time-chars': clock(0).length,
       width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
       borderRadius: 24, padding: 16, minHeight: 0, maxHeight: PLAYER_MAX_H,
       background: 'rgba(var(--glass-rgb), 0.96)',
@@ -1520,7 +1544,7 @@ function TimecodeRail({
         <span style={{ flex: 1 }} />
         {total > 0 && (
           <span style={{ fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)' }}>
-            {secondsToClock(at)} / {secondsToClock(total)}
+            {clock(at)} / {clock(total)}
           </span>
         )}
       </div>
@@ -1534,26 +1558,51 @@ function TimecodeRail({
               background: isActive ? 'var(--color-green-soft)' : 'transparent',
               transition: 'background 0.22s',
             }}>
-              <button
-                onClick={() => onSeek?.(tc.seconds)}
-                disabled={!onSeek}
-                title={t('Перейти к главе')}
-                style={{
-                  width: 26, height: 26, borderRadius: 8, flexShrink: 0, border: 'none',
-                  background: 'var(--color-bg-2)', cursor: onSeek ? 'pointer' : 'default',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: onSeek ? 'var(--color-green-text)' : 'var(--color-muted)',
-                }}
-              >
-                <Play size={12} fill="currentColor" />
-              </button>
-              <input
-                aria-label={'Время главы '+(i+1)} disabled={rail?.saving} value={tc.time}
-                onChange={e => patch(i, { time: e.target.value, seconds: clockToSeconds(e.target.value) })}
-                onBlur={() => onChange(sortCodes(codes))}
-                placeholder="00:00"
-                style={{ ...inputSt, width: 62, flexShrink: 0, padding: '6px 6px', borderRadius: 8, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
-              />
+              {/* Время у левого края; при наведении на строку поверх него — ▶.
+                  Править время — двойным кликом или правой кнопкой: поле под
+                  кнопкой получает фокус, и ▶ уходит, пока идёт правка. */}
+              <span className="chapter-time"
+                onContextMenu={e => {
+                  if (rail?.saving) return
+                  e.preventDefault()
+                  const input = e.currentTarget.querySelector('input')
+                  input?.focus(); input?.select()
+                }}>
+                <input
+                  aria-label={'Время главы '+(i+1)} disabled={rail?.saving}
+                  value={editingTime === i ? tc.time : clock(tc.seconds)}
+                  onFocus={() => {
+                    setEditingTime(i)
+                    if (tc.time !== clock(tc.seconds)) patch(i, { time: clock(tc.seconds) })
+                  }}
+                  inputMode="numeric"
+                  onChange={e => {
+                    const time = maskChapterClock(e.target.value, withHours)
+                    patch(i, { time, seconds: clockToSeconds(time) })
+                  }}
+                  onBlur={() => {
+                    setEditingTime(null)
+                    onChange(sortCodes(codes.map(c => ({ ...c, time: clock(c.seconds) }))))
+                  }}
+                  placeholder="00:00"
+                  className="chapter-time-input"
+                  // background: transparent — без фиолетовой рамки фокуса, как у названия главы
+                  style={{ background: 'transparent' }}
+                />
+                <button className="chapter-play"
+                  onClick={() => onSeek?.(tc.seconds)}
+                  onDoubleClick={e => {
+                    if (rail?.saving) return
+                    const input = e.currentTarget.parentElement?.querySelector('input')
+                    input?.focus(); input?.select()
+                  }}
+                  disabled={!onSeek}
+                  aria-label={t('Перейти к главе')}
+                  title={t('Перейти к главе')}
+                >
+                  <Play size={12} fill="currentColor" />
+                </button>
+              </span>
               <span className="transcript-line-text chapter-title" data-text={tc.label + ' '}>
                 <FadeText lines={2} fadeMode="last-line">{tc.label || t('Название главы')}</FadeText>
                 <textarea rows={1} ref={el => { rowRefs.current[i] = el }}
@@ -1613,7 +1662,7 @@ function TimecodeRail({
           }}
         >
           <Plus size={14} /> {t('Таймкод')}
-          <span style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.75 }}>{secondsToClock(at)}</span>
+          <span style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.75 }}>{clock(at)}</span>
         </button>
         <button disabled={rail?.saving}
           onClick={() => setBulk(bulk === null ? '' : null)}

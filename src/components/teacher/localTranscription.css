@@ -136,7 +136,8 @@
 .chapter-count,.recording-lines small {color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
 /* Поле времени — по самой длинной метке глав и длине ролика (--time-chars): у ролика длиннее часа влезает 1:02:15. */
 .timecode-editor input[aria-label^="Время"] {width:calc((var(--time-chars, 5) + 0.5) * 1ch) !important;height:26px;box-sizing:border-box;padding:3px 0 !important;background:transparent;border-color:transparent;font-size:12px}
-.timecode-editor .chapter-title {position:relative;align-items:center;min-height:26px;font-size:13px}
+/* align-content:center — однострочное название по центру 26 px, на одной высоте с цифрами времени (было на 2 px выше). */
+.timecode-editor .chapter-title {position:relative;align-items:center;align-content:center;min-height:26px;font-size:13px}
 /* Название главы показано и правится в те же не более двух строк: текст стоит
    на месте, строка главы не растёт. Отступ у показа — margin, а не padding:
    FadeText сам ставит max-height: 2lh. */
@@ -184,4 +185,35 @@
 }
 @media (prefers-reduced-motion:reduce) {
   .editor-delete-action {transition:none}
+}
+
+/* Время главы: у левого края цифры, при наведении на строку поверх них ▶.
+   Клик — перемотка; двойной клик или правая кнопка — правка, тогда ▶ уходит
+   (фокус в поле). Ячейка одной ширины в обоих видах — строка не прыгает. */
+.chapter-time {position:relative;flex-shrink:0;display:flex}
+/* Ширина — та же --time-chars, что у общего правила поля времени, плюс поля
+   под подложку правки. */
+.timecode-editor .chapter-time input.chapter-time-input {
+  width:calc((var(--time-chars, 5) + 0.5) * 1ch + 8px) !important;padding:3px 4px !important;border:0;border-radius:6px;margin:0;
+  background:transparent;color:var(--color-text-3);font:inherit;font-size:12px;
+  font-variant-numeric:tabular-nums;text-align:left;outline:none;
+}
+.timecode-editor .chapter-time input.chapter-time-input:focus {background:color-mix(in srgb,var(--color-text) 7%,transparent) !important;color:var(--color-text)}
+.chapter-play {
+  position:absolute;inset:0;border:0;padding:0;border-radius:6px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--color-bg-2);color:var(--color-green-text);
+  opacity:0;transition:opacity 0.15s;
+}
+.chapter-play:disabled {display:none}
+.chapter-play:hover {background:var(--color-green-soft)}
+.chapter-play:focus-visible {opacity:1;outline:2px solid var(--color-green-text);outline-offset:1px}
+@media (hover:hover) and (pointer:fine) {
+  .editor-delete-row:hover .chapter-play {opacity:1}
+}
+/* Только фокус в поле: сама ▶ тоже получает фокус при нажатии и не должна
+   прятаться между mousedown и mouseup — иначе клик уходит в поле. */
+.chapter-time-input:focus + .chapter-play {opacity:0 !important;pointer-events:none}
+@media (prefers-reduced-motion:reduce) {
+  .chapter-play {transition:none}
 }
