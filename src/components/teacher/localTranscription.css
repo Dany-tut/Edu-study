@@ -112,8 +112,9 @@
 .transcript-tabs button {flex:1;padding:6px;border-radius:8px;font-size:12px;font-weight:650}
 .transcript-tabs small {margin-left:3px;font-variant-numeric:tabular-nums}
 .transcript-tabs button[aria-pressed=true] {background:var(--color-bg-2);color:var(--color-purple-text);box-shadow:var(--shadow-1)}
-.transcript-line {display:grid;grid-template-columns:4ch minmax(0,1fr);align-items:baseline;gap:8px;padding:6px 2px;border-bottom:1px solid var(--color-border-soft)}
-.transcript-line time {color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
+.transcript-line {display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:baseline;gap:8px;padding:6px 2px;border-bottom:1px solid var(--color-border-soft)}
+/* Ширина времени — в ch его же шрифта по самой длинной метке списка (--time-chars). */
+.transcript-line time {width:calc(var(--time-chars, 4) * 1ch);color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
 .transcript-line-text {display:grid;min-width:0}
 .transcript-line-text::after,.transcript-line-text textarea {grid-area:1/1;padding:3px 4px;border:0;font:inherit;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .transcript-line-text::after {content:attr(data-text);visibility:hidden}
@@ -133,7 +134,8 @@
 /* Панель глав тянется на всю высоту колонки, как правый столбец; contain:size — чтобы 25 глав не раздували ряд, список прокручивается внутри. */
 .recording-player-layout .timecode-editor {height:auto;min-height:290px;max-height:none !important;contain:size;padding:12px !important;gap:5px !important;border-radius:18px !important}
 .chapter-count,.recording-lines small {color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
-.timecode-editor input[aria-label^="Время"] {width:5.5ch !important;padding:3px 0 !important;background:transparent;border-color:transparent;font-size:12px}
+/* Поле времени — по самой длинной метке глав и длине ролика (--time-chars): у ролика длиннее часа влезает 1:02:15. */
+.timecode-editor input[aria-label^="Время"] {width:calc((var(--time-chars, 5) + 0.5) * 1ch) !important;height:26px;box-sizing:border-box;padding:3px 0 !important;background:transparent;border-color:transparent;font-size:12px}
 .timecode-editor .chapter-title {position:relative;align-items:center;min-height:26px;font-size:13px}
 /* Название главы показано и правится в те же не более двух строк: текст стоит
    на месте, строка главы не растёт. Отступ у показа — margin, а не padding:
@@ -145,7 +147,13 @@
 .chapter-title > [data-text-fade] {grid-area:1/1;pointer-events:none;margin:3px 4px;line-height:1.45;align-self:start}
 .chapter-title textarea:focus {align-self:stretch}
 .chapter-title textarea:not(:focus) {opacity:0;position:absolute;inset:0;height:100%}
-.chapter-title:focus-within > [data-text-fade] {display:none}
+/* !important: у FadeText инлайновый display:block — без него подпись оставалась под полем и текст двоился. */
+.chapter-title:focus-within > [data-text-fade] {display:none !important}
+/* Подложка наведения и правки — одна, на названии, полупрозрачная от цвета текста: одинаково ложится на обычную, зелёную активную и тёмную строку. */
+.timecode-editor .chapter-title:is(:hover,:focus-within) {background:color-mix(in srgb,var(--color-text) 7%,transparent)}
+.timecode-editor .chapter-title.transcript-line-text textarea:focus {background:transparent}
+/* Компактный целый межстрочный (≈1.23): дробный давал полю на полпикселя меньше текста — он прокручивался в правке. */
+.timecode-editor .chapter-title::after,.timecode-editor .chapter-title textarea,.timecode-editor .chapter-title > [data-text-fade] {line-height:16px}
 .recording-lines {min-width:0;border-radius:16px;background:var(--color-bg-2);padding:10px 12px;border:1px solid var(--color-border-soft);text-align:start}
 .recording-lines.is-fill {flex:1;min-height:0;display:flex;flex-direction:column;box-shadow:var(--shadow-2)}
 .recording-lines header {display:flex;align-items:center;gap:7px;padding:2px 4px 8px;font-size:13px}

@@ -1507,12 +1507,13 @@ function TimecodeRail({
 
   return (
     <div className="timecode-editor" style={{
+      '--time-chars': Math.max(4, secondsToClock(total).length, ...codes.map(c => c.time.length)),
       width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
       borderRadius: 24, padding: 16, minHeight: 0, maxHeight: PLAYER_MAX_H,
       background: 'rgba(var(--glass-rgb), 0.96)',
       border: '1px solid var(--color-border-soft)',
       boxShadow: 'var(--shadow-2)',
-    }}>
+    } as React.CSSProperties}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ListVideo size={16} style={{ color: 'var(--color-green-text)' }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{rail ? 'Главы' : t('Таймкоды')}</span>{rail && <small className="chapter-count">{codes.length}</small>}
