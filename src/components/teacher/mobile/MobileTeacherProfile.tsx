@@ -28,6 +28,8 @@ import { useTeacherAccess } from '../../../lib/teacherAccess'
 import { subjectNamesFromStored } from '../../../lib/subjects'
 import TeacherSubjectsField from '../TeacherSubjectsField'
 import { Alert } from '../../Alert'
+import DesktopFriends from '../../DesktopFriends'
+import { useDesktopFriends } from '../../../lib/desktopFriends'
 import TeacherLoginMethods from '../TeacherLoginMethods'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
 
@@ -58,6 +60,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
 export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets }: { onOpenJournal?: () => void; onOpenWidgets?: () => void }) {
   const signedIn = useTeacherSession()
   const studentCabinet = useOpenStudentCabinet()
+  const friends = useDesktopFriends()
   const t = useT()
   const { tc, tn } = useTc()
   const { lang, setLang } = useLang()

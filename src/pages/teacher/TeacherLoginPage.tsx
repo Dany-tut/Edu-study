@@ -17,12 +17,12 @@ import { useAsyncTask } from '../../lib/useAsyncTask'
 import { teacherPasswordSignIn } from '../../lib/authActions'
 import { Alert } from '../../components/Alert'
 
-type TeacherLoginProps = { onLogin: () => void; recovery?: boolean; linkExpired?: boolean }
+type TeacherLoginProps = { onLogin: () => void; recovery?: boolean; linkExpired?: boolean; accessNotice?: 'denied' | 'error'; onRetryAccess?: () => void }
 export default function TeacherLoginPage(props: TeacherLoginProps) {
   return <AuthFeedbackProvider><TeacherLoginForm {...props} /></AuthFeedbackProvider>
 }
 
-function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false }: TeacherLoginProps) {
+function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, accessNotice, onRetryAccess }: TeacherLoginProps) {
   const t = useT()
   const feedback = useAuthFeedback('password')
   const [email, setEmail] = useState('')
@@ -66,7 +66,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false }: Te
     feedback.begin({ tone: 'info', title: mode === 'reset' ? 'Отправляем письмо…' : mode === 'newpassword' ? 'Сохраняем пароль…' : 'Проверяем данные…', busy: true, onCancel: cancel })
     void action.run(async signal => {
       signal.throwIfAborted()
-      if (mode === 'login') await passwordSignIn(normalizedEmail, password, signal)
+      if (mode === 'login') await teacherPasswordSignIn(normalizedEmail, password, signal)
       else if (mode === 'reset') {
         const redirectTo = `${window.location.origin}${window.location.pathname}`
         const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo })

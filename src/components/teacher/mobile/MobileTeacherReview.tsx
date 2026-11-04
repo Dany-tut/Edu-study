@@ -131,13 +131,6 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         )
       )}
 
-      {/* Разбор ИИ по критериям экзамена — по каждому заданию домашки (панель сама прячется при выключенном рубильнике). */}
-      {!isDemoId(sub.id) && sub.lessonRef.startsWith('hw-') && sub.taskBlocks.map((tb, i) => (
-        <div key={tb.key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {sub.taskBlocks.length > 1 && <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-muted)' }}>{t('Задание')} {i + 1}</div>}
-          <HwAiReview progressId={sub.id} taskKey={tb.key} compact />
-        </div>
-      ))}
 
       <input
         value={comment}

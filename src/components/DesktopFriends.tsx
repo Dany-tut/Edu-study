@@ -154,14 +154,3 @@ function FriendsPane({ model, account, tab, overview, polished, onOpen, suggeste
     {message && <p role="status">{t(message)}</p>}
   </section>
 }
-
-function ShareCode({ token, onCopy }: { token: string; onCopy: (message: string) => void }) {
-  const t = useT()
-  const origin = Capacitor.isNativePlatform() ? 'https://edu-study-app.vercel.app' : location.origin
-  const url = new URL('/#/friend?token=' + token, origin).href
-  return <>
-    <QRCodeSVG value={url} size={180} marginSize={4} title={t('QR-код профиля для друзей')}/>
-    <input aria-label={t('Ссылка на профиль для друзей')} readOnly value={url} onFocus={e => e.target.select()}/>
-    <button type="button" onClick={async () => onCopy(await copyToClipboard(url) ? 'Ссылка скопирована.' : 'Выдели и скопируй ссылку.')}>{t('Скопировать ссылку')}</button>
-  </>
-}

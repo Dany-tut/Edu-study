@@ -378,16 +378,12 @@ function StudentPill({ entry, work, open, close }: {
   )
 }
 export function Matrix(props: MatrixProps) {
-  const { entries, selected, picker, groupLabel, scopeLabel, groups, set, today, example, renderReport, onReload, refreshing, onOpenAttendance } = props
+  const { entries, selected, picker, groupLabel, scopeLabel, groups, set, today, example, renderReport, onReload, refreshing } = props
   const host = useRef<HTMLElement>(null)
   useScrollFades(host, true, '.js-tabs, .js-filter-items, .jh-homework-list')
   const [reportHost, setReportHost] = useState<HTMLElement | null>(null)
   const [attention, setAttention] = useState(false)
   const [workView, setWorkView] = useState<'students' | 'assignments'>('students')
-  const [attendanceUnavailable, setAttendanceUnavailable] = useState(false)
-  useEffect(() => {
-    setAttendanceUnavailable(false)
-  }, [selected.tab, selected.course, selected.module, groupLabel])
   const overview = selected.tab === 'Обзор'
   const entry = entries.find(e => e.student.id === selected.student)
   const drawerOpen = !!(reportHost && entry && overview)
@@ -397,8 +393,6 @@ export function Matrix(props: MatrixProps) {
   useEffect(() => {
     if (!drawerHash) return
     const previous = window.location.hash
-  const teacherGuides = useTeacherGuides()
-  useEffect(() => { if (drawerOpen) teacherGuides?.enter('learner') }, [drawerOpen, teacherGuides?.enter])
     window.history.replaceState(null, '', drawerHash)
     return () => {
       if (window.location.hash === drawerHash) window.history.replaceState(null, '', previous)
@@ -440,11 +434,7 @@ export function Matrix(props: MatrixProps) {
       selected.tab === 'Работы' && workView === 'assignments' && props.onOpenAssignment && props.onOpenWork
         ? <HomeworkList key={[selected.course, selected.module, groupLabel].join(':')} entries={entries} slots={props.slots} search={selected.search} attention={attention}
           onStudent={props.onOpenWork} onAssignment={props.onOpenAssignment}/>
-        : <LessonMatrix {...props} attention={attention} onOpenAttendance={onOpenAttendance && (works => {
-          const opened = onOpenAttendance(works)
-          setAttendanceUnavailable(!opened)
-          return opened
-        })}/>}
+        : <LessonMatrix {...props} attention={attention}/>}
     {drawerOpen && <StudentReportDrawer student={entry.student} group={groups.find(g => g.id === entry.student.groupId)}
       host={reportHost!} onPrint={() => printStudentCard(entry.student.name)} onClose={closeDrawer}>
       {renderReport(entry.student, <ProfileWorks collapsibleHistory list={entry.works} today={today} scope={picker}
@@ -653,7 +643,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
           {entry && <div aria-hidden className="js-pill-space"/>}
           </div>
         </div>
-        {(['right', 'bottom'] as const).map(side =>
+        {(['left', 'right', 'top', 'bottom'] as const).map(side =>
           <i aria-hidden key={side} className={'js-scroll-fade js-fade-' + side} />)}
         {entry && <StudentPill entry={entry} work={work} open={() => set({tab: 'Обзор', workRef:''})} close={close} />}
     </div>

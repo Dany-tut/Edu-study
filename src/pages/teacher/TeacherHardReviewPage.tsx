@@ -223,12 +223,6 @@ export default function TeacherHardReviewPage() {
           />
         </div>
 
-        {/* Разбор ИИ по критериям экзамена — только у заданий домашки (hw-…) и при поднятом рубильнике. */}
-        {aiEnabled && sub.lessonRef.startsWith('hw-') && (activeKey || tabs[0]?.key) && (
-          <div ref={aiRef} style={{ ...aiLift, width: 380, flexShrink: 0, position: 'sticky', top: 20 }}>
-            <HwAiReview progressId={sub.id} taskKey={activeKey || tabs[0].key} />
-          </div>
-        )}
       </div>
 
       {/* Photo zoom overlay */}
