@@ -1707,7 +1707,7 @@ function CenterRecording({
     onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined} />
   if ((lesson.videoUrl || localFile) && !linkMode) {
     return (
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 24px 22px' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 16px 22px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 30, height: 30, borderRadius: 9, background: disk ? 'var(--color-bg-3)' : 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
             {disk
@@ -1755,7 +1755,7 @@ function CenterRecording({
           </div>
         ) : (
         <ScrollFade maxHeight="100%" style={{flex:1,minHeight:0}} scrollStyle={{height:'100%'}}>
-        <div className="recording-player-layout" style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 }}>
+        <div className="recording-player-layout" style={{ '--recording-player-max-width': PLAYER_MAX_W, flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 } as React.CSSProperties}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {source ? (
               <>
