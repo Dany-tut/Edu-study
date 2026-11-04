@@ -7,6 +7,7 @@ import { ArrowRight, AudioLines, ChevronRight } from '../icons/appIcons'
 import { useTheme } from '../../store/themeStore'
 import { clock, editedDuration, span } from '../../lib/lessonMontage'
 import { fixtures, voices } from './fixture'
+import { parseVideoSource } from '../../lib/videoSource'
 import './lessonMontageStand.css'
 
 // DEV-стенд монтажа записи: /lesson-montage-stand. Без сервера и аккаунта —
@@ -18,6 +19,8 @@ export default function LessonMontageStand() {
   const [open, setOpen] = useState(() => new URLSearchParams(location.search).has('open'))
   const [variant, setVariant] = useState<keyof typeof fixtures>(() => new URLSearchParams(location.search).get('pauses') === 'many' ? 'many' : 'few')
   const fixture = fixtures[variant], chapters = fixture.chapters
+  // ?video=<ссылка> — проверить окно со звуком на настоящем ролике.
+  const [video] = useState(() => parseVideoSource(new URLSearchParams(location.search).get('video')))
   const [saved, setSaved] = useState<Saved | null>(null)
   const result: MontageResult | undefined = saved?.[0]
   return <div className="lms-root">
@@ -54,7 +57,7 @@ export default function LessonMontageStand() {
       </section>}
     </main>
     <AnimatePresence>{open && <LessonMontageEditor key={'editor-' + variant} title="Монтаж записи · урок 7" duration={fixture.duration} voices={voices}
-      lines={fixture.lines} quiet={fixture.quiet} chapters={chapters} levelAt={fixture.levelAt} initial={saved?.[1]}
+      lines={fixture.lines} quiet={fixture.quiet} chapters={chapters} levelAt={fixture.levelAt} initial={saved?.[1]} video={video}
       onApply={(...args) => setSaved(args)} onClose={() => setOpen(false)} />}</AnimatePresence>
   </div>
 }

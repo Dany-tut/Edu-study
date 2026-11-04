@@ -89,7 +89,7 @@ def process(job,folder,link):
             job['completed'].append('audio')
             job_store.save(folder, job)
         env=dict(os.environ,HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false')
-        for label,script,args in [('Распознаём речь','recognize.py',[folder]),('Ищем паузы','silence.py',[folder]),('Читаем слайды','slides.py',[source,folder/'slides.json']),('Собираем главы','topics.py',[folder])]:
+        for label,script,args in [('Распознаём речь','recognize.py',[folder]),('Ищем паузы','silence.py',[folder,source]),('Читаем слайды','slides.py',[source,folder/'slides.json']),('Собираем главы','topics.py',[folder])]:
             if script in job['completed']: continue
             stage(label)
             python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable) if script in ('recognize.py','silence.py') else sys.executable

@@ -22,10 +22,16 @@ export interface MontageSpeaker { id: string; label: string; role: SpeakerRole; 
 export interface MontageLine { id: string; start: number; end: number; text: string; speaker: string }
 
 /** Тихий отрезок, как его отдаёт модуль: без решений преподавателя. */
-export interface QuietSpan { id: string; start: number; end: number; level: number }
-export type PauseKind = 'silence' | 'quiet'
+export interface QuietSpan {
+  id: string; start: number; end: number; level: number
+  /** false — Whisper внутри не нашёл ни реплики: пауза при любой громкости (музыка, проектор). */
+  speech?: boolean
+  /** Сколько раз в минуту меняется кадр: пишут на доске, листают слайды. */
+  motion?: number
+}
+export type PauseKind = 'silence' | 'quiet' | 'nospeech'
 export type PauseAction = 'cut' | 'speed' | 'keep'
-export interface MontagePause { id: string; start: number; end: number; level: number; kind: PauseKind; action: PauseAction; edited: boolean }
+export interface MontagePause { id: string; start: number; end: number; level: number; kind: PauseKind; action: PauseAction; edited: boolean; board: boolean }
 export interface PauseOverride { start?: number; end?: number; action?: PauseAction }
 
 export type Sensitivity = 'strict' | 'normal' | 'loud'
@@ -51,15 +57,24 @@ export interface LessonMontage {
   settings: MontageSettings
 }
 
-export function detectPauses(spans: QuietSpan[], settings: MontageSettings, overrides: Record<string, PauseOverride> = {}): MontagePause[] {
-  const threshold = THRESHOLD[settings.sensitivity]
-  return spans.filter(s => s.level <= threshold && s.end - s.start >= settings.minPause).map(s => {
+/** Пороги от фона записи: «обычная» тишина — не громче фона + 10 дБ. Без фона
+ *  (старые записи, стенд) — абсолютные пороги THRESHOLD. */
+const ABOVE_FLOOR: Record<Sensitivity, number> = { strict: 4, normal: 10, loud: 16 }
+/** Кадр меняется чаще — во время паузы что-то показывают: по умолчанию ускорить. */
+export const BOARD_MOTION = 1
+
+export function detectPauses(spans: QuietSpan[], settings: MontageSettings, overrides: Record<string, PauseOverride> = {}, floor?: number): MontagePause[] {
+  const threshold = floor != null ? Math.max(THRESHOLD[settings.sensitivity], floor + ABOVE_FLOOR[settings.sensitivity]) : THRESHOLD[settings.sensitivity]
+  const silence = floor != null ? Math.max(SILENCE_LEVEL, floor + 4) : SILENCE_LEVEL
+  return spans.filter(s => (s.level <= threshold || s.speech === false) && s.end - s.start >= settings.minPause).map(s => {
     const o = overrides[s.id] ?? {}
-    const kind: PauseKind = s.level <= SILENCE_LEVEL ? 'silence' : 'quiet'
+    const kind: PauseKind = s.level <= silence ? 'silence' : s.level <= threshold ? 'quiet' : 'nospeech'
+    const board = (s.motion ?? 0) >= BOARD_MOTION
     const start = o.start ?? s.start + settings.padding
     const end = o.end ?? s.end - settings.padding
-    const action = o.action ?? (kind === 'silence' ? 'cut' : settings.quietAction)
-    return { id: s.id, start, end, level: s.level, kind, action, edited: o.start != null || o.end != null }
+    // Пустой кадр и тишина — вырезать; на доске пишут — не вырезать, а ускорить.
+    const action = o.action ?? (board ? (settings.quietAction === 'keep' ? 'keep' : 'speed') : kind === 'silence' ? 'cut' : settings.quietAction)
+    return { id: s.id, start, end, level: s.level, kind, action, edited: o.start != null || o.end != null, board }
   }).sort((a, b) => a.start - b.start)
 }
 
@@ -163,9 +178,9 @@ export function span(seconds: number) {
 /** План для плеера ученика: что перепрыгнуть и что ускорить. Пусто, пока
  *  преподаватель не применил монтаж (нет settings): найденные паузы сами по
  *  себе ничего не вырезают. */
-export function playbackPlan(saved: { quiet: QuietSpan[]; settings?: MontageSettings; overrides?: Record<string, PauseOverride> } | undefined) {
+export function playbackPlan(saved: { quiet: QuietSpan[]; floor?: number; settings?: MontageSettings; overrides?: Record<string, PauseOverride> } | undefined) {
   if (!saved?.settings) return undefined
-  const pauses = detectPauses(saved.quiet, saved.settings, saved.overrides ?? {})
+  const pauses = detectPauses(saved.quiet, saved.settings, saved.overrides ?? {}, saved.floor)
   const skip = pauses.filter(p => p.action === 'cut').map(p => [p.start, p.end] as [number, number])
   const fast = pauses.filter(p => p.action === 'speed').map(p => [p.start, p.end, saved.settings!.speed] as [number, number, number])
   return skip.length || fast.length ? { skip, fast } : undefined

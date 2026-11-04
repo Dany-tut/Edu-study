@@ -7,6 +7,8 @@ export interface TranscriptSegment { start: number; end: number; text: string; s
 export interface SavedMontage {
   duration: number
   quiet: QuietSpan[]
+  /** Уровень фона записи, дБ: пороги пауз считаются от него. */
+  floor?: number
   /** Громкость на каждые step секунд для формы волны: по байту на точку
    *  (дБ со сдвигом +128) в base64 — 48 минут ≈ 8 КБ в содержимом урока. */
   levels?: { step: number; data: string }
@@ -57,6 +59,7 @@ export function readMontage(value: unknown): SavedMontage | undefined {
     : raw && Number.isFinite(raw.step) && (raw.step as number) > 0 && typeof raw.data === 'string' ? { step: raw.step as number, data: raw.data } : undefined
   return {
     duration: v.duration as number, quiet,
+    ...(Number.isFinite(v.floor) ? { floor: v.floor as number } : {}),
     ...(levels ? { levels } : {}),
     ...(v.settings && typeof v.settings === 'object' ? { settings: v.settings as MontageSettings } : {}),
     ...(v.overrides && typeof v.overrides === 'object' ? { overrides: v.overrides as Record<string, PauseOverride> } : {}),
