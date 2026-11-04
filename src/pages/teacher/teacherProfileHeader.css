@@ -1,0 +1,13 @@
+.teacher-profile-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.teacher-profile-identity { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.teacher-profile-identity h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: var(--color-text); }
+.teacher-profile-name { margin-top: 1px; font-size: 12px; color: var(--color-text-3); }
+@media (max-width: 760px) {
+  .teacher-profile-header { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}

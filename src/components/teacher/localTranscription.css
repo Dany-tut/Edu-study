@@ -6,3 +6,33 @@
 .transcription-form input:focus-visible { outline: 2px solid var(--color-control-accent); }
 .transcription-form [role=status] { padding: 12px 16px; background: var(--color-purple-soft); color: var(--color-purple-text); border-radius: 14px; font-weight: 650; }
 .transcription-form [role=alert] { color: var(--color-red-text); }
+
+.transcription-module {
+  display: grid; gap: 14px; padding: 18px; margin-bottom: 12px;
+  border: 1px solid var(--color-border-medium); border-radius: 20px;
+  background: var(--color-bg-2); color: var(--color-text);
+  container-type: inline-size;
+}
+.transcription-module-header { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px; }
+.transcription-module-icon {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+  background: var(--color-purple-soft); color: var(--color-purple-text);
+}
+.transcription-module-title h3 { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.4; }
+.transcription-module-title p { margin: 2px 0 0; color: var(--color-text-3); font-size: 12px; line-height: 1.5; }
+.transcription-module-status {
+  justify-self: start; padding: 3px 9px; border-radius: 999px;
+  background: var(--color-bg-3); color: var(--color-text-2); font-size: 11px; font-weight: 700;
+}
+.transcription-module-status[data-connected=true] { background: var(--color-green-soft); color: var(--color-green-text); }
+.transcription-module-body { border-top: 1px solid var(--color-border-soft); padding-top: 14px; display: grid; gap: 12px; }
+.transcription-module-body p { margin: 0; max-width: 68ch; font-size: 13px; line-height: 1.55; color: var(--color-text-2); }
+.transcription-module-body code { font-size: .95em; }
+.transcription-module-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.transcription-module-actions :is(a, button) { text-decoration: none; min-height: 44px; }
+.transcription-module-body .transcription-module-error { color: var(--color-red-text); }
+@container (max-width: 420px) {
+  .transcription-module-header { grid-template-columns: 40px 1fr; row-gap: 6px; }
+  .transcription-module-status { grid-column: 2; }
+  .transcription-module-actions > * { flex: 1 1 auto; }
+}
