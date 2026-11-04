@@ -1631,9 +1631,11 @@ function TimecodeRail({
 }
 
 function CenterRecording({
-  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading,
+  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot,
 }: {
   lesson: CELesson
+  /** Слот в левой рельсе: реплики стоят там, а не под плеером. */
+  linesSlot?: HTMLElement | null
   onSaveTranscript: (lesson: CELesson) => Promise<boolean>
   onSaveLink: (url: string) => Promise<boolean>
   saveUnavailable?: string
@@ -1782,7 +1784,7 @@ function CenterRecording({
                 style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>
-              {rail && <RecordingLines rail={rail}/>}
+              {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill/>, linesSlot) : <RecordingLines rail={rail}/>)}
               {rail ? timecodePanel : transcriptionAction}
             </div>
           </div>
@@ -1837,7 +1839,7 @@ function CenterRecording({
                 <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Предпросмотра нет — таймкоды справа можно проставить вручную')}</div>
               </div>
             )}
-            {rail && <RecordingLines rail={rail}/>}
+            {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill/>, linesSlot) : <RecordingLines rail={rail}/>)}
           </div>
 
           {timecodePanel}
@@ -5825,6 +5827,7 @@ export default function TeacherCourseEditorPage() {
     savedPos?.lessonId && course.lessons.some(l => l.id === savedPos.lessonId) ? savedPos.lessonId : null
   )
   const [lessonMode, setLessonMode] = useState<LessonMode>(savedPos?.mode ?? 'lesson')
+  const [recordingLinesSlot, setRecordingLinesSlot] = useState<HTMLDivElement | null>(null)
   // Открытая домашка урока (основная / доп., см. hwSlot) — lifted here so the left
   // meta rail and the center task list stay in sync. Живёт на уровне страницы,
   // поэтому переключение урока его не сбрасывает; в sessionStorage — чтобы
@@ -7138,12 +7141,13 @@ export default function TeacherCourseEditorPage() {
               {/* Тот же приём, что и снаружи: ключ по вкладке даёт ремоунт с
                   проявлением, без цикла выхода. */}
               <motion.div
-                key={lessonMode === 'homework' ? 'rail-hw' : lessonMode === 'students' ? 'rail-students' : 'rail-sched'}
+                key={lessonMode === 'homework' ? 'rail-hw' : lessonMode === 'students' ? 'rail-students' : lessonMode === 'recording' ? 'rail-rec' : 'rail-sched'}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15 }}
                 style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}
               >
+                {lessonMode === 'recording' && <div ref={setRecordingLinesSlot} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }} />}
                 {lessonMode === 'lesson' && (
                   <ScheduleCard
                     scope="lesson"
@@ -7304,6 +7308,7 @@ export default function TeacherCourseEditorPage() {
                         смене урока, но не запускает анимацию выхода. */}
                     {lessonMode === 'recording' && (
                       <CenterRecording
+                        linesSlot={recordingLinesSlot}
                         courseKey={course.id} loading={!!(course.metadataPending || course.heavyPending)} published={course.status === 'published'}
                         key={lessonShortIdById[selectedLesson.id] ?? selectedLesson.id}
                         lesson={selectedLesson}
