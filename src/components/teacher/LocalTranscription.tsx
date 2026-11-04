@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
@@ -182,7 +182,8 @@ export function RecordingLines({rail, fill}: {rail: TranscriptRail; fill?: boole
   return <section className={'recording-lines' + (fill ? ' is-fill' : '')} aria-label="Реплики записи">
     <header><AudioLines size={16}/><strong>Реплики</strong><small>{draft.transcript.segments.length}</small></header>
     <ScrollFade maxHeight={fill ? '100%' : 'min(32dvh, 280px)'} fadeHeight={12} style={fill ? { flex: 1, minHeight: 0 } : undefined}>
-      <div>{draft.transcript.segments.map((line,index) => <div key={index} className="transcript-line">
+      {/* Колонка времени — по самой длинной метке: ровная у всех реплик и не тесная у роликов длиннее часа. */}
+      <div style={{'--time-chars': Math.max(4, ...draft.transcript.segments.map(s => transcriptTime(s.start).length))} as CSSProperties}>{draft.transcript.segments.map((line,index) => <div key={index} className="transcript-line">
         <time>{transcriptTime(line.start)}</time>
         {editing === index ? <span className="transcript-line-text" data-text={line.text + ' '}>
           <textarea rows={1} autoFocus aria-label={'Реплика ' + (index+1)} value={line.text} disabled={saving}

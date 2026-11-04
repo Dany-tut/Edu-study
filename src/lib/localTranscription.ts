@@ -8,8 +8,11 @@ export class LocalTranscriptionUnavailable extends Error {}
 
 export const transcriptionOrigin = 'http://127.0.0.1:18764'
 
+/** 0:06, 12:30, 1:02:15 — с часами, как время глав: двухчасовой ролик не превращается в «125:30». */
 export function transcriptTime(seconds: number) {
-  return Math.floor(seconds / 60) + ':' + String(Math.floor(seconds % 60)).padStart(2, '0')
+  const s = Math.max(0, Math.floor(seconds))
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = String(s % 60).padStart(2, '0')
+  return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`
 }
 
 export function readTranscript(value: unknown): LessonTranscript | undefined {
