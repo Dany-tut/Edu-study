@@ -1,5 +1,5 @@
 import type { LessonTimecode } from '../data/lessonContent'
-import type { MontageSettings, MontageSpeaker, PauseOverride, QuietSpan } from './lessonMontage'
+import { labelVoices, type MontageSettings, type MontageSpeaker, type PauseOverride, type QuietSpan } from './lessonMontage'
 
 /** speaker — id голоса из LessonTranscript.speakers (после монтажа). */
 export interface TranscriptSegment { start: number; end: number; text: string; speaker?: string }
@@ -16,7 +16,10 @@ export interface SavedMontage {
   overrides?: Record<string, PauseOverride>
 }
 export interface LessonTranscript { source: string; segments: TranscriptSegment[]; speakers?: MontageSpeaker[]; montage?: SavedMontage }
-export interface LocalDraft { transcript: LessonTranscript; timecodes: LessonTimecode[] }
+/** Голос от модуля. embedding (отпечаток) — только в черновике на этом
+ *  компьютере: в урок не сохраняется, нужен, чтобы запомнить голос на Mac. */
+export interface ModuleVoice { id: string; embedding?: string; name?: string; match?: { label: string; role: 'teacher' | 'student' } }
+export interface LocalDraft { transcript: LessonTranscript; timecodes: LessonTimecode[]; voices?: ModuleVoice[] }
 
 export class LocalTranscriptionUnavailable extends Error {}
 
@@ -92,4 +95,26 @@ export function encodeLevels(db: number[]) {
 
 export function decodeLevels(data: string): number[] {
   try { return Array.from(atob(data), c => c.charCodeAt(0) - 128) } catch { return [] }
+}
+
+/** Ответ модуля о голосах → реплики с говорящими и подписанные голоса.
+ *  Узнанный на этом Mac голос получает своё имя, дорожка Zoom — имя файла,
+ *  остальные — «Учитель» (кто говорит больше всех) и «Ученик N». */
+export function applyModuleVoices(transcript: LessonTranscript, value: unknown): { transcript: LessonTranscript; voices?: ModuleVoice[] } {
+  const v = value as { segments?: unknown; voices?: unknown } | null
+  if (!v || !Array.isArray(v.segments) || !Array.isArray(v.voices) || v.segments.length !== transcript.segments.length) return { transcript }
+  const voices = (v.voices as ModuleVoice[]).filter(x => x && typeof x.id === 'string')
+  if (!voices.length) return { transcript }
+  const ids = new Set(voices.map(x => x.id))
+  const fallback = voices[0].id
+  const marks = v.segments as unknown[]
+  const segments = transcript.segments.map((s, i) => ({ ...s, speaker: typeof marks[i] === 'string' && ids.has(marks[i] as string) ? marks[i] as string : fallback }))
+  const lines = segments.map((s, i) => ({ id: 'l' + i, start: s.start, end: s.end, text: s.text, speaker: s.speaker! }))
+  const speakers = labelVoices(voices.map(x => x.id), lines).map(sp => {
+    const voice = voices.find(x => x.id === sp.id)
+    if (voice?.match) return { ...sp, label: voice.match.label, role: voice.match.role }
+    if (voice?.name) return { ...sp, label: voice.name }
+    return sp
+  })
+  return { transcript: { ...transcript, segments, speakers }, voices: voices.map(({ id, embedding, name, match }) => ({ id, ...(embedding ? { embedding } : {}), ...(name ? { name } : {}), ...(match ? { match } : {}) })) }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, X } from '../icons/appIcons'
+import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
@@ -7,7 +7,7 @@ import './profileIntegrations.css'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
 import { getOwnerId, getViewAs } from '../../lib/owner'
-import { LocalTranscriptionUnavailable, localRequest, readTranscript, transcriptTime, type LocalDraft } from '../../lib/localTranscription'
+import { LocalTranscriptionUnavailable, applyModuleVoices, localRequest, readTranscript, transcriptTime, type LocalDraft } from '../../lib/localTranscription'
 
 const tokenKey = (owner: string) => 'iskra.transcription.device.' + owner
 
@@ -263,8 +263,8 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
       {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить расшифровку'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено в урок</span>}
-      {!working && <button aria-label="Повторить обработку" title="Повторить обработку" onClick={open}><RotateCcw size={15}/></button>}
-      <MontageAction draft={draft} change={change} disabled={saving} file={props.file} />
+      <button aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={open}><RotateCcw size={15}/></button>
+      <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} />
       <button aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>
@@ -285,6 +285,8 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
   const [error, setError] = useState('')
   const [unavailable, setUnavailable] = useState(false)
   const [retry, setRetry] = useState(0)
+  // Дорожки участников (Zoom пишет звук каждого отдельным файлом): голоса — точно.
+  const [tracks, setTracks] = useState<File[]>([])
   const readyRef = useRef(onReady)
   useEffect(() => { readyRef.current = onReady }, [onReady])
   async function start() {
@@ -293,6 +295,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     const form = new FormData()
     if (file) form.append('video', file)
     else form.append('link', source.trim())
+    for (const track of tracks) form.append('tracks', track)
     setBusy(true)
     try {
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
@@ -316,9 +319,11 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
         if (state.error) throw new Error(state.stage)
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
         // Паузы и громкость от модуля (если он уже обновлён) — для окна монтажа.
-        const transcript = readTranscript({ source: job.source, segments: state.segments, montage: state.montage })
-        if (!transcript) throw new Error('Нет реплик для проверки.')
-        readyRef.current({ transcript, timecodes: state.chapters.map((c: { start: number; title: string }) =>
+        const read = readTranscript({ source: job.source, segments: state.segments, montage: state.montage })
+        if (!read) throw new Error('Нет реплик для проверки.')
+        // Голоса от модуля: реплики сразу с говорящими, узнанные — по имени.
+        const { transcript, voices } = applyModuleVoices(read, state.voices)
+        readyRef.current({ transcript, ...(voices ? { voices } : {}), timecodes: state.chapters.map((c: { start: number; title: string }) =>
           ({ seconds: c.start, time: transcriptTime(c.start), label: c.title })) })
       } catch (e) {
         if (!active) return
@@ -332,7 +337,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     window.addEventListener('online', reconnect)
     return () => { active = false; clearTimeout(timer); window.removeEventListener('online', reconnect) }
   }, [pending, token, retry])
-  const stages = ['Видео', 'Распознаём речь', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
+  const stages = ['Видео', 'Распознаём речь', 'Разделяем голоса', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
   const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
   const metric = progress?.unit === 'seconds' ? transcriptTime : (n: number) => String(n)
   return <section className="transcription-inline">
@@ -342,6 +347,11 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     </header>
     <div className="transcription-form">
     {!pending && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
+    {!pending && <label className="transcription-picker">
+      <Upload size={18} /><strong>{tracks.length ? `Дорожек участников: ${tracks.length}` : 'Дорожки участников — необязательно'}</strong>
+      <small>{tracks.length ? tracks.map(t => t.name).join(', ') : 'Zoom умеет сохранять звук каждого отдельным файлом. С ними голоса подпишутся точно, по именам файлов.'}</small>
+      <input type="file" multiple accept="audio/*,.m4a" aria-label="Дорожки участников" disabled={busy} onChange={e => setTracks([...(e.target.files ?? [])])} />
+    </label>}
     {pending && !error && <>
       <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}</small>
       <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac. Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>

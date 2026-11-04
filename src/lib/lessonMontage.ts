@@ -185,3 +185,92 @@ export function playbackPlan(saved: { quiet: QuietSpan[]; floor?: number; settin
   const fast = pauses.filter(p => p.action === 'speed').map(p => [p.start, p.end, saved.settings!.speed] as [number, number, number])
   return skip.length || fast.length ? { skip, fast } : undefined
 }
+
+/** Шкала ученика после монтажа: вырезанное выпадает, ускоренное сжимается.
+ *  view — время записи → время на шкале; source — обратно (клик по шкале);
+ *  total — длина урока после монтажа. maxRate — потолок скорости движка
+ *  (YouTube ускоряет максимум ×2, и шкала должна это учитывать). */
+export function montageTimeline(plan: { skip: [number, number][]; fast: [number, number, number][] } | undefined, duration: number, maxRate = Infinity) {
+  if (!plan || !(duration > 0)) return undefined
+  const parts = [
+    ...plan.skip.map(([a, b]) => ({ a, b, k: 0 })),
+    ...plan.fast.map(([a, b, r]) => ({ a, b, k: 1 / Math.max(1, Math.min(r, maxRate)) })),
+  ].filter(p => p.b > p.a).sort((x, y) => x.a - y.a)
+  if (!parts.length) return undefined
+  const view = (s: number) => {
+    let v = s
+    for (const p of parts) {
+      if (s <= p.a) break
+      v -= (Math.min(s, p.b) - p.a) * (1 - p.k)
+    }
+    return v
+  }
+  const source = (v: number) => {
+    let src = 0, acc = 0
+    for (const p of parts) {
+      const plain = p.a - src
+      if (v < acc + plain) return src + (v - acc)
+      acc += plain
+      const len = (p.b - p.a) * p.k
+      if (p.k > 0 && v <= acc + len) return p.a + (v - acc) / p.k
+      acc += len; src = p.b
+    }
+    return Math.min(duration, src + (v - acc))
+  }
+  return { view, source, total: view(duration) }
+}
+
+export interface LessonStats {
+  /** Сколько секунд говорил каждый голос и сколько реплик. */
+  bySpeaker: { id: string; seconds: number; lines: number; share: number }[]
+  teacherShare: number
+  studentShare: number
+  /** Доля урока, где никто не говорит. */
+  silenceShare: number
+  /** Вопросы учителя (реплика с «?») и сколько ждали ответа ученика. */
+  questions: number
+  answered: number
+  /** Медиана ожидания ответа, с. */
+  waitMedian?: number
+  /** Самый длинный монолог учителя подряд, с. */
+  longestMonologue: number
+  /** Ученики без единой реплики. */
+  silentStudents: string[]
+}
+
+/** Итоги урока по репликам и голосам — без ИИ. Вопрос — реплика учителя со
+ *  знаком «?»; ответ — первая реплика ученика в течение ANSWER_WINDOW секунд. */
+export const ANSWER_WINDOW = 30
+export function lessonStats(lines: MontageLine[], speakers: MontageSpeaker[], duration: number): LessonStats {
+  const sorted = [...lines].sort((a, b) => a.start - b.start)
+  const time = talkTime(sorted)
+  const talk = Object.values(time).reduce((a, b) => a + b, 0)
+  const role = (id: string) => speakers.find(s => s.id === id)?.role ?? 'student'
+  const teacherSec = sorted.filter(l => role(l.speaker) === 'teacher').reduce((a, l) => a + l.end - l.start, 0)
+  const waits: number[] = []
+  let questions = 0, answered = 0, longest = 0, run = 0, runEnd = -Infinity
+  sorted.forEach((l, i) => {
+    if (role(l.speaker) === 'teacher') {
+      // Монолог: реплики учителя подряд с паузами меньше 3 с.
+      run = l.start - runEnd < 3 ? run + (l.end - l.start) + Math.max(0, l.start - runEnd) : l.end - l.start
+      runEnd = l.end
+      longest = Math.max(longest, run)
+      if (l.text.trim().endsWith('?')) {
+        questions++
+        const reply = sorted.slice(i + 1).find(x => role(x.speaker) === 'student' || x.start - l.end > ANSWER_WINDOW)
+        if (reply && role(reply.speaker) === 'student' && reply.start - l.end <= ANSWER_WINDOW) { answered++; waits.push(Math.max(0, reply.start - l.end)) }
+      }
+    } else { run = 0; runEnd = -Infinity }
+  })
+  waits.sort((a, b) => a - b)
+  return {
+    bySpeaker: speakers.map(s => ({ id: s.id, seconds: time[s.id] ?? 0, lines: sorted.filter(l => l.speaker === s.id).length, share: talk ? (time[s.id] ?? 0) / talk : 0 })),
+    teacherShare: talk ? teacherSec / talk : 0,
+    studentShare: talk ? 1 - teacherSec / talk : 0,
+    silenceShare: duration > 0 ? Math.max(0, 1 - talk / duration) : 0,
+    questions, answered,
+    ...(waits.length ? { waitMedian: waits[Math.floor(waits.length / 2)] } : {}),
+    longestMonologue: longest,
+    silentStudents: speakers.filter(s => s.role === 'student' && !time[s.id]).map(s => s.id),
+  }
+}
