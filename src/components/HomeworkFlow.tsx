@@ -2772,14 +2772,18 @@ export default function HomeworkFlow({
 
   // Клавиатура ушла — просим Safari вернуть видимую область на место. Сам он
   // оставляет её сдвинутой вверх до следующего касания, и док с кнопкой стоят
-  // над пустой полосой там, где только что была клавиатура.
+  // над пустой полосой там, где только что была клавиатура. В списке заданий
+  // ученик остаётся у своего ответа: позицию только поджимаем к концу страницы.
   const hadKeyboard = useRef(false)
+  const singleTaskScreen = flowMode && !flowFinished
   useEffect(() => {
     if (keyboardOpen) { hadKeyboard.current = true; return }
     if (!hadKeyboard.current) return
     hadKeyboard.current = false
-    window.scrollTo(0, 0)
-  }, [keyboardOpen])
+    if (singleTaskScreen) { window.scrollTo(0, 0); return }
+    const end = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+    window.scrollTo(0, Math.min(window.scrollY, end))
+  }, [keyboardOpen, singleTaskScreen])
   const flowQuestionIndex = questionAt(queue, flowPosition)
   const flowQuestion = flowMode && !flowOnIntro && !flowFinished && flowQuestionIndex >= 0
     ? basicQuestions[flowQuestionIndex]
