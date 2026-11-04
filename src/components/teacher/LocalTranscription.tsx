@@ -159,6 +159,62 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   </section>
 }
 
+const stages = ['Видео', 'Распознаём речь', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
+type JobProgress = { current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' }
+const PACE_KEY = 'iskra.transcription.pace'
+function readPace(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(PACE_KEY) || '{}') } catch { return {} }
+}
+function timeLeft(seconds: number) {
+  if (seconds < 60) return 'меньше минуты'
+  const minutes = Math.ceil(seconds / 60)
+  return minutes < 60 ? minutes + ' мин' : Math.floor(minutes / 60) + ' ч ' + (minutes % 60) + ' мин'
+}
+
+// Оценка «сколько осталось». Текущий шаг — по скорости с момента, как мы его увидели:
+// пока прогресс стоит, скорость падает и время растёт, в минус не уходит. Следующие
+// шаги — по прошлым обработкам на этом Mac (секунды работы на секунду записи).
+function useTimeLeft(steps: string[], step: string, progress: JobProgress | undefined, running: boolean) {
+  const track = useRef({ step: '', since: 0, fromStart: false, base: null as null | { at: number; current: number }, duration: 0 })
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!running) return
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [running])
+  useEffect(() => {
+    if (!running) return
+    const at = Date.now()
+    const last = track.current
+    if (last.step !== step) {
+      if (last.step && last.fromStart && last.duration > 0 && steps.indexOf(last.step) > 0) {
+        const pace = readPace(), measured = (at - last.since) / 1000 / last.duration
+        pace[last.step] = pace[last.step] ? (pace[last.step] + measured) / 2 : measured
+        try { localStorage.setItem(PACE_KEY, JSON.stringify(pace)) } catch { /* оценка без истории */ }
+      }
+      track.current = { step, since: at, fromStart: !!last.step, base: null, duration: last.duration }
+    }
+    const current = track.current
+    if (progress?.unit === 'seconds') current.duration = progress.total
+    if (progress && (!current.base || progress.current < current.base.current)) current.base = { at, current: progress.current }
+  }, [steps, step, progress, running])
+  if (!running) return ''
+  const { since, base, duration } = track.current
+  const pace = readPace()
+  let left: number | undefined
+  if (progress && progress.total > 0) {
+    const done = base ? progress.current - base.current : 0, elapsed = base ? (now - base.at) / 1000 : 0
+    if (done > 0 && elapsed > 3) left = (progress.total - progress.current) * elapsed / done
+  } else if (pace[step] && duration) {
+    const expected = pace[step] * duration, elapsed = (now - since) / 1000
+    left = Math.max(expected - elapsed, elapsed / 9)
+  }
+  if (left === undefined) return progress || (pace[step] && duration) ? 'считаем, сколько осталось…' : ''
+  const later = steps.slice(steps.indexOf(step) + 1)
+  if (duration && later.every(s => pace[s])) return 'осталось ≈ ' + timeLeft(left + later.reduce((sum, s) => sum + pace[s] * duration, 0))
+  return 'до конца шага ≈ ' + timeLeft(left)
+}
+
 type Pending = { id: string; source: string; fileSignature?: string }
 const megabytes = (bytes: number) => (bytes / 1048576).toFixed(1) + ' МБ'
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
@@ -282,7 +338,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState('')
-  const [progress, setProgress] = useState<{ current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' }>()
+  const [progress, setProgress] = useState<JobProgress>()
   const [error, setError] = useState('')
   const [unavailable, setUnavailable] = useState(false)
   const [retry, setRetry] = useState(0)
@@ -333,8 +389,8 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     window.addEventListener('online', reconnect)
     return () => { active = false; clearTimeout(timer); window.removeEventListener('online', reconnect) }
   }, [pending, token, retry])
-  const stages = ['Видео', 'Распознаём речь', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
   const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
+  const eta = useTimeLeft(stages, stages[currentStep], progress, !!pending && !error && !!stage)
   const metric = progress?.unit === 'seconds' ? transcriptTime : progress?.unit === 'bytes' ? megabytes : (n: number) => String(n)
   return <section className="transcription-inline">
     <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
@@ -355,7 +411,10 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
           <strong>{step}</strong>{active && percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}
         </li>
       })}</ol>
-      {progress && progress.total > 0 && <small className="transcription-hint">{metric(progress.current)} из {metric(progress.total)}{progress.unit === 'bytes' ? '' : ' ' + (progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи')}</small>}
+      {(eta || (progress && progress.total > 0)) && <small className="transcription-hint">
+        {progress && progress.total > 0 && <>{metric(progress.current)} из {metric(progress.total)}{progress.unit === 'bytes' ? '' : ' ' + (progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи')}{eta && ' · '}</>}
+        {eta && (progress && progress.total > 0 ? eta : eta[0].toUpperCase() + eta.slice(1))}
+      </small>}
     </>}
     {error && <div role="alert" className="transcription-recovery">
       <strong>{unavailable ? 'Модуль недоступен' : 'Не удалось завершить расшифровку'}</strong>
