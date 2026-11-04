@@ -17,7 +17,8 @@ export function git(args, cwd = process.cwd()) {
 }
 
 /** Vercel removes .vercelignore matches after cloning, before running the build.
- * Only those unstaged deletions are expected; modified and staged files still reject the release.
+ * Those unstaged deletions and formatting-only service JSON changes are expected;
+ * modified source, changed configuration values and staged files still reject the release.
  * Local preflight also rejects untracked files. */
 export function releaseCheckoutChanges({ cwd = process.cwd(), allowVercelDeletions = false, allowVercelFormatting = false, includeUntracked = true } = {}) {
   const run = args => execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] })

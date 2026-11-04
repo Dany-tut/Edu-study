@@ -57,6 +57,17 @@ try {
   rmSync(join(hosted, 'supabase/schema.sql'))
   assert.equal(releaseCheckoutChanges({cwd:hosted}).length, 2); checks++
   assert.deepEqual(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}), []); checks++
+  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify({ headers: [], services: config.services }))
+  assert.deepEqual(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}), []); checks++
+  assert.ok(releaseCheckoutChanges({cwd:hosted}).some(change => change.endsWith('vercel.json'))); checks++
+  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify({ ...config, headers: [{ source: '/private', headers: [] }] }))
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('vercel.json'))); checks++
+  writeFileSync(join(hosted, 'vercel.json'), '{invalid')
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('vercel.json'))); checks++
+  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config))
+  git(['add', 'vercel.json'], hosted)
+  assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('vercel.json'))); checks++
+  git(['restore', '--staged', '--worktree', '--', 'vercel.json'], hosted)
   writeFileSync(join(hosted, 'app.ts'), 'changed source')
   assert.ok(releaseCheckoutChanges({cwd:hosted,allowVercelDeletions:true}).some(change => change.endsWith('app.ts'))); checks++
   git(['checkout', '--', 'app.ts'], hosted)
