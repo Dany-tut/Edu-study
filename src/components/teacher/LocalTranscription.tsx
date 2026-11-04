@@ -318,7 +318,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     {(failed || badChapter || badLine) && <small role="alert">{failed ? 'Не удалось сохранить. Попробуйте ещё раз.' : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
     <div className="transcript-tools">
       {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
-        <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить расшифровку'}</button> :
+        <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено в урок</span>}
       {!working && <button aria-label="Повторить обработку" title="Повторить обработку" onClick={open}><RotateCcw size={15}/></button>}
       <MontageAction draft={draft} change={change} disabled={saving} />
