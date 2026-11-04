@@ -69,9 +69,15 @@ export function PersonProfile({person,model,onClose}:{person:PersonCard;model:Fr
     return()=>{window.removeEventListener('keydown',keys,true);if(previous instanceof HTMLElement&&previous.isConnected)previous.focus()}
   },[])
   useEffect(()=>{
-    const selector=confirm?'.pc-confirm button':'.pc-remove'
-    body.current?.querySelector<HTMLButtonElement>(selector)?.focus()
-  },[confirm])
+    const root=body.current
+    if(confirm){root?.querySelector<HTMLButtonElement>('.pc-confirm button')?.focus();return}
+    // React can remove the focused retry/confirm button after an async result.
+    if(document.activeElement===document.body){
+      const next=root?.querySelector<HTMLButtonElement>('.pc-remove')
+        ??root?.closest('[role=dialog]')?.querySelector<HTMLButtonElement>('button')
+      next?.focus()
+    }
+  },[confirm,detail,error])
   const visible=detail?.status==='found'?detail:person
   async function remove(){
     if(lock.current||!detail?.id||!model.account)return
