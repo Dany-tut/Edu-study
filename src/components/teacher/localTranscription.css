@@ -118,7 +118,8 @@
 .transcript-line-text::after,.transcript-line-text textarea {grid-area:1/1;padding:3px 4px;border:0;font:inherit;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .transcript-line-text::after {content:attr(data-text);visibility:hidden}
 .transcript-line-text textarea {width:100%;min-width:0;min-height:0;resize:none;overflow:hidden;border-radius:5px;background:transparent;color:var(--color-text)}
-.transcript-line-text textarea:focus {background:var(--color-bg-3);outline:1px solid var(--color-control-accent)}
+/* Правка на месте без обводки: подложка как при наведении, текст не сдвигается. */
+.transcript-line-text textarea:focus {background:var(--color-bg-3);outline:none}
 .transcript-tools {border-top:1px solid var(--color-border-soft);padding-top:6px}
 .transcript-tools .transcription-rail-action,.transcript-saved {flex:1}
 .transcript-tools button:not(.transcription-rail-action) {width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
@@ -134,7 +135,8 @@
 .timecode-editor input[aria-label^="Время"] {width:5.5ch !important;padding:3px 0 !important;background:transparent;border-color:transparent;font-size:12px}
 .timecode-editor .chapter-title {position:relative;align-items:center;min-height:26px;font-size:13px}
 .chapter-title:not(:focus-within)::after {display:none}
-.chapter-title > [data-text-fade] {grid-area:1/1;pointer-events:none}
+.chapter-title > [data-text-fade] {grid-area:1/1;pointer-events:none;padding:3px 4px;border-radius:5px;line-height:1.45}
+.chapter-title:hover > [data-text-fade] {background:var(--color-bg-3)}
 .chapter-title textarea:not(:focus) {opacity:0;position:absolute;inset:0;height:100%}
 .chapter-title:focus-within > [data-text-fade] {display:none}
 .recording-lines {min-width:0;border-radius:16px;background:var(--color-bg-2);padding:10px 12px;border:1px solid var(--color-border-soft);text-align:start}
