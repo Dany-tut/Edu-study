@@ -13,7 +13,7 @@ import { getViewAs } from '../../lib/teacherView'
 
 import { TranscriptionModuleCard, useTranscriptionOwner } from './LocalTranscription'
 
-export default function TeacherModules() {
+export default function TeacherModules({ showHeading = true }: { showHeading?: boolean }) {
   const t = useT()
   const transcriptionOwner = useTranscriptionOwner()
   const { loaded, connected, email, tests, load } = useTestlyModule()
@@ -65,10 +65,10 @@ export default function TeacherModules() {
 
   return (
     <div className="profile-integrations" style={{ marginTop: 12 }}>
-      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 10 }}>{t('Модули')}</div>
+      {showHeading && <><div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 10 }}>{t('Модули')}</div>
       <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)', marginBottom: 12 }}>
         {t('Подключённый модуль появляется в домашке, уроках курса и Конструкторе: через него можно добавлять задания.')}
-      </div>
+      </div></>}
 
       {transcriptionOwner && <TranscriptionModuleCard key={transcriptionOwner} owner={transcriptionOwner} />}
       <div style={{

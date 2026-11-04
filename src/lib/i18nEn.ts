@@ -10,6 +10,23 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Аватар": "Avatar",
+  "Личные данные": "Personal details",
+  "Как вас видят в Искре.": "How you appear in Iskra.",
+  "Поиск людей, заявки и ваш ник.": "Find people, manage requests and your username.",
+  "Сервисы и инструменты для ваших занятий.": "Services and tools for your lessons.",
+  "Расписание, вход в аккаунт и оформление.": "Schedule, sign-in methods and appearance.",
+  "Данные аккаунта": "Account details",
+  "Ваш профиль для друзей": "Your profile for friends",
+  "Ваш ник в Искре": "Your Iskra username",
+  "Один ник, чтобы найти друг друга.": "One username to find each other.",
+  "Ник ещё не выбран": "No username yet",
+  "Вас можно найти по точному нику": "People can find you by your exact username",
+  "Поиск по нику выключен": "Username search is off",
+  "Изменить ник и видимость": "Edit username and visibility",
+  "Ваш email остаётся приватным.": "Your email stays private.",
+  "Добавьте первого друга": "Add your first friend",
+  "Введите ник друга в поиске выше. После принятия заявки он появится здесь.": "Search for your friend’s username above. Once they accept your request, they’ll appear here.",
   'Входящие заявки': 'Incoming requests',
   'Пока нет друзей': 'No friends yet',
   'Найти друга по нику': 'Find a friend by username',

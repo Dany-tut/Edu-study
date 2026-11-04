@@ -5,7 +5,7 @@
   gap: 16px;
   margin-bottom: 20px;
 }
-.teacher-profile-identity { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.teacher-profile-identity { display: flex; align-items: center; gap: 14px; min-width: 0; min-height: 54px; }
 .teacher-profile-identity h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: var(--color-text); }
 .teacher-profile-name { display: block; max-width: 100%; border: 0; background: transparent; padding: 3px 0; font-family: inherit; text-align: start; cursor: pointer; font-size: 12px; color: var(--color-text-3); }
 @media (max-width: 760px) {
@@ -14,3 +14,69 @@
 .teacher-profile-name:hover, .teacher-profile-name:focus-visible { color: var(--color-text); text-decoration: underline; }
 .teacher-profile-copy-status { position: absolute; top: 100%; left: 0; z-index: 1; width: max-content; border-radius: 6px; background: var(--color-bg-3); color: var(--color-text); font-size: 12px; }
 .teacher-profile-copy-status:not(:empty) { padding: 2px 6px; }
+
+/* One hierarchy for all four desktop profile sections. */
+.teacher-profile-page { color: var(--color-text); font-size: 14px; line-height: 1.5; }
+.profile-section-heading { margin: 0 0 20px; padding-inline: 20px; }
+.profile-section-heading h2 { margin: 0; font-size: 20px; line-height: 1.3; font-weight: 700; letter-spacing: -.3px; }
+.profile-section-heading p { margin: 6px 0 0; color: var(--color-text-3); font-size: 13px; }
+.profile-card, .teacher-profile-page .friends-overview { padding: 24px; border: 1px solid var(--color-border-medium); border-radius: 20px; background: var(--color-bg-2); }
+.teacher-profile-page h3, .teacher-profile-page .desktop-friends h3 { margin: 0; font-size: 15px; line-height: 1.4; font-weight: 650; }
+.profile-main-grid { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.6fr); gap: 20px; align-items: start; }
+.profile-avatar-card { display: flex; flex-direction: column; align-items: center; }
+.profile-avatar-card h3 { align-self: stretch; margin-bottom: 24px; }
+.profile-avatar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; width: 100%; max-width: 280px; }
+.profile-details-card { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.teacher-profile-page .friends-overview section:first-of-type h3 { display: none; }
+.teacher-profile-page .desktop-friends p { font-size: 13px; }
+.teacher-profile-page .profile-integrations { margin-top: 0 !important; }
+.teacher-profile-page section[aria-label="Способы входа"] { padding: 24px !important; border-radius: 20px !important; background: var(--color-bg-2) !important; border-color: var(--color-border-medium) !important; }
+.teacher-profile-page section[aria-label="Способы входа"] h2 { font-size: 15px !important; font-weight: 650; }
+.teacher-profile-page input:focus-visible, .teacher-profile-page button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+@media (max-width: 760px) {
+  .profile-main-grid { grid-template-columns: minmax(0, 1fr); }
+  .profile-card, .teacher-profile-page .friends-overview { padding: 18px; }
+  .profile-avatar-grid { grid-template-columns: repeat(5, 1fr); max-width: 420px; gap: 12px; }
+}
+@media (max-width: 380px) { .profile-avatar-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.profile-social-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.profile-social-list { min-width: 0; }
+.profile-social-list .friends-overview { padding: 0; background: transparent; border: 0; display: flex; flex-direction: column; gap: 20px; }
+.profile-social-list .friends-overview > section { padding: 24px; background: var(--color-bg-2); border: 1px solid var(--color-border-medium); border-radius: 20px; }
+.profile-social-list .friends-overview > section:first-of-type { padding: 8px; }
+.profile-social-list .friends-overview .friend-search { background: transparent; border: 0; border-radius: 14px; min-height: 44px; }
+.profile-social-list .friend-search input { font-weight: 400; }
+.profile-social-list .friends-overview h3 { display: flex; align-items: center; gap: 8px; }
+.profile-social-list .friends-overview h3 small { display: grid; place-items: center; min-width: 24px; height: 24px; border-radius: 8px; background: var(--color-bg-3); font-size: 12px; }
+.profile-social-list .friend-empty { min-height: 248px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 24px 12px; }
+.profile-social-list .friend-empty-mark { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 22px; background: var(--color-purple-soft); color: var(--color-accent); margin-bottom: 6px; }
+.profile-social-list .friend-empty strong { font-size: 16px; font-weight: 600; }
+.profile-social-list .friend-empty p { max-width: 290px; color: var(--color-text-3); line-height: 1.65; }
+.profile-social-identity { min-width: 0; }
+.profile-social-monogram { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 15px; color: var(--color-accent); background: var(--color-purple-soft); font-size: 24px; font-weight: 600; margin-bottom: 20px; }
+.profile-social-caption, .profile-social-privacy { color: var(--color-text-3); font-size: 12px; line-height: 1.6; }
+.profile-social-caption { margin: 6px 0 22px; }
+.profile-social-handle { font-size: 19px; font-weight: 650; letter-spacing: -.4px; }
+.profile-social-visibility { font-size: 12px; color: var(--color-text-2); margin: 8px 0 20px; }
+.profile-social-edit { min-height: 44px; width: 100%; border: 1px solid var(--color-border-medium); background: var(--color-bg-3); color: var(--color-text); border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.profile-social-privacy { margin: 20px 0 0; padding-top: 16px; border-top: 1px solid var(--color-border); }
+.profile-social-identity .desktop-friends h3 { display: none; }
+.profile-social-identity .desktop-friends label { font-size: 12px; font-weight: 500; }
+.profile-social-identity .desktop-friends p { font-size: 12px; line-height: 1.6; color: var(--color-text-3); }
+.profile-social-identity .desktop-friends input:not([type=checkbox]) { font-weight: 500; background: var(--color-bg); }
+.profile-social-identity .friend-check { justify-content: space-between; flex-direction: row-reverse; gap: 16px; padding-block: 12px; border-block: 1px solid var(--color-border); }
+.profile-social-identity .friend-check input { appearance: none; flex-shrink: 0; width: 36px; height: 22px; border-radius: 99px; background: var(--color-border-medium); position: relative; cursor: pointer; transition: background .15s; }
+.profile-social-identity .friend-check input::after { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform .15s; }
+.profile-social-identity .friend-check input:checked { background: var(--color-control-accent); }
+.profile-social-identity .friend-check input:checked::after { transform: translateX(14px); }
+.profile-social-identity .desktop-friends .friend-primary { width: 100%; border-radius: 12px; font-size: 13px; font-weight: 600; }
+.profile-social-identity .desktop-friends + .profile-social-edit { margin-top: 8px; background: transparent; border-color: transparent; color: var(--color-text-3); }
+@media(max-width: 760px) { .profile-social-grid { grid-template-columns: minmax(0, 1fr); } .profile-social-identity { grid-row: 1; } .profile-social-list .friends-overview > section { padding: 18px; } }
+@media(prefers-reduced-motion: reduce) { .profile-social-identity .friend-check input, .profile-social-identity .friend-check input::after { transition: none; } }
+@media(max-width: 760px) {
+  .profile-social-monogram, .profile-social-caption, .profile-social-privacy { display: none; }
+  .profile-social-identity > h3 { margin-bottom: 14px; }
+  .profile-social-visibility { margin-bottom: 14px; }
+  .profile-social-list .friend-empty { min-height: 200px; }
+}
