@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-03",
+  "source": "Чат «Профили Искры, друзья и совместные квизы», наблюдение настоящего Claude Desktop",
+  "humanGranted": true,
+  "connected": true,
+  "nativeUi": "Disconnect",
+  "tools": [
+    "Мои курсы",
+    "Добавить урок",
+    "Создать курс",
+    "Добавить тест к уроку"
+  ],
+  "perToolState": "Needs approval",
+  "personalAccountWrites": "Не выполнялись",
+  "toolInvocation": "Создание/изменение доказано отдельно на синтетическом tenant реальным MCP/OAuth клиентом; не выдаётся за исполнение этих tools из личного Claude",
+  "revocation": "PASS: конкретный grant отозван в опубликованной карточке Искры; без повторного подключения",
+  "exactFrontendShaAtApproval": null,
+  "grantActive": 0,
+  "grantRevoked": 1,
+  "nativeUiAfter": "Connect; You’re not connected to Искра yet.",
+  "exactFrontendShaAtRevocation": "0c8861014c6f844655c1c96c2a3617b2c7c06125",
+  "frontendVersionAtRevocation": "1.0.2014"
+}

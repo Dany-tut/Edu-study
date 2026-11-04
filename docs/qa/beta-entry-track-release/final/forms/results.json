@@ -1,0 +1,2200 @@
+{
+  "scope": "Actual production forms; invitation RPC responses are synthetic. No form submissions or registrations",
+  "results": [
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 808.5,
+        "y": 383.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 600.5,
+        "y": 313.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 760,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 80,
+              "scrollHeight": 760,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 160,
+              "scrollHeight": 760,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 153.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 776,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 104,
+              "scrollHeight": 776,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 208,
+              "scrollHeight": 776,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "student",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 355.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 384.15625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 380.78125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 893,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 147,
+              "scrollHeight": 893,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 293,
+              "scrollHeight": 893,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 214,
+        "y": 117.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 959,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 196,
+              "scrollHeight": 959,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 391,
+              "scrollHeight": 959,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "teacher",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 282.609375,
+        "y": 314.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 940,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 48,
+              "scrollHeight": 940,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 96,
+              "scrollHeight": 940,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 474.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 324.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 600,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 600,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 600,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 333.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 568,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 568,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 568,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-student",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 446.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 527.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 438.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 722,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 61,
+              "scrollHeight": 722,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 122,
+              "scrollHeight": 722,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 367.953125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 811,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 122,
+              "scrollHeight": 811,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 243,
+              "scrollHeight": 811,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 490.296875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 808.5,
+        "y": 383.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 600.5,
+        "y": 313.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 760,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 80,
+              "scrollHeight": 760,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 760,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 160,
+              "scrollHeight": 760,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 153.6875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 776,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 104,
+              "scrollHeight": 776,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 776,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 208,
+              "scrollHeight": 776,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "student",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 355.65625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 384.15625,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 380.78125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 893,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 147,
+              "scrollHeight": 893,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 893,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 293,
+              "scrollHeight": 893,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 214,
+        "y": 117.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 959,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 196,
+              "scrollHeight": 959,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 959,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 391,
+              "scrollHeight": 959,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "teacher",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 282.609375,
+        "y": 314.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 940,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 48,
+              "scrollHeight": 940,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 940,
+              "clientHeight": 844
+            }
+          ],
+          "masks": [
+            {
+              "top": 96,
+              "scrollHeight": 940,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 474.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 324.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 600,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 600,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 600,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 333.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 568,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 568,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 568,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-student",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 446.078125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "passwordTarget": {
+        "x": 834.5,
+        "y": 527.71875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 900,
+              "clientHeight": 900,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 1024,
+      "height": 600,
+      "passwordTarget": {
+        "x": 626.5,
+        "y": 438.671875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 722,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 61,
+              "scrollHeight": 722,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 722,
+              "clientHeight": 600
+            }
+          ],
+          "masks": [
+            {
+              "top": 122,
+              "scrollHeight": 722,
+              "clientHeight": 600,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "passwordTarget": {
+        "x": 213,
+        "y": 367.953125,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 811,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": false,
+              "actualBottom": true,
+              "expectedTop": false,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 122,
+              "scrollHeight": 811,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+              "actualTop": true,
+              "actualBottom": true,
+              "expectedTop": true,
+              "expectedBottom": true
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "scrollHeight": 811,
+              "clientHeight": 568
+            }
+          ],
+          "masks": [
+            {
+              "top": 243,
+              "scrollHeight": 811,
+              "clientHeight": 568,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+              "actualTop": true,
+              "actualBottom": false,
+              "expectedTop": true,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "screen": "join-teacher",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "passwordTarget": {
+        "x": 283,
+        "y": 490.296875,
+        "width": 44,
+        "height": 44
+      },
+      "positions": [
+        {
+          "pos": "start",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [],
+          "masks": [
+            {
+              "top": 0,
+              "scrollHeight": 844,
+              "clientHeight": 844,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+              "actualTop": false,
+              "actualBottom": false,
+              "expectedTop": false,
+              "expectedBottom": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

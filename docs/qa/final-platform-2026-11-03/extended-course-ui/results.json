@@ -1,0 +1,292 @@
+{
+  "baseSha": "cb9a7d47809ef8bdf98d29cde3ffc7cfe777c4c6",
+  "environment": "Vite full UI with real Supabase, synthetic accounts; authenticated session prepared by API",
+  "results": [
+    {
+      "name": "Course task answer controls accessible names",
+      "status": "FAIL",
+      "detail": {
+        "unnamedVisibleButtons": 11,
+        "example": "correct-answer selector and remove option have neither accessible label nor exposed selected state"
+      }
+    },
+    {
+      "name": "14 task types persisted with correct order and identity",
+      "status": "PASS",
+      "detail": {
+        "lessonId": "b3c20222-22c0-4bdd-b570-69a968a32372",
+        "types": [
+          "single",
+          "fill",
+          "multi",
+          "extended",
+          "matching",
+          "sequence",
+          "tableFill",
+          "whiteboard",
+          "blockOrder",
+          "videoWatch",
+          "trueFalse",
+          "dropdownGap",
+          "columnSort",
+          "embed"
+        ]
+      }
+    },
+    {
+      "name": "Author content survives full reload",
+      "status": "PASS",
+      "detail": {
+        "taskCount": 14
+      }
+    },
+    {
+      "name": "Correct-answer keyboard selection and removal preserve task identity",
+      "status": "PASS",
+      "detail": {
+        "keyboard": [
+          "Space",
+          "Enter"
+        ],
+        "singleCorrect": "A",
+        "removed": "single D; multi D remains"
+      }
+    },
+    {
+      "name": "31 local task editors create and persist distinct types",
+      "status": "PASS",
+      "detail": {
+        "lessonId": "d5dd82d8-5767-4ace-9236-94fd9dafd9cc",
+        "types": [
+          "single",
+          "multi",
+          "fill",
+          "extended",
+          "matching",
+          "sequence",
+          "tableFill",
+          "whiteboard",
+          "wordBank",
+          "listenType",
+          "listenBank",
+          "minimalPair",
+          "speaking",
+          "imageDescribe",
+          "imageCompare",
+          "pattern",
+          "trace",
+          "buildSyllable",
+          "unscramble",
+          "blockOrder",
+          "charBank",
+          "jamoType",
+          "dialogGap",
+          "wordDrop",
+          "crossword",
+          "flashcard",
+          "videoWatch",
+          "trueFalse",
+          "dropdownGap",
+          "columnSort",
+          "embed"
+        ],
+        "limits": "Default payload creation + distinct question text; valid solving and provider actions not included"
+      }
+    },
+    {
+      "name": "Duplicate full course keeps lesson tasks and theory with fresh lesson IDs",
+      "status": "PASS",
+      "detail": {
+        "originalLesson": "b3c20222-22c0-4bdd-b570-69a968a32372",
+        "copyLesson": "6c48a0ad-6d5c-4836-ac9f-bd933d9fef4e",
+        "types": 14
+      }
+    },
+    {
+      "name": "Edit duplicated course leaves original task unchanged",
+      "status": "PASS",
+      "detail": {
+        "original": "QA single: 2 + 2?",
+        "copy": "QA copy independent revised question"
+      }
+    },
+    {
+      "name": "Subject filter closes on Escape",
+      "status": "FAIL",
+      "error": "Subject popup remains open after Escape"
+    },
+    {
+      "name": "Subject option responds to keyboard activation",
+      "status": "FAIL",
+      "error": "Space did not select second subject; row is mouse-down-only"
+    },
+    {
+      "name": "31 task editor payloads survive a new document",
+      "status": "PASS",
+      "detail": {
+        "taskCount": 31
+      }
+    },
+    {
+      "name": "First concurrent editor commits own change",
+      "status": "PASS",
+      "detail": {
+        "question": "QA first tab committed"
+      }
+    },
+    {
+      "name": "Concurrent stale tab cannot overwrite committed homework",
+      "status": "FAIL",
+      "error": "page.waitForFunction: Timeout 10000ms exceeded."
+    },
+    {
+      "name": "Material upload persists in real Storage and lesson after reload",
+      "status": "PASS",
+      "detail": {
+        "lessonId": "b730956a-62fd-4ec9-bea8-959d34351c7e",
+        "materials": {
+          "materials": [
+            {
+              "id": "56976e24-c635-41db-a274-1e62e155db87",
+              "mime": "text/plain",
+              "name": "qa-material-1793689921626.txt",
+              "path": "f69eb3f0-e9ba-47c3-a73a-62ca272ee8f8/56976e24-c635-41db-a274-1e62e155db87.txt",
+              "size": 46
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Uploaded material download returns exact bytes",
+      "status": "PASS",
+      "detail": {
+        "bytes": 46
+      }
+    },
+    {
+      "name": "Large file service unavailable preserves existing attachment and shows fallback",
+      "status": "PASS",
+      "detail": {
+        "service": "r2-upload HTTP 404",
+        "bytesUploaded": 0,
+        "fallback": "25 MB limit and attach Google Drive link",
+        "existingMaterialUnchanged": true
+      }
+    },
+    {
+      "name": "Eight base task types retain student draft after reload",
+      "status": "PASS",
+      "detail": {
+        "types": [
+          "single",
+          "multi",
+          "fill",
+          "extended",
+          "matching",
+          "sequence",
+          "tableFill",
+          "whiteboard"
+        ],
+        "limits": "whiteboard text fallback; sequence retains initial arrangement; no drawing upload"
+      }
+    },
+    {
+      "name": "Eight base answers submit to own progress row with manual review preserved",
+      "status": "PASS",
+      "detail": {
+        "progressId": "d031fc93-04c5-4930-9720-830eba7a2616",
+        "status": "submitted",
+        "score": null,
+        "reviewRequired": true
+      }
+    },
+    {
+      "name": "Server snapshot keeps all eight authored answers and five auto verdicts",
+      "status": "PASS",
+      "detail": {
+        "autoCorrect": 5,
+        "manualTypes": [
+          "extended",
+          "tableFill",
+          "whiteboard"
+        ]
+      }
+    },
+    {
+      "name": "Real AI review launched from teacher UI returns contextual comments without publishing grade",
+      "status": "PASS",
+      "detail": {
+        "status": "submitted",
+        "score": null,
+        "limit": "Synthetic eight-question work; successful provider response is not large-sample quality evaluation"
+      }
+    },
+    {
+      "name": "Teacher publishes own grade and comment after AI suggestions",
+      "status": "PASS",
+      "detail": {
+        "status": "completed",
+        "score": 90,
+        "review_comment": "QA: все восемь типов просмотрены, оценка преподавателя 90%."
+      }
+    },
+    {
+      "name": "Student sees published score, teacher comment and all eight historical answers",
+      "status": "PASS",
+      "detail": {
+        "score": 90,
+        "teacherComment": true,
+        "attempts": 1
+      }
+    },
+    {
+      "name": "Eight-type history survives second reload without duplicate attempt",
+      "status": "PASS",
+      "detail": {
+        "attempts": 1,
+        "score": 90
+      }
+    },
+    {
+      "name": "OAuth direct system route reaches staff consent screen and rejects missing authorization ID",
+      "status": "PASS",
+      "detail": {
+        "staffError": "Missing authorization request; no authorization approved",
+        "guest": "Login form visible; query preserved",
+        "limits": "MCP endpoint unavailable; no valid external consent round trip"
+      }
+    }
+  ],
+  "errors": [],
+  "driverIssues": [
+    {
+      "name": "Cross-realm deepStrictEqual",
+      "detail": "Node REPL VM arrays with equal values fail prototype equality; compare canonical JSON. Reload check initially lacked baseline as a consequence."
+    },
+    {
+      "name": "Teacher comment location",
+      "detail": "Comment is shown in attempt history; immediate main-body expectation was incorrect."
+    },
+    {
+      "name": "History expansion timing",
+      "detail": "Await each rendered historical answer after expanding; an immediate body snapshot raced the transition."
+    },
+    {
+      "name": "Student inventory precondition",
+      "detail": "Injecting Supabase Auth alone does not initialize student_session. Initial 28 student records opened landing and are invalid for student-screen coverage; rerun uses state from actual student UI login."
+    },
+    {
+      "name": "Desktop profile inventory oracle",
+      "detail": "Desktop has no separate profile screen by current design; DashboardPage maps this route to course catalogue. Mobile profile is tested separately. Desktop profile expectation of logout button was inapplicable."
+    },
+    {
+      "name": "Profile scroll root",
+      "detail": "Profile scrolls a nested MobileScreen div, not document.scrollingElement. Repeated with actual ancestor; empty root-scroll samples excluded."
+    },
+    {
+      "name": "Development profile fixture",
+      "detail": "Development mode supplies demo statistics (7 days); not used as evidence of the live one-day profile. The final text check uses production build."
+    }
+  ]
+}

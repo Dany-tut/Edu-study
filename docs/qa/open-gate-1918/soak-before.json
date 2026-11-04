@@ -1,0 +1,219 @@
+{
+  "local": true,
+  "distinctStudents": 50,
+  "targetSeconds": 120,
+  "metrics": {
+    "read": {
+      "ok": 0,
+      "p95ms": 0,
+      "p99ms": 0
+    },
+    "write": {
+      "ok": 0,
+      "p95ms": 0,
+      "p99ms": 0
+    }
+  },
+  "errors": [
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    },
+    {
+      "type": "write",
+      "error": "PGRST116"
+    }
+  ]
+}

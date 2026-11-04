@@ -1,0 +1,15 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Negative control must detect the collapsing status bug
+    at file:///Users/dany/Cursor/student-dashboard/docs/qa/auth-feedback-optical-2026-11-03/edge-check.mjs:11:400 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: { x: 41, y: 494.65625, width: 297, height: 48 },
+  expected: { x: 41, y: 494.65625, width: 297, height: 48 },
+  operator: 'notDeepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

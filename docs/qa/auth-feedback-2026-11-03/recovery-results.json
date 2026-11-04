@@ -1,0 +1,109 @@
+{
+  "results": [
+    {
+      "role": "teacher",
+      "width": 390,
+      "before": {
+        "button": {
+          "x": 41,
+          "y": 584.546875,
+          "width": 297,
+          "height": 48,
+          "top": 584.546875,
+          "right": 338,
+          "bottom": 632.546875,
+          "left": 41
+        },
+        "card": {
+          "x": 16,
+          "y": 242.453125,
+          "width": 347,
+          "height": 415.09375,
+          "top": 242.453125,
+          "right": 363,
+          "bottom": 657.546875,
+          "left": 16
+        }
+      }
+    },
+    {
+      "role": "teacher",
+      "width": 1440,
+      "before": {
+        "button": {
+          "x": 538.5,
+          "y": 584.546875,
+          "width": 352,
+          "height": 48,
+          "top": 584.546875,
+          "right": 890.5,
+          "bottom": 632.546875,
+          "left": 538.5
+        },
+        "card": {
+          "x": 513.5,
+          "y": 242.453125,
+          "width": 402,
+          "height": 415.09375,
+          "top": 242.453125,
+          "right": 915.5,
+          "bottom": 657.546875,
+          "left": 513.5
+        }
+      }
+    },
+    {
+      "role": "student",
+      "width": 390,
+      "before": {
+        "button": {
+          "x": 41,
+          "y": 579.96875,
+          "width": 297,
+          "height": 48,
+          "top": 579.96875,
+          "right": 338,
+          "bottom": 627.96875,
+          "left": 41
+        },
+        "card": {
+          "x": 16,
+          "y": 247.03125,
+          "width": 347,
+          "height": 405.9375,
+          "top": 247.03125,
+          "right": 363,
+          "bottom": 652.96875,
+          "left": 16
+        }
+      }
+    },
+    {
+      "role": "student",
+      "width": 1440,
+      "before": {
+        "button": {
+          "x": 538.5,
+          "y": 579.96875,
+          "width": 352,
+          "height": 48,
+          "top": 579.96875,
+          "right": 890.5,
+          "bottom": 627.96875,
+          "left": 538.5
+        },
+        "card": {
+          "x": 513.5,
+          "y": 247.03125,
+          "width": 402,
+          "height": 405.9375,
+          "top": 247.03125,
+          "right": 915.5,
+          "bottom": 652.96875,
+          "left": 513.5
+        }
+      }
+    }
+  ],
+  "scope": "Recovery prop fixture, short-password validation and teacher updateUser SDK boundary; no actual password/session updates."
+}

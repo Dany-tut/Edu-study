@@ -1,0 +1,9 @@
+{
+  "base": "1d80bf3081f9ba4b518e5a91a6988c07568145ad",
+  "files": {
+    "src/components/AuthRoleHeader.tsx": "99f7311d6fb6ff02e629b3913683513287ce0f48f753efe5a0a4e3aef657f226",
+    "src/components/AuthHero.tsx": "bd9bcbcdd7ecd9966c5afc9e2122d48d9de3b6342c8085dc1794bc523257b449",
+    "src/components/authLayout.css": "60042b1c21b2f274a9c36efc815d5598423c5c0be43dbe885d325af74f3358af",
+    "src/pages/teacher/TeacherLoginPage.tsx": "2fca8058f77ad26301923b6f51ccc3076e88405d9cdc9ac5aa961cd1aa7f7e5e"
+  }
+}

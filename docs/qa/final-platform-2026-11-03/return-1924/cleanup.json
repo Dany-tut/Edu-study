@@ -1,0 +1,17 @@
+{
+  "failures": [],
+  "owned": {
+    "teacherId": "2a56a622-42ef-4128-8654-f9a5ab90165f",
+    "studentId": "cc1aba8a-9df1-4db7-af3e-94f425d8d566",
+    "courseId": "bf33f548-7ca8-475c-aaf4-db811ce2e4b1",
+    "groupId": "2aec44aa-2dfa-4f2c-912e-415bbdb68151"
+  },
+  "progress": "PASS",
+  "homework": "PASS",
+  "courses": "PASS",
+  "student": "PASS",
+  "group": "PASS",
+  "auth-b0e8e397-3a7f-4411-a8e1-e58db1e073db": "PASS",
+  "auth-2a56a622-42ef-4128-8654-f9a5ab90165f": "PASS",
+  "invite": "PASS"
+}

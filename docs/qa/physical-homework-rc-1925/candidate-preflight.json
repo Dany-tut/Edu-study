@@ -1,0 +1,9 @@
+{
+  "sourceSha": "c0ca274b967da8710e2fcdc3ca6dc3c88ad15534",
+  "sourceArchive": "candidate-c0ca274b",
+  "version": "1.0.1925",
+  "backendOverride": "http://127.0.0.1:18080",
+  "bundleId": "com.dany.iskra.qa.physical.rc1925",
+  "backendSchemaSha256": "a84fcbc1de25453edd15002ccf0c3c77155d285da047020bb09c27f35cb49100",
+  "testTransport": "device loopback + USB-only iproxy + host loopback"
+}

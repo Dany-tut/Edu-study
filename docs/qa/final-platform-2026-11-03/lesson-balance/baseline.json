@@ -1,0 +1,61 @@
+{
+  "scope": "Real production API Auth/PostgREST/Storage. Five synthetic identities; only owned IDs. API not UI acceptance",
+  "results": [
+    {
+      "name": "payment insert adds only its credit to manual baseline",
+      "status": "PASS"
+    },
+    {
+      "name": "payment count correction applies delta",
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   12,\n-   15,\n    10\n  ]\n"
+    },
+    {
+      "name": "payment reassignment moves credit between own pupils",
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   12,\n    10,\n-   15\n  ]\n"
+    },
+    {
+      "name": "payment deletion reverses its credit without erasing manual baseline",
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   12,\n    10,\n-   10\n  ]\n"
+    },
+    {
+      "name": "negative purchased lesson count is rejected on server",
+      "status": "FAIL",
+      "error": "Negative lessons accepted"
+    },
+    {
+      "name": "attendance consumes one prepaid lesson",
+      "status": "PASS"
+    },
+    {
+      "name": "attendance correction restores then consumes exactly once",
+      "status": "PASS"
+    },
+    {
+      "name": "attendance reassignment transfers consumption between own pupils",
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   9,\n    10,\n-   9\n  ]\n"
+    },
+    {
+      "name": "attendance deletion reverses consumption",
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   9,\n    10,\n-   10\n  ]\n"
+    },
+    {
+      "name": "foreign teacher cannot forge attendance using own group and foreign pupil",
+      "status": "FAIL",
+      "error": "Operation unexpectedly allowed"
+    },
+    {
+      "name": "learner cannot forge attendance",
+      "status": "PASS"
+    },
+    {
+      "name": "concurrent payments and deletes preserve exact credit total",
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   14,\n    10,\n-   10\n  ]\n"
+    }
+  ]
+}

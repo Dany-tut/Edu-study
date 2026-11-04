@@ -1,0 +1,9 @@
+{
+  "status": 404,
+  "presignAvailable": false,
+  "uploaded": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Requested function was not found"
+  }
+}

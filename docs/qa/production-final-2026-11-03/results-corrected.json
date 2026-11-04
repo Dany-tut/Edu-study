@@ -1,0 +1,174 @@
+{
+  "sha": "3601666e22f1529dad1811ba48b1940adb2d8417",
+  "browser": "Chrome desktop emulation",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 213,
+        "y": 320.24725341796875,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/teacher",
+      "status": "PASS",
+      "toggle": {
+        "x": 214,
+        "y": 410.671875,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 213,
+        "y": 323.5758056640625,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/teacher",
+      "status": "PASS",
+      "toggle": {
+        "x": 214,
+        "y": 410.671875,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 283,
+        "y": 367.696044921875,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "route": "/teacher",
+      "status": "PASS",
+      "toggle": {
+        "x": 282.609375,
+        "y": 410.671875,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 283,
+        "y": 355.65625,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "route": "/teacher",
+      "status": "PASS",
+      "toggle": {
+        "x": 282.609375,
+        "y": 410.671875,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 808.5,
+        "y": 399.4421691894531,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "route": "/teacher",
+      "status": "PASS",
+      "toggle": {
+        "x": 834.5,
+        "y": 384.15625,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 808.5,
+        "y": 383.65625,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "route": "/teacher",
+      "status": "PASS",
+      "toggle": {
+        "x": 834.5,
+        "y": 384.15625,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    }
+  ]
+}

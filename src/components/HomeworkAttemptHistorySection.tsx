@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import HomeworkAttemptHistory from './HomeworkAttemptHistory'
 
 export default function HomeworkAttemptHistorySection({ result, studentId, lessonRef, authorName }: {
-  result?: HomeworkResult; studentId: string; lessonRef: string; authorName?: string
+  result?: Pick<HomeworkResult, 'attempts' | 'attemptCount'>; studentId: string; lessonRef: string; authorName?: string
 }) {
   const t = useT()
   const [error, setError] = useState('')

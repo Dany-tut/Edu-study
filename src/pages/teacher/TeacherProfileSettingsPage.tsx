@@ -4,6 +4,7 @@ import ProfileChips from '../../components/ProfileChips'
 import HScrollFade from '../../components/HScrollFade'
 import { FriendsContent } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
+import { useTeacherGuides } from '../../components/teacher/guides/TeacherGuides'
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { LoopSelect } from '../../components/icons/LoopSelect'
 import { profileFormReady } from '../../lib/diagnosticJourney'
@@ -51,6 +52,7 @@ const AVATARS: AvatarOption[] = [
 ]
 
 export default function TeacherProfileSettingsPage({ friends }: { friends: FriendsModel }) {
+  const teacherGuides = useTeacherGuides()
   const t = useT()
   const [page, setPage] = useState<'main' | 'integrations' | 'settings'>('main')
   const section = friends.account && friends.tab ? 'friends' : page
@@ -281,6 +283,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
               ) : null}
               <span className="teacher-profile-copy-status" role="status">{copyResult}</span>
             </div>
+            {teacherGuides && <button type="button" className="teacher-guides-entry" onClick={teacherGuides.catalog}>{t('Подсказки')}</button>}
           </div>
           <HScrollFade padX={2} padTop={3} padBottom={3} fadeWidth={22} style={{ minWidth: 0, maxWidth: '100%', justifySelf: 'center' }}>
             <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {

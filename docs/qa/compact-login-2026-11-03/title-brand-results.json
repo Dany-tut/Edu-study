@@ -1,0 +1,322 @@
+[
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 320,
+    "metrics": {
+      "logoInsets": {
+        "left": 21,
+        "top": 21
+      },
+      "font": "18px",
+      "lines": 1,
+      "textRight": 199.0625,
+      "artLeft": 216,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 320,
+    "metrics": {
+      "logoInsets": {
+        "left": 21,
+        "top": 21
+      },
+      "font": "23px",
+      "lines": 2,
+      "textRight": 134.40625,
+      "artLeft": 216,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 360,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "19.26px",
+      "lines": 1,
+      "textRight": 213.015625,
+      "artLeft": 236,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 360,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 2,
+      "textRight": 147.203125,
+      "artLeft": 236,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 390,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "20.865px",
+      "lines": 1,
+      "textRight": 224.859375,
+      "artLeft": 266,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 390,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 1,
+      "textRight": 248.828125,
+      "artLeft": 266,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 600,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "23px",
+      "lines": 1,
+      "textRight": 320.125,
+      "artLeft": 398.5,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 600,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 1,
+      "textRight": 326.328125,
+      "artLeft": 398.5,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 1440,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 1,
+      "textRight": 757.40625,
+      "artLeft": 818.5,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 1440,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 1,
+      "textRight": 746.328125,
+      "artLeft": 818.5,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 320,
+    "metrics": {
+      "logoInsets": {
+        "left": 21,
+        "top": 21
+      },
+      "font": "18px",
+      "lines": 1,
+      "textRight": 199.0625,
+      "artLeft": 216,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 320,
+    "metrics": {
+      "logoInsets": {
+        "left": 21,
+        "top": 21
+      },
+      "font": "23px",
+      "lines": 2,
+      "textRight": 134.40625,
+      "artLeft": 216,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 360,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "19.26px",
+      "lines": 1,
+      "textRight": 213.015625,
+      "artLeft": 236,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 360,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 2,
+      "textRight": 147.203125,
+      "artLeft": 236,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 390,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "20.865px",
+      "lines": 1,
+      "textRight": 224.859375,
+      "artLeft": 266,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 390,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 1,
+      "textRight": 248.828125,
+      "artLeft": 266,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 600,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "23px",
+      "lines": 1,
+      "textRight": 320.125,
+      "artLeft": 398.5,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 600,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 1,
+      "textRight": 326.328125,
+      "artLeft": 398.5,
+      "overflow": false
+    }
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 1440,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 1,
+      "textRight": 757.40625,
+      "artLeft": 818.5,
+      "overflow": false
+    }
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 1440,
+    "metrics": {
+      "logoInsets": {
+        "left": 25,
+        "top": 25
+      },
+      "font": "25px",
+      "lines": 1,
+      "textRight": 746.328125,
+      "artLeft": 818.5,
+      "overflow": false
+    }
+  }
+]

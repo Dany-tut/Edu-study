@@ -1,0 +1,41 @@
+{
+  "failures": [
+    {
+      "name": "auth-teacherA",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'local-teachera-1793685419750@example.invalid'\n- 'local-teacherA-1793685419750@example.invalid'\n"
+    },
+    {
+      "name": "auth-teacherB",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'local-teacherb-1793685419750@example.invalid'\n- 'local-teacherB-1793685419750@example.invalid'\n"
+    },
+    {
+      "name": "auth-studentA",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'local-studenta-1793685419750@example.invalid'\n- 'local-studentA-1793685419750@example.invalid'\n"
+    },
+    {
+      "name": "auth-studentB",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'local-studentb-1793685419750@example.invalid'\n- 'local-studentB-1793685419750@example.invalid'\n"
+    }
+  ],
+  "photos-A": "PASS",
+  "progress-A": "PASS",
+  "payments-A": "PASS",
+  "schedule-A": "PASS",
+  "homework-A": "PASS",
+  "courses-A": "PASS",
+  "students-A": "PASS",
+  "groups-A": "PASS",
+  "progress-B": "PASS",
+  "payments-B": "PASS",
+  "schedule-B": "PASS",
+  "homework-B": "PASS",
+  "courses-B": "PASS",
+  "students-B": "PASS",
+  "groups-B": "PASS",
+  "invites-admin": "PASS",
+  "auth-admin": "PASS",
+  "invites-teacherA": "PASS",
+  "invites-teacherB": "PASS",
+  "invites-studentA": "PASS",
+  "invites-studentB": "PASS"
+}

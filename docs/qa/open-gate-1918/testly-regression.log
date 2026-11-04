@@ -1,0 +1,3 @@
+PASS: zero, mixed homework, partial score, teacher review, repeated delivery, unrelated tests
+PASS: return, preserved previous grade, stale response, retry, resubmission
+PASS: repeated corrections do not accumulate rounded score error

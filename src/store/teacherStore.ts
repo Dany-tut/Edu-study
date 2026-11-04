@@ -198,7 +198,7 @@ function clearCardsSession() {
   try { sessionStorage.removeItem(CARDS_SESSION_KEY) } catch { /* unavailable — non-fatal */ }
 }
 
-// Per-tab navigation snapshot. Context-heavy sub-pages (student dashboard, HW
+// Per-tab navigation snapshot. Context-heavy sub-pages (HW
 // review, HW composer, hard review, lesson editor) have no URL hash of their own,
 // so on refresh we restore both the page AND the ids those pages need to re-fetch.
 // sessionStorage is per-tab, so a fresh tab / deep-link starts clean and honours

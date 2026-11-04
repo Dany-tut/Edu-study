@@ -1,0 +1,8 @@
+{
+  "function": "tg-webhook",
+  "version": 14,
+  "status": 403,
+  "expected": 403,
+  "body": "forbidden",
+  "scope": "Unsigned empty request; no real message created"
+}

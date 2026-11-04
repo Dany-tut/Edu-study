@@ -9,7 +9,16 @@ const hasSession=page=>page.evaluate(()=>Object.keys(localStorage).some(k=>/^sb-
 try{
  {
  const {context,page}=await fixture();try{await page.route('**/rest/v1/students?*',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'QA_PROFILE_UNAVAILABLE',message:'Synthetic profile outage'})}));await fill(page);await page.getByRole('button',{name:'Войти',exact:true}).click();await page.getByRole('alert').waitFor();assert.ok(page.url().endsWith('#/login'));assert.equal(await hasSession(page),false);assert.equal(await page.getByRole('button',{name:'Войти',exact:true}).isEnabled(),true);assert.equal(await page.getByPlaceholder('Пароль',{exact:true}).inputValue(),fx.accounts.studentA.password);assert.ok(!(await page.getByRole('alert').innerText()).includes('QA_PROFILE'));results.push({name:'Profile 503 retains login and inputs without committing Auth or routing as teacher',status:'PASS'});
- await page.unroute('**/rest/v1/students?*');await page.getByRole('button',{name:'Войти',exact:true}).click();await page.waitForFunction(()=>!!localStorage.getItem('student_session')&&!location.hash.startsWith('#/login'));await page.locator('main').waitFor();assert.equal(await hasSession(page),true);results.push({name:'Retry after profile error enters the real student account',status:'PASS'});
+ await page.unroute('**/rest/v1/students?*');const reloaded = page.waitForEvent('domcontentloaded');
+ await page.getByRole('button',{name:'Войти',exact:true}).click();
+ await reloaded;
+ await page.waitForFunction(expectedId => {
+   const student = JSON.parse(localStorage.getItem('student_session') || 'null')
+   return student?.id === expectedId && !location.hash.startsWith('#/login') &&
+     Object.keys(localStorage).some(key => /^sb-.*-auth-token$/.test(key) && localStorage.getItem(key))
+ }, fx.rows.A.student.id);
+ await page.locator('main').waitFor();assert.equal(await hasSession(page),true);
+ results.push({name:'Retry after profile error enters the real student account',status:'PASS'});
  }finally{await context.close()}}
  {
  const {context,page}=await fixture();let release;const held=new Promise(r=>release=r);let ready;const arrived=new Promise(r=>ready=r);try{await page.route('**/rest/v1/students?*',async route=>{const response=await route.fetch();ready();await held;await route.fulfill({response}).catch(()=>{})});await fill(page);await page.getByRole('button',{name:'Войти',exact:true}).click();await Promise.race([arrived,new Promise((_,reject)=>setTimeout(()=>reject(Error('Profile boundary missing')),12000))]);await page.getByRole('button',{name:'Отмена',exact:true}).click();release();await page.waitForTimeout(500);assert.equal(await hasSession(page),false);await page.reload();await page.getByRole('button',{name:'Войти',exact:true}).waitFor();assert.equal(await hasSession(page),false);results.push({name:'Cancel after actual profile response: no late shared session, including reload',status:'PASS'});

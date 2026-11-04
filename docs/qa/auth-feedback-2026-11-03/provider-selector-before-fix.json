@@ -1,0 +1,5 @@
+{
+  "error": "AssertionError [ERR_ASSERTION]: teacher-light-390 Apple pending geometry changed\n+ actual - expected\n... Skipped lines\n\n  {\n    card: {\n      height: 644.2,\n      width: 358,\n      x: 16,\n...\n        width: 149,\n-       x: 41,\n-       y: 608.8\n-     },\n-     {\n-       height: 48,\n-       width: 149,\n        x: 200,\n        y: 608.8\n      }\n    ]\n  }\n",
+  "results": [],
+  "errors": []
+}

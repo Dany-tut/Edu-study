@@ -1,0 +1,152 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "codex/ios-device-release-check",
+    "environment": "local",
+    "commit": "84dea0784d0f162529077753da45908ab0121be6",
+    "build": 1984,
+    "version": "1.0.1984"
+  },
+  "originalFrozenFilesSHA256": {
+    "version.json": "52c393cd5e7f0443fc94086eb3cfe9d834b8e9ed1ad82b4dc6069184ef027ea9",
+    "index.html": "307b67d52bb12bf1760cb9d5a059a9d2174bf271cc201c645ec1345f7e8223e3",
+    "release.json": "ec330f6c4fc3c39897005d24797a1facab486c07e005f9db9374c96a49bf797c",
+    "assets/app-CFnyK8bc.js": "398ab7634fa0f37deb1149717cdb00306979965625bcf8a345be1642a4a64f3e",
+    "assets/AuthRoleHeader-DrYvLRCN.js": "6cb8c5d98f308cef0440114080d7e7b62fdb620f9e9802a4cfb64c057588a254",
+    "assets/TeacherLoginPage-CH-vm3Ch.js": "c8befb3290ddd2a378e7c5241fab986a407fc1e5181423aa0ae91f51487dcf44",
+    "assets/AuthRoleHeader-BAEswAcC.css": "3ff14196d55006db220c7d9009951d146355e25e670f6372bb1284f6161a76a3"
+  },
+  "results": {
+    "scenario": "PASS enumerated scope",
+    "durationSeconds": 33.659,
+    "inputExact": true,
+    "eyeShowHideRetainsKeyboard": true,
+    "passwordAXFrame": [
+      41,
+      337,
+      320,
+      49
+    ],
+    "eyeAXFrame": [
+      313,
+      339,
+      44,
+      45
+    ],
+    "keyboardHideTop": 480.6666667,
+    "compact": {
+      "time": 3590,
+      "containers": [
+        {
+          "top": 0,
+          "height": 681,
+          "total": 681,
+          "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+          "firstAlpha": false,
+          "lastAlpha": false
+        }
+      ],
+      "inputs": 2,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 621.6875,
+          "bottom": 635.6875
+        },
+        {
+          "text": "Условия использования",
+          "y": 621.6875,
+          "bottom": 635.6875
+        }
+      ]
+    },
+    "expandedStart": {
+      "time": 20738,
+      "containers": [
+        {
+          "top": 0,
+          "height": 681,
+          "total": 739,
+          "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+          "firstAlpha": false,
+          "lastAlpha": true
+        }
+      ],
+      "inputs": 3,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 707.625,
+          "bottom": 721.625
+        },
+        {
+          "text": "Условия использования",
+          "y": 707.625,
+          "bottom": 721.625
+        }
+      ]
+    },
+    "expandedMiddle": {
+      "time": 23510,
+      "containers": [
+        {
+          "top": 14,
+          "height": 681,
+          "total": 739,
+          "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+          "firstAlpha": true,
+          "lastAlpha": true
+        }
+      ],
+      "inputs": 3,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 693.625,
+          "bottom": 707.625
+        },
+        {
+          "text": "Условия использования",
+          "y": 693.625,
+          "bottom": 707.625
+        }
+      ]
+    },
+    "expandedEnd": {
+      "time": 29814,
+      "containers": [
+        {
+          "top": 58,
+          "height": 681,
+          "total": 739,
+          "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+          "firstAlpha": true,
+          "lastAlpha": false
+        }
+      ],
+      "inputs": 3,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 649.625,
+          "bottom": 663.625
+        },
+        {
+          "text": "Условия использования",
+          "y": 649.625,
+          "bottom": 663.625
+        }
+      ]
+    },
+    "actualMaxScroll": 58,
+    "sendCodeAndLegalLinksHittable": true,
+    "emailRetainedAfterScroll": true,
+    "submit": false,
+    "permissionsChanged": false,
+    "listenerBind": "127.0.0.1:18193 on iPhone",
+    "serverStopped": true,
+    "allOwnTabsClosed": true,
+    "videoRedaction": "First4seconds removed; bottom484pt masked during first9seconds of retained input segment to exclude native autofill suggestion"
+  },
+  "testBundle": "/tmp/iskra-chrome-loopback-r10.ntNDV2/chrome-loopback-r10.xcresult"
+}
