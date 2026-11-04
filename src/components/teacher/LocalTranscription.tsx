@@ -6,7 +6,7 @@ import './profileIntegrations.css'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
 import { getOwnerId, getViewAs } from '../../lib/owner'
-import { localRequest, readTranscript, transcriptTime, type LocalDraft } from '../../lib/localTranscription'
+import { LocalTranscriptionUnavailable, localRequest, readTranscript, transcriptTime, type LocalDraft } from '../../lib/localTranscription'
 
 const tokenKey = (owner: string) => 'iskra.transcription.device.' + owner
 
@@ -24,7 +24,9 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   const [connected, setConnected] = useState(() => !!localStorage.getItem(tokenKey(owner)))
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
-  const blockedHelp = useRef<HTMLDetailsElement>(null)
+  const guide = useRef<HTMLDivElement>(null)
+  const [guideRun, setGuideRun] = useState(0)
+  const [guidePlaying, setGuidePlaying] = useState(false)
   const setupId = useId()
   const [showSetup, setShowSetup] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -94,9 +96,9 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
           <button type="button" className="integration-action transcription-step-label" disabled={!downloadStarted || downloading}
             data-active={downloadStarted && !downloading} onClick={() => {
-              if (!blockedHelp.current) return
-              blockedHelp.current.open = true
-              blockedHelp.current.querySelector('summary')?.focus()
+              setGuideRun(value => value + 1)
+              setGuidePlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+              requestAnimationFrame(() => guide.current?.scrollIntoView({ block: 'nearest' }))
             }}>
             <span className="integration-step-number">2</span> Запуск на Mac
           </button>
@@ -115,28 +117,34 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         </button>}
       </div>
       {connected && <button type="button" className="integration-action" aria-expanded={showSetup}
-        aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
+        aria-controls={setupId} onClick={() => { setShowSetup(value => !value); setGuideRun(value => value + 1); setGuidePlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) }}>
         {showSetup ? 'Скрыть инструкцию' : 'Как запустить модуль'}
       </button>}
       <div id={setupId} aria-live="polite" className="transcription-setup">
         {downloadStarted && !downloading && (!connected || showSetup) && <>
+          {guideRun > 0 && <div ref={guide} className="transcription-launch-guide">
+            <img key={guideRun + ':' + guidePlaying} src={guidePlaying ? `/guides/mac-launch-full.gif?run=${guideRun}` : '/guides/mac-launch-full.jpg'}
+              width="1280" height="832" alt="Полный путь: запуск модуля на Mac, подключение, расшифровка и проверка результата" />
+            <div className="transcription-guide-actions">
+              <button type="button" className="integration-action" onClick={() => setGuidePlaying(value => !value)}>{guidePlaying ? 'Остановить GIF' : 'Запустить GIF'}</button>
+              <button type="button" className="integration-action" onClick={() => { setGuideRun(value => value + 1); setGuidePlaying(true) }}>Показать сначала</button>
+            </div>
+          </div>}
           <h4>Что делать с ZIP-архивом</h4>
           <ol>
             <li>Когда загрузка закончится, откройте папку «Загрузки» в Finder. Дважды нажмите на <code>iskra-transcription-mac.zip</code>. Если уже появилась папка <code>Iskra</code>, откройте её.</li>
             <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. При первом запуске в Терминале начнётся загрузка моделей.
-              <details ref={blockedHelp} className="transcription-blocked" onToggle={event => {
-                if (!event.currentTarget.open) event.currentTarget.querySelector('video')?.pause()
-              }}>
+              <details className="transcription-blocked">
                 <summary><ChevronRight size={16} aria-hidden />Mac пишет «Файл не был открыт»?</summary>
                 <p>Если Apple не удалось проверить файл, нажмите «Готово». Продолжайте, только если вы сами скачали этот архив из Искры и доверяете ему.</p>
                 <a className="integration-action" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Security">Открыть настройки Mac</a>
-                <video controls playsInline preload="none" poster="/guides/mac-launch.jpg" aria-label="Как разрешить запуск start.command на Mac" src="/guides/mac-launch.mp4" />
                 <p>Если настройки не открылись, в меню Apple выберите «Системные настройки», затем «Конфиденциальность и безопасность».</p>
                 <p>В разделе <strong>«Безопасность»</strong> (внизу страницы) проверьте имя файла. Найдите сообщение о блокировке <code>start.command</code> и нажмите рядом с ним <strong>«Все равно открыть»</strong>. В следующем окне ещё раз выберите «Все равно открыть» или «Открыть». Если Mac попросит, введите пароль или используйте Touch ID.</p>
                 <p>Когда откроется Терминал, переходите к следующему пункту.</p>
               </details>
             </li>
-            <li>Дождитесь строки <code>Running on http://127.0.0.1:18764</code>. Оставьте Терминал открытым и вернитесь в Искру. {connected ? 'Откройте вкладку «Запись» в конструкторе курса.' : 'Нажмите «Подключить компьютер».'}</li>
+            <li>Дождитесь строки <code>Running on http://127.0.0.1:18764</code>. Оставьте Терминал открытым и вернитесь в Искру. {connected ? 'Откройте вкладку «Запись» в конструкторе курса.' : 'Нажмите «Подключить компьютер». Когда появятся галочка и «Доступ сохранён», подключение завершено.'}</li>
+            <li>Откройте «Конструктор», выберите курс и урок, затем вкладку «Запись». Добавьте файл или ссылку и нажмите «Начать расшифровку». Терминал должен оставаться открытым всё время обработки.</li>
           </ol>
         </>}
       </div>
@@ -239,10 +247,13 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
   const [stage, setStage] = useState('')
   const [progress, setProgress] = useState<{ current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' }>()
   const [error, setError] = useState('')
+  const [unavailable, setUnavailable] = useState(false)
+  const [retry, setRetry] = useState(0)
   const readyRef = useRef(onReady)
   useEffect(() => { readyRef.current = onReady }, [onReady])
   async function start() {
     setError('')
+    setUnavailable(false)
     const form = new FormData()
     if (file) form.append('video', file)
     else form.append('link', source.trim())
@@ -252,7 +263,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
       const job = { id, source: source.trim() }
       localStorage.setItem(key, JSON.stringify(job))
       setPending(job)
-    } catch (e) { setError((e as Error).message) }
+    } catch (e) { setUnavailable(e instanceof LocalTranscriptionUnavailable); setError((e as Error).message) }
     finally { setBusy(false) }
   }
   useEffect(() => {
@@ -271,11 +282,11 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
         if (!transcript) throw new Error('Нет реплик для проверки.')
         readyRef.current({ transcript, timecodes: state.chapters.map((c: { start: number; title: string }) =>
           ({ seconds: c.start, time: transcriptTime(c.start), label: c.title })) })
-      } catch (e) { if (active) setError((e as Error).message) }
+      } catch (e) { if (active) { setUnavailable(e instanceof LocalTranscriptionUnavailable); setError((e as Error).message) } }
     }
     void poll(pending)
     return () => { active = false; clearTimeout(timer) }
-  }, [pending, token])
+  }, [pending, token, retry])
   const stages = ['Видео', 'Распознаём речь', 'Читаем слайды', 'Собираем главы']
   const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
   const metric = progress?.unit === 'seconds' ? transcriptTime : (n: number) => String(n)
@@ -299,7 +310,13 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
       })}</ol>
       {progress && progress.total > 0 && <small className="transcription-hint">{metric(progress.current)} из {metric(progress.total)} {progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи'}</small>}
     </>}
-    {error && <p role="alert">{error} {pending && <button onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}>Начать заново</button>}</p>}
+    {error && <div role="alert" className="transcription-recovery">
+      <strong>{unavailable ? 'Модуль недоступен' : 'Не удалось завершить расшифровку'}</strong>
+      <p>{error}</p>
+      {pending && (unavailable
+        ? <button type="button" style={btn('M','secondary')} onClick={() => { setError(''); setUnavailable(false); setRetry(value => value + 1) }}>Проверить связь</button>
+        : <button type="button" style={btn('M','secondary')} onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}>Начать заново</button>)}
+    </div>}
     </div>
     {!pending ?
       <button className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? 'Передаём запись…' : 'Начать расшифровку'}</button> : undefined}
