@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
+import MontageAction from './MontageAction'
 import './profileIntegrations.css'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
@@ -263,6 +264,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить расшифровку'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено в урок</span>}
       {!working && <button aria-label="Повторить обработку" title="Повторить обработку" onClick={open}><RotateCcw size={15}/></button>}
+      <MontageAction draft={draft} change={change} disabled={saving} />
       <button aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>
@@ -313,7 +315,8 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
         setStage(state.stage + (state.bytes ? ' · ' + (state.bytes / 1048576).toFixed(1) + ' МБ' : ''))
         if (state.error) throw new Error(state.stage)
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
-        const transcript = readTranscript({ source: job.source, segments: state.segments })
+        // Паузы и громкость от модуля (если он уже обновлён) — для окна монтажа.
+        const transcript = readTranscript({ source: job.source, segments: state.segments, montage: state.montage })
         if (!transcript) throw new Error('Нет реплик для проверки.')
         readyRef.current({ transcript, timecodes: state.chapters.map((c: { start: number; title: string }) =>
           ({ seconds: c.start, time: transcriptTime(c.start), label: c.title })) })
@@ -329,7 +332,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     window.addEventListener('online', reconnect)
     return () => { active = false; clearTimeout(timer); window.removeEventListener('online', reconnect) }
   }, [pending, token, retry])
-  const stages = ['Видео', 'Распознаём речь', 'Читаем слайды', 'Собираем главы']
+  const stages = ['Видео', 'Распознаём речь', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
   const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
   const metric = progress?.unit === 'seconds' ? transcriptTime : (n: number) => String(n)
   return <section className="transcription-inline">

@@ -25,6 +25,8 @@ const NARROW_LABEL: CSSProperties = {
   WebkitMaskImage: NARROW_FADE, maskImage: NARROW_FADE,
 }
 
+const BOLD_RESERVE: CSSProperties = { display: 'inline-grid', justifyItems: 'center' }
+
 export interface SegmentItem<T extends string> {
   id: T
   label: ReactNode
@@ -72,7 +74,14 @@ export default function Segmented<T extends string>({ variant, items, value, onC
             }}
           >
             {Icon && <Icon size={14} />}
-            <span style={variant === 'narrow' ? NARROW_LABEL : undefined}>{it.label}</span>
+            {variant === 'narrow'
+              ? <span style={NARROW_LABEL}>{it.label}</span>
+              // Выбранная подпись жирнее — ширина под жирную копию занята
+              // заранее, иначе кнопка и соседи сдвигались на 1–2 px при клике.
+              : <span style={BOLD_RESERVE}>
+                <span style={{ gridArea: '1 / 1' }}>{it.label}</span>
+                <span aria-hidden style={{ gridArea: '1 / 1', fontWeight: 700, visibility: 'hidden' }}>{it.label}</span>
+              </span>}
           </button>
         )
         const full = it.title ?? (typeof it.label === 'string' ? it.label : undefined)

@@ -136,6 +136,9 @@ const StudentTrackStand = window.location.pathname.replace(/\/+$/, '') === '/stu
 const StudentWidgetStand = window.location.pathname.replace(/\/+$/, '') === '/student-widget-stand'
   ? lazy(() => import('./components/studentWidgetStand/StudentWidgetStand')) : null
 
+const LessonMontageStand = import.meta.env.DEV && window.location.pathname.replace(/\/+$/, '') === '/lesson-montage-stand'
+  ? lazy(() => import('./components/lessonMontageStand/LessonMontageStand')) : null
+
 startTextFades()
 
 // Install diagnostics before rendering; App's later call is idempotent.
@@ -148,7 +151,7 @@ createRoot(document.getElementById('root')!).render(
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
       <ErrorBoundary>
-        {StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
+        {LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
       </ErrorBoundary>
     </MotionConfig>
   </StrictMode>,

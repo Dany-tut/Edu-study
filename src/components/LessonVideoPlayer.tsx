@@ -159,6 +159,9 @@ interface Props {
    * перерисовывается вся страница урока.
    */
   onTime?(seconds: number, duration: number): void
+  /** Монтаж урока: вырезанное плеер перепрыгивает, тихую работу ускоряет.
+   *  Сам файл не меняется — это список отрезков по времени записи. */
+  montage?: { skip: [number, number][]; fast: [number, number, number][] }
   /**
    * Живой прогресс просмотра — для полосы «сколько отсмотрено», которая должна
    * ехать вместе с роликом, а не ждать очередного onPersist (раз в десять
@@ -207,7 +210,7 @@ function loadYouTubeApi(): Promise<NonNullable<Window['YT']>> {
 }
 
 const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function LessonVideoPlayer(
-  { source: originalSource, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick }, ref,
+  { source: originalSource, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick, montage }, ref,
 ) {
   const t = useT()
   const touch = useCoarsePointer()
@@ -339,6 +342,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const currentRef = useRef(0); currentRef.current = current
   const durationRef = useRef(0); durationRef.current = duration
   const rateRef = useRef(1); rateRef.current = rate
+  const montageRef = useRef(montage); montageRef.current = montage
+  /** Скорость, которую сейчас держит монтаж (null — скорость ученика). */
+  const montageRate = useRef<number | null>(null)
   const pausedRef = useRef(false); pausedRef.current = paused
   const gestureRef = useRef<'scrub' | 'ff' | 'rw' | null>(null)
   const boostRef = useRef(2)
@@ -645,6 +651,25 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
       const known = dur || duration
       if (dur && Math.abs(dur - duration) > 0.5) setDuration(dur)
+      // Монтаж: во время воспроизведения (не при перемотке и не на «перемотке
+      // зажатием») вырезанное пропускаем, тихую работу играем быстрее.
+      const m = montageRef.current
+      if (m && playing && !scrubbing && !gestureRef.current) {
+        const cut = m.skip.find(([a, b]) => time >= a && time < b - 0.25)
+        if (cut) {
+          // Вырезанное — не «недосмотренное»: иначе прогресс ученика не дойдёт до конца.
+          setWatch(w => withCompletion({ ...w, ranges: addWatched(w.ranges.map(([x, y]): [number, number] => [x, y]), cut[0], cut[1]) }))
+          doSeek(cut[1]); return
+        }
+        const fast = m.fast.find(([a, b]) => time >= a && time < b)
+        const want = fast ? Math.min(fast[2], engineMaxRate) : null
+        if (want !== montageRate.current) {
+          montageRate.current = want
+          const r = want ?? rateRef.current
+          if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(r)
+          else if (videoRef.current) { videoRef.current.preservesPitch = true; videoRef.current.playbackRate = r }
+        }
+      }
       if (!scrubbing) {
         setCurrent(time)
         // Наружу — только на смене целой секунды: там от каждого вызова
@@ -692,7 +717,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     if (paused) return
     const id = window.setInterval(tick, TICK_MS)
     return () => window.clearInterval(id)
-  }, [started, custom, source.kind, paused, scrubbing, duration, syncNativeWatch])
+  }, [started, custom, source.kind, paused, scrubbing, duration, syncNativeWatch, doSeek, engineMaxRate])
 
   // ── Меню скорости ─────────────────────────────────────────────────────────
   // Корпус плеера режет всё лишнее (overflow: hidden), а на телефоне он ниже

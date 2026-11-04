@@ -89,16 +89,18 @@ def process(job,folder,link):
             job['completed'].append('audio')
             job_store.save(folder, job)
         env=dict(os.environ,HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false')
-        for label,script,args in [('Распознаём речь','recognize.py',[folder]),('Читаем слайды','slides.py',[source,folder/'slides.json']),('Собираем главы','topics.py',[folder])]:
+        for label,script,args in [('Распознаём речь','recognize.py',[folder]),('Ищем паузы','silence.py',[folder]),('Читаем слайды','slides.py',[source,folder/'slides.json']),('Собираем главы','topics.py',[folder])]:
             if script in job['completed']: continue
             stage(label)
-            python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable) if script=='recognize.py' else sys.executable
+            python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable) if script in ('recognize.py','silence.py') else sys.executable
             subprocess.run([python,str(ROOT/script),*map(str,args)],check=True,env=env,pass_fds=(worker_lock.fileno(),))
             if script=='recognize.py' and not json.loads((folder/'segments.json').read_text()):
                 raise ValueError('В записи не найдено речи.')
             job['completed'].append(script)
             job_store.save(folder, job)
-        stage('Готово',segments=json.loads((folder/'segments.json').read_text()),chapters=json.loads((folder/'chapters.json').read_text()),done=True)
+        montage=folder/'montage.json'
+        stage('Готово',segments=json.loads((folder/'segments.json').read_text()),chapters=json.loads((folder/'chapters.json').read_text()),
+              montage=json.loads(montage.read_text()) if montage.exists() else None,done=True)
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         stage(str(exc) if type(exc) is ValueError else 'Обработка не завершилась. Проверьте запись и повторите.',error=True)
     finally:
