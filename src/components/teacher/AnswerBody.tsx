@@ -42,6 +42,42 @@ function HomeworkBoard({ photo }: { photo: string }) {
   return <WhiteboardCanvas key={state.src} readOnly initialData={state.src} />
 }
 
+// Фото и доска могут быть base64 (старые сдачи) или ссылкой `hwp:` на бакет
+// (lib/homeworkPhotos). Через 7 дней файл удаляется — на его месте заглушка,
+// балл и разбор учителя остаются в ленте.
+function ExpiredPhoto({ minHeight, expired }: { minHeight: number; expired: boolean }) {
+  const t = useT()
+  return (
+    <div style={{ minHeight, boxSizing: 'border-box', padding: '16px 14px', borderRadius: 14, border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, textAlign: 'center', color: 'var(--color-text-3)' }}>
+      {expired ? <Clock size={18} /> : <ImageIcon size={18} />}
+      <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.25, color: 'var(--color-text-2)' }}>{expired ? t('Фото удалено через 7 дней') : t('Фото не загрузилось')}</div>
+      {expired && <div style={{ fontSize: 12, lineHeight: 1.25 }}>{t('Оценка и комментарии сохранены')}</div>}
+    </div>
+  )
+}
+
+function PhotoTile({ src: ref, clickable, onZoom }: { src: string; clickable: boolean; onZoom?: (src: string) => void }) {
+  const ph = useHomeworkPhoto(ref)
+  if (ph.status === 'expired' || ph.status === 'missing') return <ExpiredPhoto minHeight={140} expired={ph.status === 'expired'} />
+  const src = ph.status === 'ready' ? ph.src : undefined
+  return (
+    <button
+      onClick={clickable && src ? () => onZoom?.(src) : undefined}
+      disabled={!clickable}
+      style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 14, overflow: 'hidden', cursor: clickable ? 'zoom-in' : 'crosshair', background: 'var(--color-bg-2)', minHeight: src ? undefined : 140 }}
+    >
+      {src && <img src={src} alt="" style={{ width: '100%', display: 'block', maxHeight: 260, objectFit: 'contain' }} />}
+    </button>
+  )
+}
+
+function BoardView({ src: ref }: { src: string }) {
+  const ph = useHomeworkPhoto(ref)
+  if (ph.status === 'expired' || ph.status === 'missing') return <ExpiredPhoto minHeight={120} expired={ph.status === 'expired'} />
+  if (ph.status === 'loading') return <div style={{ minHeight: 120, borderRadius: 14, background: 'var(--color-bg-2)' }} />
+  return <WhiteboardCanvas readOnly initialData={ph.src} />
+}
+
 export default function AnswerBody({
   comment,
   photos,
