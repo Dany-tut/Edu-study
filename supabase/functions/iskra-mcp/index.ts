@@ -8,6 +8,54 @@ import { z } from 'npm:zod@4.6.7'
 const text = (value: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(value) }] })
 const fail = (message: string) => ({ content: [{ type: 'text' as const, text: message }], isError: true })
 
+// Файлы урока живут в бакете lesson-materials; лимит и список типов совпадают
+// с настройками бакета (миграция 0056) и клиентской загрузкой
+// src/lib/lessonFiles.ts. Метаданные кладём в lessons.materials, объект в бакет
+// под `<uid>/<uuid>.<ext>` — владельцем становится загрузивший преподаватель.
+const LESSON_BUCKET = 'lesson-materials'
+const LESSON_FILE_MAX_BYTES = 15 * 1024 * 1024
+const LESSON_FILE_MIME = new Set([
+  'application/pdf', 'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/zip', 'text/plain', 'text/csv',
+  'image/png', 'image/jpeg', 'image/webp', 'application/octet-stream',
+])
+const EXT_MIME: Record<string, string> = {
+  pdf: 'application/pdf', doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  zip: 'application/zip', txt: 'text/plain', csv: 'text/csv',
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
+}
+
+/** Расширение из имени файла — им подписывается объект в бакете. */
+function extOf(name: string): string {
+  const dot = name.lastIndexOf('.')
+  const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : ''
+  return /^[a-z0-9]{1,8}$/.test(ext) ? ext : 'bin'
+}
+
+/** base64 (в т. ч. data-URL `data:...;base64,...`) → байты. Бросает при мусоре. */
+function decodeBase64(raw: string): Uint8Array {
+  const comma = raw.indexOf(',')
+  const b64 = comma >= 0 && raw.slice(0, comma).includes('base64') ? raw.slice(comma + 1) : raw
+  const bin = atob(b64.replace(/\s+/g, ''))
+  const bytes = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+  return bytes
+}
+
+function isHttpUrl(s: string): boolean {
+  try { const u = new URL(s); return u.protocol === 'https:' || u.protocol === 'http:' } catch { return false }
+}
+
 Deno.serve(
   pipeline(
     [withOAuthProtectedResource(), withSupabase({ auth: 'user' })],
@@ -202,6 +250,70 @@ Deno.serve(
             return fail('Не удалось прикрепить тест к уроку. Тест отменён, существующий урок не изменён.')
           }
           return text({ test: trainer, lesson: lesson.title, question_count: trainerQuestions.length, note: 'Тест прикреплён к уроку как черновое изменение. Проверьте его в Искре перед выдачей ученикам.' })
+        })
+
+        server.registerTool('attach_lesson_file', {
+          title: 'Прикрепить файл к уроку Искры',
+          description: 'Добавляет справочный файл к уроку в вашем черновом курсе: либо загрузкой содержимого (base64) в хранилище Искры, либо внешней ссылкой (Google Диск и т. п.) — так прикрепляют файлы больше лимита. Передайте ровно одно из content_base64 или url. Не трогает чужие, расшаренные и опубликованные курсы.',
+          inputSchema: z.object({
+            course_id: z.string().uuid(),
+            lesson_id: z.string().uuid(),
+            filename: z.string().trim().min(1).max(200),
+            content_base64: z.string().min(1).max(21_000_000).optional(),
+            mime: z.string().trim().max(160).optional(),
+            url: z.string().trim().max(2000).optional(),
+          }).refine(v => (!!v.content_base64) !== (!!v.url), { message: 'Передайте ровно одно из content_base64 или url.' }),
+          annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+        }, async ({ course_id, lesson_id, filename, content_base64, mime, url }) => {
+          const { data: auth, error: authError } = await supabase.auth.getUser()
+          if (authError || !auth.user) return fail('Не удалось проверить аккаунт Искры.')
+          const { data: staff, error: staffError } = await supabase.rpc('is_staff')
+          if (staffError || staff !== true) return fail('Для этой операции нужен аккаунт преподавателя Искры.')
+
+          const { data: course } = await supabase.from('courses').select('id, status')
+            .eq('id', course_id).eq('created_by', auth.user.id).maybeSingle()
+          if (!course) return fail('Курс не найден в вашем кабинете Искры.')
+          if (course.status !== 'draft') return fail('ИИ-приложение может прикреплять файлы только в черновые курсы. Сначала переведите курс в черновики в Искре.')
+          const { data: lesson } = await supabase.from('lessons').select('id, title, materials')
+            .eq('id', lesson_id).eq('course_id', course.id).maybeSingle()
+          if (!lesson) return fail('Урок не найден в этом курсе.')
+
+          let entry: { id: string; name: string; path: string; size: number; mime: string; url?: string }
+          if (url) {
+            const link = url.trim()
+            if (!isHttpUrl(link)) return fail('Ссылка должна начинаться с http:// или https://.')
+            entry = { id: crypto.randomUUID(), name: filename, path: link, size: 0, mime: 'text/uri-list', url: link }
+          } else {
+            let bytes: Uint8Array
+            try { bytes = decodeBase64(content_base64!) } catch { return fail('Не удалось разобрать содержимое файла: ожидается строка base64.') }
+            if (bytes.byteLength === 0) return fail('Файл пустой.')
+            if (bytes.byteLength > LESSON_FILE_MAX_BYTES) {
+              return fail(`Файл больше ${Math.round(LESSON_FILE_MAX_BYTES / 1024 / 1024)} МБ. Большой файл прикрепите ссылкой — передайте url вместо content_base64.`)
+            }
+            const ext = extOf(filename)
+            const type = mime?.trim() || EXT_MIME[ext] || 'application/octet-stream'
+            if (!LESSON_FILE_MIME.has(type)) {
+              return fail('Такой тип файла Искра не принимает. Подходят PDF, Word, PowerPoint, Excel, zip, txt, csv и картинки (png, jpeg, webp).')
+            }
+            const id = crypto.randomUUID()
+            const path = `${auth.user.id}/${id}.${ext}`
+            const { error: uploadError } = await supabase.storage.from(LESSON_BUCKET).upload(path, bytes, { contentType: type, upsert: false })
+            if (uploadError) return fail('Не удалось загрузить файл в хранилище Искры.')
+            entry = { id, name: filename, path, size: bytes.byteLength, mime: type }
+          }
+
+          const raw = lesson.materials && typeof lesson.materials === 'object' && !Array.isArray(lesson.materials)
+            ? lesson.materials as Record<string, unknown> : {}
+          const list = Array.isArray(raw.materials) ? [...(raw.materials as unknown[])] : []
+          list.push(entry)
+          const { data: saved, error: saveError } = await supabase.from('lessons')
+            .update({ materials: { ...raw, materials: list } })
+            .eq('id', lesson.id).eq('course_id', course.id).select('id').maybeSingle()
+          if (saveError || !saved) {
+            if (!url) await supabase.storage.from(LESSON_BUCKET).remove([entry.path])
+            return fail('Не удалось прикрепить файл к уроку. Изменения отменены.')
+          }
+          return text({ lesson: lesson.title, file: { name: entry.name, size: entry.size, mime: entry.mime, external: !!entry.url }, note: 'Файл прикреплён к уроку как черновое изменение. Проверьте его в Искре перед публикацией.' })
         })
 
         return server

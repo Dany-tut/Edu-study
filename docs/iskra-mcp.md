@@ -10,6 +10,7 @@ The endpoint uses Supabase OAuth 2.1 and a caller-scoped Supabase client. Every 
 - `create_course` — create a draft course and its first module.
 - `add_course_lesson` — add a lesson and plain-text lesson notes to an owned draft course.
 - `create_test_for_lesson` — add a multiple-choice test to an owned draft course lesson, provided it has no existing test.
+- `attach_lesson_file` — attach a reference file to an owned draft course lesson, either by uploading its bytes (base64, up to 15 MB, into the `lesson-materials` bucket under `<uid>/<uuid>.<ext>`) or by an external link (`url`, for larger files). The file stores as owner-scoped, so only the uploading teacher can read, overwrite, or delete it.
 
 Подключаться может любой ИИ-клиент с поддержкой удалённых MCP-серверов: например Claude, Codex и другие совместимые приложения. Название клиента берётся из OAuth-запроса, поэтому экран согласия и список подключений не привязаны к конкретному поставщику.
 
