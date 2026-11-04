@@ -150,7 +150,8 @@
   .recording-player-layout > :last-child {flex:none !important}
 }
 
-/* Keep actions stable; chapter titles can use their space while hidden. */
+/* Keep actions stable: место корзины всегда зарезервировано — название в две строки
+   не переносится заново при наведении и строка не прыгает по высоте. */
 .editor-delete-action {
   width:26px;height:26px;padding:0;border:0;border-radius:8px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
@@ -163,15 +164,9 @@
 @media (hover:hover) and (pointer:fine) {
   .editor-delete-row:not(:hover):not(:focus-within) .editor-delete-action {opacity:0;pointer-events:none}
 }
-@media (hover:hover) and (pointer:fine) and (any-pointer:fine) {
-  .timecode-editor .chapter-title {transition:margin-right 0.15s}
-  .timecode-editor .editor-delete-row:not(:hover):not(:focus-within) .chapter-title {margin-right:-32px}
-}
 @media (any-pointer:coarse) {
-  .timecode-editor .editor-delete-row .chapter-title {margin-right:0}
-
   .editor-delete-row .editor-delete-action {width:44px;height:44px;opacity:1;pointer-events:auto}
 }
 @media (prefers-reduced-motion:reduce) {
-  .editor-delete-action,.timecode-editor .chapter-title {transition:none}
+  .editor-delete-action {transition:none}
 }
