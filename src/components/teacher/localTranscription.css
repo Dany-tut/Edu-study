@@ -130,7 +130,7 @@
 .transcription-rail-action {min-height:var(--rail-control-h, 44px)}
 .transcript-tools {min-height:var(--rail-control-h)}
 .transcript-tools .transcription-rail-action,.transcript-saved {flex:1;height:var(--rail-control-h);min-height:0}
-.transcript-tools button:not(.transcription-rail-action) {width:var(--rail-control-h);height:var(--rail-control-h);flex:none;border-radius:10px;display:grid;place-items:center}
+.transcript-tools button:not(.transcription-rail-action) {width:var(--rail-control-h);height:var(--rail-control-h);flex:none;border:1px solid var(--color-border-medium);border-radius:12px;display:grid;place-items:center}
 .transcript-saved {display:flex;gap:6px;align-items:center;padding:0 12px;color:var(--color-green-text);font-size:13px;font-weight:700}
 .timecode-editor input {font-size:13px}
 @media(max-width:600px){.timecode-editor,.transcription-inline{--rail-control-h:44px}.transcript-tabs button{min-height:44px}.transcript-line-text::after,.transcript-line-text textarea,.timecode-editor input{font-size:16px!important}}

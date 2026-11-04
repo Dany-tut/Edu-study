@@ -569,7 +569,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
                 >
                   <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: action.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
+                    <action.icon size={16} strokeWidth={2} style={{ color: action.color }} />
                   </div>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{t(action.label)}</div>
@@ -675,7 +675,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
               >
                 <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <item.icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
+                  <item.icon size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{item.label}</div>

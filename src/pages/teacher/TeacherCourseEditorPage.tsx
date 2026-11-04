@@ -1685,11 +1685,11 @@ function TimecodeRail({
           style={{
             width: 'var(--rail-control-h, 40px)', height: 'var(--rail-control-h, 40px)', flexShrink: 0,
             borderRadius: 12, border: '1px solid var(--color-border-medium)',
-            background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)',
+            background: 'transparent', cursor: 'pointer', color: 'var(--color-text-2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          <ListPlus size={14} />
+          <ListPlus size={16} />
         </button>
       </div>
     </div>
