@@ -10,6 +10,28 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Открыть профиль": "Open profile",
+  "Не удалось открыть профиль. Попробуйте ещё раз.": "Could not open the profile. Please try again.",
+  "Не удалось удалить из друзей. Попробуйте ещё раз.": "Could not remove this friend. Please try again.",
+  "Профиль человека": "Person’s profile",
+  "Искра · вместе": "Iskra · together",
+  "Профиль больше недоступен.": "This profile is no longer available.",
+  "Подтверждение удаления": "Confirm removal",
+  "Удалить из друзей?": "Remove friend?",
+  "Человек исчезнет из списка у вас обоих. Занятия и доступ к курсам сохранятся.": "You will be removed from each other’s friend lists. Lessons and course access will stay unchanged.",
+  "Удалить из друзей": "Remove friend",
+  "Здесь только публичная информация профиля.": "Only public profile information appears here.",
+  "Другие пользователи увидят имя, ник, аватар и роль.": "Other users will see your name, handle, avatar and role.",
+  "Участник": "Member",
+  "Вы друзья": "You are friends",
+  "Входящая заявка": "Incoming request",
+  "Пока не в друзьях": "Not friends yet",
+  "Ваш преподаватель": "Your teacher",
+  "Ваш ученик": "Your student",
+  "Преподаватель в Искре": "Teacher in Iskra",
+  "Ученик в Искре": "Student in Iskra",
+  "Участник Искры": "Iskra member",
+
   "Не удалось скопировать": "Could not copy",
   "Ник в Искре": "Iskra handle",
   "По нику друзья смогут найти тебя и отправить заявку.": "Friends can find you by your handle and send a request.",
