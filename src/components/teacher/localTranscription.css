@@ -150,8 +150,8 @@
 /* Подложка наведения и правки — одна, на названии, полупрозрачная от цвета текста: одинаково ложится на обычную, зелёную активную и тёмную строку. */
 .timecode-editor .chapter-title:is(:hover,:focus-within) {background:color-mix(in srgb,var(--color-text) 7%,transparent)}
 .timecode-editor .chapter-title.transcript-line-text textarea:focus {background:transparent}
-/* Целый межстрочный: дробные 18.85px давали полю на полпикселя меньше текста — он прокручивался в правке. */
-.timecode-editor .chapter-title::after,.timecode-editor .chapter-title textarea,.timecode-editor .chapter-title > [data-text-fade] {line-height:19px}
+/* Компактный целый межстрочный (≈1.23): дробный давал полю на полпикселя меньше текста — он прокручивался в правке. */
+.timecode-editor .chapter-title::after,.timecode-editor .chapter-title textarea,.timecode-editor .chapter-title > [data-text-fade] {line-height:16px}
 .recording-lines {min-width:0;border-radius:16px;background:var(--color-bg-2);padding:10px 12px;border:1px solid var(--color-border-soft);text-align:start}
 .recording-lines.is-fill {flex:1;min-height:0;display:flex;flex-direction:column;box-shadow:var(--shadow-2)}
 .recording-lines header {display:flex;align-items:center;gap:7px;padding:2px 4px 8px;font-size:13px}
