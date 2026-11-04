@@ -133,6 +133,8 @@ export interface LessonVideoHandle {
   /** Открыть плеер на этой секунде (или перемотать, если он уже играет). */
   seekPaused(seconds: number): void
   playFrom(seconds: number): void
+  /** Пауза на текущем месте (для внешних элементов управления — окна монтажа). */
+  pause(): void
 }
 
 interface Props {
@@ -162,6 +164,10 @@ interface Props {
   /** Монтаж урока: вырезанное плеер перепрыгивает, тихую работу ускоряет.
    *  Сам файл не меняется — это список отрезков по времени записи. */
   montage?: { skip: [number, number][]; fast: [number, number, number][] }
+  /** Каждый тик (четверть секунды): время и идёт ли воспроизведение. Для
+   *  окна монтажа, где шкала должна ехать вровень с видео; странице урока
+   *  достаточно onTime раз в секунду. */
+  onTick?(seconds: number, playing: boolean): void
   /**
    * Живой прогресс просмотра — для полосы «сколько отсмотрено», которая должна
    * ехать вместе с роликом, а не ждать очередного onPersist (раз в десять
@@ -210,7 +216,7 @@ function loadYouTubeApi(): Promise<NonNullable<Window['YT']>> {
 }
 
 const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function LessonVideoPlayer(
-  { source: originalSource, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick, montage }, ref,
+  { source: originalSource, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick, montage, onTick }, ref,
 ) {
   const t = useT()
   const touch = useCoarsePointer()
@@ -343,6 +349,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const durationRef = useRef(0); durationRef.current = duration
   const rateRef = useRef(1); rateRef.current = rate
   const montageRef = useRef(montage); montageRef.current = montage
+  const onTickRef = useRef(onTick); onTickRef.current = onTick
   /** Скорость, которую сейчас держит монтаж (null — скорость ученика). */
   const montageRate = useRef<number | null>(null)
   const pausedRef = useRef(false); pausedRef.current = paused
@@ -521,7 +528,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   useImperativeHandle(ref, () => ({ playFrom, seekPaused(sec: number) {
     if (started) { doPause(); doSeek(sec) }
     else { setReadingAt(sec); setStartAt(sec) }
-  } }), [playFrom, started, doPause, doSeek])
+  }, pause() { if (started) doPause() } }), [playFrom, started, doPause, doSeek])
 
   // ── YouTube: поднимаем плеер, когда ученик нажал «смотреть» ───────────────
   useEffect(() => {
@@ -670,6 +677,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           else if (videoRef.current) { videoRef.current.preservesPitch = true; videoRef.current.playbackRate = r }
         }
       }
+      if (!scrubbing) onTickRef.current?.(time, playing)
       if (!scrubbing) {
         setCurrent(time)
         // Наружу — только на смене целой секунды: там от каждого вызова
