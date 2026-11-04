@@ -378,12 +378,16 @@ function StudentPill({ entry, work, open, close }: {
   )
 }
 export function Matrix(props: MatrixProps) {
-  const { entries, selected, picker, groupLabel, scopeLabel, groups, set, today, example, renderReport, onReload, refreshing } = props
+  const { entries, selected, picker, groupLabel, scopeLabel, groups, set, today, example, renderReport, onReload, refreshing, onOpenAttendance } = props
   const host = useRef<HTMLElement>(null)
   useScrollFades(host, true, '.js-tabs, .js-filter-items, .jh-homework-list')
   const [reportHost, setReportHost] = useState<HTMLElement | null>(null)
   const [attention, setAttention] = useState(false)
   const [workView, setWorkView] = useState<'students' | 'assignments'>('students')
+  const [attendanceUnavailable, setAttendanceUnavailable] = useState(false)
+  useEffect(() => {
+    setAttendanceUnavailable(false)
+  }, [selected.tab, selected.course, selected.module, groupLabel])
   const overview = selected.tab === 'Обзор'
   const entry = entries.find(e => e.student.id === selected.student)
   const drawerOpen = !!(reportHost && entry && overview)
@@ -436,7 +440,11 @@ export function Matrix(props: MatrixProps) {
       selected.tab === 'Работы' && workView === 'assignments' && props.onOpenAssignment && props.onOpenWork
         ? <HomeworkList key={[selected.course, selected.module, groupLabel].join(':')} entries={entries} slots={props.slots} search={selected.search} attention={attention}
           onStudent={props.onOpenWork} onAssignment={props.onOpenAssignment}/>
-        : <LessonMatrix {...props} attention={attention}/>}
+        : <LessonMatrix {...props} attention={attention} onOpenAttendance={onOpenAttendance && (works => {
+          const opened = onOpenAttendance(works)
+          setAttendanceUnavailable(!opened)
+          return opened
+        })}/>}
     {drawerOpen && <StudentReportDrawer student={entry.student} group={groups.find(g => g.id === entry.student.groupId)}
       host={reportHost!} onPrint={() => printStudentCard(entry.student.name)} onClose={closeDrawer}>
       {renderReport(entry.student, <ProfileWorks collapsibleHistory list={entry.works} today={today} scope={picker}
