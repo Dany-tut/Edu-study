@@ -1722,8 +1722,10 @@ function CenterRecording({
   if (lesson.videoUrl || localFile) {
     // Строка ссылки стоит над плеером, а не на всю ширину: главы справа
     // поднимаются до верха вкладки и показывают больше пунктов.
+    // Высота строки одна во всех режимах (ссылка / правка / «удалить?») —
+    // 40 по кнопке M: при переключении плеер под строкой не сдвигается.
     const linkRow = (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, height: 40, flexShrink: 0, position: 'relative' }}>
         {/* В правке значок уступает место полю ссылки. */}
         {!linkMode && <div style={{ width: 30, height: 30, borderRadius: 9, background: disk ? 'var(--color-bg-3)' : 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
           {disk
