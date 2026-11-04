@@ -4,6 +4,7 @@ import HomeworkAttemptPanel from './HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
 import { isStoredTestlySubmission } from '../lib/testlySubmission'
 import { homeworkResult, homeworkDisplayScore } from '../lib/homeworkResult'
+import { homeworkResultView } from '../lib/homeworkResultView'
 import { LoopTextIcon } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { EMOJI_STEPS } from './homeworkSteps'
@@ -413,11 +414,11 @@ function ResultModal({
     finally { setSaving(false) }
   }
   const bannerRef = useRef<HTMLDivElement>(null)
-  // «passed» открывает CTA к харду. Если хард-уровня нет (showHard=false), даже
-  // отличный балс базы не показывает переход к харду — обычная кнопка «Продолжить».
-  const passed = showHard && context === 'basic' && score !== undefined && recommendationScore !== undefined
-    ? score >= recommendationScore
-    : null
+  // Зачёт по порогу и наличие харда — независимые оси: без харда 100 из 100
+  // остаётся успехом, просто без CTA и без упоминаний сложного уровня.
+  const view = homeworkResultView({ context, score, passingScore: recommendationScore, hasHard: showHard })
+  const pending = view.state === 'pending'
+  const passed = view.state === 'passed'
 
   return (
     <>
@@ -468,33 +469,33 @@ function ResultModal({
             <div style={{
               width: 54, height: 54, borderRadius: 18, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: context === 'hard'
+              background: pending
                 ? 'var(--color-green-soft)'
                 : 'var(--grad-amber)',
-              color: context === 'hard' ? 'var(--color-green-text)' : '#fff',
+              color: pending ? 'var(--color-green-text)' : '#fff',
             }}>
-              {context === 'hard' ? <Send size={24} /> : <CircleAlert size={24} />}
+              {pending ? <Send size={24} /> : <CircleAlert size={24} />}
             </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-              color: context === 'hard' ? 'var(--color-green-text)' : passed ? 'var(--color-accent)' : 'var(--color-amber)',
+              color: pending ? 'var(--color-green-text)' : passed ? 'var(--color-accent)' : 'var(--color-amber)',
               marginBottom: 6,
             }}>
-              {context === 'hard' || score === undefined ? t('Работа отправлена') : t('Результат ДЗ')}
+              {pending ? t('Работа отправлена') : t('Результат ДЗ')}
             </p>
             <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 8 }}>
-              {context === 'hard' || score === undefined
+              {pending
                 ? t('Отправлено на проверку!')
                 : passed
                   ? `${t('Отлично')}, ${score} ${t('из 100!')}`
                   : `${t('Пока')} ${score} ${t('из 100 баллов')}`
               }
             </h2>
-            {!(passed && context === 'basic') && (
+            {!passed && (
               <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
-                {context === 'hard' || score === undefined
+                {pending
                   ? t('Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.')
                   /* «нужно 80+» ушло в полосу порога ниже — та же логика, что в
                      плашке итогов на странице: цифра нагляднее повтора в тексте. */
@@ -503,7 +504,7 @@ function ResultModal({
               </p>
             )}
           </div>
-          {context === 'basic' && score !== undefined && (
+          {!pending && (
             <div style={{ flexShrink: 0, textAlign: 'right' }}>
               <span style={{
                 fontSize: 42, fontWeight: 700, lineHeight: 1, color: 'var(--color-text)',
@@ -511,14 +512,16 @@ function ResultModal({
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>{t('баллов')}</p>
             </div>
           )}
-          {passed && context === 'basic' && (
+          {passed && (
             <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', width: '100%', marginTop: -8 }}>
-              {t('База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.')}
+              {view.offerHard
+                ? t('База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.')
+                : t('База закрыта уверенно.')}
             </p>
           )}
           {/* Та же полоса порога, что и в плашке итогов: ученик видит одну и ту
               же картину и в модалке сразу после сдачи, и на странице под ней. */}
-          {context === 'basic' && score !== undefined && recommendationScore !== undefined && (
+          {!pending && score !== undefined && recommendationScore !== undefined && (
             <div className="flex flex-col" style={{ gap: 8, width: '100%' }}>
               <div style={{
                 position: 'relative', height: 8, borderRadius: 999,
@@ -539,7 +542,7 @@ function ResultModal({
                 <span style={{ color: 'var(--color-muted)' }}>
                   {passed
                     ? t('порог пройден')
-                    : `${Math.max(0, recommendationScore - score)} ${t('до открытия харда')}`}
+                    : `${view.gap} ${t(showHard ? 'до открытия харда' : 'до порога')}`}
                 </span>
                 <span style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>
                   {t('порог')} {recommendationScore}
@@ -573,7 +576,7 @@ function ResultModal({
             {t('Не удалось сохранить самооценку. Попробуй ещё раз.')}
           </p>}
 
-          {passed ? (
+          {view.offerHard ? (
             <div style={{ display: 'flex', gap: 10 }}>
               <motion.button
                 whileHover={{ y: -1 }}
