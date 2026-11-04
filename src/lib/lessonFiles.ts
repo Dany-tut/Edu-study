@@ -169,7 +169,10 @@ export async function uploadLessonFile(file: File): Promise<LessonFile> {
  * (функция отвечает notConfigured), остаётся прежняя ошибка «больше 25 МБ» с
  * советом прикрепить ссылкой на Диск.
  */
-export async function uploadLessonFileToR2(file: File): Promise<LessonFile> {
+export async function uploadLessonFileToR2(
+  file: File,
+  notConfigured: () => Error = () => new LessonFileTooLargeError(file.size),
+): Promise<LessonFile> {
   const mime = file.type || 'application/octet-stream'
   const { data, error } = await supabase.functions.invoke('r2-upload', {
     body: { name: file.name, size: file.size, mime },
@@ -180,16 +183,26 @@ export async function uploadLessonFileToR2(file: File): Promise<LessonFile> {
     const said = context instanceof Response
       ? await context.clone().json().catch(() => undefined) as { error?: string; notConfigured?: boolean } | undefined
       : undefined
-    if (!said || said.notConfigured) throw new LessonFileTooLargeError(file.size)
+    if (!said || said.notConfigured) throw notConfigured()
     throw new Error(said.error || error.message)
   }
   const { uploadUrl, publicUrl } = (data ?? {}) as { uploadUrl?: string; publicUrl?: string }
-  if (!uploadUrl || !publicUrl) throw new LessonFileTooLargeError(file.size)
+  if (!uploadUrl || !publicUrl) throw notConfigured()
 
   const res = await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': mime } })
   if (!res.ok) throw new Error(`${t('не удалось загрузить')} (R2 ${res.status})`)
 
   return { id: crypto.randomUUID(), name: file.name, path: publicUrl, size: file.size, mime, url: publicUrl, r2: true }
+}
+
+/**
+ * Файл записи урока — всегда в R2 и сразу ссылкой: бакет lesson-materials
+ * видео не принимает (mime-список миграции 0056), а ролик почти всегда больше
+ * его 25 МБ. Прямая ссылка на .mp4/.mov играет в нашем плеере как `file`.
+ */
+export async function uploadRecordingFile(file: File): Promise<string> {
+  const f = await uploadLessonFileToR2(file, () => new Error(t('Загрузка видео ещё не подключена — вставьте ссылку на запись')))
+  return f.url!
 }
 
 /**
