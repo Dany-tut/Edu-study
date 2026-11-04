@@ -3457,6 +3457,11 @@ export const EN: Record<string, string> = {
   'Ученик и его данные по этой карточке исчезнут. Это действие нельзя отменить.':
     'The student and their data on this card will be gone. This cannot be undone.',
   'Удаление...': 'Deleting…',
+  'Скрыть плашку': 'Hide banner',
+  'Показать плашку приглашений': 'Show invitation banner',
+  'Выбрать карточку для удаления': 'Choose a student card to delete',
+  'Введите имя ученика для подтверждения': 'Enter the student’s name to confirm',
+  'Не удалось удалить карточку. Обновите список и попробуйте снова.': 'Could not delete the card. Refresh the list and try again.',
   'Удалить ученика': 'Delete student',
   'студент': 'student',
   'Пропадают': 'Going quiet',

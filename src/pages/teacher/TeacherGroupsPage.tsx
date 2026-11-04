@@ -893,10 +893,71 @@ function Card({
  * ПОЯВЛЯЕТСЯ ТОЛЬКО КОГДА ЕСТЬ КОГО ЗВАТЬ и исчезает сама, когда последний
  * переехал: это не раздел кабинета, а работа с концом.
  */
-function PendingAccountsPanel({ students }: { students: Student[] }) {
+function DeleteStudentAction({ student, groupName, remove }: {
+  student: Student; groupName: string; remove: () => Promise<void>
+}) {
+  const t = useT()
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const valid = !!name.trim() && name.trim() === student.name.trim()
+  const cancel = () => { setEditing(false); setName(''); setFailed(false) }
+  if (!editing) return <button style={btn('M', 'secondary')} onClick={() => setEditing(true)}>
+    {t('Удалить ученика')}
+  </button>
+  return <form style={{ display: 'grid', gap: 8 }} onKeyDown={e => {
+    if (e.key === 'Escape' && !busy) { e.stopPropagation(); cancel() }
+  }} onSubmit={async e => {
+    e.preventDefault()
+    if (!valid || busy) return
+    setBusy(true); setFailed(false)
+    try { await remove(); cancel() } catch { setFailed(true) } finally { setBusy(false) }
+  }}>
+    <strong>{student.name} · {groupName}</strong>
+    <span>{t('Ученик и его данные по этой карточке исчезнут. Это действие нельзя отменить.')}</span>
+    <label>{t('Введите имя ученика для подтверждения')}
+      <input autoFocus autoComplete="off" style={{ ...FIELD, width: '100%', fontSize: 16 }} value={name}
+        disabled={busy} onChange={e => setName(e.target.value)} />
+    </label>
+    {failed && <Alert tone="danger" text={t('Не удалось удалить карточку. Обновите список и попробуйте снова.')} />}
+    <div style={{ display: 'flex', gap: 8 }}>
+      <button type="button" style={btn('M', 'secondary')} disabled={busy} onClick={cancel}>{t('Отмена')}</button>
+      <button type="submit" disabled={!valid || busy} style={{ ...btn('M', 'secondary'), background: 'var(--btn-red-bg)', color: '#fff', opacity: !valid || busy ? 0.5 : 1 }}>
+        {busy ? t('Удаление...') : t('Удалить')}
+      </button>
+    </div>
+  </form>
+}
+
+type PendingAccountsProps = {
+  students: Student[]; groups: Group[]; remove: (student: Student) => Promise<void>
+}
+
+function PendingAccountsPanel(props: PendingAccountsProps) {
+  const [scope, setScope] = useState<string | null>(null)
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((_, session) => setScope(session?.user.id ?? 'guest'))
+    return () => data.subscription.unsubscribe()
+  }, [])
+  return scope && <PendingAccountsContent key={scope} storageKey={'iskra:pending-banner:' + scope} {...props} />
+}
+
+function PendingAccountsContent({ students, groups, remove, storageKey }: PendingAccountsProps & { storageKey: string }) {
   const t = useT()
   const { tn } = useTc()
   const [open, setOpen] = useState(false)
+  const [hidden, changeHidden] = useState(() => {
+    try { return localStorage.getItem(storageKey) === 'hidden' } catch { return false }
+  })
+  function setHidden(next: boolean) {
+    changeHidden(next)
+    try { if (next) localStorage.setItem(storageKey, 'hidden'); else localStorage.removeItem(storageKey) } catch { /* storage unavailable */ }
+  }
+  const [cardId, setCardId] = useState('')
+  const cards = students.filter(s => !s.authUserId)
+  const card = cards.find(s => s.id === cardId)
+  const groupName = (s: Student) => groups.find(g => g.id === s.groupId)?.name ?? t('Без группы')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [copiedAll, setCopiedAll] = useState(false)
   // Выдача доступа: результат приходит один раз и живёт до перезагрузки —
@@ -954,7 +1015,10 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
 
   const issuableCount = issuable?.length ?? pending.length
 
-  if (pending.length === 0 && !issuableCount) return null
+  if (!cards.length && !issuableCount && !issued) return null
+  if (hidden) return <button style={btn('S', 'secondary')} onClick={() => setHidden(false)}>
+    {t('Показать плашку приглашений')}
+  </button>
 
   const linkFor = (s: Student) =>
     `${window.location.origin}${window.location.pathname}#/join?token=${s.inviteToken}`
@@ -1008,17 +1072,9 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
 
   return (
     <Card style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: open ? 12 : 0 }}>
-      {/* Раскрывается вся шапка, а не только кнопка справа: палец метит в
-          заголовок, а не в мелкий прямоугольник у края. */}
-      <div
-        onClick={() => setOpen(v => !v)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v) }
-        }}
-        style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
-      >
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+      <button type="button" aria-expanded={open} onClick={() => setOpen(v => !v)}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 220px', background: 'none', border: 0, font: 'inherit', textAlign: 'start', cursor: 'pointer', padding: 0 }}>
         <div style={{
           width: 34, height: 34, borderRadius: 12, flexShrink: 0,
           background: 'var(--color-bg-4)', display: 'grid', placeItems: 'center',
@@ -1033,12 +1089,9 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
             {t('Отправьте ученикам приглашения, чтобы они могли войти в свой кабинет')}
           </div>
         </div>
-        <button
-          onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
-          style={btn('S', 'secondary')}
-        >
-          {open ? t('Свернуть') : t('Показать')}
-        </button>
+        <span style={btn('S', 'secondary')}>{open ? t('Свернуть') : t('Показать')}</span>
+      </button>
+      <button style={btn('S', 'secondary')} onClick={() => setHidden(true)}>{t('Скрыть плашку')}</button>
       </div>
 
       {open && (
@@ -1081,6 +1134,13 @@ function PendingAccountsPanel({ students }: { students: Student[] }) {
             {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
           </button>
           )}
+
+          {cards.length > 0 && <div style={{ display: 'grid', gap: 8 }}>
+            <TeacherSelect value={cardId} onChange={setCardId} placeholder={t('Выбрать карточку для удаления')}
+              options={cards.map(s => ({ value: s.id, label: s.name + ' · ' + groupName(s) }))} />
+            {card && <DeleteStudentAction key={card.id} student={card} groupName={groupName(card)}
+              remove={async () => { await remove(card); setCardId('') }} />}
+          </div>}
 
           {issueErr && (
             <Alert tone="danger" text={issueErr} />
@@ -1934,13 +1994,12 @@ function TracksSection({
 function StudentPanel({
   student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword,
   siblingCards, onAddCard, onRemoveCard, onOpenCard, onAddToGroup,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<boolean>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void; onAddToGroup?: () => void }) {
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => Promise<void>; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<boolean>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void; onAddToGroup?: () => void }) {
   const t = useT()
   const { tc, tn } = useTc()
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
   const [commentErr, setCommentErr] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [issuedCredential, setIssuedCredential] = useState<{ studentId: string; password: string } | null>(null)
   const newPass = issuedCredential?.studentId === student.id ? issuedCredential.password : null
@@ -2229,32 +2288,7 @@ function StudentPanel({
             <Users size={16} strokeWidth={2} /> {t('Добавить в группу')}
           </button>
         )}
-        <button
-          disabled={deleting}
-          onClick={async () => {
-            const ok = await confirmDialog({
-              title: `${t('Удалить')} «${tn(student.name)}»?`,
-              message: t('Ученик и его данные по этой карточке исчезнут. Это действие нельзя отменить.'),
-              confirmLabel: t('Удалить'),
-              tone: 'danger',
-            })
-            if (!ok) return
-            setDeleting(true)
-            await onDelete()
-          }}
-          style={{
-            width: '100%', padding: '10px 0',
-            background: 'none', border: '1.5px solid #ff453a55',
-            borderRadius: 12, cursor: deleting ? 'not-allowed' : 'pointer',
-            fontSize: 13, fontWeight: 600, color: '#ff453a',
-            opacity: deleting ? 0.5 : 1,
-            transition: 'background 0.15s, opacity 0.15s',
-          }}
-          onMouseEnter={e => { if (!deleting) e.currentTarget.style.background = '#ff453a11' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-        >
-          {deleting ? t('Удаление...') : t('Удалить ученика')}
-        </button>
+        <DeleteStudentAction key={student.id} student={student} groupName={group.name} remove={onDelete} />
       </div>
     </div>
   )
@@ -2639,7 +2673,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
         {renderRoster ? renderRoster(allRosterView ? null : selectedGroupId ?? '') : <>
         {/* Переезд на аккаунты: показывается, только пока есть кого звать. */}
         <motion.div {...fadeUp(0.06)}>
-          <PendingAccountsPanel students={allStudents} />
+          <PendingAccountsPanel students={allStudents} groups={groups} remove={card => deleteStudent(card.id, card.name, true)} />
         </motion.div>
 
         {assignmentError && <Alert tone="danger" text={assignmentError} />}
@@ -2934,7 +2968,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
               group={activeStudentGroup}
               onClose={() => setActiveStudentId(null)}
               onDelete={async () => {
-                await deleteStudent(activeStudentId)
+                await deleteStudent(activeStudentId, activeStudent.name)
                 setActiveStudentId(null)
               }}
               onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudent.groupId)}
