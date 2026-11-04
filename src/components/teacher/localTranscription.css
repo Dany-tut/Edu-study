@@ -80,7 +80,7 @@
 }
 .transcription-steps[data-connected=true] .integration-disconnect {max-width:calc(100% - 99px)}
 
- .transcription-rail-action { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:0; border-radius:12px; background:var(--color-purple-soft); color:var(--color-purple-text); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+ .transcription-rail-action { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:0; border-radius:12px; background:var(--color-purple-soft); color:var(--color-purple-text); font:inherit; font-size:13px; font-weight:700; white-space:nowrap; cursor:pointer; }
 .transcription-rail-action:focus-visible {outline:2px solid var(--color-control-accent);outline-offset:2px}
 .transcription-mark {display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:12px;color:var(--color-purple-text);background:var(--color-purple-soft)}
 .transcription-hint {font-size:13px;line-height:1.45;color:var(--color-text-3)}
