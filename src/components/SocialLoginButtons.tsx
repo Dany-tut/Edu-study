@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { startSocialLogin, cancelSocialLogin, type LoginRole } from '../lib/socialAuth'
 import { useT } from '../lib/i18n'
-import { Alert } from './Alert'
+import { authFailureFeedback, useAuthFeedback } from './AuthFeedback'
 
 const providers = [
   { id: 'apple' as const, label: 'Apple' },
@@ -12,31 +12,37 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
   const t = useT()
   const sequence = useRef(0)
   const [busy, setBusy] = useState<string | null>(null)
-  const [error, setError] = useState('')
+  const feedback = useAuthFeedback('social')
+  const started = useRef(false)
+  const pending = useRef(false)
 
   useEffect(() => {
     const onError = (event: Event) => {
+      if (started.current && !pending.current) return
+      started.current = true; pending.current = false
       const detail = (event as CustomEvent<string>).detail
       sequence.current++
-      setError(detail || t('Не удалось завершить вход. Попробуйте ещё раз.'))
+      feedback.report(authFailureFeedback(detail || 'Не удалось завершить вход. Попробуйте ещё раз.'))
       setBusy(null)
     }
-    const cancelled = () => { sequence.current++; setBusy(null); setError('') }
+    const cancelled = () => { sequence.current++; pending.current = false; setBusy(null); feedback.report({ tone: 'info', title: 'Вход отменён', text: 'Можно выбрать другой способ входа.' }) }
     window.addEventListener('iskra:auth-cancelled', cancelled)
     window.addEventListener('iskra:auth-error', onError)
-    return () => { window.removeEventListener('iskra:auth-error', onError); window.removeEventListener('iskra:auth-cancelled', cancelled) }
-  }, [t])
+    return () => { sequence.current++; window.removeEventListener('iskra:auth-error', onError); window.removeEventListener('iskra:auth-cancelled', cancelled) }
+  }, [feedback.report])
 
   async function begin(provider: 'apple' | 'google') {
     const id = ++sequence.current
     setBusy(provider)
-    setError('')
+    started.current = true; pending.current = true
+    feedback.begin({ tone: 'info', title: provider === 'apple' ? 'Открываем Apple…' : 'Открываем Google…', busy: true, onCancel: cancelSocialLogin })
     try {
       await startSocialLogin(provider, role)
     } catch (err) {
       if (sequence.current !== id) return
+      pending.current = false
       setBusy(null)
-      setError(err instanceof Error ? t(err.message) : t('Не удалось начать вход. Проверьте интернет и попробуйте ещё раз.'))
+      feedback.report(authFailureFeedback(err))
     }
   }
 
@@ -51,9 +57,10 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
       {providers.map(({ id, label }) => (
         <button
           key={id}
+          data-auth-provider={id}
           type="button"
           onClick={() => void begin(id)}
-          disabled={busy !== null}
+          disabled={busy !== null || feedback.busy}
           aria-label={busy === id ? `${t('Открываем…')} ${label}` : `${t('Продолжить с')} ${id === 'apple' ? 'Apple' : label}`}
           aria-busy={busy === id}
           style={{
@@ -71,9 +78,6 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
         </button>
       ))}
       </div>
-      {busy && <div role="status" style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-muted)' }}>{t('Открываем…')} {busy === 'apple' ? 'Apple' : 'Google'}</div>}
-      {busy && <button type="button" onClick={cancelSocialLogin} style={{ minHeight: 44, border: 0, borderRadius: 14, color: 'var(--color-text)', background: 'var(--color-bg-input)', cursor: 'pointer' }}>{t('Отменить вход')}</button>}
-      {error && <Alert tone="danger" text={error} style={{ marginTop: 2 }} />}
     </div>
   )
 }

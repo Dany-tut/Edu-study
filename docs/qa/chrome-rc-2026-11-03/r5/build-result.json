@@ -1,0 +1,42 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "codex/ios-journal-keyboard-r5",
+    "environment": "local",
+    "commit": "d716f312cc74a3c7bbf9e0b799be27d9aede861f",
+    "build": 1935,
+    "version": "1.0.1935"
+  },
+  "originalFrozenFilesSHA256": {
+    "version.json": "3835e6b318749baaef86d6aa1ac2cc511a32475cb19c1f28bb863362a937c9f1",
+    "index.html": "707ba44b85172067f245cf6b73743c522194c2cb25a92882d82d3cdf4c7672c4",
+    "release.json": "f4fc635e2c3be9a0a0ab008d721d3872467c7ed08b36c200aff3ffaec9bf75dc",
+    "assets/AuthRoleHeader-NTrhi88Q.js": "957eec018d5fb305f337434fcfb15a41fc3825efb4e177dd3af1eb0affbb663e",
+    "assets/TeacherLoginPage-DAzXzdQ0.js": "f0ac5db8d200b4c0d5165c786e9e9918df62bd457a97c1972d2ed234fdd10eea",
+    "assets/AuthRoleHeader-DdeAMLUk.css": "36525c6fcd823febde9075d40bcb9d1c3064c6f4db81f1adadf8b846f7322a9e"
+  },
+  "results": {
+    "fullScenario": "BLOCKED: iOS Chrome local-network permission prompt; permission not changed",
+    "inputAndSixEyeToggles": "PASS before prompt",
+    "passwordAXFrame": [
+      41,
+      341,
+      320,
+      49
+    ],
+    "eyeAXFrame": [
+      313,
+      343,
+      44,
+      45
+    ],
+    "keyboardHideTop": 480.6666667,
+    "initialFormFits": true,
+    "scroll": "NOT ACCEPTED: alert blocked interactions; legacy motion assertion expected overflow",
+    "cleanup": "BLOCKED: one own test tab remains, Chrome process terminated",
+    "motionEvidence": "automatic video saved before prompt; RAF unreadable due alert",
+    "submit": false,
+    "serverStopped": true
+  },
+  "testBundle": "/tmp/iskra-chrome-rc.twnxA6/chrome-r5.xcresult"
+}

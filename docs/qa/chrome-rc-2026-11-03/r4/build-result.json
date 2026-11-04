@@ -1,0 +1,46 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "codex/ios-password-acceptance-1103-r4",
+    "environment": "local",
+    "commit": "ee9a6310f223c399bf7a25f4d87b9ab319c1ba1a",
+    "build": 1933,
+    "version": "1.0.1933"
+  },
+  "originalFrozenFilesSHA256": {
+    "version.json": "e3d04f3bb62c1f14c7500116350b3a6c5e19fb845edda1c7759134da7644a455",
+    "index.html": "1da8580d1d6d11483c250aac4259f1d658e2d051fa998b9a2ea62150fc86a1f9",
+    "release.json": "eb6267753e6bcb20eb5d9464e9b5afff214fc89f9d53c700b724331666acbf77",
+    "assets/TeacherLoginPage-DFMDAPzV.js": "541f10d155e675240fe06bfc49abce0c7c8df17e5386a2763941239e4ea4cbf5"
+  },
+  "results": {
+    "form": "PASS",
+    "formSeconds": 28.082,
+    "motionEvidenceSeconds": 1.445,
+    "cleanupSeconds": 1.73,
+    "passwordAXFrame": [
+      49,
+      371,
+      304,
+      55
+    ],
+    "eyeAXFrame": [
+      304,
+      376,
+      45,
+      45
+    ],
+    "keyboardHideTop": 480.6666667,
+    "scrollEmailY": [
+      427,
+      190
+    ],
+    "rafFrames": 857,
+    "rafSpanSeconds": 26.26,
+    "submit": false,
+    "serverStopped": true,
+    "bootstrapAttempt": "FAIL: openURL before server ready, no product fields reached",
+    "artifactRedaction": "All exported PNG and video top140pt masked: transient system notification visible in recording despite no AX BannerNotification warning"
+  },
+  "testBundle": "/tmp/iskra-chrome-rc.twnxA6/chrome-r4-final.xcresult"
+}

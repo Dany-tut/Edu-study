@@ -1,0 +1,41 @@
+
+> student-dashboard@1.0.0 check:calendar-browser
+> node scripts/checkTeacherCalendarDay.mjs
+
+Checking 1280 820 light
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Stale/missing/duplicate data during mutation: 2026-11-03
++ actual - expected
+
+  [
+    {
+      date: '2026-11-03',
++     id: 'injected-stale-entry'
+-     id: '2026-11-02/1/0'
+    },
+    {
+      date: '2026-11-03',
+      id: '2026-11-02/1/1'
+    }
+
+    at validateTimeline (file:///private/tmp/iskra-calendar-acceptance-20261103/scripts/checkTeacherCalendarDay.mjs:63:12)
+    at async choose (file:///private/tmp/iskra-calendar-acceptance-20261103/scripts/checkTeacherCalendarDay.mjs:89:4)
+    at async file:///private/tmp/iskra-calendar-acceptance-20261103/scripts/checkTeacherCalendarDay.mjs:92:256 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    { id: 'injected-stale-entry', date: '2026-11-03' },
+    { id: '2026-11-02/1/1', date: '2026-11-03' }
+  ],
+  expected: [
+    { id: '2026-11-02/1/0', date: '2026-11-03' },
+    { id: '2026-11-02/1/1', date: '2026-11-03' }
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

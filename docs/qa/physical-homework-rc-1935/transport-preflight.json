@@ -1,0 +1,11 @@
+{
+  "endpoint": "concrete CoreDevice IPv6 peer only:18081",
+  "appEndpoint": "127.0.0.1:18080",
+  "upstream": "Mac 127.0.0.1:55321; API allowlist; redirects disabled",
+  "tls": "TLS1.2, private one-day CA, exact client/server DER pins",
+  "systemTrustModified": false,
+  "health": "PASS 9.255s",
+  "unapprovedClientSameCA": "REJECTED_TLS_ALERT",
+  "serverCertSha256": "e3204ce209b300f5f1156b0b0646e52d88aca0f907ade8b2154bd39beb6d5025",
+  "clientCertSha256": "5f80032b42fde79133db3a54d0bbe4306dcd175e37474b1e7323a6e5d683dae5"
+}

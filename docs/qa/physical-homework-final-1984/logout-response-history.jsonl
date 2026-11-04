@@ -1,0 +1,6 @@
+{"userId": "05b957c3-950a-4c23-b6fa-c2ea367a9145", "timestamp": 1793695320483, "status": 204, "method": "POST", "path": "/auth/v1/logout"}
+{"userId": "332728d6-50b8-4ae1-8367-77c1065fb19c", "timestamp": 1793695465792, "status": 204, "method": "POST", "path": "/auth/v1/logout"}
+{"userId": "05b957c3-950a-4c23-b6fa-c2ea367a9145", "timestamp": 1793695686685, "status": 204, "method": "POST", "path": "/auth/v1/logout"}
+{"userId": "332728d6-50b8-4ae1-8367-77c1065fb19c", "timestamp": 1793695844374, "status": 204, "method": "POST", "path": "/auth/v1/logout"}
+{"userId": "05b957c3-950a-4c23-b6fa-c2ea367a9145", "timestamp": 1793695984631, "status": 204, "method": "POST", "path": "/auth/v1/logout"}
+{"userId": "1dc2e828-11a8-4b78-ab63-e01e979567ea", "timestamp": 1793696163435, "status": 204, "method": "POST", "path": "/auth/v1/logout"}

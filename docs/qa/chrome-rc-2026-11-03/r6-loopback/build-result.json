@@ -1,0 +1,108 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "codex/ios-journal-soft-edge-r6",
+    "environment": "local",
+    "commit": "3e5bcfafac605ef72794ae9690c4a729c6488dde",
+    "build": 1947,
+    "version": "1.0.1947"
+  },
+  "originalFrozenFilesSHA256": {
+    "version.json": "1c1fd71fcae996ab3952fd9adc2253930ed215b1f9d10e924b9f847b79a43bb8",
+    "index.html": "7aaa35109ec42ee81ab2667028bd022933222c0ccb59f4f8ee9b32cae103827f",
+    "release.json": "004d8e548740e1a2d227d5debc35dc4ca8831bd155ab17736180f6cb10a8c985",
+    "assets/TeacherLoginPage-jX8qv3Ke.js": "ce3f6805bb5c53d3e6a2c58d78c644ab79cdf4894cccae1253c35c8b5ccc7507",
+    "assets/AuthRoleHeader-DdeAMLUk.css": "36525c6fcd823febde9075d40bcb9d1c3064c6f4db81f1adadf8b846f7322a9e",
+    "assets/AuthRoleHeader-R4uSW5B3.js": "da1ab7dfb27bb2968b36a3cb1be6c7e793aa495a2e8098d3046fa9b22635d676"
+  },
+  "results": {
+    "scenario": "PASS enumerated scope",
+    "durationSeconds": 22.346,
+    "compact": {
+      "time": 2824,
+      "containers": [
+        {
+          "top": 0,
+          "height": 681,
+          "total": 681,
+          "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+          "firstAlpha": false,
+          "lastAlpha": false
+        }
+      ],
+      "inputs": 2,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 621.6875,
+          "bottom": 635.6875
+        },
+        {
+          "text": "Условия использования",
+          "y": 621.6875,
+          "bottom": 635.6875
+        }
+      ]
+    },
+    "expandedStart": {
+      "time": 8880,
+      "containers": [
+        {
+          "top": 0,
+          "height": 681,
+          "total": 739,
+          "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+          "firstAlpha": false,
+          "lastAlpha": true
+        }
+      ],
+      "inputs": 3,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 707.625,
+          "bottom": 721.625
+        },
+        {
+          "text": "Условия использования",
+          "y": 707.625,
+          "bottom": 721.625
+        }
+      ]
+    },
+    "expandedEnd": {
+      "time": 17951,
+      "containers": [
+        {
+          "top": 58,
+          "height": 681,
+          "total": 739,
+          "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+          "firstAlpha": true,
+          "lastAlpha": false
+        }
+      ],
+      "inputs": 3,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 649.625,
+          "bottom": 663.625
+        },
+        {
+          "text": "Условия использования",
+          "y": 649.625,
+          "bottom": 663.625
+        }
+      ]
+    },
+    "stationaryMiddle": "NOT TESTED; named middle attachment reached end at58px due short overflow",
+    "sendCodeAndLegalLinksHittable": true,
+    "submit": false,
+    "permissionsChanged": false,
+    "listenerBind": "127.0.0.1:18193 on iPhone",
+    "serverStopped": true,
+    "allOwnTabsClosed": true
+  },
+  "testBundle": "/tmp/iskra-chrome-loopback-r5.kgQfIh/chrome-loopback-r6-repeat.xcresult"
+}

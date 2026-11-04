@@ -1,0 +1,60 @@
+{
+  "status": "FAIL",
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "db86facd07ffff5c6ba4d4228458fd628109a8fa",
+    "build": 1977,
+    "version": "1.0.1977"
+  },
+  "device": "Physical iPhone 17 Pro, iOS 27.2",
+  "layer": "Production web UI in isolated WKWebView, DOM activation of rendered controls, real backend",
+  "events": [
+    {
+      "phase": "open",
+      "width": 402,
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+    },
+    {
+      "remaining": 2,
+      "header": "Журнал",
+      "tabBadge": "2",
+      "rows": [
+        "2 нояб. 2026 · 11:00 · QA Browser Group · QA Beta Attendance",
+        "2 нояб. 2026 · 08:00 · QA Browser Group · QA Alpha Attendance"
+      ],
+      "headerConfirmed": false
+    },
+    {
+      "remaining": 1,
+      "header": "Журнал",
+      "tabBadge": "1",
+      "rows": [
+        "2 нояб. 2026 · 11:00 · QA Browser Group · QA Beta Attendance"
+      ],
+      "headerConfirmed": false
+    },
+    {
+      "remaining": 0,
+      "header": "Журнал",
+      "tabBadge": null,
+      "rows": [],
+      "headerConfirmed": true
+    },
+    {
+      "phase": "complete"
+    }
+  ],
+  "serverAttendance": [
+    {
+      "lesson": "Alpha",
+      "present": true
+    },
+    {
+      "lesson": "Beta",
+      "present": true
+    }
+  ],
+  "cleanupFailures": []
+}

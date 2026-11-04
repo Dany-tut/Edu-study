@@ -1,0 +1,26 @@
+[
+  {
+    "fraction": 0,
+    "top": 3186.265625,
+    "bottom": 3229.140625,
+    "viewport": 844,
+    "scrollY": 0,
+    "scrollHeight": 3565
+  },
+  {
+    "fraction": 0.5,
+    "top": 1825.265625,
+    "bottom": 1868.140625,
+    "viewport": 844,
+    "scrollY": 1361,
+    "scrollHeight": 3565
+  },
+  {
+    "fraction": 1,
+    "top": 465.265625,
+    "bottom": 508.140625,
+    "viewport": 844,
+    "scrollY": 2721,
+    "scrollHeight": 3565
+  }
+]

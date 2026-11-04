@@ -1,0 +1,50 @@
+[
+  {
+    "role": "teacher",
+    "longMessages": [
+      {
+        "height": 40,
+        "total": 112
+      }
+    ],
+    "negativeControl": {
+      "idle": {
+        "x": 41,
+        "y": 488.65625,
+        "width": 297,
+        "height": 48
+      },
+      "error": {
+        "x": 41,
+        "y": 494.65625,
+        "width": 297,
+        "height": 48
+      },
+      "detected": true
+    }
+  },
+  {
+    "role": "student",
+    "longMessages": [
+      {
+        "height": 40,
+        "total": 112
+      }
+    ],
+    "negativeControl": {
+      "idle": {
+        "x": 41,
+        "y": 514.65625,
+        "width": 297,
+        "height": 48
+      },
+      "error": {
+        "x": 41,
+        "y": 520.65625,
+        "width": 297,
+        "height": 48
+      },
+      "detected": true
+    }
+  }
+]

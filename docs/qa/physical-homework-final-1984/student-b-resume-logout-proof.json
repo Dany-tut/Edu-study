@@ -1,0 +1,10 @@
+{
+  "userId": "1dc2e828-11a8-4b78-ab63-e01e979567ea",
+  "timestamp": 1793696163435,
+  "status": 204,
+  "method": "POST",
+  "path": "/auth/v1/logout",
+  "sha": "84dea0784d0f162529077753da45908ab0121be6",
+  "stage": "student-b-resume",
+  "expectedActorMatched": true
+}

@@ -1,0 +1,32 @@
+{
+  "phase": "accepted",
+  "status": "PASS",
+  "expected": {
+    "teacherId": "0accf660-71bb-4257-97fb-1c38c33bcb98",
+    "studentAuthId": "0cab6565-d1d9-453b-af64-1f62e5103ee9",
+    "studentId": "35ef81f0-620e-4834-9abe-96409e6328f8",
+    "groupId": "ae2ab104-348f-4878-a86f-fb6a89fe5b06",
+    "homeworkId": "7f109e0b-c399-4d64-95e5-b0a93bded690",
+    "ref": "hw-7f109e0b-c399-4d64-95e5-b0a93bded690",
+    "marker": "A"
+  },
+  "progressId": "c6cfde64-4153-4758-b366-9f1457fe50fa",
+  "activeAttemptId": "b3655adb-4a01-4151-a171-f3a1439587c6",
+  "progressStatus": "completed",
+  "score": 90,
+  "attempts": [
+    {
+      "id": "0a70cab6-5da9-4ca0-862b-0f4bbc8239d3",
+      "number": 1,
+      "status": "returned",
+      "score": null
+    },
+    {
+      "id": "b3655adb-4a01-4151-a171-f3a1439587c6",
+      "number": 2,
+      "status": "completed",
+      "score": 90
+    }
+  ],
+  "otherStudentHasProgress": false
+}
