@@ -10,9 +10,9 @@ import '../pages/teacher/teacherProfileHeader.css'
 import './studentProfileDialog.css'
 
 export type StudentProfileTab = 'main' | 'friends' | 'settings'
-export default function StudentProfile({ section, onChange, onClose, name, avatar, avatarControls, settings, model }: {
+export default function StudentProfile({ section, onChange, onClose, name, avatar, avatarControls, model }: {
   section: StudentProfileTab; onChange: (tab: StudentProfileTab) => void; onClose: () => void
-  name: string; avatar: ReactNode; avatarControls: ReactNode; settings: ReactNode; model: FriendsModel
+  name: string; avatar: ReactNode; avatarControls: ReactNode; model: FriendsModel
 }) {
   const t = useT()
   const root = useRef<HTMLDivElement>(null)
@@ -74,9 +74,8 @@ export default function StudentProfile({ section, onChange, onClose, name, avata
           <p className="profile-social-privacy">{t('Твой email остаётся приватным.')}</p>
         </aside>
       </div>}
-      {section === 'settings' && <div className="profile-main-grid">
+      {section === 'settings' && <div className="profile-main-grid profile-settings-single">
         <section className="profile-card profile-social-identity"><h3>{t('Ник и видимость')}</h3><FriendsContent model={{...model,tab:'profile'}} /></section>
-        <section className="profile-card profile-details-card student-profile-preferences"><h3>{t('Оформление')}</h3>{settings}</section>
       </div>}
     </div>
   </Modal>

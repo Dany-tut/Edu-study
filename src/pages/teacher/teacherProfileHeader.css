@@ -80,3 +80,4 @@
   .profile-social-visibility { margin-bottom: 14px; }
   .profile-social-list .friend-empty { min-height: 200px; }
 }
+.profile-settings-single { grid-template-columns: minmax(0, 560px); }

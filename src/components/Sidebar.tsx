@@ -2,7 +2,6 @@ import StudentProfile, { type StudentProfileTab } from './StudentProfile'
 import { useDesktopFriends } from './../lib/desktopFriends'
 import { Users } from './icons/appIcons'
 import FadeText from './FadeText'
-import ProfileChips from './ProfileChips'
 import { motion, AnimatePresence } from 'framer-motion'
 import CountBadge from './CountBadge'
 import {
@@ -648,7 +647,7 @@ export default function Sidebar() {
                         onClick={() => { closePicker(); window.location.hash = '#/teacher' }}
                       />
                     )}
-                    <SettingsRow icon={Users} label={t('Профиль')} onClick={() => { closePicker(); setProfileTab('main') }} />
+                    <SettingsRow icon={Users} label={t('Настройки профиля')} onClick={() => { closePicker(); setProfileTab('main') }} />
                     {friends.account && <SettingsRow icon={Users} label={t('Друзья')} onClick={() => { closePicker(); friends.setTab('contacts') }} />}
                     <SettingsRow
                       icon={Settings}
@@ -873,8 +872,14 @@ export default function Sidebar() {
           type="button"
           aria-label={t('Профиль')}
           title={tn(displayName)}
-          aria-expanded={Boolean(profileTab || friends.tab)}
-          onClick={() => { tactile(); closePicker(); setProfileTab('main') }}
+          aria-haspopup="menu"
+          aria-expanded={pickerOpen}
+          onClick={() => {
+            // Имя открывает то же меню, что и аватар; окно профиля — пунктом в нём.
+            tactile()
+            if (pickerOpen) closePicker()
+            else { setMenuView('root'); setPickerOpen(true) }
+          }}
           ref={nameWrapRef}
           initial={false}
           animate={{
@@ -1021,15 +1026,6 @@ export default function Sidebar() {
       onChange={setProfileTab} onClose={() => { setProfileTab(null); friends.setTab(null) }}
       name={tn(displayName)} model={friends} avatarControls={profileAvatars}
       avatar={<div style={{position:'relative',borderRadius:'50%',background:avatar.gradient,display:'grid',placeItems:'center',color:'white',overflow:'hidden'}}><avatar.Icon size={40}/><AvatarPhotoFill path={avatarPath}/></div>}
-      settings={<>
-        <div><p className="student-profile-subtitle">{t('Блоков в строке')}</p><ProfileChips label={t('Блоков в строке')} value={String(widgetColumns)} items={[2,3,4].map(n=>({id:String(n),label:String(n)}))} onChange={id=>setWidgetColumns(Number(id) as WidgetColumns)}/></div>
-        <button className="profile-social-edit" onClick={toggleTheme}>{dark ? t('Светлая тема') : t('Тёмная тема')}</button>
-        <button className="profile-social-edit" onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}>{t('Язык')}: {lang === 'ru' ? 'Русский' : 'English'}</button>
-        <button className="profile-social-edit" onClick={() => { setProfileTab(null); friends.setTab(null); setOrderModalOpen(true) }}>{t('Настроить виджеты')}</button>
-        <button className="profile-social-edit" onClick={() => { setProfileTab(null); friends.setTab(null); setTintModalOpen(true) }}>{t('Палитра курса')}</button>
-        {courseCount > 1 && <button className="profile-social-edit" onClick={() => { setProfileTab(null); friends.setTab(null); setCourseOrderOpen(true) }}>{t('Порядок курсов')}</button>}
-        <SubjectSwitcher/>
-      </>}
     />}
     {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
     {cropFile && <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={async b => { await savePhoto(b); setCropFile(null) }} />}
