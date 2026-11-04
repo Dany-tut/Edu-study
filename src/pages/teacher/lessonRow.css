@@ -1,4 +1,4 @@
-/* Width stays 26px in every state so the open-lock badge keeps one column. */
+/* Width stays 26px in every state so the row does not reflow on hover. */
 .lesson-row .lesson-row-delete {
   width: 26px;
   transition: width 160ms ease, opacity 160ms ease, background 150ms;
