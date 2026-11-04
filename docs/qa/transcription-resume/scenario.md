@@ -1,0 +1,5 @@
+# Resume + recorded guide — before QA
+Base 88ce3aa0; isolated codex/transcription-resume-guide. No production changes yet.
+Expected: accepted link job survives browser reload, transient GET failure auto retries same ID without POST, persisted result and edited draft survive reload, another token cannot read result. Restart module resumes only unfinished stages. Download network failure retains input/checkpoints and pauses with automatic retry. Invalid/private URLs remain actionable errors.
+Test layers: Python isolated filesystem/Flask clients with controlled pipeline (no user data); fixture UI at desktop/mobile; real production unchanged until approved release flow. No claim that browser app itself can load offline, or interrupted initial file upload is resumable. Mac must remain awake; closed module resumes when started again.
+Media: three supplied recordings; retain sequence, speed up waiting, redact Finder personal file names, system sidebar identity, terminal paths and profile integration credentials; no audio in GIF.

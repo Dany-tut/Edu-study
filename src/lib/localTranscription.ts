@@ -26,7 +26,8 @@ export async function localRequest(path: string, token: string, options: Request
   if (token) headers.set('Authorization', 'Bearer ' + token)
   let response: Response
   try {
-    response = await fetch(transcriptionOrigin + path, { ...options, headers, cache: 'no-store' })
+    response = await fetch(transcriptionOrigin + path, { ...options, headers, cache: 'no-store',
+      signal: options.signal ?? (!options.method || options.method === 'GET' ? AbortSignal.timeout(15000) : undefined) })
   } catch {
     throw new LocalTranscriptionUnavailable('Нет связи с модулем на этом Mac. Откройте start.command, дождитесь строки Running on и оставьте Терминал открытым до конца обработки.')
   }
