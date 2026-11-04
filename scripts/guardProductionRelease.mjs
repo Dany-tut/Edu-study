@@ -20,7 +20,6 @@ try {
     // Git-hosted builds may add generated service files; local preflight is strict.
     const changes = releaseCheckoutChanges({ allowVercelDeletions: production && process.env.VERCEL === '1', allowVercelFormatting: production && process.env.VERCEL === '1', includeUntracked: !production })
     if (changes.length) {
-      if (production && changes.some(change => change.slice(3) === 'vercel.json')) console.error(git(['diff', '--', 'vercel.json']))
       throw new Error('Release checkout has uncommitted source files. Use a clean, isolated worktree. Changes: ' + changes.slice(0, 12).join('; '))
     }
     const remote = git(['ls-remote', RELEASE.remote, `refs/heads/${RELEASE.branch}`])
