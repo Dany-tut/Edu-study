@@ -17,10 +17,6 @@ export function useScrollEdges(hasOverlay = false) {
       if (view.dataset.edges !== edges) view.dataset.edges = edges
     }
     const measure = () => {
-      const head = el.querySelector('thead')
-      if (head) view.style.setProperty('--head-h', head.getBoundingClientRect().height + 'px')
-      const frozen=head?.querySelector('th')
-      if(frozen) view.style.setProperty('--frozen-w',frozen.getBoundingClientRect().width+'px')
       view.style.setProperty('--bar-x', (el.offsetHeight - el.clientHeight) + 'px')
       view.style.setProperty('--bar-y', (el.offsetWidth - el.clientWidth) + 'px')
       update()

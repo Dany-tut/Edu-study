@@ -1,0 +1,77 @@
+{
+  "id": "d031fc93-04c5-4930-9720-830eba7a2616",
+  "student_id": "a4461eb9-9ee8-4414-8050-46b9c7d2d780",
+  "status": "submitted",
+  "score": null,
+  "attachments": {
+    "v": "basic-1",
+    "rows": [
+      {
+        "n": 1,
+        "type": "single",
+        "answer": "QA correct",
+        "prompt": "QA question single",
+        "correct": "QA correct",
+        "verdict": "correct"
+      },
+      {
+        "n": 2,
+        "type": "multi",
+        "answer": "QA first, QA third",
+        "prompt": "QA question multi",
+        "correct": "QA first, QA third",
+        "verdict": "correct"
+      },
+      {
+        "n": 3,
+        "type": "fill",
+        "answer": "6",
+        "prompt": "QA question fill",
+        "correct": "6",
+        "verdict": "correct"
+      },
+      {
+        "n": 4,
+        "type": "extended",
+        "answer": "QA объяснение: 3 плюс 3 равно 6.",
+        "prompt": "QA question extended",
+        "verdict": "review"
+      },
+      {
+        "n": 5,
+        "type": "matching",
+        "answer": "QA cat → кот; QA dog → собака",
+        "prompt": "QA question matching",
+        "correct": "QA cat → кот; QA dog → собака",
+        "verdict": "correct"
+      },
+      {
+        "n": 6,
+        "type": "sequence",
+        "answer": "QA stage one → QA stage two",
+        "prompt": "QA question sequence",
+        "correct": "QA stage one → QA stage two",
+        "verdict": "correct"
+      },
+      {
+        "n": 7,
+        "type": "tableFill",
+        "answer": "{\"0,1\":\"4\"}",
+        "prompt": "QA question tableFill",
+        "verdict": "review"
+      },
+      {
+        "n": 8,
+        "type": "whiteboard",
+        "answer": "QA рисунок описан: квадрат со стороной 2, площадь 4.",
+        "prompt": "QA question whiteboard",
+        "verdict": "review"
+      }
+    ],
+    "correct": 5,
+    "gradable": 5,
+    "attemptId": "311d9ab0-7ec7-44c6-9b2c-983048467f95",
+    "reviewRequired": true,
+    "recommendationScore": 80
+  }
+}

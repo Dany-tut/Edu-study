@@ -222,6 +222,7 @@ export default function TeacherHardReviewPage() {
             draftScope={`hardReview:${sub.id}`}
           />
         </div>
+
       </div>
 
       {/* Photo zoom overlay */}

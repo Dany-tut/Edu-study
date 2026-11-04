@@ -38,9 +38,10 @@ import { useTeacherAccess, TEACHER_TABS } from '../../lib/teacherAccess'
 import { useTeacherTz } from '../../lib/teacherTz'
 import { useT } from '../../lib/i18n'
 import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
+import { deskWidthForColumns } from '../../lib/deskWidgetSizing'
 import { getOwnerId } from '../../lib/owner'
 
-export default function TeacherDashboardPage({ standContent }: { standContent?: React.ReactNode } = {}) {
+export default function TeacherDashboardPage({ standContent, pendingAttendanceCount = 0 }: { standContent?: React.ReactNode; pendingAttendanceCount?: number } = {}) {
   const t = useT()
   const sizeReview = isWidgetReviewRoute(window.location)
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
@@ -58,7 +59,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
   const showWidgetLibrary = useDeskStore(s => s.showWidgetLibrary)
   const setShowWidgetLibrary = useDeskStore(s => s.setShowWidgetLibrary)
   const {
-    config, activeDesk,
+    config, activeDesk, loading: desksLoading,
     setActiveDesk, addDesk, resetDesk,
     updateDeskItems,
   } = useDeskLayouts()
@@ -151,6 +152,20 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     {/* Desktop surfaces live notifications inside TeacherCompactPill (top-right),
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
+      {/* Widget library modal */}
+      {showWidgetLibrary && (<Suspense fallback={null}>
+        <WidgetLibraryModal
+          onClose={() => setShowWidgetLibrary(false)}
+          onEditDesk={isDesktop && !editMode ? useTeacher.getState().openDeskEditor : undefined}
+          onAdd={item => updateDeskItems(activeDesk.id, [...(isDesktop && widgetGrid?.deskId === activeDesk.id ? [...widgetGrid.items, ...activeDesk.items.filter(saved => hiddenWidgets?.includes(saved.type))] : activeDesk.items), item])}
+          existingTypes={activeDesk.items.map(i => i.type)}
+          existingItems={isDesktop && widgetGrid?.deskId === activeDesk.id ? widgetGrid.items : activeDesk.items}
+          gridColumns={activeDesk.columns}
+          gridWidth={isDesktop && widgetGrid?.deskId === activeDesk.id ? widgetGrid.width : isDesktop ? undefined : deskWidthForColumns(activeDesk.columns)}
+          hiddenWidgets={hiddenWidgets}
+        />
+      </Suspense>)}
+
     <TeacherSubjectsPrompt />
     {(isDesktop || mobileTool) && <div inert={showWidgetLibrary} className="dashboard-root teacher-dashboard-root" style={{ display: 'flex', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
@@ -168,20 +183,6 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
           onAddWidget={() => setShowWidgetLibrary(true)}
         />
       )}
-
-      {/* Widget library modal */}
-      {showWidgetLibrary && (<Suspense fallback={null}>
-        <WidgetLibraryModal
-          onClose={() => setShowWidgetLibrary(false)}
-          onEditDesk={editMode ? undefined : useTeacher.getState().openDeskEditor}
-          onAdd={item => updateDeskItems(activeDesk.id, [...(widgetGrid?.deskId === activeDesk.id ? [...widgetGrid.items, ...activeDesk.items.filter(saved => hiddenWidgets?.includes(saved.type))] : activeDesk.items), item])}
-          existingTypes={activeDesk.items.map(i => i.type)}
-          existingItems={widgetGrid?.deskId === activeDesk.id ? widgetGrid.items : activeDesk.items}
-          gridColumns={activeDesk.columns}
-          gridWidth={widgetGrid?.deskId === activeDesk.id ? widgetGrid.width : undefined}
-          hiddenWidgets={hiddenWidgets}
-        />
-      </Suspense>)}
 
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
       {mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
@@ -265,7 +266,7 @@ export default function TeacherDashboardPage({ standContent }: { standContent?: 
     </div>}
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp />)}</Suspense>
+    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp widgetsReady={!desksLoading && accessLoaded} />)}</Suspense>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import TableScrollArea from './TableScrollArea'
 import { useT } from '../lib/i18n'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import GrowTextarea from './GrowTextarea'
@@ -44,26 +44,6 @@ export default function QuestionTable({
   accent?: string
 }) {
   const t = useT()
-  const [atStart, setAtStart] = useState(true)
-  const [atEnd, setAtEnd] = useState(true)
-  const boxRef = useRef<HTMLDivElement>(null)
-  const tableRef = useRef<HTMLTableElement>(null)
-
-  const onScroll = () => {
-    const el = boxRef.current
-    if (!el) return
-    setAtStart(el.scrollLeft <= 1)
-    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1)
-  }
-
-  useLayoutEffect(() => {
-    onScroll()
-    const ro = new ResizeObserver(onScroll)
-    if (boxRef.current) ro.observe(boxRef.current)
-    if (tableRef.current) ro.observe(tableRef.current)
-    return () => ro.disconnect()
-  }, [table])
-
   // Fill-in answers: JSON blob (value/onChange) or per-cell (cellValue/onCellChange).
   let vals: Record<string, string> = {}
   try { if (value) vals = JSON.parse(value) } catch { vals = {} }
@@ -110,50 +90,35 @@ export default function QuestionTable({
   }
 
   return (
-    <div style={{ position: 'relative', alignSelf: 'flex-start', width: 'fit-content', maxWidth: '100%' }}>
-      <div
-        ref={boxRef}
-        className="no-scrollbar"
-        onScroll={onScroll}
-        style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: 16, border, maxWidth: '100%' }}
-      >
-        {/* На телефоне 15px: поле ответа там 16px (меньше — iOS зумит страницу при фокусе), и при 13px в ячейках ответ выглядел вдвое крупнее соседей */}
-        <table ref={tableRef} style={{ borderCollapse: 'collapse', fontSize: mobile ? 15 : 13 }}>
-          <thead>
-            <tr>{table.headers.map((h, c) => (
-              <th key={c} style={{ borderBottom: border, borderRight: c < table.headers.length - 1 ? border : undefined, padding: cellPad, fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left', verticalAlign: 'top', overflowWrap: 'break-word' }}>{h}</th>
-            ))}</tr>
-          </thead>
-          <tbody>
-            {table.rows.map((row, r) => (
-              <tr key={r} style={{ background: r % 2 === 1 ? 'var(--color-bg-2)' : undefined }}>
-                {row.map((cell, c) => {
-                  const key = `${r},${c}`
-                  const cellFillable = interactive && (table.emptyCells?.[key] || (blankAsInput && table.blankCells?.[key]))
-                  return (
-                    <td key={c} style={{
-                      borderTop: '1px solid var(--color-border)', borderRight: c < row.length - 1 ? '1px solid var(--color-border)' : undefined,
-                      padding: 0, verticalAlign: 'top', overflowWrap: 'break-word',
-                      background: cellFillable ? 'var(--color-bg-input)' : undefined,
-                      color: 'var(--color-text)',
-                    }}>
-                      {renderCell(cell, r, c)}
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Scroll-hint fades — only when a column's longest word still can't fit. */}
-      {!atEnd && (
-        <div style={{ position: 'absolute', top: 1, bottom: 1, right: 1, width: 24, borderRadius: '0 15px 15px 0', pointerEvents: 'none', background: 'linear-gradient(to left, var(--color-bg), transparent)' }} />
-      )}
-      {!atStart && (
-        <div style={{ position: 'absolute', top: 1, bottom: 1, left: 1, width: 18, borderRadius: '15px 0 0 15px', pointerEvents: 'none', background: 'linear-gradient(to right, var(--color-bg), transparent)' }} />
-      )}
-    </div>
+    <TableScrollArea className="no-scrollbar" style={{ alignSelf: 'flex-start', width: 'fit-content', borderRadius: 16, border }}>
+      {/* На телефоне 15px: поле ответа там 16px (меньше — iOS зумит страницу при фокусе), и при 13px в ячейках ответ выглядел вдвое крупнее соседей */}
+      <table style={{ borderCollapse: 'collapse', fontSize: mobile ? 15 : 13 }}>
+        <thead>
+          <tr>{table.headers.map((h, c) => (
+            <th key={c} style={{ borderBottom: border, borderRight: c < table.headers.length - 1 ? border : undefined, padding: cellPad, fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left', verticalAlign: 'top', overflowWrap: 'break-word' }}>{h}</th>
+          ))}</tr>
+        </thead>
+        <tbody>
+          {table.rows.map((row, r) => (
+            <tr key={r} style={{ background: r % 2 === 1 ? 'var(--color-bg-2)' : undefined }}>
+              {row.map((cell, c) => {
+                const key = `${r},${c}`
+                const cellFillable = interactive && (table.emptyCells?.[key] || (blankAsInput && table.blankCells?.[key]))
+                return (
+                  <td key={c} style={{
+                    borderTop: '1px solid var(--color-border)', borderRight: c < row.length - 1 ? '1px solid var(--color-border)' : undefined,
+                    padding: 0, verticalAlign: 'top', overflowWrap: 'break-word',
+                    background: cellFillable ? 'var(--color-bg-input)' : undefined,
+                    color: 'var(--color-text)',
+                  }}>
+                    {renderCell(cell, r, c)}
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </TableScrollArea>
   )
 }

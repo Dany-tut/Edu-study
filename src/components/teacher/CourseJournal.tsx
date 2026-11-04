@@ -38,7 +38,7 @@ function JournalTabScroll({ mobile, children }: { mobile: boolean; children: Rea
 function JournalTable({ children }: { mobile: boolean; children: ReactNode }) {
   const {viewport,scroller}=useScrollEdges()
   return <div className="cj-table-frame" ref={viewport}><div className="cj-table-wrap" ref={scroller}>{children}</div>
-    <i className="cj-table-fade cj-table-fade-left" aria-hidden="true"/><i className="cj-table-fade cj-table-fade-right" aria-hidden="true"/>
+    <i className="cj-table-fade cj-table-fade-right" aria-hidden="true"/>
   </div>
 }
 function dateLabel(value: string | null) {

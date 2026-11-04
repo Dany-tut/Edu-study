@@ -4,7 +4,7 @@ import TeacherModules from '../TeacherModules'
 import FadeText from '../../FadeText'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
+import { LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -28,6 +28,8 @@ import { useTeacherAccess } from '../../../lib/teacherAccess'
 import { subjectNamesFromStored } from '../../../lib/subjects'
 import TeacherSubjectsField from '../TeacherSubjectsField'
 import { Alert } from '../../Alert'
+import DesktopFriends from '../../DesktopFriends'
+import { useDesktopFriends } from '../../../lib/desktopFriends'
 import TeacherLoginMethods from '../TeacherLoginMethods'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
 
@@ -55,9 +57,10 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
   )
 }
 
-export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?: () => void }) {
+export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets }: { onOpenJournal?: () => void; onOpenWidgets?: () => void }) {
   const signedIn = useTeacherSession()
   const studentCabinet = useOpenStudentCabinet()
+  const friends = useDesktopFriends()
   const t = useT()
   const { tc, tn } = useTc()
   const { lang, setLang } = useLang()
@@ -206,6 +209,9 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
               : <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />}
           </button>
 
+          {friends.account && <button type="button" className="friend-mobile-entry" onClick={() => friends.setTab('contacts')}>
+            <Users size={18}/>{t('Друзья')}<ChevronRight size={18}/>
+          </button>}
           <button type="button" onClick={() => { tactile(); setIntegrations(true) }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', textAlign:'left' }}>
             <Sparkles size={18}/><span style={{ flex:1 }}>{t('Интеграции')}</span><ChevronRight size={18}/>
           </button>
@@ -233,6 +239,17 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
             </span>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{lang === 'ru' ? 'Русский' : 'English'}</span>
           </button>
+
+          {onOpenWidgets && <button type="button"
+            onClick={() => { tactile(); onOpenWidgets() }}
+            className="flex items-center justify-between cursor-pointer"
+            style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
+          >
+            <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
+              <LayoutDashboard size={18} style={{ color: 'var(--color-muted)' }} />{t('Настроить виджеты')}
+            </span>
+            <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+          </button>}
 
           {/* Обратная связь */}
           <button
@@ -295,6 +312,7 @@ export default function MobileTeacherProfile({ onOpenJournal }: { onOpenJournal?
           <LogOut size={18} /> {t('Выйти из аккаунта')}
         </motion.button>
       </div>
+      <DesktopFriends model={friends}/>
       {integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
       {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}

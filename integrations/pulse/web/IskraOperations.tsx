@@ -39,6 +39,9 @@ export function IskraOperations({ project = "iskra", name = "Искра" }: { pr
       <Alert tone={stale || !!error || data.states.monitor.code !== 'observing' ? 'warning' : 'info'} title={stale || !!error || data.states.monitor.code !== 'observing' ? 'Состояние пользователей не подтверждено' : 'Источник мониторинга отвечает'}>
         Последняя успешная проверка журнала: {data.last_checked_at ? date(data.last_checked_at) : 'ещё не выполнена'}. Статусы обновлены: {date(data.updated_at)}.
       </Alert>
+      {data.external_probe && <Alert tone={data.external_probe.code === 'observing' ? 'info' : 'warning'} title={data.external_probe.label}>
+        Последняя внешняя проверка: {data.external_probe.last_checked_at ? date(data.external_probe.last_checked_at) : 'ещё не выполнена'}. Это отдельная проверка доступности приложения; ответ серверного сбора её не заменяет.
+      </Alert>}
       <div className="grid grid--mid" style={{ marginTop: 'var(--space-4)' }}>
         {(Object.keys(AREA_LABELS) as Array<keyof typeof AREA_LABELS>).map(area => <div className="card" key={area}>
           <h3 className="card__title">{AREA_LABELS[area]}</h3>
@@ -50,7 +53,7 @@ export function IskraOperations({ project = "iskra", name = "Искра" }: { pr
         <summary style={{ cursor: 'pointer', minHeight: 'var(--control-h-lg)' }}>История статусов · {data.history.length}</summary>
         {data.history.length ? <ol style={{ paddingLeft: 'var(--space-5)' }}>{[...data.history].reverse().map((entry, i) => <li key={`${entry.at}-${entry.area}-${i}`} style={{ marginTop: 'var(--space-2)' }}>{date(entry.at)} · {entry.label}</li>)}</ol> : <p>Переходов ещё нет.</p>}
       </details>
-      <p className="meta" style={{ marginTop: 'var(--space-3)' }}>Сводка обновляется каждые 5 секунд. {project === 'iskra' && import.meta.env.VITE_ISKRA_SERVER_MONITOR_URL ? 'Серверный источник работает без компьютера; при задержке проверок сводка помечается устаревшей.' : 'Локальный источник зависит от работающего компьютера.'} Данные пользователей остаются в закрытом журнале продукта. Выпуск исправления требует согласования.</p>
+      <p className="meta" style={{ marginTop: 'var(--space-3)' }}>Сводка запрашивается каждые 5 секунд. {data.summary_source === 'scheduled_database' ? 'Серверное расписание проверяет журнал раз в минуту без компьютера. Показано время сервера, а не время открытия пульта.' : project === 'iskra' && import.meta.env.VITE_ISKRA_SERVER_MONITOR_URL ? 'Серверный источник работает без компьютера; при задержке проверок сводка помечается устаревшей.' : 'Локальный источник зависит от работающего компьютера.'} Данные пользователей остаются в закрытом журнале продукта. Выпуск исправления требует согласования.</p>
     </>}
   </section>;
 }

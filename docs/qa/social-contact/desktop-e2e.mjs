@@ -36,7 +36,7 @@ async function student(prefix){
 }
 async function open(p){await button(p,'Профиль').last().click();await p.getByText('Друзья',{exact:true}).last().click();await p.getByRole('dialog').waitFor()}
 async function save(p,nick,visible){
-  await button(p,'Мой ник').click();await p.getByLabel('Твой ник').fill(nick)
+  await p.getByLabel('Твой ник').fill(nick)
   await p.getByRole('checkbox').setChecked(visible);await button(p,'Сохранить').click()
   await p.getByText('Настройки сохранены.').waitFor()
 }
@@ -46,12 +46,12 @@ try {
   const a=await student('luna_'), b=await student('sever_')
   await open(a.p);await save(a.p,a.nick,false)
   await open(b.p);await save(b.p,b.nick,false)
-  await button(a.p,'Поиск').click();await a.p.getByLabel('Точный ник').fill('@'+b.nick.toUpperCase());await button(a.p,'Найти').click()
+  await a.p.getByLabel('Точный ник').fill('@'+b.nick.toUpperCase());await button(a.p,'Найти').click()
   await a.p.getByText('Ник не найден.',{exact:false}).waitFor()
   await save(b.p,b.nick,true);await b.p.keyboard.press('Escape')
   await button(a.p,'Найти').click();await button(a.p,'Отправить заявку').click()
   await a.p.getByRole('heading',{name:'Отправленные'}).waitFor()
-  assert.equal(await a.p.locator('.friend-row').innerText(),'@'+b.nick+'\nОтменить')
+  assert.equal(await a.p.locator('[data-friend-section=requests] .friend-row').innerText(),'@'+b.nick+'\nОтменить')
   await button(b.p,'Уведомления').click();await b.p.getByRole('button',{name:new RegExp(a.nick+' .*Заявка в друзья')}).click()
   await button(b.p,'Принять').waitFor()
   const panel=b.p.getByRole('dialog')
@@ -59,7 +59,7 @@ try {
   await b.p.waitForTimeout(450)
   await panel.screenshot({path:new URL('desktop-incoming.png',out).pathname})
   await b.p.setViewportSize({width:1280,height:330})
-  await panel.getByRole('button',{name:'Мой ник'}).click()
+  assert.equal(await panel.getByRole('navigation',{name:'Разделы друзей'}).count(),0)
   const edges=await panel.evaluate(async node=>{
     const el=[...node.querySelectorAll('*')].find(e=>e.scrollHeight>e.clientHeight+8 && ['auto','scroll'].includes(getComputedStyle(e).overflowY))
     if(!el) return []
@@ -75,7 +75,7 @@ try {
   await writeFile(new URL('desktop-scroll.json',out),JSON.stringify(edges,null,2))
   await b.p.setViewportSize({width:1440,height:900})
   // Direct profile route works independently of the notification.
-  await b.p.keyboard.press('Escape');await open(b.p);await b.p.getByRole('button',{name:/^Заявки/}).click()
+  await b.p.keyboard.press('Escape');await open(b.p)
   await button(b.p,'Принять').click();await b.p.getByText('@'+a.nick+' теперь в друзьях.').waitFor()
   for (const [user,other] of [[a,b],[b,a]]) {
     if(user===b) await user.p.evaluate(()=>localStorage.setItem('theme','dark'))

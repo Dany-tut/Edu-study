@@ -188,11 +188,20 @@
 .js-fade-left, .js-fade-right { top: 0; bottom: var(--bar-x); width: 26px; }
 .js-fade-left { left: var(--student-col); background: linear-gradient(to right, var(--color-bg-card), transparent); }
 .js-fade-right { right: var(--bar-y); background: linear-gradient(to left, var(--color-bg-card), transparent); }
-.js-fade-top, .js-fade-bottom { left: 0; right: var(--bar-y); height: 18px; }
-.js-fade-top { top: var(--head-h); background: linear-gradient(to bottom, var(--color-bg-card), transparent); }
+.js-fade-bottom { left: 0; right: var(--bar-y); height: 18px; }
+/* Paint from the sticky box itself so fractional layout cannot expose a row between it and the fade. */
+.teacher-roster-viewport[data-edges~='top'] thead::after,
+.js-matrix-viewport[data-edges~='top'] thead th::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  inset: calc(100% - 1px) 0 auto;
+  height: 19px;
+  background: linear-gradient(to bottom, var(--color-bg-2) 2px, transparent);
+}
 .js-fade-bottom { bottom: var(--bar-x); background: linear-gradient(to top, var(--color-bg-card), transparent); }
 [data-edges~='left'] > .js-fade-left, [data-edges~='right'] > .js-fade-right,
-[data-edges~='top'] > .js-fade-top, [data-edges~='bottom'] > .js-fade-bottom { opacity: 1; }
+[data-edges~='bottom'] > .js-fade-bottom { opacity: 1; }
 
 .js-pill-space { height: 74px; pointer-events: none; }
 .js-float { position: absolute; z-index: 4; inset-inline: 0; bottom: 10px; width: max-content; max-width: calc(100% - 20px); margin-inline: auto; }
@@ -482,7 +491,7 @@
   .group-roster-toolbar input { font-size: 16px !important; }
 }
 
-.js-pending-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
+.journal-nav-count, .js-pending-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
 .js-pending-lessons { margin: 0 14px; font-size: 13px; color: var(--color-text); }
 .js-pending-lessons summary::-webkit-details-marker { display: none; }
 .js-pending-lessons summary svg { flex: none; }

@@ -1,3 +1,4 @@
+import TableScrollArea from '../TableScrollArea'
 import { useMemo, useState } from 'react'
 import { Check, X, Sparkle, AlertTriangle, ArrowRight, GraduationCap } from '../icons/appIcons'
 import { Tile, TileGrid, TileChip, TileMeter, Empty } from './TrainerShell'
@@ -289,7 +290,7 @@ function FormTable({ table, accent, soft }: {
   return (
     // Таблица шире экрана листается ВНУТРИ себя: горизонтальная прокрутка
     // страницы из-за одной таблицы ломает всю раскладку тренажёра.
-    <div style={{ overflowX: 'auto', borderRadius: 14, border: '1px solid var(--color-border-soft)' }}>
+    <TableScrollArea style={{ borderRadius: 14, border: '1px solid var(--color-border-soft)' }}>
       <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 420 }}>
         <thead>
           <tr style={{ background: soft }}>
@@ -319,7 +320,7 @@ function FormTable({ table, accent, soft }: {
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScrollArea>
   )
 }
 

@@ -69,6 +69,14 @@ export function FriendsContent({ model, overview = false, polished = false, sugg
   const [person,setPerson] = useState<PersonCard|null>(null)
   useEffect(()=>setPerson(null),[model.account,model.tab])
   const { account, snapshot, tab } = model
+  const content = useRef<HTMLDivElement>(null)
+  const loaded = Boolean(snapshot)
+  useEffect(() => {
+    if (!loaded || !tab || tab === 'contacts') return
+    const target = content.current?.querySelector<HTMLElement>(`[data-friend-section="${tab}"]`)
+    target?.focus({ preventScroll:true })
+    target?.scrollIntoView({ block:'nearest' })
+  }, [account, tab, loaded])
   if (!account || !tab) return null
   const panes: (FriendsTab | 'outgoing')[] = overview ? ['search', 'requests', 'contacts', 'outgoing'] : [tab]
   return (

@@ -131,6 +131,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         )
       )}
 
+
       <input
         value={comment}
         onChange={e => setComment(e.target.value)}

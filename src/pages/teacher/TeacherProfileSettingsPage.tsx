@@ -12,7 +12,7 @@ import { useState, useEffect, useRef } from 'react'
 import BackCircle from '../../components/BackCircle'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { motion } from 'framer-motion'
-import { Save, User, Camera, X, Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon } from '../../components/icons/appIcons'
+import { Copy, Check, Save, User, Camera, X, Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, type LucideIcon } from '../../components/icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import SubjectColorPicker, { type ColorSubject } from '../../components/SubjectColorPicker'
@@ -50,6 +50,23 @@ const AVATARS: AvatarOption[] = [
   { id: 'rocket', Icon: Rocket, gradient: 'linear-gradient(135deg, hsl(46 96% 66%), hsl(36 92% 54%))',   glow: 'hsl(41 94% 60% / 0.45)', scale: 1.04 },
   { id: 'star',   Icon: Star,   gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', glow: 'hsl(271 76% 65% / 0.45)', scale: 1.1 },
 ]
+
+function CopyProfileLabel({ value, isHandle }: { value: string; isHandle: boolean }) {
+  const t = useT()
+  const [feedback, setFeedback] = useState('')
+  useEffect(() => {
+    if (!feedback) return
+    const timer = window.setTimeout(() => setFeedback(''), 1800)
+    return () => window.clearTimeout(timer)
+  }, [feedback])
+  const action = isHandle ? t('Скопировать ник') : t('Скопировать имя')
+  return <button type="button" className="profile-header-copy" title={action} aria-label={action + ' ' + value}
+    onClick={async () => setFeedback(await copyToClipboard(value) ? 'Скопировано' : 'Не удалось скопировать')}>
+    <FadeText>{feedback ? t(feedback) : value}</FadeText>
+    {feedback === 'Скопировано' ? <Check size={12}/> : <Copy size={12}/>}
+    <span className="sr-only" role="status">{feedback && t(feedback)}</span>
+  </button>
+}
 
 export default function TeacherProfileSettingsPage({ friends }: { friends: FriendsModel }) {
   const teacherGuides = useTeacherGuides()
