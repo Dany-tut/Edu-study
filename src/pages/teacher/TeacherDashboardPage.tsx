@@ -41,7 +41,7 @@ import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
 import { deskWidthForColumns } from '../../lib/deskWidgetSizing'
 import { getOwnerId } from '../../lib/owner'
 
-export default function TeacherDashboardPage({ standContent }: { standContent?: React.ReactNode } = {}) {
+export default function TeacherDashboardPage({ standContent, pendingAttendanceCount = 0 }: { standContent?: React.ReactNode; pendingAttendanceCount?: number } = {}) {
   const t = useT()
   const sizeReview = isWidgetReviewRoute(window.location)
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
