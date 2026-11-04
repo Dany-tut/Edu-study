@@ -3288,7 +3288,7 @@ export const EN: Record<string, string> = {
   'Я': 'Me',
   'Сравнить': 'Compare',
   'Удалить запись': 'Delete recording',
-  'Удалить запись вместе с главами и расшифровкой?': 'Delete the recording with its chapters and transcript?',
+  'Удалить запись и главы?': 'Delete recording and chapters?',
   'Не удалось загрузить файл': 'Could not upload the file',
   'Загрузка видео ещё не подключена — вставьте ссылку на запись': 'Video upload is not connected yet — paste a link to the recording',
   'Какое слово прозвучало?': 'Which word was it?',

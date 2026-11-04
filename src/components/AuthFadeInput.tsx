@@ -1,7 +1,11 @@
-import { useLayoutEffect, useRef, type ComponentProps } from 'react'
+import { useLayoutEffect, useRef, type ComponentProps, type CSSProperties } from 'react'
 
 /** Keep the native editable field, its focus ring and adjacent actions intact. */
-export default function AuthFadeInput(props: ComponentProps<'input'>) {
+export default function AuthFadeInput({ fadeColor = 'var(--color-surface)', wrapStyle, ...props }: ComponentProps<'input'> & {
+  /** Цвет фейда = фон поля: у FIELD это --color-bg-input. */
+  fadeColor?: string
+  wrapStyle?: CSSProperties
+}) {
   const ref = useRef<HTMLInputElement>(null)
   const layer = useRef<HTMLSpanElement>(null)
 
@@ -14,7 +18,7 @@ export default function AuthFadeInput(props: ComponentProps<'input'>) {
       const css = getComputedStyle(input)
       const left = input.scrollLeft > 1
       const right = input.scrollWidth - input.clientWidth - input.scrollLeft > 1
-      const surface = 'var(--color-surface)'
+      const surface = fadeColor
       overlay.style.left = `calc(${css.borderLeftWidth} + ${css.paddingLeft})`
       overlay.style.right = `calc(${css.borderRightWidth} + ${css.paddingRight})`
       overlay.style.backgroundImage = [
@@ -36,9 +40,9 @@ export default function AuthFadeInput(props: ComponentProps<'input'>) {
       events.forEach(event => input.removeEventListener(event, schedule))
       document.fonts.removeEventListener('loadingdone', schedule)
     }
-  }, [props.value, props.type, props.style])
+  }, [props.value, props.type, props.style, fadeColor])
 
-  return <div style={{ position: 'relative' }}>
+  return <div style={{ position: 'relative', ...wrapStyle }}>
     <input {...props} ref={ref} />
     <span aria-hidden ref={layer} style={{ position: 'absolute', top: '20%', bottom: '20%', pointerEvents: 'none' }} />
   </div>
