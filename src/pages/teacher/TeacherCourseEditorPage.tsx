@@ -1,3 +1,4 @@
+import './lessonRow.css'
 import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
@@ -4852,13 +4853,11 @@ function LessonRow({
       </span>
       {/* Open-for-students badge */}
       {isOpen && (
-        <span title={t('Открыт ученикам')} style={{
-          display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-          padding: '2px 8px 2px 6px', borderRadius: 999,
-          background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
-          fontSize: 10, fontWeight: 700,
-        }}>
-          <Unlock size={12} strokeWidth={2.5} /> {t('Открыт')}
+        <span className="lesson-row-open" title={t('Открыт ученикам')} aria-label={t('Открыт ученикам')}>
+          <Unlock size={12} strokeWidth={2.5} aria-hidden="true" />
+          <span className="lesson-row-open-label" aria-hidden="true">
+            <span><span style={{ paddingLeft: 4 }}>{t('Открыт')}</span></span>
+          </span>
         </span>
       )}
       {/* Multi-select check → checkmark; selected → trash; otherwise indicator dots */}
@@ -4874,7 +4873,7 @@ function LessonRow({
         </div>
       ) : selected ? (
         <div
-          role="button" tabIndex={0} className="editor-delete-action"
+          role="button" tabIndex={0} className="editor-delete-action lesson-row-delete"
           aria-label={t('Удалить')} title={t('Удалить')}
           onClick={e => { e.stopPropagation(); onDelete() }}
           onKeyDown={e => {
