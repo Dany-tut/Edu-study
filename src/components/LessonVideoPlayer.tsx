@@ -21,7 +21,7 @@
 // конец» просмотром не считается.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
@@ -36,6 +36,7 @@ import { resolveDriveVideo } from '../lib/driveVideo'
 import FadeText from './FadeText'
 import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
+import { montageTimeline } from '../lib/lessonMontage'
 import { useT } from '../lib/i18n'
 import {
   addWatched, formatClock, hasResumePoint, MAX_STEP, watchedSeconds, watchRatio,
@@ -243,6 +244,10 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const [ended, setEnded] = useState(false)
   const [current, setCurrent] = useState(0)
   const [duration, setDuration] = useState(initialWatch.duration || 0)
+  // Монтаж для ученика: шкала и время — без вырезанного, ускоренное сжато.
+  const timeline = useMemo(() => montageTimeline(montage, duration, engineMaxRate), [montage, duration, engineMaxRate])
+  const tv = (sec: number) => timeline ? timeline.view(sec) : sec
+  const total = timeline ? timeline.total : duration
   const [buffered, setBuffered] = useState(0)
   const [volume, setVolume] = useState(1)
   const [boostAvailable, setBoostAvailable] = useState(true)
@@ -352,6 +357,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const onTickRef = useRef(onTick); onTickRef.current = onTick
   /** Скорость, которую сейчас держит монтаж (null — скорость ученика). */
   const montageRate = useRef<number | null>(null)
+  /** Скорость монтажа сейчас — для плашки «Ускорено ×4» поверх кадра. */
+  const [montageFast, setMontageFast] = useState<number | null>(null)
   const pausedRef = useRef(false); pausedRef.current = paused
   const gestureRef = useRef<'scrub' | 'ff' | 'rw' | null>(null)
   const boostRef = useRef(2)
@@ -672,6 +679,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         const want = fast ? Math.min(fast[2], engineMaxRate) : null
         if (want !== montageRate.current) {
           montageRate.current = want
+          setMontageFast(want)
           const r = want ?? rateRef.current
           if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(r)
           else if (videoRef.current) { videoRef.current.preservesPitch = true; videoRef.current.playbackRate = r }
@@ -821,8 +829,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     if (!rail || !duration) return 0
     const box = rail.getBoundingClientRect()
     const ratio = Math.min(1, Math.max(0, (clientX - box.left) / box.width))
-    return ratio * duration
-  }, [duration])
+    // С монтажом шкала короче записи: точка шкалы → время записи.
+    return timeline ? timeline.source(ratio * timeline.total) : ratio * duration
+  }, [duration, timeline])
 
   const startScrub = (e: React.PointerEvent) => {
     if (!duration) return
@@ -1298,6 +1307,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             </div>
           )}
 
+          {/* Монтаж ускоряет тихую работу — ученик видит, почему кадр бежит. */}
+          {montageFast && <span className="lesson-player-montage" role="status">×{montageFast} · {t('ускорено: тихая работа')}</span>}
           <motion.div
             className="lesson-player-controls"
             onPointerDownCapture={cancelFrameTap}
@@ -1322,7 +1333,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               aria-valuemin={0}
               aria-valuemax={duration || 0}
               aria-valuenow={Math.round(current)}
-              aria-valuetext={`${formatClock(current)} / ${formatClock(duration)}`}
+              aria-valuetext={`${formatClock(tv(current))} / ${formatClock(total)}`}
               onKeyDown={e => {
                 if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
                 e.preventDefault(); e.stopPropagation()
@@ -1340,14 +1351,14 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               <div className="lesson-player-track">
                 {duration > 0 && chapterBoundaries.slice(0, -1).map((start, index) => {
                   const end = chapterBoundaries[index + 1]
-                  const length = end - start
                   const selected = previewAt !== null && previewAt >= start && (previewAt < end || end === duration)
-                  const coverage = (seconds: number) => Math.max(0, Math.min(100, (seconds - start) / length * 100))
+                  const vLength = Math.max(1e-6, tv(end) - tv(start))
+                  const coverage = (seconds: number) => Math.max(0, Math.min(100, (tv(seconds) - tv(start)) / vLength * 100))
                   const leftGap = index === 0 ? 0 : 2
                   const rightGap = end === duration ? 0 : 2
                   return (
                     <div key={start} className="lesson-player-segment" data-active={selected}
-                      style={{ left: `calc(${start / duration * 100}% + ${leftGap}px)`, width: `max(0px, calc(${length / duration * 100}% - ${leftGap + rightGap}px))` }}>
+                      style={{ left: `calc(${tv(start) / total * 100}% + ${leftGap}px)`, width: `max(0px, calc(${vLength / total * 100}% - ${leftGap + rightGap}px))` }}>
                       <div className="lesson-player-segment-buffer" style={{ width: `${coverage(buffered * duration)}%` }} />
                       {watch.ranges.map(([a, b], i) => b > start && a < end && (
                         <div key={i} className="lesson-player-segment-watched" style={{ left: `${coverage(a)}%`, width: `${coverage(b) - coverage(a)}%` }} />
@@ -1358,13 +1369,13 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 })}
                 {previewAt !== null && duration > 0 && (
                   <span aria-hidden="true" className="lesson-player-hover-mark"
-                    style={{ left: `clamp(1px, ${previewAt / duration * 100}%, calc(100% - 1px))` }} />
+                    style={{ left: `clamp(1px, ${tv(previewAt) / total * 100}%, calc(100% - 1px))` }} />
                 )}
               </div>
 
               {previewAt !== null && duration > 0 && (
-                <span className="lesson-player-preview" style={{ left: `${previewAt / duration * 100}%`, transform: `translateX(-${previewAt / duration * 100}%)` }}>
-                  <span className="lesson-player-preview-time">{formatClock(previewAt)}</span>
+                <span className="lesson-player-preview" style={{ left: `${tv(previewAt) / total * 100}%`, transform: `translateX(-${tv(previewAt) / total * 100}%)` }}>
+                  <span className="lesson-player-preview-time">{formatClock(tv(previewAt))}</span>
                   <FadeText>{previewChapter >= 0 ? timecodes[previewChapter].label : title}</FadeText>
                 </span>
               )}
@@ -1413,7 +1424,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               </div>
 
               <span className="lesson-player-time">
-                {formatClock(current)} <span className="lesson-player-duration"><span className="lesson-player-time-slash">/ </span>{formatClock(duration)}</span>
+                {formatClock(tv(current))} <span className="lesson-player-duration"><span className="lesson-player-time-slash">/ </span>{formatClock(total)}</span>
               </span>
 
               {activeChapter >= 0 && (

@@ -245,3 +245,19 @@
   -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-l, 0px), #000 calc(100% - var(--fade-r, 0px)), transparent);
   mask-image: linear-gradient(to right, transparent, #000 var(--fade-l, 0px), #000 calc(100% - var(--fade-r, 0px)), transparent);
 }
+
+/* Итоги урока */
+.lm-stat { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: var(--color-bg-3); }
+.lm-stat-split { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--color-bg-2); }
+.lm-stat-split i { display: block; height: 100%; }
+.lm-stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; font-size: 12px; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
+.lm-stat-row strong { color: var(--color-text); }
+.lm-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lm-stat-grid div { display: grid; gap: 2px; }
+.lm-stat-grid strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+.lm-stat-grid small { font-size: 12px; color: var(--color-text-3); }
+.lm-stat-speaker { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--color-bg-3); }
+.lm-stat-name { min-width: 0; font-weight: 700; color: var(--tone); white-space: nowrap; }
+.lm-stat-warn { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--color-yellow-soft); color: var(--color-yellow-text); font-size: 13px; }
+
+.lm-inline-link { padding: 0; border: 0; background: none; color: var(--color-purple-text); font: inherit; font-weight: 700; cursor: pointer; }

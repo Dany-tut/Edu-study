@@ -14,7 +14,7 @@ import type { VideoSource } from '../../lib/videoSource'
 import { useScrollFades } from '../../lib/useScrollFades'
 import type { LessonTimecode } from '../../data/lessonContent'
 import {
-  DEFAULT_SETTINGS, clock, clockFine, rulerTicks, detectPauses, editedDuration, labelVoices, linesHit, mergeSpeaker, playbackAt, span, talkTime, toEditedTime,
+  DEFAULT_SETTINGS, clock, clockFine, rulerTicks, detectPauses, lessonStats, editedDuration, labelVoices, linesHit, mergeSpeaker, playbackAt, span, talkTime, toEditedTime,
   type LessonMontage, type MontageLine, type MontagePause, type MontageSettings, type MontageSpeaker, type PauseAction, type PauseKind, type PauseOverride, type QuietSpan, type SpeakerTone,
 } from '../../lib/lessonMontage'
 import './lessonMontage.css'
@@ -34,11 +34,11 @@ export const TONE: Record<SpeakerTone, { bg: string; text: string }> = {
 const ACTION_LABEL: Record<PauseAction, string> = { cut: 'Вырезать', speed: 'Ускорить', keep: 'Оставить' }
 const KIND_LABEL: Record<PauseKind, string> = { silence: 'Тишина', quiet: 'Тихо работают', nospeech: 'Без речи' }
 
-type Tab = 'pauses' | 'speakers' | 'lines' | 'settings'
+type Tab = 'pauses' | 'speakers' | 'lines' | 'stats' | 'settings'
 
 export interface MontageResult extends LessonMontage { timecodes: LessonTimecode[] }
 
-export default function LessonMontageEditor({ title, duration, voices, lines: sourceLines, quiet, chapters, levelAt, initial, missingAudio, video, floor, onApply, onClose }: {
+export default function LessonMontageEditor({ title, duration, voices, lines: sourceLines, quiet, chapters, levelAt, initial, missingAudio, video, floor, onForgetVoices, onApply, onClose }: {
   title: string
   duration: number
   voices: string[]
@@ -54,6 +54,8 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
   video?: VideoSource
   /** Уровень фона записи — пороги пауз считаются от него. */
   floor?: number
+  /** Забыть запомненные на этом Mac голоса (есть, если модуль разделял голоса). */
+  onForgetVoices?: () => void
   onApply: (result: MontageResult, state: NonNullable<Parameters<typeof LessonMontageEditor>[0]['initial']>) => void
   onClose: () => void
 }) {
@@ -180,6 +182,7 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
         { id: 'pauses', label: <>Паузы <small className="lm-count">{pauses.length}</small></>, title: 'Паузы' },
         { id: 'speakers', label: <>Голоса <small className="lm-count">{speakers.length}</small></>, title: 'Говорящие' },
         { id: 'lines', label: <>Текст <small className="lm-count">{lines.length}</small></>, title: 'Реплики' },
+        { id: 'stats', label: 'Итоги', title: 'Итоги урока' },
         { id: 'settings', label: 'Поиск', title: 'Поиск пауз' },
       ]} />
     </HScrollFade>
@@ -192,9 +195,10 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
     </HScrollFade>}
     <div className="lm-panel-body no-scrollbar">
       {tab === 'pauses' && <PauseList pauses={pauses} speed={settings.speed} selected={selectedId} t={t} onSelect={id => select(id, true)} />}
-      {tab === 'speakers' && <SpeakerList speakers={speakers} lines={lines} onChange={setSpeakers} onListen={at => listen(at, 'source')} onAdd={addVoice}
+      {tab === 'speakers' && <SpeakerList speakers={speakers} lines={lines} onChange={setSpeakers} onListen={at => listen(at, 'source')} onAdd={addVoice} onForget={onForgetVoices}
         onMerge={(from, into) => { const m = mergeSpeaker({ speakers, lines }, from, into); setSpeakers(m.speakers); setLines(m.lines); if (who === from) setWho(into) }} />}
       {tab === 'lines' && <LineList lines={lines} speakers={speakers} pauses={pauses} t={t} who={who} onChange={setLines} onListen={at => listen(at, 'source')} />}
+      {tab === 'stats' && <StatsPanel lines={lines} speakers={speakers} duration={duration} />}
       {tab === 'settings' && <SettingsPanel settings={settings} onChange={setSettings} found={pauses.length} edited={Object.keys(overrides).length}
         onResetAll={() => setOverrides({})} />}
     </div>
@@ -698,9 +702,10 @@ function PauseList({ pauses, speed, selected, t, onSelect }: {
   </div>
 }
 
-function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd }: {
-  speakers: MontageSpeaker[]; lines: MontageLine[]; onChange: (s: MontageSpeaker[]) => void; onListen: (at: number) => void; onMerge: (from: string, into: string) => void; onAdd: () => void
+function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd, onForget }: {
+  speakers: MontageSpeaker[]; lines: MontageLine[]; onChange: (s: MontageSpeaker[]) => void; onListen: (at: number) => void; onMerge: (from: string, into: string) => void; onAdd: () => void; onForget?: () => void
 }) {
+  const [forgotten, setForgotten] = useState(false)
   const time = talkTime(lines)
   const total = Object.values(time).reduce((a, b) => a + b, 0) || 1
   const patch = (id: string, p: Partial<MontageSpeaker>) => onChange(speakers.map(s => s.id === id ? { ...s, ...p } : s))
@@ -726,6 +731,9 @@ function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd }: {
       </article>
     })}
     <button type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onAdd}><Plus size={14} />Добавить голос</button>
+    {onForget && <p className="lm-lead">Голоса с именами запоминаются только на этом Mac и в следующих уроках подписываются сами. {forgotten
+      ? 'Запомненные голоса удалены.'
+      : <button type="button" className="lm-inline-link" onClick={() => { onForget(); setForgotten(true) }}>Забыть все голоса</button>}</p>}
   </div>
 }
 
@@ -753,6 +761,31 @@ function LineList({ lines, speakers, pauses, t, who, onChange, onListen }: {
         <GrowTextarea className="lm-line-text" aria-label={'Реплика ' + clock(l.start)} value={l.text} onChange={text => patch(l.id, { text })} />
       </div>
     })}
+  </div>
+}
+
+/** Итоги урока: кто сколько говорил, вопросы и ожидание ответа — по репликам и голосам. */
+function StatsPanel({ lines, speakers, duration }: { lines: MontageLine[]; speakers: MontageSpeaker[]; duration: number }) {
+  const st = useMemo(() => lessonStats(lines, speakers, duration), [lines, speakers, duration])
+  const pct = (x: number) => Math.round(x * 100) + '%'
+  const silent = speakers.filter(sp => st.silentStudents.includes(sp.id))
+  return <div className="lm-list">
+    <p className="lm-lead">Считается по репликам и голосам. Голоса учеников назначьте во вкладках «Голоса» и «Текст» — итоги обновятся сразу.</p>
+    <div className="lm-stat">
+      <div className="lm-stat-split"><i style={{ width: pct(st.teacherShare), background: TONE.purple.text }} /><i style={{ width: pct(st.studentShare), background: TONE.blue.text }} /></div>
+      <div className="lm-stat-row"><span>Учитель <strong>{pct(st.teacherShare)}</strong></span><span>Ученики <strong>{pct(st.studentShare)}</strong></span><span>Тишина <strong>{pct(st.silenceShare)}</strong></span></div>
+    </div>
+    <div className="lm-stat lm-stat-grid">
+      <div><strong>{st.questions}</strong><small>вопросов учителя</small></div>
+      <div><strong>{st.answered}</strong><small>с ответом ученика</small></div>
+      <div><strong>{st.waitMedian != null ? span(st.waitMedian) : '—'}</strong><small>ждали ответа</small></div>
+      <div><strong>{span(st.longestMonologue)}</strong><small>самый длинный монолог</small></div>
+    </div>
+    {st.bySpeaker.map(b => { const sp = speakers.find(x => x.id === b.id)!; return <div key={b.id} className="lm-stat-speaker" style={{ '--tone': TONE[sp.tone].text } as CSSProperties}>
+      <div className="lm-stat-row"><FadeText className="lm-stat-name">{sp.label}</FadeText><span>{span(b.seconds)} · {b.lines} реплик</span></div>
+      <div className="lm-share"><i style={{ width: pct(b.share) }} /></div>
+    </div> })}
+    {silent.length > 0 && <p className="lm-stat-warn">Не сказали ни слова: {silent.map(s => s.label).join(', ')}.</p>}
   </div>
 }
 

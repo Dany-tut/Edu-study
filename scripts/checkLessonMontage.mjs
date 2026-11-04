@@ -52,3 +52,31 @@ assert.equal(t.montage.floor, -60)
 assert.equal(readTranscript({ source: 's', segments: [{ start: 0, end: 1, text: 'x' }], montage: { nope: 1 } }).montage, undefined)
 
 console.log('Lesson montage: pauses (floor, speechless, board), edited time, player plan, voices and level storage passed')
+
+// Шкала ученика: туда и обратно, вырезанное выпадает, потолок скорости учтён.
+const { montageTimeline } = await import('../src/lib/lessonMontage.ts')
+const tl = montageTimeline({ skip: [[10, 20]], fast: [[30, 70, 4]] }, 100)
+assert.equal(tl.total, 100 - 10 - 30)
+assert.equal(tl.view(25), 15); assert.equal(tl.view(50), 25)
+for (const s of [0, 5, 25, 31, 50, 69, 80, 100]) assert.ok(Math.abs(tl.source(tl.view(s)) - s) < 1e-9, 'обратный пересчёт ' + s)
+assert.equal(tl.source(10), 20, 'место вырезанного на шкале — сразу после него')
+assert.equal(montageTimeline({ skip: [], fast: [[0, 40, 4]] }, 100, 2).total, 80, 'YouTube ускоряет до ×2')
+assert.equal(montageTimeline(undefined, 100), undefined)
+console.log('Lesson montage: student timeline mapping passed')
+
+// Итоги урока: доли речи, вопросы и ожидание ответа, монолог, молчащие ученики.
+const { lessonStats } = await import('../src/lib/lessonMontage.ts')
+const sp = [{ id: 'T', label: 'Учитель', role: 'teacher', tone: 'purple' }, { id: 'A', label: 'Аня', role: 'student', tone: 'blue' }, { id: 'B', label: 'Боря', role: 'student', tone: 'teal' }]
+const st = lessonStats([
+  { id: '1', start: 0, end: 20, text: 'Начинаем.', speaker: 'T' },
+  { id: '2', start: 21, end: 30, text: 'Кто знает ответ?', speaker: 'T' },
+  { id: '3', start: 34, end: 40, text: 'Я знаю.', speaker: 'A' },
+  { id: '4', start: 50, end: 55, text: 'А почему?', speaker: 'T' },
+  { id: '5', start: 120, end: 130, text: 'Дальше.', speaker: 'T' },
+], sp, 200)
+assert.equal(st.questions, 2); assert.equal(st.answered, 1); assert.equal(st.waitMedian, 4)
+assert.equal(st.longestMonologue, 30, 'реплики учителя подряд с зазором < 3 с — один монолог')
+assert.deepEqual(st.silentStudents, ['B'])
+assert.ok(Math.abs(st.teacherShare - 44 / 50) < 1e-9)
+assert.ok(Math.abs(st.silenceShare - 0.75) < 1e-9)
+console.log('Lesson montage: lesson stats passed')

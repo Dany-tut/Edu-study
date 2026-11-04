@@ -1209,6 +1209,8 @@ export const EN: Record<string, string> = {
   "Таймкоды": "Timecodes",
   // — Плеер записи урока — («Пауза» и «Продолжить» уже есть ниже по словарю)
   "Продолжить с": "Resume from",
+  "ускорено: тихая работа": "sped up: quiet work",
+  "Поиск по расшифровке": "Search the transcript",
   "Сначала": "From the start",
   "Смотреть заново": "Watch again",
   "Назад на 10 секунд": "Back 10 seconds",
