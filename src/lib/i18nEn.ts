@@ -3242,6 +3242,8 @@ export const EN: Record<string, string> = {
   'Я': 'Me',
   'Сравнить': 'Compare',
   'Удалить запись': 'Delete recording',
+  'Удалить запись вместе с главами и расшифровкой?': 'Delete the recording with its chapters and transcript?',
+  'Не удалось загрузить файл': 'Could not upload the file',
   'Какое слово прозвучало?': 'Which word was it?',
   'Послушать ещё раз': 'Play it again',
   'Прозвучало': 'You heard',

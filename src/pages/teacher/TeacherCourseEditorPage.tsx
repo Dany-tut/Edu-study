@@ -40,7 +40,7 @@ import { useGroups, useAllStudents, groupStudentsByPerson, type PersonRow } from
 import { ensureCardFillTask } from '../../lib/cardFillTask'
 import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
-import RecordingLinkForm from '../../components/teacher/RecordingLinkForm'
+import RecordingLinkForm, { RecordingInlineEdit } from '../../components/teacher/RecordingLinkForm'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
 import TestlyPicker, { testlyRef } from '../../components/teacher/TestlyPicker'
@@ -1347,20 +1347,22 @@ function ScheduleCard({
       boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18, padding: '16px 16px 18px',
     }}>
-      <label style={{ display: 'grid', gap: 7, marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
+      <div style={{ display: 'grid', gap: 7, marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
         {t('Формат урока')}
-        <select value={lesson.deliveryMode ?? 'live'}
-          onChange={e => onUpdate({ ...lesson, deliveryMode: e.target.value as 'live' | 'recording' })}
-          style={{ width: '100%', padding: 9, borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)' }}>
-          <option value="live">{t('С преподавателем')}</option>
-          <option value="recording">{t('В записи')}</option>
-        </select>
+        <PickerSelect
+          value={lesson.deliveryMode ?? 'live'}
+          onChange={v => onUpdate({ ...lesson, deliveryMode: v as 'live' | 'recording' })}
+          options={[
+            { value: 'live', label: t('С преподавателем') },
+            { value: 'recording', label: t('В записи') },
+          ]}
+        />
         <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-muted)', lineHeight: 1.4 }}>
           {lesson.deliveryMode === 'recording'
             ? t('Урок засчитывается после просмотра 90% записи.')
             : t('Онлайн или очно: присутствие в журнале засчитывает урок. Пропустившие смотрят запись.')}
         </span>
-      </label>
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <Calendar size={14} style={{ color: date ? accent : 'var(--color-muted)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: date ? 'var(--color-text)' : 'var(--color-text-3)' }}>
@@ -1643,6 +1645,9 @@ function CenterRecording({
   const t = useT()
   const owner = useTranscriptionOwner()
   const [linkMode, setLinkMode] = useState(false)
+  // Крестик взводится первым нажатием: вторым уходит запись вместе с главами и
+  // расшифровкой — часы разбора не должны пропадать от промаха мышью.
+  const [removeArmed, setRemoveArmed] = useState(false)
 
   // Плеер прямо в редакторе: главу ставят с текущей секунды ролика, а не
   // переписывают время из соседнего окна. Прогресс просмотра учителя никуда не
@@ -1685,24 +1690,34 @@ function CenterRecording({
       } catch {
         if (active.current && file.size <= 2 * 1024 ** 3) {
           setLocalFile(file)
+          setLinkMode(false)
           return
         }
         throw new Error()
       }
       if (!active.current) return
       if (!uploaded.url || !await onSaveLink(uploaded.url)) throw new Error()
+      if (active.current) setLinkMode(false)
     } catch {
       if (active.current) setUploadError('Не удалось добавить видео. Попробуйте ещё раз или вставьте ссылку на запись.')
     } finally {
       if (active.current) setUploading(false)
     }
   }
+  function removeRecording() {
+    setRemoveArmed(false)
+    setLocalFile(null)
+    // Незавершённую расшифровку этой записи тоже забываем — иначе карточка
+    // «Расшифровка урока» продолжала бы ждать удалённый ролик.
+    if (owner) localStorage.removeItem('iskra.transcription.job.' + JSON.stringify([owner, JSON.stringify([courseKey, lesson.id])]))
+    onUpdate({ ...lesson, videoUrl: undefined, timecodes: undefined, transcript: undefined })
+  }
   const content = (transcriptionAction: React.ReactNode, rail?: TranscriptRail) => {
   const timecodePanel = <TimecodeRail rail={rail} transcriptionAction={transcriptionAction}
     codes={rail?.draft.timecodes ?? codes} at={at} total={total}
     onChange={timecodes => rail ? rail.change({...rail.draft, timecodes}) : onUpdate({...lesson, timecodes})}
     onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined} />
-  if ((lesson.videoUrl || localFile) && !linkMode) {
+  if (lesson.videoUrl || localFile) {
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 16px 22px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1711,6 +1726,22 @@ function CenterRecording({
               ? <DiskLogo provider={disk.id} size={16} />
               : <Video size={14} style={{ color: 'var(--color-green-text)' }} />}
           </div>
+          {linkMode ? (
+            <RecordingInlineEdit initialUrl={lesson.videoUrl ?? ''} onSave={onSaveLink}
+              onClose={() => { setLinkMode(false); setUploadError('') }} unavailable={saveUnavailable}
+              onPickFile={file => void addVideo(file)} uploading={uploading} uploadError={uploadError} />
+          ) : removeArmed ? (
+            <>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+                {t('Удалить запись вместе с главами и расшифровкой?')}
+              </span>
+              <button type="button" onClick={() => setRemoveArmed(false)} style={{ ...btn('M', 'secondary'), flexShrink: 0 }}>{t('Отмена')}</button>
+              <button type="button" autoFocus onClick={removeRecording}
+                style={{ ...btn('M', 'secondary'), flexShrink: 0, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
+                <Trash2 size={14} /> {t('Удалить')}
+              </button>
+            </>
+          ) : (<>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
               {lesson.videoUrl || localFile?.name}
@@ -1726,6 +1757,11 @@ function CenterRecording({
             style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
             {t('Изменить')}
           </button>
+          <button type="button" onClick={() => setRemoveArmed(true)} title={t('Удалить запись')} aria-label={t('Удалить запись')}
+            style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <LoopMarkX size={15} />
+          </button>
+          </>)}
         </div>
 
         {localFile && !lesson.videoUrl && <small role="status">Видео открыто с компьютера. Текст и главы можно сохранить в уроке. Чтобы ученики могли смотреть запись, добавьте ссылку через «Изменить».</small>}
@@ -1852,7 +1888,7 @@ function CenterRecording({
 
   return (
     <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      {loading || linkMode ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
+      {loading || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         onApply={({ transcript, timecodes }) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes })}>{content}</TranscriptionAction>}
     </div>
