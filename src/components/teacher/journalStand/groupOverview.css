@@ -465,12 +465,8 @@
   color: var(--color-yellow-text);
 }
 .jo-table-frame {
-  --fade-l: 0px;
   --fade-r: 0px;
   position: relative;
-}
-.jo-table-frame[data-edges~='left'] {
-  --fade-l: 14px;
 }
 .jo-table-frame[data-edges~='right'] {
   --fade-r: 20px;
@@ -480,8 +476,7 @@
   overscroll-behavior-x: contain;
   mask-image: linear-gradient(
     to right,
-    transparent,
-    #000 var(--fade-l),
+    #000,
     #000 calc(100% - var(--fade-r)),
     transparent
   );

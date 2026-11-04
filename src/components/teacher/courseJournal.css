@@ -146,7 +146,16 @@
 
 .cj-table-frame { position:relative; min-width:0; max-width:100%; }
 .cj-table-fade { position:absolute; top:0; bottom:0; width:22px; pointer-events:none; z-index:3; opacity:0; }
-.cj-table-fade-left { left:var(--frozen-w,150px); background:linear-gradient(to right,var(--color-bg-2),transparent); }
+.js-matrix-viewport[data-edges~="left"] th:first-child::before,
+.cj-table-frame[data-edges~="left"] th:first-child::after,
+.jo-table-frame[data-edges~="left"] th:first-child::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  inset: 0 auto 0 100%;
+  width: 22px;
+  background: linear-gradient(to right, var(--color-bg-2) 2px, transparent);
+}
 .cj-table-fade-right { right:0; background:linear-gradient(to left,var(--color-bg-2),transparent); }
 .cj-table-frame[data-edges~="left"]>.cj-table-fade-left,.cj-table-frame[data-edges~="right"]>.cj-table-fade-right { opacity:1; }
 

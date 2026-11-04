@@ -1,3 +1,4 @@
+import TableScrollArea from '../TableScrollArea'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
 import { LoopInlineIcon } from '../icons/LoopIcon'
@@ -372,7 +373,7 @@ export function BankQuestionCard({
 
       {/* Table (read-only) */}
       {!compact && task.questionTable && (
-        <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
+        <TableScrollArea style={{ borderRadius: 16, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
             <thead><tr>{task.questionTable.headers.map((h, hi, arr) => (
               <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: hi < arr.length - 1 ? '1px solid var(--color-border-medium)' : undefined, padding: '10px 14px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
@@ -383,7 +384,7 @@ export function BankQuestionCard({
               ))}</tr>
             ))}</tbody>
           </table>
-        </div>
+        </TableScrollArea>
       )}
 
       {/* Image preview */}

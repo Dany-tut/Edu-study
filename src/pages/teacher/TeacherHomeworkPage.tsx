@@ -1,3 +1,4 @@
+import TableScrollArea from '../../components/TableScrollArea'
 import { textFadeStyle } from '../../lib/textFades'
 import { ArrowRight as LoopUiArrowRight } from '../../components/icons/appIcons'
 import { SubjectMark } from '../../components/icons/SubjectMark'
@@ -1021,7 +1022,7 @@ export default function TeacherHomeworkPage() {
           transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
         >
           <Card style={{ padding: 0, overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto' }}>
+            <TableScrollArea>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: 'var(--color-bg-2)' }}>
@@ -1054,7 +1055,7 @@ export default function TeacherHomeworkPage() {
                   })}
                 </tbody>
               </table>
-            </div>
+            </TableScrollArea>
           </Card>
         </motion.div>
       </div>

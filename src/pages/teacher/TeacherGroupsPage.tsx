@@ -1186,7 +1186,7 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
   return (
     <div ref={viewport} className="teacher-roster-viewport">
       <div ref={scroller} className="teacher-roster-scroll">{children}</div>
-      {['left', 'right', 'top', 'bottom'].map(side => (
+      {['left', 'right', 'bottom'].map(side => (
         <i key={side} aria-hidden className={'js-scroll-fade js-fade-' + side} />
       ))}
     </div>
