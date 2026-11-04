@@ -1505,6 +1505,10 @@ function TimecodeRail({
   const withHours = Math.max(total, ...codes.map(c => c.seconds)) >= 3600
   const clock = (sec: number) => chapterClock(sec, withHours)
   const [editingTime, setEditingTime] = useState<number | null>(null)
+  // Клик по ▶ перематывает не сразу, а когда ясно, что это не двойной клик:
+  // двойной открывает правку времени и ролик трогать не должен.
+  const seekTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(seekTimer.current), [])
 
   function patch(i: number, p: Partial<LessonTimecode>) {
     onChange(codes.map((c, j) => (j === i ? { ...c, ...p } : c)))
@@ -1590,8 +1594,15 @@ function TimecodeRail({
                   style={{ background: 'transparent' }}
                 />
                 <button className="chapter-play"
-                  onClick={() => onSeek?.(tc.seconds)}
+                  onClick={e => {
+                    window.clearTimeout(seekTimer.current)
+                    if (e.detail > 1) return
+                    // detail 0 — нажатие с клавиатуры: двойного не будет, перематываем сразу.
+                    if (e.detail === 0) { onSeek?.(tc.seconds); return }
+                    seekTimer.current = window.setTimeout(() => onSeek?.(tc.seconds), 250)
+                  }}
                   onDoubleClick={e => {
+                    window.clearTimeout(seekTimer.current)
                     if (rail?.saving) return
                     const input = e.currentTarget.parentElement?.querySelector('input')
                     input?.focus(); input?.select()
