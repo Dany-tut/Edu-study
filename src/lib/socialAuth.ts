@@ -13,6 +13,8 @@ export type LoginRole = 'teacher' | 'student'
 const OAUTH_ROLE_KEY = 'iskra:oauth-role'
 const IOS_OAUTH_REDIRECT = 'iskra://auth/callback'
 const LINK_KEY = 'iskra:oauth-link'
+const FRIEND_RETURN_KEY = 'iskra:friend-return'
+const friendRoute = /^#\/friend\?token=[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
 const ATTEMPT_KEY = 'iskra:oauth-attempt'
 const googleAuth = registerPlugin<{
   open(options: { url: string }): Promise<{ url: string } | { cancelled: true }>
@@ -137,6 +139,8 @@ async function finishIdentityLink() {
 
 export async function startSocialLogin(provider: Provider, role: LoginRole) {
   localStorage.removeItem(LINK_KEY)
+  if (friendRoute.test(location.hash)) sessionStorage.setItem(FRIEND_RETURN_KEY, location.hash)
+  else sessionStorage.removeItem(FRIEND_RETURN_KEY)
   localStorage.setItem(OAUTH_ROLE_KEY, role)
   const id = beginOAuthAttempt(provider, 'login')
   try {
@@ -256,7 +260,9 @@ async function finishSocialLoginImpl() {
       clearStudentSession()
       endOAuthAttempt('auth_completed')
       void trackNow('login', { role: 'teacher', method: 'oauth' })
-      window.location.hash = '#/teacher'
+      const friendReturn = sessionStorage.getItem(FRIEND_RETURN_KEY) ?? ''
+      sessionStorage.removeItem(FRIEND_RETURN_KEY)
+      window.location.hash = friendRoute.test(friendReturn) ? friendReturn : '#/teacher'
       window.location.reload()
       return true
     }

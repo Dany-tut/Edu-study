@@ -206,6 +206,9 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets }: {
               : <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />}
           </button>
 
+          {friends.account && <button type="button" className="friend-mobile-entry" onClick={() => friends.setTab('contacts')}>
+            <Users size={18}/>{t('Друзья')}<ChevronRight size={18}/>
+          </button>}
           <button type="button" onClick={() => { tactile(); setIntegrations(true) }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', textAlign:'left' }}>
             <Sparkles size={18}/><span style={{ flex:1 }}>{t('Интеграции')}</span><ChevronRight size={18}/>
           </button>
@@ -306,6 +309,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets }: {
           <LogOut size={18} /> {t('Выйти из аккаунта')}
         </motion.button>
       </div>
+      <DesktopFriends model={friends}/>
       {integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
       {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
