@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
@@ -25,6 +25,8 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
   const blockedHelp = useRef<HTMLDetailsElement>(null)
+  const setupId = useId()
+  const [showSetup, setShowSetup] = useState(false)
   const [downloading, setDownloading] = useState(false)
   useEffect(() => {
     if (!downloading) return
@@ -39,7 +41,13 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
     setMessage('')
     try {
       if (connected) {
-        await localRequest('/connect', localStorage.getItem(tokenKey(owner)) || '', { method: 'DELETE' })
+        try {
+          await localRequest('/connect', localStorage.getItem(tokenKey(owner)) || '', {
+            method: 'DELETE', signal: AbortSignal.timeout(3000),
+          })
+        } catch {
+          // Forget this browser's pairing even when the companion cannot revoke it.
+        }
         setDownloadStarted(true)
         localStorage.setItem(downloadKey, '1')
         localStorage.removeItem(tokenKey(owner))
@@ -61,12 +69,12 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         <p>Текст записи и таймкоды глав · Mac с Apple Silicon</p>
       </div>
       <span className="transcription-module-status" data-connected={connected}>
-        {connected ? 'Подключён' : 'Не подключён'}
+        {connected ? 'Доступ сохранён' : 'Не подключён'}
       </span>
     </header>
     <div className="transcription-module-body">
       <p>{connected
-        ? 'Чтобы расшифровать урок, откройте вкладку «Запись» в конструкторе курса.'
+        ? 'Для работы запустите start.command на этом Mac и оставьте Терминал открытым. Затем откройте вкладку «Запись» в конструкторе курса.'
         : 'Скачайте ZIP-архив на тот Mac, на котором будете расшифровывать уроки.'}</p>
       <div className="integration-steps transcription-steps" data-connected={connected}>
         {connected ? <span className="transcription-step-complete" role="img" aria-label="Архив для Mac" title="Архив для Mac"><Check size={16} aria-hidden/></span> :
@@ -106,8 +114,12 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           {busy ? 'Отключаем…' : 'Отключить'}
         </button>}
       </div>
-      <div aria-live="polite" className="transcription-setup">
-        {downloadStarted && !downloading && !connected && <>
+      {connected && <button type="button" className="integration-action" aria-expanded={showSetup}
+        aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
+        {showSetup ? 'Скрыть инструкцию' : 'Как запустить модуль'}
+      </button>}
+      <div id={setupId} aria-live="polite" className="transcription-setup">
+        {downloadStarted && !downloading && (!connected || showSetup) && <>
           <h4>Что делать с ZIP-архивом</h4>
           <ol>
             <li>Когда загрузка закончится, откройте папку «Загрузки» в Finder. Дважды нажмите на <code>iskra-transcription-mac.zip</code>. Если уже появилась папка <code>Iskra</code>, откройте её.</li>
@@ -124,7 +136,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
                 <p>Когда откроется Терминал, переходите к следующему пункту.</p>
               </details>
             </li>
-            <li>Дождитесь строки <code>Running on http://127.0.0.1:18764</code>. Оставьте Терминал открытым, вернитесь в Искру и нажмите «Подключить компьютер».</li>
+            <li>Дождитесь строки <code>Running on http://127.0.0.1:18764</code>. Оставьте Терминал открытым и вернитесь в Искру. {connected ? 'Откройте вкладку «Запись» в конструкторе курса.' : 'Нажмите «Подключить компьютер».'}</li>
           </ol>
         </>}
       </div>
