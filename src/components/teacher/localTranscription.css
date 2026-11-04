@@ -69,7 +69,9 @@
 .transcription-blocked[open] > summary > svg {transform:rotate(90deg)}
 .transcription-blocked[open] > :not(summary) {margin-block:0 10px}
 .transcription-blocked .integration-action {width:auto;background:var(--color-purple-soft);color:var(--color-purple-text)}
-.transcription-blocked video {display:block;width:100%;max-width:640px;aspect-ratio:16/9;border-radius:12px;background:var(--color-bg-2)}
+.transcription-launch-guide img {display:block;width:100%;height:auto;object-fit:contain;border-radius:12px;background:var(--color-bg-2)}
+.transcription-guide-actions {display:flex;flex-wrap:wrap;gap:8px;margin-block:8px 16px}
+.transcription-guide-actions .integration-action {min-height:44px}
 
 .transcription-steps[data-connected=true] {flex-direction:row;align-items:center;gap:5px}
 .transcription-step-complete,.transcription-steps .transcription-step[data-phase=done] {

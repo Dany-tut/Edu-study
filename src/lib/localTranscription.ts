@@ -4,6 +4,8 @@ export interface TranscriptSegment { start: number; end: number; text: string }
 export interface LessonTranscript { source: string; segments: TranscriptSegment[] }
 export interface LocalDraft { transcript: LessonTranscript; timecodes: LessonTimecode[] }
 
+export class LocalTranscriptionUnavailable extends Error {}
+
 export const transcriptionOrigin = 'http://127.0.0.1:18764'
 
 export function transcriptTime(seconds: number) {
@@ -26,7 +28,7 @@ export async function localRequest(path: string, token: string, options: Request
   try {
     response = await fetch(transcriptionOrigin + path, { ...options, headers, cache: 'no-store' })
   } catch {
-    throw new Error('Компьютер недоступен. Запустите локальный модуль Искры и повторите.')
+    throw new LocalTranscriptionUnavailable('Нет связи с модулем на этом Mac. Откройте start.command, дождитесь строки Running on и оставьте Терминал открытым до конца обработки.')
   }
   if (response.status === 403) throw new Error('Проверьте адрес приложения и подключите модуль заново.')
   if (response.status === 404) throw new Error('Обработка больше не доступна. Запустите её снова.')

@@ -3,6 +3,7 @@ import json, math, re, sys
 from collections import Counter
 from pathlib import Path
 from progress import record
+from chapter_titles import checked_title
 from mlx_lm import generate, load
 
 folder=Path(sys.argv[1])
@@ -65,8 +66,6 @@ for begin,end in zip(boundaries,boundaries[1:]+[len(rows)]):
         raw=generate(model,tok,prompt=prompt,max_tokens=60,verbose=False).strip()
         return raw.splitlines()[0].strip(' *#«»"') if raw else ''
     title=heading(messages)
-    if len(re.findall('[А-Яа-яЁё]',title))<3 or re.search(r'[一-鿿]|[А-Яа-я][a-z]|[a-z][А-Яа-я]',title):
-        title=heading([{'role':'system','content':'Translate the given chapter title into Russian. Respond with the Russian translation only.'},{'role':'user','content':title or excerpt[:160]}])
-    if not title:title='Фрагмент'
+    title=checked_title(title, lambda value: heading([{'role':'system','content':'Translate the given chapter title into Russian. Respond with the Russian translation only.'},{'role':'user','content':value or excerpt[:160]}]),len(chapters)+1)
     chapters.append(dict(start=rows[begin]['start'] if begin else 0,title=title))
 (folder/'chapters.json').write_text(json.dumps(chapters,ensure_ascii=False,indent=2))
