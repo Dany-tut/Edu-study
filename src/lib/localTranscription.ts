@@ -1,5 +1,5 @@
 import type { LessonTimecode } from '../data/lessonContent'
-import { labelVoices, type MontageSettings, type MontageSpeaker, type PauseOverride, type QuietSpan } from './lessonMontage'
+import { labelVoices, type LessonStatsSummary, type MontageSettings, type MontageSpeaker, type PauseOverride, type QuietSpan } from './lessonMontage'
 
 /** speaker — id голоса из LessonTranscript.speakers (после монтажа). */
 export interface TranscriptSegment { start: number; end: number; text: string; speaker?: string }
@@ -14,6 +14,8 @@ export interface SavedMontage {
   levels?: { step: number; data: string }
   settings?: MontageSettings
   overrides?: Record<string, PauseOverride>
+  /** Итоги урока на момент применения монтажа — для сравнения уроков курса. */
+  stats?: LessonStatsSummary
 }
 export interface LessonTranscript { source: string; segments: TranscriptSegment[]; speakers?: MontageSpeaker[]; montage?: SavedMontage }
 /** Голос от модуля. embedding (отпечаток) — только в черновике на этом
@@ -66,6 +68,7 @@ export function readMontage(value: unknown): SavedMontage | undefined {
     ...(levels ? { levels } : {}),
     ...(v.settings && typeof v.settings === 'object' ? { settings: v.settings as MontageSettings } : {}),
     ...(v.overrides && typeof v.overrides === 'object' ? { overrides: v.overrides as Record<string, PauseOverride> } : {}),
+    ...(v.stats && typeof v.stats === 'object' && Array.isArray((v.stats as LessonStatsSummary).speakers) ? { stats: v.stats as LessonStatsSummary } : {}),
   }
 }
 

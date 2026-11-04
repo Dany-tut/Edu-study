@@ -7,6 +7,7 @@ import './profileIntegrations.css'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
 import { getOwnerId, getViewAs } from '../../lib/owner'
+import type { LessonStatsSummary } from '../../lib/lessonMontage'
 import { LocalTranscriptionUnavailable, applyModuleVoices, localRequest, readTranscript, transcriptTime, type LocalDraft } from '../../lib/localTranscription'
 
 const tokenKey = (owner: string) => 'iskra.transcription.device.' + owner
@@ -161,7 +162,9 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
 
 type Pending = { id: string; source: string; fileSignature?: string }
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
-type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean> }
+type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean>
+  /** Уроки курса с итогами монтажа — для динамики во вкладке «Итоги». */
+  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }
 
 function readPending(owner: string, lessonKey: string, source: string, file?: File | null): Pending | null {
   try {
@@ -264,7 +267,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить расшифровку'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено в урок</span>}
       <button aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={open}><RotateCcw size={15}/></button>
-      <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} />
+      <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} />
       <button aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>

@@ -5,7 +5,7 @@ import FadeText from '../FadeText'
 import GrowTextarea from '../GrowTextarea'
 import HScrollFade from '../HScrollFade'
 import TeacherSelect from './TeacherSelect'
-import { AlertTriangle, AudioLines, ChevronLeft, ChevronRight, Gauge, Headphones, Minus, Pause, Play, Plus, RotateCcw, Timer } from '../icons/appIcons'
+import { AlertTriangle, AudioLines, ChevronLeft, ChevronRight, Gauge, Headphones, Minus, Pause, Play, Plus, RotateCcw, Timer, SlidersHorizontal } from '../icons/appIcons'
 import { btn } from '../../lib/pillStyles'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import LessonVideoPlayer, { type LessonVideoHandle } from '../LessonVideoPlayer'
@@ -14,7 +14,7 @@ import type { VideoSource } from '../../lib/videoSource'
 import { useScrollFades } from '../../lib/useScrollFades'
 import type { LessonTimecode } from '../../data/lessonContent'
 import {
-  DEFAULT_SETTINGS, clock, clockFine, rulerTicks, detectPauses, lessonStats, editedDuration, labelVoices, linesHit, mergeSpeaker, playbackAt, span, talkTime, toEditedTime,
+  DEFAULT_SETTINGS, clock, clockFine, rulerTicks, detectPauses, lessonStats, participation, summarizeStats, type LessonStatsSummary, editedDuration, labelVoices, linesHit, mergeSpeaker, playbackAt, span, talkTime, toEditedTime,
   type LessonMontage, type MontageLine, type MontagePause, type MontageSettings, type MontageSpeaker, type PauseAction, type PauseKind, type PauseOverride, type QuietSpan, type SpeakerTone,
 } from '../../lib/lessonMontage'
 import './lessonMontage.css'
@@ -38,7 +38,7 @@ type Tab = 'pauses' | 'speakers' | 'lines' | 'stats' | 'settings'
 
 export interface MontageResult extends LessonMontage { timecodes: LessonTimecode[] }
 
-export default function LessonMontageEditor({ title, duration, voices, lines: sourceLines, quiet, chapters, levelAt, initial, missingAudio, video, floor, onForgetVoices, onApply, onClose }: {
+export default function LessonMontageEditor({ title, duration, voices, lines: sourceLines, quiet, chapters, levelAt, initial, missingAudio, video, floor, onForgetVoices, trend, onApply, onClose }: {
   title: string
   duration: number
   voices: string[]
@@ -56,6 +56,8 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
   floor?: number
   /** Забыть запомненные на этом Mac голоса (есть, если модуль разделял голоса). */
   onForgetVoices?: () => void
+  /** Уроки курса с итогами (по порядку) — для динамики во вкладке «Итоги». */
+  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[]
   onApply: (result: MontageResult, state: NonNullable<Parameters<typeof LessonMontageEditor>[0]['initial']>) => void
   onClose: () => void
 }) {
@@ -183,7 +185,8 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
         { id: 'speakers', label: <>Голоса <small className="lm-count">{speakers.length}</small></>, title: 'Говорящие' },
         { id: 'lines', label: <>Текст <small className="lm-count">{lines.length}</small></>, title: 'Реплики' },
         { id: 'stats', label: 'Итоги', title: 'Итоги урока' },
-        { id: 'settings', label: 'Поиск', title: 'Поиск пауз' },
+        // Настройки — иконкой: пять вкладок помещаются в узкую колонку без прокрутки.
+        { id: 'settings', label: <span className="lm-visually-hidden">Поиск пауз</span>, icon: SlidersHorizontal, title: 'Поиск пауз' },
       ]} />
     </HScrollFade>
     {/* Шапка паузы и фильтр реплик стоят над списком, а не в нём: листаются
@@ -198,7 +201,7 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
       {tab === 'speakers' && <SpeakerList speakers={speakers} lines={lines} onChange={setSpeakers} onListen={at => listen(at, 'source')} onAdd={addVoice} onForget={onForgetVoices}
         onMerge={(from, into) => { const m = mergeSpeaker({ speakers, lines }, from, into); setSpeakers(m.speakers); setLines(m.lines); if (who === from) setWho(into) }} />}
       {tab === 'lines' && <LineList lines={lines} speakers={speakers} pauses={pauses} t={t} who={who} onChange={setLines} onListen={at => listen(at, 'source')} />}
-      {tab === 'stats' && <StatsPanel lines={lines} speakers={speakers} duration={duration} />}
+      {tab === 'stats' && <StatsPanel lines={lines} speakers={speakers} duration={duration} trend={trend} />}
       {tab === 'settings' && <SettingsPanel settings={settings} onChange={setSettings} found={pauses.length} edited={Object.keys(overrides).length}
         onResetAll={() => setOverrides({})} />}
     </div>
@@ -765,8 +768,11 @@ function LineList({ lines, speakers, pauses, t, who, onChange, onListen }: {
 }
 
 /** Итоги урока: кто сколько говорил, вопросы и ожидание ответа — по репликам и голосам. */
-function StatsPanel({ lines, speakers, duration }: { lines: MontageLine[]; speakers: MontageSpeaker[]; duration: number }) {
+function StatsPanel({ lines, speakers, duration, trend }: { lines: MontageLine[]; speakers: MontageSpeaker[]; duration: number; trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }) {
   const st = useMemo(() => lessonStats(lines, speakers, duration), [lines, speakers, duration])
+  // Текущий урок — по живым данным окна, остальные — по сохранённым итогам.
+  const rows = (trend ?? []).map(r => r.current ? { ...r, stats: summarizeStats(st, speakers) } : r).filter(r => r.stats)
+  const part = participation(rows)
   const pct = (x: number) => Math.round(x * 100) + '%'
   const silent = speakers.filter(sp => st.silentStudents.includes(sp.id))
   return <div className="lm-list">
@@ -786,6 +792,17 @@ function StatsPanel({ lines, speakers, duration }: { lines: MontageLine[]; speak
       <div className="lm-share"><i style={{ width: pct(b.share) }} /></div>
     </div> })}
     {silent.length > 0 && <p className="lm-stat-warn">Не сказали ни слова: {silent.map(s => s.label).join(', ')}.</p>}
+    {rows.length > 1 && <>
+      <h4 className="lm-stat-title">По урокам курса</h4>
+      {rows.map(r => <div key={r.id} className={'lm-trend-row' + (r.current ? ' is-current' : '')}>
+        <FadeText className="lm-trend-name">{r.title}</FadeText>
+        <div className="lm-stat-split lm-trend-bar"><i style={{ width: pct(r.stats!.teacherShare), background: TONE.purple.text }} /><i style={{ width: pct(1 - r.stats!.teacherShare), background: TONE.blue.text }} /></div>
+        <span className="lm-trend-num">{pct(r.stats!.teacherShare)}</span>
+        <span className="lm-trend-num">{r.stats!.answered}/{r.stats!.questions}</span>
+      </div>)}
+      <small className="lm-trend-legend">Доля речи учителя · вопросы с ответом</small>
+      {part.students.length > 0 && <p className="lm-lead">Участие: {part.students.map(s => `${s.label} — ${s.spoke} из ${part.lessons}`).join(', ')}.</p>}
+    </>}
   </div>
 }
 
