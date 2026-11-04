@@ -1,0 +1,7 @@
+{
+  "sha": "96749c4af0a5dfeed4b7aaf5abd8f1986219da27",
+  "version": "1.0.1923",
+  "base": "http://127.0.0.1:5316",
+  "capturedAt": "2026-11-03T12:28:52.918487+07:00",
+  "note": "Production UI built from clean candidate; localhost synthetic Auth/DB. Calendar fixture and full-shell checks are separate."
+}

@@ -1,0 +1,116 @@
+{
+  "sha": "3601666e22f1529dad1811ba48b1940adb2d8417",
+  "browser": "Chrome desktop emulation",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 213,
+        "y": 313.6875,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "route": "/teacher",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=password]')\u001b[22m\n",
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 213,
+        "y": 313.6875,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "route": "/teacher",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=password]')\u001b[22m\n",
+      "errors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 283,
+        "y": 355.65625,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "route": "/teacher",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=password]')\u001b[22m\n",
+      "errors": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 283,
+        "y": 355.65625,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "route": "/teacher",
+      "status": "FAIL",
+      "error": "TimeoutError: locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=password]')\u001b[22m\n",
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "route": "/login",
+      "status": "PASS",
+      "toggle": {
+        "x": 808.5,
+        "y": 383.65625,
+        "width": 44,
+        "height": 44
+      },
+      "overflow": -11,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "route": "/teacher",
+      "status": "FAIL",
+      "error": "Error: locator.fill: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('input[type=password]')\u001b[22m\n",
+      "errors": []
+    }
+  ]
+}

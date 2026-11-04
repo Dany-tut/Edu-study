@@ -1,0 +1,12 @@
+[student-ready] {"reconciled":true,"ms":1,"courses":1,"lessons":1,"progress":1}
+[student-ready] {"reconciled":true,"ms":2,"courses":1,"lessons":1,"progress":0}
+[student-ready] {"reconciled":true,"ms":1,"courses":1,"lessons":1,"progress":1}
+PASS: track status, module access, recording timing, server grades, test answers/write errors, failed sync/reset, out-of-order loads
+[student-ready] {"reconciled":false,"ms":1,"courses":1,"lessons":1,"progress":0}
+[student-ready] {"reconciled":true,"ms":0,"courses":1,"lessons":1,"progress":1}
+[student-ready] {"reconciled":false,"ms":2,"courses":1,"lessons":1,"progress":1}
+PASS: nonblocking external sync, preserved drafts, confirmed grade refresh and account isolation
+[student-ready] {"reconciled":true,"ms":1,"courses":1,"lessons":1,"progress":0}
+PASS: stable calendar links, distinct same-title events and failed-calendar preservation
+PASS: dated material without a time is visible in the calendar
+PASS: reported November 2 lesson shares its calendar and track date in Moscow, Bangkok and New York

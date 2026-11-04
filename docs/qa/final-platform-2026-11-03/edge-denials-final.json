@@ -1,0 +1,100 @@
+{
+  "scope": "19 deployed functions; unauthenticated empty request; no jobs, messages, paid requests or real user data",
+  "results": [
+    {
+      "slug": "reset-student-password",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "reset-teacher-password",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "import-google-form",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "notify-lead",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "tg-reply",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "provision-student-account",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "cards-extract",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "ielts-grade",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "phrase-help",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "testly-bridge",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "tg-webhook",
+      "status": "PASS",
+      "http": 403
+    },
+    {
+      "slug": "analytics-digest",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "chembio-day",
+      "status": "PASS",
+      "http": 403
+    },
+    {
+      "slug": "hw-grade",
+      "status": "PASS",
+      "http": 403
+    },
+    {
+      "slug": "homework-photos-cleanup",
+      "status": "PASS",
+      "http": 403
+    },
+    {
+      "slug": "testly-sync",
+      "status": "PASS",
+      "http": 403
+    },
+    {
+      "slug": "hw-grade-run",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "drive-video",
+      "status": "PASS",
+      "http": 401
+    },
+    {
+      "slug": "tts",
+      "status": "PASS",
+      "http": 400
+    }
+  ]
+}

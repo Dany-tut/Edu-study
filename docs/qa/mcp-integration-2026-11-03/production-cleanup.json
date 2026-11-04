@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "scope": "Only exact own synthetic UUIDs/client IDs from final production fixture; real Claude user/client untouched",
+  "results": [
+    {
+      "table": "courses",
+      "remaining": 0
+    },
+    {
+      "table": "course_modules",
+      "remaining": 0
+    },
+    {
+      "table": "lessons",
+      "remaining": 0
+    },
+    {
+      "table": "trainers",
+      "remaining": 0
+    },
+    {
+      "table": "notifications",
+      "remaining": 0
+    },
+    {
+      "table": "profiles",
+      "remaining": 0
+    },
+    {
+      "table": "teacher_invites",
+      "remaining": 0
+    }
+  ],
+  "authRemaining": 0,
+  "oauthClientsRemaining": 0,
+  "authCount": 3,
+  "oauthClientCount": 6
+}

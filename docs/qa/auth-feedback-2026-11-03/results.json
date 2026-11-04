@@ -1,0 +1,1866 @@
+{
+  "results": [
+    {
+      "role": "teacher",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "normal": {
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 620.2
+        },
+        "inputs": [
+          {
+            "x": 37,
+            "y": 167,
+            "width": 246,
+            "height": 48
+          },
+          {
+            "x": 37,
+            "y": 223,
+            "width": 246,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 37,
+          "y": 431,
+          "width": 246,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 37,
+            "y": 519.2,
+            "width": 118,
+            "height": 48
+          },
+          {
+            "x": 165,
+            "y": 519.2,
+            "width": 118,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 37,
+          "y": 279,
+          "width": 246,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 446.5
+        },
+        "inputs": [
+          {
+            "x": 37,
+            "y": 189.5,
+            "width": 246,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 37,
+          "y": 349.5,
+          "width": 246,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 37,
+          "y": 245.5,
+          "width": 246,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "normal": {
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 598.7
+        },
+        "inputs": [
+          {
+            "x": 37,
+            "y": 189.5,
+            "width": 246,
+            "height": 48
+          },
+          {
+            "x": 37,
+            "y": 245.5,
+            "width": 246,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 37,
+          "y": 457.5,
+          "width": 246,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 37,
+            "y": 545.7,
+            "width": 118,
+            "height": 48
+          },
+          {
+            "x": 165,
+            "y": 545.7,
+            "width": 118,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 37,
+          "y": 301.5,
+          "width": 246,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 474.1
+        },
+        "inputs": [
+          {
+            "x": 37,
+            "y": 209.1,
+            "width": 246,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 37,
+          "y": 369.1,
+          "width": 246,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 37,
+          "y": 265.1,
+          "width": 246,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "normal": {
+        "card": {
+          "x": 16,
+          "y": 85.7,
+          "width": 358,
+          "height": 644.2
+        },
+        "inputs": [
+          {
+            "x": 41,
+            "y": 256.7,
+            "width": 308,
+            "height": 48
+          },
+          {
+            "x": 41,
+            "y": 312.7,
+            "width": 308,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 41,
+          "y": 520.7,
+          "width": 308,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 41,
+            "y": 608.8,
+            "width": 149,
+            "height": 48
+          },
+          {
+            "x": 200,
+            "y": 608.8,
+            "width": 149,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 41,
+          "y": 368.7,
+          "width": 308,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 16,
+          "y": 192.5,
+          "width": 358,
+          "height": 459.1
+        },
+        "inputs": [
+          {
+            "x": 41,
+            "y": 374.5,
+            "width": 308,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 41,
+          "y": 534.5,
+          "width": 308,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 41,
+          "y": 430.5,
+          "width": 308,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "normal": {
+        "card": {
+          "x": 16,
+          "y": 107.7,
+          "width": 358,
+          "height": 600.2
+        },
+        "inputs": [
+          {
+            "x": 41,
+            "y": 278.7,
+            "width": 308,
+            "height": 48
+          },
+          {
+            "x": 41,
+            "y": 334.7,
+            "width": 308,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 41,
+          "y": 546.7,
+          "width": 308,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 41,
+            "y": 634.8,
+            "width": 149,
+            "height": 48
+          },
+          {
+            "x": 200,
+            "y": 634.8,
+            "width": 149,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 41,
+          "y": 390.7,
+          "width": 308,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 16,
+          "y": 178.7,
+          "width": 358,
+          "height": 486.7
+        },
+        "inputs": [
+          {
+            "x": 41,
+            "y": 380.3,
+            "width": 308,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 41,
+          "y": 540.3,
+          "width": 308,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 41,
+          "y": 436.3,
+          "width": 308,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "normal": {
+        "card": {
+          "x": 177.5,
+          "y": 175.7,
+          "width": 402,
+          "height": 644.2
+        },
+        "inputs": [
+          {
+            "x": 202.5,
+            "y": 346.7,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 202.5,
+            "y": 402.7,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 202.5,
+          "y": 610.7,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 202.5,
+            "y": 698.8,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 383.5,
+            "y": 698.8,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 202.5,
+          "y": 458.7,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 177.5,
+          "y": 288,
+          "width": 402,
+          "height": 448
+        },
+        "inputs": [
+          {
+            "x": 202.5,
+            "y": 459,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 202.5,
+          "y": 619,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 202.5,
+          "y": 515,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "light",
+      "width": 768,
+      "height": 1024,
+      "normal": {
+        "card": {
+          "x": 177.5,
+          "y": 197.7,
+          "width": 402,
+          "height": 600.2
+        },
+        "inputs": [
+          {
+            "x": 202.5,
+            "y": 368.7,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 202.5,
+            "y": 424.7,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 202.5,
+          "y": 636.7,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 202.5,
+            "y": 724.8,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 383.5,
+            "y": 724.8,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 202.5,
+          "y": 480.7,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 177.5,
+          "y": 284,
+          "width": 402,
+          "height": 456
+        },
+        "inputs": [
+          {
+            "x": 202.5,
+            "y": 455,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 202.5,
+          "y": 615,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 202.5,
+          "y": 511,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "normal": {
+        "card": {
+          "x": 513.5,
+          "y": 113.7,
+          "width": 402,
+          "height": 644.2
+        },
+        "inputs": [
+          {
+            "x": 538.5,
+            "y": 284.7,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 538.5,
+            "y": 340.7,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 538.5,
+          "y": 548.7,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 538.5,
+            "y": 636.8,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 719.5,
+            "y": 636.8,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 538.5,
+          "y": 396.7,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 513.5,
+          "y": 226,
+          "width": 402,
+          "height": 448
+        },
+        "inputs": [
+          {
+            "x": 538.5,
+            "y": 397,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 538.5,
+          "y": 557,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 538.5,
+          "y": 453,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "normal": {
+        "card": {
+          "x": 513.5,
+          "y": 135.7,
+          "width": 402,
+          "height": 600.2
+        },
+        "inputs": [
+          {
+            "x": 538.5,
+            "y": 306.7,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 538.5,
+            "y": 362.7,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 538.5,
+          "y": 574.7,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 538.5,
+            "y": 662.8,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 719.5,
+            "y": 662.8,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 538.5,
+          "y": 418.7,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 513.5,
+          "y": 222,
+          "width": 402,
+          "height": 456
+        },
+        "inputs": [
+          {
+            "x": 538.5,
+            "y": 393,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 538.5,
+          "y": 553,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 538.5,
+          "y": 449,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "light",
+      "width": 1024,
+      "height": 500,
+      "normal": {
+        "card": {
+          "x": 305.5,
+          "y": 16,
+          "width": 402,
+          "height": 644.2
+        },
+        "inputs": [
+          {
+            "x": 330.5,
+            "y": 187,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 330.5,
+            "y": 243,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 330.5,
+          "y": 451,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 330.5,
+            "y": 539.2,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 511.5,
+            "y": 539.2,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 330.5,
+          "y": 299,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 305.5,
+          "y": 16,
+          "width": 402,
+          "height": 448
+        },
+        "inputs": [
+          {
+            "x": 330.5,
+            "y": 187,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 330.5,
+          "y": 347,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 330.5,
+          "y": 243,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "light",
+      "width": 1024,
+      "height": 500,
+      "normal": {
+        "card": {
+          "x": 305.5,
+          "y": 16,
+          "width": 402,
+          "height": 600.2
+        },
+        "inputs": [
+          {
+            "x": 330.5,
+            "y": 187,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 330.5,
+            "y": 243,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 330.5,
+          "y": 455,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 330.5,
+            "y": 543.2,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 511.5,
+            "y": 543.2,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 330.5,
+          "y": 299,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 305.5,
+          "y": 16,
+          "width": 402,
+          "height": 456
+        },
+        "inputs": [
+          {
+            "x": 330.5,
+            "y": 187,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 330.5,
+          "y": 347,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 330.5,
+          "y": 243,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "normal": {
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 620.2
+        },
+        "inputs": [
+          {
+            "x": 37,
+            "y": 167,
+            "width": 246,
+            "height": 48
+          },
+          {
+            "x": 37,
+            "y": 223,
+            "width": 246,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 37,
+          "y": 431,
+          "width": 246,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 37,
+            "y": 519.2,
+            "width": 118,
+            "height": 48
+          },
+          {
+            "x": 165,
+            "y": 519.2,
+            "width": 118,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 37,
+          "y": 279,
+          "width": 246,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 446.5
+        },
+        "inputs": [
+          {
+            "x": 37,
+            "y": 189.5,
+            "width": 246,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 37,
+          "y": 349.5,
+          "width": 246,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 37,
+          "y": 245.5,
+          "width": 246,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "dark",
+      "width": 320,
+      "height": 568,
+      "normal": {
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 598.7
+        },
+        "inputs": [
+          {
+            "x": 37,
+            "y": 189.5,
+            "width": 246,
+            "height": 48
+          },
+          {
+            "x": 37,
+            "y": 245.5,
+            "width": 246,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 37,
+          "y": 457.5,
+          "width": 246,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 37,
+            "y": 545.7,
+            "width": 118,
+            "height": 48
+          },
+          {
+            "x": 165,
+            "y": 545.7,
+            "width": 118,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 37,
+          "y": 301.5,
+          "width": 246,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 474.1
+        },
+        "inputs": [
+          {
+            "x": 37,
+            "y": 209.1,
+            "width": 246,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 37,
+          "y": 369.1,
+          "width": 246,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 37,
+          "y": 265.1,
+          "width": 246,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "normal": {
+        "card": {
+          "x": 16,
+          "y": 85.7,
+          "width": 358,
+          "height": 644.2
+        },
+        "inputs": [
+          {
+            "x": 41,
+            "y": 256.7,
+            "width": 308,
+            "height": 48
+          },
+          {
+            "x": 41,
+            "y": 312.7,
+            "width": 308,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 41,
+          "y": 520.7,
+          "width": 308,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 41,
+            "y": 608.8,
+            "width": 149,
+            "height": 48
+          },
+          {
+            "x": 200,
+            "y": 608.8,
+            "width": 149,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 41,
+          "y": 368.7,
+          "width": 308,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 16,
+          "y": 192.5,
+          "width": 358,
+          "height": 459.1
+        },
+        "inputs": [
+          {
+            "x": 41,
+            "y": 374.5,
+            "width": 308,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 41,
+          "y": 534.5,
+          "width": 308,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 41,
+          "y": 430.5,
+          "width": 308,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "normal": {
+        "card": {
+          "x": 16,
+          "y": 107.7,
+          "width": 358,
+          "height": 600.2
+        },
+        "inputs": [
+          {
+            "x": 41,
+            "y": 278.7,
+            "width": 308,
+            "height": 48
+          },
+          {
+            "x": 41,
+            "y": 334.7,
+            "width": 308,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 41,
+          "y": 546.7,
+          "width": 308,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 41,
+            "y": 634.8,
+            "width": 149,
+            "height": 48
+          },
+          {
+            "x": 200,
+            "y": 634.8,
+            "width": 149,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 41,
+          "y": 390.7,
+          "width": 308,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 16,
+          "y": 178.7,
+          "width": 358,
+          "height": 486.7
+        },
+        "inputs": [
+          {
+            "x": 41,
+            "y": 380.3,
+            "width": 308,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 41,
+          "y": 540.3,
+          "width": 308,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 41,
+          "y": 436.3,
+          "width": 308,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "normal": {
+        "card": {
+          "x": 177.5,
+          "y": 175.7,
+          "width": 402,
+          "height": 644.2
+        },
+        "inputs": [
+          {
+            "x": 202.5,
+            "y": 346.7,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 202.5,
+            "y": 402.7,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 202.5,
+          "y": 610.7,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 202.5,
+            "y": 698.8,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 383.5,
+            "y": 698.8,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 202.5,
+          "y": 458.7,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 177.5,
+          "y": 288,
+          "width": 402,
+          "height": 448
+        },
+        "inputs": [
+          {
+            "x": 202.5,
+            "y": 459,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 202.5,
+          "y": 619,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 202.5,
+          "y": 515,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "dark",
+      "width": 768,
+      "height": 1024,
+      "normal": {
+        "card": {
+          "x": 177.5,
+          "y": 197.7,
+          "width": 402,
+          "height": 600.2
+        },
+        "inputs": [
+          {
+            "x": 202.5,
+            "y": 368.7,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 202.5,
+            "y": 424.7,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 202.5,
+          "y": 636.7,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 202.5,
+            "y": 724.8,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 383.5,
+            "y": 724.8,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 202.5,
+          "y": 480.7,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 177.5,
+          "y": 284,
+          "width": 402,
+          "height": 456
+        },
+        "inputs": [
+          {
+            "x": 202.5,
+            "y": 455,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 202.5,
+          "y": 615,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 202.5,
+          "y": 511,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "normal": {
+        "card": {
+          "x": 513.5,
+          "y": 113.7,
+          "width": 402,
+          "height": 644.2
+        },
+        "inputs": [
+          {
+            "x": 538.5,
+            "y": 284.7,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 538.5,
+            "y": 340.7,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 538.5,
+          "y": 548.7,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 538.5,
+            "y": 636.8,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 719.5,
+            "y": 636.8,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 538.5,
+          "y": 396.7,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 513.5,
+          "y": 226,
+          "width": 402,
+          "height": 448
+        },
+        "inputs": [
+          {
+            "x": 538.5,
+            "y": 397,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 538.5,
+          "y": 557,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 538.5,
+          "y": 453,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "normal": {
+        "card": {
+          "x": 513.5,
+          "y": 135.7,
+          "width": 402,
+          "height": 600.2
+        },
+        "inputs": [
+          {
+            "x": 538.5,
+            "y": 306.7,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 538.5,
+            "y": 362.7,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 538.5,
+          "y": 574.7,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 538.5,
+            "y": 662.8,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 719.5,
+            "y": 662.8,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 538.5,
+          "y": 418.7,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 513.5,
+          "y": 222,
+          "width": 402,
+          "height": 456
+        },
+        "inputs": [
+          {
+            "x": 538.5,
+            "y": 393,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 538.5,
+          "y": 553,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 538.5,
+          "y": 449,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "teacher",
+      "theme": "dark",
+      "width": 1024,
+      "height": 500,
+      "normal": {
+        "card": {
+          "x": 305.5,
+          "y": 16,
+          "width": 402,
+          "height": 644.2
+        },
+        "inputs": [
+          {
+            "x": 330.5,
+            "y": 187,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 330.5,
+            "y": 243,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 330.5,
+          "y": 451,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 330.5,
+            "y": 539.2,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 511.5,
+            "y": 539.2,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 330.5,
+          "y": 299,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 305.5,
+          "y": 16,
+          "width": 402,
+          "height": 448
+        },
+        "inputs": [
+          {
+            "x": 330.5,
+            "y": 187,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 330.5,
+          "y": 347,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 330.5,
+          "y": 243,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "theme": "dark",
+      "width": 1024,
+      "height": 500,
+      "normal": {
+        "card": {
+          "x": 305.5,
+          "y": 16,
+          "width": 402,
+          "height": 600.2
+        },
+        "inputs": [
+          {
+            "x": 330.5,
+            "y": 187,
+            "width": 352,
+            "height": 48
+          },
+          {
+            "x": 330.5,
+            "y": 243,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 330.5,
+          "y": 455,
+          "width": 352,
+          "height": 48
+        },
+        "social": [
+          {
+            "x": 330.5,
+            "y": 543.2,
+            "width": 171,
+            "height": 48
+          },
+          {
+            "x": 511.5,
+            "y": 543.2,
+            "width": 171,
+            "height": 48
+          }
+        ],
+        "slot": {
+          "x": 330.5,
+          "y": 299,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "reset": {
+        "card": {
+          "x": 305.5,
+          "y": 16,
+          "width": 402,
+          "height": 456
+        },
+        "inputs": [
+          {
+            "x": 330.5,
+            "y": 187,
+            "width": 352,
+            "height": 48
+          }
+        ],
+        "primary": {
+          "x": 330.5,
+          "y": 347,
+          "width": 352,
+          "height": 48
+        },
+        "social": [],
+        "slot": {
+          "x": 330.5,
+          "y": 243,
+          "width": 352,
+          "height": 96
+        }
+      },
+      "fields": [
+        {
+          "font": 16,
+          "described": true
+        },
+        {
+          "font": 16,
+          "described": true
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "scope": "Real local UI with synthetic Auth HTTP responses. OAuth SDK boundary held for UI cancellation tests; no provider or physical device contacted."
+}

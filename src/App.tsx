@@ -340,7 +340,7 @@ function AppRoutes() {
     if (!session && !import.meta.env.DEV) return <Chunk><TeacherLoginPage onLogin={() => {}} /></Chunk>
     return (
       <>
-        <Chunk fallback={hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : undefined}><TeacherWorkspace owner={session?.user.id ?? 'local'} production /></Chunk>
+        <Chunk fallback={hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : undefined}><TeacherWorkspace key={session?.user.id ?? 'local'} user={session?.user} owner={session?.user.id ?? 'local'} production /></Chunk>
         <InstallPrompt />
       </>
     )

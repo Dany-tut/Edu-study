@@ -5,6 +5,11 @@ import AttendanceEditor from './AttendanceEditor'
 import JournalSkeleton from '../JournalSkeleton'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
+import type { User } from '@supabase/supabase-js'
+import { TeacherGuides, useTeacherGuides } from '../guides/TeacherGuides'
+import type { GuideId } from '../../../../design/contextual-onboarding/guides.mjs'
+import { getViewAs } from '../../../lib/teacherView'
+import { useTeacherAccess } from '../../../lib/teacherAccess'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
@@ -382,6 +387,8 @@ export function Matrix(props: MatrixProps) {
   const overview = selected.tab === 'Обзор'
   const entry = entries.find(e => e.student.id === selected.student)
   const drawerOpen = !!(reportHost && entry && overview)
+  const teacherGuides = useTeacherGuides()
+  useEffect(() => { if (drawerOpen) teacherGuides?.enter('learner') }, [drawerOpen, teacherGuides?.enter])
   const drawerHash = drawerOpen && props.profileId ? teacherStudentHash(props.profileId(entry.student)) : null
   useEffect(() => {
     if (!drawerHash) return
@@ -642,11 +649,18 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     </div>
   )
 }
-export default function JournalStand({ owner, production = false }: { owner: string; production?: boolean }) {
+const pageGuides: Partial<Record<ReturnType<typeof useTeacher.getState>['activePage'], GuideId>> = {
+  groups:'roster', constructor:'course', 'course-editor':'course', student:'learner', finances:'finance',
+  homework:'work', 'homework-review':'work', 'homework-create':'work', 'hard-review':'work',
+  'lesson-editor':'schedule'
+}
+
+export default function JournalStand({ owner, user, production = false }: { owner: string; user?: User; production?: boolean }) {
   const page = useTeacher((s) => s.activePage),
     studentId = useTeacher((s) => s.selectedStudentId)
   const isDesktop = useIsDesktop()
   const pendingAttendance = useJournalPending(null)
+  const allowed = useTeacherAccess(s => s.loaded && s.canPage(page))
   const journalActive = ['groups', 'gradebook', 'student'].includes(page)
   const { data, loading, error, reload, setData } = useCourseJournal(true, journalActive)
   const [attendanceCells, setAttendanceCells] = useState<JournalCell[] | null>(null)
@@ -896,7 +910,9 @@ export default function JournalStand({ owner, production = false }: { owner: str
       )
   }
   return (
-    <><TeacherDashboardPage
+    <TeacherGuides user={user} enabled={production && isDesktop && allowed && !getViewAs()}
+      section={page === 'gradebook' ? (selected.tab === 'Работы' ? 'work' : 'journal') : pageGuides[page]}>
+    <TeacherDashboardPage
       standContent={
         content && (
           <>
@@ -909,6 +925,6 @@ export default function JournalStand({ owner, production = false }: { owner: str
           </>
         )
       }
-    />{homework.dialog}{attendanceCells && <AttendanceEditor cells={attendanceCells} onSaved={reload} onClose={() => setAttendanceCells(null)} />}</>
+    />{homework.dialog}{attendanceCells && <AttendanceEditor cells={attendanceCells} onSaved={reload} onClose={() => setAttendanceCells(null)} />}</TeacherGuides>
   )
 }

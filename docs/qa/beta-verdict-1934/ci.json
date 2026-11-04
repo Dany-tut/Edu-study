@@ -1,0 +1,26 @@
+[
+  {
+    "conclusion": "success",
+    "databaseId": 41587871695,
+    "headBranch": "codex/calendar-acceptance-20261103",
+    "name": "Календарь — действия и данные",
+    "status": "completed",
+    "url": "https://github.com/Dany-tut/Edu-study/actions/runs/41587871695"
+  },
+  {
+    "conclusion": "success",
+    "databaseId": 41587871656,
+    "headBranch": "codex/calendar-acceptance-20261103",
+    "name": "Проверки",
+    "status": "completed",
+    "url": "https://github.com/Dany-tut/Edu-study/actions/runs/41587871656"
+  },
+  {
+    "conclusion": "success",
+    "databaseId": 41587871639,
+    "headBranch": "codex/calendar-acceptance-20261103",
+    "name": "Windows full classroom",
+    "status": "completed",
+    "url": "https://github.com/Dany-tut/Edu-study/actions/runs/41587871639"
+  }
+]
