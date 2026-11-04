@@ -6,7 +6,7 @@
   backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
   border: 1px solid rgba(255,255,255,.2); box-shadow: 0 4px 14px rgba(0,0,0,.22);
 }
-.lesson-player-volume-control { position: relative; width: 188px; height: 48px; }
+.lesson-player-volume-control { position: relative; width: min(246px, calc(100vw - 48px)); height: 52px; }
 .lesson-player-volume-level {
   position: absolute; inset: var(--slider-inset, 12px); transition: inset .12s ease;
   border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.22); pointer-events: none;
@@ -22,6 +22,7 @@
   margin: 0; padding: 0; border: none; background: transparent; cursor: pointer;
   border-radius: 999px;
 }
+.lesson-player-volume-control .lesson-player-volume-slider { height: 52px; }
 .lesson-player-volume-slider::-webkit-slider-runnable-track {
   height: 12px; border-radius: 999px;
   background: transparent;
@@ -41,6 +42,11 @@
   color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .lesson-player-duration { color: rgba(255, 255, 255, .6); }
+.lesson-player-rate-label {
+  display: inline-grid; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: left;
+}
+.lesson-player-rate-label > span { grid-area: 1 / 1; }
+.lesson-player-rate-label > span[aria-hidden] { visibility: hidden; }
 .lesson-player-rate-popover {
   border-radius: 999px; background: rgba(28,28,32,.52);
   backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
@@ -51,12 +57,15 @@
 .lesson-player-rate-slider { height: 52px; }
 .lesson-player-rate-value {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  display: flex; align-items: center; justify-content: center; min-width: 48px; height: 24px; padding-inline: 8px;
+  display: grid; place-items: center; height: 24px; padding-inline: 10px;
   border-radius: 999px; background: rgba(28,28,32,.36); pointer-events: none;
   border: 1px solid rgba(255,255,255,.16);
   backdrop-filter: blur(12px) saturate(1.4); -webkit-backdrop-filter: blur(12px) saturate(1.4);
   color: #fff; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
 }
+/* Ширина таблетки — по самой длинной подписи (второй, невидимый слой): не прыгает при смене значения. */
+.lesson-player-rate-value > span { grid-area: 1 / 1; }
+.lesson-player-rate-value > span + span { visibility: hidden; }
 .lesson-player button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
 .lesson-player-message {
   position: absolute; inset: 8px; z-index: 3;
