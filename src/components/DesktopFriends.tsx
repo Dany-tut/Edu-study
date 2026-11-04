@@ -84,7 +84,7 @@ function FriendsPane({ model, account, tab, overview, polished, suggestedHandle 
   const [nickDraft,setNick] = useState<string | null>(null)
   const nick = nickDraft ?? (tab === 'profile' ? snapshot.handle ?? suggestedHandle : '')
   const [visibilityDraft,setVisible] = useState<boolean | null>(null)
-  const visible = visibilityDraft ?? (snapshot.handle ? snapshot.searchable : overview)
+  const visible = visibilityDraft ?? (snapshot.handle ? snapshot.searchable : true)
   const [result,setResult] = useState<SearchResult | null>(null)
   const [message,setMessage] = useState('')
   const [busy,setBusy] = useState(false)
