@@ -1373,7 +1373,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         aria-valuetext={`${Math.round((muted ? 0 : volume) * 100)}%`}
                         className="video-volume lesson-player-volume-slider"
                       />
-                      <span className="lesson-player-rate-value" aria-hidden="true">{Math.round((muted ? 0 : volume) * 100)}%</span>
+                      <span className="lesson-player-rate-value" aria-hidden="true"><span>{Math.round((muted ? 0 : volume) * 100)}%</span><span>{Math.round(maxVolume * 100)}%</span></span>
                     </div>
                   </div>
                 )}
@@ -1412,7 +1412,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     aria-expanded={rateOpen}
                   >
                     <Gauge size={22} />
-                    <span style={{ fontSize: 12, fontWeight: 700 }}>{fmtRate(liveRate)}</span>
+                    {/* Ширина по самой длинной подписи («0.00×»): кнопка не дёргает соседей при смене скорости. */}
+                    <span className="lesson-player-rate-label">
+                      <span>{fmtRate(liveRate)}</span>
+                      <span aria-hidden="true">0.00×</span>
+                    </span>
                   </button>
                   {rateOpen && ratePos && createPortal(
                     <div
@@ -1443,7 +1447,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                           aria-valuetext={fmtRate(rate)}
                           className="video-volume lesson-player-volume-slider lesson-player-rate-slider"
                         />
-                        <span className="lesson-player-rate-value" aria-hidden="true">{fmtRate(rate)}</span>
+                        <span className="lesson-player-rate-value" aria-hidden="true"><span>{fmtRate(rate)}</span><span>0.00×</span></span>
                       </div>
                     </div>,
                     (fullscreen ? boxRef.current : null) ?? document.body,
