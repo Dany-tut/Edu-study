@@ -46,6 +46,20 @@ const RATES = [0.75, 1, 1.25, 1.5, 1.75, 2]
 /** Native video (including Drive via the media gateway) supports up to 10×.
  * YouTube keeps its separate engine limit. */
 const FAST_RATES = [2.5, 3, 4, 5, 6, 7, 8, 9, 10]
+/** Ползунок скорости плавный: положение между опорными ступенями, шаг 0.05×. */
+const rateAtPos = (rates: number[], p: number) => {
+  const i = Math.min(rates.length - 2, Math.max(0, Math.floor(p)))
+  const r = rates[i] + (rates[i + 1] - rates[i]) * Math.min(1, Math.max(0, p - i))
+  return Math.round(r * 20) / 20
+}
+const posOfRate = (rates: number[], r: number) => {
+  if (r <= rates[0]) return 0
+  for (let i = 0; i < rates.length - 1; i++) {
+    if (r <= rates[i + 1]) return i + (r - rates[i]) / (rates[i + 1] - rates[i])
+  }
+  return rates.length - 1
+}
+const fmtRate = (r: number) => `${Math.round(r * 100) / 100}×`
 /** Через столько без движения мыши панель управления уезжает. */
 const IDLE_MS = 2600
 /** Опрос времени. rAF в превью не работает (см. AudioPlayer) — только таймер. */
@@ -232,6 +246,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const maxVolume = canBoostVolume ? 1.5 : 1
   const [muted, setMuted] = useState(false)
   const [rate, setRate] = useState(1)
+  /** Положение ползунка скорости во время ведения — чтобы округление до 0.05× не дёргало заливку. */
+  const [rateKnob, setRateKnob] = useState<number | null>(null)
   const [captions, setCaptions] = useState(false)
   /** У ролика нашлась хотя бы одна дорожка субтитров — только тогда есть CC. */
   const [ccAvailable, setCcAvailable] = useState(false)
@@ -282,6 +298,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const lastReported = useRef(-1)
   /** Дорожка субтитров, которую включает кнопка CC (первая доступная). */
   const ccTrack = useRef<CaptionTrack | null>(null)
+  /** Что выбрал ученик: сторож на старте гасит дорожку, если YouTube включил её сам. */
+  const captionsRef = useRef(false)
   /** Актуальный прогресс без ре-подписок таймера. */
   const watchRef = useRef(watch)
   watchRef.current = watch
@@ -476,8 +494,13 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     const p = ytRef.current
     if (!p) return
     const next = !captions
+    captionsRef.current = next
     setCaptions(next)
     try {
+      if (next && !ccTrack.current) {
+        const list = (p.getOption('captions', 'tracklist') as CaptionTrack[] | undefined) ?? []
+        if (list.length) ccTrack.current = list[0]
+      }
       p.setOption('captions', 'track', next ? (ccTrack.current ?? {}) : {})
     } catch { /* у ролика может не быть субтитров вовсе */ }
   }, [captions])
@@ -520,22 +543,27 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             setDuration(e.target.getDuration() || 0)
             e.target.setPlaybackRate(rate)
             e.target.playVideo()
-            // Гасим дорожку, поднятую через cc_load_policy, и запоминаем, какая
-            // вообще есть. Список появляется не сразу — отсюда пара попыток;
-            // если дорожек нет, кнопка CC не показывается вовсе.
-            try { e.target.setOption('captions', 'track', {}) } catch { /* нет модуля */ }
+            // Гасим дорожку, поднятую через cc_load_policy (или настройкой
+            // «всегда показывать субтитры» в аккаунте YouTube), и запоминаем,
+            // какая вообще есть. Модуль и список появляются не сразу, а гашение
+            // до загрузки модуля не срабатывает — поэтому первые 12 с сторож
+            // каждые полсекунды гасит дорожку, если ученик её не включал.
+            // Кнопка CC появляется, как только нашлась дорожка или показанная.
+            const quiet = () => { try { e.target.setOption('captions', 'track', {}) } catch { /* нет модуля */ } }
+            quiet()
             let tries = 0
             const probe = window.setInterval(() => {
               tries += 1
+              if (!alive) { window.clearInterval(probe); return }
               let list: CaptionTrack[] = []
+              let shown: CaptionTrack | undefined
               try { list = (e.target.getOption('captions', 'tracklist') as CaptionTrack[]) ?? [] } catch { /* ещё не готов */ }
-              if (list.length) {
-                ccTrack.current = list[0]
-                setCcAvailable(true)
-                window.clearInterval(probe)
-              } else if (tries >= 8 || !alive) {
-                window.clearInterval(probe)
-              }
+              try { shown = e.target.getOption('captions', 'track') as CaptionTrack | undefined } catch { /* ещё не готов */ }
+              const showing = !!shown?.languageCode
+              if (!ccTrack.current) ccTrack.current = list[0] ?? (showing ? shown! : null)
+              if (list.length || showing) setCcAvailable(true)
+              if (showing && !captionsRef.current) quiet()
+              if (tries >= 24) window.clearInterval(probe)
             }, 500)
           },
           onStateChange: (e: { data: number }) => {
@@ -961,7 +989,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
   // должна стоять реальная скорость, а не та, что выбрана в меню.
-  const rateIndex = Math.max(0, rates.indexOf(rate))
+  const rateIndex = rateKnob ?? posOfRate(rates, rate)
   const volumeFill = (muted ? 0 : volume) / maxVolume
   const rateFill = rateIndex / (rates.length - 1)
   const volumeFillScale = Math.sqrt(Math.min(1, volumeFill / .15))
@@ -1333,10 +1361,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                       <div className="lesson-player-volume-level" aria-hidden="true">
                         <div style={{ width: `${volumeFill * 100}%`, height: `${volumeFillScale * 100}%`, left: `calc(${volumeFillScale - 1} * var(--slider-inset, 12px))` }} />
                         {canBoostVolume && <span className="lesson-player-volume-normal" style={{ left: `${100 / maxVolume}%` }} />}
-                        {volume > 1 && !muted && <span className="lesson-player-rate-value">{Math.round(volume * 100)}%</span>}
                       </div>
                       <input
-                        type="range" min={0} max={maxVolume} step={0.05}
+                        type="range" min={0} max={maxVolume} step="any"
                         value={muted ? 0 : volume}
                         onChange={e => {
                           const v = Number(e.target.value)
@@ -1346,6 +1373,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         aria-valuetext={`${Math.round((muted ? 0 : volume) * 100)}%`}
                         className="video-volume lesson-player-volume-slider"
                       />
+                      <span className="lesson-player-rate-value" aria-hidden="true">{Math.round((muted ? 0 : volume) * 100)}%</span>
                     </div>
                   </div>
                 )}
@@ -1378,13 +1406,13 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   <button
                     className="lesson-player-rate-trigger"
                     ref={rateBtnRef}
-                    onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o); setVolumeOpen(false) }}
+                    onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o); setRateKnob(null); setVolumeOpen(false) }}
                     style={iconBtn(rateOpen ? { background: 'rgba(255,255,255,0.2)', width: 'auto', padding: '0 8px', gap: 6 } : { width: 'auto', padding: '0 8px', gap: 6 })}
                     aria-label={t('Скорость')}
                     aria-expanded={rateOpen}
                   >
                     <Gauge size={22} />
-                    <span style={{ fontSize: 12, fontWeight: 700 }}>{liveRate}×</span>
+                    <span style={{ fontSize: 12, fontWeight: 700 }}>{fmtRate(liveRate)}</span>
                   </button>
                   {rateOpen && ratePos && createPortal(
                     <div
@@ -1399,15 +1427,23 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                       <div className="lesson-player-rate-control">
                         <div className="lesson-player-volume-level" aria-hidden="true">
                           <div style={{ width: `${rateFill * 100}%`, height: `${rateFillScale * 100}%`, left: `calc(${rateFillScale - 1} * var(--slider-inset, 12px))` }} />
-                          <span className="lesson-player-rate-value">{rate}×</span>
                         </div>
-                        <input type="range" min={0} max={rates.length - 1} step={1}
+                        <input type="range" min={0} max={rates.length - 1} step="any"
                           value={rateIndex}
-                          onChange={e => { if (lockedRef.current) endBoost(); applyRate(rates[Number(e.target.value)], false) }}
+                          onChange={e => {
+                            if (lockedRef.current) endBoost()
+                            const p = Number(e.target.value)
+                            setRateKnob(p)
+                            const r = rateAtPos(rates, p)
+                            if (r !== rateRef.current) applyRate(r, false)
+                          }}
+                          onPointerUp={() => setRateKnob(null)}
+                          onBlur={() => setRateKnob(null)}
                           aria-label={t('Скорость воспроизведения')}
-                          aria-valuetext={`${rate}×`}
+                          aria-valuetext={fmtRate(rate)}
                           className="video-volume lesson-player-volume-slider lesson-player-rate-slider"
                         />
+                        <span className="lesson-player-rate-value" aria-hidden="true">{fmtRate(rate)}</span>
                       </div>
                     </div>,
                     (fullscreen ? boxRef.current : null) ?? document.body,
