@@ -1838,7 +1838,7 @@ function CenterRecording({
     )
     const diskOnly = !!disk && source?.kind === 'iframe'
     return (
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 16px 22px 24px' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 16px 22px 16px' }}>
         {diskOnly && linkRow}
         {diskOnly ? (
           // Диск, который не встраивается в iframe (Яндекс, Dropbox, OneDrive,
@@ -1869,8 +1869,8 @@ function CenterRecording({
         // для этого опущен на RECORDING_BLEED, а .recording-workspace его
         // возвращает): карточка глав кончается на одной линии с рельсой
         // реплик и списком уроков, а тени остаётся место под ней.
-        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0,margin:`-12px -16px ${-22 - RECORDING_BLEED}px -24px`}}
-          scrollStyle={{height:'100%',boxSizing:'border-box',padding:`12px 16px ${RECORDING_BLEED}px 24px`}}>
+        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0,margin:`-12px -16px ${-22 - RECORDING_BLEED}px -16px`}}
+          scrollStyle={{height:'100%',boxSizing:'border-box',padding:`12px 16px ${RECORDING_BLEED}px 16px`}}>
         <div className="recording-player-layout" style={{ '--recording-player-max-width': PLAYER_MAX_W, flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 } as React.CSSProperties}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ marginBottom: 4 }}>{linkRow}</div>
