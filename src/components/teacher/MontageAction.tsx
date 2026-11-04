@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { SlidersHorizontal } from '../icons/appIcons'
 import { decodeLevels, localRequest, type LocalDraft } from '../../lib/localTranscription'
-import { DEFAULT_SETTINGS, type MontageLine, type MontageSpeaker } from '../../lib/lessonMontage'
+import { DEFAULT_SETTINGS, lessonStats, summarizeStats, type LessonStatsSummary, type MontageLine, type MontageSpeaker } from '../../lib/lessonMontage'
 import { parseVideoSource, type VideoSource } from '../../lib/videoSource'
 
 // Окно тяжёлое (шкала, волна, списки) и нужно только по кнопке — свой чанк.
@@ -11,7 +11,8 @@ const LessonMontageEditor = lazy(() => import('./LessonMontageEditor'))
 /** Кнопка «Монтаж записи» в инструментах расшифровки и само окно. Результат —
  *  в черновик расшифровки (говорящие, реплики, решения по паузам); в урок он
  *  попадает обычной кнопкой «Сохранить расшифровку». Видео не перекодируется. */
-export default function MontageAction({ draft, change, disabled, file, token }: { draft: LocalDraft; change: (value: LocalDraft) => void; disabled?: boolean; file?: File | null; token?: string }) {
+export default function MontageAction({ draft, change, disabled, file, token, trend }: { draft: LocalDraft; change: (value: LocalDraft) => void; disabled?: boolean; file?: File | null; token?: string
+  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }) {
   const [open, setOpen] = useState(false)
   // Запись для звука в окне: ссылка урока или выбранный файл (локальный URL живёт, пока окно открыто).
   const [fileUrl, setFileUrl] = useState<string>()
@@ -56,11 +57,12 @@ export default function MontageAction({ draft, change, disabled, file, token }: 
             ...transcript,
             segments: state.lines.map(l => ({ start: l.start, end: l.end, text: l.text, speaker: l.speaker })),
             speakers: state.speakers,
-            montage: { duration, quiet: montage?.quiet ?? [], ...(montage?.floor != null ? { floor: montage.floor } : {}), ...(montage?.levels ? { levels: montage.levels } : {}), settings: state.settings, overrides: state.overrides },
+            montage: { duration, quiet: montage?.quiet ?? [], ...(montage?.floor != null ? { floor: montage.floor } : {}), ...(montage?.levels ? { levels: montage.levels } : {}), settings: state.settings, overrides: state.overrides,
+              stats: summarizeStats(lessonStats(state.lines, state.speakers, duration), state.speakers) },
           },
         }) }}
         onForgetVoices={token && draft.voices?.some(v => v.embedding) ? () => void localRequest('/voices', token, { method: 'DELETE' }).catch(() => {}) : undefined}
-        onClose={() => setOpen(false)} />}</AnimatePresence>
+        trend={trend} onClose={() => setOpen(false)} />}</AnimatePresence>
     </Suspense>
   </>
 }

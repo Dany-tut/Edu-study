@@ -80,3 +80,12 @@ assert.deepEqual(st.silentStudents, ['B'])
 assert.ok(Math.abs(st.teacherShare - 44 / 50) < 1e-9)
 assert.ok(Math.abs(st.silenceShare - 0.75) < 1e-9)
 console.log('Lesson montage: lesson stats passed')
+
+// Динамика по урокам курса: короткие итоги и участие учеников по именам.
+const { summarizeStats, participation } = await import('../src/lib/lessonMontage.ts')
+const sum = summarizeStats(st, sp)
+assert.equal(sum.questions, 2); assert.deepEqual(sum.speakers.map(s => s.label), ['Учитель', 'Аня', 'Боря'])
+const part = participation([{ stats: sum }, { stats: { ...sum, speakers: [{ label: 'Боря', role: 'student', seconds: 30 }] } }, {}])
+assert.equal(part.lessons, 2)
+assert.deepEqual(part.students, [{ label: 'Аня', spoke: 1 }, { label: 'Боря', spoke: 1 }])
+console.log('Lesson montage: course trend passed')

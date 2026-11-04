@@ -261,3 +261,13 @@
 .lm-stat-warn { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--color-yellow-soft); color: var(--color-yellow-text); font-size: 13px; }
 
 .lm-inline-link { padding: 0; border: 0; background: none; color: var(--color-purple-text); font: inherit; font-weight: 700; cursor: pointer; }
+
+.lm-stat-title { margin: 6px 0 0; font-size: 13px; }
+.lm-trend-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px 36px 40px; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; font-size: 12px; }
+.lm-trend-row.is-current { background: var(--color-purple-soft); }
+.lm-trend-name { min-width: 0; white-space: nowrap; }
+.lm-trend-bar { height: 6px; }
+.lm-trend-num { text-align: right; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
+.lm-trend-legend { font-size: 11px; color: var(--color-text-3); }
+/* Пять вкладок в колонке 340 px без прокрутки: поля уже, чем у общего Segmented. */
+.lm-side > div:first-child [role=tab] { padding-inline: 9px !important; }

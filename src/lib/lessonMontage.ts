@@ -274,3 +274,27 @@ export function lessonStats(lines: MontageLine[], speakers: MontageSpeaker[], du
     silentStudents: speakers.filter(s => s.role === 'student' && !time[s.id]).map(s => s.id),
   }
 }
+
+/** Короткие итоги урока для сравнения уроков курса: хранятся вместе с монтажом. */
+export interface LessonStatsSummary {
+  teacherShare: number
+  questions: number
+  answered: number
+  waitMedian?: number
+  speakers: { label: string; role: SpeakerRole; seconds: number }[]
+}
+export function summarizeStats(stats: LessonStats, speakers: MontageSpeaker[]): LessonStatsSummary {
+  return {
+    teacherShare: Math.round(stats.teacherShare * 1000) / 1000,
+    questions: stats.questions, answered: stats.answered,
+    ...(stats.waitMedian != null ? { waitMedian: Math.round(stats.waitMedian * 10) / 10 } : {}),
+    speakers: stats.bySpeaker.map(b => { const sp = speakers.find(s => s.id === b.id)!; return { label: sp.label, role: sp.role, seconds: Math.round(b.seconds) } }),
+  }
+}
+/** Ученик по урокам курса: в скольких говорил (по имени голоса). */
+export function participation(trend: { stats?: LessonStatsSummary }[]) {
+  const withStats = trend.filter(t => t.stats)
+  const names = new Map<string, number>()
+  for (const t of withStats) for (const s of t.stats!.speakers) if (s.role === 'student' && s.seconds > 0) names.set(s.label, (names.get(s.label) ?? 0) + 1)
+  return { lessons: withStats.length, students: [...names].map(([label, spoke]) => ({ label, spoke })).sort((a, b) => a.spoke - b.spoke) }
+}
