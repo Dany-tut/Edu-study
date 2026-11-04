@@ -1751,7 +1751,12 @@ function CenterRecording({
             </div>
           </div>
         ) : (
-        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0}} scrollStyle={{height:'100%'}}>
+        // Прокрутка режет всё за своими краями, а тень плеера (--shadow-4)
+        // выходит на ~28px вбок и ~50px вниз. Поэтому область растянута
+        // на поля колонки и возвращает их внутренним отступом: раскладка
+        // стоит на месте, а тени есть куда лечь.
+        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0,margin:'-12px -16px -22px -24px'}}
+          scrollStyle={{height:'100%',boxSizing:'border-box',padding:'12px 16px 22px 24px'}}>
         <div className="recording-player-layout" style={{ '--recording-player-max-width': PLAYER_MAX_W, flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 } as React.CSSProperties}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {source ? (
