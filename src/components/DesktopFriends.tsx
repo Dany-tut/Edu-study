@@ -1,4 +1,5 @@
 import HScrollFade from './HScrollFade'
+import FadeText from './FadeText'
 import ProfileChips from './ProfileChips'
 import { useT } from '../lib/i18n'
 import { useEffect, useRef, useState } from 'react'
@@ -28,7 +29,7 @@ export default function DesktopFriends({ model }: { model: FriendsModel }) {
     const dialog = panel.current.closest<HTMLElement>('[role="dialog"]')
     if (!dialog) return
     const previous = document.activeElement
-    panel.current.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')?.focus()
+    dialog.querySelector<HTMLButtonElement>('button[aria-pressed="true"]')?.focus()
     const cycle = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return
       const controls = dialog.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)')
@@ -40,9 +41,14 @@ export default function DesktopFriends({ model }: { model: FriendsModel }) {
     return () => { dialog.removeEventListener('keydown',cycle); if (previous instanceof HTMLElement && previous.isConnected) previous.focus() }
   }, [open])
   if (!account || !tab) return null
-  return <Modal title={t('Друзья')} subtitle={snapshot?.handle ? '@' + snapshot.handle : t('Профиль в Искре')} icon={<Users size={24}/>} width={660} zIndex={9200} onClose={() => setTab(null)}>
+  return <Modal title={<div className="friends-modal-heading">
+    <div className="friends-modal-identity">
+      <FadeText>{t('Друзья')}</FadeText>
+      <FadeText className="friends-modal-subtitle">{snapshot?.handle ? '@' + snapshot.handle : t('Профиль в Искре')}</FadeText>
+    </div>
+    <HScrollFade fadeWidth={22} padX={2}><FriendsTabs model={model}/></HScrollFade>
+  </div>} icon={<Users size={24}/>} width={760} zIndex={9200} onClose={() => setTab(null)}>
     <div ref={panel} className="desktop-friends">
-      <HScrollFade fadeWidth={22} padX={2}><FriendsTabs model={model}/></HScrollFade>
       <FriendsContent model={model}/>
     </div>
   </Modal>
