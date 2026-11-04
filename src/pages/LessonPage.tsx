@@ -1,4 +1,5 @@
 import LessonTranscriptPanel from '../components/LessonTranscriptPanel'
+import { playbackPlan } from '../lib/lessonMontage'
 import { useNow } from '../lib/useNow'
 import { textFadeStyle } from '../lib/textFades'
 import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
@@ -842,6 +843,9 @@ export default function LessonPage() {
   const videoSource = detail.videoSource
 
   const timecodes = detail.timecodes
+  // Монтаж записи (если преподаватель его применил): что плеер пропускает и ускоряет.
+  // Дёшево (два десятка пауз) и читается плеером через ref — без useMemo.
+  const montagePlan = lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? playbackPlan(lesson.transcript.montage) : undefined
   // Плеер открыт и уже знает длину ролика — с этого момента показываем часы и
   // полоску проигранного.
   const playing = videoDuration > 0
@@ -1099,6 +1103,7 @@ export default function LessonPage() {
               initialWatch={watch}
               onPersist={persistWatch}
               onTime={onPlayerTime}
+              montage={montagePlan}
             />
 
             {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не

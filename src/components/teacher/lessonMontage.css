@@ -1,0 +1,238 @@
+/* Окно монтажа записи. Цвета — только токены темы. */
+.lm-mark { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 12px; background: var(--color-purple-soft); color: var(--color-purple-text); }
+.lm-title { display: flex; flex-direction: column; justify-content: center; min-width: 0; width: 100%; line-height: 1.25; }
+.lm-title-name { min-width: 0; white-space: nowrap; }
+.lm-title-meta { font-size: 12px; font-weight: 600; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
+.lm-editor { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; min-height: 0; }
+.lm-count { font-size: 11px; font-weight: 700; opacity: .7; font-variant-numeric: tabular-nums; }
+.lm-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; overflow: hidden; color: var(--color-text); }
+.lm-col > * { flex-shrink: 0; }
+.lm-col > .lm-detail-slot { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.lm-col .lm-detail { flex: 1; min-height: 0; grid-template-rows: auto minmax(52px, 1fr) auto auto; align-content: start; }
+.lm-col .lm-wave { height: auto; min-height: 52px; }
+.lm-side { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.lm-side .lm-panel-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 6px 8px 0; }
+.lm-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; color: var(--color-text); }
+.lm-panel-body { min-width: 0; }
+
+/* Плеер */
+.lm-player { display: grid; gap: 10px; }
+.lm-screen { --lm-pad: 12px; position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 14px 18px; border-radius: 18px; background: var(--color-bg-3); overflow: hidden; }
+.lm-rate { display: inline-flex; flex-shrink: 0; align-items: center; gap: 4px; height: 24px; font-size: 12px; box-sizing: border-box; padding: 0 9px; border-radius: 999px; background: var(--color-yellow-soft); color: var(--color-yellow-text); font-weight: 750; font-variant-numeric: tabular-nums; }
+.lm-screen-line { display: grid; justify-items: start; gap: 8px; transition: opacity .2s; }
+.lm-screen-line.is-dim { opacity: .45; }
+.lm-screen-line { align-self: start; align-content: start; }
+.lm-screen-body { --lm-text: 18px; height: calc(24px + 8px + 3 * 1.4 * var(--lm-text)); display: grid; grid-template-rows: minmax(0, 1fr); }
+.lm-screen-text { margin: 0; font-size: var(--lm-text); line-height: 1.4; font-weight: 600; color: var(--color-text); }
+.lm-notice { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); padding: 7px 14px; border-radius: 999px; background: var(--color-bg-2); box-shadow: var(--shadow-sm); font-size: 13px; font-weight: 650; white-space: nowrap; }
+.lm-chip-row { display: flex; align-items: center; gap: 6px; min-width: 0; height: 24px; }
+.lm-chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; box-sizing: border-box; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+.lm-chip.is-quiet { background: var(--color-bg-2); color: var(--color-text-2, var(--color-text-3)); }
+.lm-screen-text.is-quiet { color: var(--color-text-3); }
+.lm-controls { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.lm-chapter { min-width: 0; text-align: center; white-space: nowrap; font-size: 13px; font-weight: 650; color: var(--color-text-3); }
+.lm-play { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 14px; background: var(--grad-purple); color: #fff; cursor: pointer; }
+.lm-time { min-width: 11.5ch; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Шкала */
+.lm-timeline { position: relative; display: grid; gap: 4px; padding: 12px 14px; border-radius: 16px; background: var(--color-bg-3); }
+.lm-row { display: grid; grid-template-columns: 60px minmax(0, 1fr); align-items: center; gap: 8px; }
+.lm-lane-name { position: relative; display: block; min-width: 0; cursor: text; user-select: none; -webkit-user-select: none; }
+.lm-lane-name > .lm-lane-label { display: block; }
+.lm-lane-edit { position: absolute; inset: 0; display: block; border-bottom: 1.5px solid; }
+.lm-lane-input { position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 700; line-height: inherit; outline: none; }
+.lm-lane-label { min-width: 0; white-space: nowrap; font-size: 12px; font-weight: 700; color: var(--color-text-3); }
+.lm-track { position: relative; height: 14px; clip-path: inset(-40px 0 -40px 0); }
+.lm-playhead-row .lm-track { clip-path: inset(-40px -200px -40px -40px); }
+.lm-zoom-hint > div { display: flex; align-items: center; gap: 10px; height: 16px; min-width: 0; overflow: hidden; }
+.lm-zoom-reset { flex-shrink: 0; height: 16px; padding: 0; border: 0; background: none; color: var(--color-purple-text); font: inherit; font-size: 11px; font-weight: 700; line-height: 16px; cursor: pointer; }
+.lm-zoom-hint small { white-space: nowrap; line-height: 16px; font-size: 11px; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
+.lm-timeline { overscroll-behavior-x: contain; }
+.lm-lane { height: 28px; border-radius: 5px; background: var(--color-bg-2); cursor: col-resize; touch-action: pan-y; }
+.lm-timeline.is-scrubbing, .lm-timeline.is-scrubbing * { cursor: col-resize; user-select: none; }
+.lm-lane i { position: absolute; top: 2px; bottom: 2px; min-width: 2px; border-radius: 2px; opacity: .85; pointer-events: none; }
+.lm-ruler .lm-track { height: 18px; }
+.lm-ruler .lm-track span, .lm-wave-ticks span { position: absolute; top: 0; transform: translateX(-50%); font-size: 10px; line-height: 12px; color: var(--color-text-3); font-variant-numeric: tabular-nums; white-space: nowrap; animation: lm-tick-in .28s ease-out both; }
+/* Засечки: крупные под подписью, мелкие между. Новые деления при масштабе
+   проявляются, а не выскакивают. */
+.lm-tick { position: absolute; bottom: 0; width: 1px; height: 3px; margin-left: -0.5px; background: var(--color-text-3); opacity: .45; animation: lm-tick-in .28s ease-out both; }
+.lm-tick.is-major { height: 5px; opacity: .8; }
+@keyframes lm-tick-in { from { opacity: 0; } }
+.lm-wave-ticks { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; pointer-events: none; }
+.lm-wave-ticks span { top: 6px; }
+.lm-wave-ticks .lm-tick { top: 0; bottom: auto; }
+.lm-wave-now { position: absolute; z-index: 2; top: 0; bottom: 18px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--color-text); pointer-events: none; }
+.lm-wave { cursor: col-resize; }
+.lm-lane-pauses { height: 4px; }
+.lm-pause { position: absolute; top: 0; bottom: 0; min-width: 6px; padding: 0; border: 0; border-radius: 4px; cursor: pointer; }
+.lm-pause.is-cut { background: repeating-linear-gradient(135deg, var(--color-red-text) 0 3px, var(--color-red-soft) 3px 6px); }
+.lm-pause.is-speed { background: var(--color-yellow-text); opacity: .8; }
+.lm-pause.is-keep { background: transparent; box-shadow: inset 0 0 0 1.5px var(--color-text-3); }
+.lm-pause.is-selected { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
+.lm-pause:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
+.lm-playhead-row { position: absolute; inset: 12px 14px 31px; pointer-events: none; }
+.lm-playhead-row .lm-track { height: 100%; }
+.lm-hoverhead { position: absolute; z-index: 1; top: 0; bottom: 0; width: 1px; margin-left: -0.5px; background: var(--color-text-3); opacity: .7; transition: transform .28s cubic-bezier(.3, 1.6, .5, 1), opacity .15s; }
+.lm-hoverhead.is-snapped { width: 2px; margin-left: -1px; opacity: 1; background: var(--color-control-accent); }
+.lm-hoverhead.is-stretched { width: 2px; margin-left: -1px; opacity: 1; background: var(--color-control-accent); transition: opacity .15s; }
+.lm-playhead, .lm-hover-tip { transition: transform .28s cubic-bezier(.3, 1.6, .5, 1), translate .28s cubic-bezier(.3, 1.6, .5, 1); }
+.lm-timeline.is-scrubbing .lm-playhead { transition: none; }
+@media (prefers-reduced-motion: reduce) { .lm-hoverhead, .lm-playhead, .lm-hover-tip { transition: none; } .lm-tick, .lm-ruler .lm-track span, .lm-wave-ticks span { animation: none; } }
+.lm-hover-tip { position: absolute; top: -4px; transform: translate(6px, 0); padding: 2px 8px; border-radius: 8px; background: var(--color-bg-2); box-shadow: var(--shadow-xs); font-size: 11px; color: var(--color-text-3); white-space: nowrap; font-variant-numeric: tabular-nums; z-index: 2; }
+.lm-hover-tip.is-left { transform: translate(calc(-100% - 6px), 0); }
+.lm-hover-tip strong { color: var(--color-text); }
+.lm-sel-col { position: absolute; top: 18px; bottom: 0; min-width: 2px; border-radius: 6px 6px 0 0; background: linear-gradient(to top, color-mix(in srgb, var(--color-control-accent) 22%, transparent), color-mix(in srgb, var(--color-control-accent) 6%, transparent)); animation: lm-tick-in .25s ease-out both; }
+.lm-playhead { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--color-text); }
+
+/* Выбранная пауза */
+.lm-detail { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid var(--color-border-medium); }
+.lm-detail-head { display: flex; align-items: center; gap: 10px; }
+.lm-detail-title { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.lm-detail-title strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+.lm-detail-title small { font-size: 12px; color: var(--color-text-3); }
+.lm-icon-btn { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; padding: 0; border: 0; border-radius: 11px; background: var(--color-bg-3); color: var(--color-text); cursor: pointer; }
+.lm-icon-btn:disabled { opacity: .4; cursor: default; }
+.lm-wave { position: relative; height: 118px; padding: 16px 0 18px; border-radius: 12px; background: var(--color-bg-3); touch-action: pan-y; user-select: none; overflow: hidden; overscroll-behavior-x: contain; }
+.lm-wave-lines { position: absolute; top: 6px; left: 0; right: 0; height: 5px; }
+.lm-wave-lines i { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+.lm-wave-bars { display: block; width: 100%; height: 100%; }
+.lm-wave-bars rect { fill: var(--color-text-3); opacity: .55; }
+.lm-wave-range { position: absolute; top: 14px; bottom: 16px; border-radius: 6px; pointer-events: none; }
+.lm-wave-range.is-cut { background: color-mix(in srgb, var(--color-red-text) 16%, transparent); box-shadow: inset 0 0 0 1.5px var(--color-red-text); }
+.lm-wave-range.is-speed { background: color-mix(in srgb, var(--color-yellow-text) 18%, transparent); box-shadow: inset 0 0 0 1.5px var(--color-yellow-text); }
+.lm-wave-range.is-keep { box-shadow: inset 0 0 0 1.5px var(--color-text-3); }
+.lm-handle { position: absolute; top: 8px; bottom: 10px; width: 24px; margin-left: -12px; padding: 0; border: 0; background: transparent; cursor: ew-resize; touch-action: none; }
+.lm-handle::before { content: ''; position: absolute; left: calc(50% - 1.5px); top: 0; bottom: 0; width: 3px; border-radius: 2px; background: var(--color-control-accent); box-shadow: var(--shadow-xs); }
+.lm-handle:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 1px; border-radius: 6px; }
+.lm-wave-edge { position: absolute; bottom: 2px; font-size: 10px; color: var(--color-text-3); font-variant-numeric: tabular-nums; padding: 0 6px; }
+.lm-detail-note { height: 36px; display: flex; align-items: center; min-width: 0; }
+.lm-detail-hint { font-size: 12px; color: var(--color-text-3); white-space: nowrap; min-width: 0; }
+.lm-warn { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; height: 36px; box-sizing: border-box; padding: 0 4px 0 12px; border-radius: 12px; background: var(--color-red-soft); color: var(--color-red-text); font-size: 13px; font-weight: 600; }
+.lm-warn > svg { flex-shrink: 0; }
+.lm-warn-text { flex: 1; min-width: 0; white-space: nowrap; }
+.lm-warn > button { flex-shrink: 0; }
+.lm-detail-title small { display: block; height: 16px; line-height: 16px; }
+.lm-detail-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* Списки */
+.lm-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.lm-lead { margin: 0 0 4px; font-size: 13px; line-height: 1.45; color: var(--color-text-3); }
+.lm-empty { margin: 0; padding: 14px; border-radius: 14px; background: var(--color-bg-3); font-size: 13px; color: var(--color-text-3); }
+.lm-list-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; flex-shrink: 0; }
+.lm-list-head .lm-lead { margin: 0; }
+.lm-bulk { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.lm-pause-row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border: 1px solid transparent; border-radius: 14px; background: var(--color-bg-3); color: var(--color-text); font: inherit; text-align: start; cursor: pointer; }
+.lm-pause-row { position: relative; }
+/* Где сейчас плеер: строка его паузы чуть подсвечена с засечкой у начала,
+   а между паузами — тонкая черта в зазоре над следующей. Без сдвига строк. */
+.lm-pause-row.is-now { background: color-mix(in srgb, var(--color-control-accent) 9%, var(--color-bg-3)); }
+.lm-pause-row.is-now::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: var(--color-control-accent); }
+.lm-pause-row.is-next::after, .lm-pause-row.is-past::after { content: ''; position: absolute; left: 12px; right: 12px; height: 2px; border-radius: 1px; background: var(--color-control-accent); }
+.lm-pause-row.is-next::after { top: -5px; }
+.lm-pause-row.is-past::after { bottom: -5px; }
+.lm-pause-row.is-selected { border-color: var(--color-control-accent); background: var(--color-purple-soft); }
+.lm-pause-row:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
+.lm-pause-copy { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.lm-pause-copy strong { font-size: 13px; font-variant-numeric: tabular-nums; }
+.lm-pause-copy small { font-size: 12px; color: var(--color-text-3); }
+.lm-dot { width: 10px; height: 10px; flex-shrink: 0; border-radius: 3px; }
+.lm-dot.is-cut { background: var(--color-red-text); }
+.lm-dot.is-speed { background: var(--color-yellow-text); }
+.lm-dot.is-keep { box-shadow: inset 0 0 0 1.5px var(--color-text-3); }
+.lm-tag { flex-shrink: 0; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.lm-tag.is-cut { background: var(--color-red-soft); color: var(--color-red-text); }
+.lm-tag.is-speed { background: var(--color-yellow-soft); color: var(--color-yellow-text); }
+.lm-tag.is-keep { background: var(--color-bg-2); color: var(--color-text-3); }
+
+.lm-speaker { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border-radius: 16px; background: var(--color-bg-3); }
+.lm-speaker-head { display: flex; align-items: center; gap: 10px; }
+.lm-avatar { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; background: var(--tone-bg); color: var(--tone); font-weight: 800; }
+.lm-name { flex: 1; min-width: 0; }
+.lm-name input, .lm-line-text { width: 100%; box-sizing: border-box; min-height: 40px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 11px; background: var(--color-bg-input); color: var(--color-text); font: inherit; font-size: 16px; }
+.lm-name input { font-weight: 700; }
+.lm-name input:focus-visible, .lm-line-text:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 0; }
+.lm-share { height: 6px; border-radius: 3px; background: var(--color-bg-2); overflow: hidden; }
+.lm-share i { display: block; height: 100%; border-radius: 3px; background: var(--tone); }
+.lm-speaker-meta { font-size: 12px; color: var(--color-text-3); }
+.lm-speaker-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lm-merge { flex: 1 1 180px; min-width: 0; }
+.lm-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.lm-line { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 10px; border-radius: 14px; background: var(--color-bg-3); border: 1px solid transparent; }
+.lm-line.is-now { border-color: var(--color-control-accent); }
+.lm-line.is-cut { opacity: .6; }
+.lm-line-head { display: flex; align-items: center; gap: 8px; }
+.lm-line-who { flex: 0 1 170px; min-width: 0; }
+.lm-time-btn { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 10px; border: 0; border-radius: 10px; background: var(--color-bg-2); color: var(--color-text); font: inherit; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; }
+.lm-line-text { resize: none; line-height: 1.4; }
+
+.lm-setting { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border-radius: 14px; background: var(--color-bg-3); }
+.lm-setting > div:first-child { display: grid; gap: 2px; }
+.lm-setting strong { font-size: 13px; }
+.lm-setting small { font-size: 12px; color: var(--color-text-3); line-height: 1.4; }
+.lm-stepper { display: flex; align-items: center; gap: 10px; }
+.lm-stepper span { min-width: 48px; text-align: center; font-weight: 750; font-variant-numeric: tabular-nums; }
+.lm-stepper .lm-icon-btn { background: var(--color-bg-2); }
+
+.lm-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.lm-footer-sum { flex: 1 1 220px; min-width: 0; font-size: 13px; color: var(--color-text-3); }
+.lm-footer-short { display: none; }
+.lm-footer-sum strong { margin-right: 6px; color: var(--color-green-text); font-variant-numeric: tabular-nums; }
+
+@media (min-width: 1024px) and (max-height: 940px) {
+  .lm-screen { --lm-pad: 10px; padding: 10px 10px 12px 16px; }
+  .lm-screen-body { --lm-text: 15px; }
+  .lm-timeline { gap: 2px; padding: 8px 12px; }
+  .lm-playhead-row { inset: 8px 12px 25px; }
+  .lm-lane { height: 24px; }
+  .lm-lane-pauses { height: 4px; }
+  .lm-detail { gap: 8px; padding: 12px; }
+  .lm-col { gap: 8px; }
+}
+@media (min-width: 1024px) and (max-height: 820px) {
+  .lm-zoom-hint { display: none; }
+  .lm-playhead-row { inset: 8px 12px; }
+  .lm-screen { --lm-pad: 8px; gap: 4px; padding: 8px 8px 10px 14px; }
+  .lm-screen-line { gap: 4px; }
+  .lm-screen-body { --lm-text: 14px; height: calc(20px + 4px + 2 * 1.4 * var(--lm-text)); }
+  .lm-col { gap: 6px; }
+  .lm-detail { gap: 6px; padding: 12px; }
+  .lm-lane { height: 18px; }
+  .lm-lane-pauses { height: 3px; }
+  .lm-timeline { gap: 1px; }
+  .lm-ruler .lm-track { height: 16px; }
+  .lm-detail-head .lm-icon-btn { width: 30px; height: 30px; }
+  .lm-detail-note, .lm-warn { height: 30px; }
+  .lm-col .lm-detail { grid-template-rows: auto minmax(22px, 1fr) auto auto; }
+  .lm-col .lm-wave { min-height: 22px; }
+  .lm-chip-row, .lm-chip, .lm-rate { height: 20px; }
+  .lm-chip { padding: 0 8px; font-size: 11px; }
+  .lm-play { width: 36px; height: 36px; border-radius: 12px; }
+  .lm-detail-hint { display: none; }
+  .lm-col .lm-wave { padding: 10px 0 14px; }
+}
+@media (max-width: 1023px) {
+  .lm-zoom-hint { display: none; }
+  /* 16 px — иначе iOS приближает страницу при фокусе; визуально как 12. */
+  .lm-lane-input { font-size: 16px; width: 133.4%; height: 133.4%; transform: scale(.75); transform-origin: left top; }
+  .lm-screen { --lm-pad: 12px; padding: 12px 12px 14px 16px; }
+  .lm-screen-body { --lm-text: 16px; }
+  .lm-row { grid-template-columns: 56px minmax(0, 1fr); gap: 6px; }
+  .lm-timeline { padding: 10px; }
+  .lm-playhead-row { inset: 10px; }
+  .lm-wave { height: 104px; }
+  .lm-handle { width: 36px; margin-left: -18px; }
+  .lm-footer > button { flex: 1 1 0; }
+}
+@media (max-width: 360px) { .lm-long { display: none; } }
+@media (max-width: 600px) { .lm-controls { grid-template-columns: auto minmax(0, 1fr) auto; } .lm-chapter { grid-column: 1 / -1; grid-row: 2; text-align: start; } .lm-footer-detail { display: none; } .lm-footer-short { display: inline; } }
+@media (prefers-reduced-motion: reduce) { .lm-screen-line { transition: none; } }
+
+/* Приближенная шкала и волна: фейд у края, за которым ещё есть запись
+   (--fade-l / --fade-r из компонента). Подписи времени и линия плеера
+   с подсказкой не маскируются. */
+.lm-timeline .lm-row:not(.lm-playhead-row) .lm-track,
+.lm-wave > :not(.lm-wave-ticks):not(.lm-wave-now) {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-l, 0px), #000 calc(100% - var(--fade-r, 0px)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-l, 0px), #000 calc(100% - var(--fade-r, 0px)), transparent);
+}

@@ -4994,7 +4994,7 @@ function LessonRow({
       }}>
         {lesson.kind === 'test' ? <ClipboardCheck size={14} /> : (displayIndex ?? lesson.number)}
       </div>
-      <span style={{
+      <span className={selected && !multiMode ? 'lesson-row-title has-delete' : 'lesson-row-title'} style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
         color: selected ? 'var(--color-green-text)' : 'var(--color-text)',
         overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap',

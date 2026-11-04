@@ -29,8 +29,11 @@ const baseTrigger: React.CSSProperties = {
 export default function TeacherSelect({
   value, options, onChange, placeholder, triggerStyle, small = false,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)',
-  onAddOption, onDeleteOption, clearable = true, menuZIndex = 2000, disabled = false,
+  onAddOption, onDeleteOption, clearable = true, menuZIndex = 2000, disabled = false, search,
 }: {
+  /** Поле поиска на открытом триггере. По умолчанию — при пяти вариантах и больше;
+   *  false — подпись остаётся на месте (короткие списки внутри плотных строк). */
+  search?: boolean
   menuZIndex?: number
   disabled?: boolean
   value: string
@@ -74,7 +77,7 @@ export default function TeacherSelect({
   const opts = options.map(norm).filter(o => o.value !== '')
   const current = opts.find(o => o.value === value)
   const isEmpty = !current
-  const searchable = opts.length > 4
+  const searchable = search ?? opts.length > 4
 
   const filtered = (searchable && query)
     ? opts.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))

@@ -15,10 +15,24 @@
     opacity: 1;
     pointer-events: auto;
   }
+
+  /* While the trash is hidden the title takes its slot (26px + 8px gap),
+     so the fade moves right and shows more text. Only the title's own
+     width changes — the trash and the open badge stay in place. */
+  .lesson-row .lesson-row-title.has-delete {
+    margin-right: -34px;
+    transition: margin-right 160ms ease;
+  }
+
+  .lesson-row:hover .lesson-row-title.has-delete,
+  .lesson-row:focus-within .lesson-row-title.has-delete {
+    margin-right: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lesson-row .lesson-row-delete { transition: none; }
+  .lesson-row .lesson-row-delete,
+  .lesson-row .lesson-row-title { transition: none; }
 }
 
 /* Briefly explain the status, then leave a compact unlocked circle. */
@@ -64,4 +78,7 @@
     opacity: 1;
     pointer-events: auto;
   }
+
+  /* The trash is always visible on touch, so the title keeps its width. */
+  .lesson-row .lesson-row-title.has-delete { margin-right: 0; }
 }

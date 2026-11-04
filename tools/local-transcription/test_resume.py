@@ -31,6 +31,7 @@ class ResumeTests(unittest.TestCase):
         folder=self.folder
         if 'ffmpeg'==cmd[0]: (folder/'audio-00000.wav').write_bytes(b'audio')
         elif cmd[1].endswith('recognize.py'):(folder/'segments.json').write_text('[{"start":0,"end":2,"text":"Результат A"}]')
+        elif cmd[1].endswith('silence.py'):(folder/'montage.json').write_text('{"duration":2,"step":0.5,"levels":[-20,-20,-60,-60],"quiet":[]}')
         elif cmd[1].endswith('slides.py'):(folder/'slides.json').write_text('[]')
         else:(folder/'chapters.json').write_text('[{"start":0,"title":"Глава A"}]')
         return subprocess.CompletedProcess(cmd,0)
@@ -41,7 +42,8 @@ class ResumeTests(unittest.TestCase):
         self.s.gate.acquire()
         with patch.object(self.s.subprocess,'run',side_effect=self.run_step) as run:
             self.s.process(restored,self.folder,'')
-        self.assertEqual([Path(c.args[0][1]).name for c in run.call_args_list],['slides.py','topics.py'])
+        # Задача старого модуля, прерванная после распознавания, добирает и новый шаг пауз.
+        self.assertEqual([Path(c.args[0][1]).name for c in run.call_args_list],['silence.py','slides.py','topics.py'])
         self.s.jobs=job_store.load(self.s.JOBS)
         result=self.client.get('/jobs/'+job['id'],base_url='http://127.0.0.1:18764',headers=self.headers)
         self.assertTrue(result.json['done']);self.assertEqual(result.json['segments'][0]['text'],'Результат A')
