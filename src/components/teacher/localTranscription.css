@@ -220,11 +220,11 @@
 /* Время главы: у левого края цифры, при наведении на строку поверх них ▶.
    Клик — перемотка; двойной клик или правая кнопка — правка, тогда ▶ уходит
    (фокус в поле). Ячейка одной ширины в обоих видах — строка не прыгает. */
-.chapter-time {position:relative;flex-shrink:0;display:flex}
-/* Ширина — та же --time-chars, что у общего правила поля времени, плюс поля
-   под подложку правки. */
+/* margin-right:-6px гасит gap строки: от цифр до названия 4 + 4 px, как у реплик слева. */
+.chapter-time {position:relative;flex-shrink:0;display:flex;margin-right:-6px}
+/* Ширина — ровно --time-chars цифр плюс поля под подложку правки. */
 .timecode-editor .chapter-time input.chapter-time-input {
-  width:calc((var(--time-chars, 5) + 0.5) * 1ch + 8px) !important;padding:3px 4px !important;border:0;border-radius:6px;margin:0;
+  width:calc(var(--time-chars, 5) * 1ch + 8px) !important;padding:3px 4px !important;border:0;border-radius:6px;margin:0;
   background:transparent;color:var(--color-text-3);font:inherit;font-size:12px;
   font-variant-numeric:tabular-nums;text-align:left;outline:none;
 }
