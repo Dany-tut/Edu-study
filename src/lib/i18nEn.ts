@@ -10,6 +10,19 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Не удалось скопировать": "Could not copy",
+  "Ник в Искре": "Iskra handle",
+  "По нику друзья смогут найти тебя и отправить заявку.": "Friends can find you by your handle and send a request.",
+  "Открыть друзей": "Open friends",
+  "Твой профиль для друзей": "Your profile for friends",
+  "Твой ник в Искре": "Your Iskra handle",
+  "Твой email остаётся приватным.": "Your email stays private.",
+  "Палитра курса": "Course palette",
+  "Твой профиль в Искре.": "Your profile in Iskra.",
+  "Поиск людей, заявки и твой ник.": "Find people, manage requests and your handle.",
+  "Ник, видимость и оформление кабинета.": "Handle, visibility and appearance.",
+  "Тебя можно найти по точному нику": "People can find you by your exact handle",
+  "Выбери ник, чтобы друзья могли тебя найти": "Choose a handle so friends can find you",
   "Аватар": "Avatar",
   "Личные данные": "Personal details",
   "Как вас видят в Искре.": "How you appear in Iskra.",
