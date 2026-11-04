@@ -4892,6 +4892,11 @@ function LessonRow({
   onClick: (e: React.MouseEvent) => void; onDelete: () => void
 }) {
   const t = useT()
+  const hasDots = lesson.kind === 'test'
+    ? (lesson.testTasks?.length ?? 0) > 0
+    : !!lesson.videoUrl
+      || (lesson.hwTasks?.length ?? 0) > 0 || !!lesson.extraHw?.some(x => x.tasks.length > 0)
+      || ((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0
   return (
     <motion.button
       className="lesson-row editor-delete-row"
@@ -4929,15 +4934,6 @@ function LessonRow({
       }}>
         {tc(lesson.title) || (lesson.kind === 'test' ? t('Тест без названия') : t('Урок без названия'))}
       </span>
-      {/* Open-for-students badge */}
-      {isOpen && (
-        <span className="lesson-row-open" title={t('Открыт ученикам')} aria-label={t('Открыт ученикам')}>
-          <Unlock size={12} strokeWidth={2.5} aria-hidden="true" />
-          <span className="lesson-row-open-label" aria-hidden="true">
-            <span><span style={{ paddingLeft: 4 }}>{t('Открыт')}</span></span>
-          </span>
-        </span>
-      )}
       {/* Multi-select check → checkmark; selected → trash; otherwise indicator dots */}
       {multiMode ? (
         <div style={{
@@ -4962,7 +4958,7 @@ function LessonRow({
         >
           <Trash2 size={14} />
         </div>
-      ) : (
+      ) : hasDots ? (
         <div style={{ width: 26, display: 'flex', justifyContent: 'center', gap: 4, flexShrink: 0 }}>
           {lesson.kind === 'test'
             ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Вопросы')} />
@@ -4972,6 +4968,15 @@ function LessonRow({
                 {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title={t('Доп. ученики')} />}
               </>}
         </div>
+      ) : null}
+      {/* Open-for-students badge — always flush right */}
+      {isOpen && (
+        <span className="lesson-row-open" title={t('Открыт ученикам')} aria-label={t('Открыт ученикам')}>
+          <Unlock size={12} strokeWidth={2.5} aria-hidden="true" />
+          <span className="lesson-row-open-label" aria-hidden="true">
+            <span><span style={{ paddingLeft: 4 }}>{t('Открыт')}</span></span>
+          </span>
+        </span>
       )}
     </motion.button>
   )
