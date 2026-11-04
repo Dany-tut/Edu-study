@@ -1865,8 +1865,12 @@ function CenterRecording({
         // выходит на ~28px вбок и ~50px вниз. Поэтому область растянута
         // на поля колонки и возвращает их внутренним отступом: раскладка
         // стоит на месте, а тени есть куда лечь.
-        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0,margin:'-12px -16px -22px -24px'}}
-          scrollStyle={{height:'100%',boxSizing:'border-box',padding:'12px 16px 22px 24px'}}>
+        // Снизу область уходит ещё и в нижнее поле страницы (центр «Записи»
+        // для этого опущен на RECORDING_BLEED, а .recording-workspace его
+        // возвращает): карточка глав кончается на одной линии с рельсой
+        // реплик и списком уроков, а тени остаётся место под ней.
+        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0,margin:`-12px -16px ${-22 - RECORDING_BLEED}px -24px`}}
+          scrollStyle={{height:'100%',boxSizing:'border-box',padding:`12px 16px ${RECORDING_BLEED}px 24px`}}>
         <div className="recording-player-layout" style={{ '--recording-player-max-width': PLAYER_MAX_W, flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 } as React.CSSProperties}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ marginBottom: 4 }}>{linkRow}</div>
@@ -1963,7 +1967,7 @@ function CenterRecording({
   }
 
   return (
-    <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+    <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', paddingBottom: RECORDING_BLEED }}>
       {loading || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         onApply={({ transcript, timecodes }) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes })}>{content}</TranscriptionAction>}
@@ -5642,6 +5646,10 @@ const LESSON_MODES: { id: LessonMode; label: string }[] = [
 // тень рисуется в этот запас, карточка не выглядит обрезанной по краям.
 const RAIL_W = 248
 const RAIL_BLEED = 24
+// Нижнее поле тела страницы (padding-bottom 3-колоночного тела). Центр «Записи»
+// уходит в него, чтобы низ карточки глав совпал с рельсой и списком уроков, а
+// её тень не обрезалась краем колонки.
+const RECORDING_BLEED = 24
 // Сверху запас меньше: тень уходит вверх всего на ~8px (blur 28 / 2 − сдвиг 6),
 // а широкая полоса легла бы поверх кнопок шапки и перехватывала их клики.
 const RAIL_BLEED_TOP = 12
@@ -7265,7 +7273,8 @@ export default function TeacherCourseEditorPage() {
 
         {/* CENTER — без `layout`-анимации: ширину колонке даёт flex, лишняя
             layout-анимация только дралась бы с ним. */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          marginBottom: selectedLesson && selectedLesson.kind !== 'test' && lessonMode === 'recording' ? -RECORDING_BLEED : 0 }}>
           {/* Ключ — только «карточка курса» или «урок», без id урока, и без
               AnimatePresence.
               Причина: под `mode="wait"` каждая смена ключа запускает цикл
@@ -7427,8 +7436,9 @@ export default function TeacherCourseEditorPage() {
           </motion.div>
         </div>
 
-        {/* RIGHT: always lesson list */}
-        <GlassCard style={{ width: 288, flexShrink: 0, alignSelf: 'flex-start', maxHeight: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* RIGHT: always lesson list — во всю высоту тела, как рельса слева:
+            низ всех колонок на одной линии, а не там, где кончился список. */}
+        <GlassCard style={{ width: 288, flexShrink: 0, maxHeight: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <RightPanelLessons
             course={course} setCourse={setCourse}
             selectedLessonId={selectedLessonId} onSelectLesson={handleSelectLesson}
