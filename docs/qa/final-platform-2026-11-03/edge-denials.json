@@ -1,0 +1,29 @@
+{
+  "scope": "Unauthenticated empty requests only; no provider message or job requested",
+  "results": [
+    {
+      "slug": "tg-webhook",
+      "status": 200,
+      "expected": 403,
+      "body": "ok"
+    },
+    {
+      "slug": "tg-reply",
+      "status": 401,
+      "expected": 401,
+      "body": "{\"code\":\"UNAUTHORIZED_NO_AUTH_HEADER\",\"message\":\"Missing authorization header\"}"
+    },
+    {
+      "slug": "analytics-digest",
+      "status": 401,
+      "expected": 401,
+      "body": "{\"error\":\"Не авторизован\"}"
+    },
+    {
+      "slug": "chembio-day",
+      "status": 403,
+      "expected": 403,
+      "body": "{\"error\":\"forbidden\"}"
+    }
+  ]
+}

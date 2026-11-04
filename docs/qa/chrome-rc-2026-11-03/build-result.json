@@ -1,0 +1,54 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "codex/ios-password-acceptance-1103-r2",
+    "environment": "local",
+    "commit": "c0ca274b967da8710e2fcdc3ca6dc3c88ad15534",
+    "build": 1925,
+    "version": "1.0.1925"
+  },
+  "originalFrozenFilesSHA256": {
+    "version.json": "9ef90fcede7e6043089f7c33412714f4be423913d3c643af1b3edec04f328aed",
+    "index.html": "73edb43a125fc840547aff7a13845ce2f4e8574311dc06ee45262e0a9a7bc47e",
+    "release.json": "30cf8ecd1cac728fb9114f547a3225621480cce55790237b80380c154702218d",
+    "assets/TeacherLoginPage-Bcd6Reum.js": "95e30214e131e0577844c7220f10bc04986b2b01a205affc305fedaf1acd2d8f"
+  },
+  "results": {
+    "form": "PASS",
+    "formSeconds": 27.047,
+    "motionEvidenceSeconds": 1.452,
+    "cleanupSeconds": 1.386,
+    "viewportPt": [
+      402,
+      874
+    ],
+    "passwordAXFrame": [
+      49,
+      371,
+      304,
+      55
+    ],
+    "eyeAXFrame": [
+      304,
+      376,
+      45,
+      45
+    ],
+    "keyboardHideTop": 480.6666667,
+    "scrollEmailY": [
+      427,
+      190
+    ],
+    "toggles": 6,
+    "retainsTextAndKeyboard": true,
+    "rafFrames": 865,
+    "toggleRafFrames": 414,
+    "toggleEyeDomYRange": [
+      260.78125,
+      260.78125
+    ],
+    "serverStopped": true,
+    "submit": false
+  },
+  "testBundle": "/tmp/iskra-chrome-rc.twnxA6/chrome-r2-final.xcresult"
+}

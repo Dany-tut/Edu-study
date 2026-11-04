@@ -1,0 +1,19 @@
+{
+  "sha": "36e89f59b3de5a2f790af5c47ca362b13c0fdf19",
+  "version": "1.0.1944",
+  "scope": "Anonymous public login forms; no credentials or form submission",
+  "results": [
+    {
+      "role": "student",
+      "path": "/#/login",
+      "status": "PASS",
+      "errors": []
+    },
+    {
+      "role": "teacher",
+      "path": "/#/teacher/login",
+      "status": "PASS",
+      "errors": []
+    }
+  ]
+}

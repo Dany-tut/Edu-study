@@ -1,0 +1,25 @@
+{
+  "results": [
+    {
+      "name": "admin",
+      "status": "ALREADY_REMOVED"
+    },
+    {
+      "name": "teacherA",
+      "status": "REMOVED_VERIFIED"
+    },
+    {
+      "name": "teacherB",
+      "status": "REMOVED_VERIFIED"
+    },
+    {
+      "name": "studentA",
+      "status": "REMOVED_VERIFIED"
+    },
+    {
+      "name": "studentB",
+      "status": "REMOVED_VERIFIED"
+    }
+  ],
+  "failures": []
+}

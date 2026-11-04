@@ -1,0 +1,58 @@
+[
+  {
+    "score": 90,
+    "width": 320,
+    "theme": "light",
+    "status": "PASS",
+    "detail": "First completed score is visible as chart point; zero stays 0%, no empty-grade message or invalid coordinates"
+  },
+  {
+    "score": 90,
+    "width": 320,
+    "theme": "dark",
+    "status": "PASS",
+    "detail": "First completed score is visible as chart point; zero stays 0%, no empty-grade message or invalid coordinates"
+  },
+  {
+    "score": 90,
+    "width": 390,
+    "theme": "light",
+    "status": "PASS",
+    "detail": "First completed score is visible as chart point; zero stays 0%, no empty-grade message or invalid coordinates"
+  },
+  {
+    "score": 90,
+    "width": 390,
+    "theme": "dark",
+    "status": "PASS",
+    "detail": "First completed score is visible as chart point; zero stays 0%, no empty-grade message or invalid coordinates"
+  },
+  {
+    "score": 0,
+    "width": 320,
+    "theme": "light",
+    "status": "PASS",
+    "detail": "First completed score is visible as chart point; zero stays 0%, no empty-grade message or invalid coordinates"
+  },
+  {
+    "score": 0,
+    "width": 320,
+    "theme": "dark",
+    "status": "PASS",
+    "detail": "First completed score is visible as chart point; zero stays 0%, no empty-grade message or invalid coordinates"
+  },
+  {
+    "score": 0,
+    "width": 390,
+    "theme": "light",
+    "status": "PASS",
+    "detail": "First completed score is visible as chart point; zero stays 0%, no empty-grade message or invalid coordinates"
+  },
+  {
+    "score": 0,
+    "width": 390,
+    "theme": "dark",
+    "status": "PASS",
+    "detail": "First completed score is visible as chart point; zero stays 0%, no empty-grade message or invalid coordinates"
+  }
+]

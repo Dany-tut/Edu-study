@@ -1,0 +1,20 @@
+{
+  "scope": "isolated Python harness fixture only; no device/backend connection",
+  "results": [
+    {
+      "case": "valid",
+      "passed": true,
+      "originalWriteForwarded": true
+    },
+    {
+      "case": "foreign",
+      "passed": true,
+      "originalWriteForwarded": false
+    },
+    {
+      "case": "invalid-token",
+      "passed": true,
+      "originalWriteForwarded": false
+    }
+  ]
+}

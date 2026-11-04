@@ -37,3 +37,21 @@
 @media (max-height: 600px) {
   .auth-page-layout { align-items: flex-start; }
 }
+
+/* The status keeps the same geometry for hints, errors, pending actions and success. */
+.auth-feedback-slot { height: 56px; flex: 0 0 56px; }
+.auth-feedback { box-sizing: border-box; height: 56px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px; color: var(--color-purple-text); background: var(--color-accent-soft); }
+.auth-feedback[data-tone="danger"] { color: var(--color-red-text); background: var(--color-red-soft); }
+.auth-feedback[data-tone="success"] { color: var(--color-green-text); background: var(--color-green-soft); }
+.auth-feedback--idle { color: var(--color-muted); background: transparent; }
+.auth-feedback-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; }
+.auth-feedback strong { display: block; font-size: 13px; line-height: 16px; font-weight: 650; margin: 0; }
+.auth-feedback p { margin: 0; font-size: 13px; line-height: 16px; color: var(--color-text-2); overflow-wrap: anywhere; }
+.auth-feedback--idle p { color: var(--color-muted); }
+.auth-feedback-cancel { display: flex; align-items: center; justify-content: center; flex-shrink: 0; min-height: 44px; padding: 0 3px; border: 0; background: transparent; color: inherit; font-size: 13px; line-height: 16px; font-weight: 650; cursor: pointer; }
+.auth-feedback-spinner { animation: auth-feedback-spin 1.2s linear infinite; }
+@keyframes auth-feedback-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .auth-feedback-spinner { animation: none; } }
+
+.auth-page-card .auth-input[aria-invalid="true"] { border-color: var(--color-red-text) !important; }
+.auth-page-card button:disabled { cursor: not-allowed; }

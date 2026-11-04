@@ -1,0 +1,3 @@
+PASS: private handle, expired/revoked/replaced invites, two-party consent, rename, decline/removal, outsider and anon denial.
+PostgreSQL: PostgreSQL 18.6 (PGlite 0.5.14) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit
+Migration sha256: 47657437229fe1cbe2327ed51b6c293132824cb5cf031df8647e52c768d2f90f

@@ -1,0 +1,2 @@
+import{spawnSync}from'node:child_process';import{fileURLToPath}from'node:url';
+const end=Date.now()+20000;let result;do{result=spawnSync(process.execPath,[fileURLToPath(new URL('./verify_phase_once.mjs',import.meta.url)),...process.argv.slice(2)],{env:process.env,encoding:'utf8'});if(result.status===0){process.stdout.write(result.stdout);process.exit(0)}await new Promise(r=>setTimeout(r,300))}while(Date.now()<end);process.stderr.write(result.stderr||'Read-only phase expectation did not converge');process.exit(1);

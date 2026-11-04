@@ -226,7 +226,7 @@ function StudentRow({
         </motion.button>
 
         {/* Expand toggle */}
-        <button type="button" aria-label={t('История платежей')} aria-expanded={expanded} onClick={e => { e.stopPropagation(); onToggle() }} style={{ color: 'var(--color-text-3)', flexShrink: 0, border: 0, background: 'transparent', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gridColumn: compact ? 3 : undefined, gridRow: compact ? 1 : undefined, justifySelf: 'end' }}>
+        <button type="button" aria-label={t('История платежей') + ': ' + tn(student.name)} aria-expanded={expanded} onClick={e => { e.stopPropagation(); onToggle() }} style={{ color: 'var(--color-text-3)', flexShrink: 0, border: 0, background: 'transparent', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gridColumn: compact ? 3 : undefined, gridRow: compact ? 1 : undefined, justifySelf: 'end' }}>
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
       </div>

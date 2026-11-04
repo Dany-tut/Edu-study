@@ -1,0 +1,147 @@
+{
+  "error": "TimeoutError: locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /Назад ко входу/ })\u001b[22m\n",
+  "results": [
+    {
+      "role": "student",
+      "theme": "light",
+      "width": 320,
+      "height": 568,
+      "geometry": {
+        "hero": {
+          "x": 37,
+          "y": 93,
+          "width": 246,
+          "height": 78.46875,
+          "top": 93,
+          "right": 283,
+          "bottom": 171.46875,
+          "left": 37
+        },
+        "art": {
+          "x": 227,
+          "y": 104.234375,
+          "width": 56,
+          "height": 56,
+          "top": 104.234375,
+          "right": 283,
+          "bottom": 160.234375,
+          "left": 227
+        },
+        "copy": {
+          "x": 37,
+          "y": 93,
+          "width": 182,
+          "height": 78.46875,
+          "top": 93,
+          "right": 219,
+          "bottom": 171.46875,
+          "left": 37
+        },
+        "card": {
+          "x": 16,
+          "y": 16,
+          "width": 288,
+          "height": 537.03125,
+          "top": 16,
+          "right": 304,
+          "bottom": 553.03125,
+          "left": 16
+        },
+        "overflow": false,
+        "inputs": [
+          {
+            "font": "16px",
+            "height": 48
+          },
+          {
+            "font": "16px",
+            "height": 48
+          }
+        ],
+        "scrolling": [
+          {
+            "height": 568,
+            "total": 614
+          }
+        ]
+      },
+      "providerButtons": {
+        "apple": {
+          "x": 37,
+          "y": 441.65625,
+          "width": 118,
+          "height": 48
+        },
+        "google": {
+          "x": 165,
+          "y": 441.65625,
+          "width": 118,
+          "height": 48
+        }
+      },
+      "edges": [
+        {
+          "pos": "start",
+          "areas": [
+            {
+              "top": 0,
+              "height": 568,
+              "total": 614,
+              "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "middle",
+          "areas": [
+            {
+              "top": 23,
+              "height": 568,
+              "total": 614,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))"
+            }
+          ]
+        },
+        {
+          "pos": "end",
+          "areas": [
+            {
+              "top": 46,
+              "height": 568,
+              "total": 614,
+              "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "path": "/auth/v1/token",
+      "method": "POST",
+      "provider": null
+    },
+    {
+      "path": "/auth/v1/token",
+      "method": "POST",
+      "provider": null
+    },
+    {
+      "path": "/auth/v1/recover",
+      "method": "POST",
+      "provider": null
+    },
+    {
+      "path": "/auth/v1/authorize",
+      "method": "GET",
+      "provider": "apple"
+    },
+    {
+      "path": "/auth/v1/authorize",
+      "method": "GET",
+      "provider": "google"
+    }
+  ]
+}

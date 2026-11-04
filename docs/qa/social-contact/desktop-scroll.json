@@ -1,0 +1,14 @@
+[
+  {
+    "top": 0,
+    "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 30px, rgb(0, 0, 0) calc(100% - 30px), rgba(0, 0, 0, 0) 100%)"
+  },
+  {
+    "top": 106,
+    "mask": "linear-gradient(rgba(0, 0, 0, 0) 0px, rgb(0, 0, 0) 30px, rgb(0, 0, 0) calc(100% - 30px), rgba(0, 0, 0, 0) 100%)"
+  },
+  {
+    "top": 212,
+    "mask": "linear-gradient(rgba(0, 0, 0, 0) 0px, rgb(0, 0, 0) 30px, rgb(0, 0, 0) calc(100% - 30px), rgb(0, 0, 0) 100%)"
+  }
+]

@@ -1,0 +1,17 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The visible control owns its hit target
+    at clickControl (file:///Users/dany/Cursor/iskra-final-qa-20261103/scripts/checkLessonPlayerTapRace.mjs:70:16)
+    at async setPaused (file:///Users/dany/Cursor/iskra-final-qa-20261103/scripts/checkLessonPlayerTapRace.mjs:78:51)
+    at async file:///Users/dany/Cursor/iskra-final-qa-20261103/scripts/checkLessonPlayerTapRace.mjs:96:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

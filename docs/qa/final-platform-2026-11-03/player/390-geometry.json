@@ -1,0 +1,24 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "box": {
+    "x": 0,
+    "y": 0,
+    "width": 379,
+    "height": 844
+  },
+  "fullButton": {
+    "x": 12,
+    "y": 784,
+    "width": 44,
+    "height": 48
+  },
+  "clearance": 12,
+  "css": {
+    "padding": "28px 24px 32px",
+    "transform": "none",
+    "opacity": "1"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "tag": "baseline",
+  "scope": "Exact source addPayment with real production Auth/PostgREST; fixture owner/client injection; synthetic rows only",
+  "results": [
+    {
+      "scenario": "lost response after commit then retry",
+      "status": "FAIL",
+      "count": 2,
+      "ids": [
+        "4648e98e-6f17-4e2d-9180-b9f85e04f49c",
+        "09001883-e1bc-4fdd-b29d-d1d8a309d4fa"
+      ]
+    },
+    {
+      "scenario": "payment regression",
+      "status": "FAIL",
+      "error": "Duplicate payment on retry\n\n2 !== 1\n"
+    }
+  ],
+  "commits": 2,
+  "cleanupErrors": []
+}

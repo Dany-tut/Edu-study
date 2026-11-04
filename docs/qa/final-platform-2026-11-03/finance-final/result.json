@@ -1,0 +1,37 @@
+{
+  "scope": "Full UI on https://edu-study-app.vercel.app with real production backend and synthetic bookkeeping rows; no money transfer",
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "db86facd07ffff5c6ba4d4228458fd628109a8fa",
+    "build": 1977,
+    "version": "1.0.1977"
+  },
+  "results": [
+    {
+      "name": "Payment commits but lost response leaves recoverable input",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload then UI retry confirms original payment without duplicate",
+      "status": "PASS"
+    },
+    {
+      "name": "New independently confirmed payment remains distinct",
+      "status": "PASS"
+    },
+    {
+      "name": "Delete error is visible and keeps both server rows",
+      "status": "PASS"
+    },
+    {
+      "name": "Delete retry refreshes history immediately without reload",
+      "status": "PASS"
+    },
+    {
+      "name": "Responsive finance controls and totals in six size/theme combinations",
+      "status": "PASS"
+    }
+  ]
+}

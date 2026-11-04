@@ -1,0 +1,150 @@
+{
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "codex/ios-device-acceptance-r7",
+    "environment": "local",
+    "commit": "1bca7601d798abe9edd965a3eb20639804e4cfb4",
+    "build": 1952,
+    "version": "1.0.1952"
+  },
+  "originalFrozenFilesSHA256": {
+    "version.json": "bfe941a56439645828f888b27e2311bc4728e5f13f47747af96b88e46994c2d8",
+    "index.html": "75555e3e206385a659451af9fb2ac6d0b353e692e63a3e8166ccfe44109c0837",
+    "release.json": "be9075569a2c5c2c8dc25fdfec7df069aa28860a1bc0bfae6d69616e1df36469",
+    "assets/TeacherLoginPage-C9qfSbIl.js": "4198bc78cda221d8b2d1c773a770245be253946c88c3388c67acd33c8dbf9565",
+    "assets/AuthRoleHeader-zh-MWkS4.js": "15ed20eec354680acc6964ea20475df88cb507d4def8d4a814906514f78cbe66",
+    "assets/AuthRoleHeader-DdeAMLUk.css": "36525c6fcd823febde9075d40bcb9d1c3064c6f4db81f1adadf8b846f7322a9e"
+  },
+  "results": {
+    "scenario": "PASS enumerated scope",
+    "durationSeconds": 32.601,
+    "inputExact": true,
+    "eyeShowHideRetainsKeyboard": true,
+    "passwordAXFrame": [
+      41,
+      341,
+      320,
+      49
+    ],
+    "eyeAXFrame": [
+      313,
+      343,
+      44,
+      45
+    ],
+    "keyboardHideTop": 480.6666667,
+    "compact": {
+      "time": 2849,
+      "containers": [
+        {
+          "top": 0,
+          "height": 681,
+          "total": 681,
+          "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) 100%)",
+          "firstAlpha": false,
+          "lastAlpha": false
+        }
+      ],
+      "inputs": 2,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 621.6875,
+          "bottom": 635.6875
+        },
+        {
+          "text": "Условия использования",
+          "y": 621.6875,
+          "bottom": 635.6875
+        }
+      ]
+    },
+    "expandedStart": {
+      "time": 19989,
+      "containers": [
+        {
+          "top": 0,
+          "height": 681,
+          "total": 739,
+          "mask": "linear-gradient(rgb(0, 0, 0) 0px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+          "firstAlpha": false,
+          "lastAlpha": true
+        }
+      ],
+      "inputs": 3,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 707.625,
+          "bottom": 721.625
+        },
+        {
+          "text": "Условия использования",
+          "y": 707.625,
+          "bottom": 721.625
+        }
+      ]
+    },
+    "expandedMiddle": {
+      "time": 22509,
+      "containers": [
+        {
+          "top": 19,
+          "height": 681,
+          "total": 739,
+          "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) calc(100% - 24px), rgba(0, 0, 0, 0))",
+          "firstAlpha": true,
+          "lastAlpha": true
+        }
+      ],
+      "inputs": 3,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 688.625,
+          "bottom": 702.625
+        },
+        {
+          "text": "Условия использования",
+          "y": 688.625,
+          "bottom": 702.625
+        }
+      ]
+    },
+    "expandedEnd": {
+      "time": 29060,
+      "containers": [
+        {
+          "top": 58,
+          "height": 681,
+          "total": 739,
+          "mask": "linear-gradient(rgba(0, 0, 0, 0), rgb(0, 0, 0) 24px, rgb(0, 0, 0) 100%)",
+          "firstAlpha": true,
+          "lastAlpha": false
+        }
+      ],
+      "inputs": 3,
+      "footer": [
+        {
+          "text": "Политика конфиденциальности",
+          "y": 649.625,
+          "bottom": 663.625
+        },
+        {
+          "text": "Условия использования",
+          "y": 649.625,
+          "bottom": 663.625
+        }
+      ]
+    },
+    "sendCodeAndLegalLinksHittable": true,
+    "emailRetainedAfterScroll": true,
+    "submit": false,
+    "permissionsChanged": false,
+    "listenerBind": "127.0.0.1:18193 on iPhone",
+    "serverStopped": true,
+    "allOwnTabsClosed": true,
+    "videoRedaction": "First3seconds removed (Home); bottom484pt masked during first9seconds of retained early input segment to hide native autofill suggestion"
+  },
+  "testBundle": "/tmp/iskra-chrome-loopback-r7.11a0uM/chrome-loopback-r7.xcresult"
+}

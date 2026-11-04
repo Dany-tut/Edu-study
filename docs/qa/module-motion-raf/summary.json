@@ -1,0 +1,212 @@
+{
+  "before": [
+    {
+      "target": 3,
+      "frames": 84,
+      "pre_click": 7,
+      "last_width_step": 2.9940185546875,
+      "max_step_after_280ms": 11.20849609375,
+      "max_frame_interval": 191.59999999999854,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 4,
+      "frames": 108,
+      "pre_click": 6,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 16.60000000000582,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 2,
+      "frames": 108,
+      "pre_click": 7,
+      "last_width_step": 1.015625,
+      "max_step_after_280ms": 1.015625,
+      "max_frame_interval": 25.10000000000582,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 1,
+      "frames": 101,
+      "pre_click": 6,
+      "last_width_step": 0.703125,
+      "max_step_after_280ms": 0.703125,
+      "max_frame_interval": 41.60000000000582,
+      "overlap": false,
+      "wrong_data": false
+    }
+  ],
+  "before-warm": [
+    {
+      "target": 2,
+      "frames": 109,
+      "pre_click": 6,
+      "last_width_step": 0.009552001953125,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 9.399999999999977,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 1,
+      "frames": 107,
+      "pre_click": 7,
+      "last_width_step": 0.140625,
+      "max_step_after_280ms": 0.140625,
+      "max_frame_interval": 24.5,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 2,
+      "frames": 105,
+      "pre_click": 6,
+      "last_width_step": 0.15625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 25.0,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 1,
+      "frames": 108,
+      "pre_click": 6,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 17,
+      "overlap": false,
+      "wrong_data": false
+    }
+  ],
+  "after": [
+    {
+      "target": 3,
+      "frames": 108,
+      "pre_click": 6,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 24.40000000000873,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 4,
+      "frames": 108,
+      "pre_click": 6,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 17.0,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 2,
+      "frames": 104,
+      "pre_click": 6,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 49.09999999999127,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 1,
+      "frames": 109,
+      "pre_click": 6,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 9.400000000008731,
+      "overlap": false,
+      "wrong_data": false
+    }
+  ],
+  "after-warm": [
+    {
+      "target": 2,
+      "frames": 109,
+      "pre_click": 6,
+      "last_width_step": 0,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 9.299999999999272,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 1,
+      "frames": 109,
+      "pre_click": 6,
+      "last_width_step": 0.0078125,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 9.30000000000291,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 2,
+      "frames": 107,
+      "pre_click": 7,
+      "last_width_step": 0.0078125,
+      "max_step_after_280ms": 0.0078125,
+      "max_frame_interval": 32.60000000000582,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 1,
+      "frames": 109,
+      "pre_click": 6,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 9.30000000000291,
+      "overlap": false,
+      "wrong_data": false
+    }
+  ],
+  "after-mobile": [
+    {
+      "target": 3,
+      "frames": 102,
+      "pre_click": 7,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.15625,
+      "max_frame_interval": 66.60000000000582,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 4,
+      "frames": 109,
+      "pre_click": 6,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.0,
+      "max_frame_interval": 9.30000000000291,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 2,
+      "frames": 97,
+      "pre_click": 7,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.015625,
+      "max_frame_interval": 66.40000000000873,
+      "overlap": false,
+      "wrong_data": false
+    },
+    {
+      "target": 1,
+      "frames": 107,
+      "pre_click": 7,
+      "last_width_step": 0.015625,
+      "max_step_after_280ms": 0.015625,
+      "max_frame_interval": 33.0,
+      "overlap": false,
+      "wrong_data": false
+    }
+  ]
+}
