@@ -126,7 +126,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           {guideRun > 0 && <div ref={guide} className="transcription-launch-guide">
             {/* Видео, а не GIF: в GIF 64 цвета, и интерфейс шёл полосами. */}
             <video ref={guideVideo} key={guideRun} src="/guides/mac-launch-recorded.mp4" poster="/guides/mac-launch-recorded.jpg"
-              width="1280" height="900" muted playsInline loop autoPlay={guidePlaying} preload="metadata"
+              width="1280" height="788" muted playsInline loop autoPlay={guidePlaying} preload="metadata"
               onPlay={() => setGuidePlaying(true)} onPause={() => setGuidePlaying(false)}
               aria-label="Полный путь: запуск модуля на Mac, подключение, расшифровка и проверка результата" />
             <div className="transcription-guide-actions">
