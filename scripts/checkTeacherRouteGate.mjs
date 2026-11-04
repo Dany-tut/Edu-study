@@ -54,7 +54,7 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true }),
   ctx = await browser.newContext({ viewport: { width: 390, height: 844 } }),
   p = await ctx.newPage(),
   results = []
-function session(user, sid, rotation, role = 'teacher') {
+function session(user, sid, rotation, role = null) {
   return {
     user: { id: user, app_metadata: role === null ? {} : { role } },
     access_token:
@@ -76,6 +76,9 @@ async function resolve(i, data, error = null) {
     ({ i, data, error }) => window.__requests[i].resolve({ data, error }),
     { i, data, error },
   )
+}
+async function editorNow() {
+  assert.equal(await p.getByTestId('editor').isVisible(), true)
 }
 async function noEditor() {
   assert.equal(
@@ -200,16 +203,18 @@ try {
   results.push('repeat login performs a fresh authoritative check')
   await render(session('legacyB', 'new-sessionB', 1))
   await calls(9)
-  await noEditor()
+  await editorNow()
   await resolve(8, true)
   await p.getByLabel('Draft').waitFor()
   await render(session('legacyB', 'new-sessionB', 2, 'admin'))
   await calls(10)
-  await noEditor()
+  await editorNow()
   await resolve(9, false)
   await p.getByText('denied', { exact: true }).waitFor()
+  await noEditor()
+  assert.equal(await p.evaluate(() => localStorage.getItem('iskra.staffHint')), null)
   results.push(
-    'new session or changed app role scope is fenced before validation',
+    'remembered staff opens a new session at once; server false still closes it and drops the hint',
   )
   const n = await p.evaluate(() => window.__requests.length)
   await render(session('teacherC', 'sessionC', 1))
@@ -246,6 +251,22 @@ try {
   await noEditor()
   results.push(
     'initial timeout fails closed and ignores late successful role result',
+  )
+  const trustedIndex = await p.evaluate(() => window.__requests.length)
+  await render(session('appTeacher', 'sessionT', 1, 'teacher'))
+  await calls(trustedIndex + 1)
+  await editorNow()
+  await resolve(trustedIndex, false)
+  await p.getByText('denied', { exact: true }).waitFor()
+  await noEditor()
+  await render(session('appTeacher', 'sessionT2', 1, 'teacher'))
+  await calls(trustedIndex + 2)
+  await editorNow()
+  await resolve(trustedIndex + 1, null, { message: 'offline' })
+  await p.getByText('Не удалось проверить доступ', { exact: true }).waitFor()
+  await noEditor()
+  results.push(
+    'server teacher role opens the cabinet during the check; false closes it, error blocks it',
   )
   const before = await p.evaluate(() => window.__requests.length)
   await p.evaluate(() => window.__student())

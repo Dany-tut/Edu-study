@@ -18,6 +18,26 @@ function accessScope(session: Session | null | undefined) {
   return JSON.stringify([session.user.id, typeof sessionId === 'string' && sessionId ? sessionId : session.access_token, session.user.app_metadata?.role ?? null])
 }
 
+// Last server verdict per account on this device. Only a hint for what to
+// render while the authoritative check runs; data stays behind RLS.
+const STAFF_HINT_KEY = 'iskra.staffHint'
+function readStaffHint(user: string) {
+  try { return localStorage.getItem(STAFF_HINT_KEY) === user } catch { return false }
+}
+function writeStaffHint(user: string, staff: boolean) {
+  try {
+    if (staff) localStorage.setItem(STAFF_HINT_KEY, user)
+    else if (localStorage.getItem(STAFF_HINT_KEY) === user) localStorage.removeItem(STAFF_HINT_KEY)
+  } catch { /* Storage blocked: fall back to the fenced check. */ }
+}
+
+/** Server-assigned role or an earlier positive check: open the cabinet at once. */
+function likelyStaff(session: Session | null | undefined) {
+  if (!session) return false
+  const role = session.user.app_metadata?.role
+  return role === 'teacher' || role === 'admin' || readStaffHint(session.user.id)
+}
+
 export default function TeacherRouteGate({ session, children }: { session: Session | null | undefined; children: ReactNode }) {
   const t = useT()
   const scope = accessScope(session)
@@ -28,7 +48,10 @@ export default function TeacherRouteGate({ session, children }: { session: Sessi
   const [retry, setRetry] = useState(0)
   const { run, cancel } = useAsyncTask()
   const current = result?.scope === scope && result.token === token ? result : null
-  const allowed = !!scope && granted === scope
+  const user = session?.user.id ?? ''
+  // A likely teacher sees the cabinet during the check; a "no" still closes it.
+  const optimistic = !!scope && likelyStaff(session) && current?.status !== 'denied'
+  const allowed = !!scope && (granted === scope || optimistic)
   const blockedDraft = allowed && suspended === scope
   const recovery = useRef<HTMLDivElement>(null)
   useNativeOverlay(blockedDraft)
@@ -39,12 +62,13 @@ export default function TeacherRouteGate({ session, children }: { session: Sessi
     if (!scope) { setResult(null); return }
     setResult({ scope, token, status: 'loading' })
     void run(signal => checkStaffAccess(supabase, signal), staff => {
+      writeStaffHint(user, staff)
       setGranted(staff ? scope : null)
       setSuspended(null)
       setResult({ scope, token, status: staff ? 'allowed' : 'denied' })
     }, () => { setSuspended(scope); setResult({ scope, token, status: 'error' }) })
     return cancel
-  }, [scope, token, retry, run, cancel])
+  }, [scope, token, user, retry, run, cancel])
 
   // Portalled dialogs are outside the hidden workspace DOM. Block those roots
   // too while keeping their React state, then restore their original inertness.
@@ -85,7 +109,7 @@ export default function TeacherRouteGate({ session, children }: { session: Sessi
     </ScrollFade>
   }
   return <>
-    {allowed && <div inert={blockedDraft} style={{ display: blockedDraft ? 'none' : 'contents' }}>{children}</div>}
+    {allowed && <div key={user} inert={blockedDraft} style={{ display: blockedDraft ? 'none' : 'contents' }}>{children}</div>}
     {blockedDraft && <div ref={recovery}>
       <ScrollFade maxHeight="100dvh" style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)' }}>
         <div className="auth-page-layout" style={{ minHeight: '100dvh' }}><div className="auth-page-content auth-page-card">
