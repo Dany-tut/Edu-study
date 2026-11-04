@@ -1,0 +1,8 @@
+{
+  "restartDuring": "speech",
+  "sameJobId": true,
+  "segments": 1,
+  "chapters": 1,
+  "done": true,
+  "resultSurvivesSecondRestart": true
+}

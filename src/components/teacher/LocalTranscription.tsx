@@ -123,8 +123,8 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
       <div id={setupId} aria-live="polite" className="transcription-setup">
         {downloadStarted && !downloading && (!connected || showSetup) && <>
           {guideRun > 0 && <div ref={guide} className="transcription-launch-guide">
-            <img key={guideRun + ':' + guidePlaying} src={guidePlaying ? `/guides/mac-launch-full.gif?run=${guideRun}` : '/guides/mac-launch-full.jpg'}
-              width="1280" height="832" alt="Полный путь: запуск модуля на Mac, подключение, расшифровка и проверка результата" />
+            <img key={guideRun + ':' + guidePlaying} src={guidePlaying ? `/guides/mac-launch-recorded.gif?run=${guideRun}` : '/guides/mac-launch-recorded.jpg'}
+              width="1280" height="900" alt="Полный путь: запуск модуля на Mac, подключение, расшифровка и проверка результата" />
             <div className="transcription-guide-actions">
               <button type="button" className="integration-action" onClick={() => setGuidePlaying(value => !value)}>{guidePlaying ? 'Остановить GIF' : 'Запустить GIF'}</button>
               <button type="button" className="integration-action" onClick={() => { setGuideRun(value => value + 1); setGuidePlaying(true) }}>Показать сначала</button>
@@ -153,13 +153,14 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   </section>
 }
 
-type Pending = { id: string; source: string }
+type Pending = { id: string; source: string; fileSignature?: string }
+const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
 type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean> }
 
-function readPending(owner: string, lessonKey: string, source: string): Pending | null {
+function readPending(owner: string, lessonKey: string, source: string, file?: File | null): Pending | null {
   try {
     const job = JSON.parse(localStorage.getItem('iskra.transcription.job.' + JSON.stringify([owner, lessonKey])) || 'null')
-    return job?.source === source.trim() && typeof job.id === 'string' ? job : null
+    return job?.source === source.trim() && typeof job.id === 'string' && (!file || job.fileSignature === fileSignature(file)) ? job : null
   } catch { return null }
 }
 
@@ -190,27 +191,39 @@ export function RecordingLines({rail}: {rail: TranscriptRail}) {
 
 export function TranscriptionAction(props: Props & { children: (action: React.ReactNode, rail?: TranscriptRail) => React.ReactNode }) {
   const connected = !!props.owner && !!localStorage.getItem(tokenKey(props.owner))
-  const jobKey = props.file ? JSON.stringify([props.lessonKey, props.file.name, props.file.size, props.file.lastModified]) : props.lessonKey
+  const jobKey = props.lessonKey
   const storageKey = 'iskra.transcription.job.' + JSON.stringify([props.owner, jobKey])
   const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>(() =>
-    connected && readPending(props.owner, jobKey, props.source) ? 'review' : 'entry')
-  const [working, setWorking] = useState<LocalDraft | null>(null)
+    connected && !localStorage.getItem(storageKey + '.draft') && readPending(props.owner, jobKey, props.source, props.file) ? 'review' : 'entry')
+  const draftKey = storageKey + '.draft'
+  const [working, setWorking] = useState<LocalDraft | null>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(draftKey) || 'null')
+      return saved?.transcript?.source === props.source.trim() && (!props.file || saved.fileSignature === fileSignature(props.file)) && readTranscript(saved.transcript) && Array.isArray(saved.timecodes) ? saved : null
+    } catch { return null }
+  })
+  const [localSaveFailed, setLocalSaveFailed] = useState(false)
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
   const draft = working ?? props.existing
-  function change(value: LocalDraft) { setFailed(false); setWorking(value) }
+  function change(value: LocalDraft) {
+    setFailed(false); setWorking(value)
+    try { localStorage.setItem(draftKey, JSON.stringify({...value, fileSignature: props.file ? fileSignature(props.file) : undefined})); setLocalSaveFailed(false) }
+    catch { setLocalSaveFailed(true) }
+  }
   const apply = async () => {
     if (!working || saving) return
     setSaving(true)
     try {
       if (!await props.onApply(working)) throw new Error()
       localStorage.removeItem(storageKey)
+      localStorage.removeItem(draftKey)
       setWorking(null)
       setFailed(false)
     } catch { setFailed(true) }
     finally { setSaving(false) }
   }
-  if (!props.owner || (!props.source && !props.file && !draft)) return <>{props.children(null)}</>
+  if (!props.owner || (!props.source && !props.file && !draft && !readPending(props.owner, jobKey, props.source))) return <>{props.children(null)}</>
   if (view !== 'entry') return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }}>
     {view === 'review' ? <Review {...props} lessonKey={jobKey} onClose={() => setView('entry')}
       onReady={result => { change(result); setView('entry') }} /> :
@@ -227,7 +240,8 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const badChapter = draft.timecodes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
   const badLine = draft.transcript.segments.some(line => !line.text.trim())
   const rail = {draft, change, saving}
-  return <>{props.children(<>
+  const actions = <>
+    {localSaveFailed && <small role="alert">Не удалось сохранить черновик в браузере. Не обновляйте страницу до сохранения в урок.</small>}
     {(failed || badChapter || badLine) && <small role="alert">{failed ? 'Не удалось сохранить. Попробуйте ещё раз.' : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
     <div className="transcript-tools">
       {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
@@ -236,13 +250,18 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
       {!working && <button aria-label="Повторить обработку" title="Повторить обработку" onClick={open}><RotateCcw size={15}/></button>}
       <button aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
-  </>,rail)}</>
+  </>
+  if (!props.source && !props.file) return <section className="transcription-inline">
+    <p>Расшифровка загруженного файла восстановлена. Для воспроизведения выберите исходное видео снова.</p>
+    <RecordingLines rail={rail}/>{actions}
+  </section>
+  return <>{props.children(actions,rail)}</>
 }
 
 function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { onReady: (result: LocalDraft) => void; onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
-  const [pending, setPending] = useState(() => readPending(owner, lessonKey, source))
+  const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState('')
   const [progress, setProgress] = useState<{ current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' }>()
@@ -260,7 +279,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     setBusy(true)
     try {
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
-      const job = { id, source: source.trim() }
+      const job = { id, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined }
       localStorage.setItem(key, JSON.stringify(job))
       setPending(job)
     } catch (e) { setUnavailable(e instanceof LocalTranscriptionUnavailable); setError((e as Error).message) }
@@ -274,6 +293,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
       try {
         const state = await localRequest('/jobs/' + job.id, token)
         if (!active) return
+        setError(''); setUnavailable(false)
         setProgress(state.progress)
         setStage(state.stage + (state.bytes ? ' · ' + (state.bytes / 1048576).toFixed(1) + ' МБ' : ''))
         if (state.error) throw new Error(state.stage)
@@ -282,10 +302,17 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
         if (!transcript) throw new Error('Нет реплик для проверки.')
         readyRef.current({ transcript, timecodes: state.chapters.map((c: { start: number; title: string }) =>
           ({ seconds: c.start, time: transcriptTime(c.start), label: c.title })) })
-      } catch (e) { if (active) { setUnavailable(e instanceof LocalTranscriptionUnavailable); setError((e as Error).message) } }
+      } catch (e) {
+        if (!active) return
+        const lost = e instanceof LocalTranscriptionUnavailable
+        setUnavailable(lost); setError((e as Error).message)
+        if (lost) timer = setTimeout(() => void poll(job), 5000)
+      }
     }
     void poll(pending)
-    return () => { active = false; clearTimeout(timer) }
+    const reconnect = () => { setRetry(value => value + 1) }
+    window.addEventListener('online', reconnect)
+    return () => { active = false; clearTimeout(timer); window.removeEventListener('online', reconnect) }
   }, [pending, token, retry])
   const stages = ['Видео', 'Распознаём речь', 'Читаем слайды', 'Собираем главы']
   const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
@@ -299,6 +326,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     {!pending && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
     {pending && !error && <>
       <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}</small>
+      <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac. Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>
       <ol className="transcription-job-steps">{stages.map((step, i) => {
         const active = i === currentStep
         const percent = active && progress && progress.total > 0 ? Math.min(100, Math.max(0, Math.round(progress.current / progress.total * 100))) : undefined
@@ -313,6 +341,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     {error && <div role="alert" className="transcription-recovery">
       <strong>{unavailable ? 'Модуль недоступен' : 'Не удалось завершить расшифровку'}</strong>
       <p>{error}</p>
+      {unavailable && pending && <p>Задание сохранено. Проверяем связь автоматически. Если модуль работает, обработка продолжается на Mac.</p>}
       {pending && (unavailable
         ? <button type="button" style={btn('M','secondary')} onClick={() => { setError(''); setUnavailable(false); setRetry(value => value + 1) }}>Проверить связь</button>
         : <button type="button" style={btn('M','secondary')} onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}>Начать заново</button>)}
