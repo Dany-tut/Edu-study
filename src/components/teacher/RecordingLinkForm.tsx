@@ -85,15 +85,17 @@ export function RecordingInlineEdit({ initialUrl, onSave, onClose, onPickFile, u
   }
 
   const message = unavailable || uploadError || (failed ? t('Не удалось сохранить. Попробуйте ещё раз.') : '')
-  return <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 6 }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+  // Строка ровно 40 px, как в режиме просмотра: ошибка не добавляет строку
+  // снизу, а всплывает поверх — плеер под строкой не двигается.
+  return <div style={{ flex: 1, minWidth: 0, height: 40, position: 'relative' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, height: '100%' }}>
       {/* Длинная ссылка уходит за край поля — фейд показывает, что там ещё текст. */}
       <AuthFadeInput value={url} readOnly={busy} autoFocus aria-label={t('Ссылка на запись')}
         onChange={e => { setUrl(e.target.value); setFailed(false) }}
         onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void save(); if (e.key === 'Escape' && !busy) onClose() }}
         placeholder={t('Вставьте ссылку RuTube / YouTube / Google Диск')}
         fadeColor="var(--color-bg-input)" wrapStyle={{ flex: 1, minWidth: 0 }}
-        style={{ ...FIELD, padding: '7px 12px' }} />
+        style={{ ...FIELD, height: 40, padding: '0 12px' }} />
       <input ref={fileInput} type="file" accept="video/mp4,video/webm,video/quicktime,.m4v,.ogv" hidden onChange={e => {
         const file = e.currentTarget.files?.[0]
         e.currentTarget.value = ''
@@ -102,7 +104,7 @@ export function RecordingInlineEdit({ initialUrl, onSave, onClose, onPickFile, u
       {/* Строка над плеером узкая: «Файл» — одной иконкой, поле ссылки важнее подписей. */}
       <button type="button" disabled={busy || !!unavailable} onClick={() => fileInput.current?.click()}
         title={uploading ? t('Загружаем…') : t('Загрузить файл')} aria-label={uploading ? t('Загружаем…') : t('Загрузить файл')}
-        style={{ ...btn('M', 'secondary'), width: 36, padding: 0, justifyContent: 'center', flexShrink: 0, ...(uploading ? { opacity: 1, cursor: 'progress' } : {}) }}>
+        style={{ ...btn('M', 'secondary'), width: 40, padding: 0, justifyContent: 'center', flexShrink: 0, ...(uploading ? { opacity: 1, cursor: 'progress' } : {}) }}>
         <Upload size={14} />
       </button>
       {/* Сохранить — галочкой того же вида, что TeacherSaveButton: подпись не влезает
@@ -118,7 +120,7 @@ export function RecordingInlineEdit({ initialUrl, onSave, onClose, onPickFile, u
         <X size={15} />
       </button>
     </div>
-    {message && <div role="alert" style={{ fontSize: 12, color: 'var(--color-text)', paddingLeft: 13 }}>{message}</div>}
+    {message && <div role="alert" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 2, maxWidth: '100%', boxSizing: 'border-box', padding: '6px 12px', borderRadius: 10, background: 'var(--color-surface)', boxShadow: '0 4px 14px rgba(0,0,0,0.12)', fontSize: 12, color: 'var(--color-text)' }}>{message}</div>}
   </div>
 }
 
