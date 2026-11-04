@@ -187,6 +187,30 @@
   .editor-delete-action {transition:none}
 }
 
+/* Глава: пока мусорки нет, название идёт до края строки и фейд стоит у края.
+   Мусорка появляется поверх конца названия, а текст под ней плавно гаснет —
+   ширина названия не меняется, две строки не переносятся заново. */
+@property --chapter-trash-fade {syntax:'<length>';inherits:false;initial-value:0px}
+@media (hover:hover) and (pointer:fine) {
+  .timecode-editor .editor-delete-row {position:relative}
+  .timecode-editor .editor-delete-row > .editor-delete-action {position:absolute;right:4px;top:0;bottom:0;margin:auto 0}
+  .timecode-editor .editor-delete-row .chapter-title {
+    --chapter-trash-fade:0px;
+    mask-image:linear-gradient(to left,transparent var(--chapter-trash-fade),#000 calc(var(--chapter-trash-fade) * 1.8));
+    transition:--chapter-trash-fade 0.15s;
+  }
+  .timecode-editor .editor-delete-row:hover .chapter-title:not(:focus-within) {--chapter-trash-fade:30px}
+  /* В правке поле не уходит под мусорку: название уступает ей место. */
+  .timecode-editor .editor-delete-row .chapter-title:focus-within {margin-right:32px}
+}
+@media (any-pointer:coarse) {
+  .timecode-editor .editor-delete-row > .editor-delete-action {position:static;margin:0}
+  .timecode-editor .editor-delete-row .chapter-title {mask-image:none;margin-right:0}
+}
+@media (prefers-reduced-motion:reduce) {
+  .timecode-editor .editor-delete-row .chapter-title {transition:none}
+}
+
 /* Время главы: у левого края цифры, при наведении на строку поверх них ▶.
    Клик — перемотка; двойной клик или правая кнопка — правка, тогда ▶ уходит
    (фокус в поле). Ячейка одной ширины в обоих видах — строка не прыгает. */
