@@ -36,6 +36,7 @@ import { useT, tc } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 import SeasonAsk from '../components/season/SeasonAsk'
 import Modal from '../components/Modal'
+import WindowBottomFade from '../components/WindowBottomFade'
 import '../components/studentHomeLayout.css'
 
 // ── Тренажёр — отдельным чанком ──────────────────────────────────────────────
@@ -529,6 +530,7 @@ export default function DashboardPage() {
                 />
               </Suspense>
             ) : null}
+            <WindowBottomFade clearance="env(safe-area-inset-bottom, 0px) + 92px" />
             <MobileBottomNav />
           </div>
         )}
