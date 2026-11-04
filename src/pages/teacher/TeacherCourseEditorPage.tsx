@@ -1436,14 +1436,13 @@ function chapterClock(total: number, withHours: boolean): string {
   return withHours ? `${two(Math.floor(s / 3600))}:${tail}` : tail
 }
 
-/** Набор времени без двоеточий: берём только цифры и вдвигаем их справа, как в
- *  кассе — «1» → «00:01», «123» → «01:23». Двоеточия ставятся сами, лишние
- *  цифры слева отбрасываются, поэтому поверх выделенного времени можно просто
- *  печатать. */
+/** Набор времени без двоеточий: только цифры, двоеточие встаёт само после
+ *  каждой пары — «0136» → «01:36». Нулей не дописываем: стёртое стирается
+ *  совсем, вплоть до пустого поля, а набранное остаётся там, где печатали, —
+ *  каретка не прыгает. Полный вид время получает при выходе из поля. */
 function maskChapterClock(raw: string, withHours: boolean): string {
-  const size = withHours ? 6 : 4
-  const digits = raw.replace(/\D/g, '').slice(-size).padStart(size, '0')
-  return (digits.match(/\d\d/g) ?? []).join(':')
+  const digits = raw.replace(/\D/g, '').slice(0, withHours ? 6 : 4)
+  return (digits.match(/\d{1,2}/g) ?? []).join(':')
 }
 
 /** Секунды → «12:30». Часы появляются только у длинных записей: у получасового
@@ -1508,6 +1507,7 @@ function TimecodeRail({
   // Клик по ▶ перематывает не сразу, а когда ясно, что это не двойной клик:
   // двойной открывает правку времени и ролик трогать не должен.
   const seekTimer = useRef<number | undefined>(undefined)
+  const timeBefore = useRef(0)
   useEffect(() => () => window.clearTimeout(seekTimer.current), [])
 
   function patch(i: number, p: Partial<LessonTimecode>) {
@@ -1577,16 +1577,20 @@ function TimecodeRail({
                   value={editingTime === i ? tc.time : clock(tc.seconds)}
                   onFocus={() => {
                     setEditingTime(i)
+                    timeBefore.current = tc.seconds
                     if (tc.time !== clock(tc.seconds)) patch(i, { time: clock(tc.seconds) })
                   }}
                   inputMode="numeric"
+                  onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
                   onChange={e => {
                     const time = maskChapterClock(e.target.value, withHours)
                     patch(i, { time, seconds: clockToSeconds(time) })
                   }}
                   onBlur={() => {
                     setEditingTime(null)
-                    onChange(sortCodes(codes.map(c => ({ ...c, time: clock(c.seconds) }))))
+                    // Стёрли всё и ушли — возвращаем прежнее время, а не 00:00.
+                    const restored = tc.time.trim() ? codes : codes.map((c, j) => (j === i ? { ...c, seconds: timeBefore.current } : c))
+                    onChange(sortCodes(restored.map(c => ({ ...c, time: clock(c.seconds) }))))
                   }}
                   placeholder="00:00"
                   className="chapter-time-input"
