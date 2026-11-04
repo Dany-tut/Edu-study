@@ -43,9 +43,9 @@
 }
 .lesson-player-duration { color: rgba(255, 255, 255, .6); }
 .lesson-player-rate-label {
-  display: inline-grid; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: left;
+  display: inline-grid; justify-items: center; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
 }
-.lesson-player-rate-label > span { grid-area: 1 / 1; }
+.lesson-player-rate-label > span { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 6px; }
 .lesson-player-rate-label > span[aria-hidden] { visibility: hidden; }
 .lesson-player-rate-popover {
   border-radius: 999px; background: rgba(28,28,32,.52);
@@ -143,7 +143,7 @@
   .lesson-player-controls-row { gap: 0; --player-button-size: 44px; }
 }
 
-@media (max-width: 360px) { .lesson-player-rate-trigger > svg { display: none; } }
+@media (max-width: 360px) { .lesson-player-rate-trigger svg { display: none; } }
 
 .lesson-player-volume-normal {
   position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(28,28,32,.5);
