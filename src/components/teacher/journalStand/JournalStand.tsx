@@ -393,6 +393,8 @@ export function Matrix(props: MatrixProps) {
   useEffect(() => {
     if (!drawerHash) return
     const previous = window.location.hash
+  const teacherGuides = useTeacherGuides()
+  useEffect(() => { if (drawerOpen) teacherGuides?.enter('learner') }, [drawerOpen, teacherGuides?.enter])
     window.history.replaceState(null, '', drawerHash)
     return () => {
       if (window.location.hash === drawerHash) window.history.replaceState(null, '', previous)
