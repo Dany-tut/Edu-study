@@ -1,7 +1,8 @@
-import DesktopFriends from './DesktopFriends'
+import StudentProfile, { type StudentProfileTab } from './StudentProfile'
 import { useDesktopFriends } from './../lib/desktopFriends'
 import { Users } from './icons/appIcons'
 import FadeText from './FadeText'
+import ProfileChips from './ProfileChips'
 import { motion, AnimatePresence } from 'framer-motion'
 import CountBadge from './CountBadge'
 import {
@@ -212,6 +213,7 @@ export default function Sidebar() {
   const [tintModalOpen, setTintModalOpen] = useState(false)
   const tintColor = useCurrentTintColor()
   const friends = useDesktopFriends()
+  const [profileTab, setProfileTab] = useState<StudentProfileTab | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -468,6 +470,76 @@ export default function Sidebar() {
     barRef.current = el
   }, [])
 
+  const profileAvatars = <>
+                    <div style={{ ...labelStyle, marginBottom: 18, padding: '2px 8px 0' }}>{t('Выбери аватар')}</div>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: 10,
+                        padding: '0 8px',
+                      }}
+                    >
+                      {AVATARS.map(opt => {
+                        const selected = !avatarPath && opt.id === avatarId
+                        return (
+                          <motion.button
+                            key={opt.id}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.92 }}
+                            onClick={() => {
+                              setAvatarId(opt.id)
+                              void removePhoto()
+                              closePicker()
+                            }}
+                            role="menuitemradio"
+                            aria-checked={selected}
+                            aria-label={opt.id}
+                            style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              background: opt.gradient,
+                              padding: 0,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#fff',
+                              border: 'none',
+                              boxShadow: selected
+                                ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px var(--color-bg-2), 0 0 0 4px var(--color-accent)'
+                                : 'inset 0 0 0 1px rgba(255,255,255,0.4)',
+                            }}
+                          >
+                            <opt.Icon size={20} strokeWidth={2} />
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 12, padding: '0 8px' }}>
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => { pickImageFile(setCropFile); closePicker() }}
+                        style={photoBtnStyle}
+                      >
+                        <Camera size={14} strokeWidth={2} style={{ flexShrink: 0 }} />
+                        <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
+                      </motion.button>
+                      {avatarPath && (
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => { void removePhoto() }}
+                          aria-label={t('Убрать фото')}
+                          title={t('Убрать фото')}
+                          style={{ ...photoBtnStyle, flex: 'none', width: 34, padding: 0, justifyContent: 'center' }}
+                        >
+                          <X size={14} strokeWidth={2} />
+                        </motion.button>
+                      )}
+                    </div>
+  </>
+
   return (
     <>
     <motion.div
@@ -564,73 +636,7 @@ export default function Sidebar() {
                 >
                   {/* Main panel: avatar grid + the Настройки entry. Always visible. */}
                   <div role="menu" style={panelBox}>
-                    <div style={{ ...labelStyle, marginBottom: 18, padding: '2px 8px 0' }}>{t('Выбери аватар')}</div>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(4, 1fr)',
-                        gap: 10,
-                        padding: '0 8px',
-                      }}
-                    >
-                      {AVATARS.map(opt => {
-                        const selected = !avatarPath && opt.id === avatarId
-                        return (
-                          <motion.button
-                            key={opt.id}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.92 }}
-                            onClick={() => {
-                              setAvatarId(opt.id)
-                              void removePhoto()
-                              closePicker()
-                            }}
-                            role="menuitemradio"
-                            aria-checked={selected}
-                            aria-label={opt.id}
-                            style={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: '50%',
-                              background: opt.gradient,
-                              padding: 0,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#fff',
-                              border: 'none',
-                              boxShadow: selected
-                                ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px var(--color-bg-2), 0 0 0 4px var(--color-accent)'
-                                : 'inset 0 0 0 1px rgba(255,255,255,0.4)',
-                            }}
-                          >
-                            <opt.Icon size={20} strokeWidth={2} />
-                          </motion.button>
-                        )
-                      })}
-                    </div>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 12, padding: '0 8px' }}>
-                      <motion.button
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => { pickImageFile(setCropFile); closePicker() }}
-                        style={photoBtnStyle}
-                      >
-                        <Camera size={14} strokeWidth={2} style={{ flexShrink: 0 }} />
-                        <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
-                      </motion.button>
-                      {avatarPath && (
-                        <motion.button
-                          whileTap={{ scale: 0.96 }}
-                          onClick={() => { void removePhoto() }}
-                          aria-label={t('Убрать фото')}
-                          title={t('Убрать фото')}
-                          style={{ ...photoBtnStyle, flex: 'none', width: 34, padding: 0, justifyContent: 'center' }}
-                        >
-                          <X size={14} strokeWidth={2} />
-                        </motion.button>
-                      )}
-                    </div>
+                    {profileAvatars}
                     {/* Переключатель предметов — для 1:1 учеников с несколькими карточками.
                         Сам решает, показываться ли (скрыт/null при одной карточке, без пустого зазора). */}
                     <SubjectSwitcher style={{ marginTop: 12, padding: '0 8px' }} />
@@ -642,6 +648,7 @@ export default function Sidebar() {
                         onClick={() => { closePicker(); window.location.hash = '#/teacher' }}
                       />
                     )}
+                    <SettingsRow icon={Users} label={t('Профиль')} onClick={() => { closePicker(); setProfileTab('main') }} />
                     {friends.account && <SettingsRow icon={Users} label={t('Друзья')} onClick={() => { closePicker(); friends.setTab('contacts') }} />}
                     <SettingsRow
                       icon={Settings}
@@ -866,8 +873,8 @@ export default function Sidebar() {
           type="button"
           aria-label={t('Профиль')}
           title={tn(displayName)}
-          aria-expanded={pickerOpen}
-          onClick={() => { tactile(); if (pickerOpen) closePicker(); else { setMenuView('root'); setPickerOpen(true) } }}
+          aria-expanded={Boolean(profileTab || friends.tab)}
+          onClick={() => { tactile(); closePicker(); setProfileTab('main') }}
           ref={nameWrapRef}
           initial={false}
           animate={{
@@ -1009,7 +1016,21 @@ export default function Sidebar() {
     <WidgetOrderModal open={orderModalOpen} onClose={() => setOrderModalOpen(false)} />
     <CourseOrderModal open={courseOrderOpen} onClose={() => setCourseOrderOpen(false)} />
     <CourseTintModal open={tintModalOpen} onClose={() => setTintModalOpen(false)} />
-    <DesktopFriends model={friends} />
+    {(profileTab || friends.tab) && <StudentProfile key={friends.account ?? 'student'}
+      section={friends.tab ? (friends.tab === 'profile' ? 'settings' : 'friends') : profileTab ?? 'main'}
+      onChange={setProfileTab} onClose={() => { setProfileTab(null); friends.setTab(null) }}
+      name={tn(displayName)} model={friends} avatarControls={profileAvatars}
+      avatar={<div style={{position:'relative',borderRadius:'50%',background:avatar.gradient,display:'grid',placeItems:'center',color:'white',overflow:'hidden'}}><avatar.Icon size={40}/><AvatarPhotoFill path={avatarPath}/></div>}
+      settings={<>
+        <div><p className="student-profile-subtitle">{t('Блоков в строке')}</p><ProfileChips label={t('Блоков в строке')} value={String(widgetColumns)} items={[2,3,4].map(n=>({id:String(n),label:String(n)}))} onChange={id=>setWidgetColumns(Number(id) as WidgetColumns)}/></div>
+        <button className="profile-social-edit" onClick={toggleTheme}>{dark ? t('Светлая тема') : t('Тёмная тема')}</button>
+        <button className="profile-social-edit" onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}>{t('Язык')}: {lang === 'ru' ? 'Русский' : 'English'}</button>
+        <button className="profile-social-edit" onClick={() => { setProfileTab(null); friends.setTab(null); setOrderModalOpen(true) }}>{t('Настроить виджеты')}</button>
+        <button className="profile-social-edit" onClick={() => { setProfileTab(null); friends.setTab(null); setTintModalOpen(true) }}>{t('Палитра курса')}</button>
+        {courseCount > 1 && <button className="profile-social-edit" onClick={() => { setProfileTab(null); friends.setTab(null); setCourseOrderOpen(true) }}>{t('Порядок курсов')}</button>}
+        <SubjectSwitcher/>
+      </>}
+    />}
     {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
     {cropFile && <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={async b => { await savePhoto(b); setCropFile(null) }} />}
     </>
