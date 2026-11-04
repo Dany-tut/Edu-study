@@ -132,7 +132,7 @@ function FriendsPane({ model, account, tab, overview, polished, onOpen, suggeste
       setResult(null)
       const found=await friendsAction<SearchResult>(account,'search',{handle:clean(nick)})
       if(active.current) setResult(found)
-    })}}><label>{overview ? <Search size={18} aria-hidden="true"/> : t('Точный ник')}<input aria-label={t('Точный ник')} placeholder={overview ? t('Найти друга по нику') : '@sever_9'} value={nick} maxLength={21} disabled={busy} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
+    })}}><label>{overview ? <Search size={18} aria-hidden="true"/> : t('Точный ник')}<input aria-label={t('Точный ник')} style={overview ? { background: 'transparent' } : undefined} placeholder={overview ? t('Найти друга по нику') : '@sever_9'} value={nick} maxLength={21} disabled={busy} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
       <button className="friend-primary" hidden={overview && !nick} disabled={busy || !valid(nick)}>{t('Найти')}</button></form>
       {result?.handle && result.personKey ? <div className="friend-row"><PersonRow person={result as PersonCard} onOpen={onOpen}/>{result.status !== 'found' ? <p role="status">{t(results[result.status] ?? 'Попробуй ещё раз.')}</p> : <>{!snapshot.handle ? <button onClick={()=>model.setTab('profile')}>{t('Выбрать ник для заявки')}</button> : <button disabled={busy} onClick={()=>run(async()=>{
         const response=await friendsAction<SearchResult>(account,'send',{handle:result.handle,key:result.key})

@@ -6,6 +6,7 @@ import Modal from './Modal'
 import { AvatarPhotoFill } from './AvatarPhoto'
 import { friendsAction, type FriendsModel, type PersonCard } from '../lib/desktopFriends'
 import { useT } from '../lib/i18n'
+import { focusQuietly } from '../lib/quietFocus'
 import './personCard.css'
 
 const icons = {flower:Flower2,cat:Cat,rabbit:Rabbit,bird:Bird,fish:Fish,bug:Bug,rocket:Rocket,star:Star,teacher:TeacherBook}
@@ -57,25 +58,30 @@ export function PersonProfile({person,model,onClose}:{person:PersonCard;model:Fr
   useEffect(()=>{
     const previous=document.activeElement
     const dialog=body.current?.closest<HTMLElement>('[role=dialog]')
-    dialog?.querySelector<HTMLButtonElement>('button')?.focus()
+    focusQuietly(dialog?.querySelector<HTMLButtonElement>('button'))
     const keys=(event:KeyboardEvent)=>{
       if(event.key==='Escape'){event.stopImmediatePropagation();event.preventDefault();closeRef.current();return}
       if(event.key!=='Tab'||!dialog)return
+      // Tab moves focus by hand: Safari by default skips buttons and would
+      // leave the card for the search field underneath.
       const controls=Array.from(dialog.querySelectorAll<HTMLElement>('button:not(:disabled)')).filter(el=>el.getClientRects().length)
-      if(event.shiftKey&&document.activeElement===controls[0]){event.preventDefault();controls[controls.length - 1]?.focus()}
-      else if(!event.shiftKey&&document.activeElement===controls[controls.length - 1]){event.preventDefault();controls[0]?.focus()}
+      if(!controls.length)return
+      event.preventDefault()
+      const index=controls.indexOf(document.activeElement as HTMLElement)
+      const next=index<0?(event.shiftKey?controls.length-1:0):(index+(event.shiftKey?-1:1)+controls.length)%controls.length
+      controls[next].focus()
     }
     window.addEventListener('keydown',keys,true)
-    return()=>{window.removeEventListener('keydown',keys,true);if(previous instanceof HTMLElement&&previous.isConnected)previous.focus()}
+    return()=>{window.removeEventListener('keydown',keys,true);if(previous instanceof HTMLElement&&previous.isConnected)focusQuietly(previous)}
   },[])
   useEffect(()=>{
     const root=body.current
-    if(confirm){root?.querySelector<HTMLButtonElement>('.pc-confirm button')?.focus();return}
+    if(confirm){focusQuietly(root?.querySelector<HTMLButtonElement>('.pc-confirm button'));return}
     // React can remove the focused retry/confirm button after an async result.
     if(document.activeElement===document.body){
       const next=root?.querySelector<HTMLButtonElement>('.pc-remove')
         ??root?.closest('[role=dialog]')?.querySelector<HTMLButtonElement>('button')
-      next?.focus()
+      focusQuietly(next)
     }
   },[confirm,detail,error])
   const visible=detail?.status==='found'?detail:person
