@@ -97,10 +97,11 @@
 .transcription-inline-head div {flex:1;min-width:0}
 .transcription-inline-head small {display:block;color:var(--color-text-3);font-size:12px}
 .recording-workspace {container-type:inline-size}
+.recording-player-layout .timecode-editor {width:max(320px, calc(100% - var(--recording-player-max-width) - 14px)) !important}
 @container (max-width:590px) {
   .recording-player-layout {flex-direction:column}
   .recording-player-layout > :first-child {flex:0 0 auto !important;width:min(100%, 40dvh);align-self:center}
-  .recording-player-layout > :last-child {width:100% !important;flex:1 1 auto !important}
+  .recording-player-layout > .timecode-editor {width:100% !important;flex:1 1 auto !important}
 }
 
 .transcript-tabs,.transcript-tools {display:flex;align-items:center;gap:4px}
@@ -141,4 +142,24 @@
 @container (max-width:590px) {
   .recording-player-layout > :first-child {width:100% !important}
   .recording-player-layout > :last-child {flex:none !important}
+}
+
+/* Reserve the action slot so revealing deletion never moves the row text. */
+.editor-delete-action {
+  width:26px;height:26px;padding:0;border:0;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--color-red-text);background:var(--color-red-soft);cursor:pointer;
+  transition:opacity 0.15s,background 0.15s;
+}
+.editor-delete-action:hover {background:color-mix(in srgb,var(--color-red-soft),var(--color-red-text) 12%)}
+.editor-delete-action:focus-visible {outline:2px solid var(--color-red-text);outline-offset:2px}
+.editor-delete-action:disabled {cursor:default;opacity:0.45}
+@media (hover:hover) and (pointer:fine) {
+  .editor-delete-row:not(:hover):not(:focus-within) .editor-delete-action {opacity:0;pointer-events:none}
+}
+@media (any-pointer:coarse) {
+  .editor-delete-row .editor-delete-action {width:44px;height:44px;opacity:1;pointer-events:auto}
+}
+@media (prefers-reduced-motion:reduce) {
+  .editor-delete-action {transition:none}
 }
