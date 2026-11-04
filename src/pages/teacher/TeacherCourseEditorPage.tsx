@@ -1750,7 +1750,7 @@ function CenterRecording({
             </div>
           </div>
         ) : (
-        <ScrollFade maxHeight="100%" style={{flex:1,minHeight:0}} scrollStyle={{height:'100%'}}>
+        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0}} scrollStyle={{height:'100%'}}>
         <div className="recording-player-layout" style={{ '--recording-player-max-width': PLAYER_MAX_W, flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 } as React.CSSProperties}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {source ? (
