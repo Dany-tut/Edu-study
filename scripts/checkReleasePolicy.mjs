@@ -51,6 +51,8 @@ try {
   const config = { services: { web: { root: '.', framework: 'vite', installCommand: 'npm ci' } }, rewrites: [{ source: '/(.*)', destination: { service: 'web' } }] }
   writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config, null, 2) + '\n')
   for (const name of ['.env.example', 'supabase/schema.sql', 'app.ts', 'local-only.txt']) writeFileSync(join(hosted, name), 'fixture')
+  const config = { services: { web: { root: '.', framework: 'vite' } } }
+  writeFileSync(join(hosted, 'vercel.json'), JSON.stringify(config, null, 2))
   git(['add', '-f', '.'], hosted)
   git(['-c', 'core.hooksPath=/dev/null', 'commit', '-m', 'Hosted fixture'], hosted)
   rmSync(join(hosted, '.env.example'))
