@@ -128,7 +128,8 @@
 .chapter-title {flex:1}
 .chapter-title textarea:hover:not(:focus),.transcript-line-text textarea:hover:not(:focus) {background:var(--color-bg-3)}
 .recording-player-layout {min-height:100% !important}
-.recording-player-layout .timecode-editor {height:clamp(290px,53dvh,560px);padding:12px !important;gap:5px !important;border-radius:18px !important}
+/* Панель глав тянется на всю высоту колонки, как правый столбец; contain:size — чтобы 25 глав не раздували ряд, список прокручивается внутри. */
+.recording-player-layout .timecode-editor {height:auto;min-height:290px;max-height:none !important;contain:size;padding:12px !important;gap:5px !important;border-radius:18px !important}
 .chapter-count,.recording-lines small {color:var(--color-text-3);font-size:11px;font-variant-numeric:tabular-nums}
 .timecode-editor input[aria-label^="Время"] {width:5.5ch !important;padding:3px 0 !important;background:transparent;border-color:transparent;font-size:12px}
 .timecode-editor .chapter-title {position:relative;align-items:center;min-height:26px;font-size:13px}
