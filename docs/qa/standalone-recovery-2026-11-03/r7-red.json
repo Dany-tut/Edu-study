@@ -1,0 +1,13 @@
+{
+  "sourceSHA": "1bca7601d798abe9edd965a3eb20639804e4cfb4",
+  "initialContainsA": true,
+  "beforeFailureContainsA": true,
+  "after503ContainsA": false,
+  "readyLogs": [
+    "[student-ready] {\"reconciled\":false,\"ms\":1452,\"courses\":1,\"lessons\":1,\"progress\":0}",
+    "[student-ready] {\"reconciled\":true,\"ms\":1139,\"courses\":1,\"lessons\":1,\"progress\":0}",
+    "[student-ready] {\"reconciled\":false,\"ms\":7058,\"courses\":0,\"lessons\":0,\"progress\":0}",
+    "[student-ready] {\"reconciled\":true,\"ms\":7079,\"courses\":0,\"lessons\":0,\"progress\":0}"
+  ],
+  "fault": "Only main standalone homework read fulfilled503 in isolated browser; localDB unchanged by test"
+}
