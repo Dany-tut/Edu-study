@@ -170,12 +170,13 @@ export type TranscriptRail = {
   saving: boolean
 }
 
-export function RecordingLines({rail}: {rail: TranscriptRail}) {
+export function RecordingLines({rail, fill}: {rail: TranscriptRail; fill?: boolean}) {
   const [editing, setEditing] = useState<number | null>(null)
   const {draft, change, saving} = rail
-  return <section className="recording-lines" aria-label="Реплики записи">
+  // fill — в левой рельсе: карточка занимает всю высоту колонки.
+  return <section className={'recording-lines' + (fill ? ' is-fill' : '')} aria-label="Реплики записи">
     <header><AudioLines size={16}/><strong>Реплики</strong><small>{draft.transcript.segments.length}</small></header>
-    <ScrollFade maxHeight="min(32dvh, 280px)" fadeHeight={12}>
+    <ScrollFade maxHeight={fill ? '100%' : 'min(32dvh, 280px)'} fadeHeight={12} style={fill ? { flex: 1, minHeight: 0 } : undefined}>
       <div>{draft.transcript.segments.map((line,index) => <div key={index} className="transcript-line">
         <time>{transcriptTime(line.start)}</time>
         {editing === index ? <span className="transcript-line-text" data-text={line.text + ' '}>
