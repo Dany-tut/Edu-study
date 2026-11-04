@@ -405,6 +405,7 @@ export const EN: Record<string, string> = {
   "Apple или Google не вернули данные входа": "Apple or Google did not return sign-in data",
   "Войти по коду из письма": "Sign in with an email code",
   "Введите код из письма:": "Enter the code sent to:",
+  "Введите код из письма": "Enter the code from the email",
   "Код из письма": "Email code",
   "Отправить код": "Send code",
   "Отправить повторно через": "Resend in",
