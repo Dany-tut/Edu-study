@@ -1,0 +1,48 @@
+
+> student-dashboard@1.0.0 release:check
+> npm run check:ui && node scripts/guardProductionRelease.mjs --check
+
+
+> student-dashboard@1.0.0 check:ui
+> node scripts/checkUiRules.mjs && node scripts/checkWidgetSizing.mjs && npm run icons:check && npm run check:homework-facts && npm run check:student-widgets && npm run check:mobile
+
+Overlay fades: 288 narrow/short/edge positioning cases, fixed-action and shared-title integration passed
+Overlay fades: explicit icons and controls stay outside marked text across all TSX sources
+Overlay geometry: software-keyboard height and viewport panning passed
+PASS: 2000 offscreen labels cause zero layout reads; visible masks, re-entry, fitting text, node removal and older-browser fallback preserved
+Text fades: all source files, guard fixtures, single/multiline/RTL/fit/resize mask cases passed
+UI rules: scroll edges, schedule text fades, mobile card integration and durable rule links passed
+22 types, 264 migrations and discrete resize scenarios passed; metrics support 1×1, calendar protected
+Reset templates: equal cards, shared edges, no overlaps, equal desktop insets passed
+Useful size review: 19 widgets, explicit pairs, no forced tall metrics, three screens
+Manual empty rows, reload/resize persistence, canonical and legacy matrix links passed
+All 19 widgets snap unsupported pairs while preserving manual rows
+Attention summary: 1×1 resize is reachable on all desk widths
+
+> student-dashboard@1.0.0 icons:check
+> node scripts/buildLoopIcons.mjs --check && node scripts/checkLoopIcons.mjs && node scripts/checkLoopIconBounds.mjs && node scripts/checkLoopFills.mjs && node scripts/checkLoopUi.mjs
+
+Verified 250 Loop drawings and 249 shared exports in /private/tmp/iskra-entry-track-fixes/
+Loop coverage: 248 Figma glyphs + Heart, 307 icon imports, 6 native symbols (light/dark). No direct Lucide bypasses.
+Loop bounds: 250 drawings × 4 stroke widths; no clipped ink.
+Loop fills: 250 web drawings, both themes, explicit active fills and 12 native assets verified.
+Loop UI policy: 398 UI files; CSS SVG, subject labels, action arrows and status glyphs checked; mutation fixtures passed.
+
+> student-dashboard@1.0.0 check:homework-facts
+> esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{"VITE_SUPABASE_URL":"http://stub.local","VITE_SUPABASE_PUBLISHABLE_KEY":"stub"}' && node node_modules/.cache/checkHomeworkFacts.mjs
+
+Homework facts: rendered dated, undated and mixed assignments passed
+
+> student-dashboard@1.0.0 check:student-widgets
+> node scripts/checkStudentWidgetMatrix.mjs
+
+Student home matrix: 13 production presentations, 9 exact carousel sizes, 2214 theme/state/size cases; overflow detector regression passed
+
+> student-dashboard@1.0.0 check:mobile
+> node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs
+
+Mobile gestures: cancel/multitouch, stale flick, nested scrolling, editing, no-drag handles, horizontal rows and top-dialog isolation passed
+Keyboard: Safari/PWA/panning/native resizing, browser chrome and pinch zoom fixtures passed
+PASS: new attempts re-open the same progress row; legacy drafts are isolated; latest linked submissions are unique
+PASS: basic snapshots stay out of hard review; legacy hard survives; standalone and extra homework titles resolve
+Release guard passed: 434e6a268bdb0b5c78108d315e59b146bbaa2e6a contains production b76b4b731256de6aeffcfb36a1d8249bfdd3b071; build 1909.

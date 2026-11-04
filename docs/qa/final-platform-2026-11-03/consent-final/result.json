@@ -1,0 +1,9 @@
+{
+  "sha": "db86facd07ffff5c6ba4d4228458fd628109a8fa",
+  "status": "PASS",
+  "pathname": "/oauth/consent",
+  "queryPreserved": true,
+  "guestLoginVisible": true,
+  "errors": [],
+  "scope": "Production route and guest gate only; no Claude grant/callback/MCP success claimed"
+}

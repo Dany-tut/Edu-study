@@ -1,0 +1,16 @@
+{
+  "candidate": "84dea0784d0f162529077753da45908ab0121be6",
+  "expectedB": {
+    "teacherId": "6b54ec96-d12a-4c1f-bc61-dcb8d6192066",
+    "studentAuthId": "1dc2e828-11a8-4b78-ab63-e01e979567ea",
+    "studentId": "e713ad41-30e8-4fa0-b03a-401cd778e2ca",
+    "groupId": "73c82971-ee42-4016-83db-22db6c17c633",
+    "homeworkId": "9606e24e-4330-41a2-b0ba-a127f3c0f7d1",
+    "ref": "hw-9606e24e-4330-41a2-b0ba-a127f3c0f7d1",
+    "marker": "B"
+  },
+  "ownTitleAndMarker": true,
+  "twoUntouchedEmptyInputs": true,
+  "foreignTitleAnswerCommentsAbsent": true,
+  "snapshotId": "37ecbe88-908e-4d78-b724-d2ae8dec13e3"
+}

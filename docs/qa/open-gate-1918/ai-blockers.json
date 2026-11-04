@@ -1,0 +1,11 @@
+{
+  "historicalFailure": "balance",
+  "matchingJobs": 1,
+  "newBillableProbe": false,
+  "mcpEndpoint": 404,
+  "oauthDiscovery": 404,
+  "jwtSigningAlgorithms": [
+    "ES256"
+  ],
+  "consentRoute": 200
+}

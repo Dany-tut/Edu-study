@@ -1,0 +1,11 @@
+{
+  "sha": "ff9f5c4ce7e90a9b5cb427d9588e4305545e6fc9",
+  "receipt": [
+    "hidden handle excluded",
+    "exact search and outgoing request",
+    "bell opens incoming requests",
+    "recipient accepted in profile requests",
+    "both lists confirmed after reload",
+    "own fixtures removed"
+  ]
+}

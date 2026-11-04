@@ -1,0 +1,74 @@
+[
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 320,
+    "stops": [
+      "#8876EE",
+      "#5949D2"
+    ]
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 320,
+    "stops": [
+      "#9D8BFF",
+      "#6A5AE6"
+    ]
+  },
+  {
+    "role": "teacher",
+    "theme": "light",
+    "width": 1440,
+    "stops": [
+      "#8876EE",
+      "#5949D2"
+    ]
+  },
+  {
+    "role": "student",
+    "theme": "light",
+    "width": 1440,
+    "stops": [
+      "#9D8BFF",
+      "#6A5AE6"
+    ]
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 320,
+    "stops": [
+      "#8876EE",
+      "#5949D2"
+    ]
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 320,
+    "stops": [
+      "#9D8BFF",
+      "#6A5AE6"
+    ]
+  },
+  {
+    "role": "teacher",
+    "theme": "dark",
+    "width": 1440,
+    "stops": [
+      "#8876EE",
+      "#5949D2"
+    ]
+  },
+  {
+    "role": "student",
+    "theme": "dark",
+    "width": 1440,
+    "stops": [
+      "#9D8BFF",
+      "#6A5AE6"
+    ]
+  }
+]

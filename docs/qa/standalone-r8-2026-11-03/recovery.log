@@ -1,0 +1,1 @@
+PASS: standalone transient recovery, authoritative empty/denied reads, progress freshness, ownership/auth/group isolation, late responses and optional metadata degradation

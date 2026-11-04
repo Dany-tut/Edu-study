@@ -1,0 +1,6 @@
+{
+  "status": "PASS_UI_OBSERVED",
+  "scope": "Native Chrome incognito, user manually entered Google test account. CUA observed real accounts.google.com flow, callback to #/, authenticated cabinet, and cabinet recovery after reload. No account content changed. Identity ownership not independently audited.",
+  "releaseAtObservation": "1.0.1929 / b98fcdbc7beb29134355a5b26a46a68879e953df",
+  "secretsStored": false
+}

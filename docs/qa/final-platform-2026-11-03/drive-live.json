@@ -1,0 +1,26 @@
+{
+  "scope": "Actual deployed Drive gateway and public recording ID from repository preview; no lesson/progress writes, no recording bytes published",
+  "results": [
+    {
+      "name": "anonymous request cannot obtain media ticket",
+      "status": "PASS"
+    },
+    {
+      "name": "authenticated unassigned learner cannot obtain media ticket",
+      "status": "PASS"
+    },
+    {
+      "name": "teacher resolves actual public Drive recording through deployed gateway",
+      "status": "PASS"
+    },
+    {
+      "name": "signed media range yields video bytes and tampered ticket is rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "real component advances native video currentTime using Google Drive gateway",
+      "status": "PASS"
+    }
+  ],
+  "cleanupErrors": []
+}

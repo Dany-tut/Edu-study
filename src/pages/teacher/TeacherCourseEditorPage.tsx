@@ -1347,20 +1347,22 @@ function ScheduleCard({
       boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18, padding: '16px 16px 18px',
     }}>
-      <label style={{ display: 'grid', gap: 7, marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
+      <div style={{ display: 'grid', gap: 7, marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
         {t('Формат урока')}
-        <select value={lesson.deliveryMode ?? 'live'}
-          onChange={e => onUpdate({ ...lesson, deliveryMode: e.target.value as 'live' | 'recording' })}
-          style={{ width: '100%', padding: 9, borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)' }}>
-          <option value="live">{t('С преподавателем')}</option>
-          <option value="recording">{t('В записи')}</option>
-        </select>
+        <PickerSelect
+          value={lesson.deliveryMode ?? 'live'}
+          onChange={v => onUpdate({ ...lesson, deliveryMode: v as 'live' | 'recording' })}
+          options={[
+            { value: 'live', label: t('С преподавателем') },
+            { value: 'recording', label: t('В записи') },
+          ]}
+        />
         <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-muted)', lineHeight: 1.4 }}>
           {lesson.deliveryMode === 'recording'
             ? t('Урок засчитывается после просмотра 90% записи.')
             : t('Онлайн или очно: присутствие в журнале засчитывает урок. Пропустившие смотрят запись.')}
         </span>
-      </label>
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <Calendar size={14} style={{ color: date ? accent : 'var(--color-muted)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: date ? 'var(--color-text)' : 'var(--color-text-3)' }}>

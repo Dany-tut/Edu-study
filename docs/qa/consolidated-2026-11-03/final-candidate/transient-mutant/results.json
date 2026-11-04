@@ -1,0 +1,13 @@
+{
+  "sha": "96749c4af0a5dfeed4b7aaf5abd8f1986219da27",
+  "sources": {
+    "src/components/teacher/schedule/TeacherSchedule.tsx": "e7c1687ddf0886761626db189beeb488b40841e979cba20ea455533918248714",
+    "src/components/teacher/widgets/WidgetTodaySchedule.tsx": "64e0ed5de1b3adec23e425411eff9720306075f9bb8aacac9fdfb88726089b11",
+    "qa/calendar/stand.tsx": "bcd503beba5e507decd3c693063f9f461bcc1f4f6051544c5908cc5328651f30",
+    "scripts/checkTeacherCalendarDay.mjs": "52e27e29467c306be13f99ed57a15de3e86982a3d03492621552d7c816ef92ee"
+  },
+  "results": [],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Stale/missing/duplicate data during mutation: 2026-11-03\n+ actual - expected\n\n  [\n    {\n      date: '2026-11-03',\n+     id: 'injected-stale-entry'\n-     id: '2026-11-02/1/0'\n    },\n    {\n      date: '2026-11-03',\n      id: '2026-11-02/1/1'\n    }\n"
+  ]
+}

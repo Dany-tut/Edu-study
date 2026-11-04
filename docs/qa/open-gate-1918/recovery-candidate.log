@@ -1,0 +1,16 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.fill: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByPlaceholder('Новый пароль', { exact: true })[22m
+
+    at /Users/dany/Cursor/student-dashboard/node_modules/.cache/openbeta/recovery-local.mjs:8:55 {
+  log: [
+    "  - waiting for getByPlaceholder('Новый пароль', { exact: true })"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.11.1

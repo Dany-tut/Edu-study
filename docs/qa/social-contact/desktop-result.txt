@@ -1,0 +1,1 @@
+PASS · two Chrome profiles 1440×900, password login, hidden/exact search, send, notification, direct requests, accept, bilateral list after reload. Local Auth + PostgREST.

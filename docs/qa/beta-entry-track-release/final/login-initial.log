@@ -1,0 +1,12 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Execution context was destroyed, most likely because of a navigation
+    at hasSession (/Users/dany/Cursor/student-dashboard/scripts/security/checkLocalStudentLogin.mjs:8:29)
+    at /Users/dany/Cursor/student-dashboard/scripts/security/checkLocalStudentLogin.mjs:12:273 {
+  log: [],
+  name: 'Error'
+}
+
+Node.js v24.11.1

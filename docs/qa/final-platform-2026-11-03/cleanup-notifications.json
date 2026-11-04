@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "scope": "Only exact recipient UUIDs from this run synthetic fixtures",
+  "recipients": 11,
+  "before": 3,
+  "after": 0
+}
