@@ -5,6 +5,15 @@ class DownloadUnavailable(Exception):
     pass
 
 LIMIT=2*1024**3
+def downloaded(folder):
+    """Bytes on disk and the expected size; total is 0 when the source did not say."""
+    current=sum(p.stat().st_size for p in folder.iterdir() if p.is_file() and (p.name=='input' or p.name.startswith('download.')))
+    try: total=int((folder/'.download-size').read_text().split()[-1])
+    except (OSError, ValueError, IndexError):
+        try: total=int(re.findall(r'(?im)^content-length:\s*(\d+)',(folder/'.download-headers').read_text(errors='replace'))[-1])
+        except (OSError, IndexError): total=0
+    return min(current,total) if total else current, total
+
 def fetch(url,folder):
     try: return _fetch(url,folder)
     except subprocess.TimeoutExpired as exc: raise DownloadUnavailable() from exc
@@ -19,7 +28,7 @@ def _fetch(url,folder):
         if p.hostname in ('youtube.com','www.youtube.com','m.youtube.com','youtu.be'):
             vid=(parse_qs(p.query).get('v') or [''])[0] if p.path=='/watch' else p.path.split('/')[-1]
             if not re.fullmatch(r'[A-Za-z0-9_-]{11}',vid):raise ValueError('Нужна ссылка на одно видео YouTube.')
-            r=subprocess.run([sys.executable,'-m','yt_dlp','--ignore-config','--no-playlist','--no-progress','--max-filesize',str(limit),'--socket-timeout','15','--retries','1','--match-filter','!is_live','-f','bv[height<=720][ext=mp4]+ba[ext=m4a]/b[ext=mp4]','--merge-output-format','mp4','-o',str(folder/'download.%(ext)s'),'--','https://www.youtube.com/watch?v='+vid],capture_output=True,timeout=900)
+            r=subprocess.run([sys.executable,'-m','yt_dlp','--ignore-config','--no-playlist','--no-progress','--print-to-file','before_dl:%(filesize,filesize_approx)s',str(folder/'.download-size'),'--max-filesize',str(limit),'--socket-timeout','15','--retries','1','--match-filter','!is_live','-f','bv[height<=720][ext=mp4]+ba[ext=m4a]/b[ext=mp4]','--merge-output-format','mp4','-o',str(folder/'download.%(ext)s'),'--','https://www.youtube.com/watch?v='+vid],capture_output=True,timeout=900)
             video=folder/'download.mp4'
             if r.returncode and any(word in r.stderr.decode(errors='replace').lower() for word in ('timed out','network is unreachable','temporary failure','name resolution','remote end closed connection','connection reset','connection refused')):
                 raise DownloadUnavailable()
@@ -31,7 +40,7 @@ def _fetch(url,folder):
         except socket.gaierror as exc: raise DownloadUnavailable() from exc
         if not addresses or not all(a.is_global for a in addresses):raise ValueError('Нужна общедоступная ссылка на видео.')
         addr=str(addresses[0]);addr=f'[{addr}]' if ':' in addr else addr
-        r=subprocess.run(['curl','-q','--noproxy','*','--silent','--connect-timeout','15','--max-time','900','--max-filesize',str(limit),'--resolve',f'{p.hostname}:{port}:{addr}','--output',str(folder/'input'),'--write-out','%{http_code}\n%{redirect_url}\n%{content_type}','--',url],capture_output=True,text=True)
+        r=subprocess.run(['curl','-q','--noproxy','*','--silent','--connect-timeout','15','--max-time','900','--max-filesize',str(limit),'--resolve',f'{p.hostname}:{port}:{addr}','--output',str(folder/'input'),'--dump-header',str(folder/'.download-headers'),'--write-out','%{http_code}\n%{redirect_url}\n%{content_type}','--',url],capture_output=True,text=True)
         code,_,rest=r.stdout.partition('\n');target,_,mime=rest.partition('\n')
         if not r.returncode and code.startswith('3') and target:
             url=urljoin(url,target);continue

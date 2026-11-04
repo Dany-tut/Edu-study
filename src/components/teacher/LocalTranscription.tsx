@@ -160,6 +160,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
 }
 
 type Pending = { id: string; source: string; fileSignature?: string }
+const megabytes = (bytes: number) => (bytes / 1048576).toFixed(1) + ' МБ'
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
 type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean> }
 
@@ -281,7 +282,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState('')
-  const [progress, setProgress] = useState<{ current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' }>()
+  const [progress, setProgress] = useState<{ current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' }>()
   const [error, setError] = useState('')
   const [unavailable, setUnavailable] = useState(false)
   const [retry, setRetry] = useState(0)
@@ -312,7 +313,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
         if (!active) return
         setError(''); setUnavailable(false)
         setProgress(state.progress)
-        setStage(state.stage + (state.bytes ? ' · ' + (state.bytes / 1048576).toFixed(1) + ' МБ' : ''))
+        setStage(state.stage + (state.bytes ? ' · ' + megabytes(state.bytes) : ''))
         if (state.error) throw new Error(state.stage)
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
         // Паузы и громкость от модуля (если он уже обновлён) — для окна монтажа.
@@ -334,7 +335,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
   }, [pending, token, retry])
   const stages = ['Видео', 'Распознаём речь', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
   const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
-  const metric = progress?.unit === 'seconds' ? transcriptTime : (n: number) => String(n)
+  const metric = progress?.unit === 'seconds' ? transcriptTime : progress?.unit === 'bytes' ? megabytes : (n: number) => String(n)
   return <section className="transcription-inline">
     <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
       <div><strong>Расшифровка урока</strong><small>Обработка на вашем компьютере</small></div>
@@ -354,7 +355,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
           <strong>{step}</strong>{active && percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}
         </li>
       })}</ol>
-      {progress && progress.total > 0 && <small className="transcription-hint">{metric(progress.current)} из {metric(progress.total)} {progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи'}</small>}
+      {progress && progress.total > 0 && <small className="transcription-hint">{metric(progress.current)} из {metric(progress.total)}{progress.unit === 'bytes' ? '' : ' ' + (progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи')}</small>}
     </>}
     {error && <div role="alert" className="transcription-recovery">
       <strong>{unavailable ? 'Модуль недоступен' : 'Не удалось завершить расшифровку'}</strong>
