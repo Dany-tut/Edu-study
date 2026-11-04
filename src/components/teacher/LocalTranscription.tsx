@@ -493,7 +493,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, onReady,
     </div>}
     {pending && !error && <>
       <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}</small>
-      <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac. Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>
+      <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac.<br />Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>
       <ol className="transcription-job-steps">{stages.map((step, i) => {
         const active = i === currentStep
         const percent = active && progress && progress.total > 0 ? Math.min(100, Math.max(0, Math.round(progress.current / progress.total * 100))) : undefined
