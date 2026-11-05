@@ -295,7 +295,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
                   style={uiBtn('S', 'secondary')}
                 >
                   <Eye size={12} strokeWidth={2} />
-                  {t('Посмотреть кабинет')}
+                  {t('Кабинет')}
                 </button>
               )}
               <button
