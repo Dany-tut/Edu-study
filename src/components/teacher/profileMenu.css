@@ -1,0 +1,10 @@
+/* Меню профиля: ряд с плиткой-иконкой. Ховер ряда — bg-3, а плитка на ховере
+   темнеет: раньше ряд красился bg-5 (#EBEBEF), почти как плитка bg-3
+   (#F0F0F2), и плитка на наведении сливалась с рядом. */
+.profile-menu-row {transition:background .15s}
+.profile-menu-tile {width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--color-bg-3);color:var(--color-text-2);transition:background .15s,color .15s}
+.profile-menu-row:hover:not(:disabled) {background:var(--color-bg-3) !important}
+.profile-menu-row:hover:not(:disabled) .profile-menu-tile {background:color-mix(in srgb,var(--color-bg-3),var(--color-text) 9%);color:var(--color-text)}
+.profile-menu-row[data-tone=red] .profile-menu-tile {background:var(--color-red-soft);color:var(--color-red-text)}
+.profile-menu-row[data-tone=red]:hover {background:color-mix(in srgb,var(--color-red-soft) 60%,transparent) !important}
+.profile-menu-row[data-tone=red]:hover .profile-menu-tile {background:color-mix(in srgb,var(--color-red-soft),var(--color-red-text) 14%);color:var(--color-red-text)}
