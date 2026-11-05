@@ -1,5 +1,5 @@
 import { textFadeStyle } from '../../lib/textFades'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import BackCircle from '../../components/BackCircle'
 import { confirmDialog } from '../../components/ConfirmHost'
 import Segmented from '../../components/Segmented'
@@ -952,6 +952,25 @@ export default function TeacherAdminPage() {
   })
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  // Смена раздела не кидает страницу наверх: прокрутка остаётся, где была.
+  // Если новый раздел короче и туда уже не докрутить — встаём к вкладкам разделов.
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const sectionTabsRef = useRef<HTMLDivElement>(null)
+  const keepScroll = useRef<number | null>(null)
+  function changeSection(next: OverviewSection) {
+    keepScroll.current = scrollRef.current?.scrollTop ?? null
+    setSection(next)
+  }
+  useLayoutEffect(() => {
+    const el = scrollRef.current, tabsEl = sectionTabsRef.current, prev = keepScroll.current
+    keepScroll.current = null
+    if (!el || !tabsEl || prev == null) return
+    const max = el.scrollHeight - el.clientHeight
+    if (prev <= max) { el.scrollTop = prev; return }
+    // Вкладки встают под верхнюю панель (она перекрывает первые 100 px прокрутки).
+    const anchor = tabsEl.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - 116
+    el.scrollTop = Math.max(0, Math.min(anchor, max))
+  }, [section])
 
   useEffect(() => {
     getAuthUser().then(u => {
@@ -1031,7 +1050,7 @@ export default function TeacherAdminPage() {
   }
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
+    <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
       <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
@@ -1091,8 +1110,9 @@ export default function TeacherAdminPage() {
           />
         </div>
 
+        <div ref={sectionTabsRef} />
         <Segmented
-          variant="mode" value={section} onChange={setSection} style={{ marginBottom: 20 }}
+          variant="mode" value={section} onChange={changeSection} style={{ marginBottom: 20 }}
           items={([['teachers', t('Учителя'), Users], ['features', t('Функции'), ToggleRight], ['ai', t('ИИ'), Sparkles], ['themes', t('Темы'), Ghost], ['storage', t('Хранилище'), HardDrive]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
         />
 
