@@ -91,14 +91,29 @@
 .rail-dashed-btn[data-tone=green]:hover {background:var(--color-green-soft) !important;color:var(--color-green-text) !important;border-color:var(--color-green-text) !important}
 
 /* Открытая вкладка «Запись»: «Оригинал | Предпросмотр» в той же ячейке.
-   Слой лежит поверх невидимой подписи — размер вкладки не меняется. */
-.recording-split {position:absolute;inset:0;z-index:1;display:flex;align-items:stretch;container-type:inline-size}
-.recording-split-half {flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;padding:0 4px;border-radius:7px;margin:3px 2px;color:var(--color-text-3);white-space:nowrap;overflow:hidden;cursor:pointer;transition:color .2s,background-color .2s}
+   Слой лежит поверх невидимой подписи — размер вкладки не меняется.
+   Широко: два слова пополам. Узко: у активной половины слово, у другой — иконка;
+   колонки сетки плавно меняются местами. */
+.recording-split {position:absolute;inset:0;z-index:1;display:flex;container-type:inline-size}
+/* Колонки в длинах (cqw), а не fr: так ширины плавно переливаются при смене. */
+.recording-split-track {flex:1;min-width:0;display:grid;align-items:stretch;grid-template-columns:calc(50cqw - .5px) 1px calc(50cqw - .5px);transition:grid-template-columns .3s cubic-bezier(.32,.72,0,1)}
+.recording-split-track > * {min-width:0}
+.recording-split-half {display:flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;border-radius:7px;margin:3px;color:var(--color-text-3);white-space:nowrap;overflow:hidden;cursor:pointer;transition:color .2s,background-color .2s}
 .recording-split-half[aria-pressed=true] {color:var(--color-green-text);background:color-mix(in srgb,var(--color-bg) 70%,transparent)}
 .recording-split-half:not([aria-pressed=true]):not([aria-disabled=true]):hover {color:var(--color-text)}
-.recording-split-half[aria-disabled=true] {cursor:default;opacity:.5}
+.recording-split-half[aria-disabled=true] {cursor:default;opacity:.45}
 .recording-split-half:focus-visible {outline:2px solid var(--color-green-text);outline-offset:-2px}
-.recording-split-divider {flex:none;width:1px;margin:8px 0;background:color-mix(in srgb,var(--color-green-text) 30%,transparent)}
+.recording-split-icon {flex:none;display:none}
 .recording-split-short {display:none}
-@container (max-width:250px) {.recording-split-long {display:none}.recording-split-short {display:inline}}
-@container (max-width:165px) {.recording-split-half {font-size:12px;letter-spacing:-.01em;padding:0 2px}}
+.recording-split-divider {width:1px;margin:8px 0;background:color-mix(in srgb,var(--color-green-text) 30%,transparent)}
+/* Узкая ячейка: два слова не влезают — у неактивной половины остаётся иконка. */
+@container (max-width:250px) {
+  .recording-split-track[data-view=original] {grid-template-columns:calc(100cqw - 41px) 1px 40px}
+  .recording-split-track[data-view=preview] {grid-template-columns:40px 1px calc(100cqw - 41px)}
+  .recording-split-half[aria-pressed=false] {padding:0}
+  .recording-split-half[aria-pressed=false] .recording-split-long,.recording-split-half[aria-pressed=false] .recording-split-short {display:none}
+  .recording-split-half[aria-pressed=false] .recording-split-icon {display:block}
+  .recording-split-half[aria-pressed=true] .recording-split-long {display:none}
+  .recording-split-half[aria-pressed=true] .recording-split-short {display:inline}
+}
+@media (prefers-reduced-motion: reduce) {.recording-split-track {transition:none}}

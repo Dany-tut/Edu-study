@@ -6,6 +6,7 @@ import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, 
 import { planCourseSchedule, type CourseSlot } from '../../lib/courseScheduleSync'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
+import { Eye } from '../../components/icons/appIcons'
 import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
 import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
@@ -5669,31 +5670,37 @@ const LESSON_MODES: { id: LessonMode; label: string }[] = [
  * Открытая вкладка «Запись» — две половины в той же ячейке: «Оригинал» (вставляем,
  * правим, расставляем главы) и «Предпросмотр» (как увидит ученик после монтажа).
  * Размер вкладки не меняется: половины лежат поверх подписи, а сама подпись
- * остаётся невидимой и держит высоту и ширину. На узкой ячейке — «Просмотр».
+ * остаётся невидимой и держит высоту и ширину. Когда места на оба слова не
+ * хватает, неактивная половина сжимается до иконки, а слово остаётся у активной —
+ * после клика они плавно меняются местами.
  * Половины — span с ролью кнопки: настоящая кнопка внутри кнопки недопустима.
  */
 function RecordingViewSplit({ view, hasMontage, onView, label }: {
   view: 'original' | 'preview'; hasMontage: boolean; onView: (view: 'original' | 'preview') => void; label: string
 }) {
   const t = useT()
+  const current = hasMontage ? view : 'original'
   const pick = (next: 'original' | 'preview') => (e: React.SyntheticEvent) => {
     e.stopPropagation()
     if (next === 'preview' && !hasMontage) return
     onView(next)
   }
-  const half = (id: 'original' | 'preview', children: React.ReactNode, title?: string) => (
-    <span role="button" tabIndex={0} className="recording-split-half" aria-pressed={view === id || (id === 'original' && !hasMontage)}
-      aria-disabled={id === 'preview' && !hasMontage ? true : undefined} title={title}
-      onClick={pick(id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(id)(e) } }}>{children}</span>
+  const half = (id: 'original' | 'preview', Icon: typeof Video, long: string, short: string, title: string) => (
+    <span role="button" tabIndex={0} className="recording-split-half" aria-pressed={current === id} aria-label={long} title={title}
+      aria-disabled={id === 'preview' && !hasMontage ? true : undefined}
+      onClick={pick(id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(id)(e) } }}>
+      <Icon size={15} className="recording-split-icon" aria-hidden />
+      <span className="recording-split-long">{long}</span><span className="recording-split-short">{short}</span>
+    </span>
   )
   return <>
     <span aria-hidden style={{ visibility: 'hidden' }}>{label}</span>
-    <span className="recording-split" role="group" aria-label={label}>
-      {half('original', t('Оригинал'))}
+    <span className="recording-split" role="group" aria-label={label}><span className="recording-split-track" data-view={current}>
+      {half('original', Video, t('Оригинал'), t('Оригинал'), t('Исходная запись: ссылка, главы, текст'))}
       <span className="recording-split-divider" aria-hidden />
-      {half('preview', <><span className="recording-split-long">{t('Предпросмотр')}</span><span className="recording-split-short">{t('Просмотр')}</span></>,
+      {half('preview', Eye, t('Предпросмотр'), t('Просмотр'),
         hasMontage ? t('Как увидит ученик: вырезанное пропускается, тихое ускорено') : t('Монтажа пока нет — сначала примените монтаж и сохраните расшифровку'))}
-    </span>
+    </span></span>
   </>
 }
 

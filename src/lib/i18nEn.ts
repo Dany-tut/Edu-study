@@ -5852,4 +5852,5 @@ export const EN: Record<string, string> = {
   "Просмотр": "Preview",
   "Как увидит ученик: вырезанное пропускается, тихое ускорено": "As the student sees it: cuts skipped, quiet parts sped up",
   "Монтажа пока нет — сначала примените монтаж и сохраните расшифровку": "No montage yet — apply the montage and save the transcript first",
+  "Исходная запись: ссылка, главы, текст": "Original recording: link, chapters, text",
 }
