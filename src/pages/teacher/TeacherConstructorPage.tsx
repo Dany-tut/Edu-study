@@ -43,7 +43,7 @@ import { copyToClipboard } from '../../lib/clipboard'
 import { trackEvent } from '../../lib/analytics'
 import { supabase } from '../../lib/supabase'
 import { isCourseResetRef } from '../../lib/homeworkReset'
-import { getOwnerId } from '../../lib/owner'
+import { getOwnerId, getSessionUser } from '../../lib/owner'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDraft, clearDrafts } from '../../lib/useDraft'
@@ -55,6 +55,7 @@ import { seedKeyOf } from '../../lib/seedSync'
 import { authoredLesson } from '../../data/authoredLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
+import { CONSTRUCTOR_TAB_EVENT } from '../../store/notificationsStore'
 import { useTheme } from '../../store/themeStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -3753,12 +3754,19 @@ const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
 
 // Runtime meta for custom user-created tests
 const CUSTOM_META = new Map<string, { label: string; accent: string; soft: string; iconKey?: string }>()
+// Свой профиль — по своему id. Без фильтра `.single()` работал только у
+// учителя: админу RLS отдаёт все профили, и запрос падал с 406 (27 раз за
+// 05.11) — цвета тестов у админа не загружались и не сохранялись.
 async function loadColorOverridesFromDB(): Promise<Record<string, string>> {
-  const { data } = await supabase.from('profiles').select('test_color_overrides').single()
+  const me = (await getSessionUser())?.id
+  if (!me) return {}
+  const { data } = await supabase.from('profiles').select('test_color_overrides').eq('id', me).maybeSingle()
   return (data?.test_color_overrides as Record<string, string>) ?? {}
 }
 async function saveColorOverrideToDB(subject: string, hex: string) {
-  const { data: profileData } = await supabase.from('profiles').select('id, test_color_overrides').single()
+  const me = (await getSessionUser())?.id
+  if (!me) return
+  const { data: profileData } = await supabase.from('profiles').select('id, test_color_overrides').eq('id', me).maybeSingle()
   if (!profileData) return
   const current = (profileData.test_color_overrides as Record<string, string>) ?? {}
   current[subject] = hex
@@ -7956,6 +7964,15 @@ export default function TeacherConstructorPage() {
     localStorage.getItem('constructor-selected-id')
   )
   useEffect(() => { localStorage.setItem('constructor-active-tab', activeTab) }, [activeTab])
+  // «Открыть» у уведомления «Тест пройден», когда конструктор уже на экране.
+  useEffect(() => {
+    const onTab = (e: Event) => {
+      const tab = (e as CustomEvent<string>).detail
+      if (tab === 'testing' || tab === 'course' || tab === 'widget' || tab === 'decks') setActiveTab(tab)
+    }
+    window.addEventListener(CONSTRUCTOR_TAB_EVENT, onTab)
+    return () => window.removeEventListener(CONSTRUCTOR_TAB_EVENT, onTab)
+  }, [])
   useEffect(() => {
     if (selectedId) localStorage.setItem('constructor-selected-id', selectedId)
     else localStorage.removeItem('constructor-selected-id')

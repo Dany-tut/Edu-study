@@ -32,6 +32,9 @@
 .teacher-roster-scroll {
   flex: 1 1 auto;
   overflow: auto;
+  /* Место под полосу прокрутки держим всегда: иначе при фильтре на 2 строки
+     полоса пропадает и все колонки съезжают вправо на её ширину. */
+  scrollbar-gutter: stable;
   min-height: 0;
   overscroll-behavior: contain;
 }
@@ -42,3 +45,13 @@
   z-index: 1;
   background: var(--color-bg-2);
 }
+
+/* Фильтры списка учеников — та же таблетка, что вкладки Журнала
+   (.js-tabs.cj-tabs): дорожка 3 px, кнопки 32 px, счётчик — CountBadge
+   внутри, правый отступ кнопки = зазору над и под ним. */
+.cj-tabs.roster-filter-tabs { --rf-h: 32px; flex: none; gap: 2px; padding: 3px; max-width: 100%; flex-wrap: wrap; }
+.cj-tabs.roster-filter-tabs button { flex: none; height: var(--rf-h); padding: 0 14px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.cj-tabs.roster-filter-tabs button:hover { background: var(--color-bg-3); }
+.cj-tabs.roster-filter-tabs button[aria-pressed='true'] { color: var(--color-accent); background: var(--color-purple-soft); }
+.cj-tabs.roster-filter-tabs button:has(.roster-filter-count) { padding-inline-end: calc((var(--rf-h) - 18px) / 2); }
+@media (max-width: 650px) { .cj-tabs.roster-filter-tabs { --rf-h: 44px; } }

@@ -279,6 +279,8 @@ export const LoopArtworkClipboardList = <><g transform="translate(0.73846 1.2153
 
 export const LoopArtworkClipboardPaste = <><g transform="translate(0.73846 1.21538) scale(0.95385)"><path d="m9 5-5 1-1 24 26-1-1-24h-6M10 2l12-1v7l-13 1z" fill="none"/><path d="M13 13l13-1-1 16-13 1zM17 18h5" fill="none"/></g></>
 
+export const LoopArtworkTimedTest = <><path d="M17.5 12 17 3 4 4l1 24 8-.4" fill="none"/><path d="m8 9 6-.2M8 14l4-.1" fill="none"/><path d="M22 15q7 0 7 7T22 29q-7 0-7-7T22 15z" fill="var(--loop-soft, none)"/><path d="M22 15q7 0 7 7T22 29q-7 0-7-7T22 15zM20 11.5h4M22 11.7V15" fill="none"/><path d="m22 22 2.4-3" fill="none" stroke="var(--loop-detail, #F4A55A)"/></>
+
 export const LoopArtworkColumns3 = <><path d="m3 4 27-1-1 26-27 1zM12 4l-1 26M21 4l-1 26" fill="none"/><path d="m21 4 9-1" fill="none" stroke="var(--loop-detail, #F4A55A)"/></>
 
 export const LoopArtworkCopy = <><path d="m7 6 1-4 22 1-1 21h-4M3 10l20-1-1 21-20-1z" fill="none"/><path d="m6 14 5-1" fill="none" stroke="var(--loop-detail, #F4A55A)"/></>

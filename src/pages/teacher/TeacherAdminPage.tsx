@@ -1208,7 +1208,10 @@ export default function TeacherAdminPage() {
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
                         {t('Создано')} {new Date(inv.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}
-                        {inv.createdByName ? ` · ${inv.createdByName}` : ''}
+                        {' · '}
+                        {inv.createdByName
+                          ? <>{t('автор')}: <span style={{ color: 'var(--color-text-2)', fontWeight: 600 }}>{inv.createdByName}</span></>
+                          : <span title={t('Приглашение создано не из админки или аккаунт автора удалён')}>{t('автор неизвестен')}</span>}
                       </div>
                     </div>
                     <button

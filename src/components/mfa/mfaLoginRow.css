@@ -1,0 +1,32 @@
+/* Шестерёнка у «Включена» и её меню: запасные коды, отключить */
+.mfa-menu-wrap { position: relative; }
+.mfa-gear {
+  display: grid; place-items: center;
+  width: 44px; height: 44px; border: 0; border-radius: 14px;
+  background: var(--color-bg-input); color: var(--color-text-2);
+  cursor: pointer; transition: background-color .15s ease, color .15s ease;
+}
+.mfa-gear[aria-expanded="true"] { color: var(--color-text); background: color-mix(in srgb, var(--color-bg-input), var(--color-text) 6%); }
+.mfa-gear:disabled { opacity: .55; cursor: default; }
+@media (hover: hover) { .mfa-gear:not(:disabled):hover { color: var(--color-text); background: color-mix(in srgb, var(--color-bg-input), var(--color-text) 6%); } }
+.mfa-menu {
+  position: absolute; top: 100%; right: 0; margin-top: 6px; z-index: 50; min-width: 200px;
+  box-sizing: border-box; padding: 6px; border-radius: 14px;
+  background: rgba(var(--glass-rgb), .97);
+  -webkit-backdrop-filter: var(--blur-solid); backdrop-filter: var(--blur-solid);
+  border: 1px solid var(--color-border-glass); box-shadow: var(--shadow-4);
+}
+.mfa-menu__row {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px; border: 0; border-radius: 9px; background: transparent;
+  color: var(--color-text); font: inherit; font-size: 13px; text-align: left;
+  white-space: nowrap; cursor: pointer; transition: background-color .15s ease;
+}
+.mfa-menu__row > svg { color: var(--color-text-3); flex: none; }
+.mfa-menu__label { flex: 1; }
+.mfa-menu__meta { color: var(--color-muted); font-size: 12px; }
+.mfa-menu__row--danger, .mfa-menu__row--danger > svg { color: var(--color-red-text); }
+@media (hover: hover) {
+  .mfa-menu__row:hover { background: var(--color-bg-3); }
+  .mfa-menu__row--danger:hover { background: var(--color-red-soft); }
+}

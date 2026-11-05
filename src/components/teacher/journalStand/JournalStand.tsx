@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import ScrollFade from '../../ScrollFade'
 import CountBadge from '../../CountBadge'
 import { useJournalPending, type PendingJournal } from '../../../lib/useGroups'
@@ -22,6 +22,7 @@ import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
 import { performanceDiagnostics } from '../../../lib/platformPerformance'
 import TestlyMark from '../../TestlyMark'
+import TeacherSelect from '../TeacherSelect'
 import { ArrowLeft, BookOpen, CalendarCheck, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
 import { useScrollEdges } from './useScrollEdges'
 import { matrixRuns } from './matrixRuns'
@@ -118,6 +119,11 @@ function Metrics({ stats }: { stats: ReturnType<typeof workStats> }) {
     </dl>
   )
 }
+// TeacherSelect отбрасывает вариант с пустым value — «все модули» живёт под своим ключом.
+const ALL_MODULES = '__all_modules'
+const SCOPE_TRIGGER: CSSProperties = {
+  border: 'none', background: 'transparent', padding: '4px 0', fontSize: 'inherit', color: 'var(--color-text)',
+}
 export function ScopePicker({
   data,
   value,
@@ -130,36 +136,35 @@ export function ScopePicker({
   const modules = data.modules.filter((m) => m.course_id === value.course).sort((a, b) => a.position - b.position)
   return (
     <div className="js-scope">
-      <label>
+      {/* Свой дропдаун вместо системного <select>: рамка и иконка — у label,
+          триггер прозрачный и растягивается на всю коробку. */}
+      <label className="js-scope-course" data-dropdown-anchor="">
         <BookOpen size={15} />
-        <select
-          aria-label="Курс или интенсив"
+        <TeacherSelect
           value={value.course}
-          onChange={(e) => onChange({ course: e.target.value, module: '' })}
-        >
-          <option value={ALL_COURSES}>Все курсы и работы</option>
-          {data.courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.title}
-            </option>
-          ))}
-          <option value={OUTSIDE_COURSES}>Вне курсов</option>
-        </select>
+          onChange={(course) => onChange({ course, module: '' })}
+          options={[
+            { value: ALL_COURSES, label: 'Все курсы и работы' },
+            ...data.courses.map((c) => ({ value: c.id, label: c.title })),
+            { value: OUTSIDE_COURSES, label: 'Вне курсов' },
+          ]}
+          placeholder="Найти курс…"
+          clearable={false}
+          triggerStyle={SCOPE_TRIGGER}
+        />
       </label>
       {modules.length > 0 && (
-        <label>
-          <select
-            aria-label="Модуль"
-            value={value.module}
-            onChange={(e) => onChange({ ...value, module: e.target.value })}
-          >
-            <option value="">Все модули</option>
-            {modules.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+        <label className="js-scope-module" data-dropdown-anchor="">
+          <TeacherSelect
+            value={value.module || ALL_MODULES}
+            onChange={(module) => onChange({ ...value, module: module === ALL_MODULES ? '' : module })}
+            options={[
+              { value: ALL_MODULES, label: 'Все модули' },
+              ...modules.map((m) => ({ value: m.id, label: m.label })),
+            ]}
+            clearable={false}
+            triggerStyle={SCOPE_TRIGGER}
+          />
         </label>
       )}
     </div>
@@ -297,8 +302,10 @@ function shortDate(value: string | null) {
 function monogram(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map(v => v[0]).join('')
 }
-function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
+function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, workViews }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
   attention: boolean; toggle: () => void; pendingCount: number
+  /** «По ученикам / По домашкам» — в той же строке, сразу за вкладками. */
+  workViews?: ReactNode
 }) {
   const [filters, setFilters] = useState(false)
   const area = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null)
@@ -306,7 +313,10 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }:
   useEffect(() => {
     if (!filters) return
     const outside = (e: PointerEvent) => {
-      if (e.target instanceof Node && !area.current?.contains(e.target)) setFilters(false)
+      if (!(e.target instanceof Node) || area.current?.contains(e.target)) return
+      // Список модуля/курса открыт в портале — выбор пункта не закрывает панель.
+      if (e.target instanceof Element && e.target.closest('[data-dropdown-menu]')) return
+      setFilters(false)
     }
     document.addEventListener('pointerdown', outside)
     return () => document.removeEventListener('pointerdown', outside)
@@ -325,10 +335,12 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }:
           )
         })}
       </div>
+      {workViews}
       <div className="js-filter-area" ref={area} onKeyDown={e => {
         if (e.key === 'Escape' && filters) { e.stopPropagation(); setFilters(false); trigger.current?.focus() }
       }} onBlur={e => {
-        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setFilters(false)
+        const next = e.relatedTarget
+        if (next && !e.currentTarget.contains(next) && !next.closest('[data-dropdown-menu]')) setFilters(false)
       }}>
         <button type="button" className="cj-button js-filter-trigger" aria-label="Фильтры журнала" title="Фильтры журнала"
           ref={trigger} aria-controls={id} aria-expanded={filters} data-filtered={!!selected.module || attention || undefined}
@@ -413,7 +425,11 @@ export function Matrix(props: MatrixProps) {
   return <section className="course-journal js-matrix" ref={host} data-report-open={drawerOpen || undefined}
     aria-label={'Журнал успеваемости · ' + groupLabel}>
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
-      pendingCount={props.pendingAttendance?.length ?? 0} attention={!overview && attention} toggle={() => setAttention(v => !v)} /></div>
+      pendingCount={props.pendingAttendance?.length ?? 0} attention={!overview && attention} toggle={() => setAttention(v => !v)}
+      workViews={selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views js-work-views" role="group" aria-label="Представление работ">
+        <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
+        <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
+      </div>} /></div>
     {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && <details className="js-pending-lessons">
       <summary><ChevronRight size={16} aria-hidden="true" />Незаполненная посещаемость · {props.pendingAttendance.length}</summary>
       <ScrollFade maxHeight="min(24dvh, 180px)">
@@ -424,10 +440,6 @@ export function Matrix(props: MatrixProps) {
       </ScrollFade>
     </details>}
     {selected.tab === 'Посещаемость' && props.onOpenAttendance && <p className="cj-note" role="status">Нажмите ячейку, чтобы отметить посещаемость или поставить оценку. Название урока открывает отметки для учеников из текущего списка, у которых есть это занятие в расписании.</p>}
-    {selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views" role="group" aria-label="Представление работ">
-      <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
-      <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
-    </div>}
     {overview ? <GroupOverview key={[selected.strip, groupLabel, selected.course, selected.module].join(':')}
       entries={entries} studentId={selected.student} search={selected.search} today={today} scopeLabel={scopeLabel}
       groupLabel={groupLabel} studentGroupLabel={groups.find(g => g.id === entry?.student.groupId)?.name} example={example} onStudent={student => {setReportHost(null);set({student,workRef:''})}}

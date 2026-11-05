@@ -15,7 +15,7 @@ import { scheduleHasEnded, todayMsk } from '../../lib/teacherSchedule'
 import { useJournalPending } from '../../lib/useGroups'
 import { tactile } from '../../lib/feedback'
 import { mskToVietnam, getContrastColor } from '../../lib/utils'
-import { useNotificationsStore, type Notification } from '../../store/notificationsStore'
+import { useNotificationsStore, followNotifAction, type Notification } from '../../store/notificationsStore'
 import { useT, useTc } from '../../lib/i18n'
 
 const TOPBAR_H = 60
@@ -562,9 +562,9 @@ export default function TeacherCompactPill() {
 
   const dismissNotif = () => { clearLive(); setShowNotif(false) }
   const handleNotifAction = () => {
-    const page = latest?.action?.page
+    const action = latest?.action
     dismissNotif()
-    if (page) window.location.hash = page.startsWith('#') ? page : `#/${page}`
+    followNotifAction(action)
   }
 
   const widgetId = WIDGETS[idx]

@@ -107,6 +107,8 @@ put('ListVideo',G(play,'translate(1 1) scale(.55)')+P('m20 5 9-1M20 11l9-1M3 24l
 // Editor.
 put('FileText',doc+lines+O('m10 15 5-1'));put('FileCode2',doc+P('m13 14-5 5 5 5M21 13l4 5-5 5')+O('m17 13-2 11'));
 const clipboard=P('m9 5-5 1-1 24 26-1-1-24h-6M10 2l12-1v7l-13 1z');put('ClipboardList',clipboard+lines);put('ClipboardCheck',clipboard+G(tick,'translate(8 9) scale(.65)'));put('ClipboardCopy',clipboard+P('m9 13 12-1-1 13-12 1z')+O('m11 17 6-1'));put('ClipboardPaste',clipboard+P('M13 13l13-1-1 16-13 1zM17 18h5'));
+// Test on a timer: a narrow answer sheet beside a stopwatch, so it never reads as a done-task clipboard.
+put('TimedTest',P('M17.5 12 17 3 4 4l1 24 8-.4')+P('m8 9 6-.2M8 14l4-.1')+S('M22 15q7 0 7 7T22 29q-7 0-7-7T22 15z')+P('M22 15q7 0 7 7T22 29q-7 0-7-7T22 15zM20 11.5h4M22 11.7V15')+O('m22 22 2.4-3'));
 put('Copy',P('m7 6 1-4 22 1-1 21h-4M3 10l20-1-1 21-20-1z')+O('m6 14 5-1'));
 put('FolderOpen',folder+P('m4 16 27-3-5 15'));put('FolderInput',folder+G(arrow,'translate(9 12) scale(.5)'));
 const transfer=P('M16 2q-2 10-1 20M7 14l8 9 9-10M3 23l1 7 25-1v-7')+O('m14 21 1 2');put('Download',transfer);put('Upload',P('M16 23q-2-10-1-20M7 12l8-9 9 8M3 23l1 7 25-1v-7')+O('m14 5 1-2'));

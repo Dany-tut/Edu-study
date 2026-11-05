@@ -49,11 +49,22 @@ export function installRuntimeDiagnostics(report: (event: string, meta: Record<s
     if (!visible) return
     if (location.hash !== lastPath) { loadingSince = 0; blankSince = 0; lastPath = location.hash }
     // Explicit loading semantics only: role=status may be a permanent announcement.
-    const loaders = [...document.querySelectorAll('[aria-busy="true"], [role="progressbar"], [data-diagnostic-loading="true"]')]
+    // A progressbar with aria-valuenow is a determinate meter (course progress,
+    // lesson watched 40%) that stays on screen by design — not a loader. Counting
+    // it reported a «stalled loader» every minute on the constructor.
+    const loaders = [...document.querySelectorAll('[aria-busy="true"], [role="progressbar"]:not([aria-valuenow]), [data-diagnostic-loading="true"]')]
       .filter(el => el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0)
     loadingSince = loaders.length ? loadingSince || now : 0
     if (loadingSince && now - loadingSince >= 15000 && now - lastLoadingReport > 60000) {
-      report('ui_loading_stalled', { duration_ms: Math.round(now - loadingSince), loaders: loaders.length })
+      // Name the loader: without it the report says «something spins» and the
+      // stalled widget cannot be found.
+      // Optional chaining: a diagnostic must never throw out of the interval,
+      // whatever the matched node turns out to be.
+      const first = loaders[0] as Partial<Element> | undefined
+      const cls = typeof first?.className === 'string' ? first.className : first?.getAttribute?.('class') ?? ''
+      const loader = [first?.tagName?.toLowerCase(), first?.getAttribute?.('aria-label'), cls.slice(0, 60)]
+        .filter(Boolean).join(' · ') || undefined
+      report('ui_loading_stalled', { duration_ms: Math.round(now - loadingSince), loaders: loaders.length, loader })
       lastLoadingReport = now
     }
     const root = document.getElementById('root')

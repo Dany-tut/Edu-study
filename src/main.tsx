@@ -7,6 +7,7 @@ import { MotionConfig } from 'framer-motion'
 import './index.css'
 import { startTextFades } from './lib/textFades'
 import App from './App.tsx'
+import MfaGate from './components/mfa/MfaGate'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
 import { recoverFromChunkError } from './lib/chunkError'
@@ -151,7 +152,7 @@ createRoot(document.getElementById('root')!).render(
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
       <ErrorBoundary>
-        {LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <App />}
+        {LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <MfaGate><App /></MfaGate>}
       </ErrorBoundary>
     </MotionConfig>
   </StrictMode>,

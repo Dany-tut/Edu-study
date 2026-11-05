@@ -83,6 +83,12 @@ export default function TeacherSelect({
     ? opts.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
     : opts
 
+  // Триггер может сидеть внутри своей коробки (иконка, рамка у обёртки —
+  // журнал учителя). Тогда список меряется по всей коробке, а не по узкому
+  // триггеру: обёртка помечает себя data-dropdown-anchor.
+  const anchorRect = () =>
+    (btnRef.current?.closest('[data-dropdown-anchor]') ?? btnRef.current)?.getBoundingClientRect()
+
   const openDropdown = () => {
     if (disabled) return
     // В приложении на iOS — системное меню со стеклом (lib/nativeGlass.ts).
@@ -94,7 +100,7 @@ export default function TeacherSelect({
       })
       return
     }
-    const r = btnRef.current?.getBoundingClientRect()
+    const r = anchorRect()
     if (!r) return
     const itemH = small ? 28 : 33
     const estH = Math.min(opts.length * itemH + 12, 232)
@@ -110,7 +116,7 @@ export default function TeacherSelect({
   // триггеру ровно, а не по его прежним размерам.
   useLayoutEffect(() => {
     if (!open) return
-    const r = btnRef.current?.getBoundingClientRect()
+    const r = anchorRect()
     if (!r) return
     setPos(p => {
       if (!p) return p
@@ -167,7 +173,7 @@ export default function TeacherSelect({
     const onScroll = (e: Event) => {
       const tgt = e.target instanceof Node ? e.target : null
       if (tgt && menuRef.current?.contains(tgt)) return
-      const r = btnRef.current?.getBoundingClientRect()
+      const r = anchorRect()
       if (!r || r.bottom < 0 || r.top > window.innerHeight) { closeDropdown(); return }
         setPos(viewportDropdownPosition(r, 232))
     }
@@ -266,6 +272,8 @@ export default function TeacherSelect({
             <motion.div
               ref={menuRef}
               className="no-scrollbar"
+              // Меню в портале: панели с «клик снаружи закрывает» узнают его по метке.
+              data-dropdown-menu=""
               initial={{ scale: 0.92, opacity: 0, y: pos.up ? 6 : -6 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.92, opacity: 0, y: pos.up ? 6 : -6 }}

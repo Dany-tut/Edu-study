@@ -1,6 +1,6 @@
 import { gradedTrackResult } from '../lib/homeworkResult'
 import { motion } from 'framer-motion'
-import { CheckCircle2, Lock, Play, Upload, Star, RotateCcw, CircleAlert, Clock } from './icons/appIcons'
+import { CheckCircle2, Lock, Play, Upload, Star, RotateCcw, CircleAlert, Clock, TimedTest } from './icons/appIcons'
 import { useEffect, useRef } from 'react'
 import type { ElementType, ReactElement } from 'react'
 import { IconReturned, IconLessonRecording, IconTest } from './icons'
@@ -108,7 +108,8 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   let Icon = nodeIcon[displayStatus]
   if (seasonal && !isAutoResult && displayStatus !== 'completed') {
     if (lesson.nodeType === 'rec') Icon = IconLessonRecording
-    else if (isTest || (displayStatus === 'unviewed' && lesson.shape !== 'circle')) Icon = IconTest
+    else if (isTest) Icon = TimedTest
+    else if (displayStatus === 'unviewed' && lesson.shape !== 'circle') Icon = IconTest
   } else if (silhouette === 'token' && isOpen) {
     Icon = IconTest
   } else if (silhouette === 'screen' && (isOpen || displayStatus === 'unviewed')) {

@@ -5,6 +5,7 @@ import { useState, useEffect, lazy, Suspense, startTransition } from 'react'
 import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
 import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
+import { hasStoredAuth, lastCabinet, likelyStaff, rememberCabinet } from './lib/cabinetChoice'
 const StudentLoginPage = lazy(() => retryImport(() => import('./pages/StudentLoginPage')))
 const NativeEntryPage = lazy(() => retryImport(() => import('./pages/NativeEntryPage')))
 const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
@@ -131,6 +132,42 @@ function AppRoutes() {
   const progressScope = useStudentData(s => s.scopeStudentIds.join(','))
   const studentWorkspace = isStudentWorkspaceRoute(hash, window.location.pathname)
 
+  // Голый адрес = выбор кабинета ДО первого кадра (lib/cabinetChoice.ts).
+  // Раньше корень сразу рисовал кабинет ученика по сохранённой карточке, а
+  // после Google/Apple роль проверялась уже потом — учитель видел пару секунд
+  // чужого кабинета. Теперь, пока ответ не ясен, держим пустой фон и не
+  // начинаем грузить данные ученика.
+  const [authWaitOver, setAuthWaitOver] = useState(false)
+  const [, setAuthTick] = useState(0)
+  const rootRoute = (hash === '' || hash === '#' || hash === '#/') && window.location.pathname !== '/oauth/consent' && !recovery
+  const sessionResolving = session === undefined && (hasStoredAuth() || hasPendingSocialAuth())
+  const finishingSocialAuth = rootRoute && !authWaitOver && hasPendingSocialAuth() && session !== null
+  const wantsTeacher = rootRoute && (!getStudentSession() || lastCabinet() === 'teacher')
+  const teacherHome = wantsTeacher && likelyStaff(session)
+  const holdRoot = finishingSocialAuth || teacherHome || (wantsTeacher && sessionResolving)
+
+  useEffect(() => {
+    if (teacherHome && !finishingSocialAuth) window.location.replace('#/teacher')
+  }, [teacherHome, finishingSocialAuth])
+  // Завершение входа само сменит адрес. Ошибка адрес не меняет — будим рендер
+  // по событию; зависший ответ не держит заставку дольше 10 секунд.
+  useEffect(() => {
+    if (!finishingSocialAuth) return
+    const wake = () => setAuthTick(n => n + 1)
+    const timer = window.setTimeout(() => setAuthWaitOver(true), 10_000)
+    window.addEventListener('iskra:auth-error', wake)
+    window.addEventListener('iskra:auth-cancelled', wake)
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('iskra:auth-error', wake)
+      window.removeEventListener('iskra:auth-cancelled', wake)
+    }
+  }, [finishingSocialAuth])
+  // Ученический кабинет запоминают кнопки переключения и вход ученика.
+  useEffect(() => {
+    if (hash.startsWith('#/teacher') && likelyStaff(session)) rememberCabinet('teacher')
+  }, [hash, session])
+
   // Behavioural telemetry: init once, then log every route change.
   useEffect(() => { initAnalytics() }, [])
   useEffect(() => { trackPath(hash || '#/') }, [hash])
@@ -157,9 +194,9 @@ function AppRoutes() {
   // на #/teacher, где и вход учителя («Платформа учителя»), и сам кабинет.
   // Студенческий вход в приложении не показываем (у ученика своя PWA/веб).
   useEffect(() => {
-    if (!IS_NATIVE || window.location.pathname === '/oauth/consent' || getStudentSession()) return
+    if (!IS_NATIVE || holdRoot || window.location.pathname === '/oauth/consent' || getStudentSession()) return
     if (hash === '' || hash === '#' || hash === '#/') window.location.replace('#/entry')
-  }, [hash])
+  }, [hash, holdRoot])
 
   // Social sign-in returns to the iOS app through iskra://auth/callback. The
   // PKCE exchange restores the same Supabase session used by the web client.
@@ -205,7 +242,7 @@ function AppRoutes() {
 
   // A saved student account must not hydrate behind the teacher cabinet.
   useEffect(() => {
-    if (!studentWorkspace) return
+    if (!studentWorkspace || holdRoot) return
     const sess = getStudentSession()
     if (!sess) return
     // Спиннер снимается ДАЖЕ если загрузка упала.
@@ -260,11 +297,11 @@ function AppRoutes() {
       window.clearInterval(attendanceTimer)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [loadStudentData, studentWorkspace])
+  }, [loadStudentData, studentWorkspace, holdRoot])
 
   // One person can own several student rows. Subscribe only in their cabinet.
   useEffect(() => {
-    if (!studentWorkspace) return
+    if (!studentWorkspace || holdRoot) return
     const sess = getStudentSession()
     if (!sess) return
     const ids = progressScope ? progressScope.split(',') : [sess.id]
@@ -278,13 +315,15 @@ function AppRoutes() {
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.error('[realtime] lesson_progress subscription:', status)
     })
     return () => { void supabase.removeChannel(channel) }
-  }, [loadStudentData, progressScope, studentWorkspace])
+  }, [loadStudentData, progressScope, studentWorkspace, holdRoot])
 
   // Supabase Auth redirects MCP clients to the app's consent path (without a
   // hash fragment). Keep this route independent from the cabinet hash router.
   if (window.location.pathname === '/oauth/consent') {
     return <Chunk><OAuthConsentPage /></Chunk>
   }
+
+  if (holdRoot) return <div style={{ minHeight: '100dvh', background: 'var(--color-bg)' }} />
 
   const studentSession = getStudentSession()
   const isRoot = hash === '' || hash === '#' || hash === '#/'

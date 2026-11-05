@@ -758,3 +758,48 @@
 .jo-report-object[data-object="results"] { --art-top-inset:0.090625; --art-right-inset:0.079688; }
 .jo-report-object[data-object="rhythm"] { --art-top-inset:0.234375; --art-right-inset:0.032813; }
 .jo-report-object[data-object="topic"] { --art-top-inset:0.200000; --art-right-inset:0.189063; }
+
+/* «Вид для скрина»: компактный лист 3:4 — весь отчёт помещается в один кадр. */
+.jo-share-paper {
+ box-sizing:border-box;
+ width:min(100%, 720px, calc((100dvh - 92px) * .75));
+ aspect-ratio:3/4;
+ display:flex; flex-direction:column;
+ padding:clamp(14px, 3.4cqi, 24px);
+}
+.jo-share-paper > .jo-sheet { flex:1; display:flex; flex-direction:column; }
+.jo-share-paper .jo-sheet > .jo-context { margin:4px 0 8px; }
+.jo-share-paper .jo-orientation { margin:0; font-size:13px; }
+.jo-share-paper .jo-bento {
+ flex:1; grid-template-columns:repeat(3,minmax(0,1fr));
+ grid-template-rows:1fr 1fr auto; align-content:stretch;
+ gap:8px; row-gap:8px; margin-top:12px;
+}
+.jo-share-paper .jo-bento > .jo-tile--3d,
+.jo-share-paper .jo-bento > .jo-tile--3d.jo-wide,
+.jo-share-paper .jo-bento > .jo-tile--3d:not(.jo-wide) {
+ grid-column:auto;
+ --report-object-size:clamp(50px, 12cqi, 78px);
+ min-height:0; padding:12px; gap:6px; border-radius:16px;
+ overflow:hidden;
+}
+.jo-share-paper .jo-tile--3d .jo-report-object { top:6px; right:6px; }
+.jo-share-paper .jo-tile--3d h3 { min-height:0; padding-right:calc(var(--report-object-size) - 18px); font-size:9px; letter-spacing:.04em; }
+.jo-share-paper .jo-tile--3d .jo-value {
+ min-height:0; margin-top:calc(var(--report-object-size) - 48px);
+ font-size:clamp(17px, 3.6cqi, 24px);
+}
+.jo-share-paper .jo-tile--3d .jo-detail { width:auto; padding-top:2px; font-size:11px; line-height:1.35; }
+.jo-share-paper .jo-tile--3d .jo-report-data { max-height:64px; }
+.jo-share-paper .jo-tile--3d .jo-report-data > svg { max-height:64px; width:auto; max-width:100%; }
+.jo-share-paper .jo-week-stamps li { width:18px; height:30px; font-size:10px; }
+.jo-share-paper .jo-week-stamps small { font-size:9px; }
+.jo-share-paper .jo-follow { margin-top:0; padding:11px 14px; gap:12px; }
+.jo-share-paper .jo-follow strong { font-size:14px; margin:4px 0 2px; }
+.jo-share-paper .jo-follow p { font-size:11px; }
+.jo-share-paper .jo-foot { margin-top:auto; padding-top:8px; font-size:11px; }
+@container (max-width:520px) {
+ .jo-share-paper .jo-bento { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:none; }
+}
+.jo-share-paper > .jo-brand { margin-bottom:8px; }
+.jo-share-paper .jo-heading h2 { font-size:clamp(17px, 3.4cqi, 22px); }

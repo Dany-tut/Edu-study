@@ -1,9 +1,8 @@
-import { LoopSelect } from '../components/icons/LoopSelect'
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { FilterMenu, SortMenu, StatusTabs, ToolButton, ToolCount, Toolbar } from '../components/trainer/TrainerShell'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   ArrowRight,
   ArrowUpDown,
-  BookOpen,
   Check,
   ChevronRight,
   Clock,
@@ -74,9 +73,11 @@ function CourseLabel({ entry }: { entry: StudentDiaryEntry }) {
       style={{ '--ds-course': subjectTheme(entry.course.subject, dark).accent } as CSSProperties}
     >
       <i />
+      {/* «Биология · Биология · подготовка…»: предмет не повторяем, если
+          название курса с него уже начинается. */}
       {entry.course.id !== HW_SUBJECT_ID &&
       entry.course.subject &&
-      entry.course.subject !== entry.course.name ? (
+      !entry.course.name.toLowerCase().startsWith(entry.course.subject.toLowerCase()) ? (
         <>
           {entry.course.subject}
           <span>·</span>
@@ -140,6 +141,28 @@ function Row({
   )
 }
 
+// Строка управления — те же контролы, что в тренажёре (TrainerShell): сегменты
+// состояния, таблетки-фильтры, меню сортировки, на телефоне — шторка «Фильтры».
+// Состояние по умолчанию — пустая строка: так шторка не считает его фильтром
+// и «Сбросить» возвращает именно «Нужно сделать».
+const STATE_OPTIONS = [
+  { value: '', label: 'Нужно сделать' },
+  { value: 'pending', label: 'На проверке' },
+  { value: 'passed', label: 'Зачтено' },
+  { value: 'all', label: 'Все' },
+]
+const SORT_OPTIONS = [
+  { value: 'priority', label: 'Сначала важное' },
+  { value: 'due', label: 'По сроку' },
+  { value: 'number', label: 'По номеру ДЗ' },
+  { value: 'subject', label: 'По предмету' },
+  { value: 'course', label: 'По курсу / интенсиву' },
+]
+const TAB_OPTIONS = [
+  { value: 'work', label: 'Задания' },
+  { value: 'journal', label: 'Журнал работ' },
+]
+
 export default function StudentDiaryPage({
   tab,
   setTab,
@@ -157,17 +180,18 @@ export default function StudentDiaryPage({
   const { metadata, pending, error, reload } = useStudentDiaryMetadata()
   const openHomework = useDashboard((s) => s.openHomeworkForLesson),
     openLesson = useDashboard((s) => s.openLesson)
-  const [subject, setSubject] = useState('*'),
-    [course, setCourse] = useState('*'),
-    [state, setState] = useState('action')
+  const [subjectPick, setSubjectPick] = useState<string[]>([]),
+    [coursePick, setCoursePick] = useState<string[]>([]),
+    [state, setState] = useState('')
   const [feedDay, setFeedDay] = useState<string | null>(null)
   const diaryOwner = getStudentSession()?.id ?? null
-  useEffect(() => { setSubject('*'); setCourse('*'); setState('action'); setFeedDay(null) }, [diaryOwner])
+  useEffect(() => { setSubjectPick([]); setCoursePick([]); setState(''); setFeedDay(null) }, [diaryOwner])
   const [sort, setSort] = useState('priority'),
     [descending, setDescending] = useState(false)
-  const pageKey = JSON.stringify([diaryOwner, subject, course, state, sort, descending, feedDay])
+  const pageKey = JSON.stringify([diaryOwner, subjectPick, coursePick, state, sort, descending, feedDay])
   const [page, setPage] = useState({ key: '', count: 5 })
   const visibleCount = page.key === pageKey ? page.count : 5
+  const moreRef = useRef<HTMLDivElement>(null)
   const clock = wallDateTimeInTz(now.toISOString(), tz),
     today = clock.day
   useEffect(() => { setFeedDay(null) }, [today])
@@ -175,17 +199,26 @@ export default function StudentDiaryPage({
     () => buildStudentDiary(subjects, metadata, progress, now),
     [subjects, metadata, progress, now],
   )
+  const subjectOf = (c: { subject?: string | null }) => c.subject || '__none'
+  const courseOptions = subjects.filter((c) => !subjectPick.length || subjectPick.includes(subjectOf(c)))
+  // Курс, чей предмет сняли, из выбора уходит — иначе он молча обнулял бы ленту.
+  useEffect(() => {
+    setCoursePick((prev) => {
+      const next = prev.filter((id) => courseOptions.some((c) => c.id === id))
+      return next.length === prev.length ? prev : next
+    })
+  }, [subjectPick, subjects]) // eslint-disable-line react-hooks/exhaustive-deps
   const scoped = entries.filter(
     (e) =>
-      (subject === '*' || (e.course.subject || '__none') === subject) &&
-      (course === '*' || e.course.id === course),
+      (!subjectPick.length || subjectPick.includes(subjectOf(e.course))) &&
+      (!coursePick.length || coursePick.includes(e.course.id)),
   )
   const actions = scoped.filter(diaryNeedsAction)
   const list = sortStudentDiary(
     scoped.filter(
       (e) =>
         state === 'all' ||
-        (state === 'action' && diaryNeedsAction(e)) ||
+        (state === '' && diaryNeedsAction(e)) ||
         (state === 'pending' && (e.status === 'submitted' || e.status === 'submitted_unknown')) ||
         (state === 'passed' && (e.status === 'test_passed' || e.status === 'completed')),
     ),
@@ -207,8 +240,8 @@ export default function StudentDiaryPage({
         item.event.phase !== 'cancelled' &&
         !item.event.hasEnded &&
         (item.day > today || item.day === today) &&
-        (course === '*' || item.subjectId === course) &&
-        (subject === '*' || subjects.find((c) => c.id === item.subjectId)?.subject === subject),
+        (!coursePick.length || coursePick.includes(item.subjectId ?? '')) &&
+        (!subjectPick.length || subjectPick.includes(subjectOf(subjects.find((c) => c.id === item.subjectId) ?? {}))),
     )
     .sort(
       (a, b) =>
@@ -292,6 +325,18 @@ export default function StudentDiaryPage({
     remaining -= entries.length
     return entries.length ? [{ ...group, entries, total: group.entries.length }] : []
   })
+  const hasMore = visibleCount < totalWorks
+  // Дочитали до конца — подкладываем следующие 5. Запас 120px, чтобы
+  // порция успевала появиться до того, как палец упрётся в низ.
+  useEffect(() => {
+    const node = moreRef.current
+    if (!hasMore || !node || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([hit]) => {
+      if (hit?.isIntersecting) setPage({ key: pageKey, count: visibleCount + 5 })
+    }, { rootMargin: '0px 0px 120px 0px' })
+    io.observe(node)
+    return () => io.disconnect()
+  }, [hasMore, pageKey, visibleCount])
   const feedDate = (day: string) => new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
     day: 'numeric', month: 'short', timeZone: 'UTC',
   }).format(new Date(day + 'T12:00:00Z'))
@@ -304,59 +349,49 @@ export default function StudentDiaryPage({
       <div className="ds-page-heading">
         <p>{dateLabel}</p>
       </div>
-      {tab !== 'lessons' ? <nav className="ds-diary-navigation" aria-label={t('Разделы дневника')}>
-        <button type="button" aria-pressed={tab === 'work'} onClick={() => setTab('work')}>{t('Задания')}</button>
-        <button type="button" aria-pressed={tab === 'journal'} onClick={() => setTab('journal')}>{t('Журнал работ')}</button>
-      </nav> : null}
+      {tab !== 'lessons' ? (
+        <div className="ds-diary-navigation">
+          <StatusTabs options={TAB_OPTIONS} value={tab} onChange={(v) => setTab(v as DiaryTab)} />
+        </div>
+      ) : null}
       {tab === 'lessons' ? (
         <button type="button" className="ds-secondary" onClick={() => setTab('journal')}>
           {t('Дневник')}<ChevronRight size={15} />
         </button>
       ) : null}
       {tab !== 'lessons' ? (
-        <div className="ds-scope">
-          <label>
-            <span className="ds-field-label">{t('Предмет')}</span>
-            <LoopSelect
-              aria-label={t('Предмет дневника')}
-              value={subject}
-              onChange={(e) => {
-                setSubject(e.target.value)
-                setCourse('*')
-              }}
-            >
-              <option value="*">{t('Все предметы')}</option>
-              {[...new Set(subjects.map((c) => c.subject || '__none'))].map((name) => (
-                <option key={name} value={name}>
-                  {name === '__none' ? t('Предмет не указан') : name}
-                </option>
-              ))}
-            </LoopSelect>
-          </label>
-          <label>
-            <span className="ds-field-label">{t('Курс / интенсив')}</span>
-            <LoopSelect
-              aria-label={t('Курс дневника')}
-              value={course}
-              onChange={(e) => setCourse(e.target.value)}
-            >
-              <option value="*">{t('Все курсы и интенсивы')}</option>
-              {subjects
-                .filter((c) => subject === '*' || (c.subject || '__none') === subject)
-                .map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-            </LoopSelect>
-          </label>
-          <span className="ds-scope-summary">
-            {pending
-              ? t('Обновляем задания…')
-              : error
-                ? t('Часть заданий недоступна')
-                : `${actions.length} ${t('ДЗ к выполнению')}`}
-          </span>
+        <div className="ds-toolbar">
+          <Toolbar count={tab === 'work' ? totalWorks : scoped.length}>
+            {tab === 'work' ? <StatusTabs options={STATE_OPTIONS} value={state} onChange={setState} /> : null}
+            <FilterMenu
+              label="Предмет"
+              value={subjectPick}
+              onChange={setSubjectPick}
+              options={[...new Set(subjects.map(subjectOf))].map((name) => ({
+                value: name,
+                label: name === '__none' ? t('Предмет не указан') : name,
+              }))}
+            />
+            <FilterMenu
+              label="Курс"
+              value={coursePick}
+              onChange={setCoursePick}
+              options={courseOptions.map((c) => ({ value: c.id, label: c.name }))}
+            />
+            {tab === 'work' ? <>
+              <SortMenu options={SORT_OPTIONS} value={sort} onChange={setSort} />
+              <ToolButton icon label={descending ? 'По убыванию' : 'По возрастанию'} on={descending} onClick={() => setDescending(!descending)}>
+                <ArrowUpDown size={16} />
+              </ToolButton>
+            </> : null}
+            <ToolCount>
+              {pending
+                ? t('Обновляем задания…')
+                : tab === 'work'
+                  ? `${actions.length} ${t('ДЗ к выполнению')}`
+                  : `${scoped.length} ${t('ДЗ')}`}
+            </ToolCount>
+          </Toolbar>
         </div>
       ) : null}
       {error ? (
@@ -374,40 +409,10 @@ export default function StudentDiaryPage({
         <CoursesPage />
       ) : (
         <>
-          <div className="ds-work-toolbar">
-            <label>
-              {t('Состояние')}
-              <LoopSelect aria-label={t('Состояние')} value={state} onChange={(e) => setState(e.target.value)}>
-                <option value="action">{t('Нужно сделать')}</option>
-                <option value="all">{t('Все задания')}</option>
-                <option value="pending">{t('На проверке')}</option>
-                <option value="passed">{t('Зачтено')}</option>
-              </LoopSelect>
-            </label>
-            <label>
-              {t('Сортировка')}
-              <LoopSelect aria-label={t('Сортировка')} value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="priority">{t('Сначала важное')}</option>
-                <option value="due">{t('По сроку')}</option>
-                <option value="number">{t('По номеру ДЗ')}</option>
-                <option value="subject">{t('По предмету')}</option>
-                <option value="course">{t('По курсу / интенсиву')}</option>
-              </LoopSelect>
-            </label>
-            <button
-              type="button"
-              className="ds-sort-direction"
-              aria-pressed={descending}
-              onClick={() => setDescending(!descending)}
-            >
-              <ArrowUpDown size={16} />
-              {t(descending ? 'По убыванию' : 'По возрастанию')}
-            </button>
-          </div>
           <div className="ds-feed-grid">
             <aside className="ds-feed-aside">
               <section className="ds-feed-planner" aria-label={t('План на неделю')}>
-                <div className="ds-section-head"><h2>{t('План на неделю')}</h2><BookOpen size={17}/></div>
+                <div className="ds-section-head"><h2>{t('План на неделю')}</h2></div>
                 <button type="button" className="ds-feed-all" aria-pressed={feedDay === null} onClick={() => setFeedDay(null)}>{t('Все сроки')}</button>
                 <div className="ds-day-picker" role="group" aria-label={t('Дни недели')}>
                   {feedDays.map(day => <button key={day} type="button" aria-label={feedDate(day)} aria-pressed={feedDay === day}
@@ -421,14 +426,14 @@ export default function StudentDiaryPage({
               {feedDay === null || upcoming?.day === feedDay ? upcomingCard : null}
             </aside>
             <main className="ds-feed-timeline" aria-label={t('Лента заданий')}>
-              {visibleTimeline.map(group => <section className="ds-feed-event" key={group.key}>
-                <div className="ds-section-head"><h2>{feedTitle(group.key)}</h2><span>{group.total} {t('ДЗ')}</span></div>
+              {visibleTimeline.map((group, index) => <section className="ds-feed-event" key={group.key}
+                data-more-below={hasMore && index === visibleTimeline.length - 1 || undefined}>
+                <div className="ds-section-head"><h2>{feedTitle(group.key)}</h2><span data-tone={group.key === 'overdue' ? 'overdue' : undefined}>{group.total} {t('ДЗ')}</span></div>
                 <div className="ds-section ds-all-work">{group.entries.map(row)}</div>
               </section>)}
-              {totalWorks > 5 ? <div className="ds-load-more">
-                <p role="status">{t('Показано')} {Math.min(visibleCount, totalWorks)} {t('из')} {totalWorks}</p>
-                {visibleCount < totalWorks ? <button type="button" className="ds-secondary" onClick={() => setPage({ key: pageKey, count: visibleCount + 5 })}>{t('Загрузить ещё')}</button> : null}
-              </div> : null}
+              {/* Без счётчика и кнопки: низ ленты гаснет, следующая порция
+                  подгружается сама, когда дочитали до конца. */}
+              {hasMore ? <div ref={moreRef} className="ds-load-sentinel" aria-hidden="true" /> : null}
               {!timeline.length ? <section className="ds-section ds-all-work">{empty(pending ? 'Загружаем задания…' : feedDay ? 'На этот день заданий нет' : 'По этим фильтрам работ нет')}</section> : null}
             </main>
           </div>

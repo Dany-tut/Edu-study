@@ -9,11 +9,11 @@ import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
-  CreditCard, UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe, Zap,
+  UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe, Zap,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
   CalendarDays, type LucideIcon,
 } from '../icons/appIcons'
-import { useState, useRef, useLayoutEffect, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useEffect, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import { useDeskStore } from '../../store/deskStore'
@@ -26,6 +26,7 @@ import { usePersistentState, clearDrafts, readDraft } from '../../lib/useDraft'
 import CreateTaskModal from './CreateTaskModal'
 import FeedbackModal from '../FeedbackModal'
 import AppVersionRow from '../AppVersionRow'
+import './profileMenu.css'
 import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useTheme } from '../../store/themeStore'
@@ -361,20 +362,24 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
     display: 'flex', flexDirection: 'column',
   }
 
-  const profileMenuItems = [
-    ...(friends.account ? [{ icon: Users, label: t('Друзья'), sub: t('Ник, поиск и заявки'), action: 'friends' }] : []),
-    { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile' },
-    { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'),  action: 'widgets' },
-    { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme' },
-    { icon: CreditCard,  label: t('Тарифы'),             sub: t('подписка и счета'),   action: 'payment' },
-    { icon: MessageSquarePlus, label: t('Обратная связь'), sub: t('сообщить об ошибке'), action: 'feedback' },
-    // Диалоги + Админка — только для админа; у учителей пункты не появляются.
+  // Порядок меню: у админа сверху его инструменты; дальше «я» (профиль,
+  // друзья), затем вид (виджеты, тема, язык), затем служебное. «Тарифы» отдельным пунктом нет — туда ведёт
+  // карточка тарифа над списком. Между группами — тонкий разделитель.
+  const profileMenuItems: { icon: typeof Users; label: string; sub: string; action: string; group: number }[] = [
+    // Админские инструменты — своей группой сверху, сразу под «В ученический
+    // кабинет»; у учителей этих пунктов нет.
     ...(teacherRole === 'admin'
       ? [
-          { icon: MessageCircle, label: t('Диалоги'), sub: t('чат с ботом и заявки'), action: 'dialogs' },
-          { icon: Shield, label: t('Админка'), sub: t('аналитика, хранилище'), action: 'admin' },
+          { icon: Shield, label: t('Админка'), sub: t('аналитика, хранилище'), action: 'admin', group: 0 },
+          { icon: MessageCircle, label: t('Диалоги'), sub: t('чат с ботом и заявки'), action: 'dialogs', group: 0 },
         ]
       : []),
+    { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile', group: 1 },
+    ...(friends.account ? [{ icon: Users, label: t('Друзья'), sub: t('Ник, поиск и заявки'), action: 'friends', group: 1 }] : []),
+    { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'),  action: 'widgets', group: 2 },
+    { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme', group: 2 },
+    { icon: Globe, label: t('Язык'), sub: lang === 'ru' ? 'Русский' : 'English', action: 'lang', group: 2 },
+    { icon: MessageSquarePlus, label: t('Обратная связь'), sub: t('сообщить об ошибке'), action: 'feedback', group: 3 },
   ]
 
   return (
@@ -639,12 +644,11 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               <motion.button whileTap={{ scale: 0.98 }}
                 onClick={studentCabinet.open}
                 disabled={studentCabinet.busy} aria-busy={studentCabinet.busy}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                className="profile-menu-row"
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
               >
-                <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BookOpen size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
+                <div className="profile-menu-tile">
+                  <BookOpen size={16} strokeWidth={2} />
                 </div>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{studentCabinet.failed ? t('Не удалось открыть кабинет. Повторить') : t('В ученический кабинет')}</div>
@@ -653,9 +657,15 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               </motion.button>
             )}
 
-            {profileMenuItems.map(item => (
-              <motion.button key={item.action} whileTap={{ scale: 0.98 }}
+            {profileMenuItems.map((item, i) => (
+              <Fragment key={item.action}>
+              {i > 0 && profileMenuItems[i - 1].group !== item.group && (
+                <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
+              )}
+              <motion.button whileTap={{ scale: 0.98 }}
+                aria-label={item.action === 'lang' ? (lang === 'ru' ? 'Switch to English' : 'Переключить на русский') : undefined}
                 onClick={() => {
+                  if (item.action === 'lang') { setLang((lang === 'ru' ? 'en' : 'ru') as Lang); return }
                   if (item.action === 'widgets') {
                     if (isHome) useDeskStore.getState().setShowWidgetLibrary(true)
                     else useTeacher.getState().openDeskEditor()
@@ -674,47 +684,28 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   if (item.action === 'feedback') setFeedbackOpen(true)
                   setProfileOpen(false)
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                className="profile-menu-row"
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
               >
-                <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <item.icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
+                <div className="profile-menu-tile">
+                  <item.icon size={16} strokeWidth={2} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{item.label}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{item.sub}</div>
                 </div>
               </motion.button>
+              </Fragment>
             ))}
-
-            {/* Язык — такой же ряд, как остальные пункты: подпись снизу
-                показывает текущий язык, клик по ряду переключает. */}
-            <motion.button whileTap={{ scale: 0.98 }}
-              onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}
-              aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
-            >
-              <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Globe size={16} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t('Язык')}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{lang === 'ru' ? 'Русский' : 'English'}</div>
-              </div>
-            </motion.button>
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
             <motion.button whileTap={{ scale: 0.98 }}
               onClick={() => { void trackNow('logout', { role: 'teacher' }); supabase.auth.signOut(); setProfileOpen(false) }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.08)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+              className="profile-menu-row" data-tone="red"
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
             >
-              <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LogOut size={16} strokeWidth={2} style={{ color: 'var(--color-red-text)' }} />
+              <div className="profile-menu-tile">
+                <LogOut size={16} strokeWidth={2} />
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-red-text)', lineHeight: 1.3 }}>{t('Выйти')}</div>
             </motion.button>

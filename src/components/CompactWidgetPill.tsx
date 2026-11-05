@@ -9,7 +9,7 @@ import {
   X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen, CalendarClock, CalendarX,
   Bell, Clock, BookOpen, ClipboardList,
 } from './icons/appIcons'
-import { useNotificationsStore, type Notification } from '../store/notificationsStore'
+import { useNotificationsStore, followNotifAction, type Notification } from '../store/notificationsStore'
 import { getContrastColor } from '../lib/utils'
 import {
   scienceFactInterval,
@@ -1362,9 +1362,9 @@ export default function CompactWidgetPill() {
 
   const dismissNotif = () => { clearLive(); setShowNotif(false) }
   const handleNotifAction = () => {
-    const page = latest?.action?.page
+    const action = latest?.action
     dismissNotif()
-    if (page) window.location.hash = page.startsWith('#') ? page : `#/${page}`
+    followNotifAction(action)
   }
 
   const goTo = (next: number, direction: number) => {

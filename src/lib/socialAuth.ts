@@ -4,6 +4,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { Provider } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { clearStudentSession, setStudentSession } from './studentSession'
+import { rememberCabinet } from './cabinetChoice'
 import { trackNow, trackEvent } from './analytics'
 import { authErrorRu } from './authErrors'
 import { fenceAuthCode, fenceAuthCommit } from './authTransport'
@@ -266,6 +267,7 @@ async function finishSocialLoginImpl() {
     const student = students?.[0]
     if (student) {
       setStudentSession({ id: student.id, name: student.name, groupId: student.group_id ?? '' })
+      rememberCabinet('student')
       localStorage.removeItem(OAUTH_ROLE_KEY)
       endOAuthAttempt('auth_completed')
       void trackNow('login', { role: 'student', method: 'oauth' })
@@ -288,8 +290,11 @@ async function finishSocialLoginImpl() {
       void trackNow('login', { role: 'teacher', method: 'oauth' })
       const friendReturn = sessionStorage.getItem(FRIEND_RETURN_KEY) ?? ''
       sessionStorage.removeItem(FRIEND_RETURN_KEY)
+      rememberCabinet('teacher')
+      // Без перезагрузки: пока вход не завершён, App держит заставку и не
+      // поднимает кабинет ученика, так что чистить нечего — смена адреса
+      // сразу открывает учительскую (раньше reload добавлял ещё секунду).
       window.location.hash = friendRoute.test(friendReturn) ? friendReturn : '#/teacher'
-      window.location.reload()
       return true
     }
   }

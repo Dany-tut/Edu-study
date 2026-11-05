@@ -4,17 +4,12 @@
   --ds-muted: var(--color-text-3);
   --ds-surface: var(--color-bg-card, var(--color-bg-2));
   --ds-line: var(--color-border-soft);
-  --ds-primary: #6354cf;
+  --ds-primary: var(--color-accent);
   --ds-on-primary: #fff;
   --ds-focus: var(--status-now-soft);
   --ds-focus-text: var(--status-now-text);
   color: var(--ds-ink);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   min-width: 0;
-}
-[data-theme='dark'] .student-diary {
-  --ds-primary: #b3a6f7;
-  --ds-on-primary: #211a45;
 }
 .student-diary * {
   box-sizing: border-box;
@@ -128,41 +123,6 @@
   color: var(--ds-focus-text);
   background: var(--ds-focus);
 }
-.ds-scope {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-.ds-scope label {
-  min-width: 0;
-  max-width: 100%;
-}
-.ds-field-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-.ds-scope select {
-  min-width: 0;
-  max-width: 100%;
-  background: var(--ds-surface);
-  border: 1px solid var(--ds-line);
-  border-radius: 99px;
-  padding: 10px 32px 10px 15px;
-  font-size: 12px;
-}
-.ds-scope-summary {
-  margin-left: auto;
-  color: var(--ds-muted);
-  font-size: 12px;
-}
 .ds-focus-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr);
@@ -190,8 +150,17 @@
   margin-bottom: 13px;
 }
 .ds-section-head > span {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--color-bg-3);
+  color: var(--color-text-2);
   font-size: 12px;
-  color: var(--ds-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ds-section-head > span[data-tone='overdue'] {
+  background: var(--color-red-soft);
+  color: var(--color-red-text);
 }
 .ds-priority {
   padding: 24px 26px;
@@ -294,7 +263,7 @@
   font-weight: 550;
 }
 .ds-primary {
-  background: var(--ds-primary);
+  background: var(--grad-purple);
   color: var(--ds-on-primary) !important;
   box-shadow: 0 4px 10px color-mix(in srgb, var(--ds-primary) 18%, transparent);
 }
@@ -310,7 +279,7 @@
   overflow-wrap: anywhere;
   display: inline;
   color: var(--ds-muted);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
 }
 .ds-course-label > i {
@@ -325,32 +294,36 @@
 .ds-course-label > span {
   margin: 0 5px;
 }
-.ds-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border-radius: 8px;
-  padding: 4px 7px;
-  background: var(--ds-tone-bg);
-  color: var(--ds-tone);
-  font-size: 11px;
-  line-height: 1.2;
-}
+/* Статус и срок — одна форма таблетки, различаются только тоном. */
+.ds-badge,
 .ds-due {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  color: var(--ds-muted);
-  font-size: 11px;
+  gap: 5px;
+  min-height: 26px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
 }
-.ds-overdue {
+.ds-badge {
+  background: var(--ds-tone-bg);
+  color: var(--ds-tone);
+}
+.ds-due {
+  background: var(--color-bg-3);
+  color: var(--color-text-2);
+}
+.ds-due.ds-overdue {
+  background: var(--color-red-soft);
   color: var(--color-red-text);
 }
 .ds-work-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 17px 0;
+  gap: 16px;
+  padding: 16px 0;
   border: 0;
   border-bottom: 1px solid var(--ds-line);
   background: transparent;
@@ -367,13 +340,15 @@
 .ds-work-number {
   display: grid;
   place-items: center;
-  width: 39px;
-  height: 43px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background: var(--ds-tone-bg);
   color: var(--ds-tone);
   border: 1px solid var(--ds-line);
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   flex: none;
 }
 .ds-work-copy {
@@ -382,9 +357,10 @@
 }
 .ds-work-copy > strong {
   display: block;
-  font-size: 13px;
-  line-height: 1.45;
-  font-weight: 550;
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.2px;
   margin-top: 3px;
   overflow-wrap: anywhere;
 }
@@ -393,8 +369,8 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 7px;
-  font-size: 11px;
+  margin-top: 8px;
+  font-size: 12px;
   color: var(--ds-muted);
 }
 .ds-chevron {
@@ -710,41 +686,6 @@
 .ds-course-work .ds-course-label {
   display: none;
 }
-.ds-work-toolbar {
-  display: flex;
-  align-items: end;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-.ds-work-toolbar label {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  font-size: 11px;
-  color: var(--ds-muted);
-  min-width: 0;
-}
-.ds-work-toolbar select {
-  min-width: 0;
-  max-width: 100%;
-  border: 1px solid var(--ds-line);
-  border-radius: 12px;
-  background: var(--ds-surface);
-  font-size: 12px;
-  padding: 10px 28px 10px 11px;
-  color: var(--ds-ink);
-}
-.ds-sort-direction {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px;
-  border: 0;
-  background: transparent;
-  font-size: 11px;
-  color: var(--ds-muted) !important;
-}
 .ds-all-work {
   padding: 20px 24px;
 }
@@ -829,14 +770,15 @@
   .ds-scope {
     gap: 8px;
   }
-  .ds-scope label {
+  .ds-scope-field {
     flex: 1 1 150px;
   }
   .ds-scope select {
     width: 100%;
   }
-  .ds-work-toolbar label {
+  .ds-toolbar-field {
     flex: 1 1 145px;
+    width: auto;
   }
   .ds-work-toolbar select {
     width: 100%;
@@ -900,12 +842,13 @@
     gap: 10px;
   }
   .ds-work-number {
-    width: 31px;
-    height: 36px;
-    font-size: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 15px;
   }
   .ds-work-copy > strong {
-    font-size: 12px;
+    font-size: 15px;
   }
   .ds-work-meta {
     gap: 7px;
@@ -913,18 +856,12 @@
   .ds-work-row > .ds-chevron {
     width: 13px;
   }
-  .ds-badge {
-    font-size: 10px;
-  }
   .ds-badge svg {
     width: 13px;
     height: 13px;
   }
-  .ds-work-meta .ds-due {
-    font-size: 10px;
-  }
   .ds-course-label {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ds-course-card {
     padding: 18px;
@@ -1052,30 +989,26 @@
 .student-diary .ds-view-navigation .ds-tabs button { justify-content: center; padding-inline: 12px; }
 .student-diary .ds-tabs button > span { flex-shrink: 0; }
 .student-diary .ds-tabs button > span[aria-hidden='true'] { visibility: hidden; }
-.student-diary .ds-scope label:first-child { flex: 0 1 180px; }
-.student-diary .ds-scope label:nth-child(2) { flex: 0 1 260px; }
-
-@media (max-width: 760px) { .student-diary .ds-scope label:first-child, .student-diary .ds-scope label:nth-child(2) { flex: 1 1 150px; } }
 .student-diary .ds-lesson-catalog { font-size: 12px; padding: 10px 12px; }
 .student-diary .ds-lesson-catalog[aria-pressed='true'] { color: var(--ds-primary); background: var(--color-purple-soft); }
 .student-diary .ds-feed-grid { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; gap: 22px; }
 .student-diary .ds-feed-aside { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
-.student-diary .ds-feed-planner { min-width: 0; padding: 18px; border-radius: 22px; border: 1px solid var(--ds-line); background: var(--ds-surface); }
-.student-diary .ds-feed-planner h2 { font-size: 16px; }
-.student-diary .ds-feed-planner > p { margin-top: 14px; font-size: 11px; color: var(--ds-muted); }
-.student-diary .ds-feed-all { width: 100%; padding: 8px; margin-bottom: 12px; border: 1px solid var(--ds-line); border-radius: 12px; background: transparent; font-size: 12px; }
-.student-diary .ds-feed-all[aria-pressed='true'], .student-diary .ds-day-picker button[aria-pressed='true'] { background: var(--color-purple-soft); color: var(--ds-primary); border-color: var(--ds-primary); }
+.student-diary .ds-feed-planner { min-width: 0; padding: 18px; border-radius: 24px; border: 1px solid var(--ds-line); background: var(--ds-surface); }
+.student-diary .ds-feed-planner h2 { font-size: 17px; }
+.student-diary .ds-feed-planner > p { margin-top: 14px; font-size: 12px; color: var(--ds-muted); }
+.student-diary .ds-feed-all { min-height: 36px; padding: 8px 16px; margin-bottom: 12px; border: 0; border-radius: 999px; background: var(--color-bg-3); color: var(--color-text-2); font-size: 13px; font-weight: 600; }
+.student-diary .ds-feed-all[aria-pressed='true'], .student-diary .ds-day-picker button[aria-pressed='true'] { background: var(--color-purple-soft); color: var(--color-purple-text); }
 .student-diary .ds-day-picker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
 .student-diary .ds-day-picker button { min-width: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; height: 62px; padding: 4px 0; border-radius: 12px; border: 1px solid transparent; background: transparent; }
-.student-diary .ds-day-picker span { font-size: 9px; color: var(--ds-muted); }
-.student-diary .ds-day-picker strong { font-size: 14px; }
-.student-diary .ds-day-picker i { width: 4px; height: 4px; border-radius: 50%; background: transparent; }
+.student-diary .ds-day-picker span { font-size: 12px; color: var(--ds-muted); }
+.student-diary .ds-day-picker strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.student-diary .ds-day-picker i { width: 5px; height: 5px; border-radius: 50%; background: transparent; }
 .student-diary .ds-day-picker i[data-has-work] { background: var(--ds-primary); }
 .student-diary .ds-feed-timeline { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 .student-diary .ds-feed-event { min-width: 0; padding-inline-start: 18px; border-inline-start: 2px solid var(--ds-line); }
 .student-diary .ds-feed-event > .ds-section-head { position: relative; }
 .student-diary .ds-feed-event > .ds-section-head::before { content: ''; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--ds-primary); inset-inline-start: -23px; }
-.student-diary .ds-feed-event h2 { font-size: 17px; }
+.student-diary .ds-feed-event h2 { font-size: 20px; }
 @media (max-width: 850px) { .student-diary .ds-feed-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; } }
 @media (max-width: 550px) { .student-diary .ds-view-navigation { gap: 8px; }.student-diary .ds-view-navigation .ds-tabs { flex: 1 1 100%; width: 100%; }.student-diary .ds-lesson-catalog { margin-inline-start: auto; }.student-diary .ds-feed-planner { padding: 16px; }.student-diary .ds-feed-event { padding-inline-start: 13px; }.student-diary .ds-feed-event > .ds-section-head::before { inset-inline-start: -18px; } }
 
@@ -1083,6 +1016,13 @@
 
 .ds-focus-grid > aside > :only-child { grid-column: 1 / -1; }
 
-.student-diary .ds-diary-navigation { display: flex; width: max-content; max-width: 100%; gap: 4px; padding: 4px; margin: 16px auto 24px; border: 1px solid var(--color-border-soft); border-radius: 28px; }
-.student-diary .ds-diary-navigation button { min-height: 44px; border: 0; border-radius: 24px; padding: 10px 16px; background: transparent; color: var(--color-text-3); font: inherit; cursor: pointer; }
-.student-diary .ds-diary-navigation button[aria-pressed='true'] { background: var(--color-accent-soft); color: var(--color-accent); }
+.student-diary .ds-diary-navigation { display: flex; justify-content: center; max-width: 100%; margin: 16px auto 24px; }
+/* Строка управления — общий Toolbar тренажёра; здесь только отступ под ней. */
+.student-diary .ds-toolbar { margin-bottom: 22px; min-width: 0; }
+
+/* Ниже есть ещё задания: последняя карточка мягко гаснет вместо счётчика и кнопки. */
+.student-diary .ds-feed-event[data-more-below] .ds-all-work {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 110px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 110px), transparent);
+}
+.student-diary .ds-load-sentinel { height: 1px; }

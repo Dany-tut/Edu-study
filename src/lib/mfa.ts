@@ -1,0 +1,102 @@
+import type { Factor } from '@supabase/supabase-js'
+import { supabase } from './supabase'
+
+/**
+ * Двухфакторная защита: код из приложения-аутентификатора (Supabase MFA TOTP)
+ * и свои запасные коды (Edge Function mfa-backup, в базе — только хэши).
+ */
+
+export type MfaState = {
+  /** Подтверждённый TOTP-фактор аккаунта, если защита включена. */
+  factor: Factor | null
+  /** Вход уже подтверждён кодом (aal2). */
+  verified: boolean
+  /** Вход по паролю/Google/Apple есть, а код ещё не введён. */
+  needsCode: boolean
+}
+
+export async function readMfa(): Promise<MfaState> {
+  const [{ data: aal }, { data: factors }] = await Promise.all([
+    supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+    supabase.auth.mfa.listFactors(),
+  ])
+  const factor = factors?.totp?.find(f => f.status === 'verified') ?? null
+  return {
+    factor,
+    verified: aal?.currentLevel === 'aal2',
+    needsCode: aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2',
+  }
+}
+
+export type MfaEnrollment = { factorId: string; qr: string; secret: string }
+
+/** Новый фактор. Брошенные неподтверждённые попытки снимаем: Supabase не даёт два одноимённых. */
+export async function startEnrollment(): Promise<MfaEnrollment> {
+  const { data: list } = await supabase.auth.mfa.listFactors()
+  for (const stale of list?.all ?? []) {
+    if (stale.factor_type === 'totp' && stale.status !== 'verified') await supabase.auth.mfa.unenroll({ factorId: stale.id })
+  }
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: `Искра ${new Date().toISOString().slice(0, 10)}`, issuer: 'Искра' })
+  if (error) throw error
+  return { factorId: data.id, qr: svgDataUrl(data.totp.qr_code), secret: data.totp.secret }
+}
+
+// supabase-js отдаёт `data:image/svg+xml;utf-8,<svg…>` с сырой разметкой: «#» и
+// пробелы в ней ломают картинку в части браузеров. Кодируем разметку целиком.
+function svgDataUrl(qr: string) {
+  const raw = qr.replace(/^data:image\/svg\+xml;[^,]*,/, '')
+  const svg = raw.trimStart().startsWith('<') ? raw : decodeURIComponent(raw)
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
+/** Код из приложения: подтверждает новый фактор или вход (сессия станет aal2). */
+export async function verifyCode(factorId: string, code: string) {
+  const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code })
+  if (error) throw error
+}
+
+export async function cancelEnrollment(factorId: string) {
+  await supabase.auth.mfa.unenroll({ factorId })
+}
+
+async function backup<T>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('mfa-backup', { body })
+  if (error) {
+    let message = 'Не удалось выполнить запрос. Попробуйте ещё раз.'
+    try { message = (await (error as { context?: Response }).context?.json())?.error || message } catch { /* оставляем общее */ }
+    throw new Error(message)
+  }
+  return data as T
+}
+
+/** 8 новых запасных кодов. Старые гаснут. Требует подтверждённого входа (aal2). */
+export const generateBackupCodes = () => backup<{ codes: string[] }>({ action: 'generate' }).then(r => r.codes)
+
+/** Запасной код снимает защиту с аккаунта; после этого сессия обновляется. */
+export async function recoverWithBackupCode(code: string) {
+  await backup({ action: 'recover', code })
+  await supabase.auth.refreshSession()
+}
+
+export async function disableMfa(factorId: string) {
+  const { error } = await supabase.auth.mfa.unenroll({ factorId })
+  if (error) throw error
+  await backup({ action: 'clear' }).catch(() => { /* коды без фактора ничего не открывают */ })
+  await supabase.auth.refreshSession()
+}
+
+/** Сколько запасных кодов ещё не использовано. */
+export async function readBackupCodesLeft(): Promise<number> {
+  const { data, error } = await supabase.rpc('my_mfa_backup_codes_left')
+  return error || typeof data !== 'number' ? 0 : data
+}
+
+/** Ошибки MFA по-русски. */
+export function mfaErrorRu(error: unknown) {
+  const e = error as { code?: string; message?: string }
+  if (e?.code === 'mfa_verification_failed' || /invalid totp|verification failed/i.test(e?.message ?? '')) return 'Код не подошёл. Проверьте время на телефоне и введите новый код.'
+  if (e?.code === 'mfa_challenge_expired') return 'Код устарел — введите новый из приложения.'
+  if (e?.code === 'over_request_rate_limit') return 'Слишком много попыток. Подождите минуту.'
+  if (e?.code === 'mfa_totp_enroll_not_enabled' || e?.code === 'mfa_totp_verify_not_enabled') return 'Двухфакторная защита пока недоступна. Обратитесь в поддержку.'
+  return e?.message && /[А-Яа-я]/.test(e.message) ? e.message : 'Не получилось. Попробуйте ещё раз.'
+}

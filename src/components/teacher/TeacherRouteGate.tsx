@@ -7,6 +7,7 @@ import { useNativeOverlay } from '../../lib/nativeGlass'
 import { useT } from '../../lib/i18n'
 import TeacherLoginPage from '../../pages/teacher/TeacherLoginPage'
 import ScrollFade from '../ScrollFade'
+import { likelyStaff, writeStaffHint } from '../../lib/cabinetChoice'
 
 function accessScope(session: Session | null | undefined) {
   if (!session) return ''
@@ -16,26 +17,6 @@ function accessScope(session: Session | null | undefined) {
     sessionId = JSON.parse(atob(payload)).session_id
   } catch { /* A legacy/opaque token is fenced on every rotation. */ }
   return JSON.stringify([session.user.id, typeof sessionId === 'string' && sessionId ? sessionId : session.access_token, session.user.app_metadata?.role ?? null])
-}
-
-// Last server verdict per account on this device. Only a hint for what to
-// render while the authoritative check runs; data stays behind RLS.
-const STAFF_HINT_KEY = 'iskra.staffHint'
-function readStaffHint(user: string) {
-  try { return localStorage.getItem(STAFF_HINT_KEY) === user } catch { return false }
-}
-function writeStaffHint(user: string, staff: boolean) {
-  try {
-    if (staff) localStorage.setItem(STAFF_HINT_KEY, user)
-    else if (localStorage.getItem(STAFF_HINT_KEY) === user) localStorage.removeItem(STAFF_HINT_KEY)
-  } catch { /* Storage blocked: fall back to the fenced check. */ }
-}
-
-/** Server-assigned role or an earlier positive check: open the cabinet at once. */
-function likelyStaff(session: Session | null | undefined) {
-  if (!session) return false
-  const role = session.user.app_metadata?.role
-  return role === 'teacher' || role === 'admin' || readStaffHint(session.user.id)
 }
 
 export default function TeacherRouteGate({ session, children }: { session: Session | null | undefined; children: ReactNode }) {

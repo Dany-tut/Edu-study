@@ -125,6 +125,18 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
   const [page, setPage] = useState({ key: '', count: 5 })
   const visibleCount = page.key === pageKey ? page.count : 5
   const visible = filtered.slice(0, visibleCount)
+  const hasMore = visible.length < filtered.length
+  const moreRef = useRef<HTMLDivElement>(null)
+  // Дочитали до конца — подкладываем следующие 5 (как в ленте «Задания»).
+  useEffect(() => {
+    const node = moreRef.current
+    if (!hasMore || !node || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([hit]) => {
+      if (hit?.isIntersecting) setPage({ key: pageKey, count: visibleCount + 5 })
+    }, { rootMargin: '0px 0px 120px 0px' })
+    io.observe(node)
+    return () => io.disconnect()
+  }, [hasMore, pageKey, visibleCount])
   const selected = works.find(w => w.key === selectedKey)
   const formatDate = (entry: StudentDiaryEntry) => {
     const day = diaryDay(entry.lesson.scheduledDate) ?? entry.due
@@ -160,7 +172,7 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
         {t(label)}<span>{count}</span>
       </button>)}
     </div>
-    <div className="swj-table-surface">
+    <div className="swj-table-surface" data-more-below={hasMore || undefined}>
       <table className="swj-table"><caption className="sr-only">{t('Все работы, результаты и проверки')}</caption>
         <thead><tr><th className="swj-date-column" scope="col">{t('Дата')}</th><th scope="col">{t('Работа')}</th>
           <th scope="col">{t('Результат')}</th><th className="swj-attempts-column" scope="col">{t('Попытки')}</th><th scope="col">{t('Состояние')}</th>
@@ -183,10 +195,8 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
       </table>
       {!visible.length ? <div className="swj-empty" role="status"><p>{t(pending ? 'Загружаем задания…' : works.length ? 'По этим фильтрам работ нет' : 'Пока нет назначенных работ')}</p></div> : null}
     </div>
-    {visible.length < filtered.length ? <div className="swj-load-more">
-      <p role="status">{t('Показано')} {visible.length} {t('из')} {filtered.length}</p>
-      <button type="button" className="ds-secondary" onClick={() => setPage({ key: pageKey, count: visibleCount + 5 })}>{t('Загрузить ещё')}</button>
-    </div> : null}
+    {/* Без счётчика и кнопки: низ таблицы гаснет, следующая порция подгружается сама. */}
+    {hasMore ? <div ref={moreRef} className="swj-load-sentinel" aria-hidden="true" /> : null}
     <p className="swj-footnote">{t('Средний результат — по одному лучшему завершённому итогу каждой работы. Несданные работы не считаются нулём.')}</p>
     {busy && !noDataYet ? <p className="swj-footnote" role="status">{t('Обновляем результаты и историю…')}</p> : null}
     {selected ? <JournalDetails key={selected.key} work={selected} historyError={history.error} historyPending={history.pending}
