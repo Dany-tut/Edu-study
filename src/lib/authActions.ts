@@ -3,6 +3,7 @@ import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
 import { authTransport, fenceAuthCommit } from './authTransport'
 import { abortable } from './abortable'
 import { requireStaffAccess } from './staffAccess'
+import { requestLoginCode, sessionNeedsCode } from './mfa'
 
 // Password/code verification happens in memory. Only a still-active attempt
 // may commit the resulting session to the application's shared Auth client.
@@ -16,13 +17,23 @@ async function authenticate<T = void>(signal: AbortSignal, verify: (auth: Supaba
   signal.throwIfAborted()
   if (error) throw error
   if (!data.session) throw new Error('Missing Auth session')
+  let session = data.session
+  // Двухфакторная защита: база не отвечает сессии без кода, поэтому код —
+  // до чтения профиля. Экран кода работает с этим же временным клиентом.
+  if (sessionNeedsCode(session)) {
+    await requestLoginCode(client, signal)
+    signal.throwIfAborted()
+    const { data: verified } = await client.auth.getSession()
+    if (!verified.session) throw new Error('Missing Auth session')
+    session = verified.session
+  }
   // Resolve the destination before committing shared Auth. A failed or cancelled
   // profile read must not turn a student into a teacher or leave a login behind.
-  const prepared = prepare ? await abortable(prepare(client, data.session), signal) : undefined
+  const prepared = prepare ? await abortable(prepare(client, session), signal) : undefined
   signal.throwIfAborted()
-  const release = fenceAuthCommit(data.session.access_token, signal)
+  const release = fenceAuthCommit(session.access_token, signal)
   // Retain the fence until the SDK settles, even when the UI has cancelled.
-  const commit = supabase.auth.setSession(data.session).finally(release)
+  const commit = supabase.auth.setSession(session).finally(release)
   const result = await abortable(commit, signal)
   if (result.error) throw result.error
   return prepared

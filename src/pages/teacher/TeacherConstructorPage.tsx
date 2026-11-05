@@ -43,7 +43,7 @@ import { copyToClipboard } from '../../lib/clipboard'
 import { trackEvent } from '../../lib/analytics'
 import { supabase } from '../../lib/supabase'
 import { isCourseResetRef } from '../../lib/homeworkReset'
-import { getOwnerId } from '../../lib/owner'
+import { getOwnerId, getSessionUser } from '../../lib/owner'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDraft, clearDrafts } from '../../lib/useDraft'
@@ -3754,12 +3754,19 @@ const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
 
 // Runtime meta for custom user-created tests
 const CUSTOM_META = new Map<string, { label: string; accent: string; soft: string; iconKey?: string }>()
+// Свой профиль — по своему id. Без фильтра `.single()` работал только у
+// учителя: админу RLS отдаёт все профили, и запрос падал с 406 (27 раз за
+// 05.11) — цвета тестов у админа не загружались и не сохранялись.
 async function loadColorOverridesFromDB(): Promise<Record<string, string>> {
-  const { data } = await supabase.from('profiles').select('test_color_overrides').single()
+  const me = (await getSessionUser())?.id
+  if (!me) return {}
+  const { data } = await supabase.from('profiles').select('test_color_overrides').eq('id', me).maybeSingle()
   return (data?.test_color_overrides as Record<string, string>) ?? {}
 }
 async function saveColorOverrideToDB(subject: string, hex: string) {
-  const { data: profileData } = await supabase.from('profiles').select('id, test_color_overrides').single()
+  const me = (await getSessionUser())?.id
+  if (!me) return
+  const { data: profileData } = await supabase.from('profiles').select('id, test_color_overrides').eq('id', me).maybeSingle()
   if (!profileData) return
   const current = (profileData.test_color_overrides as Record<string, string>) ?? {}
   current[subject] = hex

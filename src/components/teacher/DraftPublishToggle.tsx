@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Loader2, Pencil, Send } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 
@@ -35,15 +35,34 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
     cursor: clickable ? 'pointer' : 'default', transition: 'background 0.15s, color 0.15s',
   })
 
-  const label = (text: string) => (
+  // reserve — другие подписи, которые встанут на это место: под них тоже
+  // держится место, и смена текста не двигает ряд.
+  const label = (text: string, reserve: string[] = []) => (
     <span style={{ display: 'grid', justifyItems: 'center' }}>
-      <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{text}</span>
+      {[text, ...reserve].map(r => (
+        <span key={r} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{r}</span>
+      ))}
       <span style={{ gridArea: '1 / 1' }}>{text}</span>
     </span>
   )
 
   const draftClickable = published && !!onDraft && !saving
   const publishClickable = !published && !saving
+
+  // Нажатие на уже активный «Черновик» ничего не делало, а выглядит он как
+  // кнопка «сохранить черновик» — 30.10 учитель жал его ~36 раз подряд. Оба
+  // редактора сохраняют черновик сами (курс — в базу, урок — во вкладку),
+  // поэтому на такой тап отвечаем словом на пару секунд.
+  const [draftNote, setDraftNote] = useState(false)
+  const noteTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(noteTimer.current), [])
+  const onDraftTap = () => {
+    if (draftClickable) { onDraft?.(); return }
+    if (published) return
+    clearTimeout(noteTimer.current)
+    setDraftNote(true)
+    noteTimer.current = setTimeout(() => setDraftNote(false), 2200)
+  }
 
   return (
     <div role="radiogroup" style={{
@@ -52,9 +71,9 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
       boxShadow: 'var(--shadow-2)', ...style,
     }}>
       <button role="radio" aria-checked={!published}
-        onClick={draftClickable ? onDraft : undefined}
+        onClick={onDraftTap} aria-live="polite"
         style={seg(!published, 'var(--color-yellow-soft)', 'var(--color-yellow-text)', draftClickable)}>
-        <Pencil size={14} strokeWidth={2} /> {label(t('Черновик'))}
+        <Pencil size={14} strokeWidth={2} /> {draftNote ? label(t('Сохранён'), [t('Черновик')]) : label(t('Черновик'), published ? [] : [t('Сохранён')])}
       </button>
       <button role="radio" aria-checked={published}
         onClick={publishClickable ? onPublish : undefined}

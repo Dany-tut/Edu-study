@@ -1,5 +1,6 @@
-import type { Factor } from '@supabase/supabase-js'
+import type { Factor, Session, SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import { beginUserWait } from './userWait'
 
 /**
  * Двухфакторная защита: код из приложения-аутентификатора (Supabase MFA TOTP)
@@ -50,8 +51,8 @@ function svgDataUrl(qr: string) {
 }
 
 /** Код из приложения: подтверждает новый фактор или вход (сессия станет aal2). */
-export async function verifyCode(factorId: string, code: string) {
-  const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code })
+export async function verifyCode(factorId: string, code: string, client: SupabaseClient = supabase) {
+  const { error } = await client.auth.mfa.challengeAndVerify({ factorId, code })
   if (error) throw error
 }
 
@@ -59,8 +60,8 @@ export async function cancelEnrollment(factorId: string) {
   await supabase.auth.mfa.unenroll({ factorId })
 }
 
-async function backup<T>(body: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('mfa-backup', { body })
+async function backup<T>(body: Record<string, unknown>, client: SupabaseClient = supabase): Promise<T> {
+  const { data, error } = await client.functions.invoke('mfa-backup', { body })
   if (error) {
     let message = 'Не удалось выполнить запрос. Попробуйте ещё раз.'
     try { message = (await (error as { context?: Response }).context?.json())?.error || message } catch { /* оставляем общее */ }
@@ -73,9 +74,72 @@ async function backup<T>(body: Record<string, unknown>): Promise<T> {
 export const generateBackupCodes = () => backup<{ codes: string[] }>({ action: 'generate' }).then(r => r.codes)
 
 /** Запасной код снимает защиту с аккаунта; после этого сессия обновляется. */
-export async function recoverWithBackupCode(code: string) {
-  await backup({ action: 'recover', code })
-  await supabase.auth.refreshSession()
+export async function recoverWithBackupCode(code: string, client: SupabaseClient = supabase) {
+  await backup({ action: 'recover', code }, client)
+  const { error } = await client.auth.refreshSession()
+  if (error) throw error
+}
+
+/* ── Код до входа ──────────────────────────────────────────────────────────
+ *
+ * База отказывает сессии, которая у аккаунта с защитой ещё не подтверждена
+ * кодом (миграция mfa_enforce). Поэтому всё, что вход читает из базы —
+ * профиль ученика, роль учителя, — идёт ПОСЛЕ кода. */
+
+function sessionAal(session: Session) {
+  try { return JSON.parse(atob(session.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).aal as string | undefined }
+  catch { return undefined }
+}
+
+/** У аккаунта есть подтверждённый фактор, а сессия ещё без кода. */
+export const sessionNeedsCode = (session: Session | null | undefined) =>
+  !!session && !!session.user.factors?.some(f => f.status === 'verified') && sessionAal(session) !== 'aal2'
+
+export type LoginCodeRequest = { client: SupabaseClient; resolve: () => void; reject: (error: unknown) => void }
+let loginRequest: LoginCodeRequest | null = null
+const loginListeners = new Set<() => void>()
+export const currentLoginCodeRequest = () => loginRequest
+export function subscribeLoginCodeRequest(listener: () => void) {
+  loginListeners.add(listener)
+  return () => { loginListeners.delete(listener) }
+}
+function setLoginRequest(next: LoginCodeRequest | null) {
+  loginRequest = next
+  loginListeners.forEach(listener => listener())
+}
+
+/**
+ * Вход ещё во временном клиенте (authActions): показать экран кода поверх
+ * формы входа и дождаться подтверждения. После него сессия клиента — aal2.
+ */
+export function requestLoginCode(client: SupabaseClient, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const endWait = beginUserWait()
+    const abort = () => { finish(); reject(signal.reason ?? new DOMException('Aborted', 'AbortError')) }
+    const finish = () => { endWait(); signal.removeEventListener('abort', abort); if (loginRequest?.client === client) setLoginRequest(null) }
+    if (signal.aborted) { abort(); return }
+    signal.addEventListener('abort', abort, { once: true })
+    setLoginRequest({
+      client,
+      resolve: () => { finish(); resolve() },
+      reject: error => { finish(); reject(error) },
+    })
+  })
+}
+
+/**
+ * Вход уже в общем клиенте (Google/Apple): ждать, пока человек введёт код на
+ * экране MfaGate. Выход отменяет ожидание.
+ */
+export async function waitForLoginCode() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!sessionNeedsCode(session)) return
+  await new Promise<void>((resolve, reject) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event === 'SIGNED_OUT' || !next) { subscription.unsubscribe(); reject(new Error('Вход отменён. Можно попробовать ещё раз.')); return }
+      if (!sessionNeedsCode(next)) { subscription.unsubscribe(); resolve() }
+    })
+  })
 }
 
 export async function disableMfa(factorId: string) {

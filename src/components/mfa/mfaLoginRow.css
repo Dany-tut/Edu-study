@@ -1,0 +1,36 @@
+/* Действия включённой двухфакторки: вложенная группа под текстом строки */
+.mfa-actions {
+  margin-left: 38px;
+  border-radius: 14px;
+  background: var(--color-bg-input);
+  overflow: hidden;
+}
+.mfa-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+.mfa-action + .mfa-action { box-shadow: inset 0 1px 0 var(--color-border-soft); }
+.mfa-action:disabled { opacity: .55; cursor: default; }
+.mfa-action__icon { display: grid; place-items: center; color: var(--color-muted); flex: none; }
+.mfa-action__label { flex: 1; min-width: 0; }
+.mfa-action__meta { color: var(--color-muted); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.mfa-action--danger { color: var(--color-red-text); }
+.mfa-action--danger .mfa-action__icon { color: var(--color-red-text); }
+@media (hover: hover) {
+  .mfa-action:not(:disabled):hover { background: color-mix(in srgb, var(--color-text) 5%, transparent); }
+  .mfa-action--danger:not(:disabled):hover { background: var(--color-red-soft); }
+}
+@media (max-width: 480px) { .mfa-actions { margin-left: 0; } }

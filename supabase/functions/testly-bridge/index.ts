@@ -24,6 +24,7 @@ import { teacherReadContext } from '../_shared/teacherView.ts'
 import { applyTestlyResult } from '../_shared/testlyProgress.ts'
 
 import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2'
+import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -60,6 +61,7 @@ Deno.serve(async (req) => {
   const caller = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } })
   const { data: userData, error: userErr } = await caller.auth.getUser()
   if (userErr || !userData.user) return json({ error: 'auth' }, 401)
+  if (mfaPending(userData.user, authHeader)) return json(MFA_REQUIRED, 403)
   let teacher = userData.user.id
   // Тестли показывает учителю, к какому аккаунту Искры он подключён.
   const iskraEmail = userData.user.email ?? ''

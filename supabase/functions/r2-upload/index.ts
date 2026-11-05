@@ -24,6 +24,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { AwsClient } from 'npm:aws4fetch@1.0.20'
+import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -79,6 +80,7 @@ async function handle(req: Request): Promise<Response> {
   const { data: userData } = await caller.auth.getUser()
   const uid = userData?.user?.id
   if (!uid) return json({ error: 'Не авторизован' }, 401)
+  if (mfaPending(userData?.user, authHeader)) return json(MFA_REQUIRED, 403)
   // Роль читаем сервисным ключом: не зависим от того, какие строки profiles
   // RLS отдаёт самому человеку.
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })

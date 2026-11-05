@@ -17,6 +17,7 @@
 // токена не пройдёт. Своя проверка ниже пускает ровно два случая выше.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -189,6 +190,7 @@ Deno.serve(async (req) => {
     const caller = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } })
     const { data: userData } = await caller.auth.getUser()
     if (!userData?.user) return json({ error: 'Не авторизован' }, 401)
+    if (mfaPending(userData.user, authHeader)) return json(MFA_REQUIRED, 403)
     // Админство в этом проекте живёт в app_metadata пользователя Auth — оттуда
     // его читают is_admin() и is_admin_user(). В profiles.role у админа стоит
     // 'teacher' (он и правда ведёт занятия), так что сверка по profiles его НЕ

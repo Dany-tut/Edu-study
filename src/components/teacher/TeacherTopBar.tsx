@@ -4,16 +4,16 @@ import { useTeacherGuides } from './guides/TeacherGuides'
 import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownSurface } from '../../lib/dropdownStyle'
-import CountBadge from '../CountBadge'
+import CountBadge, { countBadgeInset } from '../CountBadge'
 import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
-  CreditCard, UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe, Zap,
+  UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe, Zap,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
   CalendarDays, type LucideIcon,
 } from '../icons/appIcons'
-import { useState, useRef, useLayoutEffect, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useEffect, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import { useDeskStore } from '../../store/deskStore'
@@ -362,20 +362,24 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
     display: 'flex', flexDirection: 'column',
   }
 
-  const profileMenuItems = [
-    ...(friends.account ? [{ icon: Users, label: t('Друзья'), sub: t('Ник, поиск и заявки'), action: 'friends' }] : []),
-    { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile' },
-    { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'),  action: 'widgets' },
-    { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme' },
-    { icon: CreditCard,  label: t('Тарифы'),             sub: t('подписка и счета'),   action: 'payment' },
-    { icon: MessageSquarePlus, label: t('Обратная связь'), sub: t('сообщить об ошибке'), action: 'feedback' },
-    // Диалоги + Админка — только для админа; у учителей пункты не появляются.
+  // Порядок меню: у админа сверху его инструменты; дальше «я» (профиль,
+  // друзья), затем вид (виджеты, тема, язык), затем служебное. «Тарифы» отдельным пунктом нет — туда ведёт
+  // карточка тарифа над списком. Между группами — тонкий разделитель.
+  const profileMenuItems: { icon: typeof Users; label: string; sub: string; action: string; group: number }[] = [
+    // Админские инструменты — своей группой сверху, сразу под «В ученический
+    // кабинет»; у учителей этих пунктов нет.
     ...(teacherRole === 'admin'
       ? [
-          { icon: MessageCircle, label: t('Диалоги'), sub: t('чат с ботом и заявки'), action: 'dialogs' },
-          { icon: Shield, label: t('Админка'), sub: t('аналитика, хранилище'), action: 'admin' },
+          { icon: Shield, label: t('Админка'), sub: t('аналитика, хранилище'), action: 'admin', group: 0 },
+          { icon: MessageCircle, label: t('Диалоги'), sub: t('чат с ботом и заявки'), action: 'dialogs', group: 0 },
         ]
       : []),
+    { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile', group: 1 },
+    ...(friends.account ? [{ icon: Users, label: t('Друзья'), sub: t('Ник, поиск и заявки'), action: 'friends', group: 1 }] : []),
+    { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'),  action: 'widgets', group: 2 },
+    { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme', group: 2 },
+    { icon: Globe, label: t('Язык'), sub: lang === 'ru' ? 'Русский' : 'English', action: 'lang', group: 2 },
+    { icon: MessageSquarePlus, label: t('Обратная связь'), sub: t('сообщить об ошибке'), action: 'feedback', group: 3 },
   ]
 
   return (
@@ -427,7 +431,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               style={{
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: `0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
+                padding: `0 ${badgeCount > 0 && !collapsed ? countBadgeInset(44) : squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px 0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
                 background: 'transparent',
@@ -460,7 +464,11 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               }}>
                 {t(item.label)}
               </span>
-              <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5)' }} />
+              {/* Развёрнутая вкладка — число внутри после слова (отступ справа = зазору
+                  сверху/снизу), свёрнутая до иконки — в углу. */}
+              {collapsed
+                ? <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 3, right: 1, zIndex: 2 }} />
+                : <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} style={{ position: 'relative', zIndex: 1, marginLeft: 8 }} />}
             </motion.button>
           )
         })}
@@ -649,9 +657,15 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               </motion.button>
             )}
 
-            {profileMenuItems.map(item => (
-              <motion.button key={item.action} whileTap={{ scale: 0.98 }}
+            {profileMenuItems.map((item, i) => (
+              <Fragment key={item.action}>
+              {i > 0 && profileMenuItems[i - 1].group !== item.group && (
+                <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
+              )}
+              <motion.button whileTap={{ scale: 0.98 }}
+                aria-label={item.action === 'lang' ? (lang === 'ru' ? 'Switch to English' : 'Переключить на русский') : undefined}
                 onClick={() => {
+                  if (item.action === 'lang') { setLang((lang === 'ru' ? 'en' : 'ru') as Lang); return }
                   if (item.action === 'widgets') {
                     if (isHome) useDeskStore.getState().setShowWidgetLibrary(true)
                     else useTeacher.getState().openDeskEditor()
@@ -681,24 +695,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{item.sub}</div>
                 </div>
               </motion.button>
+              </Fragment>
             ))}
-
-            {/* Язык — такой же ряд, как остальные пункты: подпись снизу
-                показывает текущий язык, клик по ряду переключает. */}
-            <motion.button whileTap={{ scale: 0.98 }}
-              onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}
-              aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
-              className="profile-menu-row"
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
-            >
-              <div className="profile-menu-tile">
-                <Globe size={16} strokeWidth={2} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t('Язык')}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{lang === 'ru' ? 'Русский' : 'English'}</div>
-              </div>
-            </motion.button>
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
             <motion.button whileTap={{ scale: 0.98 }}

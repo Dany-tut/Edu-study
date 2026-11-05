@@ -2,6 +2,7 @@
 // verify_jwt=true; дополнительно проверяем роль admin.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { MFA_REQUIRED, mfaPending } from "../_shared/mfa.ts";
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 Deno.serve(async (req: Request) => {
@@ -12,6 +13,7 @@ Deno.serve(async (req: Request) => {
   const userClient = createClient(url, anon, { global: { headers: { Authorization: authHeader } } });
   const { data: { user } } = await userClient.auth.getUser();
   if (user?.app_metadata?.role !== "admin") return json({ error: "forbidden" }, 403);
+  if (mfaPending(user, authHeader)) return json(MFA_REQUIRED, 403);
   let body: Record<string, unknown> = {}; try { body = await req.json(); } catch {}
   const threadId = String(body.thread_id ?? ""); const text = String(body.text ?? "").trim().slice(0, 4000);
   if (!threadId || !text) return json({ error: "bad_request" }, 400);

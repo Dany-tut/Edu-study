@@ -1,4 +1,5 @@
 import { App } from '@capacitor/app'
+import { waitForLoginCode } from './mfa'
 import { Browser } from '@capacitor/browser'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { Provider } from '@supabase/supabase-js'
@@ -216,14 +217,23 @@ export async function completeNativeSocialLogin(url: string) {
 }
 
 /** Resolve the selected role to an existing Искра account after OAuth. */
-export async function finishSocialLogin() {
-  try { return await finishSocialLoginImpl() }
-  catch (error) {
-    if (hasPendingSocialAuth()) endOAuthAttempt('auth_failed')
-    throw error
-  }
+// Завершение может позвать и обработчик входа, и заново смонтированный App
+// (после экрана кода) — делаем его один раз.
+let finishing: Promise<boolean> | null = null
+export function finishSocialLogin() {
+  finishing ??= (async () => {
+    try { return await finishSocialLoginImpl() }
+    catch (error) {
+      if (hasPendingSocialAuth()) endOAuthAttempt('auth_failed')
+      throw error
+    }
+    finally { finishing = null }
+  })()
+  return finishing
 }
 async function finishSocialLoginImpl() {
+  // Двухфакторная защита: база не ответит, пока не введён код (экран MfaGate).
+  await waitForLoginCode()
   if (localStorage.getItem(LINK_KEY)) return finishIdentityLink()
   const query = new URLSearchParams(window.location.search)
   const fragment = new URLSearchParams(window.location.hash.slice(1))

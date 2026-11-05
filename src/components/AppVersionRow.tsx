@@ -47,6 +47,16 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
     if (updating) return
     tactile()
     if (stale) { void apply(); return }
+    // Повторный тап не начинает проверку заново. Раньше каждый тап снова
+    // ставил «Проверяем…», и под серией тапов ответ «Актуальна» не успевал
+    // появиться — строка выглядела зависшей (04.11: ~30 тапов за 8 с). Пока
+    // идёт запрос, ждём его; пока виден ответ, просто держим его дольше.
+    if (phase === 'checking') return
+    if (confirm) {
+      clearTimeout(confirmTimer.current)
+      confirmTimer.current = setTimeout(() => setConfirm(false), 2200)
+      return
+    }
     clearTimeout(confirmTimer.current)
     setConfirm(false)
     void check(true).then(() => {
