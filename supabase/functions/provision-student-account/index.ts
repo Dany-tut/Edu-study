@@ -1,6 +1,7 @@
 // Issue a synthetic-login account and return its random credential once.
 // Never read or persist plaintext passwords in public tables.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -60,6 +61,7 @@ Deno.serve(async (req) => {
   const caller = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } })
   const { data: userData, error: userErr } = await caller.auth.getUser()
   if (userErr || !userData.user) return json({ error: 'Не авторизован' }, 401)
+  if (mfaPending(userData.user, authHeader)) return json(MFA_REQUIRED, 403)
   const callerId = userData.user.id
   const isAdmin = (userData.user.app_metadata as { role?: string } | null)?.role === 'admin'
 

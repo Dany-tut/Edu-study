@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 import { clearStudentSession } from '../../lib/studentSession'
 import { useT } from '../../lib/i18n'
-import { mfaErrorRu, recoverWithBackupCode, verifyCode } from '../../lib/mfa'
+import { currentLoginCodeRequest, mfaErrorRu, recoverWithBackupCode, subscribeLoginCodeRequest, verifyCode } from '../../lib/mfa'
 import { Alert } from '../Alert'
 import AuthHero from '../AuthHero'
 import ScrollFade from '../ScrollFade'
@@ -36,6 +37,11 @@ export default function MfaGate({ children }: { children: ReactNode }) {
     return () => { subscription.unsubscribe(); window.removeEventListener('iskra:mfa-changed', recheck) }
   }, [check])
 
+  // Вход по паролю/коду из письма: код спрашиваем поверх формы, пока сессия
+  // ещё во временном клиенте и форма ждёт ответа.
+  const loginRequest = useSyncExternalStore(subscribeLoginCodeRequest, currentLoginCodeRequest)
+  if (loginRequest) return <>{children}<MfaChallengeScreen key="login" client={loginRequest.client} onPassed={loginRequest.resolve}
+    onCancel={() => loginRequest.reject(new DOMException('Cancelled', 'AbortError'))} /></>
   if (state === 'checking') return <div style={{ minHeight: '100dvh', background: 'var(--color-bg)' }} />
   if (state === 'code') return <MfaChallengeScreen onPassed={() => void check()} />
   return <>{children}</>
@@ -56,7 +62,7 @@ function AuthShell({ children }: { children: ReactNode }) {
 }
 
 /** «Код подтверждения»: 6 цифр из приложения или запасной код. */
-export function MfaChallengeScreen({ onPassed }: { onPassed: () => void }) {
+export function MfaChallengeScreen({ onPassed, client = supabase, onCancel }: { onPassed: () => void; client?: SupabaseClient; onCancel?: () => void }) {
   const t = useT()
   const [backup, setBackup] = useState(false)
   const [code, setCode] = useState('')
@@ -66,17 +72,17 @@ export function MfaChallengeScreen({ onPassed }: { onPassed: () => void }) {
   const [factorId, setFactorId] = useState<string | null>(null)
 
   useEffect(() => {
-    void supabase.auth.mfa.listFactors().then(({ data, error }) => {
+    void client.auth.mfa.listFactors().then(({ data, error }) => {
       if (error) setError(mfaErrorRu(error))
       setFactorId(data?.totp?.[0]?.id ?? null)
     })
-  }, [])
+  }, [client])
 
   const submit = async (value = code) => {
     if (busy || value.length !== 6 || !factorId) return
     setBusy(true)
     setError('')
-    try { await verifyCode(factorId, value); onPassed() }
+    try { await verifyCode(factorId, value, client); onPassed() }
     catch (e) { setError(mfaErrorRu(e)); setCode('') }
     finally { setBusy(false) }
   }
@@ -85,7 +91,7 @@ export function MfaChallengeScreen({ onPassed }: { onPassed: () => void }) {
     setBusy(true)
     setError('')
     try {
-      await recoverWithBackupCode(backupCode)
+      await recoverWithBackupCode(backupCode, client)
       window.dispatchEvent(new Event('iskra:mfa-changed'))
       onPassed()
     }
@@ -112,6 +118,6 @@ export function MfaChallengeScreen({ onPassed }: { onPassed: () => void }) {
         <button type="submit" disabled={busy || code.length !== 6 || !factorId} style={{ ...primaryButton, opacity: busy || code.length !== 6 ? 0.6 : 1 }}>{t(busy ? 'Проверяем…' : 'Подтвердить')}</button>
         <button type="button" onClick={() => { setBackup(true); setError('') }} style={linkButton}>{t('Использовать запасной код')}</button>
       </form>}
-    <button type="button" onClick={() => void signOut()} style={{ ...linkButton, width: '100%', color: 'var(--color-muted)' }}>{t('Выйти')}</button>
+    <button type="button" onClick={() => { if (onCancel) onCancel(); else void signOut() }} style={{ ...linkButton, width: '100%', color: 'var(--color-muted)' }}>{t(onCancel ? 'Отмена' : 'Выйти')}</button>
   </AuthShell>
 }

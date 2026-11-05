@@ -2,6 +2,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.118.0'
 import { loadWork } from '../_shared/homeworkWork.ts'
 import { gradeViaLinali, GradeError, DEFAULT_MODEL, classifyProviderStatus } from '../_shared/homeworkAi.ts'
 import { resolveLinaliKey } from '../_shared/homeworkAiKey.ts'
+import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
 
 declare const EdgeRuntime: { waitUntil(task: Promise<unknown>): void }
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, x-client-info, content-type, x-hw-grade-secret', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
@@ -107,6 +108,7 @@ Deno.serve(async req => {
     if (!auth?.startsWith('Bearer ')) return reply({ error:'unauthorized' },401)
     const { data: { user }, error: authError } = await admin.auth.getUser(auth.slice(7))
     if (authError || !user) return reply({ error:'unauthorized' },401)
+    if (mfaPending(user, auth ?? '')) return reply(MFA_REQUIRED, 403)
     if (!uuid(body.progressId)) return reply({ error:'invalid_request' },400)
     // RLS is also enforced by the request RPC, not by a client-supplied teacher id.
     const client = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers:{ Authorization:auth } }, auth:{ persistSession:false } })

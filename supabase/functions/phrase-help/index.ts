@@ -15,6 +15,7 @@ import { languageAiConfig, requestLanguageAi, retryLanguageAi, languageAiUserMes
 // Ответ:   { variants: [{ term, note? }], model }
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -105,6 +106,7 @@ async function handle(req: Request): Promise<Response> {
   const caller = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } })
   const { data: userData } = await caller.auth.getUser()
   if (!userData?.user) return json({ error: 'Не авторизован' }, 401)
+  if (mfaPending(userData.user, authHeader)) return json(MFA_REQUIRED, 403)
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
   const { data: flags } = await admin

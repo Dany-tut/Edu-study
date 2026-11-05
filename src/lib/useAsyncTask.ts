@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { abortable } from './abortable'
+import { isWaitingForUser } from './userWait'
 
 /** One in-flight action. Cancellation fences callbacks even if a service ignores abort. */
 export function useAsyncTask(timeout = 30_000) {
@@ -18,7 +19,10 @@ export function useAsyncTask(timeout = 30_000) {
     const controller = new AbortController()
     active.current = controller
     setBusy(true)
-    const timer = setTimeout(() => controller.abort(new DOMException('Timed out', 'TimeoutError')), timeout)
+    // Пока действие ждёт человека (код при входе), срок откладывается.
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const arm = () => { timer = setTimeout(() => { if (isWaitingForUser()) arm(); else controller.abort(new DOMException('Timed out', 'TimeoutError')) }, timeout) }
+    arm()
     try {
       const value = await abortable(Promise.resolve().then(() => {
         controller.signal.throwIfAborted()

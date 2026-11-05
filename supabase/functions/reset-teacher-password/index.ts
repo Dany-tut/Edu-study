@@ -12,6 +12,7 @@
 // Response: { password: string }  on success
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -48,6 +49,7 @@ Deno.serve(async (req) => {
   })
   const { data: userData, error: userErr } = await caller.auth.getUser()
   if (userErr || !userData.user) return json({ error: 'Не авторизован' }, 401)
+  if (mfaPending(userData.user, authHeader)) return json(MFA_REQUIRED, 403)
   const callerRole = (userData.user.app_metadata as { role?: string } | null)?.role
 
   let teacherId: string, password: string | undefined
