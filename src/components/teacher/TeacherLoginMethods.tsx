@@ -11,6 +11,7 @@ import { useT } from '../../lib/i18n'
 import { Alert } from '../Alert'
 import { AppleMark, GoogleMark } from '../SocialLoginButtons'
 import { Check } from '../icons/appIcons'
+import MfaLoginRow from '../mfa/MfaLoginRow'
 
 /** Способы входа в аккаунт: почта, Google, Apple. У ученика — в настройках профиля. */
 export default function TeacherLoginMethods({ student = false }: { student?: boolean } = {}) {
@@ -134,6 +135,7 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
             </button>}
         </div>
       })}
+      <MfaLoginRow />
       </div>
       {error && <Alert tone="danger" text={t(error)} />}
       {notice && <Alert tone="info" text={t(notice)} />}
