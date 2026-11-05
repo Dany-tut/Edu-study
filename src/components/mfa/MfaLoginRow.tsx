@@ -4,8 +4,9 @@ import { disableMfa, mfaErrorRu, readBackupCodesLeft, readMfa } from '../../lib/
 import { supabase } from '../../lib/supabase'
 import { Alert } from '../Alert'
 import { confirmDialog } from '../ConfirmHost'
-import { Check, Shield, ShieldCheck } from '../icons/appIcons'
+import { Check, ChevronRight, KeyRound, LockOpen, Shield, ShieldCheck } from '../icons/appIcons'
 import { BackupCodesDialog, MfaSetupDialog } from './MfaSetup'
+import './mfaLoginRow.css'
 
 const pill = { minHeight: 44, width: '100%', boxSizing: 'border-box', borderRadius: 14, fontSize: 13, fontWeight: 650, whiteSpace: 'nowrap' } as const
 
@@ -54,14 +55,14 @@ export default function MfaLoginRow() {
     finally { setBusy(false) }
   }
 
-  return <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingBottom: enabled ? 12 : 0 }}>
+  return <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingBottom: enabled ? 14 : 0 }}>
     <div style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr) 124px', alignItems: 'center', gap: 10, minHeight: 76, padding: '12px 0' }}>
       <span style={{ display: 'grid', placeItems: 'center', color: enabled ? 'var(--color-green-text)' : 'var(--color-purple-text)' }}>
         {enabled ? <ShieldCheck size={22} /> : <Shield size={22} />}
       </span>
-      <div style={{ minWidth: 0, color: 'var(--color-text)', fontSize: 14 }}>
+      <div style={{ minWidth: 0, color: 'var(--color-text)', fontSize: 14, lineHeight: 1.25 }}>
         <strong>{t('Двухфакторная защита')}</strong>
-        <div style={{ marginTop: 3, color: 'var(--color-muted)', fontSize: 12, lineHeight: 1.35 }}>{note}</div>
+        <div style={{ marginTop: 2, color: 'var(--color-muted)', fontSize: 12, lineHeight: 1.3 }}>{note}</div>
       </div>
       {enabled
         ? <span aria-label={t('Включена')} style={{ ...pill, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12 }}><Check size={14} strokeWidth={2.2} />{t('Включена')}</span>
@@ -70,9 +71,17 @@ export default function MfaLoginRow() {
           {factorId === undefined ? t('Загрузка...') : t('Включить')}
         </button>}
     </div>
-    {enabled && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-      <button type="button" onClick={() => setCodesOpen(true)} style={{ ...pill, border: 0, background: 'var(--color-bg-input)', color: 'var(--color-text)', cursor: 'pointer' }}>{t('Запасные коды')}</button>
-      <button type="button" disabled={busy} onClick={() => void disable()} style={{ ...pill, border: 0, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', opacity: busy ? 0.55 : 1 }}>{t(busy ? 'Отключаем…' : 'Отключить')}</button>
+    {enabled && <div className="mfa-actions">
+      <button type="button" className="mfa-action" onClick={() => setCodesOpen(true)}>
+        <span className="mfa-action__icon"><KeyRound size={16} /></span>
+        <span className="mfa-action__label">{t('Запасные коды')}</span>
+        <span className="mfa-action__meta">{t('Осталось')} {codesLeft}</span>
+        <span className="mfa-action__icon"><ChevronRight size={16} /></span>
+      </button>
+      <button type="button" className="mfa-action mfa-action--danger" disabled={busy} onClick={() => void disable()}>
+        <span className="mfa-action__icon"><LockOpen size={16} /></span>
+        <span className="mfa-action__label">{t(busy ? 'Отключаем…' : 'Отключить защиту')}</span>
+      </button>
     </div>}
     {error && <div style={{ marginTop: 8 }}><Alert tone="danger" text={t(error)} /></div>}
     <MfaSetupDialog open={setupOpen} onClose={() => { setSetupOpen(false); window.dispatchEvent(new Event('iskra:mfa-changed')) }} onDone={() => { setSetupOpen(false); window.dispatchEvent(new Event('iskra:mfa-changed')) }} />

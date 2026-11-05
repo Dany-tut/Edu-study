@@ -107,7 +107,7 @@ export default function MobileTeacherNav({
                   strokeWidth={isActive ? 2 : 1.8}
                   tone={isActive ? 'accent' : 'neutral'}
                 />
-                {item.id === 'review' && <CountBadge count={reviewBadge} tone="danger" style={{ position: 'absolute', top: -5, right: -9 }} />}
+                {item.id === 'review' && <CountBadge count={reviewBadge} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: -6, right: -11 }} />}
               </div>
               <motion.span
                 initial={false}

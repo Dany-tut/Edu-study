@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { LucideIcon } from './icons/appIcons'
 import Tooltip from './Tooltip'
+import CountBadge, { COUNT_BADGE_H } from './CountBadge'
 
 /**
  * ПЕРЕКЛЮЧАТЕЛЬ-СЕГМЕНТ — три роли, у каждой своя спецификация (круг 2).
@@ -33,7 +34,16 @@ export interface SegmentItem<T extends string> {
   /** Полное название для подсказки (narrow), если label — не строка. */
   title?: string
   icon?: LucideIcon
+  /** Счётчик внутри кнопки после подписи (концепт «Вкладыш»). */
+  count?: number
+  countTone?: 'accent' | 'danger'
 }
+
+// Высота кнопки — 8 + 13 × 1.2 + 8. Счётчик в неё вписан без роста высоты
+// (отрицательные поля), а правый отступ кнопки равен зазору над и под ним.
+const ITEM_H = 16 + 13 * 1.2
+const BADGE_GAP = Math.round((ITEM_H - COUNT_BADGE_H) / 2)
+const BADGE_PULL = -(COUNT_BADGE_H - 13 * 1.2) / 2
 
 export default function Segmented<T extends string>({ variant, items, value, onChange, cellWidth = 120, style }: {
   variant: 'mode' | 'filter' | 'narrow'
@@ -64,7 +74,7 @@ export default function Segmented<T extends string>({ variant, items, value, onC
             onClick={() => onChange(it.id)}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '8px 14px', borderRadius: mode ? 9 : 999, border: 'none', cursor: 'pointer',
+              padding: it.count ? `8px ${BADGE_GAP}px 8px 14px` : '8px 14px', borderRadius: mode ? 9 : 999, border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: on ? 700 : 600, lineHeight: 1.2, whiteSpace: 'nowrap',
               background: on ? (mode ? 'var(--color-purple-soft)' : 'var(--color-surface)') : 'transparent',
               color: on ? (mode ? 'var(--color-purple-text)' : 'var(--color-text)') : 'var(--color-text-3)',
@@ -82,6 +92,14 @@ export default function Segmented<T extends string>({ variant, items, value, onC
                 <span style={{ gridArea: '1 / 1' }}>{it.label}</span>
                 <span aria-hidden style={{ gridArea: '1 / 1', fontWeight: 700, visibility: 'hidden' }}>{it.label}</span>
               </span>}
+            {!!it.count && (
+              <CountBadge
+                count={it.count} tone={it.countTone ?? 'accent'}
+                // Выбранный режим уже на мягкой фиолетовой подложке — там
+                // фиолетовый счётчик плотнее, иначе он сливается с кнопкой.
+                style={{ marginBlock: BADGE_PULL, ...(on && mode && it.countTone !== 'danger' ? { background: 'color-mix(in srgb, var(--color-accent) 22%, transparent)' } : {}) }}
+              />
+            )}
           </button>
         )
         const full = it.title ?? (typeof it.label === 'string' ? it.label : undefined)

@@ -1,43 +1,50 @@
+/* Финансы на общей сетке страниц кабинета — как «Профиль»
+   (teacherProfileHeader.css): ширина PAGE_WIDTH.wide, шапка в три колонки
+   «заголовок · переключатель по центру · действие справа», карточки 20 px
+   со скруглением 20 и шагом 20. */
 .finance-page {
   box-sizing: border-box;
-  width: 100%;
-  margin-inline: auto;
-  padding: 28px var(--finance-gutter) 60px;
-  overflow-wrap: anywhere;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px clamp(16px, 3vw, 24px) 60px;
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.5;
 }
-.finance-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.finance-summary > div + div { border-inline-start: 1px solid var(--color-border); }
-.finance-row {
+.finance-header {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 5rem 8rem auto auto;
-  grid-template-areas: "avatar student balance amount pay details";
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  padding: 12px 16px;
-  cursor: pointer;
+  gap: 16px;
+  margin-bottom: 20px;
 }
-.finance-row > :first-child { grid-area: avatar; }
-.finance-row > :nth-child(2) { grid-area: student; }
-.finance-balance { grid-area: balance; justify-self: end; }
-.finance-amount { grid-area: amount; text-align: end; }
-.finance-pay { grid-area: pay; }
-.finance-details {
-  grid-area: details; display: grid; place-items: center; width: 44px; height: 44px;
-  background: transparent; border: 0; color: var(--color-text-3); cursor: pointer;
+.finance-identity { min-width: 0; min-height: 54px; display: flex; flex-direction: column; justify-content: center; }
+.finance-identity h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: var(--color-text); }
+.finance-identity p { margin: 0; padding: 3px 0; font-size: 12px; color: var(--color-text-3); }
+.finance-add {
+  justify-self: end;
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px;
+  background: var(--grad-purple); color: #fff;
+  font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
 }
-@media (max-width: 700px) {
-  .finance-page { padding-inline: var(--finance-phone-gutter); --finance-filter-display: grid; --finance-filter-radius: 16px; }
+.finance-add:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.finance-card {
+  background: var(--color-bg-2);
+  border: 1px solid var(--color-border-medium);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.finance-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 20px; }
+.finance-summary > div { min-width: 0; padding: 16px 8px; text-align: center; }
+.finance-summary > div + div { border-inline-start: 1px solid var(--color-border); }
+
+@media (max-width: 760px) {
+  .finance-header { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+  .finance-header > .finance-identity { grid-area: 1 / 1; }
+  .finance-header > .finance-add { grid-area: 1 / 2; }
+  .finance-header > :nth-child(2) { grid-column: 1 / -1; }
   .finance-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .finance-summary > div:nth-child(3) { border-inline-start: 0; }
   .finance-summary > div:nth-child(n+3) { border-top: 1px solid var(--color-border); }
-  .finance-page [role="tablist"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .finance-page [role="tab"] { min-height: 44px; }
-  .finance-row {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: "avatar student details" "balance amount pay";
-    padding: 12px; gap: 6px 8px;
-  }
-  .finance-details { justify-self: end; }
-  .finance-balance { justify-self: start; }
-  .finance-pay { min-height: 44px; }
 }

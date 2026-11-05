@@ -1,4 +1,6 @@
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
+import HScrollFade from '../../components/HScrollFade'
+import './teacherFinances.css'
 import { useState, useMemo } from 'react'
 import FadeText from '../../components/FadeText'
 import { useIsDesktop } from '../../lib/useIsDesktop'
@@ -7,19 +9,17 @@ import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { Alert } from '../../components/Alert'
 import { useAsyncTask } from '../../lib/useAsyncTask'
 import { paymentAmount, paymentLessons } from '../../lib/paymentInput'
-import CountBadge from '../../components/CountBadge'
 import Segmented from '../../components/Segmented'
 import { FIELD } from '../../lib/fieldStyle'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Wallet, Plus, X, Check, ChevronDown, ChevronUp,
+  Plus, X, Check, ChevronDown, ChevronUp,
   TrendingUp, AlertCircle, Clock, CheckCircle2, Trash2,
 } from '../../components/icons/appIcons'
 import { useAllStudents, useGroups, reloadAllStudents } from '../../lib/useGroups'
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
 import { useT, useTc } from '../../lib/i18n'
 import type { Student } from '../../data/teacherMockData'
-import { PAGE_WIDTH } from '../../lib/pageWidth'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -334,60 +334,36 @@ export default function TeacherFinancesPage() {
   return (
     <>
       <TeacherPageScroll>
-      <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div className="finance-page">
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 12,
-              background: 'var(--grad-purple)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Wallet size={18} strokeWidth={2} style={{ color: '#fff' }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Финансы')}</div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
-                {new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
-              </div>
-            </div>
+        <header className="finance-header">
+          <div className="finance-identity">
+            <h1>{t('Финансы')}</h1>
+            <p>{new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</p>
           </div>
-
-          <motion.button
-            whileTap={{ scale: 0.96 }}
-            onClick={() => setPaying(null)}
-            style={{ height: 44,
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '0 16px', borderRadius: 12,
-              background: 'var(--grad-purple)', border: 'none',
-              color: '#fff', fontSize: 13, fontWeight: 700,
-              cursor: 'pointer',
-            } as React.CSSProperties}
-          >
+          <HScrollFade padX={2} padTop={3} padBottom={3} fadeWidth={22} style={{ minWidth: 0, maxWidth: '100%', justifySelf: 'center' }}>
+            <Segmented
+              variant="filter" value={filter} onChange={setFilter}
+              items={tabs.map(tab => ({
+                id: tab.id, title: tab.label,
+                label: tab.label, count: tab.count, countTone: tab.id === 'overdue' ? 'danger' as const : 'accent' as const,
+              }))}
+            />
+          </HScrollFade>
+          <motion.button type="button" className="finance-add" whileTap={{ scale: 0.96 }} onClick={() => setPaying(null)}>
             <Plus size={16} /> {t('Платёж')}
           </motion.button>
-        </div>
+        </header>
 
         {/* KPI strip */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: desktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
-          background: 'var(--color-bg-2)',
-          border: '1px solid var(--color-border-medium)',
-          borderRadius: 16, overflow: 'hidden',
-          marginBottom: 20,
-        }}>
+        <div className="finance-card finance-summary">
           {[
             { label: t('Получено'),  value: fmt(summary.received),  color: 'var(--color-green-text)', icon: <CheckCircle2 size={14} /> },
             { label: t('Ожидается'), value: fmt(summary.expected),  color: 'var(--color-text)',        icon: <Clock size={14} /> },
             { label: t('Долг'),      value: fmt(summary.debt),      color: 'var(--color-red-text)',    icon: <AlertCircle size={14} /> },
             { label: t('Прогноз'),   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={14} /> },
-          ].map((item, i, arr) => (
-            <div key={item.label} style={{
-              minWidth: 0, padding: '14px 8px', textAlign: 'center',
-              borderRight: (desktop ? i < arr.length - 1 : i % 2 === 0) ? '1px solid var(--color-border)' : 'none',
-              borderBottom: !desktop && i < 2 ? '1px solid var(--color-border)' : 'none',
-            }}>
+          ].map(item => (
+            <div key={item.label}>
               <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 {item.icon} <FadeText>{item.label}</FadeText>
               </div>
@@ -398,21 +374,8 @@ export default function TeacherFinancesPage() {
           ))}
         </div>
 
-        {/* Filter tabs */}
-        <Segmented
-          variant="filter" value={filter} onChange={setFilter} style={{ marginBottom: 14 }}
-          items={tabs.map(tab => ({
-            id: tab.id, title: tab.label,
-            label: tab.count ? <>{tab.label} <CountBadge count={tab.count} tone={tab.id === 'overdue' ? 'danger' : 'accent'} /></> : tab.label,
-          }))}
-        />
-
         {/* Student list */}
-        <div style={{
-          background: 'var(--color-bg-2)',
-          border: '1px solid var(--color-border-medium)',
-          borderRadius: 16, overflow: 'hidden',
-        }}>
+        <div className="finance-card">
           {filtered.length === 0 ? (
             <div style={{
               padding: '40px 20px',
