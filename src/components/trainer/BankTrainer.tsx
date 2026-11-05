@@ -1828,7 +1828,7 @@ export default function BankTrainer({ subjectState }: {
         }}
       >
         {icon}
-        {!!opts.badge && <CountBadge count={opts.badge} style={{ position: 'absolute', top: -2, right: -2 }} />}
+        {!!opts.badge && <CountBadge count={opts.badge} ring="var(--color-bg)" style={{ position: 'absolute', top: -2, right: -2 }} />}
       </motion.button>
     )
 

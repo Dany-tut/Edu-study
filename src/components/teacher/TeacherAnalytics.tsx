@@ -1,7 +1,6 @@
 import { Check as LoopUiCheck } from '../icons/appIcons'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import AnalyticsDiagnostics from './AnalyticsDiagnostics'
-import CountBadge from '../CountBadge'
 import Segmented from '../Segmented'
 import Skeleton from '../Skeleton'
 import { motion } from 'framer-motion'
@@ -733,7 +732,7 @@ export default function TeacherAnalytics() {
           variant="mode" value={activeTab} onChange={setActiveTab} style={{ marginLeft:'auto' }}
           items={([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')], ['digest', t('Разбор')], ['diagnostics', t('Диагностика')]] as const).map(([id,label]) => ({
             id, title: label,
-            label: id==='issues' && totalErrors>0 ? <>{label} <CountBadge count={totalErrors} tone="danger" /></> : label,
+            label, ...(id==='issues' ? { count: totalErrors, countTone: 'danger' as const } : {}),
           }))}
         />
       </div>

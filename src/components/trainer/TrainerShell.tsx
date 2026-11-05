@@ -40,7 +40,7 @@ import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 // родитель; свой остаётся только на узком экране, где обёртки кабинета нет.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import CountBadge from '../CountBadge'
+import CountBadge, { countBadgeInset } from '../CountBadge'
 import {
   Children, Fragment, createContext, isValidElement,
   useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
@@ -1311,7 +1311,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-        height: MOBILE_PILL_H, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
+        height: MOBILE_PILL_H, padding: on ? `0 ${countBadgeInset(MOBILE_PILL_H)}px 0 14px` : '0 14px', borderRadius: 999, cursor: 'pointer',
         background: on ? 'var(--color-purple-soft)' : PILL_BG, ...PILL_GLASS,
         border: `1px solid ${on ? 'var(--color-accent)' : 'var(--color-border-medium)'}`,
         color: on ? 'var(--color-purple-text)' : 'var(--color-text)',
@@ -1322,7 +1322,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
           одинаковых значка на экране означали бы одно и то же место. */}
       <Filter size={14} />
       {t('Фильтры')}
-      {on && <CountBadge count={count} />}
+      {on && <CountBadge count={count} style={{ background: 'color-mix(in srgb, var(--color-accent) 22%, transparent)' }} />}
     </button>
   )
 }
@@ -1989,7 +1989,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
         }}
       >
         {t(label)}
-        {on && <CountBadge count={value.length} style={{ background: tint }} />}
+        {on && <CountBadge count={value.length} style={{ background: `color-mix(in srgb, ${tint} 18%, transparent)`, color: tint }} />}
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }} style={{ display: 'flex' }}>
           <ChevronDown size={14} />
         </motion.span>
