@@ -1,8 +1,9 @@
 import TableScrollArea from '../TableScrollArea'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import Segmented from '../Segmented'
 import { createPortal } from 'react-dom'
-import { Users, GraduationCap, Clock, RefreshCw, Eye, Trash2, ShieldAlert } from '../icons/appIcons'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Users, GraduationCap, Clock, RefreshCw, Eye, Trash2, ShieldAlert, UserPlus, SlidersHorizontal, Lock, Eraser } from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import {
   fetchUserActivity, fetchTeacherUsage,
@@ -11,6 +12,9 @@ import {
 import { t, useT, tn } from '../../lib/i18n'
 import AssignPlanButton from './AssignPlanButton'
 import AdminStudentsManager from './AdminStudentsManager'
+import { confirmDialog } from '../ConfirmHost'
+import AdminInactiveCleanup from './AdminInactiveCleanup'
+import { AccessEditor, InviteModal, PendingInvites, fetchTeacherAdmin, type PendingInvite, type TeacherAccess } from './AdminTeacherAccess'
 import { setViewAs, getViewAs } from '../../lib/owner'
 import { Alert } from '../Alert'
 import { btn as uiBtn } from '../../lib/pillStyles'
@@ -54,10 +58,29 @@ const TIME_HINT = 'Минуты с открытой вкладкой: раз в 
 
 const DAYS = [7, 30, 90] as const
 
+type View = 'people' | 'teachers' | 'students'
+/** Ключ раздела в sessionStorage: F5 и переход из карточки «Обзора» открывают нужный. */
+export const USERS_VIEW_KEY = 'admin_users_view'
+
 export default function AdminUserActivity() {
   const t = useT()
   const [days, setDays] = useState<(typeof DAYS)[number]>(30)
-  const [view, setView] = useState<'people' | 'teachers' | 'students'>('people')
+  const [view, setView] = useState<View>(() => {
+    const saved = sessionStorage.getItem(USERS_VIEW_KEY)
+    return saved === 'teachers' || saved === 'students' ? saved : 'people'
+  })
+  useEffect(() => { sessionStorage.setItem(USERS_VIEW_KEY, view) }, [view])
+  // Доступы и приглашения учителей — не зависят от периода, грузятся один раз.
+  const [access, setAccess] = useState<Record<string, TeacherAccess>>({})
+  const [invites, setInvites] = useState<PendingInvite[]>([])
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [cleanupOpen, setCleanupOpen] = useState(false)
+  // Перезагрузка таблиц после удалений (тот же период).
+  const [reloadKey, setReloadKey] = useState(0)
+  function loadTeacherAdmin() {
+    void fetchTeacherAdmin().then(r => { setAccess(r.access); setInvites(r.invites) })
+  }
+  useEffect(loadTeacherAdmin, [])
   const [people, setPeople] = useState<UserActivityRow[]>([])
   const [teachers, setTeachers] = useState<TeacherUsageRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,7 +93,7 @@ export default function AdminUserActivity() {
       setPeople(p); setTeachers(t); setLoading(false)
     })
     return () => { alive = false }
-  }, [days])
+  }, [days, reloadKey])
 
   const totals = useMemo(() => ({
     people: people.length,
@@ -87,9 +110,21 @@ export default function AdminUserActivity() {
           variant="mode" value={view} onChange={setView}
           items={[{ id: 'people', label: t('Все пользователи') }, { id: 'teachers', label: t('По учителям') }, { id: 'students', label: t('Ученики') }]}
         />
+        {view === 'people' && (
+          <button onClick={() => setCleanupOpen(true)} style={{ ...uiBtn('S', 'secondary'), marginLeft: 'auto' }}>
+            <Eraser size={14} strokeWidth={2} />
+            {t('Удалить неактивных')}
+          </button>
+        )}
+        {view === 'teachers' && (
+          <button onClick={() => setInviteOpen(true)} style={{ ...uiBtn('S', 'primary'), marginLeft: 'auto' }}>
+            <UserPlus size={14} strokeWidth={2.5} />
+            {t('Пригласить учителя')}
+          </button>
+        )}
         {view !== 'students' && (
         <Segmented
-          variant="filter" value={String(days)} onChange={v => setDays(Number(v) as typeof days)} style={{ marginLeft: 'auto' }}
+          variant="filter" value={String(days)} onChange={v => setDays(Number(v) as typeof days)}
           items={DAYS.map(d => ({ id: String(d), label: `${d} ${t('дн')}` }))}
         />
         )}
@@ -109,13 +144,30 @@ export default function AdminUserActivity() {
           </div>
 
           {view === 'people' ? (
-            <PeopleTable rows={people} />
+            <PeopleTable rows={people} onDeleted={id => setPeople(prev => prev.filter(p => p.actor_id !== id))} />
           ) : (
-            <TeachersTable rows={teachers} onDeleted={(id, keepAccount) => setTeachers(prev => keepAccount
+            <>
+            <PendingInvites invites={invites} onRevoked={token => setInvites(prev => prev.filter(p => p.token !== token))} />
+            <TeachersTable
+              rows={teachers}
+              access={access}
+              onAccessSaved={(id, hiddenTabs, hiddenWidgets, subjects) => setAccess(prev => ({ ...prev, [id]: { ...prev[id], hiddenTabs, hiddenWidgets, subjects } }))}
+              onDeleted={(id, keepAccount) => setTeachers(prev => keepAccount
               ? prev.map(x => x.teacher_id === id ? { ...x, total_students: 0, active_students: 0 } : x)
               : prev.filter(x => x.teacher_id !== id))} />
+            </>
           )}
         </>
+      )}
+
+      <AnimatePresence>
+        {inviteOpen && <InviteModal onClose={() => { setInviteOpen(false); loadTeacherAdmin() }} />}
+      </AnimatePresence>
+      {cleanupOpen && (
+        <AdminInactiveCleanup
+          onClose={() => setCleanupOpen(false)}
+          onDone={() => { setReloadKey(k => k + 1); loadTeacherAdmin() }}
+        />
       )}
     </div>
   )
@@ -203,10 +255,10 @@ function HintTh({ label, hint, align = 'left' }: { label: string; hint: string; 
  * здесь различает строки, поэтому она идёт второй строкой, а не отдельной
  * колонкой: таблица и так широкая.
  */
-function NameCell({ name, email }: { name: string; email: string | null }) {
+function NameCell({ name, email, badge }: { name: string; email: string | null; badge?: React.ReactNode }) {
   return (
     <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600, lineHeight: 1.3 }}>
-      {tn(name)}
+      {tn(name)}{badge}
       {email && (
         <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.2 }}>
           {email}
@@ -216,9 +268,41 @@ function NameCell({ name, email }: { name: string; email: string | null }) {
   )
 }
 
-function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
+/**
+ * Строка без аккаунта: события в аналитике есть, а ни профиля, ни ученика уже
+ * нет (admin_user_activity отдаёт имя «—» и пустую почту). У настоящего
+ * аккаунта почта есть всегда — у учителя из auth.users, у ученика логин.
+ */
+const isGhost = (r: UserActivityRow) => r.name === '—' && !r.email
+
+function PeopleTable({ rows, onDeleted }: { rows: UserActivityRow[]; onDeleted: (id: string) => void }) {
   const t = useT()
+  const [teacherToDelete, setTeacherToDelete] = useState<UserActivityRow | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [err, setErr] = useState('')
   if (rows.length === 0) return <Empty />
+
+  async function remove(r: UserActivityRow) {
+    if (r.actor_kind !== 'student' && !isGhost(r)) { setTeacherToDelete(r); return }
+    const ghost = isGhost(r)
+    const ok = await confirmDialog({
+      title: ghost ? t('Удалить след удалённого аккаунта?') : `${t('Удалить ученика')} ${tn(r.name)}?`,
+      message: ghost
+        ? t('Аккаунта уже нет — сотрутся только его события в аналитике.')
+        : t('Ученик пропадёт из группы вместе с ДЗ, оценками и посещаемостью. Вернуть нельзя.'),
+      confirmLabel: t('Удалить'), tone: 'danger',
+    })
+    if (!ok) return
+    setBusyId(r.actor_id); setErr('')
+    const { error } = await supabase.rpc('admin_delete_actors', { p_ids: [r.actor_id], p_months: null })
+    setBusyId(null)
+    if (error) { setErr(error.message); return }
+    onDeleted(r.actor_id)
+  }
+
+  return (
+    <>
+    {err && <Alert tone="danger" text={err} style={{ marginBottom: 12 }} />}
   return (
     <TableShell>
       <thead>
@@ -229,11 +313,14 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Сессий')}</th>
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Входов')}</th>
           <th style={{ ...thStyle, textAlign: 'right' }}>{t('Был(а)')}</th>
+          <th style={thStyle} />
         </tr>
       </thead>
       <tbody>
         {rows.map(r => {
           const k = KIND_LABEL[r.actor_kind] ?? KIND_LABEL.anon
+          // Админов отсюда не удаляем; «аноним» без id не попадает в таблицу.
+          const deletable = r.actor_kind !== 'admin'
           return (
             <tr key={r.actor_id}>
               <NameCell name={r.name} email={r.email} />
@@ -242,16 +329,43 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
               <td style={numTd}>{r.sessions}</td>
               <td style={numTd}>{r.logins || '—'}</td>
               <td style={numTd}>{fmtWhen(r.last_seen)}</td>
+              <td style={{ ...tdStyle, textAlign: 'right', width: 1 }}>
+                {deletable && (
+                  <button
+                    onClick={() => { void remove(r) }}
+                    disabled={busyId === r.actor_id}
+                    title={isGhost(r) ? t('Удалить след удалённого аккаунта') : t('Удалить')}
+                    aria-label={t('Удалить')}
+                    style={uiBtn('S', 'secondary', { width: 32, padding: 0, color: 'var(--color-red-text)', opacity: busyId === r.actor_id ? 0.5 : 1 })}
+                  >
+                    <Trash2 size={14} strokeWidth={2} />
+                  </button>
+                )}
+              </td>
             </tr>
           )
         })}
       </tbody>
     </TableShell>
+    {teacherToDelete && (
+      <DeleteTeacherDialog
+        teacher={{ teacher_id: teacherToDelete.actor_id, name: teacherToDelete.name, email: teacherToDelete.email }}
+        onClose={() => setTeacherToDelete(null)}
+        onDone={keepAccount => { if (!keepAccount) onDeleted(teacherToDelete.actor_id); setTeacherToDelete(null) }}
+      />
+    )}
+    </>
   )
 }
 
-function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted: (id: string, keepAccount: boolean) => void }) {
+function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
+  rows: TeacherUsageRow[]
+  access: Record<string, TeacherAccess>
+  onAccessSaved: (id: string, hiddenTabs: string[], hiddenWidgets: string[], subjects: string[]) => void
+  onDeleted: (id: string, keepAccount: boolean) => void
+}) {
   const t = useT()
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [plans, setPlans] = useState<Record<string, { code: string | null; expires: string | null }>>({})
   const [toDelete, setToDelete] = useState<TeacherUsageRow | null>(null)
   if (rows.length === 0) return <Empty />
@@ -269,9 +383,23 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
         </tr>
       </thead>
       <tbody>
-        {rows.map(r => (
-          <tr key={r.teacher_id}>
-            <NameCell name={r.name} email={r.email} />
+        {rows.map(r => {
+          const acc = access[r.teacher_id]
+          // Админу доступы не режутся — кнопку показываем только учителям.
+          const editable = !!acc && acc.role !== 'admin'
+          const restrictCount = acc ? acc.hiddenTabs.length + acc.hiddenWidgets.length : 0
+          const expanded = editable && expandedId === r.teacher_id
+          return (
+          <Fragment key={r.teacher_id}>
+          <tr>
+            <NameCell
+              name={r.name} email={r.email}
+              badge={editable && restrictCount > 0 && (
+                <span title={t('Скрыто разделов и виджетов')} style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4, verticalAlign: 'middle' }}>
+                  <Lock size={12} strokeWidth={2.5} />{restrictCount}
+                </span>
+              )}
+            />
             <td style={tdStyle}>
               <AssignPlanButton
                 teacherId={r.teacher_id}
@@ -287,29 +415,67 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
             <td style={numTd}>{fmtWhen(r.last_seen)}</td>
             <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-              {getViewAs()?.id === r.teacher_id ? (
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-peach-text)' }}>{t('смотрите сейчас')}</span>
-              ) : (
+                {editable && (
+                  <button
+                    onClick={() => setExpandedId(expanded ? null : r.teacher_id)}
+                    title={t('Настроить доступы')}
+                    aria-expanded={expanded}
+                    style={uiBtn('S', 'secondary', expanded ? { background: 'var(--color-purple-soft)', color: 'var(--color-purple)' } : undefined)}
+                  >
+                    <SlidersHorizontal size={14} strokeWidth={2} />
+                    {t('Доступы')}
+                  </button>
+                )}
+                {getViewAs()?.id === r.teacher_id ? (
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-peach-text)' }}>{t('смотрите сейчас')}</span>
+                ) : (
+                  <button
+                    onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
+                    title={t('Посмотреть кабинет преподавателя')}
+                    style={uiBtn('S', 'secondary')}
+                  >
+                    <Eye size={12} strokeWidth={2} />
+                    {t('Кабинет')}
+                  </button>
+                )}
                 <button
-                  onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
-                  title={t('Посмотреть кабинет преподавателя')}
-                  style={uiBtn('S', 'secondary')}
+                  onClick={() => setToDelete(r)}
+                  title={t('Стереть данные или удалить аккаунт')}
+                  aria-label={t('Стереть данные или удалить аккаунт')}
+                  style={uiBtn('S', 'secondary', { width: 32, padding: 0, flexShrink: 0, color: 'var(--color-red-text)' })}
                 >
-                  <Eye size={12} strokeWidth={2} />
-                  {t('Кабинет')}
+                  <Trash2 size={14} strokeWidth={2} />
                 </button>
-              )}
-              <button
-                onClick={() => setToDelete(r)}
-                title={t('Стереть данные или удалить аккаунт')}
-                style={uiBtn('S', 'secondary', { width: 32, padding: 0, flexShrink: 0, color: 'var(--color-red-text)' })}
-              >
-                <Trash2 size={14} strokeWidth={2} />
-              </button>
               </div>
             </td>
           </tr>
-        ))}
+          {editable && (
+            <tr>
+              <td colSpan={7} style={{ padding: 0 }}>
+                <AnimatePresence initial={false}>
+                  {expanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                      style={{ overflow: 'hidden', borderTop: '1px solid var(--color-border)' }}
+                    >
+                      <div style={{ paddingTop: 14 }}>
+                        <AccessEditor
+                          teacher={acc}
+                          onSaved={(ht, hw, subs) => onAccessSaved(r.teacher_id, ht, hw, subs)}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </td>
+            </tr>
+          )}
+          </Fragment>
+          )
+        })}
       </tbody>
       {toDelete && (
         <DeleteTeacherDialog
@@ -326,7 +492,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
 // «Удалить аккаунт» убирает и его (вернуться — по новому приглашению).
 // Оба пути необратимы, поэтому сначала нужно вписать почту учителя.
 function DeleteTeacherDialog({ teacher, onClose, onDone }: {
-  teacher: TeacherUsageRow
+  teacher: Pick<TeacherUsageRow, 'teacher_id' | 'name' | 'email'>
   onClose: () => void
   onDone: (keepAccount: boolean) => void
 }) {

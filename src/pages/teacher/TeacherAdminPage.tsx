@@ -3,38 +3,27 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import BackCircle from '../../components/BackCircle'
 import { confirmDialog } from '../../components/ConfirmHost'
 import Segmented from '../../components/Segmented'
-import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import Skeleton from '../../components/Skeleton'
-import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles, Ghost, ToggleRight } from '../../components/icons/appIcons'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, BarChart3, ShieldAlert, Inbox, Sparkles, Ghost, ToggleRight, ChevronRight, X, GraduationCap, Activity } from '../../components/icons/appIcons'
 import { supabase } from '../../lib/supabase'
-import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
-import AdminUserActivity from '../../components/teacher/AdminUserActivity'
+import AdminUserActivity, { USERS_VIEW_KEY } from '../../components/teacher/AdminUserActivity'
 import FeedbackRequestsManager from '../../components/teacher/FeedbackRequestsManager'
-import { TEACHER_TABS } from '../../lib/teacherAccess'
 import TranscriptTermsManager from '../../components/teacher/TranscriptTermsManager'
 import { AudioLines } from '../../components/icons/appIcons'
-import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
 import Checkbox from '../../components/Checkbox'
 import Switch from '../../components/Switch'
 import { fetchAppFlags, setAppFlag } from '../../lib/cardGroups'
-import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom, selectedWidgetsFrom, type CourseAssignment } from '../../components/teacher/AccessConfigurator'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
-import { PLAN_OPTIONS, adminSetTeacherPlan, type TeacherPlanRow } from '../../lib/plan'
 import { useT, t as tGlobal, useTc } from '../../lib/i18n'
-import { authErrorRu } from '../../lib/authErrors'
 import { getAuthUser } from '../../lib/owner'
-import { Alert } from '../../components/Alert'
 import SeasonAdmin from '../../components/teacher/SeasonAdmin'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
 import { btn } from '../../lib/pillStyles'
 import { StorageStatsPanel, type StorageStatsData } from './TeacherStoragePage'
 
-// Маркер «без тарифа» для дропдауна (в БД это NULL).
-const NO_PLAN = '__no_plan__'
 
 type StorageStats = StorageStatsData
 
@@ -52,24 +41,6 @@ type TeacherRow = {
   subjects: string[]
 }
 
-// A teacher who was invited but hasn't signed up yet — lives only in
-// teacher_invites (consumed_at IS NULL), not in profiles.
-type PendingInvite = {
-  token: string
-  email: string | null
-  createdAt: string
-  createdByName: string | null
-}
-
-// A course/group the teacher already has (from admin_teacher_content).
-type TeacherContentRow = {
-  kind: 'course' | 'group'
-  id: string
-  title: string
-  via: 'owned' | 'shared'
-  detail: number
-}
-
 function fmtBytes(n: number): string {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} ${tGlobal('КБ')}`
   if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} ${tGlobal('МБ')}`
@@ -80,12 +51,26 @@ function pct(used: number, limit: number) {
   return Math.min(100, Math.round((used / limit) * 100))
 }
 
-function StatCard({ icon: Icon, label, value, sub, loading }: { icon: React.ElementType; label: string; value: string; sub?: string; loading?: boolean }) {
+/**
+ * Карточка сводки «Обзора». Каждая ведёт туда, где про это подробно:
+ * учителя и ученики → «Пользователи», активность → «Аналитика»,
+ * место → «Хранилище». `bar` — заполненность в процентах.
+ */
+function StatCard({ icon: Icon, label, value, sub, loading, onClick, bar }: { icon: React.ElementType; label: string; value: string; sub?: string; loading?: boolean; onClick?: () => void; bar?: number }) {
+  const barColor = bar == null ? '' : bar >= 85 ? 'var(--color-red-text)' : bar >= 60 ? 'var(--color-peach-text)' : 'var(--color-green-text)'
   return (
-    <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '16px 20px' }}>
+    <div
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } } : undefined}
+      className={onClick ? 'hover-row' : undefined}
+      style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '16px 20px', cursor: onClick ? 'pointer' : undefined, minWidth: 0 }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <Icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>{label}</span>
+        <Icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+        <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', ...textFadeStyle }}>{label}</span>
+        {onClick && <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
       </div>
       {loading ? (
         <>
@@ -95,157 +80,17 @@ function StatCard({ icon: Icon, label, value, sub, loading }: { icon: React.Elem
       ) : (
         <>
           <div style={{ fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)', letterSpacing: '-0.01em', lineHeight: 1 }}>{value}</div>
-          {sub && <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>{sub}</div>}
+          {sub && <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4, overflow: 'hidden', whiteSpace: 'nowrap', ...textFadeStyle }}>{sub}</div>}
+          {bar != null && (
+            <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-3)', overflow: 'hidden', marginTop: 8 }}>
+              <div style={{ width: `${bar}%`, height: '100%', borderRadius: 2, background: barColor, transition: 'width 0.38s ease' }} />
+            </div>
+          )}
         </>
       )}
     </div>
   )
 }
-
-function InviteModal({ onClose }: { onClose: () => void }) {
-  const t = useT()
-  const [email, setEmail] = useState('')
-  const [copied, setCopied] = useState(false)
-  const [creating, setCreating] = useState(false)
-  const [error, setError] = useState('')
-  const [link, setLink] = useState('')
-  const [selectedTabs, setSelectedTabs] = useState<string[]>(TEACHER_TABS.map(t => t.id))
-  const [selectedWidgets, setSelectedWidgets] = useState<string[]>(WIDGET_REGISTRY.map(w => w.type))
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]) // empty = all subjects
-  const [courseAssignments, setCourseAssignments] = useState<CourseAssignment[]>([])
-  const [groupIds, setGroupIds] = useState<string[]>([])
-
-  async function createInvite() {
-    setCreating(true); setError('')
-    const { data, error: err } = await supabase.rpc('admin_create_teacher_invite', {
-      p_email: email.trim() || null,
-      p_hidden_tabs: hiddenTabsFrom(selectedTabs),
-      p_hidden_widgets: hiddenWidgetsFrom(selectedWidgets),
-      p_course_assignments: courseAssignments,
-      p_group_ids: groupIds,
-      p_subjects: selectedSubjects,
-    })
-    setCreating(false)
-    if (err || !data) { setError(t(authErrorRu(err, 'Не удалось создать приглашение'))); return }
-    setLink(`${window.location.origin}${window.location.pathname}#/join-teacher?token=${data}`)
-  }
-
-  function copyLink() {
-    void copyToClipboard(link).then(ok => {
-      if (!ok) return
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  return createPortal(
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 900, backdropFilter: 'blur(4px)' }}
-      />
-      <div style={{ position: 'fixed', inset: 0, zIndex: 901, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', padding: 20 }}>
-      <motion.div
-        initial={{ scale: 0.88, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.88, opacity: 0, y: 20 }}
-        transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-        style={{
-          pointerEvents: 'auto',
-          width: 560, maxWidth: '100%', maxHeight: '86vh', overflowY: 'auto',
-          background: 'var(--color-bg-2)',
-          backdropFilter: 'var(--blur-solid)',
-          WebkitBackdropFilter: 'var(--blur-solid)',
-          border: '1px solid var(--color-border-medium)',
-          borderRadius: 24, padding: 24,
-          boxShadow: 'var(--shadow-5)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Пригласить учителя')}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{t('Выберите доступ и контент — они «запекутся» в ссылку')}</div>
-          </div>
-          <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
-            <X size={14} />
-          </button>
-        </div>
-
-        {link ? (
-          <div style={{ padding: '8px 0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Check size={20} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
-              </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Приглашение готово')}</div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Отправьте ссылку учителю — доступ применится при регистрации.')}</div>
-              </div>
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', borderRadius: 12, padding: '10px 12px', wordBreak: 'break-all', marginBottom: 12 }}>{link}</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={copyLink} style={{ height: 40, flex: 1, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} />}
-                {copied ? t('Скопировано!') : t('Скопировать ссылку')}
-              </button>
-              <button onClick={onClose} style={btn('M', 'secondary')}>{t('Готово')}</button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6 }}>{t('Email учителя (необязательно, подставится в форму)')}</label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="teacher@example.com"
-                  style={{
-                    width: '100%', boxSizing: 'border-box',
-                    padding: '10px 12px 10px 36px',
-                    borderRadius: 12, border: '1px solid var(--color-border-medium)',
-                    background: 'var(--color-bg-3)', color: 'var(--color-text)',
-                    fontSize: 14, outline: 'none',
-                  }}
-                />
-              </div>
-            </div>
-
-            <AccessConfigurator
-              selectedTabs={selectedTabs} onTabsChange={setSelectedTabs}
-              selectedWidgets={selectedWidgets} onWidgetsChange={setSelectedWidgets}
-              courseAssignments={courseAssignments} onCoursesChange={setCourseAssignments}
-              groupIds={groupIds} onGroupsChange={setGroupIds}
-              subjects={selectedSubjects} onSubjectsChange={setSelectedSubjects}
-            />
-
-            {error && <Alert tone="danger" text={error} style={{ marginTop: 12 }} />}
-
-            <button
-              onClick={createInvite}
-              disabled={creating}
-              style={{ height: 48,
-                width: '100%', padding: '0 22px', borderRadius: 14, border: 'none', marginTop: 18,
-                background: 'var(--grad-purple)', color: '#fff',
-                fontSize: 15, fontWeight: 700, cursor: creating ? 'wait' : 'pointer',
-              }}
-            >
-              {creating ? t('Создаём…') : t('Создать пригласительную ссылку')}
-            </button>
-          </>
-        )}
-      </motion.div>
-      </div>
-    </>,
-    document.body
-  )
-}
-
 
 /**
  * Функции продукта — переключатели из app_flags.
@@ -406,220 +251,6 @@ function FeatureFlags() {
             </Checkbox>
           </div>
         ))}
-      </div>
-    </div>
-  )
-}
-
-function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hiddenTabs: string[], hiddenWidgets: string[], subjects: string[]) => void }) {
-  const t = useT()
-  const { tc } = useTc()
-  const [selectedTabs, setSelectedTabs] = useState<string[]>(selectedTabsFrom(teacher.hiddenTabs))
-  const [selectedWidgets, setSelectedWidgets] = useState<string[]>(selectedWidgetsFrom(teacher.hiddenWidgets))
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(teacher.subjects) // empty = all
-  const [courseAssignments, setCourseAssignments] = useState<CourseAssignment[]>([])
-  const [groupIds, setGroupIds] = useState<string[]>([])
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState('')
-  // Password reset (admin-only): teachers pick their own password on sign-up and
-  // it's an unreadable Auth hash — this issues a NEW one, shown once to relay.
-  const [pwLoading, setPwLoading] = useState(false)
-  const [pwValue, setPwValue] = useState('')
-  const [pwError, setPwError] = useState('')
-  const [pwCopied, setPwCopied] = useState(false)
-  // What the teacher ALREADY has (read-only) — owned/shared courses + owned groups.
-  const [current, setCurrent] = useState<TeacherContentRow[] | null>(null)
-  // Тариф (0037): null = подписка не назначена (бета-аккаунт, без лимитов).
-  const [plan, setPlan] = useState<string | null>(null)
-  const [planSaving, setPlanSaving] = useState(false)
-  const [planSaved, setPlanSaved] = useState(false)
-  const [planError, setPlanError] = useState('')
-
-  useEffect(() => {
-    let alive = true
-    supabase.rpc('admin_teacher_content', { p_teacher: teacher.id }).then(({ data }) => {
-      if (!alive) return
-      setCurrent(Array.isArray(data) ? (data as TeacherContentRow[]) : [])
-    })
-    supabase.rpc('admin_teacher_plans').then(({ data }) => {
-      if (!alive) return
-      const row = (Array.isArray(data) ? (data as TeacherPlanRow[]) : []).find(r => r.teacher_id === teacher.id)
-      setPlan(row?.plan_code ?? null)
-    })
-    return () => { alive = false }
-  }, [teacher.id])
-
-  async function savePlan(next: string | null) {
-    setPlan(next)
-    setPlanSaving(true); setPlanError(''); setPlanSaved(false)
-    const err = await adminSetTeacherPlan(teacher.id, next)
-    setPlanSaving(false)
-    if (err) { setPlanError(err); return }
-    setPlanSaved(true)
-    setTimeout(() => setPlanSaved(false), 1800)
-  }
-
-  async function resetPassword() {
-    setPwLoading(true); setPwError(''); setPwValue('')
-    const { data, error: err } = await supabase.functions.invoke('reset-teacher-password', {
-      body: { teacherId: teacher.id },
-    })
-    setPwLoading(false)
-    if (err || !data?.password) {
-      const msg = (data as { error?: string } | null)?.error || t(authErrorRu(err, 'Не удалось сбросить пароль'))
-      setPwError(msg); return
-    }
-    setPwValue(data.password as string)
-  }
-
-  async function save() {
-    setSaving(true)
-    setError('')
-    // 1. Access deny-lists (complement of the selected sections/widgets).
-    const hiddenTabs = hiddenTabsFrom(selectedTabs)
-    const hiddenWidgets = hiddenWidgetsFrom(selectedWidgets)
-    const { error: err } = await supabase.rpc('admin_set_teacher_access', {
-      p_teacher: teacher.id,
-      p_hidden_tabs: hiddenTabs,
-      p_hidden_widgets: hiddenWidgets,
-    })
-    if (err) { setSaving(false); setError(t(authErrorRu(err))); return }
-
-    // 1b. Subject scope (empty = all).
-    const { error: sErr } = await supabase.rpc('admin_set_teacher_subjects', {
-      p_teacher: teacher.id,
-      p_subjects: selectedSubjects,
-    })
-    if (sErr) { setSaving(false); setError(t(authErrorRu(sErr))); return }
-
-    // 2. Provision selected content to this teacher (incremental — cleared after).
-    try {
-      for (const a of courseAssignments) {
-        if (a.mode === 'copy') {
-          const { error: e } = await supabase.rpc('admin_duplicate_course', { p_course_id: a.course_id, p_new_owner: teacher.id })
-          if (e) throw e
-        } else {
-          const { error: e } = await supabase.from('course_shares').upsert({ course_id: a.course_id, teacher_id: teacher.id })
-          if (e) throw e
-        }
-      }
-      for (const gid of groupIds) {
-        const { error: e } = await supabase.rpc('admin_reassign_content', { p_kind: 'group', p_id: gid, p_new_owner: teacher.id })
-        if (e) throw e
-      }
-    } catch (e: any) {
-      setSaving(false); setError(t('Доступы сохранены, но контент выдать не удалось:') + ' ' + t(authErrorRu(e))); return
-    }
-
-    setSaving(false)
-    setCourseAssignments([]); setGroupIds([])
-    setSaved(true)
-    setTimeout(() => setSaved(false), 1800)
-    onSaved(hiddenTabs, hiddenWidgets, selectedSubjects)
-  }
-
-  return (
-    <div style={{ padding: '4px 18px 18px' }}>
-      {/* Read-only: what the teacher ALREADY has. The picker below is "give more". */}
-      {current && current.length > 0 && (
-        <div style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Уже у учителя')}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {current.map(r => (
-              <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 10px' }}>
-                {r.kind === 'course' ? <BookOpen size={12} strokeWidth={2} /> : <Users size={12} strokeWidth={2} />}
-                {tc(r.title)}
-                <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}>
-                  · {r.kind === 'course' ? `${r.detail} ${t('ур.')}` : `${r.detail} ${t('уч.')}`}{r.via === 'shared' ? ' · share' : ''}
-                </span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 14, lineHeight: 1.5 }}>
-        {t('Отметьте разделы/виджеты, которые учитель')} <b>{t('видит')}</b>{t(', и курсы/группы, которые ему')} <b>{t('выдать')}</b>{t('. Курсы/группы применяются при сохранении.')}
-      </div>
-
-      <AccessConfigurator
-        selectedTabs={selectedTabs} onTabsChange={setSelectedTabs}
-        selectedWidgets={selectedWidgets} onWidgetsChange={setSelectedWidgets}
-        courseAssignments={courseAssignments} onCoursesChange={setCourseAssignments}
-        groupIds={groupIds} onGroupsChange={setGroupIds}
-        subjects={selectedSubjects} onSubjectsChange={setSelectedSubjects}
-      />
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
-        <TeacherSaveButton
-          label={t('Сохранить')} savingLabel={t('Сохраняем…')} savedLabel={t('Сохранено')}
-          saving={saving} saved={saved} onClick={save}
-        />
-        {error && <span style={{ fontSize: 11, color: 'var(--color-red-text)' }}>{error}</span>}
-      </div>
-
-      {/* Тариф (0037): ручное назначение админом; «без тарифа» = бета-аккаунт,
-          лимит учеников не применяется. Оплата пока вне системы (ручные счета). */}
-      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Тариф')}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          {/* NO_PLAN — свой маркер вместо '': пустую строку TeacherSelect трактует
-              как «нет выбора» и такую опцию не показывает. */}
-          <div style={{ width: 260, pointerEvents: planSaving ? 'none' : undefined, opacity: planSaving ? 0.6 : 1 }}>
-            <TeacherSelect
-              value={plan ?? NO_PLAN}
-              onChange={v => { void savePlan(v === NO_PLAN ? null : v) }}
-              options={PLAN_OPTIONS.map(o => ({ value: o.code ?? NO_PLAN, label: t(o.label) }))}
-              clearable={false}
-              triggerStyle={{
-                padding: '8px 12px', borderRadius: 12, fontSize: 13, fontWeight: 600,
-                border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-                color: 'var(--color-text-2)',
-              }}
-            />
-          </div>
-          {planSaving && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Сохраняем…')}</span>}
-          {planSaved && <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />}
-          {planError && <span style={{ fontSize: 11, color: 'var(--color-red-text)' }}>{planError}</span>}
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
-          {t('Лимит учеников применяется при добавлении новых. «Без тарифа» — внутренний/бета-аккаунт без ограничений.')}
-        </div>
-      </div>
-
-      {/* Password reset — teachers have no readable password (self-chosen Auth
-          hash); admin can issue a new one and relay it. */}
-      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button
-            onClick={resetPassword}
-            disabled={pwLoading}
-            style={btn('S', 'secondary')}
-          >
-            <KeyRound size={14} strokeWidth={2} />
-            {pwLoading ? t('Сбрасываем…') : t('Сбросить пароль')}
-          </button>
-          {pwValue && (
-            <div
-              onClick={() => { void copyToClipboard(pwValue).then(ok => { if (ok) { setPwCopied(true); setTimeout(() => setPwCopied(false), 1500) } }) }}
-              title={t('Скопировать')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                padding: '8px 12px', borderRadius: 10,
-                background: 'var(--color-purple-soft)', border: '1px solid rgba(155,109,255,0.3)',
-              }}
-            >
-              <code style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-purple)', letterSpacing: 0.4 }}>{pwValue}</code>
-              {pwCopied ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-purple)' }} /> : <Copy size={14} style={{ color: 'var(--color-purple)' }} />}
-            </div>
-          )}
-          {pwError && <span style={{ fontSize: 11, color: 'var(--color-red-text)' }}>{pwError}</span>}
-        </div>
-        {pwValue && (
-          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
-            {t('Новый пароль показан один раз — скопируйте и передайте учителю. Он войдёт с ним и сможет сменить его сам.')}
-          </div>
-        )}
       </div>
     </div>
   )
@@ -903,7 +534,9 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
   )
 }
 
-const OVERVIEW_SECTIONS = ['teachers', 'features', 'ai', 'themes', 'storage'] as const
+const OVERVIEW_SECTIONS = ['features', 'ai', 'themes', 'storage'] as const
+
+type ActivityOverview = { dau: number; wau: number }
 type OverviewSection = typeof OVERVIEW_SECTIONS[number]
 
 export default function TeacherAdminPage() {
@@ -912,11 +545,12 @@ export default function TeacherAdminPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const [storage, setStorage] = useState<StorageStats | null>(null)
   const [teachers, setTeachers] = useState<TeacherRow[]>([])
-  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([])
+  const [pendingCount, setPendingCount] = useState(0)
+  // Часть «Аналитики» в сводке: кто был за неделю (учителя и ученики).
+  const [activity, setActivity] = useState<{ teacher: ActivityOverview | null; student: ActivityOverview | null }>({ teacher: null, student: null })
   const [groupCount, setGroupCount] = useState(0)
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [inviteOpen, setInviteOpen] = useState(false)
   const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests' | 'dictionary'>(() => {
     const saved = sessionStorage.getItem('admin_tab')
     return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' || saved === 'dictionary' ? saved : 'overview'
@@ -924,10 +558,9 @@ export default function TeacherAdminPage() {
   // Второй уровень «Обзора», как разделы в «Аналитике»: каждый блок — своя вкладка.
   const [section, setSection] = useState<OverviewSection>(() => {
     const saved = sessionStorage.getItem('admin_overview_section')
-    return OVERVIEW_SECTIONS.includes(saved as OverviewSection) ? (saved as OverviewSection) : 'teachers'
+    return OVERVIEW_SECTIONS.includes(saved as OverviewSection) ? (saved as OverviewSection) : 'features'
   })
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
   // Смена раздела не кидает страницу наверх: прокрутка остаётся, где была.
   // Если новый раздел короче и туда уже не докрутить — встаём к вкладкам разделов.
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -956,13 +589,16 @@ export default function TeacherAdminPage() {
 
   async function load() {
     setLoading(true)
-    const [storageRes, groupsRes, studentsRes, teachersRes, invitesRes] = await Promise.all([
+    const [storageRes, groupsRes, studentsRes, teachersRes, invitesRes, actT, actS] = await Promise.all([
       supabase.rpc('storage_stats'),
       supabase.from('groups').select('id', { count: 'exact', head: true }),
       supabase.from('students').select('id', { count: 'exact', head: true }),
       supabase.rpc('admin_teacher_list'),
       supabase.rpc('admin_pending_teacher_invites'),
+      supabase.rpc('admin_analytics_overview_by_role', { p_role: 'teacher', p_days: 7 }),
+      supabase.rpc('admin_analytics_overview_by_role', { p_role: 'student', p_days: 7 }),
     ])
+    setActivity({ teacher: (actT.data as ActivityOverview | null) ?? null, student: (actS.data as ActivityOverview | null) ?? null })
 
     if (storageRes.data) setStorage(storageRes.data as StorageStats)
     setGroupCount(groupsRes.count ?? 0)
@@ -983,20 +619,8 @@ export default function TeacherAdminPage() {
         subjects: (t.subjects as string[] | null) ?? [],
       })))
     }
-    setPendingInvites(Array.isArray(invitesRes.data)
-      ? (invitesRes.data as any[]).map(r => ({
-          token: r.token as string,
-          email: (r.email as string | null) ?? null,
-          createdAt: r.created_at as string,
-          createdByName: (r.created_by_name as string | null) ?? null,
-        }))
-      : [])
+    setPendingCount(Array.isArray(invitesRes.data) ? invitesRes.data.length : 0)
     setLoading(false)
-  }
-
-  async function revokeInvite(token: string) {
-    await supabase.rpc('admin_revoke_teacher_invite', { p_token: token })
-    setPendingInvites(prev => prev.filter(p => p.token !== token))
   }
 
   useEffect(() => { load() }, [])
@@ -1007,6 +631,13 @@ export default function TeacherAdminPage() {
 
   const firstLoad = loading && !storage
   const dbPct = storage ? pct(storage.db_bytes, storage.db_limit_bytes) : 0
+  const filesPct = storage ? pct(storage.storage_bytes, storage.storage_limit_bytes) : 0
+  const weekActive = (activity.teacher?.wau ?? 0) + (activity.student?.wau ?? 0)
+  const todayActive = (activity.teacher?.dau ?? 0) + (activity.student?.dau ?? 0)
+  function openUsers(view: 'teachers' | 'students') {
+    sessionStorage.setItem(USERS_VIEW_KEY, view)
+    setTab('users')
+  }
 
   // Admin-only area. Teachers never reach it (menu item is hidden), but guard
   // the page too in case activePage is set some other way.
@@ -1073,22 +704,35 @@ export default function TeacherAdminPage() {
         {tab === 'overview' && (
         <>
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
-          <StatCard icon={Users} label={t('Учителей')} value={String(teachers.length)} sub={t('активных аккаунтов')} loading={firstLoad} />
-          <StatCard icon={BookOpen} label={t('Групп')} value={String(groupCount)} sub={`${studentCount} ${t('учеников')}`} loading={firstLoad} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 28 }}>
           <StatCard
-            icon={Database}
-            label={t('База данных')}
-            value={storage ? fmtBytes(storage.db_bytes) : '—'}
-            sub={storage ? `${dbPct}% ${t('занято')}` : ''}
-            loading={firstLoad}
+            icon={Users} label={t('Учителей')} value={String(teachers.length)}
+            sub={pendingCount > 0 ? `${pendingCount} ${t('приглаш. ждут входа')}` : t('активных аккаунтов')}
+            loading={firstLoad} onClick={() => openUsers('teachers')}
+          />
+          <StatCard
+            icon={GraduationCap} label={t('Учеников')} value={String(studentCount)}
+            sub={`${t('в')} ${groupCount} ${t('группах')}`}
+            loading={firstLoad} onClick={() => openUsers('students')}
+          />
+          <StatCard
+            icon={Activity} label={t('Были за 7 дней')} value={String(weekActive)}
+            sub={`${t('сегодня')} ${todayActive} · ${t('учеников')} ${activity.student?.wau ?? 0}`}
+            loading={firstLoad} onClick={() => setTab('analytics')}
+          />
+          <StatCard
+            icon={HardDrive} label={t('Хранилище')}
+            value={storage ? fmtBytes(storage.db_bytes + storage.storage_bytes) : '—'}
+            sub={storage ? `${t('база')} ${dbPct}% · ${t('файлы')} ${filesPct}%` : ''}
+            bar={storage ? Math.max(dbPct, filesPct) : undefined}
+            loading={firstLoad} onClick={() => changeSection('storage')}
           />
         </div>
 
         <div ref={sectionTabsRef} />
         <Segmented
           variant="mode" value={section} onChange={changeSection} style={{ marginBottom: 20 }}
-          items={([['teachers', t('Учителя'), Users], ['features', t('Функции'), ToggleRight], ['ai', t('ИИ'), Sparkles], ['themes', t('Темы'), Ghost], ['storage', t('Хранилище'), HardDrive]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
+          items={([['features', t('Функции'), ToggleRight], ['ai', t('ИИ'), Sparkles], ['themes', t('Темы'), Ghost], ['storage', t('Хранилище'), HardDrive]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
         />
 
         {/* Блок выключен — он остаётся в коде и ждёт следующего сезона на своей вкладке. */}
@@ -1098,159 +742,6 @@ export default function TeacherAdminPage() {
 
         {section === 'features' && <FeatureFlags />}
 
-        {section === 'teachers' && (
-        <>
-        {/* Teachers */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Учителя')}</div>
-            <motion.button
-              whileTap={{ scale: 0.96 }}
-              onClick={() => setInviteOpen(true)}
-              style={{ height: 32,
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '0 12px', borderRadius: 10, border: 'none',
-                background: 'var(--grad-purple)', color: '#fff',
-                fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                boxShadow: '0 2px 10px rgba(106,90,230,0.35)',
-              }}
-            >
-              <UserPlus size={14} strokeWidth={2.5} />
-              {t('Добавить учителя')}
-            </motion.button>
-          </div>
-          <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
-            {firstLoad && (
-              <div style={{ padding: '16px 18px' }}><Skeleton.List rows={3} /></div>
-            )}
-            {!firstLoad && teachers.map((tr, i) => {
-              const initials = tr.name.slice(0, 2).toUpperCase()
-              const isTeacher = tr.role !== 'admin'
-              const expanded = expandedId === tr.id
-              const restrictCount = tr.hiddenTabs.length + tr.hiddenWidgets.length
-              return (
-                <div key={tr.id} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--grad-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
-                      {initials}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {tn(tr.name)}
-                        {tr.role === 'admin' && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>admin</span>
-                        )}
-                        {isTeacher && restrictCount > 0 && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <Lock size={12} strokeWidth={2.5} />{restrictCount}
-                          </span>
-                        )}
-                        {isTeacher && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-green-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }} title={t('Учитель зарегистрирован')}>
-                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#1F9B6B' }} />{t('активен')}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        {tr.username && <span>@{tr.username}</span>}
-                        {tr.subject && <><span>·</span><span>{tc(tr.subject)}</span></>}
-                        <span>·</span>
-                        <span>{tr.groupCount} {t('групп')} · {tr.studentCount} {t('учеников')}</span>
-                      </div>
-                    </div>
-                    {isTeacher && (
-                      <button
-                        onClick={() => setExpandedId(expanded ? null : tr.id)}
-                        title={t('Настроить доступы')}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-                          padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
-                          border: '1px solid var(--color-border-medium)',
-                          background: expanded ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                          color: expanded ? 'var(--color-purple)' : 'var(--color-text-3)',
-                          fontSize: 12, fontWeight: 600, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
-                        }}
-                      >
-                        <SlidersHorizontal size={14} strokeWidth={2} />
-                        {t('Доступы')}
-                      </button>
-                    )}
-                  </div>
-                  <AnimatePresence initial={false}>
-                    {expanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                        style={{ overflow: 'hidden' }}
-                      >
-                        <AccessEditor
-                          teacher={tr}
-                          onSaved={(ht, hw, subs) => setTeachers(prev => prev.map(x => x.id === tr.id ? { ...x, hiddenTabs: ht, hiddenWidgets: hw, subjects: subs } : x))}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )
-            })}
-            {!firstLoad && teachers.length === 0 && (
-              <div style={{ padding: '20px 18px', color: 'var(--color-text-3)', fontSize: 13 }}>{t('Нет данных')}</div>
-            )}
-          </div>
-        </div>
-
-        {/* Pending invites — teachers sent a link who haven't signed up yet. */}
-        {pendingInvites.length > 0 && (
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>
-              {t('Приглашения · не активированы')}
-            </div>
-            <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
-              {pendingInvites.map((inv, i) => {
-                const link = `${window.location.origin}${window.location.pathname}#/join-teacher?token=${inv.token}`
-                return (
-                  <div key={inv.token} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}>
-                      <Mail size={16} strokeWidth={2} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {inv.email || t('Без email')}
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C77700' }} />{t('не активировано')}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
-                        {t('Создано')} {new Date(inv.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}
-                        {inv.createdByName ? ` · ${inv.createdByName}` : ''}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => { void copyToClipboard(link) }}
-                      title={t('Скопировать ссылку')}
-                      style={{ ...btn('S', 'secondary'), flexShrink: 0 }}
-                    >
-                      <Copy size={14} strokeWidth={2} />{t('Ссылка')}
-                    </button>
-                    <button
-                      onClick={() => revokeInvite(inv.token)}
-                      title={t('Отозвать приглашение')}
-                      style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)' }}
-                    >
-                      <Trash2 size={14} strokeWidth={2} />
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        </>
-        )}
-
         {/* Storage — the full breakdown right here, no separate page. */}
         {section === 'storage' && (
           <StorageStatsPanel stats={storage} error={!loading && !storage} />
@@ -1259,10 +750,6 @@ export default function TeacherAdminPage() {
         )}
 
       </div>
-
-      <AnimatePresence>
-        {inviteOpen && <InviteModal onClose={() => setInviteOpen(false)} />}
-      </AnimatePresence>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
