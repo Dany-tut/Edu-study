@@ -413,8 +413,8 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
             <td style={numTd}>{fmtMin(r.active_min)}</td>
             <td style={numTd}>{r.sessions}</td>
             <td style={numTd}>{fmtWhen(r.last_seen)}</td>
-            <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, verticalAlign: 'middle' }}>
+            <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                 {editable && (
                   <button
                     onClick={() => setExpandedId(expanded ? null : r.teacher_id)}
@@ -432,17 +432,17 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
                   <button
                     onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
                     title={t('Посмотреть кабинет преподавателя')}
-                    aria-label={t('Посмотреть кабинет')}
-                    style={uiBtn('S', 'secondary', { width: 32, padding: 0 })}
+                    style={uiBtn('S', 'secondary')}
                   >
-                    <Eye size={14} strokeWidth={2} />
+                    <Eye size={12} strokeWidth={2} />
+                    {t('Кабинет')}
                   </button>
                 )}
                 <button
                   onClick={() => setToDelete(r)}
                   title={t('Стереть данные или удалить аккаунт')}
                   aria-label={t('Стереть данные или удалить аккаунт')}
-                  style={uiBtn('S', 'secondary', { width: 32, padding: 0, color: 'var(--color-red-text)' })}
+                  style={uiBtn('S', 'secondary', { width: 32, padding: 0, flexShrink: 0, color: 'var(--color-red-text)' })}
                 >
                   <Trash2 size={14} strokeWidth={2} />
                 </button>

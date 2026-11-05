@@ -1229,3 +1229,23 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   .loop-select select { -webkit-text-fill-color: currentColor !important; }
   .loop-select-label { display: none !important; }
 }
+
+/* Появление выпадающего списка. Не через framer-motion: его аппаратная
+   анимация непрозрачности в конце снимается раньше, чем на элемент ляжет
+   opacity 1, и меню на один кадр снова становится полупрозрачным — рывок.
+   CSS-анимация заканчивается на базовом стиле элемента, отдавать нечего. */
+.iskra-dropdown-enter { animation: iskra-dropdown-fade .12s ease-out backwards; }
+/* Уход: forwards держит opacity 0 до снятия элемента — без вспышки в конце. */
+.iskra-dropdown-leave { animation: iskra-dropdown-fade-out .12s ease-in forwards; }
+@keyframes iskra-dropdown-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes iskra-dropdown-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iskra-dropdown-enter { animation: none; }
+  .iskra-dropdown-leave { animation: none; opacity: 0; }
+}

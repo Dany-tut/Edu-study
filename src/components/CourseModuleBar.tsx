@@ -1,7 +1,7 @@
 import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Check, ChevronDown, Search } from './icons/appIcons'
 import type { Subject } from '../data/mockData'
 import Tooltip from './Tooltip'
@@ -67,6 +67,12 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
   const { tc } = useTc()
   const reduceMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
+  // Список живёт дольше open: после закрытия он ещё уходит CSS-анимацией и
+  // снимается по её концу. framer-motion здесь не годится ни на вход, ни на
+  // выход: его аппаратная анимация непрозрачности кончается раньше, чем
+  // итог ляжет на элемент, — на входе мигал полупрозрачный кадр, на выходе
+  // меню на кадр возвращалось целиком, пока React его не снимет.
+  const [shownMenu, setShownMenu] = useState(false)
   const [query, setQuery] = useState('')
   const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number; width: number; listHeight: number } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
@@ -119,6 +125,15 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
 
   useEffect(() => { if (!open) setQuery('') }, [open])
 
+  useLayoutEffect(() => {
+    if (open) { setShownMenu(true); return }
+    // Без анимации (reduced motion) animationend не придёт — снимаем сразу;
+    // таймер — страховка, если вкладка спит и событие потерялось.
+    if (reduceMotion) { setShownMenu(false); return }
+    const id = window.setTimeout(() => setShownMenu(false), 400)
+    return () => window.clearTimeout(id)
+  }, [open, reduceMotion])
+
   if (!active) return null
   const q = query.trim().toLowerCase()
   const shown = q ? subjects.filter(s => tc(s.name).toLowerCase().includes(q)) : subjects
@@ -150,16 +165,17 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
       </button>
 
       {createPortal(
-        <AnimatePresence>
-          {open && pos && (
-            <motion.div
+        <>
+          {(open || shownMenu) && pos && (
+            <div
               ref={menuRef}
               role="listbox"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduceMotion ? 0 : 0.12, ease: 'easeOut' }}
-              style={{ position: 'fixed', zIndex: Z.dropdown, left: pos.left, top: pos.top, bottom: pos.bottom, width: pos.width, ...dropdownSurface, borderRadius: 18 }}
+              aria-hidden={open ? undefined : true}
+              // Вход и уход — CSS-классами (index.css); уход держит opacity 0
+              // (fill forwards) до самого снятия, поэтому вспышки нет.
+              className={open ? 'iskra-dropdown-enter' : 'iskra-dropdown-leave'}
+              onAnimationEnd={e => { if (!open && e.target === e.currentTarget) setShownMenu(false) }}
+              style={{ position: 'fixed', zIndex: Z.dropdown, left: pos.left, top: pos.top, bottom: pos.bottom, width: pos.width, ...dropdownSurface, borderRadius: 18, pointerEvents: open ? undefined : 'none' }}
             >
               {subjects.length >= SEARCH_FROM && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 38, padding: '0 12px', margin: '2px 2px 6px', borderRadius: 12, background: 'var(--color-bg-input)', cursor: 'text' }}>
@@ -201,9 +217,9 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
                   })}
                 </div>
               </ScrollFade>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>,
+        </>,
         document.body,
       )}
     </>
