@@ -30,6 +30,9 @@ export const EN: Record<string, string> = {
   "Ваш ученик": "Your student",
   "Преподаватель в Искре": "Teacher in Iskra",
   "Ученик в Искре": "Student in Iskra",
+  "Ник, видимость и способы входа.": "Username, visibility and sign-in methods.",
+  "Подключи Google или Apple, чтобы входить в этот же аккаунт. Прогресс, задания и друзья сохранятся.": "Connect Google or Apple to sign in to this same account. Your progress, tasks and friends stay.",
+  "Google или Apple сразу привяжутся к твоему профилю.": "Google or Apple will be linked to your profile right away.",
   "Участник Искры": "Iskra member",
 
   "Не удалось скопировать": "Could not copy",
