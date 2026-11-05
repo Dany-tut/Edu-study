@@ -2631,14 +2631,33 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
     }
   }
 
+  // Клик по заголовку: вниз → вверх → снять сортировку (вернуть «по вниманию»).
   function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    } else {
+    if (sortKey !== key) {
       setSortKey(key)
-      setSortDir(key === 'name' ? 'asc' : 'desc')
+      setSortDir('desc')
+    } else if (sortDir === 'desc') {
+      setSortDir('asc')
+    } else {
+      setSortKey('attention')
+      setSortDir('desc')
     }
   }
+
+  // Клик вне таблицы снимает выделенную сортировку. Панель ученика и окна
+  // поверх (role=dialog) не считаются «вне» — работа с учеником её не сбрасывает.
+  useEffect(() => {
+    if (sortKey === 'attention') return
+    const onDown = (e: PointerEvent) => {
+      const target = e.target as Element | null
+      if (!target || !target.isConnected) return
+      if (target.closest('.teacher-roster-viewport, [data-keep-sort], [role="dialog"]')) return
+      setSortKey('attention')
+      setSortDir('desc')
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [sortKey])
 
   // ─── Enroll an EXISTING person into a regular group ──────────────────────────
   // People are deduplicated per human (auth account if registered, else name),
@@ -2986,6 +3005,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
         {activeStudentId && activeStudent && activeStudentGroup && (
           <motion.div
             key="student-panel"
+            data-keep-sort
             initial={{ x: 340, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 340, opacity: 0 }}
