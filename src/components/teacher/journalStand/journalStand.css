@@ -490,7 +490,6 @@
   padding: 0 10px;
 }
 :is(.group-roster-toolbar, .js-filter-items) .js-scope select { max-width: 170px; font: inherit; }
-.group-roster-toolbar .js-scope :is(.js-scope-course, .js-scope-module) { width: 200px; }
 @media (max-width: 767px) {
   :is(.group-roster-toolbar, .js-filter-items) .js-scope { font-size: 16px; }
   .group-roster-toolbar .js-scope { flex-wrap: wrap; }

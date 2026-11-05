@@ -138,7 +138,7 @@ export function ScopePicker({
     <div className="js-scope">
       {/* Свой дропдаун вместо системного <select>: рамка и иконка — у label,
           триггер прозрачный и растягивается на всю коробку. */}
-      <label className="js-scope-course">
+      <label className="js-scope-course" data-dropdown-anchor="">
         <BookOpen size={15} />
         <TeacherSelect
           value={value.course}
@@ -148,12 +148,13 @@ export function ScopePicker({
             ...data.courses.map((c) => ({ value: c.id, label: c.title })),
             { value: OUTSIDE_COURSES, label: 'Вне курсов' },
           ]}
+          placeholder="Найти курс…"
           clearable={false}
           triggerStyle={SCOPE_TRIGGER}
         />
       </label>
       {modules.length > 0 && (
-        <label className="js-scope-module">
+        <label className="js-scope-module" data-dropdown-anchor="">
           <TeacherSelect
             value={value.module || ALL_MODULES}
             onChange={(module) => onChange({ ...value, module: module === ALL_MODULES ? '' : module })}
