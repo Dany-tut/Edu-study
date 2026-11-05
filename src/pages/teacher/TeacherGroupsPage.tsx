@@ -26,7 +26,9 @@ import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
 import { useScrollEdges } from '../../components/teacher/journalStand/useScrollEdges'
 import '../../components/teacher/journalStand/journalStand.css'
+import '../../components/pillTabs.css'
 import './teacherRoster.css'
+import CountBadge from '../../components/CountBadge'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
   type Group, type GroupTrack, type Student,
@@ -2694,49 +2696,21 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                 <div className="teacher-table-toolbar" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {/* Single header row: name left, pills center, search right */}
                   <div className="group-roster-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
-                    {/* Left: group name */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto', minWidth: 0 }}>
-                      <div style={{
-                        width: 10, height: 10, borderRadius: '50%', background: activeGroup.color, flex: 'none',
-                      }} />
-                      <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
-                        {activeGroup.name}
-                      </FadeText>
-                      {activeGroup.isIndividual && (
-                        <span style={cardChip(activeGroup.color, { flex: 'none' })}>1:1</span>
-                      )}
-                    </div>
-
-                    {/* Student status filters */}
-                    <div style={{
-                      display: 'flex', alignItems: 'center', gap: 6, margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center',
-                    }}>
+                    {/* Фильтры учеников — та же сегмент-таблетка, что во вкладках
+                        Журнала; название группы не дублируем (оно в ленте выше). */}
+                    <div className="cj-tabs roster-filter-tabs" role="group" aria-label={t('Фильтр учеников')}>
                       {([
                         { id: 'all', label: t('Все') },
                         { id: 'debtors', label: t('Должники') },
                         { id: 'fading', label: t('Пропадают') },
                         { id: 'nohw', label: t('Не сдали ДЗ') },
                       ] as { id: RosterFilter; label: string }[]).map(f => {
-                        const active = rosterFilter === f.id
                         const count = filterCounts[f.id]
                         return (
-                          <button
-                            key={f.id}
-                            onClick={() => setRosterFilter(f.id)}
-                            style={{
-                              display: 'inline-flex', alignItems: 'center', gap: 6,
-                              height: 40, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
-                              fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
-                              background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-                              color: active ? 'var(--color-text)' : 'var(--color-muted)',
-                              border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
-                            }}
-                          >
-                            {f.label}
-                            <span style={{
-                              fontSize: 11, fontWeight: 700, opacity: active ? 1 : 0.7,
-                              color: f.id !== 'all' && count > 0 && !active ? 'var(--color-accent)' : 'inherit',
-                            }}>{count}</span>
+                          <button type="button" key={f.id} aria-pressed={rosterFilter === f.id}
+                            onClick={() => setRosterFilter(f.id)}>
+                            <span>{f.label}</span>
+                            {count > 0 && <CountBadge count={count} className="roster-filter-count" tone={f.id === 'all' ? 'accent' : 'danger'} />}
                           </button>
                         )
                       })}
