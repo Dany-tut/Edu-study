@@ -93,30 +93,47 @@
 .js-tabs button:hover, .js-scope label:hover, .js-search:hover { background: var(--color-bg-3); }
 .js-tabs button[aria-pressed='true'], .js-attention[aria-pressed='true'] { color: var(--color-accent); background: var(--color-purple-soft); }
 .teacher-table-search { display: flex; align-items: center; gap: 8px; box-sizing: border-box; width: 180px; height: 40px; padding: 0 12px; border-radius: 10px; background: var(--color-bg); border: 1px solid var(--color-border-soft); }
-.js-toolbar .js-search { margin-inline-start: auto; }
+.js-toolbar .js-search { margin-inline-start: 0; }
 .js-toolbar .js-search input { outline: 0; font-size: 13px; }
 .js-toolbar .js-search:focus-within, .js-toolbar .js-scope label:focus-within { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .js-toolbar .js-scope select:focus-visible { outline: 0; }
-/* Курс и «Требуют внимания» стоят сразу за вкладками, как в «Группах»;
-   к правому краю прижат только поиск. */
-.js-filter-area { position: relative; min-width: 0; }
+/* Курс прижат к поиску справа: его ширина постоянна, и он не прыгает,
+   когда слева появляется или пропадает «По ученикам / По домашкам». */
+.js-filter-area { position: relative; min-width: 0; flex: none; margin-inline-start: auto; }
 /* «По ученикам / По домашкам» в строке инструментов: без своей полосы и рамки. */
 .js-toolbar .js-work-views { flex: none; padding: 0; border-bottom: 0; white-space: nowrap; }
-/* Узко (телефон): всё в одну строку не влезает — переключатель уходит
-   отдельной строкой под вкладки, фильтры и поиск остаются на месте. */
-@container journal-tools (max-width: 720px) {
+/* Узко: всё в одну строку не влезает — переключатель уходит отдельной
+   строкой под вкладки, фильтры и поиск остаются на месте. Порог считан по
+   ширине строки: вкладки, кружок, «Фильтры» и поиск 150 px. */
+@container journal-tools (max-width: 900px) {
   .js-toolbar:has(.js-work-views) { flex-wrap: wrap; row-gap: 8px; }
   .js-toolbar .js-work-views { order: 9; flex-basis: 100%; }
 }
 .js-filter-items { display: flex; align-items: center; gap: 8px; }
 .js-filter-items .js-scope { flex-wrap: nowrap; }
-.js-filter-items .js-attention, .js-filter-trigger { min-height: 40px; padding: 5px 12px; white-space: nowrap; font-size: 12px; }
-/* «Требуют внимания» — таблетка-переключатель той же высоты и шрифта, что
-   вкладки; счётчик учеников внутри, правый отступ = зазору над и под ним. */
-.js-filter-items .js-attention { height: 40px; padding: 0 14px; gap: 7px; font-size: 13px; font-weight: 600; color: var(--color-text-2); }
-.js-filter-items .js-attention:hover { background: var(--color-bg-3); }
-.js-filter-items .js-attention[aria-pressed='true'] { border-color: transparent; color: var(--color-accent); background: var(--color-purple-soft); }
-.js-filter-items .js-attention:has(.js-attention-count) { padding-inline-end: 11px; }
+.js-filter-trigger { min-height: 40px; padding: 5px 12px; white-space: nowrap; font-size: 12px; }
+/* «Требуют внимания» — кружок 40 px с «!» сразу за вкладками. Ячейка
+   (.js-attention-slot) всегда 40 px, а кнопка внутри неё абсолютная:
+   при наведении/фокусе она раскрывается вправо ПОВЕРХ соседей и ничего
+   в строке не сдвигает. Включённый фильтр — фиолетовый кружок. */
+.js-attention-slot { position: relative; flex: none; width: 40px; height: 40px; z-index: 2; }
+.js-toolbar .js-attention { position: absolute; left: 0; top: 0; height: 40px; min-height: 0; min-width: 40px; padding: 0 11px; gap: 0;
+  justify-content: flex-start; box-sizing: border-box; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--color-text-2);
+  background: var(--color-bg-2); transition: box-shadow .2s ease, background-color .15s ease; }
+.js-toolbar .js-attention svg { flex: none; }
+.js-attention-label { display: inline-flex; align-items: center; gap: 8px; max-width: 0; opacity: 0; overflow: hidden; margin-inline-start: 0;
+  transition: max-width .24s cubic-bezier(.22,1,.36,1), opacity .16s ease, margin .24s cubic-bezier(.22,1,.36,1); }
+.js-toolbar .js-attention:is(:hover, :focus-visible) { box-shadow: var(--shadow-4); background: var(--color-bg-3); }
+.js-toolbar .js-attention:is(:hover, :focus-visible) .js-attention-label { max-width: 220px; opacity: 1; margin-inline-start: 7px; }
+.js-toolbar .js-attention[aria-pressed='true'] { border-color: transparent; color: var(--color-accent); background: var(--color-purple-soft); }
+/* Мягкая фиолетовая заливка полупрозрачна в тёмной теме — под раскрытой
+   кнопкой не должны просвечивать соседи: кладём её на непрозрачную карточку. */
+.js-toolbar .js-attention[aria-pressed='true']:is(:hover, :focus-visible) {
+  background: linear-gradient(var(--color-purple-soft), var(--color-purple-soft)), var(--color-bg-card); }
+@media (hover: none) {
+  .js-toolbar .js-attention:hover { box-shadow: none; }
+  .js-toolbar .js-attention:hover .js-attention-label { max-width: 0; opacity: 0; margin-inline-start: 0; }
+}
 .js-filter-area .js-filter-trigger { display: none; }
 .js-filter-trigger[data-filtered] { color: var(--color-accent); background: var(--color-purple-soft); }
 @container (max-width: 1100px) {
@@ -128,6 +145,17 @@
   .js-filter-items .js-scope select { max-width: 240px; flex: 1; }
   .js-filter-items .js-scope :is(.js-scope-course, .js-scope-module) { width: auto; }
   .js-toolbar .js-search { margin-inline-start: 0; width: 150px; }
+}
+/* С «По ученикам / По домашкам» в строке курс и модуль (468 px) не влезают
+   раньше: сворачиваем их в «Фильтры» уже на 1300 px, иначе сжимается поиск. */
+@container (min-width: 661px) and (max-width: 1300px) {
+  .js-toolbar:has(.js-work-views) .js-filter-area .js-filter-trigger { display: inline-flex; }
+  .js-toolbar:has(.js-work-views) .js-filter-items { display: none; }
+  .js-toolbar:has(.js-work-views) .js-filter-items[data-open] { display: flex; flex-direction: column; align-items: stretch; position: absolute; z-index: 8; right: 0; top: calc(100% + 6px);
+    width: 250px; padding: 12px; border-radius: 16px; background: var(--color-bg-card); box-shadow: var(--shadow-4); border: 1px solid var(--color-border-soft); }
+  .js-toolbar:has(.js-work-views) .js-filter-items .js-scope { flex-direction: column; align-items: stretch; }
+  .js-toolbar:has(.js-work-views) .js-filter-items .js-scope :is(.js-scope-course, .js-scope-module) { width: auto; }
+  .js-toolbar:has(.js-work-views) .js-search { width: 150px; }
 }
 @container (max-width: 660px) {
   .js-toolbar { gap: 6px; padding: 8px; }
@@ -478,7 +506,9 @@
   .js-toolbar .js-search input,.js-scope select { font-size:16px; }
   .js-toolbar .js-search,.js-filter-items .js-scope label { min-height:44px; height:auto; }
   .js-tabs { --js-tab-h: 44px; }
-  .js-tabs button,.js-filter-trigger,.js-filter-items .js-attention,
+  .js-attention-slot { width: 44px; height: 44px; }
+  .js-toolbar .js-attention { height: 44px; min-width: 44px; padding: 0 13px; }
+  .js-tabs button,.js-filter-trigger,
   .js-report-drawer>header button,.jo-share-tools .cj-button,
   .js-work-tabs button { min-height:44px; }
   .js-report-drawer>header button { min-width:44px; }
