@@ -455,6 +455,7 @@
 @media(max-width:650px) {
   .js-toolbar .js-search input,.js-scope select { font-size:16px; }
   .js-toolbar .js-search,.js-filter-items .js-scope label { min-height:44px; height:auto; }
+  .js-tabs { --js-tab-h: 44px; }
   .js-tabs button,.js-filter-trigger,.js-filter-items .js-attention,
   .js-report-drawer>header button,.jo-share-tools .cj-button,
   .js-work-tabs button { min-height:44px; }
@@ -491,7 +492,10 @@
   .group-roster-toolbar input { font-size: 16px !important; }
 }
 
-.journal-nav-count, .js-pending-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
+.journal-nav-count { flex: none; padding: 1px 6px; border-radius: 1em; background: var(--color-red-soft); color: var(--color-red-text); font-size: 11px; font-variant-numeric: tabular-nums; }
+/* Счётчик во вкладке — общий CountBadge (18 px). Правый отступ вкладки равен
+   зазору над и под ним: (высота вкладки − 18) / 2. Высота — в --js-tab-h. */
+.js-tabs.cj-tabs button:has(.js-pending-count) { padding-inline-end: calc((var(--js-tab-h, 32px) - 18px) / 2); }
 .js-pending-lessons { margin: 0 14px; font-size: 13px; color: var(--color-text); }
 .js-pending-lessons summary::-webkit-details-marker { display: none; }
 .js-pending-lessons summary svg { flex: none; }
@@ -501,6 +505,6 @@
 .js-pending-lessons ul { margin: 6px 0; padding-inline-start: 20px; }
 .js-pending-lessons li { padding: 3px 0; overflow-wrap: anywhere; }
 @container (max-width: 660px) {
-  .js-tabs.cj-tabs button:has(.js-pending-count) { padding-inline: 10px; }
+  .js-tabs.cj-tabs button:has(.js-pending-count) { padding-inline: 10px calc((var(--js-tab-h, 32px) - 18px) / 2); }
   .js-pending-lessons summary { min-height: 44px; }
 }

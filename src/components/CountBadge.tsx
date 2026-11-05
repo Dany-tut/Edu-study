@@ -32,8 +32,9 @@ const TONES = {
   inverse: { bg: 'rgba(255,255,255,0.24)',   fg: '#fff' },
 } as const
 
-export default function CountBadge({ count, tone = 'accent', ring, style }: {
+export default function CountBadge({ count, tone = 'accent', ring, style, className }: {
   count: number
+  className?: string
   tone?: keyof typeof TONES
   ring?: string
   style?: CSSProperties
@@ -42,6 +43,7 @@ export default function CountBadge({ count, tone = 'accent', ring, style }: {
   const { bg, fg } = TONES[tone]
   return (
     <span
+      className={className}
       style={{
         minWidth: 20, height: COUNT_BADGE_H, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999,
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
