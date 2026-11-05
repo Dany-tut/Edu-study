@@ -300,6 +300,10 @@ const inputSt: React.CSSProperties = { ...FIELD }
 /** Низ списка уроков в одном формате с рядом «Таймкод»/«Добавлено» панели
  *  глав: высота 40, скругление 12, текст 13. */
 const RAIL_CONTROL_H = 40
+/** Поле от края карточки до содержимого во всех боковых колонках
+ *  конструктора: мета курса, расписание, ДЗ, тест, ученики, список уроков,
+ *  реплики и главы записи (у последних — в localTranscription.css). */
+const RAIL_PAD = 12
 const railFieldSt: React.CSSProperties = { ...inputSt, height: RAIL_CONTROL_H, padding: '0 12px' }
 
 /** Три строки под смысловые поля задания — правило описано в GrowTextarea. */
@@ -400,7 +404,7 @@ function LeftCourseMeta({
     el.style.height = `${el.scrollHeight}px`
   }, [course.title, titleField.value])
   return (
-    <OverlayScrollArea style={{ flex: 1 }} padding={16} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <OverlayScrollArea style={{ flex: 1 }} padding={RAIL_PAD} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Title */}
       <textarea
         ref={titleRef}
@@ -1350,7 +1354,7 @@ function ScheduleCard({
       WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       boxShadow: 'var(--shadow-sm-page)',
-      borderRadius: 18, padding: '16px 16px 18px',
+      borderRadius: 18, padding: RAIL_PAD,
     }}>
       <div style={{ display: 'grid', gap: 7, marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
         {t('Формат урока')}
@@ -1542,7 +1546,7 @@ function TimecodeRail({
     <div className="timecode-editor" style={{
       '--time-chars': clock(0).length,
       width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
-      borderRadius: 24, padding: 16, minHeight: 0, maxHeight: PLAYER_MAX_H,
+      borderRadius: 24, padding: RAIL_PAD, minHeight: 0, maxHeight: PLAYER_MAX_H,
       background: 'rgba(var(--glass-rgb), 0.96)',
       border: '1px solid var(--color-border-soft)',
       boxShadow: 'var(--shadow-2)',
@@ -4287,7 +4291,7 @@ function HomeworkLeftPanel({
         // overflowX hidden: с overflowY auto браузер делает auto и по X — любой
         // слишком широкий ряд (английские подписи) давал боковую прокрутку.
         flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain',
-        padding: '16px 14px 14px', display: 'flex', flexDirection: 'column', gap: 12,
+        padding: RAIL_PAD, display: 'flex', flexDirection: 'column', gap: 12,
         ...fadeMask(hwFade),
       }}>
       <HwSlotSwitch lesson={lesson} onUpdate={onUpdate} hwTab={hwTab} setHwTab={setHwTab}
@@ -4344,7 +4348,7 @@ function HomeworkLeftPanel({
       </div>
       <div style={{
         flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
-        padding: '10px 14px 14px', borderTop: '1px solid var(--color-border-soft)',
+        padding: RAIL_PAD, borderTop: '1px solid var(--color-border-soft)',
       }}>
         {!hardMode ? (
           <>
@@ -4549,7 +4553,7 @@ function TestLeftPanel({ lesson, onUpdate, isLanguage = false }: {
   return (
     <OverlayScrollArea
       style={{ width: 248, flexShrink: 0, background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 18, maxHeight: '100%' }}
-      padding="16px 14px 18px"
+      padding={RAIL_PAD}
       scrollStyle={{ gap: 10, display: 'flex', flexDirection: 'column' }}
     >
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>{t('СОСТАВИТЬ ВОПРОС')}</div>
@@ -4630,7 +4634,7 @@ function StudentsLeftPanel({
       WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-glass)',
       boxShadow: 'var(--shadow-sm-page)',
-      borderRadius: 18, padding: '16px 16px 18px',
+      borderRadius: 18, padding: RAIL_PAD,
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -5271,7 +5275,7 @@ function RightPanelLessons({
       style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
       onDragEnd={clearDrag}
     >
-      <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: RAIL_PAD, borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Уроки')}</span>
         <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{course.lessons.length} {t('шт.')}</span>
       </div>
@@ -5371,7 +5375,7 @@ function RightPanelLessons({
           className="no-scrollbar"
           // overscrollBehavior: доскроллив список уроков до конца, мы раньше
           // «дотягивали» прокрутку до страницы и уезжала вся вёрстка.
-          style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '8px 10px', ...fadeMask(fade) }}
+          style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: `8px ${RAIL_PAD}px`, ...fadeMask(fade) }}
           onClick={e => {
             if (e.target !== e.currentTarget) return
             clearSelection()
@@ -5572,7 +5576,7 @@ function RightPanelLessons({
         </div>
       </div>
 
-      <div style={{ padding: 12, borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+      <div style={{ padding: RAIL_PAD, borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         {addingModule ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <input
