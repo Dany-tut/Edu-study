@@ -6,12 +6,51 @@ import { baseLessonRef } from './extraHomework'
 // goToCourseEditor edData shape.
 export async function openLessonInCourseEditor(lessonId: string, openCourseEditor: (json: string) => void): Promise<boolean> {
   const { data: lessonRow } = await supabase
-    .from('lessons').select('course_id').eq('id', lessonId).single()
+    .from('lessons').select('course_id, short_id').eq('id', lessonId).single()
   if (!lessonRow?.course_id) return false
+  return openCourseInEditor(lessonRow.course_id, lessonRow.short_id ?? null, openCourseEditor)
+}
+
+/** Где в Конструкторе живёт занятие расписания: курс и (если нашёлся) его урок. */
+export type ScheduleCourseTarget = { courseId: string; courseTitle: string; lessonShortId: string | null; lessonTitle: string | null }
+
+/**
+ * Занятие расписания без `lesson_id` (заведено прямо в расписании или до
+ * привязки) ищет свой урок в курсах, назначенных его группе или ученику:
+ * точный заголовок → номер (оба 0-based, см. resolveScheduleLesson в db.ts).
+ * Курс без подходящего урока возвращается без lessonShortId — откроем курс.
+ */
+export async function findScheduleCourseTarget(row: {
+  groupId: string | null; studentId: string | null; title: string; lessonNumber: number | null
+}): Promise<ScheduleCourseTarget | null> {
+  if (!row.groupId && !row.studentId) return null
+  let q = supabase
+    .from('courses')
+    .select('id, title, lessons(short_id, title, lesson_number, position)')
+  q = row.groupId ? q.contains('group_ids', [row.groupId]) : q.contains('student_ids', [row.studentId!])
+  const { data } = await q
+  const courses = (data ?? []) as Array<{ id: string; title: string; lessons: Array<{ short_id: string; title: string | null; lesson_number: number | null; position: number | null }> | null }>
+  if (courses.length === 0) return null
+  const want = row.title.toLowerCase().trim()
+  for (const c of courses) {
+    const l = (c.lessons ?? []).find(x => want && (x.title ?? '').toLowerCase().trim() === want)
+    if (l) return { courseId: c.id, courseTitle: c.title, lessonShortId: l.short_id, lessonTitle: l.title }
+  }
+  if (row.lessonNumber != null) {
+    for (const c of courses) {
+      const l = (c.lessons ?? []).find(x => (x.lesson_number ?? x.position) === row.lessonNumber)
+      if (l) return { courseId: c.id, courseTitle: c.title, lessonShortId: l.short_id, lessonTitle: l.title }
+    }
+  }
+  return courses.length === 1 ? { courseId: courses[0].id, courseTitle: courses[0].title, lessonShortId: null, lessonTitle: null } : null
+}
+
+/** Открыть курс в Конструкторе; с lessonShortId — сразу на этом уроке. */
+export async function openCourseInEditor(courseId: string, lessonShortId: string | null, openCourseEditor: (json: string) => void): Promise<boolean> {
   const { data: course } = await supabase
     .from('courses')
     .select('id, short_id, title, subject, level, status, color, bg, description, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks)')
-    .eq('id', lessonRow.course_id)
+    .eq('id', courseId)
     .single()
   if (!course) return false
   const c = course as any
@@ -34,6 +73,11 @@ export async function openLessonInCourseEditor(lessonId: string, openCourseEdito
     const grouped = new Set(modules.flatMap((m: any) => m.lessonIds))
     const ungrouped = dbLessons.filter((l: any) => !grouped.has(l.short_id)).map((l: any) => l.short_id)
     if (ungrouped.length) modules[0].lessonIds.push(...ungrouped)
+  }
+  // Редактор курса поднимает выбранный урок из ce-pos:<dbCourseId> (так он
+  // переживает F5) — кладём туда нужный урок, и курс открывается сразу на нём.
+  if (lessonShortId && lessons.some((l: any) => l.id === lessonShortId)) {
+    try { sessionStorage.setItem(`ce-pos:${c.short_id ?? c.id}`, JSON.stringify({ lessonId: lessonShortId, mode: 'lesson' })) } catch { /* non-fatal */ }
   }
   openCourseEditor(JSON.stringify({
     id: c.id, title: c.title, subject: c.subject, level: c.level,

@@ -23,7 +23,7 @@ import {
   uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
-import { openLessonInCourseEditor } from '../../lib/teacherNav'
+import { openLessonInCourseEditor, openCourseInEditor, findScheduleCourseTarget, type ScheduleCourseTarget } from '../../lib/teacherNav'
 import { scheduleMove } from '../../lib/teacherSchedule'
 import BackCircle from '../../components/BackCircle'
 import { AlertStack } from '../../components/Alert'
@@ -980,6 +980,9 @@ export default function TeacherLessonEditorPage() {
   // туда сохраняется содержимое: видео, главы, описание, файлы. У занятия,
   // заведённого прямо здесь, такой строки нет, и содержимое сохранять некуда.
   const [lessonRowId, setLessonRowId] = useState<string | null>(null)
+  // Занятию без lesson_id ищем урок в курсе его группы/ученика — кнопка ведёт
+  // прямо туда. undefined — ещё ищем, null — курса с этим занятием нет.
+  const [courseTarget, setCourseTarget] = useState<ScheduleCourseTarget | null | undefined>(undefined)
   /** Дата занятия из расписания (DD.MM.YYYY) — поле «Дата» стартует с сегодня,
    *  и без подстановки «Опубликовать» переносило чужое занятие на сегодня. */
   const [sourceDate, setSourceDate] = useState('')
@@ -998,6 +1001,13 @@ export default function TeacherLessonEditorPage() {
       .then(({ data }) => {
         if (!data) return
         setLessonRowId(data.lesson_id ?? null)
+        setCourseTarget(undefined)
+        if (!data.lesson_id) {
+          findScheduleCourseTarget({
+            groupId: data.group_id ?? null, studentId: data.student_id ?? null,
+            title: String(data.lesson_title ?? ''), lessonNumber: data.lesson_number ?? null,
+          }).then(setCourseTarget, () => setCourseTarget(null))
+        }
         // date приходит как YYYY-MM-DD, поле редактора — DD.MM.YYYY.
         const iso = String(data.date ?? '').slice(0, 10).split('-')
         if (iso.length === 3) setSourceDate(`${iso[2]}.${iso[1]}.${iso[0]}`)
@@ -1392,8 +1402,25 @@ export default function TeacherLessonEditorPage() {
                 <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-3)', margin: 0 }}>
                   {t('Здесь заводится занятие в расписании: кому, когда и во сколько. Запись, главы, файлы и домашка живут у урока курса — их видит ученик на экране урока.')}
                 </p>
+                {courseTarget === null && (
+                  <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0 }}>
+                    {t('Это занятие не связано с уроком курса: у его группы или ученика нет курса с таким уроком. Заведите урок в курсе в Конструкторе.')}
+                  </p>
+                )}
+                {courseTarget && !courseTarget.lessonShortId && (
+                  <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0 }}>
+                    {t('В курсе нет урока с таким названием или номером — откроется курс целиком:')} «{tc(courseTarget.courseTitle)}»
+                  </p>
+                )}
                 <button
-                  onClick={() => setActivePage('constructor')}
+                  disabled={courseTarget === undefined && !!editingScheduleId}
+                  onClick={async () => {
+                    if (courseTarget) {
+                      const ok = await openCourseInEditor(courseTarget.courseId, courseTarget.lessonShortId, openCourseEditor)
+                      if (ok) return
+                    }
+                    setActivePage('constructor')
+                  }}
                   style={{
                     alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
                     padding: '10px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
@@ -1401,7 +1428,7 @@ export default function TeacherLessonEditorPage() {
                     fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                   }}
                 >
-                  {t('Открыть Конструктор')} <ChevronRight size={14} />
+                  {courseTarget?.lessonShortId ? t('Открыть урок в курсе') : courseTarget ? t('Открыть курс') : t('Открыть Конструктор')} <ChevronRight size={14} />
                 </button>
               </section>
             )}
