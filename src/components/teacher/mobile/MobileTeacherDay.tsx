@@ -4,11 +4,12 @@ import NativeSelectField from '../../NativeSelectField'
 import FadeText from '../../FadeText'
 import MobileSheet from '../../MobileSheet'
 import BackCircle from '../../BackCircle'
-import { GlassPill } from '../../mobileChrome'
+import { GlassPill, GlassIconButton } from '../../mobileChrome'
+import { useNotificationsStore } from '../../../store/notificationsStore'
 import { Alert } from '../../Alert'
 import TeacherSchedule from '../schedule/TeacherSchedule'
 import { TaskliIcon } from '../../icons/TaskliIcon'
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Loader2, Plus, X } from '../../icons/appIcons'
+import { Bell, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Loader2, Plus, X } from '../../icons/appIcons'
 import { confirmDialog } from '../../ConfirmHost'
 import { btn, softBtn } from '../../../lib/pillStyles'
 import { FIELD } from '../../../lib/fieldStyle'
@@ -58,9 +59,12 @@ function AttendancePicker({ name, value, onChange, disabled }: { name: string; v
 
 /** The lesson workflow is mobile-only. All durable changes are owner-checked
  * transactions; the native title/back controls use the existing UIKit bridge. */
-export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
+export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNotifications }: {
   onNavigate: (tab: MTab) => void; onDetailChange: (open: boolean) => void
+  /** Шторка уведомлений: колокольчик справа от названия экрана. */
+  onOpenNotifications?: () => void
 }) {
+  const unreadNotifs = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
   const t = useT()
   const { tn, tc } = useTc()
   const { lang } = useLang()
@@ -198,6 +202,9 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '0 48px' }}>
       {selected && <BackCircle onClick={() => { void back() }} label="Мой день" style={{ position: 'absolute', left: 0, width: 44, height: 44 }} />}
       <GlassPill><h1 style={{ margin: 0, font: 'inherit', textAlign: 'center', overflowWrap: 'anywhere' }}>{pageTitle}</h1></GlassPill>
+      {!selected && onOpenNotifications && <div style={{ position: 'absolute', right: 0, display: 'inline-flex' }}>
+        <GlassIconButton icon={<Bell size={18} />} dot={unreadNotifs > 0} dotTone="alert" ariaLabel={t('Уведомления')} onClick={() => { tactile(); onOpenNotifications() }} />
+      </div>}
     </div>
   )
   const footer = selected && detail && !loading ? <div style={stack}>

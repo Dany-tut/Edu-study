@@ -47,7 +47,7 @@ function timeAgo(ts: number) {
   return `${Math.floor(diff / 86400)} ${t('д назад')}`
 }
 
-function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notification) => void }) {
+export function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notification) => void }) {
   return (
     <motion.button
       whileHover={{ background: 'rgba(var(--accent-rgb), 0.07)' }}
@@ -87,26 +87,15 @@ function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notifica
   )
 }
 
-type Props = {
-  requests?: import('../lib/desktopFriends').Contact[]
-  onRequests?: () => void
-  open: boolean
-  anchorRef: React.RefObject<HTMLElement | null>
-  onClose: () => void
-}
-
-export default function NotificationPopup({ requests = [], onRequests, open, anchorRef, onClose }: Props) {
-  const t = useT()
-  const notifications = useNotificationsStore(s => s.notifications)
+/**
+ * Строка уведомления → прочитано и переход туда, о чём оно. Общая для
+ * колокольчика (попап) и телефонной шторки учителя: у учительских строк своё
+ * действие (адрес кабинета), у ученических — урок, тест или главная.
+ */
+export function useNotificationActivate(onClose: () => void) {
   const markRead      = useNotificationsStore(s => s.markRead)
-  const markAllRead   = useNotificationsStore(s => s.markAllRead)
   const openLesson    = useDashboard(s => s.openLesson)
   const setActivePage = useDashboard(s => s.setActivePage)
-  const popupRef      = useRef<HTMLDivElement>(null)
-  const unread = notifications.filter(n => !n.read).length
-
-  // Строка → прочитано и переход туда, о чём уведомление. Попап общий для
-  // ученика и учителя: у учительских строк своё действие (адрес кабинета).
   const activate = (n: Notification) => {
     if (!n.read) markRead(n.id)
     if (followNotifAction(n.action)) { onClose(); return }
@@ -133,6 +122,25 @@ export default function NotificationPopup({ requests = [], onRequests, open, anc
       onClose()
     }
   }
+  return activate
+}
+
+type Props = {
+  requests?: import('../lib/desktopFriends').Contact[]
+  onRequests?: () => void
+  open: boolean
+  anchorRef: React.RefObject<HTMLElement | null>
+  onClose: () => void
+}
+
+export default function NotificationPopup({ requests = [], onRequests, open, anchorRef, onClose }: Props) {
+  const t = useT()
+  const notifications = useNotificationsStore(s => s.notifications)
+  const markAllRead   = useNotificationsStore(s => s.markAllRead)
+  const popupRef      = useRef<HTMLDivElement>(null)
+  const unread = notifications.filter(n => !n.read).length
+
+  const activate = useNotificationActivate(onClose)
 
   const [pos, setPos] = useState<ReturnType<typeof viewportDropdownPosition> | null>(null)
   useEffect(() => {
