@@ -8,7 +8,8 @@ const providers = [
   { id: 'google' as const, label: 'Google' },
 ]
 
-export default function SocialLoginButtons({ role }: { role: LoginRole }) {
+/** joinToken — вход со страницы приглашения: аккаунт Google/Apple привяжется к карточке ученика. */
+export default function SocialLoginButtons({ role, joinToken }: { role: LoginRole; joinToken?: string }) {
   const t = useT()
   const sequence = useRef(0)
   const [busy, setBusy] = useState<string | null>(null)
@@ -37,7 +38,7 @@ export default function SocialLoginButtons({ role }: { role: LoginRole }) {
     started.current = true; pending.current = true
     feedback.begin({ tone: 'info', title: provider === 'apple' ? 'Открываем Apple…' : 'Открываем Google…', busy: true, onCancel: cancelSocialLogin })
     try {
-      await startSocialLogin(provider, role)
+      await startSocialLogin(provider, role, joinToken)
     } catch (err) {
       if (sequence.current !== id) return
       pending.current = false

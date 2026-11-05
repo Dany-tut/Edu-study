@@ -12,7 +12,8 @@ import { Alert } from '../Alert'
 import { AppleMark, GoogleMark } from '../SocialLoginButtons'
 import { Check } from '../icons/appIcons'
 
-export default function TeacherLoginMethods() {
+/** Способы входа в аккаунт: почта, Google, Apple. У ученика — в настройках профиля. */
+export default function TeacherLoginMethods({ student = false }: { student?: boolean } = {}) {
   const t = useT()
   const [user, setUser] = useState<User | null>(null)
   const [ready, setReady] = useState(false)
@@ -109,7 +110,7 @@ export default function TeacherLoginMethods() {
     <section aria-label={t('Способы входа')} style={{ padding: 20, borderRadius: 24, background: 'var(--color-surface)', border: '1px solid var(--color-border-soft)', display: 'grid', gap: 14 }}>
       <div>
         <h2 style={{ margin: 0, fontSize: 18, color: 'var(--color-text)' }}>{t('Способы входа')}</h2>
-        <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.45, color: 'var(--color-muted)' }}>{t('Подключите Google или Apple, чтобы входить в этот же аккаунт. Ученики, курсы и расписание сохранятся.')}</p>
+        <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.45, color: 'var(--color-muted)' }}>{t(student ? 'Подключи Google или Apple, чтобы входить в этот же аккаунт. Прогресс, задания и друзья сохранятся.' : 'Подключите Google или Apple, чтобы входить в этот же аккаунт. Ученики, курсы и расписание сохранятся.')}</p>
       </div>
       <div style={{ fontSize: 13, color: 'var(--color-text-2)', overflowWrap: 'anywhere' }}>
         {t('Почта')} · {ready ? user?.email || t('Войдите в аккаунт') : t('Загрузка...')}

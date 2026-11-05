@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import LoginMethods from './teacher/TeacherLoginMethods'
 import Modal from './Modal'
 import FadeText from './FadeText'
 import HScrollFade from './HScrollFade'
@@ -54,7 +55,7 @@ export default function StudentProfile({ section, onChange, onClose, name, avata
   }>
     <div ref={root} className="teacher-profile-page student-profile-dialog">
       <div className="profile-section-heading"><h2>{t(section === 'main' ? 'Личные данные' : section === 'friends' ? 'Друзья' : 'Настройки')}</h2>
-        <p>{t(section === 'main' ? 'Твой профиль в Искре.' : section === 'friends' ? 'Поиск людей, заявки и твой ник.' : 'Ник, видимость и оформление кабинета.')}</p></div>
+        <p>{t(section === 'main' ? 'Твой профиль в Искре.' : section === 'friends' ? 'Поиск людей, заявки и твой ник.' : 'Ник, видимость и способы входа.')}</p></div>
       {section === 'main' && <div className="profile-main-grid">
         <section className="profile-card profile-avatar-card"><h3>{t('Аватар')}</h3><div className="student-profile-avatar">{avatar}</div>{avatarControls}</section>
         <section className="profile-card profile-details-card"><h3>{t('Личные данные')}</h3>
@@ -76,6 +77,7 @@ export default function StudentProfile({ section, onChange, onClose, name, avata
       </div>}
       {section === 'settings' && <div className="profile-main-grid profile-settings-single">
         <section className="profile-card profile-social-identity"><h3>{t('Ник и видимость')}</h3><FriendsContent model={{...model,tab:'profile'}} /></section>
+        <LoginMethods student />
       </div>}
     </div>
   </Modal>

@@ -13,6 +13,9 @@ export type LoginRole = 'teacher' | 'student'
 const OAUTH_ROLE_KEY = 'iskra:oauth-role'
 const IOS_OAUTH_REDIRECT = 'iskra://auth/callback'
 const LINK_KEY = 'iskra:oauth-link'
+// Ученик пришёл по ссылке-приглашению и выбрал Google/Apple: после входа
+// привязываем этот аккаунт к карточке из приглашения (claim_student_account).
+const JOIN_KEY = 'iskra:oauth-join'
 const FRIEND_RETURN_KEY = 'iskra:friend-return'
 const friendRoute = /^#\/friend\?token=[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
 const ATTEMPT_KEY = 'iskra:oauth-attempt'
@@ -53,6 +56,7 @@ function endOAuthAttempt(event: 'auth_completed' | 'auth_cancelled' | 'auth_fail
   if (event !== 'auth_completed') {
     localStorage.removeItem(OAUTH_ROLE_KEY)
     localStorage.removeItem(LINK_KEY)
+    localStorage.removeItem(JOIN_KEY)
   }
 }
 
@@ -68,7 +72,8 @@ export async function connectLoginProvider(provider: 'google' | 'apple') {
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Войдите в аккаунт ещё раз перед подключением.')
   localStorage.removeItem(OAUTH_ROLE_KEY)
-  localStorage.setItem(LINK_KEY, JSON.stringify({ userId: user.id, provider, time: Date.now() }))
+  // back — куда вернуться после привязки: профиль учителя или кабинет ученика
+  localStorage.setItem(LINK_KEY, JSON.stringify({ userId: user.id, provider, time: Date.now(), back: window.location.hash || '#/' }))
   const id = beginOAuthAttempt(provider, 'link')
   try {
     const native = Capacitor.isNativePlatform()
@@ -96,7 +101,7 @@ export function hasPendingSocialAuth() {
 async function finishIdentityLink() {
   const raw = localStorage.getItem(LINK_KEY)
   if (!raw) return false
-  let pending: { userId: string; provider: string; time: number }
+  let pending: { userId: string; provider: string; time: number; back?: string }
   try { pending = JSON.parse(raw) } catch { localStorage.removeItem(LINK_KEY); return false }
   // GoTrue may return OAuth errors in the query string (web) or fragment.
   const queryParams = new URLSearchParams(window.location.search)
@@ -113,7 +118,7 @@ async function finishIdentityLink() {
     for (const key of ['error', 'error_code', 'error_description']) queryParams.delete(key)
     const remainingQuery = queryParams.toString()
     window.history.replaceState(null, '', `${window.location.pathname}${remainingQuery ? `?${remainingQuery}` : ''}${window.location.hash}`)
-    window.location.hash = '#/teacher/profile'
+    window.location.hash = pending.back || '#/teacher/profile'
     throw new Error(message)
   }
   if (!pending.userId || !['google', 'apple'].includes(pending.provider) || !Number.isFinite(pending.time) || Date.now() - pending.time > 15 * 60 * 1000) {
@@ -130,15 +135,19 @@ async function finishIdentityLink() {
   }
   if (!user.identities?.some(identity => identity.provider === pending.provider)) return false
   localStorage.removeItem(LINK_KEY)
-  clearStudentSession()
-  window.location.hash = '#/teacher/profile'
+  const back = pending.back || '#/teacher/profile'
+  // ученик привязал Google/Apple к своему же аккаунту — остаётся в своём кабинете
+  if (back.startsWith('#/teacher')) clearStudentSession()
+  window.location.hash = back
   endOAuthAttempt('auth_completed')
   window.dispatchEvent(new Event('iskra:identity-linked'))
   return true
 }
 
-export async function startSocialLogin(provider: Provider, role: LoginRole) {
+export async function startSocialLogin(provider: Provider, role: LoginRole, joinToken?: string) {
   localStorage.removeItem(LINK_KEY)
+  if (joinToken) localStorage.setItem(JOIN_KEY, joinToken)
+  else localStorage.removeItem(JOIN_KEY)
   if (friendRoute.test(location.hash)) sessionStorage.setItem(FRIEND_RETURN_KEY, location.hash)
   else sessionStorage.removeItem(FRIEND_RETURN_KEY)
   localStorage.setItem(OAUTH_ROLE_KEY, role)
@@ -231,6 +240,23 @@ async function finishSocialLoginImpl() {
   if (!user) return false
 
   if (selectedRole === 'student') {
+    const joinToken = localStorage.getItem(JOIN_KEY)
+    if (joinToken) {
+      localStorage.removeItem(JOIN_KEY)
+      const { error: claimError } = await supabase.rpc('claim_student_account', {
+        p_token: joinToken,
+        p_email: user.email ?? '',
+      })
+      if (claimError) {
+        endOAuthAttempt('auth_failed')
+        await supabase.auth.signOut()
+        localStorage.removeItem(OAUTH_ROLE_KEY)
+        throw new Error(/already used/i.test(claimError.message)
+          ? 'Это приглашение уже использовано другим аккаунтом. Попросите учителя новую ссылку.'
+          : authErrorRu(claimError, 'Не удалось привязать аккаунт к приглашению. Попробуйте ещё раз.'))
+      }
+      void trackNow('register', { role: 'student', method: 'oauth' })
+    }
     const { data: students, error: studentError } = await supabase
       .from('students')
       .select('id, name, group_id, created_at')
