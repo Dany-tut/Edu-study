@@ -34,13 +34,24 @@ export function transcriptTime(seconds: number) {
   return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`
 }
 
+/** Whisper на музыке и тишине (заставка до начала вебинара) пишет заученные
+ *  фразы из субтитров: «Thank you.», «Продолжение следует...», «Субтитры сделал
+ *  DimaTorzok». Такие реплики целиком — не речь, их отбрасываем. «Спасибо за
+ *  внимание» и прочее, что правда говорят на уроке, не трогаем. */
+const PHANTOM = /^(thank you( (so much|very much|for watching))?|thanks( for watching)?|you|bye|продолжение следует|(редактор |корректор )?субтитр\S* .*|подпишись на канал|спасибо за просмотр)$/
+export function isPhantomLine(text: string) {
+  return PHANTOM.test(text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim())
+}
+
 export function readTranscript(value: unknown): LessonTranscript | undefined {
   if (!value || typeof value !== 'object' || !('source' in value) || typeof value.source !== 'string' ||
       !('segments' in value) || !Array.isArray(value.segments) || !value.segments.length) return
   if (!value.segments.every(s => s && Number.isFinite(s.start) && s.start >= 0 &&
     Number.isFinite(s.end) && s.end > s.start && typeof s.text === 'string' && s.text.trim())) return
+  const segments = (value.segments as TranscriptSegment[]).filter(s => !isPhantomLine(s.text))
+  if (!segments.length) return
   const v = value as { speakers?: unknown; montage?: unknown }
-  return { source: value.source, segments: value.segments,
+  return { source: value.source, segments,
     ...(readSpeakers(v.speakers) ? { speakers: readSpeakers(v.speakers) } : {}),
     ...(readMontage(v.montage) ? { montage: readMontage(v.montage) } : {}) }
 }

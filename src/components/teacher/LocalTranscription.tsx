@@ -275,7 +275,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const [working, setWorking] = useState<LocalDraft | null>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(draftKey) || 'null')
-      return saved?.transcript?.source === props.source.trim() && (!props.file || saved.fileSignature === fileSignature(props.file)) && readTranscript(saved.transcript) && Array.isArray(saved.timecodes) ? saved : null
+      return saved?.transcript?.source === props.source.trim() && (!props.file || saved.fileSignature === fileSignature(props.file)) && readTranscript(saved.transcript) && Array.isArray(saved.timecodes) ? { ...saved, transcript: readTranscript(saved.transcript) } : null
     } catch { return null }
   })
   const [localSaveFailed, setLocalSaveFailed] = useState(false)
