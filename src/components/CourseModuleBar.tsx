@@ -155,7 +155,11 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
             <motion.div
               ref={menuRef}
               role="listbox"
-              initial={{ opacity: 0 }}
+              // Появление — CSS-классом (index.css): у framer-motion в конце
+              // проявления меню мигало полупрозрачным кадром. Уход остаётся
+              // на exit — после него элемент снимается, мигать нечему.
+              className="iskra-dropdown-enter"
+              initial={false}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: reduceMotion ? 0 : 0.12, ease: 'easeOut' }}
