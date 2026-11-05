@@ -1523,6 +1523,7 @@ export const EN: Record<string, string> = {
   "Финансы: сводка": "Finance: summary",
   "Получено, ожидается, долг, прогноз": "Received, expected, debt, forecast",
   "Должники": "Debtors",
+  "Фильтр учеников": "Student filter",
   "Список учеников с задолженностью": "List of students with debt",
   "История платежей": "Payment history",
   "Последние поступления от учеников": "Recent payments from students",
