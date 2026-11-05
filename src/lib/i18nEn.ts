@@ -5968,4 +5968,6 @@ export const EN: Record<string, string> = {
   "Слишком много попыток. Попробуйте через 15 минут.": "Too many attempts. Try again in 15 minutes.",
   "Сначала подтвердите вход кодом из приложения": "First confirm sign-in with a code from the app",
   "Двухфакторная защита уже отключена": "Two-factor protection is already off",
+  "Вышла новая версия модуля расшифровки": "A new version of the transcription module is out",
+  "Скачайте обновление в профиле → «Интеграции» и перезапустите start.command.": "Download the update in Profile → “Integrations” and restart start.command.",
 }

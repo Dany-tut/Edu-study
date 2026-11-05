@@ -71,7 +71,22 @@ function CopyProfileLabel({ value, isHandle }: { value: string; isHandle: boolea
 export default function TeacherProfileSettingsPage({ friends }: { friends: FriendsModel }) {
   const teacherGuides = useTeacherGuides()
   const t = useT()
-  const [page, setPage] = useState<'main' | 'integrations' | 'settings'>('main')
+  // Переход из уведомления («обновите модуль») открывает сразу «Интеграции».
+  const [page, setPage] = useState<'main' | 'integrations' | 'settings'>(() => {
+    try {
+      const wanted = sessionStorage.getItem('profile_section')
+      sessionStorage.removeItem('profile_section')
+      return wanted === 'integrations' || wanted === 'settings' ? wanted : 'main'
+    } catch { return 'main' }
+  })
+  useEffect(() => {
+    const open = (e: Event) => {
+      const wanted = (e as CustomEvent<string>).detail
+      if (wanted === 'integrations' || wanted === 'settings') { setPage(wanted); try { sessionStorage.removeItem('profile_section') } catch { /* ок */ } }
+    }
+    window.addEventListener('iskra:profile-section', open)
+    return () => window.removeEventListener('iskra:profile-section', open)
+  }, [])
   const section = friends.account && friends.tab ? 'friends' : page
   const sections = [
     { id: 'main' as const, label: t('Главное') },

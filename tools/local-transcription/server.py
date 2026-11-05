@@ -31,6 +31,16 @@ JOBS.mkdir(mode=0o700, exist_ok=True)
 VOICE_MODELS = HOME / 'voice-models'
 def voice_memory(token): return HOME / f"voices-{hashlib.sha256(token.encode()).hexdigest()[:16]}.json"
 jobs = job_store.load(JOBS)
+
+def module_version(root=ROOT):
+    """Отпечаток кода модуля — тот же, что считает scripts/buildTranscriptionModule.mjs.
+    Страница Искры сравнивает его с версией архива на сайте и предлагает обновиться."""
+    names=sorted(p.name for p in root.iterdir() if p.is_file() and (p.suffix in ('.py','.swift') or p.name=='start.command') and not p.name.startswith('test_'))
+    h=hashlib.sha256()
+    for name in names:
+        h.update(name.encode()+b'\0'); h.update((root/name).read_bytes()); h.update(b'\0')
+    return h.hexdigest()[:12]
+VERSION = module_version()
 # Уровень Б — материал для дообучения распознавания. Только по включённому
 # учителем переключателю и только здесь, на Mac: звук записи (сжатый) и
 # отрывки реплик, которые учитель исправил, с правильным текстом. В Искру и
@@ -62,6 +72,12 @@ def device():
     if len(token)!=64 or any(c not in '0123456789abcdef' for c in token) or not (HOME/token).is_file():
         abort(403)
     return token
+
+@app.get('/version')
+def version():
+    # Без токена: версия не секрет, а подсказать «обновите модуль» нужно и
+    # до подключения компьютера.
+    return jsonify(version=VERSION)
 
 @app.post('/connect')
 def connect():

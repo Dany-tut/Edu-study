@@ -20,6 +20,7 @@ import { useDeskStore } from '../../store/deskStore'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
 import { useJournalPending } from '../../lib/useGroups'
+import { useModuleUpdateNotice } from '../../lib/transcriptionModuleUpdate'
 import ViewAsBanner from './ViewAsBanner'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
 import { usePersistentState, clearDrafts, readDraft } from '../../lib/useDraft'
@@ -96,6 +97,8 @@ export default function TeacherTopBar({ friends }: { friends: FriendsModel }) {
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
   const pendingJournals = useJournalPending(null)
+  // Вышла новая версия модуля расшифровки — одно уведомление в колокольчик.
+  useModuleUpdateNotice()
   const pendingJournalCount = pendingJournals.length
   const syncJournalNotifs = useNotificationsStore(s => s.syncJournalNotifs)
   useEffect(() => {
