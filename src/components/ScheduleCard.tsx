@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BookOpen, ChevronRight } from './icons/appIcons'
 import { LoopSvg } from './icons/LoopIcon'
 import { LoopArtworkVideo } from './icons/loopArtwork'
@@ -70,6 +70,27 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   // as the "upcoming" highlight — derived from real time, not stored on data.
   const states = day.lessons.map(l => getStudentScheduleState(l, day.date, now, timeZone, subjects))
   const focusIndex = pickScheduleFocus(states)
+
+  // Прошедшие уроки остаются наверху серыми, а список сам доезжает до
+  // текущего или ближайшего урока — он виден первым. Прокручиваем только
+  // когда цель сменилась, чтобы не спорить с прокруткой ученика.
+  const scrollTargetIndex = focusIndex >= 0 ? focusIndex : states.findIndex(s => !s.hasEnded && s.phase !== 'cancelled')
+  const scrollTargetId = scrollTargetIndex > 0 ? day.lessons[scrollTargetIndex]?.id ?? null : null
+  const lessonsListRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const list = lessonsListRef.current
+    const scroller = list?.parentElement
+    if (!list || !scroller || !scrollTargetId) return
+    const row = list.querySelector<HTMLElement>(`[data-schedule-lesson="${CSS.escape(scrollTargetId)}"]`)
+    if (!row) return
+    // Карточка в карусели масштабирована: переводим экранные px в px вёрстки.
+    const listRect = list.getBoundingClientRect()
+    const k = listRect.height > 0 ? list.offsetHeight / listRect.height : 1
+    const offset = (row.getBoundingClientRect().top - listRect.top) * k
+    // Строка встаёт сразу под верхним фейдом, над ней — краешек прошедшего.
+    const fade = mobile ? 10 : 22
+    scroller.scrollTop = Math.max(0, offset - (fade - 8))
+  }, [scrollTargetId, mobile])
 
   // Reset selection whenever this card stops being the centered (active) day,
   // and drop any track highlight we set while selected.
@@ -163,7 +184,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
               </div>
             )
             const lessonsList = (
-              <div className="flex flex-col" style={{ gap: 10 }}>
+              <div ref={lessonsListRef} className="flex flex-col" style={{ gap: 10 }}>
             {day.lessons.map((lesson, lessonIndex) => {
                 const isSelected = selectedLessonId === lesson.id
                 const st = states[lessonIndex]
@@ -194,6 +215,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       previewScheduleLesson(lesson)
                     }
                   }}
+                  data-schedule-lesson={lesson.id}
                   data-schedule-state={st.phase}
                   data-ended={st.hasEnded || undefined}
                   className={`rounded-2xl flex flex-wrap items-center ${isCancelled ? 'cursor-default' : 'cursor-pointer'}`}
