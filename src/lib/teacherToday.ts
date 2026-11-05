@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { withLoadFixture, fixtureToday } from './loadFixture'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { readTeacherRoster, useGroups, useAllStudentsSnapshot } from './useGroups'
@@ -9,7 +10,7 @@ import type { ScheduleItem, Group, Student } from '../data/teacherMockData'
 type TodayRow = { id: string; time_start: string | null; time_end: string | null; lesson_title: string | null;
   lesson_number: number | null; group_id: string | null; student_id: string | null; subject: string | null; status: string | null }
 
-const todayQuery = createSharedQuery<TodayRow[]>(async () => {
+const todayQuery = createSharedQuery<TodayRow[]>(withLoadFixture(k => fixtureToday(k) as TodayRow[], async () => {
   const owner = await getOwnerId()
   if (!owner) return []
   const { groups, students } = await readTeacherRoster()
@@ -23,7 +24,7 @@ const todayQuery = createSharedQuery<TodayRow[]>(async () => {
   if (error) throw error
   if (await getOwnerId() !== owner) throw new Error('Сессия изменилась')
   return (data ?? []) as TodayRow[]
-}, [], { watch: reload => {
+}), [], { watch: reload => {
   let timer: ReturnType<typeof setTimeout> | undefined
   let day = todayMsk()
   const channel = supabase.channel(`teacher-today-${crypto.randomUUID()}`)

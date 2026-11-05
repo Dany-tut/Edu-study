@@ -1,4 +1,5 @@
 import { mutationAcknowledged, missingMutationRow } from './mutationEvidence'
+import { withLoadFixture, fixtureHomework, fixtureHard } from './loadFixture'
 import { trackEvent } from './analytics'
 import { latestHomeworkSubmissions } from './mobileHomeworkReviewState'
 import type { HomeworkAttempt } from './homeworkResult'
@@ -332,7 +333,7 @@ function mapRow(h: any, counts?: { submitted: number; reviewed: number; oldest?:
 
 // Домашки владельца. Общий запрос: хук зовут 12 компонентов кабинета, и раньше
 // каждый слал свою пару запросов (см. lib/sharedQuery.ts).
-const homeworkQuery = createSharedQuery<HwAssignment[]>(async () => {
+const homeworkQuery = createSharedQuery<HwAssignment[]>(withLoadFixture(fixtureHomework, async () => {
   const uid = await getOwnerId()
   if (!uid) return []
   const { data } = await supabase
@@ -368,7 +369,7 @@ const homeworkQuery = createSharedQuery<HwAssignment[]>(async () => {
   }
 
   return data.map(h => mapRow(h, countsByHw.get(h.id)))
-}, [])
+}), [])
 
 export function useHomework() {
   const { value: homework, loading } = useSharedQuery(homeworkQuery)
@@ -449,7 +450,7 @@ export function useHomework() {
 // Сдачи сложных заданий. Общий запрос И ОДИН живой канал на всех: хук зовут
 // девять компонентов, и раньше каждый заводил свой канал на lesson_progress —
 // одно изменение перезапускало загрузку девять раз.
-const hardQuery = createSharedQuery<HardSub[]>(async () => {
+const hardQuery = createSharedQuery<HardSub[]>(withLoadFixture(fixtureHard, async () => {
   // Fetch hard submissions: new format (lesson_ref ends with '-hard')
   // OR old format (comment non-empty, no '-hard' suffix)
   const uid = await getOwnerId()
@@ -530,7 +531,7 @@ const hardQuery = createSharedQuery<HardSub[]>(async () => {
       },
     }
   })
-}, [], {
+}), [], {
   watch: reload => {
     // Имя канала всё равно уникальное: Supabase бросает, если два подписчика
     // делят одно, а страницу могут открыть и переоткрыть за одну жизнь вкладки.
