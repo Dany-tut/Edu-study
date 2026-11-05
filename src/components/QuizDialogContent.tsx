@@ -1,5 +1,4 @@
 import { Check, X, Clock, Pause, ChevronLeft, ChevronRight, CircleHelp } from './icons/appIcons'
-import { LoopSelect } from './icons/LoopSelect'
 import { OverlayScrollArea } from './teacher/OverlayScroll'
 import FadeText from './FadeText'
 import HomeWidgetObject from './HomeWidgetObject'
@@ -9,10 +8,10 @@ import './quizDialog.css'
 
 type State = 'preview' | 'active' | 'answered' | 'timeout' | 'done'
 type Result = 'correct' | 'wrong' | 'timeout'
-export default function QuizDialogContent({ state, question, answers, current, questions, timeLeft, selected, results, resumeIndex, onStart, onStop, onAnswer, onNavigate, onRestart }: {
+export default function QuizDialogContent({ state, question, answers, current, questions, timeLeft, selected, results, resumeIndex, onStart, onStop, onAnswer, onNavigate, onNext, onRestart, liveIndex }: {
   state: State; question: QuizQuestion; answers: QuizAnswer[]; current: number; questions: QuizQuestion[]
-  timeLeft: number; selected: string | null; results: (Result | undefined)[]; resumeIndex: number
-  onStart: () => void; onStop: () => void; onAnswer: (id: string) => void; onNavigate: (index: number) => void; onRestart: () => void
+  timeLeft: number; selected: string | null; results: (Result | undefined)[]; resumeIndex: number; liveIndex: number
+  onStart: () => void; onStop: () => void; onAnswer: (id: string) => void; onNavigate: (index: number) => void; onNext: () => void; onRestart: () => void
 }) {
   const t = useT()
   const total = questions.length
@@ -21,6 +20,9 @@ export default function QuizDialogContent({ state, question, answers, current, q
   const correct = results.filter(result => result === 'correct').length
   const answer = answers.find(item => item.correct)
   const feedback = state === 'timeout' ? 'timeout' : revealed ? results[current] : undefined
+  // Точки помещаются в 150 px до ~24 вопросов; длиннее — обычная полоска.
+  const showDots = total <= 24
+  const canOpen = (index: number) => index !== current && (results[index] !== undefined || index === liveIndex)
   const FeedbackIcon = feedback === 'correct' ? Check : feedback === 'wrong' ? X : feedback === 'timeout' ? Clock : CircleHelp
   return <div className="quiz-dialog" data-quiz-state={state}>
     <div className="qd-stage">
@@ -57,11 +59,14 @@ export default function QuizDialogContent({ state, question, answers, current, q
     </div>
     <footer className="qd-navigation">
       {playing ? <>
-        <button data-hover="layer" type="button" className="qd-icon-button" disabled={current === 0} onClick={() => onNavigate(current - 1)} aria-label={t('Предыдущий вопрос')}><ChevronLeft size={21}/></button>
-        <div className="qd-progress-control"><LoopSelect value={current} aria-label={t('Вопрос')} onChange={event => onNavigate(Number(event.target.value))} style={{ width: '100%', height: 44, border: 0, borderRadius: 12, paddingLeft: 12, background: 'var(--color-bg-3)', fontSize: 13 }}>
-          {questions.map((item, index) => <option key={item.id} value={index}>{index + 1} {t('из')} {total}</option>)}
-        </LoopSelect><div className="qd-progress" aria-hidden="true"><span style={{ width: `${total ? (current + 1) / total * 100 : 0}%` }}/></div></div>
-        <button data-hover="layer" type="button" className="qd-icon-button" disabled={current === total - 1} onClick={() => onNavigate(current + 1)} aria-label={t('Следующий вопрос')}><ChevronRight size={21}/></button>
+        <button data-hover="layer" type="button" className="qd-icon-button" disabled={current === 0 || results[current - 1] === undefined} onClick={() => onNavigate(current - 1)} aria-label={t('Предыдущий вопрос')}><ChevronLeft size={21}/></button>
+        <div className="qd-progress-control">
+          <span className="qd-counter" aria-label={`${t('Вопрос')} ${current + 1} ${t('из')} ${total}`}>{current + 1} / {total}</span>
+          {showDots ? <div className="qd-dots">
+            {questions.map((item, index) => <button data-hover="layer" type="button" key={item.id} className="qd-dot" data-result={results[index] ?? 'pending'} data-current={index === current} disabled={!canOpen(index)} onClick={() => onNavigate(index)} aria-label={`${t('Вопрос')} ${index + 1}`} aria-current={index === current ? 'step' : undefined}/>)}
+          </div> : <div className="qd-progress" aria-hidden="true"><span style={{ width: `${total ? (current + 1) / total * 100 : 0}%` }}/></div>}
+        </div>
+        <button data-hover="layer" type="button" className="qd-next" disabled={!revealed} onClick={onNext}>{t('Дальше')}<ChevronRight size={19}/></button>
       </> : <button data-hover="layer" type="button" className="qd-primary" disabled={!total} onClick={state === 'done' ? onRestart : onStart}>{state === 'done' ? t('Начать заново') : resumeIndex > 0 ? t('Продолжить') : t('Начать')}<ChevronRight size={19}/></button>}
     </footer>
   </div>
