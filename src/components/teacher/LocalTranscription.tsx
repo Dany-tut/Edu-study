@@ -48,13 +48,13 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
     setMessage('')
     try {
       if (connected) {
-        try {
-          await localRequest('/connect', localStorage.getItem(tokenKey(owner)) || '', {
-            method: 'DELETE', signal: AbortSignal.timeout(3000),
-          })
-        } catch {
-          // Forget this browser's pairing even when the companion cannot revoke it.
-        }
+        // Отзыв на Mac — в фоне. Раньше кнопка ждала его до 3 с, а при
+        // выключенном модуле ответа нет вовсе: «Отключаем…» висело, и по нему
+        // долбили (rage 04.11). Привязка этого браузера стирается в любом
+        // случае, поэтому ждать компаньона незачем.
+        void localRequest('/connect', localStorage.getItem(tokenKey(owner)) || '', {
+          method: 'DELETE', signal: AbortSignal.timeout(3000),
+        }).catch(() => { /* companion offline: pairing is forgotten locally anyway */ })
         setDownloadStarted(true)
         localStorage.setItem(downloadKey, '1')
         localStorage.removeItem(tokenKey(owner))
