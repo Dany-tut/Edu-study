@@ -31,6 +31,13 @@ JOBS.mkdir(mode=0o700, exist_ok=True)
 VOICE_MODELS = HOME / 'voice-models'
 def voice_memory(token): return HOME / f"voices-{hashlib.sha256(token.encode()).hexdigest()[:16]}.json"
 jobs = job_store.load(JOBS)
+# Уровень Б — материал для дообучения распознавания. Только по включённому
+# учителем переключателю и только здесь, на Mac: звук записи (сжатый) и
+# отрывки реплик, которые учитель исправил, с правильным текстом. В Искру и
+# куда-либо ещё не отправляется. Звук без исправлений живёт TRAINING_DAYS дней.
+TRAINING = HOME / 'training'
+TRAINING_DAYS = 60
+def training_audio(jid): return TRAINING / 'audio' / f'{jid}.ogg'
 
 @app.before_request
 def verify():
@@ -94,6 +101,12 @@ def process(job,folder,link):
                 raise ValueError('Не удалось прочитать звук. Проверьте файл или ссылку.')
             job['completed'].append('audio')
             job_store.save(folder, job)
+        if job.get('training') and not training_audio(job['id']).exists():
+            # Сжатая копия звука переживёт уборку папки задания: из неё потом
+            # вырезаются исправленные учителем реплики. ~7 МБ на час записи.
+            training_audio(job['id']).parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            subprocess.run(['ffmpeg','-nostdin','-v','error','-y','-protocol_whitelist','file,pipe','-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-c:a','libopus','-b:a','16k',str(training_audio(job['id']))],
+                           capture_output=True,pass_fds=(worker_lock.fileno(),))
         env=dict(os.environ,HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false')
         if job.get('tracks') and 'recognize.py' not in job['completed']:
             stage('Распознаём речь')
@@ -192,7 +205,15 @@ def start():
         for i,t in enumerate(tracks):
             t.save(folder/f'track-{i}')
             names.append(Path(t.filename).stem[:60] or f'Участник {i+1}')
-        job={'id':jid,'owner':token,'link':link,'tracks':names,'completed':[], 'state':{'stage':'Запись принята'}}
+        # Словарь предмета от страницы: подсказка распознаванию и известные ошибки.
+        terms=request.form.get('terms','')
+        if terms and len(terms)<200_000:
+            try:
+                data=json.loads(terms)
+                (folder/'terms.json').write_text(json.dumps({'prompt':[str(t)[:80] for t in data.get('prompt',[])][:120],
+                    'replace':[[str(h)[:80],str(w)[:80]] for h,w in data.get('replace',[]) if isinstance(h,str) and isinstance(w,str)][:400]},ensure_ascii=False))
+            except (ValueError, TypeError, AttributeError): pass
+        job={'id':jid,'owner':token,'link':link,'tracks':names,'completed':[], 'state':{'stage':'Запись принята'},'training':request.form.get('training')=='1'}
         job_store.save(folder, job)
         jobs[jid]=job
         threading.Thread(target=process,args=(job,folder,link),daemon=True).start()
@@ -222,6 +243,42 @@ def progress(jid):
         except (FileNotFoundError, ValueError):pass
     return jsonify(state)
 
+@app.post('/training')
+def training():
+    """Учитель исправил реплику — отрывок звука с правильным текстом в материал для дообучения."""
+    token=device()
+    body=request.get_json(silent=True) or {}
+    jid=str(body.get('job',''))
+    job=jobs.get(jid)
+    if not job or job['owner']!=token: abort(404)
+    audio=training_audio(jid)
+    if not audio.exists(): return jsonify(saved=0)
+    subject=''.join(c for c in str(body.get('subject',''))[:40] if c.isalnum() or c in '-_') or 'other'
+    clips=TRAINING/'clips'/subject
+    clips.mkdir(mode=0o700, parents=True, exist_ok=True)
+    saved=0
+    with open(TRAINING/'manifest.jsonl','a') as manifest:
+        for item in (body.get('items') or [])[:50]:
+            try: start=max(0.0,float(item['start'])-0.2); end=float(item['end'])+0.2
+            except (KeyError, TypeError, ValueError): continue
+            text=str(item.get('text','')).strip()[:1000]
+            if not text or not 0<end-start<=30: continue
+            clip=clips/f'{jid}-{int(start*1000)}.wav'
+            if subprocess.run(['ffmpeg','-nostdin','-v','error','-y','-ss',f'{start:.3f}','-to',f'{end:.3f}','-i',str(audio),'-ac','1','-ar','16000',str(clip)],capture_output=True).returncode: continue
+            # Одна строка — один отрывок: звук, правильный текст и как было распознано.
+            manifest.write(json.dumps({'audio':str(clip.relative_to(TRAINING)),'text':text,'before':str(item.get('before',''))[:1000],
+                                       'subject':subject,'job':jid,'start':round(start,3),'end':round(end,3),'at':int(time.time())},ensure_ascii=False)+'\n')
+            saved+=1
+    return jsonify(saved=saved)
+
+def prune_training():
+    """Звук записей, из которых так ничего и не вырезали, — не дольше TRAINING_DAYS дней."""
+    folder=TRAINING/'audio'
+    if not folder.exists(): return
+    edge=time.time()-TRAINING_DAYS*86400
+    for f in folder.glob('*.ogg'):
+        if f.stat().st_mtime<edge: f.unlink(missing_ok=True)
+
 def resume_jobs():
     # Serial worker: do not overlap heavy model processes after a restart.
     for job in list(jobs.values()):
@@ -236,5 +293,6 @@ if __name__=='__main__':
     except BlockingIOError:
         print('Модуль Искры уже работает. Вернитесь в браузер.', flush=True)
         sys.exit(0)
+    prune_training()
     threading.Thread(target=resume_jobs, daemon=True).start()
     app.run(host='127.0.0.1',port=18764,threaded=True)

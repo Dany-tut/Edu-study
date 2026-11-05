@@ -3,6 +3,8 @@ import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, Upload, X 
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
+import Switch from '../Switch'
+import { fetchTermsPack, suggestTerms, termEditPairs, termsForModule } from '../../lib/transcriptTerms'
 import './profileIntegrations.css'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
@@ -220,6 +222,8 @@ type Pending = { id: string; source: string; fileSignature?: string }
 const megabytes = (bytes: number) => (bytes / 1048576).toFixed(1) + ' МБ'
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
 type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean>
+  /** Предмет словаря расшифровки (termsSubject) и название урока — подсказка модулю. */
+  subject?: string; lessonTitle?: string
   /** Уроки курса с итогами монтажа — для динамики во вкладке «Итоги». */
   trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }
 
@@ -234,9 +238,13 @@ export type TranscriptRail = {
   draft: LocalDraft
   change: (value: LocalDraft) => void
   saving: boolean
+  /** Учитель поправил реплику: пары терминов — в словарь, отрывок — в материал для дообучения. */
+  corrected?: (before: string, line: { start: number; end: number; text: string }) => void
 }
 
 /** Время реплики целиком и одной ширины во всём списке: 00:06 … 59:59, а если в записи есть часы — 00:00:06 … 02:20:20. */
+const TRAINING_KEY = 'iskra.transcription.training'
+
 function lineClock(seconds: number, withHours: boolean) {
   const s = Math.max(0, Math.floor(seconds)), two = (n: number) => String(n).padStart(2, '0')
   const mmss = two(Math.floor(s % 3600 / 60)) + ':' + two(s % 60)
@@ -262,6 +270,8 @@ const FOLLOW_PAUSE_MS = 3500
 export function RecordingLines({rail, fill, at, onSeek}: {rail: TranscriptRail; fill?: boolean; at?: number; onSeek?: (seconds: number) => void}) {
   const [editing, setEditing] = useState<number | null>(null)
   const {draft, change, saving} = rail
+  // Текст реплики до правки: на выходе из поля сравниваем — что именно исправлено.
+  const original = useRef('')
   const segments = draft.transcript.segments
   const withHours = segments.some(s => s.start >= 3600)
   const now = at == null || at <= 0 ? -1 : lineAt(segments, at)
@@ -305,7 +315,8 @@ export function RecordingLines({rail, fill, at, onSeek}: {rail: TranscriptRail; 
           : <time>{lineClock(line.start, withHours)}</time>}
         {editing === index ? <span className="transcript-line-text" data-text={line.text + ' '}>
           <textarea rows={1} autoFocus aria-label={'Реплика ' + (index+1)} value={line.text} disabled={saving}
-            onBlur={() => setEditing(null)} onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.blur() }}
+            onFocus={e => { original.current = e.currentTarget.value }}
+            onBlur={e => { setEditing(null); const text = e.currentTarget.value; if (text !== original.current) rail.corrected?.(original.current, {...line, text}) }} onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.blur() }}
             onChange={e => change({...draft, transcript:{...draft.transcript, segments:segments.map((s,i) =>
               i === index ? {...s,text:e.target.value} : s)}})}/>
         </span> : <button type="button" disabled={saving} aria-label={'Редактировать реплику ' + (index+1)} onClick={() => setEditing(index)}>{line.text || 'Введите текст'}</button>}
@@ -364,7 +375,14 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   </button>)}</>
   const badChapter = draft.timecodes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
   const badLine = draft.transcript.segments.some(line => !line.text.trim())
-  const rail = {draft, change, saving}
+  const corrected = (before: string, line: { start: number; end: number; text: string }) => {
+    void suggestTerms(props.subject ?? '', termEditPairs(before, line.text))
+    // Отрывок для дообучения: модуль вырежет его из звука, который отложил при обработке.
+    const token = localStorage.getItem(tokenKey(props.owner))
+    if (draft?.jobId && token) void localRequest('/training', token, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job: draft.jobId, subject: props.subject ?? '', items: [{ start: line.start, end: line.end, text: line.text, before }] }) }).catch(() => { /* модуль выключен или звук не копился — правка в уроке всё равно сохранится */ })
+  }
+  const rail = {draft, change, saving, corrected}
   const actions = <>
     {localSaveFailed && <small role="alert">Не удалось сохранить черновик в браузере. Не обновляйте страницу до сохранения в урок.</small>}
     {(failed || badChapter || badLine) && <small role="alert">{failed ? 'Не удалось сохранить. Попробуйте ещё раз.' : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
@@ -384,7 +402,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   return <>{props.children(actions,rail)}</>
 }
 
-function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { onReady: (result: LocalDraft) => void; onClose: () => void }) {
+function Review({ owner, lessonKey, source, file, subject, lessonTitle, onReady, onClose }: Props & { onReady: (result: LocalDraft) => void; onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
@@ -396,6 +414,9 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
   const [retry, setRetry] = useState(0)
   // Дорожки участников (Zoom пишет звук каждого отдельным файлом): голоса — точно.
   const [tracks, setTracks] = useState<File[]>([])
+  // Уровень Б: копить звук исправленных реплик на этом Mac для дообучения модели.
+  const [keepTraining, setKeepTraining] = useState(() => { try { return localStorage.getItem(TRAINING_KEY) === '1' } catch { return false } })
+  const toggleTraining = (on: boolean) => { setKeepTraining(on); try { localStorage.setItem(TRAINING_KEY, on ? '1' : '0') } catch { /* без памяти — только на эту запись */ } }
   const readyRef = useRef(onReady)
   useEffect(() => { readyRef.current = onReady }, [onReady])
   async function start() {
@@ -407,6 +428,11 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     for (const track of tracks) form.append('tracks', track)
     setBusy(true)
     try {
+      // Словарь предмета: термины — подсказка Whisper, пары — исправления.
+      // Нет словаря — модуль распознаёт как раньше.
+      const pack = await fetchTermsPack(subject ?? '')
+      if (pack.length || lessonTitle) form.append('terms', JSON.stringify(termsForModule(pack, lessonTitle)))
+      if (keepTraining) form.append('training', '1')
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
       const job = { id, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined }
       localStorage.setItem(key, JSON.stringify(job))
@@ -432,7 +458,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
         if (!read) throw new Error('Нет реплик для проверки.')
         // Голоса от модуля: реплики сразу с говорящими, узнанные — по имени.
         const { transcript, voices } = applyModuleVoices(read, state.voices)
-        readyRef.current({ transcript, ...(voices ? { voices } : {}), timecodes: state.chapters.map((c: { start: number; title: string }) =>
+        readyRef.current({ transcript, jobId: job.id, ...(voices ? { voices } : {}), timecodes: state.chapters.map((c: { start: number; title: string }) =>
           ({ seconds: c.start, time: transcriptTime(c.start), label: c.title })) })
       } catch (e) {
         if (!active) return
@@ -461,6 +487,10 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
       <small>{tracks.length ? tracks.map(t => t.name).join(', ') : 'Zoom умеет сохранять звук каждого отдельным файлом. С ними голоса подпишутся точно, по именам файлов.'}</small>
       <input type="file" multiple accept="audio/*,.m4a" aria-label="Дорожки участников" disabled={busy} onChange={e => setTracks([...(e.target.files ?? [])])} />
     </label>}
+    {!pending && <div className="transcription-training">
+      <span><strong>Учить распознавание на моих правках</strong><small>Звук исправленных реплик остаётся только на этом Mac — из него потом дообучим модель. Ученикам и в Искру он не уходит.</small></span>
+      <Switch checked={keepTraining} onChange={toggleTraining} disabled={busy} label="Учить распознавание на моих правках" />
+    </div>}
     {pending && !error && <>
       <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}</small>
       <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac. Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>

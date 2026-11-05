@@ -21,7 +21,9 @@ export interface LessonTranscript { source: string; segments: TranscriptSegment[
 /** Голос от модуля. embedding (отпечаток) — только в черновике на этом
  *  компьютере: в урок не сохраняется, нужен, чтобы запомнить голос на Mac. */
 export interface ModuleVoice { id: string; embedding?: string; name?: string; match?: { label: string; role: 'teacher' | 'student' } }
-export interface LocalDraft { transcript: LessonTranscript; timecodes: LessonTimecode[]; voices?: ModuleVoice[] }
+export interface LocalDraft { transcript: LessonTranscript; timecodes: LessonTimecode[]; voices?: ModuleVoice[]
+  /** Задание модуля, из которого пришла расшифровка: по нему модуль находит звук для дообучения. */
+  jobId?: string }
 
 export class LocalTranscriptionUnavailable extends Error {}
 

@@ -15,6 +15,8 @@ import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
 import AdminUserActivity from '../../components/teacher/AdminUserActivity'
 import FeedbackRequestsManager from '../../components/teacher/FeedbackRequestsManager'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
+import TranscriptTermsManager from '../../components/teacher/TranscriptTermsManager'
+import { AudioLines } from '../../components/icons/appIcons'
 import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
 import Checkbox from '../../components/Checkbox'
 import Switch from '../../components/Switch'
@@ -936,9 +938,9 @@ export default function TeacherAdminPage() {
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [inviteOpen, setInviteOpen] = useState(false)
-  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests'>(() => {
+  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests' | 'dictionary'>(() => {
     const saved = sessionStorage.getItem('admin_tab')
-    return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' ? saved : 'overview'
+    return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' || saved === 'dictionary' ? saved : 'overview'
   })
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -1046,7 +1048,7 @@ export default function TeacherAdminPage() {
         {/* Tabs */}
         <Segmented
           variant="mode" value={tab} onChange={setTab} style={{ marginBottom: 24 }}
-          items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
+          items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox], ['dictionary', t('Словарь'), AudioLines]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
         />
 
         {tab === 'analytics' && <TeacherAnalytics />}
@@ -1054,6 +1056,8 @@ export default function TeacherAdminPage() {
         {tab === 'users' && <AdminUserActivity />}
 
         {tab === 'requests' && <FeedbackRequestsManager />}
+
+        {tab === 'dictionary' && <TranscriptTermsManager />}
 
         {tab === 'data' && (
           <>

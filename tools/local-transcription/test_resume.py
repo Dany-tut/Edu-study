@@ -81,4 +81,29 @@ class ResumeTests(unittest.TestCase):
         self.assertEqual(self.client.delete('/voices',**url).status_code,204)
         self.assertFalse(path.exists())
 
+    def test_job_keeps_terms_and_training_flag(self):
+        url=dict(base_url='http://127.0.0.1:18764',headers=self.headers)
+        terms=json.dumps({'prompt':['s-подуровень'],'replace':[['из-под уровн*','s-подуровн*'],[1,'x']]})
+        with patch.object(self.s.threading,'Thread'):
+            r=self.client.post('/jobs',data={'link':'https://example.com/v','terms':terms,'training':'1'},**url)
+        jid=r.get_json()['id'];self.s.gate.release()
+        saved=json.loads((self.s.JOBS/jid/'terms.json').read_text())
+        self.assertEqual(saved,{'prompt':['s-подуровень'],'replace':[['из-под уровн*','s-подуровн*']]})
+        self.assertTrue(self.s.jobs[jid]['training'])
+
+    def test_training_clips_only_for_owner_with_kept_audio(self):
+        url=dict(base_url='http://127.0.0.1:18764',headers=self.headers)
+        job,self.folder=self.job()
+        item={'start':1,'end':2.5,'text':'на s-подуровне','before':'на из-под уровне'}
+        self.assertEqual(self.client.post('/training',json={'job':job['id'],'items':[item]},**url).get_json()['saved'],0)
+        audio=self.s.training_audio(job['id']);audio.parent.mkdir(parents=True)
+        subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','sine=d=4','-ar','16000','-c:a','libopus',str(audio)],check=True)
+        other='c'*64;(self.s.HOME/other).touch()
+        self.assertEqual(self.client.post('/training',json={'job':job['id'],'items':[item]},base_url=url['base_url'],headers={**self.headers,'Authorization':'Bearer '+other}).status_code,404)
+        r=self.client.post('/training',json={'job':job['id'],'subject':'chemistry','items':[item,{'start':0,'end':99,'text':'длинно'}]},**url)
+        self.assertEqual(r.get_json()['saved'],1)
+        line=json.loads((self.s.TRAINING/'manifest.jsonl').read_text().splitlines()[0])
+        self.assertEqual((line['text'],line['before'],line['subject']),('на s-подуровне','на из-под уровне','chemistry'))
+        self.assertTrue((self.s.TRAINING/line['audio']).exists())
+
 if __name__=='__main__': unittest.main()

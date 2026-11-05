@@ -109,6 +109,7 @@ type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
 
 
 import { RecordingLines, TranscriptionAction, useTranscriptionOwner, type TranscriptRail } from '../../components/teacher/LocalTranscription'
+import { termsSubject } from '../../lib/transcriptTerms'
 import { readTranscript, type LessonTranscript } from '../../lib/localTranscription'
 import { playbackPlan, type LessonStatsSummary } from '../../lib/lessonMontage'
 
@@ -1717,9 +1718,11 @@ function montagePlan(lesson: CELesson) {
 }
 
 function CenterRecording({
-  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false,
+  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false, subject = '',
 }: {
   lesson: CELesson
+  /** Предмет курса — словарь расшифровки этого предмета. */
+  subject?: string
   /** «Предпросмотр»: плеер пропускает вырезанное и ускоряет тихое — как у ученика. */
   preview?: boolean
   /** Уроки курса с итогами монтажа — динамика во вкладке «Итоги». */
@@ -1993,7 +1996,7 @@ function CenterRecording({
 
   return (
     <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', paddingBottom: RECORDING_BLEED }}>
-      {loading || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
+      {loading || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         onApply={({ transcript, timecodes }) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes })}>{content}</TranscriptionAction>}
     </div>
@@ -7467,6 +7470,7 @@ export default function TeacherCourseEditorPage() {
                       <CenterRecording
                         trend={course.lessons.map(l => ({ id: l.id, title: l.title, current: l.id === selectedLesson.id, stats: l.transcript?.montage?.stats }))}
                         linesSlot={recordingLinesSlot}
+                        subject={course.subject}
                         preview={recordingView === 'preview' && !!montagePlan(selectedLesson)}
                         courseKey={course.id} loading={!!(course.metadataPending || course.heavyPending)} published={course.status === 'published'}
                         key={lessonShortIdById[selectedLesson.id] ?? selectedLesson.id}
