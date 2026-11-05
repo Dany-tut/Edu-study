@@ -19,11 +19,6 @@
 .lm-player { display: grid; gap: 10px; }
 .lm-screen { --lm-pad: 12px; position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 14px 18px; border-radius: 18px; background: var(--color-bg-3); overflow: hidden; }
 .lm-rate { display: inline-flex; flex-shrink: 0; align-items: center; gap: 4px; height: 24px; font-size: 12px; box-sizing: border-box; padding: 0 9px; border-radius: 999px; background: var(--color-yellow-soft); color: var(--color-yellow-text); font-weight: 750; font-variant-numeric: tabular-nums; }
-/* Окно с настоящей записью: видео слева, реплика справа. Высота видео
-   задаёт высоту экрана; на низких окнах видео меньше. */
-.lm-screen.has-video { --lm-video-h: 180px; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); column-gap: 16px; align-items: start; }
-.lm-video { grid-row: 1 / span 2; width: calc(var(--lm-video-h) * 16 / 9); height: var(--lm-video-h); border-radius: 12px; overflow: hidden; background: #000; }
-.lm-video > * { width: 100%; height: 100%; }
 .lm-screen-line { display: grid; justify-items: start; gap: 8px; transition: opacity .2s; }
 .lm-screen-line.is-dim { opacity: .45; }
 .lm-screen-line { align-self: start; align-content: start; }
@@ -167,7 +162,7 @@
 .lm-line.is-now { border-color: var(--color-control-accent); }
 .lm-line.is-cut { opacity: .6; }
 .lm-line-head { display: flex; align-items: center; gap: 8px; }
-.lm-line-who { flex: 0 1 auto; min-width: 0; }
+.lm-line-who { flex: 0 1 auto; min-width: 0; max-width: 220px; }
 .lm-time-btn { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 10px; border: 0; border-radius: 10px; background: var(--color-bg-2); color: var(--color-text); font: inherit; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; }
 .lm-line-text { resize: none; line-height: 1.4; }
 
@@ -185,7 +180,6 @@
 .lm-footer-sum strong { margin-right: 6px; color: var(--color-green-text); font-variant-numeric: tabular-nums; }
 
 @media (min-width: 1024px) and (max-height: 940px) {
-  .lm-screen.has-video { --lm-video-h: 150px; }
   .lm-screen { --lm-pad: 10px; padding: 10px 10px 12px 16px; }
   .lm-screen-body { --lm-text: 15px; }
   .lm-timeline { gap: 2px; padding: 8px 12px; }
@@ -196,7 +190,6 @@
   .lm-col { gap: 8px; }
 }
 @media (min-width: 1024px) and (max-height: 820px) {
-  .lm-screen.has-video { --lm-video-h: 118px; }
   .lm-zoom-hint { display: none; }
   .lm-playhead-row { inset: 8px 12px; }
   .lm-screen { --lm-pad: 8px; gap: 4px; padding: 8px 8px 10px 14px; }
@@ -220,8 +213,6 @@
 }
 @media (max-width: 1023px) {
   .lm-zoom-hint { display: none; }
-  .lm-screen.has-video { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
-  .lm-video { grid-row: auto; width: 100%; height: auto; aspect-ratio: 16 / 9; }
   /* 16 px — иначе iOS приближает страницу при фокусе; визуально как 12. */
   .lm-lane-input { font-size: 16px; width: 133.4%; height: 133.4%; transform: scale(.75); transform-origin: left top; }
   .lm-screen { --lm-pad: 12px; padding: 12px 12px 14px 16px; }
@@ -245,29 +236,3 @@
   -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-l, 0px), #000 calc(100% - var(--fade-r, 0px)), transparent);
   mask-image: linear-gradient(to right, transparent, #000 var(--fade-l, 0px), #000 calc(100% - var(--fade-r, 0px)), transparent);
 }
-
-/* Итоги урока */
-.lm-stat { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: var(--color-bg-3); }
-.lm-stat-split { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--color-bg-2); }
-.lm-stat-split i { display: block; height: 100%; }
-.lm-stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; font-size: 12px; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
-.lm-stat-row strong { color: var(--color-text); }
-.lm-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.lm-stat-grid div { display: grid; gap: 2px; }
-.lm-stat-grid strong { font-size: 18px; font-variant-numeric: tabular-nums; }
-.lm-stat-grid small { font-size: 12px; color: var(--color-text-3); }
-.lm-stat-speaker { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--color-bg-3); }
-.lm-stat-name { min-width: 0; font-weight: 700; color: var(--tone); white-space: nowrap; }
-.lm-stat-warn { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--color-yellow-soft); color: var(--color-yellow-text); font-size: 13px; }
-
-.lm-inline-link { padding: 0; border: 0; background: none; color: var(--color-purple-text); font: inherit; font-weight: 700; cursor: pointer; }
-
-.lm-stat-title { margin: 6px 0 0; font-size: 13px; }
-.lm-trend-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px 36px 40px; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; font-size: 12px; }
-.lm-trend-row.is-current { background: var(--color-purple-soft); }
-.lm-trend-name { min-width: 0; white-space: nowrap; }
-.lm-trend-bar { height: 6px; }
-.lm-trend-num { text-align: right; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
-.lm-trend-legend { font-size: 11px; color: var(--color-text-3); }
-/* Пять вкладок в колонке 340 px без прокрутки: поля уже, чем у общего Segmented. */
-.lm-side > div:first-child [role=tab] { padding-inline: 9px !important; }

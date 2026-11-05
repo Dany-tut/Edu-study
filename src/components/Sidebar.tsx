@@ -1,6 +1,6 @@
 import StudentProfile, { type StudentProfileTab } from './StudentProfile'
 import { useDesktopFriends } from './../lib/desktopFriends'
-import { Users } from './icons/appIcons'
+import { UserCircle, Users } from './icons/appIcons'
 import FadeText from './FadeText'
 import { motion, AnimatePresence } from 'framer-motion'
 import CountBadge, { countBadgeInset } from './CountBadge'
@@ -138,7 +138,7 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
         transition: 'background 0.15s',
       }}
     >
-      <Icon size={17} strokeWidth={1.9} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-muted)', flexShrink: 0 }} />
+      <Icon size={18} strokeWidth={2} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-muted)', flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
       <ChevronRight size={16} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
     </motion.button>
@@ -647,7 +647,7 @@ export default function Sidebar() {
                         onClick={() => { closePicker(); window.location.hash = '#/teacher' }}
                       />
                     )}
-                    <SettingsRow icon={Users} label={t('Настройки профиля')} onClick={() => { closePicker(); setProfileTab('main') }} />
+                    <SettingsRow icon={UserCircle} label={t('Настройки профиля')} onClick={() => { closePicker(); setProfileTab('main') }} />
                     {friends.account && <SettingsRow icon={Users} label={t('Друзья')} onClick={() => { closePicker(); friends.setTab('contacts') }} />}
                     <SettingsRow
                       icon={Settings}

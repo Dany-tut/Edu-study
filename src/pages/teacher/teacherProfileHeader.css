@@ -83,4 +83,7 @@
   .profile-social-visibility { margin-bottom: 14px; }
   .profile-social-list .friend-empty { min-height: 200px; }
 }
-.profile-settings-single { grid-template-columns: minmax(0, 560px); }
+/* Настройки ученика: как «Друзья» — широкая колонка слева (способы входа), карточка ника справа на том же месте. */
+.profile-settings-grid { grid-template-columns: minmax(0, 1fr) 340px; }
+.profile-settings-main { min-width: 0; }
+@media(max-width: 900px) { .profile-settings-grid { grid-template-columns: minmax(0, 1fr) 300px; } }

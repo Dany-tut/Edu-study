@@ -118,7 +118,11 @@ export default function DashboardPage() {
   // кабинет целиком — иначе новый цвет доезжал бы до них лишь при следующем
   // рендере по другой причине.
   useTint(s => s.version)
-  useNotificationsInit(getStudentSession()?.id)
+  // Все строки-треки человека: уведомление по второму предмету адресовано
+  // второй строке. До загрузки охвата — строка сессии.
+  const scopeIds = useStudentData(s => s.scopeStudentIds)
+  const sessionId = getStudentSession()?.id
+  useNotificationsInit(scopeIds.length ? scopeIds : sessionId)
   const isDesktop = useIsDesktop()
   const trackPopoverOpen = useDashboard(s => s.trackPopoverOpen)
   const activePage = useDashboard(s => s.activePage)

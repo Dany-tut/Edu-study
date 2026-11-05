@@ -2,35 +2,48 @@ import { useEffect } from 'react'
 import { supabase } from './supabase'
 import { useNotificationsStore, type NotifRow } from '../store/notificationsStore'
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /**
- * Hydrate the notifications store for a recipient and keep it live via Realtime.
- * Returns a cleanup function that unsubscribes and resets the store.
+ * Hydrate the notifications store for the cabinet's recipients and keep it live
+ * via Realtime. Returns a cleanup function that unsubscribes and resets the store.
  *
- * `recipientId` is the student.id (student app) or the teacher auth.users.id
- * (teacher app) — it matches notifications.recipient_id written by the DB triggers.
+ * Получатель — то, что пишут триггеры в notifications.recipient_id: у учителя
+ * это auth.users.id, у ученика — id строки students. У ученика с несколькими
+ * предметами строк несколько (по одной на трек), и уведомление по второму
+ * предмету адресовано второй строке — поэтому слушаем все сразу.
  */
-export function initNotifications(recipientId: string): () => void {
-  const store = useNotificationsStore.getState()
-  store.setRecipient(recipientId)
+export function initNotifications(recipientIds: string[]): () => void {
+  // recipient_id — uuid: одна строка вроде демо-охвата `local-…` уронила бы
+  // весь запрос `in (…)` ошибкой 22P02, вместе с настоящими получателями.
+  const ids = [...new Set(recipientIds.filter(id => UUID.test(id)))].sort()
+  if (!ids.length) return () => {}
+  const key = ids.join(',')
+  useNotificationsStore.getState().setRecipients(ids)
 
   // Initial fetch — recent history (read state preserved, not shown as "live").
-  void supabase
+  // Поздний ответ прежнего набора получателей (охват ученика догрузился, и
+  // подписка пересоздана) не должен затирать список нового набора.
+  supabase
     .from('notifications')
     .select('*')
-    .eq('recipient_id', recipientId)
+    .in('recipient_id', ids)
     .order('created_at', { ascending: false })
     .limit(50)
-    .then(({ data }) => {
-      if (data) useNotificationsStore.getState().hydrate(data as NotifRow[])
+    .then(({ data, error }) => {
+      if (error) { console.error('[notifications:hydrate]', error); return }
+      const current = useNotificationsStore.getState().recipientIds.join(',')
+      if (data && current === key) useNotificationsStore.getState().hydrate(data as NotifRow[])
     })
 
+  const filter = ids.length === 1 ? `recipient_id=eq.${ids[0]}` : `recipient_id=in.(${key})`
   const channel = supabase
-    .channel(`notifications-${recipientId}`)
+    .channel(`notifications-${key}`)
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
       table: 'notifications',
-      filter: `recipient_id=eq.${recipientId}`,
+      filter,
     }, payload => {
       useNotificationsStore.getState().ingest(payload.new as NotifRow)
     })
@@ -38,7 +51,7 @@ export function initNotifications(recipientId: string): () => void {
       event: 'UPDATE',
       schema: 'public',
       table: 'notifications',
-      filter: `recipient_id=eq.${recipientId}`,
+      filter,
     }, payload => {
       useNotificationsStore.getState().applyUpdate(payload.new as NotifRow)
     })
@@ -50,10 +63,15 @@ export function initNotifications(recipientId: string): () => void {
   }
 }
 
-/** React hook: init notifications for the given recipient while mounted. */
-export function useNotificationsInit(recipientId: string | null | undefined) {
+/**
+ * React hook: init notifications for the given recipients while mounted.
+ * Один id (учитель) или список (строки-треки ученика); порядок не важен.
+ */
+export function useNotificationsInit(recipients: string | readonly string[] | null | undefined) {
+  const list = typeof recipients === 'string' ? [recipients] : recipients ?? []
+  const key = [...new Set(list.filter(Boolean))].sort().join(',')
   useEffect(() => {
-    if (!recipientId) return
-    return initNotifications(recipientId)
-  }, [recipientId])
+    if (!key) return
+    return initNotifications(key.split(','))
+  }, [key])
 }

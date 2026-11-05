@@ -209,11 +209,11 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets }: {
               : <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />}
           </button>
 
-          {friends.account && <button type="button" className="friend-mobile-entry" onClick={() => friends.setTab('contacts')}>
-            <Users size={18}/>{t('Друзья')}<ChevronRight size={18}/>
+          {friends.account && <button type="button" onClick={() => { tactile(); friends.setTab('contacts') }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
+            <Users size={18} style={{ color: 'var(--color-muted)' }} /><span style={{ flex:1 }}>{t('Друзья')}</span><ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
           </button>}
-          <button type="button" onClick={() => { tactile(); setIntegrations(true) }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', textAlign:'left' }}>
-            <Sparkles size={18}/><span style={{ flex:1 }}>{t('Интеграции')}</span><ChevronRight size={18}/>
+          <button type="button" onClick={() => { tactile(); setIntegrations(true) }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
+            <Sparkles size={18} style={{ color: 'var(--color-muted)' }} /><span style={{ flex:1 }}>{t('Интеграции')}</span><ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
           </button>
           {/* Тема */}
           <button
