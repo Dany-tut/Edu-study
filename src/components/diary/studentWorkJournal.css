@@ -66,9 +66,6 @@
 .swj-attempt-head strong { font-weight: 600; }
 .swj-attempt-head time, .swj-attempt-head span { color: var(--color-text-3); font-size: 11px; }
 .swj-open-work { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 46px; border: 0; border-radius: 15px; background: var(--color-purple-soft); color: var(--color-accent); font: inherit; font-weight: 600; cursor: pointer; }
-.ds-diary-navigation { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 17px 0 24px; }
-.ds-diary-navigation button { min-height: 40px; padding: 9px 17px; border: 0; border-radius: 22px; background: transparent; font-size: 12px; }
-.ds-diary-navigation button[aria-pressed='true'] { background: var(--color-purple-soft); color: var(--color-accent); }
 @media (max-width: 1000px) {
   .swj-metric { padding: 20px 18px; min-height: 170px; }
   .swj-metric-copy { padding-right: 56px; }
@@ -104,7 +101,6 @@
   .swj-state { font-size: 11px; padding: 5px 7px; text-align: center; }
   .swj-detail-summary { gap: 16px; }
   .swj-detail-summary .swj-state { margin-left: 0; }
-  .ds-diary-navigation button { min-height: 44px; }
 }
 
 .swj-filters { width: max-content; max-width: 100%; gap: 4px; padding: 4px; margin: 0 0 16px; border: 1px solid var(--swj-line); border-radius: 28px; }
