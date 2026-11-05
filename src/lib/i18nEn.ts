@@ -5912,6 +5912,8 @@ export const EN: Record<string, string> = {
   "произносят": "pronounced",
   "стартовый словарь": "starter dictionary",
   "добавлено в админке": "added in admin",
+  "из админки": "from admin",
+  "Нажмите, чтобы изменить": "Click to edit",
   "учителей": "teachers",
   "встречалось": "seen",
   "Одобрить": "Approve",
