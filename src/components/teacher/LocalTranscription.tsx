@@ -4,6 +4,7 @@ import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
 import Switch from '../Switch'
+import { MODULE_DOWNLOAD_URL, useModuleFreshness } from '../../lib/transcriptionModuleUpdate'
 import { fetchTermsPack, suggestTerms, termEditPairs, termsForModule } from '../../lib/transcriptTerms'
 import './profileIntegrations.css'
 import './localTranscription.css'
@@ -26,6 +27,8 @@ export function useTranscriptionOwner() {
 
 export function TranscriptionModuleCard({ owner, onConnected }: { owner: string; onConnected?: () => void }) {
   const [connected, setConnected] = useState(() => !!localStorage.getItem(tokenKey(owner)))
+  // Модуль на Mac старше архива на сайте — предлагаем скачать обновление.
+  const outdated = useModuleFreshness(connected) === 'outdated'
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
   const guide = useRef<HTMLDivElement>(null)
@@ -75,18 +78,21 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         <h3>Расшифровка уроков</h3>
         <p>Текст записи и таймкоды глав · Mac с Apple Silicon</p>
       </div>
-      <span className="transcription-module-status" data-connected={connected}>
-        {connected ? 'Доступ сохранён' : 'Не подключён'}
+      <span className="transcription-module-status" data-connected={connected} data-update={outdated || undefined}>
+        {outdated ? 'Есть обновление' : connected ? 'Доступ сохранён' : 'Не подключён'}
       </span>
     </header>
     <div className="transcription-module-body">
-      <p>{connected
+      {outdated ? <div className="transcription-update" role="status">
+        <p><strong>Вышла новая версия модуля.</strong> Скачайте архив, замените им папку Iskra на этом Mac и перезапустите start.command. Подключение и запомненные голоса сохранятся.</p>
+        <a className="integration-action" data-primary="true" href={MODULE_DOWNLOAD_URL} download>Скачать обновление</a>
+      </div> : <p>{connected
         ? 'Для работы запустите start.command на этом Mac и оставьте Терминал открытым. Затем откройте вкладку «Запись» в конструкторе курса.'
-        : 'Скачайте ZIP-архив на тот Mac, на котором будете расшифровывать уроки.'}</p>
+        : 'Скачайте ZIP-архив на тот Mac, на котором будете расшифровывать уроки.'}</p>}
       <div className="integration-steps transcription-steps" data-connected={connected}>
         {connected ? <span className="transcription-step-complete" role="img" aria-label="Архив для Mac" title="Архив для Mac"><Check size={16} aria-hidden/></span> :
           <a className="integration-action transcription-step" data-primary={!downloadStarted}
-            data-phase={downloading ? 'download' : 'idle'} href="/downloads/iskra-transcription-mac.zip" download
+            data-phase={downloading ? 'download' : 'idle'} href={MODULE_DOWNLOAD_URL} download
             aria-disabled={downloading || busy} onClick={event => {
               if (downloading || busy) { event.preventDefault(); return }
               setMessage('')

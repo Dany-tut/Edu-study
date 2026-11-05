@@ -13,7 +13,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { findLessonById } from '../data/lessonContent'
 import { baseLessonRef } from '../lib/extraHomework'
 import { t, useT } from '../lib/i18n'
-import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen, CalendarClock, CalendarX, BellOff } from './icons/appIcons'
+import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen, CalendarClock, CalendarX, BellOff, AudioLines } from './icons/appIcons'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
   homework_assigned:    <ClipboardList size={16} />,
@@ -31,6 +31,7 @@ const ICON_MAP: Record<NotifType, React.ReactNode> = {
   test_completed:       <CheckCircle2  size={16} />,
   payment_due:          <Banknote      size={16} />,
   fill_journal:         <NotebookPen   size={16} />,
+  module_update:        <AudioLines    size={16} />,
   lesson_moved:         <CalendarClock size={16} />,
   lesson_cancelled:     <CalendarX     size={16} />,
 }

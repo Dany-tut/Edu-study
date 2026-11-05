@@ -281,3 +281,10 @@
 .transcription-training > span {display:grid;gap:2px;min-width:0}
 .transcription-training strong {font-size:13px}
 .transcription-training small {font-size:11px;line-height:1.4;color:var(--color-text-3)}
+
+/* Модуль на Mac старше архива на сайте: метка и блок «Скачать обновление». */
+.transcription-module-status[data-update=true] { background: var(--color-yellow-soft); color: var(--color-yellow-text); }
+.transcription-update { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; background: var(--color-yellow-soft); }
+.transcription-update p { flex: 1; min-width: 0; color: var(--color-text); }
+.transcription-update .integration-action { flex: none; width: auto; }
+@media (max-width: 600px) { .transcription-update { flex-direction: column; align-items: stretch; } }
