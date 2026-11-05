@@ -127,7 +127,8 @@ function rowToNotif(row: NotifRow, live: boolean): Notification {
 
 type State = {
   notifications: Notification[]
-  recipientId: string | null
+  /** Все получатели этого кабинета: у ученика — каждая строка-трек человека. */
+  recipientIds: string[]
 
   /** Local-only insert (kept for any in-app, non-persisted notification). */
   add: (n: Omit<Notification, 'id' | 'createdAt' | 'read' | 'live'>) => string
@@ -137,7 +138,7 @@ type State = {
   ingest: (row: NotifRow) => void
   /** Apply a realtime UPDATE (e.g. read-state synced from another device). */
   applyUpdate: (row: NotifRow) => void
-  setRecipient: (id: string | null) => void
+  setRecipients: (ids: string[]) => void
   reset: () => void
 
   markRead: (id: string) => void
@@ -150,7 +151,7 @@ type State = {
 
 export const useNotificationsStore = create<State>()((set, get) => ({
   notifications: [],
-  recipientId: null,
+  recipientIds: [],
 
   add: (n) => {
     const id = crypto.randomUUID()
@@ -187,8 +188,10 @@ export const useNotificationsStore = create<State>()((set, get) => ({
     ),
   })),
 
-  setRecipient: (id) => set({ recipientId: id }),
-  reset: () => set({ notifications: [], recipientId: null }),
+  setRecipients: (ids) => set({ recipientIds: ids }),
+  // Локальные (напоминания дневника, журнал) в базе не лежат: при пересоздании
+  // подписки — охват ученика догрузился — они не должны пропадать.
+  reset: () => set(state => ({ notifications: state.notifications.filter(n => n.local), recipientIds: [] })),
 
   markRead: (id) => {
     const local = get().notifications.find(n => n.id === id)?.local
@@ -214,11 +217,11 @@ export const useNotificationsStore = create<State>()((set, get) => ({
       if (localIds.length) persistLocalRead(localIds)
       return { notifications: updated }
     })
-    const rid = get().recipientId
-    // По recipient_id — если он известен; иначе по списку id (кабинет мог
-    // отрисовать уведомления до того, как initNotifications выставил получателя).
-    if (rid) {
-      runUpdate('markAllRead', supabase.from('notifications').update({ read: true }).eq('recipient_id', rid).eq('read', false))
+    const rids = get().recipientIds
+    // По получателям — если они известны; иначе по списку id (кабинет мог
+    // отрисовать уведомления до того, как initNotifications их выставил).
+    if (rids.length) {
+      runUpdate('markAllRead', supabase.from('notifications').update({ read: true }).in('recipient_id', rids).eq('read', false))
     } else if (dbIds.length) {
       runUpdate('markAllRead', supabase.from('notifications').update({ read: true }).in('id', dbIds))
     }
