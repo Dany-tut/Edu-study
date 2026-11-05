@@ -285,7 +285,8 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
             <td style={numTd}>{fmtMin(r.active_min)}</td>
             <td style={numTd}>{r.sessions}</td>
             <td style={numTd}>{fmtWhen(r.last_seen)}</td>
-            <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
+            <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
               {getViewAs()?.id === r.teacher_id ? (
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-peach-text)' }}>{t('смотрите сейчас')}</span>
               ) : (
@@ -302,13 +303,14 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
                 onClick={() => setToDelete(r)}
                 title={t('Стереть данные или удалить аккаунт')}
                 style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: 6,
-                  width: 29, height: 29, borderRadius: 9, cursor: 'pointer', verticalAlign: 'middle',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  width: 32, height: 32, borderRadius: 10, cursor: 'pointer',
                   background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: 'var(--color-red-text)',
                 }}
               >
                 <Trash2 size={14} strokeWidth={2} />
               </button>
+              </div>
             </td>
           </tr>
         ))}
