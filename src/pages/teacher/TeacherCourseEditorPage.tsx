@@ -300,6 +300,9 @@ const inputSt: React.CSSProperties = { ...FIELD }
 /** Низ списка уроков в одном формате с рядом «Таймкод»/«Добавлено» панели
  *  глав: высота 40, скругление 12, текст 13. */
 const RAIL_CONTROL_H = 40
+/** Шаг между рядами низа рейки — как у рядов панели глав (gap:5px у
+ *  .timecode-editor в localTranscription.css): ряды обеих колонок на одной линии. */
+const RAIL_ROW_GAP = 5
 const railFieldSt: React.CSSProperties = { ...inputSt, height: RAIL_CONTROL_H, padding: '0 12px' }
 
 /** Три строки под смысловые поля задания — правило описано в GrowTextarea. */
@@ -5574,7 +5577,7 @@ function RightPanelLessons({
 
       <div style={{ padding: 12, borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         {addingModule ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: RAIL_ROW_GAP }}>
             <input
               value={newModuleLabel}
               onChange={e => setNewModuleLabel(e.target.value)}
@@ -5597,7 +5600,7 @@ function RightPanelLessons({
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: RAIL_ROW_GAP }}>
               <input
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
