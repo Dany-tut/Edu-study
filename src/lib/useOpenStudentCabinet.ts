@@ -3,6 +3,7 @@ import { linkedStudentProfile } from './authActions'
 import { supabase } from './supabase'
 import { getStudentSession, setStudentSession } from './studentSession'
 import { useAsyncTask } from './useAsyncTask'
+import { rememberCabinet } from './cabinetChoice'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 
@@ -35,6 +36,7 @@ export function useOpenStudentCabinet(visible = true) {
         useStudentData.setState(useStudentData.getInitialState())
       }
       setStudentSession({ id: row.id, name: row.name, groupId: row.group_id ?? '' })
+      rememberCabinet('student')
       useDashboard.getState().setActivePage('home')
       window.location.hash = '#/'
     }, () => setFailed(true))

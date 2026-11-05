@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Eye, EyeOff } from '../components/icons/appIcons'
 import { supabase } from '../lib/supabase'
 import { clearStudentSession, setStudentSession } from '../lib/studentSession'
+import { rememberCabinet } from '../lib/cabinetChoice'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
 import { AuthFeedbackProvider, AuthFeedbackSlot, authFailureFeedback, useAuthFeedback } from '../components/AuthFeedback'
@@ -91,6 +92,7 @@ function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryCom
         if (srow || !switchingCabinet) feedback.report({ tone: 'success', title: 'Вход подтверждён', text: 'Открываем ваш кабинет.' })
         if (srow) {
           setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id ?? '' })
+          rememberCabinet('student')
           void trackNow('login', { role: 'student', method: 'auth' })
           const next = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('next')
           window.location.hash = next && /^#\/(homework|lesson)\//.test(next) ? next : '#/'
