@@ -82,3 +82,10 @@
   /* The trash is always visible on touch, so the title keeps its width. */
   .lesson-row .lesson-row-title.has-delete { margin-right: 0; }
 }
+
+/* Кнопки низа списка уроков: ховер. Пунктирные — лёгкая подложка своего тона. */
+.rail-tone-btn {transition:background .15s}
+.rail-tone-btn[data-tone=green]:hover:not(:disabled) {background:color-mix(in srgb,var(--color-green-soft),var(--color-green-text) 12%) !important}
+.rail-dashed-btn {transition:background .15s,color .15s,border-color .15s}
+.rail-dashed-btn:hover {background:var(--color-bg-3) !important;color:var(--color-text-2) !important;border-color:var(--color-border-medium) !important}
+.rail-dashed-btn[data-tone=green]:hover {background:var(--color-green-soft) !important;color:var(--color-green-text) !important;border-color:var(--color-green-text) !important}
