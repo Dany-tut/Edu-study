@@ -11,6 +11,7 @@ import { authErrorRu } from '../lib/authErrors'
 import { Alert } from '../components/Alert'
 import { btn } from '../lib/pillStyles'
 import SocialLoginButtons from '../components/SocialLoginButtons'
+import { AuthFeedbackProvider, AuthFeedbackSlot } from '../components/AuthFeedback'
 
 function getToken() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
@@ -231,7 +232,10 @@ export default function JoinPage() {
             >
               {saving ? t('Сохранение...') : t('Войти в платформу')}
             </button>
-            {token && <SocialLoginButtons role="student" joinToken={token} />}
+            {token && <AuthFeedbackProvider>
+              <SocialLoginButtons role="student" joinToken={token} />
+              <div style={{ marginTop: 10 }}><AuthFeedbackSlot idleText={t('Google или Apple сразу привяжутся к твоему профилю.')} /></div>
+            </AuthFeedbackProvider>}
           </>
         )}
       </motion.div>
