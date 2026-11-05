@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, X } from '../icons/appIcons'
+import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
@@ -7,7 +7,8 @@ import './profileIntegrations.css'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
 import { getOwnerId, getViewAs } from '../../lib/owner'
-import { LocalTranscriptionUnavailable, localRequest, readTranscript, transcriptTime, type LocalDraft } from '../../lib/localTranscription'
+import type { LessonStatsSummary } from '../../lib/lessonMontage'
+import { LocalTranscriptionUnavailable, applyModuleVoices, localRequest, readTranscript, transcriptTime, type LocalDraft } from '../../lib/localTranscription'
 
 const tokenKey = (owner: string) => 'iskra.transcription.device.' + owner
 
@@ -159,9 +160,68 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   </section>
 }
 
+const stages = ['Видео', 'Распознаём речь', 'Разделяем голоса', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
+type JobProgress = { current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' }
+const PACE_KEY = 'iskra.transcription.pace'
+function readPace(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(PACE_KEY) || '{}') } catch { return {} }
+}
+function timeLeft(seconds: number) {
+  if (seconds < 60) return 'меньше минуты'
+  const minutes = Math.ceil(seconds / 60)
+  return minutes < 60 ? minutes + ' мин' : Math.floor(minutes / 60) + ' ч ' + (minutes % 60) + ' мин'
+}
+
+// Оценка «сколько осталось». Текущий шаг — по скорости с момента, как мы его увидели:
+// пока прогресс стоит, скорость падает и время растёт, в минус не уходит. Следующие
+// шаги — по прошлым обработкам на этом Mac (секунды работы на секунду записи).
+function useTimeLeft(steps: string[], step: string, progress: JobProgress | undefined, running: boolean) {
+  const track = useRef({ step: '', since: 0, fromStart: false, base: null as null | { at: number; current: number }, duration: 0 })
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!running) return
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [running])
+  useEffect(() => {
+    if (!running) return
+    const at = Date.now()
+    const last = track.current
+    if (last.step !== step) {
+      if (last.step && last.fromStart && last.duration > 0 && steps.indexOf(last.step) > 0) {
+        const pace = readPace(), measured = (at - last.since) / 1000 / last.duration
+        pace[last.step] = pace[last.step] ? (pace[last.step] + measured) / 2 : measured
+        try { localStorage.setItem(PACE_KEY, JSON.stringify(pace)) } catch { /* оценка без истории */ }
+      }
+      track.current = { step, since: at, fromStart: !!last.step, base: null, duration: last.duration }
+    }
+    const current = track.current
+    if (progress?.unit === 'seconds') current.duration = progress.total
+    if (progress && (!current.base || progress.current < current.base.current)) current.base = { at, current: progress.current }
+  }, [steps, step, progress, running])
+  if (!running) return ''
+  const { since, base, duration } = track.current
+  const pace = readPace()
+  let left: number | undefined
+  if (progress && progress.total > 0) {
+    const done = base ? progress.current - base.current : 0, elapsed = base ? (now - base.at) / 1000 : 0
+    if (done > 0 && elapsed > 3) left = (progress.total - progress.current) * elapsed / done
+  } else if (pace[step] && duration) {
+    const expected = pace[step] * duration, elapsed = (now - since) / 1000
+    left = Math.max(expected - elapsed, elapsed / 9)
+  }
+  if (left === undefined) return progress || (pace[step] && duration) ? 'считаем, сколько осталось…' : ''
+  const later = steps.slice(steps.indexOf(step) + 1)
+  if (duration && later.every(s => pace[s])) return 'осталось ≈ ' + timeLeft(left + later.reduce((sum, s) => sum + pace[s] * duration, 0))
+  return 'до конца шага ≈ ' + timeLeft(left)
+}
+
 type Pending = { id: string; source: string; fileSignature?: string }
+const megabytes = (bytes: number) => (bytes / 1048576).toFixed(1) + ' МБ'
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
-type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean> }
+type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean>
+  /** Уроки курса с итогами монтажа — для динамики во вкладке «Итоги». */
+  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }
 
 function readPending(owner: string, lessonKey: string, source: string, file?: File | null): Pending | null {
   try {
@@ -261,10 +321,10 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     {(failed || badChapter || badLine) && <small role="alert">{failed ? 'Не удалось сохранить. Попробуйте ещё раз.' : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
     <div className="transcript-tools">
       {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
-        <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить расшифровку'}</button> :
-        <span className="transcript-saved" role="status"><Check size={15}/>Добавлено в урок</span>}
-      {!working && <button aria-label="Повторить обработку" title="Повторить обработку" onClick={open}><RotateCcw size={15}/></button>}
-      <MontageAction draft={draft} change={change} disabled={saving} />
+        <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
+        <span className="transcript-saved" role="status"><Check size={15}/>Добавлено</span>}
+      <button aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={open}><RotateCcw size={15}/></button>
+      <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} />
       <button aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>
@@ -281,10 +341,12 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState('')
-  const [progress, setProgress] = useState<{ current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' }>()
+  const [progress, setProgress] = useState<JobProgress>()
   const [error, setError] = useState('')
   const [unavailable, setUnavailable] = useState(false)
   const [retry, setRetry] = useState(0)
+  // Дорожки участников (Zoom пишет звук каждого отдельным файлом): голоса — точно.
+  const [tracks, setTracks] = useState<File[]>([])
   const readyRef = useRef(onReady)
   useEffect(() => { readyRef.current = onReady }, [onReady])
   async function start() {
@@ -293,6 +355,7 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     const form = new FormData()
     if (file) form.append('video', file)
     else form.append('link', source.trim())
+    for (const track of tracks) form.append('tracks', track)
     setBusy(true)
     try {
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
@@ -312,13 +375,15 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
         if (!active) return
         setError(''); setUnavailable(false)
         setProgress(state.progress)
-        setStage(state.stage + (state.bytes ? ' · ' + (state.bytes / 1048576).toFixed(1) + ' МБ' : ''))
+        setStage(state.stage + (state.bytes ? ' · ' + megabytes(state.bytes) : ''))
         if (state.error) throw new Error(state.stage)
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
         // Паузы и громкость от модуля (если он уже обновлён) — для окна монтажа.
-        const transcript = readTranscript({ source: job.source, segments: state.segments, montage: state.montage })
-        if (!transcript) throw new Error('Нет реплик для проверки.')
-        readyRef.current({ transcript, timecodes: state.chapters.map((c: { start: number; title: string }) =>
+        const read = readTranscript({ source: job.source, segments: state.segments, montage: state.montage })
+        if (!read) throw new Error('Нет реплик для проверки.')
+        // Голоса от модуля: реплики сразу с говорящими, узнанные — по имени.
+        const { transcript, voices } = applyModuleVoices(read, state.voices)
+        readyRef.current({ transcript, ...(voices ? { voices } : {}), timecodes: state.chapters.map((c: { start: number; title: string }) =>
           ({ seconds: c.start, time: transcriptTime(c.start), label: c.title })) })
       } catch (e) {
         if (!active) return
@@ -332,9 +397,9 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     window.addEventListener('online', reconnect)
     return () => { active = false; clearTimeout(timer); window.removeEventListener('online', reconnect) }
   }, [pending, token, retry])
-  const stages = ['Видео', 'Распознаём речь', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
   const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
-  const metric = progress?.unit === 'seconds' ? transcriptTime : (n: number) => String(n)
+  const eta = useTimeLeft(stages, stages[currentStep], progress, !!pending && !error && !!stage)
+  const metric = progress?.unit === 'seconds' ? transcriptTime : progress?.unit === 'bytes' ? megabytes : (n: number) => String(n)
   return <section className="transcription-inline">
     <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
       <div><strong>Расшифровка урока</strong><small>Обработка на вашем компьютере</small></div>
@@ -342,6 +407,11 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
     </header>
     <div className="transcription-form">
     {!pending && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
+    {!pending && <label className="transcription-picker">
+      <Upload size={18} /><strong>{tracks.length ? `Дорожек участников: ${tracks.length}` : 'Дорожки участников — необязательно'}</strong>
+      <small>{tracks.length ? tracks.map(t => t.name).join(', ') : 'Zoom умеет сохранять звук каждого отдельным файлом. С ними голоса подпишутся точно, по именам файлов.'}</small>
+      <input type="file" multiple accept="audio/*,.m4a" aria-label="Дорожки участников" disabled={busy} onChange={e => setTracks([...(e.target.files ?? [])])} />
+    </label>}
     {pending && !error && <>
       <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}</small>
       <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac. Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>
@@ -354,7 +424,10 @@ function Review({ owner, lessonKey, source, file, onReady, onClose }: Props & { 
           <strong>{step}</strong>{active && percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}
         </li>
       })}</ol>
-      {progress && progress.total > 0 && <small className="transcription-hint">{metric(progress.current)} из {metric(progress.total)} {progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи'}</small>}
+      {(eta || (progress && progress.total > 0)) && <small className="transcription-hint">
+        {progress && progress.total > 0 && <>{metric(progress.current)} из {metric(progress.total)}{progress.unit === 'bytes' ? '' : ' ' + (progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи')}{eta && ' · '}</>}
+        {eta && (progress && progress.total > 0 ? eta : eta[0].toUpperCase() + eta.slice(1))}
+      </small>}
     </>}
     {error && <div role="alert" className="transcription-recovery">
       <strong>{unavailable ? 'Модуль недоступен' : 'Не удалось завершить расшифровку'}</strong>

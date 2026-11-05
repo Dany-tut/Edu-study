@@ -7,6 +7,7 @@ import { ArrowRight, AudioLines, ChevronRight } from '../icons/appIcons'
 import { useTheme } from '../../store/themeStore'
 import { clock, editedDuration, span } from '../../lib/lessonMontage'
 import { fixtures, voices } from './fixture'
+import { parseVideoSource } from '../../lib/videoSource'
 import './lessonMontageStand.css'
 
 // DEV-стенд монтажа записи: /lesson-montage-stand. Без сервера и аккаунта —
@@ -18,6 +19,15 @@ export default function LessonMontageStand() {
   const [open, setOpen] = useState(() => new URLSearchParams(location.search).has('open'))
   const [variant, setVariant] = useState<keyof typeof fixtures>(() => new URLSearchParams(location.search).get('pauses') === 'many' ? 'many' : 'few')
   const fixture = fixtures[variant], chapters = fixture.chapters
+  // ?video=<ссылка> — проверить окно со звуком на настоящем ролике.
+  // Прошлые уроки курса с итогами — чтобы на стенде была видна динамика.
+  const trend = [
+    { id: 'u4', title: 'Урок 4 · Строение атома', stats: { teacherShare: 0.82, questions: 6, answered: 3, speakers: [{ label: 'Ученик 1', role: 'student' as const, seconds: 40 }, { label: 'Ученик 2', role: 'student' as const, seconds: 0 }] } },
+    { id: 'u5', title: 'Урок 5 · Химическая связь', stats: { teacherShare: 0.74, questions: 8, answered: 5, speakers: [{ label: 'Ученик 1', role: 'student' as const, seconds: 60 }, { label: 'Ученик 2', role: 'student' as const, seconds: 25 }] } },
+    { id: 'u6', title: 'Урок 6 · Растворы', stats: { teacherShare: 0.69, questions: 7, answered: 6, speakers: [{ label: 'Ученик 2', role: 'student' as const, seconds: 50 }] } },
+    { id: 'u7', title: 'Урок 7 · ОВР', current: true },
+  ]
+  const [video] = useState(() => parseVideoSource(new URLSearchParams(location.search).get('video')))
   const [saved, setSaved] = useState<Saved | null>(null)
   const result: MontageResult | undefined = saved?.[0]
   return <div className="lms-root">
@@ -54,7 +64,7 @@ export default function LessonMontageStand() {
       </section>}
     </main>
     <AnimatePresence>{open && <LessonMontageEditor key={'editor-' + variant} title="Монтаж записи · урок 7" duration={fixture.duration} voices={voices}
-      lines={fixture.lines} quiet={fixture.quiet} chapters={chapters} levelAt={fixture.levelAt} initial={saved?.[1]}
+      lines={fixture.lines} quiet={fixture.quiet} chapters={chapters} levelAt={fixture.levelAt} initial={saved?.[1]} video={video} trend={trend}
       onApply={(...args) => setSaved(args)} onClose={() => setOpen(false)} />}</AnimatePresence>
   </div>
 }

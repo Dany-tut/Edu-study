@@ -10,9 +10,10 @@ import threading
 import uuid
 import time
 import fcntl
+import hashlib
 
 from flask import Flask, abort, jsonify, request
-from link_video import fetch, LIMIT, DownloadUnavailable
+from link_video import fetch, downloaded, LIMIT, DownloadUnavailable
 import job_store
 
 app = Flask(__name__)
@@ -24,6 +25,11 @@ ORIGIN = os.environ.get('ISKRA_APP_ORIGIN', 'https://edu-study-app.vercel.app')
 gate = threading.Lock()
 JOBS = HOME / 'jobs'
 JOBS.mkdir(mode=0o700, exist_ok=True)
+# Голоса: модели разделения и запомненные отпечатки. Отпечатки — биометрия,
+# поэтому живут только здесь, в папке модуля, и отдельно для каждого
+# подключённого профиля; в урок попадают одни имена.
+VOICE_MODELS = HOME / 'voice-models'
+def voice_memory(token): return HOME / f"voices-{hashlib.sha256(token.encode()).hexdigest()[:16]}.json"
 jobs = job_store.load(JOBS)
 
 @app.before_request
@@ -89,18 +95,27 @@ def process(job,folder,link):
             job['completed'].append('audio')
             job_store.save(folder, job)
         env=dict(os.environ,HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false')
-        for label,script,args in [('Распознаём речь','recognize.py',[folder]),('Ищем паузы','silence.py',[folder]),('Читаем слайды','slides.py',[source,folder/'slides.json']),('Собираем главы','topics.py',[folder])]:
+        if job.get('tracks') and 'recognize.py' not in job['completed']:
+            stage('Распознаём речь')
+            recognize_tracks(job,folder,env,worker_lock)
+            job['completed'].append('recognize.py')
+            job_store.save(folder, job)
+        for label,script,args in [('Распознаём речь','recognize.py',[folder]),('Разделяем голоса','diarize.py',[folder,VOICE_MODELS,voice_memory(job['owner'])]),('Ищем паузы','silence.py',[folder,source]),('Читаем слайды','slides.py',[source,folder/'slides.json']),('Собираем главы','topics.py',[folder])]:
             if script in job['completed']: continue
+            # С дорожками голоса уже известны — угадывать нечего.
+            if script=='diarize.py' and job.get('tracks'): continue
             stage(label)
-            python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable) if script in ('recognize.py','silence.py') else sys.executable
+            python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable) if script in ('recognize.py','silence.py','diarize.py') else sys.executable
             subprocess.run([python,str(ROOT/script),*map(str,args)],check=True,env=env,pass_fds=(worker_lock.fileno(),))
             if script=='recognize.py' and not json.loads((folder/'segments.json').read_text()):
                 raise ValueError('В записи не найдено речи.')
             job['completed'].append(script)
             job_store.save(folder, job)
         montage=folder/'montage.json'
+        voices=folder/'voices.json'
         stage('Готово',segments=json.loads((folder/'segments.json').read_text()),chapters=json.loads((folder/'chapters.json').read_text()),
-              montage=json.loads(montage.read_text()) if montage.exists() else None,done=True)
+              montage=json.loads(montage.read_text()) if montage.exists() else None,
+              voices=json.loads(voices.read_text()) if voices.exists() else None,done=True)
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         stage(str(exc) if type(exc) is ValueError else 'Обработка не завершилась. Проверьте запись и повторите.',error=True)
     finally:
@@ -109,6 +124,49 @@ def process(job,folder,link):
                 if artifact.name not in ('job.json', '.worker.lock') and artifact.is_file(): artifact.unlink(missing_ok=True)
         worker_lock.close()
         gate.release()
+
+def recognize_tracks(job,folder,env,worker_lock):
+    """Каждую дорожку — отдельно: реплики сразу с именем участника."""
+    merged,voices=[],[]
+    for i,name in enumerate(job['tracks']):
+        sub=folder/f'track{i}'
+        sub.mkdir(exist_ok=True)
+        cmd=['ffmpeg','-nostdin','-v','error','-i',str(folder/f'track-{i}'),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(sub/'audio-%05d.wav')]
+        if subprocess.run(cmd,capture_output=True,pass_fds=(worker_lock.fileno(),)).returncode:
+            raise ValueError(f'Не удалось прочитать дорожку «{name}».')
+        python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable)
+        subprocess.run([python,str(ROOT/'recognize.py'),str(sub)],check=True,env=env,pass_fds=(worker_lock.fileno(),))
+        own=json.loads((sub/'segments.json').read_text())
+        for seg in own: seg['speaker']=f't{i+1}'
+        merged+=own
+        voices.append({'id':f't{i+1}','name':name,'seconds':round(sum(s['end']-s['start'] for s in own),1)})
+    merged.sort(key=lambda s:s['start'])
+    if not merged: raise ValueError('В дорожках не найдено речи.')
+    (folder/'segments.json').write_text(json.dumps(merged,ensure_ascii=False))
+    (folder/'voices.json').write_text(json.dumps({'segments':[s['speaker'] for s in merged],'voices':voices},ensure_ascii=False))
+
+@app.post('/voices')
+def remember():
+    """Запомнить голоса, которым дали имя: в следующих уроках узнаются сами."""
+    token=device()
+    items=(request.get_json(silent=True) or {}).get('voices') or []
+    path=voice_memory(token)
+    memory=json.loads(path.read_text()) if path.exists() else []
+    for item in items:
+        label=str(item.get('label','')).strip()[:60]
+        emb=item.get('embedding')
+        if not label or not isinstance(emb,str) or len(emb)>16384: continue
+        memory=[m for m in memory if m['label']!=label]
+        memory.append({'label':label,'role':'teacher' if item.get('role')=='teacher' else 'student','embedding':emb})
+    path.write_text(json.dumps(memory[-200:]))
+    path.chmod(0o600)
+    return jsonify(count=len(memory))
+
+@app.delete('/voices')
+def forget():
+    """Забыть все запомненные голоса этого профиля."""
+    voice_memory(device()).unlink(missing_ok=True)
+    return '',204
 
 @app.post('/jobs')
 def start():
@@ -122,12 +180,19 @@ def start():
             return jsonify(error='Недостаточно свободного места на Mac для этой записи.'),413
         file=request.files.get('video')
         link=request.form.get('link','').strip()
+        # Дорожки участников (Zoom «записывать звук каждого отдельно»): по
+        # файлу на человека — голоса известны точно, без угадывания.
+        tracks=[t for t in request.files.getlist('tracks') if t and t.filename]
         if bool(file)==bool(link):abort(400)
         jid=uuid.uuid4().hex
         folder=JOBS/jid
         folder.mkdir(mode=0o700)
         if file:file.save(folder/'input')
-        job={'id':jid,'owner':token,'link':link,'completed':[], 'state':{'stage':'Запись принята'}}
+        names=[]
+        for i,t in enumerate(tracks):
+            t.save(folder/f'track-{i}')
+            names.append(Path(t.filename).stem[:60] or f'Участник {i+1}')
+        job={'id':jid,'owner':token,'link':link,'tracks':names,'completed':[], 'state':{'stage':'Запись принята'}}
         job_store.save(folder, job)
         jobs[jid]=job
         threading.Thread(target=process,args=(job,folder,link),daemon=True).start()
@@ -145,7 +210,10 @@ def progress(jid):
     state=job['state'].copy()
     if state['stage']=='Скачиваем видео':
         folder=(JOBS/jid)
-        try:state['bytes']=sum(p.stat().st_size for p in folder.iterdir() if p.is_file())
+        try:
+            current,total=downloaded(folder)
+            if total:state['progress']={'step':state['stage'],'current':current,'total':total,'unit':'bytes'}
+            else:state['bytes']=current
         except (FileNotFoundError, ValueError):pass
     else:
         try:

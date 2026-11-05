@@ -22,10 +22,16 @@ export interface MontageSpeaker { id: string; label: string; role: SpeakerRole; 
 export interface MontageLine { id: string; start: number; end: number; text: string; speaker: string }
 
 /** Тихий отрезок, как его отдаёт модуль: без решений преподавателя. */
-export interface QuietSpan { id: string; start: number; end: number; level: number }
-export type PauseKind = 'silence' | 'quiet'
+export interface QuietSpan {
+  id: string; start: number; end: number; level: number
+  /** false — Whisper внутри не нашёл ни реплики: пауза при любой громкости (музыка, проектор). */
+  speech?: boolean
+  /** Сколько раз в минуту меняется кадр: пишут на доске, листают слайды. */
+  motion?: number
+}
+export type PauseKind = 'silence' | 'quiet' | 'nospeech'
 export type PauseAction = 'cut' | 'speed' | 'keep'
-export interface MontagePause { id: string; start: number; end: number; level: number; kind: PauseKind; action: PauseAction; edited: boolean }
+export interface MontagePause { id: string; start: number; end: number; level: number; kind: PauseKind; action: PauseAction; edited: boolean; board: boolean }
 export interface PauseOverride { start?: number; end?: number; action?: PauseAction }
 
 export type Sensitivity = 'strict' | 'normal' | 'loud'
@@ -51,15 +57,24 @@ export interface LessonMontage {
   settings: MontageSettings
 }
 
-export function detectPauses(spans: QuietSpan[], settings: MontageSettings, overrides: Record<string, PauseOverride> = {}): MontagePause[] {
-  const threshold = THRESHOLD[settings.sensitivity]
-  return spans.filter(s => s.level <= threshold && s.end - s.start >= settings.minPause).map(s => {
+/** Пороги от фона записи: «обычная» тишина — не громче фона + 10 дБ. Без фона
+ *  (старые записи, стенд) — абсолютные пороги THRESHOLD. */
+const ABOVE_FLOOR: Record<Sensitivity, number> = { strict: 4, normal: 10, loud: 16 }
+/** Кадр меняется чаще — во время паузы что-то показывают: по умолчанию ускорить. */
+export const BOARD_MOTION = 1
+
+export function detectPauses(spans: QuietSpan[], settings: MontageSettings, overrides: Record<string, PauseOverride> = {}, floor?: number): MontagePause[] {
+  const threshold = floor != null ? Math.max(THRESHOLD[settings.sensitivity], floor + ABOVE_FLOOR[settings.sensitivity]) : THRESHOLD[settings.sensitivity]
+  const silence = floor != null ? Math.max(SILENCE_LEVEL, floor + 4) : SILENCE_LEVEL
+  return spans.filter(s => (s.level <= threshold || s.speech === false) && s.end - s.start >= settings.minPause).map(s => {
     const o = overrides[s.id] ?? {}
-    const kind: PauseKind = s.level <= SILENCE_LEVEL ? 'silence' : 'quiet'
+    const kind: PauseKind = s.level <= silence ? 'silence' : s.level <= threshold ? 'quiet' : 'nospeech'
+    const board = (s.motion ?? 0) >= BOARD_MOTION
     const start = o.start ?? s.start + settings.padding
     const end = o.end ?? s.end - settings.padding
-    const action = o.action ?? (kind === 'silence' ? 'cut' : settings.quietAction)
-    return { id: s.id, start, end, level: s.level, kind, action, edited: o.start != null || o.end != null }
+    // Пустой кадр и тишина — вырезать; на доске пишут — не вырезать, а ускорить.
+    const action = o.action ?? (board ? (settings.quietAction === 'keep' ? 'keep' : 'speed') : kind === 'silence' ? 'cut' : settings.quietAction)
+    return { id: s.id, start, end, level: s.level, kind, action, edited: o.start != null || o.end != null, board }
   }).sort((a, b) => a.start - b.start)
 }
 
@@ -163,10 +178,123 @@ export function span(seconds: number) {
 /** План для плеера ученика: что перепрыгнуть и что ускорить. Пусто, пока
  *  преподаватель не применил монтаж (нет settings): найденные паузы сами по
  *  себе ничего не вырезают. */
-export function playbackPlan(saved: { quiet: QuietSpan[]; settings?: MontageSettings; overrides?: Record<string, PauseOverride> } | undefined) {
+export function playbackPlan(saved: { quiet: QuietSpan[]; floor?: number; settings?: MontageSettings; overrides?: Record<string, PauseOverride> } | undefined) {
   if (!saved?.settings) return undefined
-  const pauses = detectPauses(saved.quiet, saved.settings, saved.overrides ?? {})
+  const pauses = detectPauses(saved.quiet, saved.settings, saved.overrides ?? {}, saved.floor)
   const skip = pauses.filter(p => p.action === 'cut').map(p => [p.start, p.end] as [number, number])
   const fast = pauses.filter(p => p.action === 'speed').map(p => [p.start, p.end, saved.settings!.speed] as [number, number, number])
   return skip.length || fast.length ? { skip, fast } : undefined
+}
+
+/** Шкала ученика после монтажа: вырезанное выпадает, ускоренное сжимается.
+ *  view — время записи → время на шкале; source — обратно (клик по шкале);
+ *  total — длина урока после монтажа. maxRate — потолок скорости движка
+ *  (YouTube ускоряет максимум ×2, и шкала должна это учитывать). */
+export function montageTimeline(plan: { skip: [number, number][]; fast: [number, number, number][] } | undefined, duration: number, maxRate = Infinity) {
+  if (!plan || !(duration > 0)) return undefined
+  const parts = [
+    ...plan.skip.map(([a, b]) => ({ a, b, k: 0 })),
+    ...plan.fast.map(([a, b, r]) => ({ a, b, k: 1 / Math.max(1, Math.min(r, maxRate)) })),
+  ].filter(p => p.b > p.a).sort((x, y) => x.a - y.a)
+  if (!parts.length) return undefined
+  const view = (s: number) => {
+    let v = s
+    for (const p of parts) {
+      if (s <= p.a) break
+      v -= (Math.min(s, p.b) - p.a) * (1 - p.k)
+    }
+    return v
+  }
+  const source = (v: number) => {
+    let src = 0, acc = 0
+    for (const p of parts) {
+      const plain = p.a - src
+      if (v < acc + plain) return src + (v - acc)
+      acc += plain
+      const len = (p.b - p.a) * p.k
+      if (p.k > 0 && v <= acc + len) return p.a + (v - acc) / p.k
+      acc += len; src = p.b
+    }
+    return Math.min(duration, src + (v - acc))
+  }
+  return { view, source, total: view(duration) }
+}
+
+export interface LessonStats {
+  /** Сколько секунд говорил каждый голос и сколько реплик. */
+  bySpeaker: { id: string; seconds: number; lines: number; share: number }[]
+  teacherShare: number
+  studentShare: number
+  /** Доля урока, где никто не говорит. */
+  silenceShare: number
+  /** Вопросы учителя (реплика с «?») и сколько ждали ответа ученика. */
+  questions: number
+  answered: number
+  /** Медиана ожидания ответа, с. */
+  waitMedian?: number
+  /** Самый длинный монолог учителя подряд, с. */
+  longestMonologue: number
+  /** Ученики без единой реплики. */
+  silentStudents: string[]
+}
+
+/** Итоги урока по репликам и голосам — без ИИ. Вопрос — реплика учителя со
+ *  знаком «?»; ответ — первая реплика ученика в течение ANSWER_WINDOW секунд. */
+export const ANSWER_WINDOW = 30
+export function lessonStats(lines: MontageLine[], speakers: MontageSpeaker[], duration: number): LessonStats {
+  const sorted = [...lines].sort((a, b) => a.start - b.start)
+  const time = talkTime(sorted)
+  const talk = Object.values(time).reduce((a, b) => a + b, 0)
+  const role = (id: string) => speakers.find(s => s.id === id)?.role ?? 'student'
+  const teacherSec = sorted.filter(l => role(l.speaker) === 'teacher').reduce((a, l) => a + l.end - l.start, 0)
+  const waits: number[] = []
+  let questions = 0, answered = 0, longest = 0, run = 0, runEnd = -Infinity
+  sorted.forEach((l, i) => {
+    if (role(l.speaker) === 'teacher') {
+      // Монолог: реплики учителя подряд с паузами меньше 3 с.
+      run = l.start - runEnd < 3 ? run + (l.end - l.start) + Math.max(0, l.start - runEnd) : l.end - l.start
+      runEnd = l.end
+      longest = Math.max(longest, run)
+      if (l.text.trim().endsWith('?')) {
+        questions++
+        const reply = sorted.slice(i + 1).find(x => role(x.speaker) === 'student' || x.start - l.end > ANSWER_WINDOW)
+        if (reply && role(reply.speaker) === 'student' && reply.start - l.end <= ANSWER_WINDOW) { answered++; waits.push(Math.max(0, reply.start - l.end)) }
+      }
+    } else { run = 0; runEnd = -Infinity }
+  })
+  waits.sort((a, b) => a - b)
+  return {
+    bySpeaker: speakers.map(s => ({ id: s.id, seconds: time[s.id] ?? 0, lines: sorted.filter(l => l.speaker === s.id).length, share: talk ? (time[s.id] ?? 0) / talk : 0 })),
+    teacherShare: talk ? teacherSec / talk : 0,
+    studentShare: talk ? 1 - teacherSec / talk : 0,
+    silenceShare: duration > 0 ? Math.max(0, 1 - talk / duration) : 0,
+    questions, answered,
+    ...(waits.length ? { waitMedian: waits[Math.floor(waits.length / 2)] } : {}),
+    longestMonologue: longest,
+    silentStudents: speakers.filter(s => s.role === 'student' && !time[s.id]).map(s => s.id),
+  }
+}
+
+/** Короткие итоги урока для сравнения уроков курса: хранятся вместе с монтажом. */
+export interface LessonStatsSummary {
+  teacherShare: number
+  questions: number
+  answered: number
+  waitMedian?: number
+  speakers: { label: string; role: SpeakerRole; seconds: number }[]
+}
+export function summarizeStats(stats: LessonStats, speakers: MontageSpeaker[]): LessonStatsSummary {
+  return {
+    teacherShare: Math.round(stats.teacherShare * 1000) / 1000,
+    questions: stats.questions, answered: stats.answered,
+    ...(stats.waitMedian != null ? { waitMedian: Math.round(stats.waitMedian * 10) / 10 } : {}),
+    speakers: stats.bySpeaker.map(b => { const sp = speakers.find(s => s.id === b.id)!; return { label: sp.label, role: sp.role, seconds: Math.round(b.seconds) } }),
+  }
+}
+/** Ученик по урокам курса: в скольких говорил (по имени голоса). */
+export function participation(trend: { stats?: LessonStatsSummary }[]) {
+  const withStats = trend.filter(t => t.stats)
+  const names = new Map<string, number>()
+  for (const t of withStats) for (const s of t.stats!.speakers) if (s.role === 'student' && s.seconds > 0) names.set(s.label, (names.get(s.label) ?? 0) + 1)
+  return { lessons: withStats.length, students: [...names].map(([label, spoke]) => ({ label, spoke })).sort((a, b) => a.spoke - b.spoke) }
 }

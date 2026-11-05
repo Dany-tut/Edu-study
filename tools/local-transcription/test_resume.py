@@ -42,8 +42,8 @@ class ResumeTests(unittest.TestCase):
         self.s.gate.acquire()
         with patch.object(self.s.subprocess,'run',side_effect=self.run_step) as run:
             self.s.process(restored,self.folder,'')
-        # Задача старого модуля, прерванная после распознавания, добирает и новый шаг пауз.
-        self.assertEqual([Path(c.args[0][1]).name for c in run.call_args_list],['silence.py','slides.py','topics.py'])
+        # Задача старого модуля, прерванная после распознавания, добирает новые шаги: голоса и паузы.
+        self.assertEqual([Path(c.args[0][1]).name for c in run.call_args_list],['diarize.py','silence.py','slides.py','topics.py'])
         self.s.jobs=job_store.load(self.s.JOBS)
         result=self.client.get('/jobs/'+job['id'],base_url='http://127.0.0.1:18764',headers=self.headers)
         self.assertTrue(result.json['done']);self.assertEqual(result.json['segments'][0]['text'],'Результат A')
@@ -68,5 +68,17 @@ class ResumeTests(unittest.TestCase):
         self.s.jobs=job_store.load(self.s.JOBS)
         with patch.object(self.s,'process') as proc:self.s.resume_jobs()
         proc.assert_not_called()
+
+    def test_voices_are_remembered_per_profile_and_forgotten(self):
+        url=dict(base_url='http://127.0.0.1:18764',headers=self.headers)
+        r=self.client.post('/voices',json={'voices':[{'label':'Маша','role':'student','embedding':'AAAA'},{'label':'','embedding':'AAAA'}]},**url)
+        self.assertEqual(r.get_json()['count'],1)
+        path=self.s.voice_memory(self.token)
+        self.assertEqual(json.loads(path.read_text())[0]['label'],'Маша')
+        self.assertEqual(oct(path.stat().st_mode & 0o777),'0o600')
+        self.client.post('/voices',json={'voices':[{'label':'Маша','role':'teacher','embedding':'BBBB'}]},**url)
+        self.assertEqual(json.loads(path.read_text()),[{'label':'Маша','role':'teacher','embedding':'BBBB'}])
+        self.assertEqual(self.client.delete('/voices',**url).status_code,204)
+        self.assertFalse(path.exists())
 
 if __name__=='__main__': unittest.main()

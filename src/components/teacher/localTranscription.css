@@ -80,7 +80,7 @@
 }
 .transcription-steps[data-connected=true] .integration-disconnect {max-width:calc(100% - 99px)}
 
- .transcription-rail-action { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:0; border-radius:12px; background:var(--color-purple-soft); color:var(--color-purple-text); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+ .transcription-rail-action { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:0; border-radius:12px; background:var(--color-purple-soft); color:var(--color-purple-text); font:inherit; font-size:13px; font-weight:700; white-space:nowrap; cursor:pointer; }
 .transcription-rail-action:focus-visible {outline:2px solid var(--color-control-accent);outline-offset:2px}
 .transcription-mark {display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:12px;color:var(--color-purple-text);background:var(--color-purple-soft)}
 .transcription-hint {font-size:13px;line-height:1.45;color:var(--color-text-3)}
@@ -124,14 +124,14 @@
 :is(.recording-lines,.timecode-editor) .transcript-line-text textarea:focus {background:var(--color-bg-3);outline:none !important}
 .transcript-tools {border-top:1px solid var(--color-border-soft);padding-top:6px}
 /* Одна высота у всех кнопок панели глав (--rail-control-h): «Сохранить»,
-   «Сохраняем…», «Добавлено в урок», иконки и ряд «Таймкод» — при смене
+   «Сохраняем…», «Добавлено», иконки и ряд «Таймкод» — при смене
    состояния ряд не меняет высоту и список над ним не скачет. */
 .timecode-editor,.transcription-inline {--rail-control-h:40px}
 .transcription-rail-action {min-height:var(--rail-control-h, 44px)}
 .transcript-tools {min-height:var(--rail-control-h)}
 .transcript-tools .transcription-rail-action,.transcript-saved {flex:1;height:var(--rail-control-h);min-height:0}
 .transcript-tools button:not(.transcription-rail-action) {width:var(--rail-control-h);height:var(--rail-control-h);flex:none;border-radius:10px;display:grid;place-items:center}
-.transcript-saved {display:flex;gap:6px;align-items:center;padding:0 12px;color:var(--color-green-text);font-size:13px;font-weight:700}
+.transcript-saved {display:flex;gap:6px;align-items:center;min-width:0;padding:0 12px;white-space:nowrap;color:var(--color-green-text);font-size:13px;font-weight:700}
 .timecode-editor input {font-size:13px}
 @media(max-width:600px){.timecode-editor,.transcription-inline{--rail-control-h:44px}.transcript-tabs button{min-height:44px}.transcript-line-text::after,.transcript-line-text textarea,.timecode-editor input{font-size:16px!important}}
 .chapter-title {flex:1}
@@ -220,11 +220,11 @@
 /* Время главы: у левого края цифры, при наведении на строку поверх них ▶.
    Клик — перемотка; двойной клик или правая кнопка — правка, тогда ▶ уходит
    (фокус в поле). Ячейка одной ширины в обоих видах — строка не прыгает. */
-.chapter-time {position:relative;flex-shrink:0;display:flex}
-/* Ширина — та же --time-chars, что у общего правила поля времени, плюс поля
-   под подложку правки. */
+/* margin-right:-6px гасит gap строки: от цифр до названия 4 + 4 px, как у реплик слева. */
+.chapter-time {position:relative;flex-shrink:0;display:flex;margin-right:-6px}
+/* Ширина — ровно --time-chars цифр плюс поля под подложку правки. */
 .timecode-editor .chapter-time input.chapter-time-input {
-  width:calc((var(--time-chars, 5) + 0.5) * 1ch + 8px) !important;padding:3px 4px !important;border:0;border-radius:6px;margin:0;
+  width:calc(var(--time-chars, 5) * 1ch + 8px) !important;padding:3px 4px !important;border:0;border-radius:6px;margin:0;
   background:transparent;color:var(--color-text-3);font:inherit;font-size:12px;
   font-variant-numeric:tabular-nums;text-align:left;outline:none;
 }
@@ -247,3 +247,9 @@
 @media (prefers-reduced-motion:reduce) {
   .chapter-play {transition:none}
 }
+
+/* Дорожки участников: выбор нескольких аудиофайлов (необязательно). */
+.transcription-form .transcription-picker { position:relative; display:grid; justify-items:center; gap:4px; text-align:center; padding:14px; border:1px dashed var(--color-control-accent); background:var(--color-purple-soft); border-radius:14px; color:var(--color-purple-text); overflow-wrap:anywhere; cursor:pointer; }
+.transcription-form .transcription-picker small { color:var(--color-text-3); font-size:12px; line-height:1.4; }
+.transcription-picker input { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+.transcription-picker:focus-within { outline:2px solid var(--color-control-accent); outline-offset:2px; }

@@ -1209,7 +1209,7 @@ export default function LessonPage() {
       )}
 
       {lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') &&
-        <LessonTranscriptPanel transcript={lesson.transcript} time={videoTime}
+        <LessonTranscriptPanel transcript={lesson.transcript} time={videoTime} hidden={montagePlan?.skip}
           seek={detail.videoSource && ['file','youtube','rutube'].includes(detail.videoSource.kind)
             ? sec => { setVideoTime(sec); playerRef.current?.seekPaused(sec) } : undefined} />}
       {lesson.description?.trim() && (

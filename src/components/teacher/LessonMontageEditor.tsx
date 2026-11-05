@@ -5,14 +5,17 @@ import FadeText from '../FadeText'
 import GrowTextarea from '../GrowTextarea'
 import HScrollFade from '../HScrollFade'
 import TeacherSelect from './TeacherSelect'
-import { AlertTriangle, AudioLines, ChevronLeft, ChevronRight, Gauge, Headphones, Minus, Pause, Play, Plus, RotateCcw, Timer } from '../icons/appIcons'
+import { AlertTriangle, AudioLines, ChevronLeft, ChevronRight, Gauge, Headphones, Minus, Pause, Play, Plus, RotateCcw, Timer, SlidersHorizontal } from '../icons/appIcons'
 import { btn } from '../../lib/pillStyles'
 import { useIsDesktop } from '../../lib/useIsDesktop'
+import LessonVideoPlayer, { type LessonVideoHandle } from '../LessonVideoPlayer'
+import { emptyWatch } from '../../lib/videoProgress'
+import type { VideoSource } from '../../lib/videoSource'
 import { useScrollFades } from '../../lib/useScrollFades'
 import type { LessonTimecode } from '../../data/lessonContent'
 import {
-  DEFAULT_SETTINGS, clock, clockFine, rulerTicks, detectPauses, editedDuration, labelVoices, linesHit, mergeSpeaker, playbackAt, span, talkTime, toEditedTime,
-  type LessonMontage, type MontageLine, type MontagePause, type MontageSettings, type MontageSpeaker, type PauseAction, type PauseOverride, type QuietSpan, type SpeakerTone,
+  DEFAULT_SETTINGS, clock, clockFine, rulerTicks, detectPauses, lessonStats, participation, summarizeStats, type LessonStatsSummary, editedDuration, labelVoices, linesHit, mergeSpeaker, playbackAt, span, talkTime, toEditedTime,
+  type LessonMontage, type MontageLine, type MontagePause, type MontageSettings, type MontageSpeaker, type PauseAction, type PauseKind, type PauseOverride, type QuietSpan, type SpeakerTone,
 } from '../../lib/lessonMontage'
 import './lessonMontage.css'
 
@@ -29,13 +32,13 @@ export const TONE: Record<SpeakerTone, { bg: string; text: string }> = {
   green: { bg: 'var(--color-green-soft)', text: 'var(--color-green-text)' },
 }
 const ACTION_LABEL: Record<PauseAction, string> = { cut: 'Вырезать', speed: 'Ускорить', keep: 'Оставить' }
-const KIND_LABEL = { silence: 'Тишина', quiet: 'Тихо работают' }
+const KIND_LABEL: Record<PauseKind, string> = { silence: 'Тишина', quiet: 'Тихо работают', nospeech: 'Без речи' }
 
-type Tab = 'pauses' | 'speakers' | 'lines' | 'settings'
+type Tab = 'pauses' | 'speakers' | 'lines' | 'stats' | 'settings'
 
 export interface MontageResult extends LessonMontage { timecodes: LessonTimecode[] }
 
-export default function LessonMontageEditor({ title, duration, voices, lines: sourceLines, quiet, chapters, levelAt, initial, missingAudio, onApply, onClose }: {
+export default function LessonMontageEditor({ title, duration, voices, lines: sourceLines, quiet, chapters, levelAt, initial, missingAudio, video, floor, onForgetVoices, trend, onApply, onClose }: {
   title: string
   duration: number
   voices: string[]
@@ -47,6 +50,14 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
   initial?: { settings: MontageSettings; overrides: Record<string, PauseOverride>; speakers: MontageSpeaker[]; lines: MontageLine[] }
   /** Модуль ещё старый: паузы и громкость не пришли — подсказываем, как получить. */
   missingAudio?: boolean
+  /** Сама запись: с ней окно играет настоящее видео со звуком, шкала идёт за ним. */
+  video?: VideoSource
+  /** Уровень фона записи — пороги пауз считаются от него. */
+  floor?: number
+  /** Забыть запомненные на этом Mac голоса (есть, если модуль разделял голоса). */
+  onForgetVoices?: () => void
+  /** Уроки курса с итогами (по порядку) — для динамики во вкладке «Итоги». */
+  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[]
   onApply: (result: MontageResult, state: NonNullable<Parameters<typeof LessonMontageEditor>[0]['initial']>) => void
   onClose: () => void
 }) {
@@ -60,7 +71,7 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
   const [t, setT] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [view, setView] = useState<'edited' | 'source'>('edited')
-  const pauses = useMemo(() => detectPauses(quiet, settings, overrides), [quiet, settings, overrides])
+  const pauses = useMemo(() => detectPauses(quiet, settings, overrides, floor), [quiet, settings, overrides, floor])
   const [selectedId, setSelectedId] = useState<string | undefined>(() => pauses[0]?.id)
   const selected = pauses.find(p => p.id === selectedId)
   const [notice, setNotice] = useState('')
@@ -77,8 +88,9 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
   // Ход времени — setInterval, не rAF: в превью и PWA rAF приходит не всегда.
   const live = useRef({ t, view, pauses, speed: settings.speed })
   live.current = { t, view, pauses, speed: settings.speed }
+  // С настоящим видео время ведёт плеер (onTick), свои часы — только у макета.
   useEffect(() => {
-    if (!playing) return
+    if (!playing || video) return
     const id = setInterval(() => {
       const { t, view, pauses, speed } = live.current
       const at = view === 'edited' ? playbackAt(t, pauses) : { rate: 'normal' as const }
@@ -91,15 +103,44 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
       if (next >= duration) { setT(duration); setPlaying(false) } else setT(next)
     }, 100)
     return () => clearInterval(id)
-  }, [playing, duration])
+  }, [playing, duration, video])
   useEffect(() => { if (!notice) return; const id = setTimeout(() => setNotice(''), 1800); return () => clearTimeout(id) }, [notice])
 
-  const listen = (at: number, mode: 'edited' | 'source' = 'edited') => { setView(mode); setT(Math.max(0, at)); setPlaying(true) }
+  const videoRef = useRef<LessonVideoHandle>(null)
+  const playingRef = useRef(playing); playingRef.current = playing
+  /** Перемотка: шкала, волна, список — и само видео, если оно есть. */
+  const seek = (at: number) => {
+    const s = Math.max(0, Math.min(duration, at))
+    setT(s)
+    if (video) { if (playingRef.current) videoRef.current?.playFrom(s); else videoRef.current?.seekPaused(s) }
+  }
+  const setPlay = (on: boolean) => {
+    setPlaying(on)
+    if (video) { if (on) videoRef.current?.playFrom(live.current.t); else videoRef.current?.pause() }
+  }
+  const listen = (at: number, mode: 'edited' | 'source' = 'edited') => {
+    setView(mode); setT(Math.max(0, at)); setPlaying(true)
+    if (video) videoRef.current?.playFrom(Math.max(0, at))
+  }
+  // «Как будет» на настоящем видео: пропуски и ускорения делает сам плеер.
+  const plan = useMemo(() => view !== 'edited' ? undefined : {
+    skip: pauses.filter(p => p.action === 'cut').map(p => [p.start, p.end] as [number, number]),
+    fast: pauses.filter(p => p.action === 'speed').map(p => [p.start, p.end, settings.speed] as [number, number, number]),
+  }, [view, pauses, settings.speed])
+  const watch = useMemo(() => emptyWatch(), [])
+  const onVideoTick = (s: number, on: boolean) => {
+    const prev = live.current.t
+    const jumped = live.current.view === 'edited' && live.current.pauses.find(p => p.action === 'cut' && prev >= p.start - 0.5 && prev < p.end && s >= p.end - 0.3)
+    if (jumped) setNotice(`Пропущено ${span(jumped.end - jumped.start)} тишины`)
+    setT(s); if (on !== playingRef.current) setPlaying(on)
+  }
+  const videoNode = video ? <div className="lm-video"><LessonVideoPlayer ref={videoRef} source={video} title={title} timecodes={[]}
+    initialWatch={watch} onPersist={() => {}} montage={plan} onTick={onVideoTick} /></div> : undefined
   // Выбрал паузу — плеер встаёт на её начало, шкала доводит её в кадр.
   const select = (id: string, scroll = false) => {
     setSelectedId(id)
     const p = pauses.find(x => x.id === id)
-    if (p) { setT(p.start); setFollowTimeline(n => n + 1) }
+    if (p) { seek(p.start); setFollowTimeline(n => n + 1) }
     if (scroll && !desktop) detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
   const override = (id: string, patch: PauseOverride) => setOverrides(o => ({ ...o, [id]: { ...o[id], ...patch } }))
@@ -121,16 +162,16 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
     onClose()
   }
 
-  const player = <Player t={t} duration={duration} after={after} view={view} setView={setView} playing={playing} setPlaying={setPlaying}
+  const player = <Player t={t} duration={duration} after={after} view={view} setView={setView} playing={playing} setPlaying={setPlay} videoNode={videoNode}
     pauses={pauses} speed={settings.speed} lines={lines} speakerOf={speakerOf} chapters={chapters} notice={notice}
-    onSeek={setT} />
+    onSeek={seek} />
   // Шкала и волна паузы показывают одно место: перемотка в одной доводит
   // это место в кадр другой (счётчики follow*).
   const timeline = <Timeline duration={duration} speakers={speakers} lines={lines} pauses={pauses} t={t} selected={selectedId}
-    follow={followTimeline} onSeek={at => { setT(at); setFollowWave(n => n + 1) }} onSelect={id => select(id, true)}
+    follow={followTimeline} onSeek={at => { seek(at); setFollowWave(n => n + 1) }} onSelect={id => select(id, true)}
     onRename={(id, label) => setSpeakers(list => list.map(x => x.id === id ? { ...x, label } : x))} />
   const detail = <div ref={detailRef} className="lm-detail-slot">{selected
-    ? <PauseDetail duration={duration} t={t} follow={followWave} onSeek={at => { setT(at); setFollowTimeline(n => n + 1) }} pause={selected} pauses={pauses} lines={lines} speakerOf={speakerOf} speed={settings.speed} levelAt={levelAt}
+    ? <PauseDetail duration={duration} t={t} follow={followWave} onSeek={at => { seek(at); setFollowTimeline(n => n + 1) }} pause={selected} pauses={pauses} lines={lines} speakerOf={speakerOf} speed={settings.speed} levelAt={levelAt}
       onBounds={(start, end) => override(selected.id, { start, end })} onAction={a => override(selected.id, { action: a })}
       onReset={() => resetBounds(selected.id)} onListen={listen} onStep={dir => { const i = pauses.indexOf(selected); const n = pauses[i + dir]; if (n) select(n.id) }} />
     : <p className="lm-empty">{missingAudio
@@ -143,7 +184,9 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
         { id: 'pauses', label: <>Паузы <small className="lm-count">{pauses.length}</small></>, title: 'Паузы' },
         { id: 'speakers', label: <>Голоса <small className="lm-count">{speakers.length}</small></>, title: 'Говорящие' },
         { id: 'lines', label: <>Текст <small className="lm-count">{lines.length}</small></>, title: 'Реплики' },
-        { id: 'settings', label: 'Поиск', title: 'Поиск пауз' },
+        { id: 'stats', label: 'Итоги', title: 'Итоги урока' },
+        // Настройки — иконкой: пять вкладок помещаются в узкую колонку без прокрутки.
+        { id: 'settings', label: <span className="lm-visually-hidden">Поиск пауз</span>, icon: SlidersHorizontal, title: 'Поиск пауз' },
       ]} />
     </HScrollFade>
     {/* Шапка паузы и фильтр реплик стоят над списком, а не в нём: листаются
@@ -155,9 +198,10 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
     </HScrollFade>}
     <div className="lm-panel-body no-scrollbar">
       {tab === 'pauses' && <PauseList pauses={pauses} speed={settings.speed} selected={selectedId} t={t} onSelect={id => select(id, true)} />}
-      {tab === 'speakers' && <SpeakerList speakers={speakers} lines={lines} onChange={setSpeakers} onListen={at => listen(at, 'source')} onAdd={addVoice}
+      {tab === 'speakers' && <SpeakerList speakers={speakers} lines={lines} onChange={setSpeakers} onListen={at => listen(at, 'source')} onAdd={addVoice} onForget={onForgetVoices}
         onMerge={(from, into) => { const m = mergeSpeaker({ speakers, lines }, from, into); setSpeakers(m.speakers); setLines(m.lines); if (who === from) setWho(into) }} />}
       {tab === 'lines' && <LineList lines={lines} speakers={speakers} pauses={pauses} t={t} who={who} onChange={setLines} onListen={at => listen(at, 'source')} />}
+      {tab === 'stats' && <StatsPanel lines={lines} speakers={speakers} duration={duration} trend={trend} />}
       {tab === 'settings' && <SettingsPanel settings={settings} onChange={setSettings} found={pauses.length} edited={Object.keys(overrides).length}
         onResetAll={() => setOverrides({})} />}
     </div>
@@ -187,8 +231,8 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
 
 // ── Плеер ──────────────────────────────────────────────────────────────────
 
-function Player({ t, duration, after, view, setView, playing, setPlaying, pauses, speed, lines, speakerOf, chapters, notice, onSeek }: {
-  t: number; duration: number; after: number; view: 'edited' | 'source'; setView: (v: 'edited' | 'source') => void
+function Player({ t, duration, after, view, setView, playing, setPlaying, pauses, speed, lines, speakerOf, chapters, notice, onSeek, videoNode }: {
+  videoNode?: React.ReactNode; t: number; duration: number; after: number; view: 'edited' | 'source'; setView: (v: 'edited' | 'source') => void
   playing: boolean; setPlaying: (v: boolean) => void; pauses: MontagePause[]; speed: number; lines: MontageLine[]
   speakerOf: (id: string) => MontageSpeaker | undefined; chapters: LessonTimecode[]; notice: string; onSeek: (t: number) => void
 }) {
@@ -202,7 +246,8 @@ function Player({ t, duration, after, view, setView, playing, setPlaying, pauses
   const shown = view === 'edited' ? toEditedTime(t, pauses, speed) : t
   const total = view === 'edited' ? after : duration
   return <section className="lm-player" aria-label="Просмотр записи">
-    <div className="lm-screen">
+    <div className={'lm-screen' + (videoNode ? ' has-video' : '')}>
+      {videoNode}
       {/* Тело экрана фиксированной высоты (ряд чипов + 3 строки): реплики разной
           длины и паузы не меняют высоту плеера. «×4» стоит в ряду с чипом. */}
       <div className="lm-screen-body">{(quietNow && !speaking) || line ? <div className={'lm-screen-line' + (speaking || quietNow ? '' : ' is-dim')}>
@@ -580,7 +625,7 @@ function PauseDetailBody({ duration, t, follow, onSeek, pause, pauses, lines, sp
       <button type="button" className="lm-icon-btn" aria-label="Предыдущая пауза" disabled={index <= 0} onClick={() => onStep(-1)}><ChevronLeft size={18} /></button>
       <div className="lm-detail-title">
         <strong>Пауза {index + 1} из {pauses.length} · {clock(pause.start)}–{clock(pause.end)}</strong>
-        <small>{KIND_LABEL[pause.kind]} · {span(pause.end - pause.start)} · {Math.round(pause.level)} дБ{pause.edited ? ' · края изменены' : ''}</small>
+        <small>{KIND_LABEL[pause.kind]}{pause.board ? ' · кадр меняется' : ''} · {span(pause.end - pause.start)} · {Math.round(pause.level)} дБ{pause.edited ? ' · края изменены' : ''}</small>
       </div>
       <button type="button" className="lm-icon-btn" aria-label="Следующая пауза" disabled={index >= pauses.length - 1} onClick={() => onStep(1)}><ChevronRight size={18} /></button>
     </header>
@@ -654,15 +699,16 @@ function PauseList({ pauses, speed, selected, t, onSelect }: {
   return <div className="lm-list" ref={ref}>
     {pauses.map((p, i) => <button type="button" key={p.id} className={'lm-pause-row' + (p.id === selected ? ' is-selected' : '') + (p.id === nowId ? ' is-now' : '') + (p.id === nextId ? ' is-next' : '') + (pastLast && i === pauses.length - 1 ? ' is-past' : '')} aria-pressed={p.id === selected} onClick={() => onSelect(p.id)}>
       <span className={'lm-dot is-' + p.action} />
-      <span className="lm-pause-copy"><strong>{i + 1}. {clock(p.start)}–{clock(p.end)}</strong><small>{KIND_LABEL[p.kind]} · {span(p.end - p.start)}</small></span>
+      <span className="lm-pause-copy"><strong>{i + 1}. {clock(p.start)}–{clock(p.end)}</strong><small>{KIND_LABEL[p.kind]}{p.board ? ' · кадр меняется' : ''} · {span(p.end - p.start)}</small></span>
       <span className={'lm-tag is-' + p.action}>{p.action === 'speed' ? `×${speed}` : ACTION_LABEL[p.action]}</span>
     </button>)}
   </div>
 }
 
-function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd }: {
-  speakers: MontageSpeaker[]; lines: MontageLine[]; onChange: (s: MontageSpeaker[]) => void; onListen: (at: number) => void; onMerge: (from: string, into: string) => void; onAdd: () => void
+function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd, onForget }: {
+  speakers: MontageSpeaker[]; lines: MontageLine[]; onChange: (s: MontageSpeaker[]) => void; onListen: (at: number) => void; onMerge: (from: string, into: string) => void; onAdd: () => void; onForget?: () => void
 }) {
+  const [forgotten, setForgotten] = useState(false)
   const time = talkTime(lines)
   const total = Object.values(time).reduce((a, b) => a + b, 0) || 1
   const patch = (id: string, p: Partial<MontageSpeaker>) => onChange(speakers.map(s => s.id === id ? { ...s, ...p } : s))
@@ -688,6 +734,9 @@ function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd }: {
       </article>
     })}
     <button type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onAdd}><Plus size={14} />Добавить голос</button>
+    {onForget && <p className="lm-lead">Голоса с именами запоминаются только на этом Mac и в следующих уроках подписываются сами. {forgotten
+      ? 'Запомненные голоса удалены.'
+      : <button type="button" className="lm-inline-link" onClick={() => { onForget(); setForgotten(true) }}>Забыть все голоса</button>}</p>}
   </div>
 }
 
@@ -715,6 +764,45 @@ function LineList({ lines, speakers, pauses, t, who, onChange, onListen }: {
         <GrowTextarea className="lm-line-text" aria-label={'Реплика ' + clock(l.start)} value={l.text} onChange={text => patch(l.id, { text })} />
       </div>
     })}
+  </div>
+}
+
+/** Итоги урока: кто сколько говорил, вопросы и ожидание ответа — по репликам и голосам. */
+function StatsPanel({ lines, speakers, duration, trend }: { lines: MontageLine[]; speakers: MontageSpeaker[]; duration: number; trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }) {
+  const st = useMemo(() => lessonStats(lines, speakers, duration), [lines, speakers, duration])
+  // Текущий урок — по живым данным окна, остальные — по сохранённым итогам.
+  const rows = (trend ?? []).map(r => r.current ? { ...r, stats: summarizeStats(st, speakers) } : r).filter(r => r.stats)
+  const part = participation(rows)
+  const pct = (x: number) => Math.round(x * 100) + '%'
+  const silent = speakers.filter(sp => st.silentStudents.includes(sp.id))
+  return <div className="lm-list">
+    <p className="lm-lead">Считается по репликам и голосам. Голоса учеников назначьте во вкладках «Голоса» и «Текст» — итоги обновятся сразу.</p>
+    <div className="lm-stat">
+      <div className="lm-stat-split"><i style={{ width: pct(st.teacherShare), background: TONE.purple.text }} /><i style={{ width: pct(st.studentShare), background: TONE.blue.text }} /></div>
+      <div className="lm-stat-row"><span>Учитель <strong>{pct(st.teacherShare)}</strong></span><span>Ученики <strong>{pct(st.studentShare)}</strong></span><span>Тишина <strong>{pct(st.silenceShare)}</strong></span></div>
+    </div>
+    <div className="lm-stat lm-stat-grid">
+      <div><strong>{st.questions}</strong><small>вопросов учителя</small></div>
+      <div><strong>{st.answered}</strong><small>с ответом ученика</small></div>
+      <div><strong>{st.waitMedian != null ? span(st.waitMedian) : '—'}</strong><small>ждали ответа</small></div>
+      <div><strong>{span(st.longestMonologue)}</strong><small>самый длинный монолог</small></div>
+    </div>
+    {st.bySpeaker.map(b => { const sp = speakers.find(x => x.id === b.id)!; return <div key={b.id} className="lm-stat-speaker" style={{ '--tone': TONE[sp.tone].text } as CSSProperties}>
+      <div className="lm-stat-row"><FadeText className="lm-stat-name">{sp.label}</FadeText><span>{span(b.seconds)} · {b.lines} реплик</span></div>
+      <div className="lm-share"><i style={{ width: pct(b.share) }} /></div>
+    </div> })}
+    {silent.length > 0 && <p className="lm-stat-warn">Не сказали ни слова: {silent.map(s => s.label).join(', ')}.</p>}
+    {rows.length > 1 && <>
+      <h4 className="lm-stat-title">По урокам курса</h4>
+      {rows.map(r => <div key={r.id} className={'lm-trend-row' + (r.current ? ' is-current' : '')}>
+        <FadeText className="lm-trend-name">{r.title}</FadeText>
+        <div className="lm-stat-split lm-trend-bar"><i style={{ width: pct(r.stats!.teacherShare), background: TONE.purple.text }} /><i style={{ width: pct(1 - r.stats!.teacherShare), background: TONE.blue.text }} /></div>
+        <span className="lm-trend-num">{pct(r.stats!.teacherShare)}</span>
+        <span className="lm-trend-num">{r.stats!.answered}/{r.stats!.questions}</span>
+      </div>)}
+      <small className="lm-trend-legend">Доля речи учителя · вопросы с ответом</small>
+      {part.students.length > 0 && <p className="lm-lead">Участие: {part.students.map(s => `${s.label} — ${s.spoke} из ${part.lessons}`).join(', ')}.</p>}
+    </>}
   </div>
 }
 
