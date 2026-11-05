@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Eye, EyeOff } from '../icons/appIcons'
 import { WIDGET_META } from '../../data/widgets'
-import { fetchTeacherCourses, configureNewStudent, type TeacherCourseOption } from '../../lib/useGroups'
+import { fetchTeacherCourses, configureNewStudent, fetchGroupPreset, type TeacherCourseOption } from '../../lib/useGroups'
 import TeacherSelect from './TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
 
@@ -29,6 +29,21 @@ export default function NewStudentConfig({
   const [fadeBottom, setFadeBottom] = useState(false)
 
   useEffect(() => { fetchTeacherCourses().then(setCourses) }, [])
+  // В группе уже есть ученики — их настройки сразу проставлены; учитель
+  // правит только отличия. Ручной выбор, сделанный до ответа, не трогаем.
+  const touched = useRef(false)
+  const [fromGroup, setFromGroup] = useState(false)
+  useEffect(() => {
+    if (!groupId) return
+    let alive = true
+    fetchGroupPreset(groupId, studentId).then(preset => {
+      if (!alive || touched.current || !preset.classmates) return
+      if (preset.hiddenWidgets?.length) setHidden(new Set(preset.hiddenWidgets))
+      if (preset.courseId) setCourseId(preset.courseId)
+      setFromGroup(!!preset.hiddenWidgets?.length || !!preset.courseId)
+    }).catch(() => { /* без подсказки — настройки по умолчанию */ })
+    return () => { alive = false }
+  }, [groupId, studentId])
 
   function syncFades() {
     const el = scrollRef.current
@@ -40,14 +55,16 @@ export default function NewStudentConfig({
   useEffect(syncFades)
 
   const allHidden = hidden.size === WIDGET_META.length
-  const toggleAll = () =>
+  const toggleAll = () => {
+    touched.current = true
     setHidden(allHidden ? new Set() : new Set(WIDGET_META.map(w => w.id)))
+  }
 
-  const toggle = (id: number) => setHidden(prev => {
+  const toggle = (id: number) => { touched.current = true; setHidden(prev => {
     const next = new Set(prev)
     if (next.has(id)) next.delete(id); else next.add(id)
     return next
-  })
+  }) }
 
   async function apply() {
     setSaving(true)
@@ -75,7 +92,7 @@ export default function NewStudentConfig({
           style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 18 }}
         >
       <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0 }}>
-        {t('Настройте, что увидит ученик. Можно оставить по умолчанию.')}
+        {t(fromGroup ? 'Настройки взяты у учеников этой группы — поменяйте, если нужно.' : 'Настройте, что увидит ученик. Можно оставить по умолчанию.')}
       </p>
 
       {/* Widgets */}
@@ -133,7 +150,7 @@ export default function NewStudentConfig({
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{t('КУРС (НЕОБЯЗАТЕЛЬНО)')}</span>
         <TeacherSelect
           value={courseId}
-          onChange={setCourseId}
+          onChange={v => { touched.current = true; setCourseId(v) }}
           placeholder={t('Без курса')}
           options={courseOptions}
         />

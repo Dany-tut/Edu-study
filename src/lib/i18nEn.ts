@@ -5837,4 +5837,15 @@ export const EN: Record<string, string> = {
   "Войдите под учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.": "Sign in with a teacher account. For a student account, choose the student role.",
   "Не удалось проверить доступ. Проверьте подключение и попробуйте ещё раз.": "Could not verify access. Check your connection and try again.",
 
+  "Принять без замечаний ИИ": "Accept clean AI reviews",
+  "Нажмите ещё раз": "Click again",
+  "Часть работ не сохранилась — попробуйте ещё раз.": "Some reviews were not saved — try again.",
+  "Остальные присутствовали": "Everyone else was present",
+  "Остальные были": "Everyone else was here",
+  "Повторить карточки": "Review cards",
+  "Ждут повторения": "Due for review",
+  "около": "about",
+  "К карточкам": "To cards",
+  "Следующий урок": "Next lesson",
+  "Настройки взяты у учеников этой группы — поменяйте, если нужно.": "Settings copied from this group’s students — change them if needed.",
 }

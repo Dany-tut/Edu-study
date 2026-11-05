@@ -477,6 +477,24 @@ async function resolveSiblingStudentIds(studentId: string): Promise<string[]> {
   return ids.length ? ids : [studentId]
 }
 
+// Набор настроек нового ученика «как у группы»: скрытые виджеты самого
+// свежего одногруппника и курс, открытый большинству одногруппников. Пустой
+// результат — в группе ещё никого, настраиваем с нуля.
+export async function fetchGroupPreset(groupId: string, excludeId: string): Promise<{ hiddenWidgets: number[] | null; courseId: string | null; classmates: number }> {
+  const { data: mates } = await supabase.from('students').select('id, hidden_widgets, created_at')
+    .eq('group_id', groupId).neq('id', excludeId).order('created_at', { ascending: false }).limit(50)
+  const list = (mates ?? []) as { id: string; hidden_widgets: number[] | null }[]
+  if (!list.length) return { hiddenWidgets: null, courseId: null, classmates: 0 }
+  const ids = list.map(m => m.id)
+  const { data: courses } = await supabase.from('courses').select('id, student_ids').eq('status', 'published').overlaps('student_ids', ids)
+  let courseId: string | null = null, best = 0
+  for (const c of (courses ?? []) as { id: string; student_ids: string[] | null }[]) {
+    const n = (c.student_ids ?? []).filter(id => ids.includes(id)).length
+    if (n > best) { best = n; courseId = c.id }
+  }
+  return { hiddenWidgets: list[0].hidden_widgets ?? [], courseId, classmates: list.length }
+}
+
 export async function configureNewStudent(
   studentId: string,
   opts: { hiddenWidgets?: number[]; courseId?: string | null; groupId?: string | null },

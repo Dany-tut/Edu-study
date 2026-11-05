@@ -263,7 +263,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange }: {
           </>}
           {detail && view === 'attendance' && <>
             <Card tone="focus"><h2 style={heading}>{t('Отмечено')}: {Object.values(attendance).filter(v => v !== null).length} / {rosterCount}</h2><p style={{ ...muted, textAlign: 'center' }}>{t('Без отметки — не значит пропуск')}</p></Card>
-            <Action secondary disabled={busy || readOnly} onClick={() => setAttendance(Object.fromEntries(detail.roster.map(p => [p.id, true])))}>{t('Все были')}</Action>
+            <Action secondary disabled={busy || readOnly} onClick={() => setAttendance(a => ({ ...a, ...Object.fromEntries(detail.roster.filter(p => a[p.id] == null).map(p => [p.id, true])) }))}>{t(detail.roster.some(p => attendance[p.id] === false) ? 'Остальные были' : 'Все были')}</Action>
             <Card>{detail.roster.map(person => <div key={person.id} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 48 }}><span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, overflowWrap: 'anywhere' }}>{tn(person.name)}</span><div style={{ width: 128, flexShrink: 0 }}><AttendancePicker name={tn(person.name)} value={attendance[person.id] ?? null} disabled={busy || readOnly} onChange={value => setAttendance(a => ({ ...a, [person.id]: value }))} /></div></div>)}</Card>
           </>}
           {detail && view === 'finish' && <>

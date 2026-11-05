@@ -217,6 +217,9 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   const [studentSearch, setStudentSearch] = useState('')
   const [busy, setBusy] = useState(false)
   const [saveError, setSaveError] = useState('')
+  // Пакетное принятие: первый клик взводит, второй — принимает.
+  const [batchArmed, setBatchArmed] = useState(false)
+  useEffect(() => { if (!batchArmed) return; const timer = window.setTimeout(() => setBatchArmed(false), 4000); return () => window.clearTimeout(timer) }, [batchArmed])
   const aiDetailsRef = useRef<HTMLDivElement>(null)
   const showAiConcept = embedded && aiConcept
   const showAiReview = showAiConcept || !embedded
@@ -294,8 +297,13 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   const aiRequest = currentSubmission ? aiRequests[currentSubmission.id] : undefined
   const draftKey = `hwReview:${hw.id}:${student.id}`
   const savedDraft: Partial<ReviewDraft> = drafts[student.id] ?? readDraft<Partial<ReviewDraft>>(draftKey) ?? {}
+  // Все ответы проверились сами (нет «на проверку учителю») — итог
+  // автопроверки уже стоит в поле, учитель только подтверждает или правит.
+  const autoScore = !reviewed && currentAnswers && currentAnswers.gradable > 0
+    && currentAnswers.rows.every(row => row.verdict !== 'review' && !row.testly)
+    ? String(Math.round(currentAnswers.correct / currentAnswers.gradable * 100)) : ''
   const draft: ReviewDraft = {
-    score: reviewed ? String(currentSubmission!.score) : '',
+    score: reviewed ? String(currentSubmission!.score) : autoScore,
     taskScores: {},
     comment: currentSubmission?.reviewComment ?? '',
     photos: currentSubmission?.reviewPhotos ?? [],
@@ -364,6 +372,40 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
     } catch {setSaveError(t('Не удалось сохранить проверку. Черновик сохранён — попробуйте ещё раз.'))}
     finally {setBusy(false)}
   }
+  // Баллы ИИ по заданиям — в поля заданий, когда задания совпадают по числу
+  // (n-е задание ИИ = n-е задание ДЗ); баллы переводятся в шкалу задания.
+  const aiTaskScores = hasTasks && aiGrade && aiGrade.score != null && aiGrade.tasks.length === hw.tasks!.length
+    ? Object.fromEntries(hw.tasks!.map((task, i) => {
+        const ai = [...aiGrade.tasks].sort((a, b) => a.n - b.n)[i]
+        const value = ai.max_points > 0 ? ai.points / ai.max_points * task.maxScore : 0
+        return [task.id, String(Math.round(value * 10) / 10)]
+      })) : null
+  // Пакетно: непроверенные работы, где ИИ не нашёл ни одной ошибки.
+  const cleanAi = submitters.flatMap(s => {
+    const sub = subByStudent.get(s.id)
+    if (!sub || reviewedMap[s.id] || sub.verdict === 'accepted' || sub.verdict === 'returned') return []
+    const grade = homeworkAiForAttempt(aiByProgress?.get(sub.id), sub.answers?.attemptId, sub.submittedAt)
+    if (!grade || grade.status !== 'graded' || grade.score !== 100) return []
+    if (grade.tasks.some(task => task.points < task.max_points)) return []
+    return [{ sub, grade }]
+  })
+  async function acceptCleanAi() {
+    if (busy || !cleanAi.length) return
+    if (!batchArmed) { setBatchArmed(true); return }
+    setBatchArmed(false); setSaveError(''); setBusy(true)
+    let failed = 0
+    try {
+      for (const { sub, grade } of cleanAi) {
+        const ok = await onReview(sub.id, 'accepted', 100, aiCommentHtml(grade.comment), { photos: [], board: null }, sub.answers?.attemptId)
+        if (!ok) { failed++; continue }
+        await onConfirmAi?.(grade.id, 100)
+        clearDraft(`hwReview:${hw!.id}:${sub.studentId}`)
+      }
+      void reloadAi?.()
+      await reloadSubmissions?.()
+      if (failed) setSaveError(t('Часть работ не сохранилась — попробуйте ещё раз.'))
+    } finally { setBusy(false) }
+  }
   const autoPercent = currentAnswers&&currentAnswers.gradable>0?Math.round(currentAnswers.correct/currentAnswers.gradable*100):null
   const passingScore = currentSubmission?.answers?.recommendationScore??80
   const filteredStudents = submitters.filter(s=>tn(s.name).toLocaleLowerCase('ru').includes(studentSearch.toLocaleLowerCase('ru')))
@@ -408,13 +450,13 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
       </article>
       <aside className="hr-inspector" aria-label={t('Оценка и комментарий')}><div className="hr-panel-heading"><h2>{t('Проверка работы')}</h2>{reviewed&&<CheckCircle2 size={16}/>}</div>
         <HomeworkReviewScroll key={'inspector:'+student.id} label={t('Оценка, комментарий и предложения ИИ')} className="hr-inspector-scroll" contentClassName="hr-inspector-fields">
-          {showAiReview&&<AiReviewSummary grade={aiGrade} reviewed={reviewed} busy={busy||!!aiRequest?.busy} loading={aiLoading} requestError={aiLoadError||(aiGrade&&['graded','confirmed','changed','dismissed'].includes(aiGrade.status)?'':aiRequest?.error)} onRequest={currentSubmission&&onRequestAi?()=>{if(aiLoadError)void reloadAi?.();else void askAi(currentSubmission,aiGrade?.status==='error'||aiGrade?.status==='skipped')}:undefined} onApply={hasTasks?undefined:()=>{if(aiGrade?.score!=null)setDraft({score:String(aiGrade.score)})}} onDetails={()=>aiDetailsRef.current?.scrollIntoView({block:'nearest'})}/>}
+          {showAiReview&&<AiReviewSummary grade={aiGrade} reviewed={reviewed} busy={busy||!!aiRequest?.busy} loading={aiLoading} requestError={aiLoadError||(aiGrade&&['graded','confirmed','changed','dismissed'].includes(aiGrade.status)?'':aiRequest?.error)} onRequest={currentSubmission&&onRequestAi?()=>{if(aiLoadError)void reloadAi?.();else void askAi(currentSubmission,aiGrade?.status==='error'||aiGrade?.status==='skipped')}:undefined} onApply={hasTasks?(aiTaskScores?()=>setDraft({taskScores:aiTaskScores}):undefined):()=>{if(aiGrade?.score!=null)setDraft({score:String(aiGrade.score)})}} onDetails={()=>aiDetailsRef.current?.scrollIntoView({block:'nearest'})}/>}
           {hasTasks?<HomeworkReviewScroll key={'grades:'+student.id} label={t('Баллы за задания')} className="hr-task-grades"><TaskScoreGrid tasks={hw.tasks!} taskScores={draft.taskScores} onScoreChange={setTaskScore} groupColor="var(--color-accent)" groupColorSoft="var(--color-purple-soft)" total={taskTotal!} maxTotal={maxTaskTotal!}/></HomeworkReviewScroll>:<div className="hr-grade-block"><label>{t('Итоговый результат')}<div><input aria-label={t('Итог ДЗ в процентах')} type="number" min={0} max={100} step="any" value={draft.score} placeholder="—" disabled={busy} onChange={e=>setDraft({score:e.target.value})}/><span>%</span></div></label><div className="hr-score-context">{autoPercent!==null&&<span>{t('Автопроверка')}<b>{autoPercent}%</b></span>}<span>{t('Порог зачёта')}<b>{passingScore}%</b></span></div><div className="hr-quick-scores">{[60,75,85,100].map(value=><button key={value} type="button" disabled={busy} aria-label={t('Поставить')+' '+value+'%'} aria-pressed={Number(draft.score)===value} onClick={()=>setDraft({score:String(value)})}>{value}%</button>)}</div></div>}
           <div className="hr-review-comment"><h3>{t('Комментарий ученику')}</h3><RichConditionEditor key={'comment:'+student.id} value={draft.comment} onChange={comment=>setDraft({comment})} placeholder={t('Что получилось и что исправить')} minHeight={0} fixedHeight="var(--hr-comment-height, 112px)" fontSize={13} toolbarPlacement="below" ariaLabel={t('Комментарий ученику в полной проверке')} inputSt={{width:'100%',boxSizing:'border-box',border:'1px solid var(--color-border-soft)',borderRadius:12,background:'var(--color-bg-card)',color:'var(--color-text)',outline:'none',fontFamily:'inherit'}}/>{showAiReview&&aiGrade?.comment&&aiGrade.status!=='working'&&aiGrade.status!=='pending'&&!reviewed&&<AiCommentDraft key={'ai-draft:'+student.id} comment={aiGrade.comment} busy={busy||draft.comment.includes(aiGrade.comment)} onUse={()=>setDraft({comment:draft.comment.trim()?draft.comment+'<p>'+aiCommentHtml(aiGrade.comment)+'</p>':aiCommentHtml(aiGrade.comment)})}/>}</div>
         </HomeworkReviewScroll>
         <div className="hr-review-actions">{saveError&&<p className="hr-save-error" role="alert">{saveError}</p>}<button type="button" className="hr-button hr-primary" disabled={busy} onClick={()=>void handleVerdict('accepted')}><Check size={16}/>{busy?t('Сохраняем…'):t('Завершить проверку')}</button><button type="button" className="hr-button" disabled={busy} onClick={()=>void handleVerdict('returned')}><RotateCcw size={15}/>{t('На доработку')}</button></div>
       </aside>
     </div>
-    <footer className="hr-workspace-footer"><span>{allDone?t('Все работы проверены'):t('Проверено')+' '+reviewedCount+' '+t('из')+' '+submitters.length}{embedded?' · '+t('Учебный пример'):''}</span>{nav}</footer>
+    <footer className="hr-workspace-footer"><span>{allDone?t('Все работы проверены'):t('Проверено')+' '+reviewedCount+' '+t('из')+' '+submitters.length}{embedded?' · '+t('Учебный пример'):''}</span>{!embedded&&cleanAi.length>0&&<button type="button" className={'hr-button hr-batch-accept'+(batchArmed?' hr-batch-armed':'')} disabled={busy} onClick={()=>void acceptCleanAi()}><Check size={14}/>{batchArmed?t('Принять')+' '+cleanAi.length+'? '+t('Нажмите ещё раз'):t('Принять без замечаний ИИ')+' · '+cleanAi.length}</button>}{nav}</footer>
   </section>
 }

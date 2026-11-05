@@ -16,6 +16,7 @@ import { useStudentDiaryMetadata } from '../lib/useStudentDiary'
 import { buildStudentDiary, diaryOverdue, diaryStatusText, type StudentDiaryEntry } from '../lib/studentDiary'
 import { studentHomeWork } from '../lib/studentHomeWork'
 import { useNow } from '../lib/useNow'
+import { deckOwner, dueCount } from '../data/reviewDeck'
 import { useStudentTz } from '../lib/studentTz'
 import { wallDateTimeInTz } from '../lib/teacherTz'
 import { useIsDesktop } from '../lib/useIsDesktop'
@@ -55,6 +56,16 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
   const dashboard = useDashboard.getState()
   const next = work.next
   const ready = !pending && !error
+  // Сдавать нечего — следующий шаг сам предлагает повторение колоды, если
+  // карточки ждут. Пересчёт раз в 5 минут — по часам главной.
+  const deckTick = Math.floor(now.getTime()/300_000)
+  const [deckDue,setDeckDue] = useState(0)
+  useEffect(()=>{
+    let alive = true
+    dueCount(deckOwner()).then(n=>{if(alive)setDeckDue(n)}).catch(()=>{/* цифра на главной — не повод ронять главную */})
+    return ()=>{alive=false}
+  },[deckTick])
+  const review = ready&&!next&&deckDue>0
   function open(entry:StudentDiaryEntry) {
     setScope(null)
     dashboard.setActiveSubject(entry.course.id)
@@ -70,15 +81,15 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
   const workCards = [
     {id:11},
     {id:13,content:<NextWorkWidget
-      status={pending?'loading':error?'error':next?'ready':'empty'}
-      title={status ?? (next?tc(next.lesson.title):t('Всё сдано'))}
-      meta={ready&&next?`${tc(next.course.name)} · ${t('Модуль')} ${next.moduleOrder+1}`:!status?t('Преподаватель откроет новые задания'):undefined}
+      status={pending?'loading':error?'error':next||review?'ready':'empty'}
+      title={status ?? (next?tc(next.lesson.title):review?t('Повторить карточки'):t('Всё сдано'))}
+      meta={ready&&next?`${tc(next.course.name)} · ${t('Модуль')} ${next.moduleOrder+1}`:review?`${t('Ждут повторения')}: ${deckDue} · ${t('около')} ${Math.max(1,Math.round(deckDue*8/60))} ${t('мин')}`:!status?t('Преподаватель откроет новые задания'):undefined}
       due={ready&&next?<WorkDue entry={next} today={today}/>:undefined}
       dueShort={ready&&next?(next.due?new Intl.DateTimeFormat(lang==='en'?'en-GB':'ru-RU',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(next.due+'T12:00:00Z')):t('Без срока')):undefined}
       overdue={!!next&&diaryOverdue(next,today)}
-      action={error?t('Повторить'):ready&&next?t(next.status==='returned'?'Доработать ДЗ':next.lesson.kind==='test'&&!next.extraId?'Пройти тест':'Открыть ДЗ'):ready&&work.review.length?t('На проверке'):undefined}
-      secondary={ready&&!next&&work.review.length>0}
-      onOpen={error?reload:next?()=>open(next):()=>setScope({filter:'review'})}
+      action={error?t('Повторить'):ready&&next?t(next.status==='returned'?'Доработать ДЗ':next.lesson.kind==='test'&&!next.extraId?'Пройти тест':'Открыть ДЗ'):review?t('К карточкам'):ready&&work.review.length?t('На проверке'):undefined}
+      secondary={ready&&!next&&!review&&work.review.length>0}
+      onOpen={error?reload:next?()=>open(next):review?()=>dashboard.setActivePage('trainer'):()=>setScope({filter:'review'})}
     />},
   ]
   return <div className="live-student-home" data-testid="live-student-home">

@@ -5,7 +5,7 @@ import { useT } from '../lib/i18n'
 import { btn } from '../lib/pillStyles'
 
 /** Портал держит панель у окна даже внутри анимированного контейнера урока. */
-export default function HomeworkResultActions({ isMobile, navCollapsed, onSummary, onBack, onReview, reviewUrl, onHard, onHeightChange }: {
+export default function HomeworkResultActions({ isMobile, navCollapsed, onSummary, onBack, onReview, reviewUrl, onHard, onNext, onHeightChange }: {
   isMobile: boolean
   navCollapsed: boolean
   onSummary: () => void
@@ -13,6 +13,8 @@ export default function HomeworkResultActions({ isMobile, navCollapsed, onSummar
   onReview?: () => void
   reviewUrl?: string
   onHard?: () => void
+  /** Следующий урок курса — только когда разбирать и решать больше нечего. */
+  onNext?: () => void
   onHeightChange: (height: number) => void
 }) {
   const t = useT()
@@ -44,6 +46,7 @@ export default function HomeworkResultActions({ isMobile, navCollapsed, onSummar
       ) : null}
       {onHard && <button type="button" onClick={onHard} style={{ ...actionStyle, background: 'var(--grad-purple)', color: '#fff' }}>{t('Открыть хард')}<ArrowRight size={16} style={{ flexShrink: 0 }} /></button>}
       <button type="button" onClick={onBack} style={actionStyle}><ChevronLeft size={16} style={{ flexShrink: 0 }} />{t('К уроку')}</button>
+      {onNext && !onReview && !onHard && <button type="button" onClick={onNext} style={{ ...actionStyle, background: 'var(--grad-purple)', color: '#fff' }}>{t('Следующий урок')}<ArrowRight size={16} style={{ flexShrink: 0 }} /></button>}
     </nav>,
     document.body,
   )

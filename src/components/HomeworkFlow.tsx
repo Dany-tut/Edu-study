@@ -1936,6 +1936,19 @@ export default function HomeworkFlow({
     const lesson = findLessonById(baseLessonRef(lessonId))
     return lesson ? getLessonDetail(lesson).paragraphs : []
   }, [lessonId])
+  // Следующий открытый урок того же курса — кнопка после сдачи, когда ни
+  // ошибок, ни харда не осталось: ученику не нужно искать его в треке.
+  const courseSubjects = useStudentData(s => s.subjects)
+  const nextLessonId = useMemo(() => {
+    const base = baseLessonRef(lessonId)
+    for (const subj of courseSubjects) {
+      const all = subj.modules.flatMap(m => m.lessons)
+      const at = all.findIndex(l => l.id === base)
+      if (at < 0) continue
+      return all.slice(at + 1).find(l => l.status !== 'locked' && l.status !== 'completed')?.id ?? null
+    }
+    return null
+  }, [courseSubjects, lessonId])
   // Задание без тела считаем закрытым: ответить на него нельзя, и держать из-за
   // него всю домашку в «не доделано» — значит запереть ученика (см. taskBodyMissing).
   const answeredCount = basicQuestions.filter(question =>
@@ -4570,6 +4583,7 @@ export default function HomeworkFlow({
                     setState(current => ({ ...current, selectedLevel: 'hard' }))
                     clearHomeworkWidgetFeedback()
                   } : undefined}
+                  onNext={nextLessonId ? () => useDashboard.getState().openLesson(nextLessonId) : undefined}
                   onHeightChange={setResultActionsHeight}
                 />
               ) : <motion.div

@@ -219,7 +219,7 @@ export default function LessonGradeModal({ groupId, onClose, initialLessonId, sc
         </div>
 
         <div style={{ padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button type="button" disabled={attendanceLoading || eventAttendance.error} onClick={() => setPresent(Object.fromEntries(groupStudents.map(s => [s.id, true])))} style={btn('S', 'secondary')}>{t('Все присутствовали')}</button>
+          <button type="button" disabled={attendanceLoading || eventAttendance.error} onClick={() => setPresent(p => ({ ...p, ...Object.fromEntries(groupStudents.filter(s => p[s.id] == null).map(s => [s.id, true])) }))} style={btn('S', 'secondary')}>{t(groupStudents.some(s => present[s.id] === false) ? 'Остальные присутствовали' : 'Все присутствовали')}</button>
           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Без отметки — не значит пропуск. Можно заполнить позже.')}</span>
         </div>
         {eventAttendance.error && <Alert tone="danger" text={t('Не удалось загрузить посещаемость. Откройте журнал ещё раз.')} />}

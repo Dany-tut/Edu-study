@@ -55,3 +55,8 @@
   .hr-review-comment { --hr-comment-height:80px; }
   .hr-task-grades { height:110px; }
 }
+
+/* Пакетное принятие работ, где ИИ не нашёл ошибок: второй клик подтверждает. */
+.hr-batch-accept { margin-left:auto; min-height:30px; padding:5px 12px; font-size:11px; gap:6px; }
+.hr-batch-accept.hr-batch-armed { border-color:var(--color-accent); color:var(--color-accent); }
+@media(max-width:680px) { .hr-batch-accept { min-height:28px; padding:4px 9px; font-size:10px; } }
