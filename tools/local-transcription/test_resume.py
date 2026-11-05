@@ -110,5 +110,34 @@ class ResumeTests(unittest.TestCase):
         r=self.client.get('/version',base_url='http://127.0.0.1:18764',headers={k:v for k,v in self.headers.items() if k!='Authorization'})
         self.assertEqual(r.get_json()['version'],self.s.module_version())
         self.assertRegex(r.get_json()['version'],r'^[0-9a-f]{12}$')
+        self.assertTrue(r.get_json()['update'])
+
+    def archive(self, files):
+        import zipfile
+        buf=io.BytesIO()
+        with zipfile.ZipFile(buf,'w') as z:
+            for name,body in files.items(): z.writestr(name,body)
+        return buf.getvalue()
+
+    def test_update_installs_archive_and_drops_removed_code(self):
+        root=Path(self.tmp.name)/'module'; root.mkdir()
+        (root/'server.py').write_text('old'); (root/'gone.py').write_text('x'); (root/'test_keep.py').write_text('t')
+        self.s.ROOT=root
+        files={'Iskra/server.py':b'new','Iskra/start.command':b'#!/bin/zsh','Iskra/README.md':b'r'}
+        expected=self.s.fingerprint({k.removeprefix('Iskra/'):v for k,v in files.items()})
+        with self.assertRaises(ValueError): self.s.install(self.archive(files),'0'*12)
+        self.assertEqual((root/'server.py').read_text(),'old')
+        with self.assertRaises(ValueError): self.s.install(self.archive({**files,'Iskra/../evil.py':b'x'}),'')
+        self.assertEqual(self.s.install(self.archive(files),expected),expected)
+        self.assertEqual(self.s.module_version(root),expected)
+        self.assertFalse((root/'gone.py').exists()); self.assertTrue((root/'test_keep.py').exists())
+        self.assertTrue(os.access(root/'start.command',os.X_OK))
+
+    def test_update_waits_for_running_job(self):
+        self.assertTrue(self.s.gate.acquire(False))
+        try:
+            r=self.client.post('/update',json={},base_url='http://127.0.0.1:18764',headers=self.headers)
+            self.assertEqual(r.status_code,409)
+        finally: self.s.gate.release()
 
 if __name__=='__main__': unittest.main()
