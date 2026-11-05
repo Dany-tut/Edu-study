@@ -907,7 +907,6 @@ export default function Sidebar() {
       <nav ref={navRef} style={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'center', order: 1 }}>
         {navItems.map(item => {
           const isActive = activeItem === item.id
-          const diaryActive = isActive && item.id === 'courses'
           // Лента — единственное, что появляется само; про остальное в
           // тренажёре человек и так знает. Поэтому счётчик один и висит он на
           // «Тренажёре», а не рядом с каждым пунктом.
@@ -933,9 +932,9 @@ export default function Sidebar() {
                 fontWeight: isActive ? 600 : 500,
                 // Inactive icons go darker in the compact dock for legibility on
                 // the bright glass over the dark video.
-                color: diaryActive ? 'var(--status-now-text)' : isActive ? '#fff' : (isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'),
-                background: diaryActive ? 'var(--status-now-soft)' : isActive ? 'var(--grad-purple)' : 'transparent',
-                boxShadow: diaryActive ? 'none' : isActive ? '0 4px 14px rgba(var(--accent-rgb), 0.42)' : 'none',
+                color: isActive ? '#fff' : (isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'),
+                background: isActive ? 'var(--grad-purple)' : 'transparent',
+                boxShadow: isActive ? '0 4px 14px rgba(var(--accent-rgb), 0.42)' : 'none',
                 transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
                 whiteSpace: 'nowrap',
               }}
@@ -960,15 +959,15 @@ export default function Sidebar() {
                   so nothing slides off to the side. */}
               <motion.span
                 initial={false}
-                animate={{ width: isCompact || diaryActive ? 'auto' : 0, opacity: isCompact || diaryActive ? 1 : 0 }}
+                animate={{ width: isCompact ? 'auto' : 0, opacity: isCompact ? 1 : 0 }}
                 transition={transition}
                 style={{ display: 'flex', overflow: 'hidden' }}
               >
-                <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.8} style={{ marginRight: diaryActive ? 7 : 0 }} />
+                <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
               </motion.span>
               <motion.span
                 initial={false}
-                animate={{ width: isCompact && !diaryActive ? 0 : 'auto', opacity: isCompact && !diaryActive ? 0 : 1 }}
+                animate={{ width: isCompact ? 0 : 'auto', opacity: isCompact ? 0 : 1 }}
                 transition={transition}
                 style={{ display: 'block', overflow: 'hidden', whiteSpace: 'nowrap' }}
               >
