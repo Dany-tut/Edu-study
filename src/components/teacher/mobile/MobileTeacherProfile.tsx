@@ -2,9 +2,11 @@ import { useOpenStudentCabinet } from '../../../lib/useOpenStudentCabinet'
 import Modal from '../../Modal'
 import TeacherModules from '../TeacherModules'
 import FadeText from '../../FadeText'
+import CountBadge from '../../CountBadge'
+import { useNotificationsStore } from '../../../store/notificationsStore'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
+import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -57,7 +59,8 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
   )
 }
 
-export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets }: { onOpenJournal?: () => void; onOpenWidgets?: () => void }) {
+export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onOpenNotifications }: { onOpenJournal?: () => void; onOpenWidgets?: () => void; onOpenNotifications?: () => void }) {
+  const unreadNotifs = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
   const signedIn = useTeacherSession()
   const studentCabinet = useOpenStudentCabinet()
   const friends = useDesktopFriends()
@@ -195,6 +198,12 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets }: {
 
         {/* Settings — span 2, grouped icon-list (C-style) */}
         <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
+          {/* Уведомления — вход есть и в приложении iOS, где шапку рисует система */}
+          {onOpenNotifications && <button type="button" onClick={() => { tactile(); onOpenNotifications() }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
+            <Bell size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} /><span style={{ flex:1 }}>{t('Уведомления')}</span>
+            <CountBadge count={unreadNotifs} tone="danger" />
+            <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+          </button>}
           {/* Тариф — actionable row (A-style «Повысить») */}
           <button
             onClick={() => { tactile(); setTariffOpen(true) }}
