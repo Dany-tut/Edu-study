@@ -7,6 +7,8 @@ import { supabase } from '../../lib/supabase'
 import { getSubject } from '../../lib/subjects'
 import { btn } from '../../lib/pillStyles'
 import { useT } from '../../lib/i18n'
+import FadeText from '../FadeText'
+import './transcriptTerms.css'
 import type { AdminTerm } from '../../lib/transcriptTerms'
 
 // Админка → «Словарь»: термины и ошибки распознавания для локальной расшифровки.
@@ -28,6 +30,7 @@ export default function TranscriptTermsManager() {
   const [query, setQuery] = useState('')
   const [draft, setDraft] = useState({ written: '', heard: '', spoken: '' })
   const [busy, setBusy] = useState(false)
+  const [editing, setEditing] = useState<{ id: string; written: string; heard: string; spoken: string } | null>(null)
 
   async function load() {
     setLoading(true); setError('')
@@ -59,6 +62,18 @@ export default function TranscriptTermsManager() {
     const { error } = await supabase.from('transcript_terms').delete().eq('id', id)
     if (error) { setError(t('Не удалось удалить. Попробуйте ещё раз.')); void load() }
   }
+  function startEdit(r: AdminTerm) { setEditing({ id: r.id, written: r.written, heard: r.heard ?? '', spoken: r.spoken ?? '' }) }
+  async function saveEdit() {
+    if (!editing || busy) return
+    const written = editing.written.trim(), heard = editing.heard.trim() || null, spoken = editing.spoken.trim() || null
+    if (!written) return
+    setBusy(true); setError('')
+    const { error } = await supabase.from('transcript_terms').update({ written, heard, spoken, updated_at: new Date().toISOString() }).eq('id', editing.id)
+    setBusy(false)
+    if (error) { setError(error.code === '23505' ? t('Такая запись уже есть в словаре.') : t('Не удалось сохранить. Попробуйте ещё раз.')); return }
+    setRows(prev => prev.map(r => r.id === editing.id ? { ...r, written, heard, spoken } : r))
+    setEditing(null)
+  }
   async function add() {
     const written = draft.written.trim(), heard = draft.heard.trim(), spoken = draft.spoken.trim()
     if (!written || busy) return
@@ -85,7 +100,7 @@ export default function TranscriptTermsManager() {
       </button>
     </div>
 
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto', gap: 8, alignItems: 'center', padding: 12, marginBottom: 16, borderRadius: 14, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)' }}>
+    <div className="tterms-add">
       <input style={FIELD} value={draft.written} onChange={e => setDraft({ ...draft, written: e.target.value })} placeholder={t('Как пишется: HSO₄⁻')} aria-label={t('Как пишется')} maxLength={80} />
       <input style={FIELD} value={draft.heard} onChange={e => setDraft({ ...draft, heard: e.target.value })} placeholder={t('Как распознаётся (необязательно)')} aria-label={t('Как распознаётся')} maxLength={80} />
       <input style={FIELD} value={draft.spoken} onChange={e => setDraft({ ...draft, spoken: e.target.value })} placeholder={t('Как произносят (необязательно)')} aria-label={t('Как произносят')} maxLength={80} onKeyDown={e => { if (e.key === 'Enter') void add() }} />
@@ -98,22 +113,29 @@ export default function TranscriptTermsManager() {
       <div style={{ fontSize: 14, fontWeight: 600, marginTop: 10 }}>{t(status === 'pending' ? 'Новых предложений нет' : 'Здесь пока пусто')}</div>
     </div>}
 
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      {visible.map(r => <div key={r.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)' }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', overflowWrap: 'anywhere' }}>
-            {r.heard ? <><span style={{ color: 'var(--color-text-3)', textDecoration: 'line-through' }}>{r.heard}</span><ArrowRight size={13} aria-label={t('исправляется на')} style={{ margin: '0 6px', verticalAlign: '-2px', color: 'var(--color-text-3)' }} />{r.written}</> : r.written}
+    <div className="tterms-grid">
+      {visible.map(r => editing?.id === r.id
+        ? <form key={r.id} className="tterms-card is-editing" onSubmit={e => { e.preventDefault(); void saveEdit() }} onKeyDown={e => { if (e.key === 'Escape') setEditing(null) }}>
+          <input autoFocus style={FIELD} value={editing.written} onChange={e => setEditing({ ...editing, written: e.target.value })} placeholder={t('Как пишется')} aria-label={t('Как пишется')} maxLength={80} />
+          <input style={FIELD} value={editing.heard} onChange={e => setEditing({ ...editing, heard: e.target.value })} placeholder={t('Как распознаётся (необязательно)')} aria-label={t('Как распознаётся')} maxLength={80} />
+          <input style={FIELD} value={editing.spoken} onChange={e => setEditing({ ...editing, spoken: e.target.value })} placeholder={t('Как произносят (необязательно)')} aria-label={t('Как произносят')} maxLength={80} />
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+            <button type="button" style={btn('S', 'quiet')} onClick={() => setEditing(null)}>{t('Отмена')}</button>
+            <button type="submit" style={btn('S', 'primary')} disabled={!editing.written.trim() || busy}>{t('Сохранить')}</button>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>
-            {[r.spoken && `${t('произносят')}: ${r.spoken}`, r.source === 'seed' ? t('стартовый словарь') : r.source === 'admin' ? t('добавлено в админке') : `${t('учителей')}: ${r.voters ?? 1}`, `${t('встречалось')}: ${r.hits}`].filter(Boolean).join(' · ')}
+        </form>
+        : <div key={r.id} className="tterms-card" role="button" tabIndex={0} title={t('Нажмите, чтобы изменить')}
+          onClick={() => startEdit(r)} onKeyDown={e => { if (e.key === 'Enter' && e.target === e.currentTarget) startEdit(r) }}>
+          {r.heard
+            ? <div className="tterms-word tterms-pair"><FadeText className="tterms-heard">{r.heard}</FadeText><ArrowRight size={12} aria-label={t('исправляется на')} className="tterms-arrow" /><FadeText>{r.written}</FadeText></div>
+            : <FadeText className="tterms-word">{r.written}</FadeText>}
+          <FadeText className="tterms-meta">{[r.spoken && `${t('произносят')}: ${r.spoken}`, r.source === 'seed' ? null : r.source === 'admin' ? t('из админки') : `${t('учителей')}: ${r.voters ?? 1}`, `${t('встречалось')}: ${r.hits}`].filter(Boolean).join(' · ')}</FadeText>
+          <div className="tterms-actions" onClick={e => e.stopPropagation()}>
+            {r.status !== 'approved' && <button type="button" aria-label={t('Одобрить')} title={t('Одобрить')} onClick={() => void setTermStatus(r.id, 'approved')}><Check size={14} /></button>}
+            {r.status !== 'rejected' && <button type="button" aria-label={t('Отклонить')} title={t('Отклонить')} onClick={() => void setTermStatus(r.id, 'rejected')}><X size={14} /></button>}
+            <button type="button" className="is-danger" aria-label={t('Удалить из словаря')} title={t('Удалить из словаря')} onClick={() => void remove(r.id)}><Trash2 size={14} /></button>
           </div>
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {r.status !== 'approved' && <button type="button" style={btn('S', 'secondary')} onClick={() => void setTermStatus(r.id, 'approved')}><Check size={14} />{t('Одобрить')}</button>}
-          {r.status !== 'rejected' && <button type="button" style={btn('S', 'secondary')} onClick={() => void setTermStatus(r.id, 'rejected')}><X size={14} />{t('Отклонить')}</button>}
-          <button type="button" aria-label={t('Удалить из словаря')} title={t('Удалить из словаря')} style={btn('S', 'quiet')} onClick={() => void remove(r.id)}><Trash2 size={14} /></button>
-        </div>
-      </div>)}
+        </div>)}
     </div>
   </div>
 }
