@@ -31,12 +31,14 @@ export default function TranscriptTermsManager() {
   const [draft, setDraft] = useState({ written: '', heard: '', spoken: '' })
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState<{ id: string; written: string; heard: string; spoken: string } | null>(null)
-  // Правка открывается поверх сетки, как выпадающее меню: клик мимо закрывает её без сохранения.
+  // Правка открывается поверх сетки, как выпадающее меню: клик мимо сохраняет
+  // и закрывает её (Esc и «Отмена» — без сохранения).
   const editorRef = useRef<HTMLFormElement>(null)
+  const saveRef = useRef<() => Promise<void>>(async () => {})
   const editingId = editing?.id
   useEffect(() => {
     if (!editingId) return
-    const close = (e: PointerEvent) => { if (!editorRef.current?.contains(e.target as Node)) setEditing(null) }
+    const close = (e: PointerEvent) => { if (!editorRef.current?.contains(e.target as Node)) void saveRef.current() }
     document.addEventListener('pointerdown', close)
     return () => document.removeEventListener('pointerdown', close)
   }, [editingId])
@@ -75,14 +77,20 @@ export default function TranscriptTermsManager() {
   async function saveEdit() {
     if (!editing || busy) return
     const written = editing.written.trim(), heard = editing.heard.trim() || null, spoken = editing.spoken.trim() || null
-    if (!written) return
+    const id = editing.id
+    // Клик по другой карточке сохраняет эту и сразу открывает ту — закрываем только свою правку.
+    const closeOwn = () => setEditing(cur => cur?.id === id ? null : cur)
+    const row = rows.find(r => r.id === id)
+    // Ничего не поменяли или стёрли написание — закрываем, базу не трогаем.
+    if (!written || (row && row.written === written && (row.heard ?? null) === heard && (row.spoken ?? null) === spoken)) { closeOwn(); return }
     setBusy(true); setError('')
-    const { error } = await supabase.from('transcript_terms').update({ written, heard, spoken, updated_at: new Date().toISOString() }).eq('id', editing.id)
+    const { error } = await supabase.from('transcript_terms').update({ written, heard, spoken, updated_at: new Date().toISOString() }).eq('id', id)
     setBusy(false)
     if (error) { setError(error.code === '23505' ? t('Такая запись уже есть в словаре.') : t('Не удалось сохранить. Попробуйте ещё раз.')); return }
-    setRows(prev => prev.map(r => r.id === editing.id ? { ...r, written, heard, spoken } : r))
-    setEditing(null)
+    setRows(prev => prev.map(r => r.id === id ? { ...r, written, heard, spoken } : r))
+    closeOwn()
   }
+  saveRef.current = saveEdit
   async function add() {
     const written = draft.written.trim(), heard = draft.heard.trim(), spoken = draft.spoken.trim()
     if (!written || busy) return
