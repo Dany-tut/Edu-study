@@ -77,6 +77,10 @@
 .js-scope label, .js-search { border-radius: 11px; background: var(--color-bg); border: 1px solid var(--color-border-soft); padding: 4px 9px; color: var(--color-text-2); }
 .js-scope select, .js-search input { background: transparent; color: var(--color-text); border: 0; font: inherit; max-width: 100%; min-width: 0; border-radius: 8px; }
 .js-scope select { max-width: 230px; }
+/* Коробка дропдауна задаёт ширину: триггер TeacherSelect тянется на 100%. */
+.js-scope .js-scope-course { width: 250px; max-width: 100%; }
+.js-scope .js-scope-module { width: 210px; max-width: 100%; }
+.js-scope .js-scope-course > div, .js-scope .js-scope-module > div { flex: 1; min-width: 0; }
 .js-scope option { background: var(--color-bg-card); }
 .js-search input { width: 100%; }
 .js-toolbar-slot { container: journal-tools / inline-size; flex: none; position: relative; z-index: 4; }
@@ -106,6 +110,7 @@
     width: 250px; padding: 12px; border-radius: 16px; background: var(--color-bg-card); box-shadow: var(--shadow-4); border: 1px solid var(--color-border-soft); }
   .js-filter-items .js-scope { flex-direction: column; align-items: stretch; }
   .js-filter-items .js-scope select { max-width: 240px; flex: 1; }
+  .js-filter-items .js-scope :is(.js-scope-course, .js-scope-module) { width: auto; }
   .js-toolbar .js-search { margin-inline-start: 0; width: 150px; }
 }
 @container (max-width: 660px) {
@@ -373,6 +378,7 @@
   .js-scope select {
     max-width: 180px;
   }
+  .js-scope :is(.js-scope-course, .js-scope-module) { width: 190px; }
   .js-metrics {
     gap: 4px;
   }
@@ -484,6 +490,7 @@
   padding: 0 10px;
 }
 :is(.group-roster-toolbar, .js-filter-items) .js-scope select { max-width: 170px; font: inherit; }
+.group-roster-toolbar .js-scope :is(.js-scope-course, .js-scope-module) { width: 200px; }
 @media (max-width: 767px) {
   :is(.group-roster-toolbar, .js-filter-items) .js-scope { font-size: 16px; }
   .group-roster-toolbar .js-scope { flex-wrap: wrap; }

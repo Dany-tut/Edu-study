@@ -1,5 +1,5 @@
-import { LoopSelect } from '../components/icons/LoopSelect'
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import TeacherSelect from '../components/teacher/TeacherSelect'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   ArrowRight,
   ArrowUpDown,
@@ -140,6 +140,16 @@ function Row({
   )
 }
 
+// Свой дропдаун вместо системного <select>: тот же вид, что у полей Искры.
+const SCOPE_TRIGGER: CSSProperties = {
+  background: 'var(--ds-surface)', borderColor: 'var(--ds-line)', borderRadius: 99,
+  padding: '10px 15px', fontSize: 12,
+}
+const TOOLBAR_TRIGGER: CSSProperties = {
+  background: 'var(--ds-surface)', borderColor: 'var(--ds-line)', borderRadius: 12,
+  padding: '10px 11px', fontSize: 12,
+}
+
 export default function StudentDiaryPage({
   tab,
   setTab,
@@ -168,6 +178,7 @@ export default function StudentDiaryPage({
   const pageKey = JSON.stringify([diaryOwner, subject, course, state, sort, descending, feedDay])
   const [page, setPage] = useState({ key: '', count: 5 })
   const visibleCount = page.key === pageKey ? page.count : 5
+  const moreRef = useRef<HTMLDivElement>(null)
   const clock = wallDateTimeInTz(now.toISOString(), tz),
     today = clock.day
   useEffect(() => { setFeedDay(null) }, [today])
@@ -292,6 +303,18 @@ export default function StudentDiaryPage({
     remaining -= entries.length
     return entries.length ? [{ ...group, entries, total: group.entries.length }] : []
   })
+  const hasMore = visibleCount < totalWorks
+  // Дочитали до конца — подкладываем следующие 5. Запас 120px, чтобы
+  // порция успевала появиться до того, как палец упрётся в низ.
+  useEffect(() => {
+    const node = moreRef.current
+    if (!hasMore || !node || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([hit]) => {
+      if (hit?.isIntersecting) setPage({ key: pageKey, count: visibleCount + 5 })
+    }, { rootMargin: '0px 0px 120px 0px' })
+    io.observe(node)
+    return () => io.disconnect()
+  }, [hasMore, pageKey, visibleCount])
   const feedDate = (day: string) => new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
     day: 'numeric', month: 'short', timeZone: 'UTC',
   }).format(new Date(day + 'T12:00:00Z'))
@@ -315,41 +338,41 @@ export default function StudentDiaryPage({
       ) : null}
       {tab !== 'lessons' ? (
         <div className="ds-scope">
-          <label>
+          <div className="ds-scope-field">
             <span className="ds-field-label">{t('Предмет')}</span>
-            <LoopSelect
-              aria-label={t('Предмет дневника')}
+            <TeacherSelect
               value={subject}
-              onChange={(e) => {
-                setSubject(e.target.value)
+              onChange={(v) => {
+                setSubject(v)
                 setCourse('*')
               }}
-            >
-              <option value="*">{t('Все предметы')}</option>
-              {[...new Set(subjects.map((c) => c.subject || '__none'))].map((name) => (
-                <option key={name} value={name}>
-                  {name === '__none' ? t('Предмет не указан') : name}
-                </option>
-              ))}
-            </LoopSelect>
-          </label>
-          <label>
+              options={[
+                { value: '*', label: t('Все предметы') },
+                ...[...new Set(subjects.map((c) => c.subject || '__none'))].map((name) => ({
+                  value: name,
+                  label: name === '__none' ? t('Предмет не указан') : name,
+                })),
+              ]}
+              clearable={false}
+              search={false}
+              triggerStyle={SCOPE_TRIGGER}
+            />
+          </div>
+          <div className="ds-scope-field">
             <span className="ds-field-label">{t('Курс / интенсив')}</span>
-            <LoopSelect
-              aria-label={t('Курс дневника')}
+            <TeacherSelect
               value={course}
-              onChange={(e) => setCourse(e.target.value)}
-            >
-              <option value="*">{t('Все курсы и интенсивы')}</option>
-              {subjects
-                .filter((c) => subject === '*' || (c.subject || '__none') === subject)
-                .map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-            </LoopSelect>
-          </label>
+              onChange={setCourse}
+              options={[
+                { value: '*', label: t('Все курсы и интенсивы') },
+                ...subjects
+                  .filter((c) => subject === '*' || (c.subject || '__none') === subject)
+                  .map((c) => ({ value: c.id, label: c.name })),
+              ]}
+              clearable={false}
+              triggerStyle={SCOPE_TRIGGER}
+            />
+          </div>
           <span className="ds-scope-summary">
             {pending
               ? t('Обновляем задания…')
@@ -375,25 +398,39 @@ export default function StudentDiaryPage({
       ) : (
         <>
           <div className="ds-work-toolbar">
-            <label>
-              {t('Состояние')}
-              <LoopSelect aria-label={t('Состояние')} value={state} onChange={(e) => setState(e.target.value)}>
-                <option value="action">{t('Нужно сделать')}</option>
-                <option value="all">{t('Все задания')}</option>
-                <option value="pending">{t('На проверке')}</option>
-                <option value="passed">{t('Зачтено')}</option>
-              </LoopSelect>
-            </label>
-            <label>
-              {t('Сортировка')}
-              <LoopSelect aria-label={t('Сортировка')} value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="priority">{t('Сначала важное')}</option>
-                <option value="due">{t('По сроку')}</option>
-                <option value="number">{t('По номеру ДЗ')}</option>
-                <option value="subject">{t('По предмету')}</option>
-                <option value="course">{t('По курсу / интенсиву')}</option>
-              </LoopSelect>
-            </label>
+            <div className="ds-toolbar-field ds-toolbar-field--state">
+              <span>{t('Состояние')}</span>
+              <TeacherSelect
+                value={state}
+                onChange={setState}
+                options={[
+                  { value: 'action', label: t('Нужно сделать') },
+                  { value: 'all', label: t('Все задания') },
+                  { value: 'pending', label: t('На проверке') },
+                  { value: 'passed', label: t('Зачтено') },
+                ]}
+                clearable={false}
+                search={false}
+                triggerStyle={TOOLBAR_TRIGGER}
+              />
+            </div>
+            <div className="ds-toolbar-field ds-toolbar-field--sort">
+              <span>{t('Сортировка')}</span>
+              <TeacherSelect
+                value={sort}
+                onChange={setSort}
+                options={[
+                  { value: 'priority', label: t('Сначала важное') },
+                  { value: 'due', label: t('По сроку') },
+                  { value: 'number', label: t('По номеру ДЗ') },
+                  { value: 'subject', label: t('По предмету') },
+                  { value: 'course', label: t('По курсу / интенсиву') },
+                ]}
+                clearable={false}
+                search={false}
+                triggerStyle={TOOLBAR_TRIGGER}
+              />
+            </div>
             <button
               type="button"
               className="ds-sort-direction"
@@ -421,14 +458,14 @@ export default function StudentDiaryPage({
               {feedDay === null || upcoming?.day === feedDay ? upcomingCard : null}
             </aside>
             <main className="ds-feed-timeline" aria-label={t('Лента заданий')}>
-              {visibleTimeline.map(group => <section className="ds-feed-event" key={group.key}>
+              {visibleTimeline.map((group, index) => <section className="ds-feed-event" key={group.key}
+                data-more-below={hasMore && index === visibleTimeline.length - 1 || undefined}>
                 <div className="ds-section-head"><h2>{feedTitle(group.key)}</h2><span>{group.total} {t('ДЗ')}</span></div>
                 <div className="ds-section ds-all-work">{group.entries.map(row)}</div>
               </section>)}
-              {totalWorks > 5 ? <div className="ds-load-more">
-                <p role="status">{t('Показано')} {Math.min(visibleCount, totalWorks)} {t('из')} {totalWorks}</p>
-                {visibleCount < totalWorks ? <button type="button" className="ds-secondary" onClick={() => setPage({ key: pageKey, count: visibleCount + 5 })}>{t('Загрузить ещё')}</button> : null}
-              </div> : null}
+              {/* Без счётчика и кнопки: низ ленты гаснет, следующая порция
+                  подгружается сама, когда дочитали до конца. */}
+              {hasMore ? <div ref={moreRef} className="ds-load-sentinel" aria-hidden="true" /> : null}
               {!timeline.length ? <section className="ds-section ds-all-work">{empty(pending ? 'Загружаем задания…' : feedDay ? 'На этот день заданий нет' : 'По этим фильтрам работ нет')}</section> : null}
             </main>
           </div>

@@ -135,7 +135,7 @@
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
-.ds-scope label {
+.ds-scope-field {
   min-width: 0;
   max-width: 100%;
 }
@@ -717,7 +717,7 @@
   flex-wrap: wrap;
   margin-bottom: 20px;
 }
-.ds-work-toolbar label {
+.ds-toolbar-field {
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -725,6 +725,8 @@
   color: var(--ds-muted);
   min-width: 0;
 }
+.ds-toolbar-field--state { width: 170px; }
+.ds-toolbar-field--sort { width: 220px; }
 .ds-work-toolbar select {
   min-width: 0;
   max-width: 100%;
@@ -829,14 +831,15 @@
   .ds-scope {
     gap: 8px;
   }
-  .ds-scope label {
+  .ds-scope-field {
     flex: 1 1 150px;
   }
   .ds-scope select {
     width: 100%;
   }
-  .ds-work-toolbar label {
+  .ds-toolbar-field {
     flex: 1 1 145px;
+    width: auto;
   }
   .ds-work-toolbar select {
     width: 100%;
@@ -1052,10 +1055,10 @@
 .student-diary .ds-view-navigation .ds-tabs button { justify-content: center; padding-inline: 12px; }
 .student-diary .ds-tabs button > span { flex-shrink: 0; }
 .student-diary .ds-tabs button > span[aria-hidden='true'] { visibility: hidden; }
-.student-diary .ds-scope label:first-child { flex: 0 1 180px; }
-.student-diary .ds-scope label:nth-child(2) { flex: 0 1 260px; }
+.student-diary .ds-scope-field:first-child { flex: 0 1 180px; }
+.student-diary .ds-scope-field:nth-child(2) { flex: 0 1 260px; }
 
-@media (max-width: 760px) { .student-diary .ds-scope label:first-child, .student-diary .ds-scope label:nth-child(2) { flex: 1 1 150px; } }
+@media (max-width: 760px) { .student-diary .ds-scope-field:first-child, .student-diary .ds-scope-field:nth-child(2) { flex: 1 1 150px; } }
 .student-diary .ds-lesson-catalog { font-size: 12px; padding: 10px 12px; }
 .student-diary .ds-lesson-catalog[aria-pressed='true'] { color: var(--ds-primary); background: var(--color-purple-soft); }
 .student-diary .ds-feed-grid { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; gap: 22px; }
@@ -1086,3 +1089,10 @@
 .student-diary .ds-diary-navigation { display: flex; width: max-content; max-width: 100%; gap: 4px; padding: 4px; margin: 16px auto 24px; border: 1px solid var(--color-border-soft); border-radius: 28px; }
 .student-diary .ds-diary-navigation button { min-height: 44px; border: 0; border-radius: 24px; padding: 10px 16px; background: transparent; color: var(--color-text-3); font: inherit; cursor: pointer; }
 .student-diary .ds-diary-navigation button[aria-pressed='true'] { background: var(--color-accent-soft); color: var(--color-accent); }
+
+/* Ниже есть ещё задания: последняя карточка мягко гаснет вместо счётчика и кнопки. */
+.student-diary .ds-feed-event[data-more-below] .ds-all-work {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 110px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 110px), transparent);
+}
+.student-diary .ds-load-sentinel { height: 1px; }

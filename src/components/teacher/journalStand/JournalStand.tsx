@@ -22,6 +22,7 @@ import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
 import { performanceDiagnostics } from '../../../lib/platformPerformance'
 import TestlyMark from '../../TestlyMark'
+import TeacherSelect from '../TeacherSelect'
 import { ArrowLeft, BookOpen, CalendarCheck, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
 import { useScrollEdges } from './useScrollEdges'
 import { matrixRuns } from './matrixRuns'
@@ -118,6 +119,11 @@ function Metrics({ stats }: { stats: ReturnType<typeof workStats> }) {
     </dl>
   )
 }
+// TeacherSelect отбрасывает вариант с пустым value — «все модули» живёт под своим ключом.
+const ALL_MODULES = '__all_modules'
+const SCOPE_TRIGGER: CSSProperties = {
+  border: 'none', background: 'transparent', padding: '4px 0', fontSize: 'inherit', color: 'var(--color-text)',
+}
 export function ScopePicker({
   data,
   value,
@@ -130,36 +136,34 @@ export function ScopePicker({
   const modules = data.modules.filter((m) => m.course_id === value.course).sort((a, b) => a.position - b.position)
   return (
     <div className="js-scope">
-      <label>
+      {/* Свой дропдаун вместо системного <select>: рамка и иконка — у label,
+          триггер прозрачный и растягивается на всю коробку. */}
+      <label className="js-scope-course">
         <BookOpen size={15} />
-        <select
-          aria-label="Курс или интенсив"
+        <TeacherSelect
           value={value.course}
-          onChange={(e) => onChange({ course: e.target.value, module: '' })}
-        >
-          <option value={ALL_COURSES}>Все курсы и работы</option>
-          {data.courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.title}
-            </option>
-          ))}
-          <option value={OUTSIDE_COURSES}>Вне курсов</option>
-        </select>
+          onChange={(course) => onChange({ course, module: '' })}
+          options={[
+            { value: ALL_COURSES, label: 'Все курсы и работы' },
+            ...data.courses.map((c) => ({ value: c.id, label: c.title })),
+            { value: OUTSIDE_COURSES, label: 'Вне курсов' },
+          ]}
+          clearable={false}
+          triggerStyle={SCOPE_TRIGGER}
+        />
       </label>
       {modules.length > 0 && (
-        <label>
-          <select
-            aria-label="Модуль"
-            value={value.module}
-            onChange={(e) => onChange({ ...value, module: e.target.value })}
-          >
-            <option value="">Все модули</option>
-            {modules.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+        <label className="js-scope-module">
+          <TeacherSelect
+            value={value.module || ALL_MODULES}
+            onChange={(module) => onChange({ ...value, module: module === ALL_MODULES ? '' : module })}
+            options={[
+              { value: ALL_MODULES, label: 'Все модули' },
+              ...modules.map((m) => ({ value: m.id, label: m.label })),
+            ]}
+            clearable={false}
+            triggerStyle={SCOPE_TRIGGER}
+          />
         </label>
       )}
     </div>
@@ -306,7 +310,10 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }:
   useEffect(() => {
     if (!filters) return
     const outside = (e: PointerEvent) => {
-      if (e.target instanceof Node && !area.current?.contains(e.target)) setFilters(false)
+      if (!(e.target instanceof Node) || area.current?.contains(e.target)) return
+      // Список модуля/курса открыт в портале — выбор пункта не закрывает панель.
+      if (e.target instanceof Element && e.target.closest('[data-dropdown-menu]')) return
+      setFilters(false)
     }
     document.addEventListener('pointerdown', outside)
     return () => document.removeEventListener('pointerdown', outside)
@@ -328,7 +335,8 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }:
       <div className="js-filter-area" ref={area} onKeyDown={e => {
         if (e.key === 'Escape' && filters) { e.stopPropagation(); setFilters(false); trigger.current?.focus() }
       }} onBlur={e => {
-        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setFilters(false)
+        const next = e.relatedTarget
+        if (next && !e.currentTarget.contains(next) && !next.closest('[data-dropdown-menu]')) setFilters(false)
       }}>
         <button type="button" className="cj-button js-filter-trigger" aria-label="Фильтры журнала" title="Фильтры журнала"
           ref={trigger} aria-controls={id} aria-expanded={filters} data-filtered={!!selected.module || attention || undefined}

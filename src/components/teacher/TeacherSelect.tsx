@@ -266,6 +266,8 @@ export default function TeacherSelect({
             <motion.div
               ref={menuRef}
               className="no-scrollbar"
+              // Меню в портале: панели с «клик снаружи закрывает» узнают его по метке.
+              data-dropdown-menu=""
               initial={{ scale: 0.92, opacity: 0, y: pos.up ? 6 : -6 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.92, opacity: 0, y: pos.up ? 6 : -6 }}
