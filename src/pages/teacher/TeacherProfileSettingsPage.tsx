@@ -300,7 +300,6 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
               ) : null}
               <span className="teacher-profile-copy-status" role="status">{copyResult}</span>
             </div>
-            {teacherGuides && <button type="button" className="teacher-guides-entry" onClick={teacherGuides.catalog}>{t('Подсказки')}</button>}
           </div>
           <HScrollFade padX={2} padTop={3} padBottom={3} fadeWidth={22} style={{ minWidth: 0, maxWidth: '100%', justifySelf: 'center' }}>
             <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {
@@ -308,6 +307,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
               else { friends.setTab(null); setPage(id) }
             }}/>
           </HScrollFade>
+          {teacherGuides && <button type="button" className="teacher-guides-entry" onClick={teacherGuides.catalog}>{t('Подсказки')}</button>}
         </header>
         <div className="profile-section-heading">
           <h2>{t(section === 'main' ? 'Личные данные' : section === 'friends' ? 'Друзья' : section === 'integrations' ? 'Интеграции' : 'Настройки')}</h2>

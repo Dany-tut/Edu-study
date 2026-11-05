@@ -9,7 +9,10 @@
 .teacher-profile-identity h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: var(--color-text); }
 .teacher-profile-name { display: block; max-width: 100%; border: 0; background: transparent; padding: 3px 0; font-family: inherit; text-align: start; cursor: pointer; font-size: 12px; color: var(--color-text-3); }
 @media (max-width: 760px) {
-  .teacher-profile-header { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .teacher-profile-header { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+  .teacher-profile-header > .teacher-profile-identity { grid-area: 1 / 1; }
+  .teacher-profile-header > .teacher-guides-entry { grid-area: 1 / 2; }
+  .teacher-profile-header > :nth-child(2) { grid-column: 1 / -1; }
 }
 .teacher-profile-name:hover, .teacher-profile-name:focus-visible { color: var(--color-text); text-decoration: underline; }
 .teacher-profile-copy-status { position: absolute; top: 100%; left: 0; z-index: 1; width: max-content; border-radius: 6px; background: var(--color-bg-3); color: var(--color-text); font-size: 12px; }
