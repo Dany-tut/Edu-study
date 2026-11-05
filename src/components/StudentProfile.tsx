@@ -75,9 +75,9 @@ export default function StudentProfile({ section, onChange, onClose, name, avata
           <p className="profile-social-privacy">{t('Твой email остаётся приватным.')}</p>
         </aside>
       </div>}
-      {section === 'settings' && <div className="profile-main-grid profile-settings-single">
-        <section className="profile-card profile-social-identity"><h3>{t('Ник и видимость')}</h3><FriendsContent model={{...model,tab:'profile'}} /></section>
-        <LoginMethods student />
+      {section === 'settings' && <div className="profile-social-grid profile-settings-grid">
+        <div className="profile-settings-main"><LoginMethods student /></div>
+        <aside className="profile-card profile-social-identity" aria-label={t('Ник и видимость')}><h3>{t('Ник и видимость')}</h3><FriendsContent model={{...model,tab:'profile'}} /></aside>
       </div>}
     </div>
   </Modal>
