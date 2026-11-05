@@ -275,3 +275,9 @@
 .recording-lines .transcript-line-time {display:block;padding:3px 0;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;cursor:pointer}
 .recording-lines .transcript-line-time:hover time {color:var(--color-accent)}
 @media (prefers-reduced-motion: reduce) {.recording-lines .transcript-line,.recording-lines .transcript-line button,.recording-lines .transcript-line time {transition:none}}
+
+/* Уровень Б: переключатель «Учить распознавание на моих правках». */
+.transcription-training {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;background:var(--color-bg-2);border:1px solid var(--color-border-soft)}
+.transcription-training > span {display:grid;gap:2px;min-width:0}
+.transcription-training strong {font-size:13px}
+.transcription-training small {font-size:11px;line-height:1.4;color:var(--color-text-3)}
