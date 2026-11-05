@@ -1,5 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import ScrollFade from '../../ScrollFade'
+import CountBadge from '../../CountBadge'
 import { useJournalPending, type PendingJournal } from '../../../lib/useGroups'
 import AttendanceEditor from './AttendanceEditor'
 import JournalSkeleton from '../JournalSkeleton'
@@ -319,7 +320,7 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }:
           return (
             <button type="button" key={tab} aria-label={label} title={label}
               aria-pressed={selected.tab === tab} onClick={() => set(tab === 'Обзор' ? { tab, student: '', workRef: '' } : { tab })}>
-              <Icon size={15} /><span>{tab}</span>{count > 0 && <b className="js-pending-count">{count}</b>}
+              <Icon size={15} /><span>{tab}</span>{count > 0 && <CountBadge count={count} tone="danger" className="js-pending-count" />}
             </button>
           )
         })}
