@@ -32,6 +32,9 @@
 .teacher-roster-scroll {
   flex: 1 1 auto;
   overflow: auto;
+  /* Место под полосу прокрутки держим всегда: иначе при фильтре на 2 строки
+     полоса пропадает и все колонки съезжают вправо на её ширину. */
+  scrollbar-gutter: stable;
   min-height: 0;
   overscroll-behavior: contain;
 }
