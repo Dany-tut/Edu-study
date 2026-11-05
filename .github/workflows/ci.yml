@@ -218,6 +218,11 @@ jobs:
             /tmp/iskra-google-form-qa/
           if-no-files-found: ignore
 
+      # Сам поиск ключей идёт внутри `npm run build` по готовому dist/.
+      # Здесь — проверка, что сторож вообще что-то ловит, а не молча зелёный.
+      - name: Сторож ключей в клиенте (check:client-secrets)
+        run: npm run check:client-secrets
+
       - name: Сборка
         id: build
         continue-on-error: true
