@@ -338,6 +338,18 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, a
           )
         })}
       </div>
+      {/* «Требуют внимания» — кружок с «!» сразу за вкладками. Подпись и
+          счётчик раскрываются при наведении ПОВЕРХ соседей: ячейка 40 px
+          не меняется, поэтому ничего в строке не сдвигается. */}
+      {selected.tab !== 'Обзор' && <span className="js-attention-slot">
+        <button type="button" className="cj-button js-attention" aria-pressed={attention} onClick={toggle}
+          aria-label={attentionCount ? `Требуют внимания · ${attentionCount}` : 'Требуют внимания'}>
+          <CircleAlert size={16} aria-hidden />
+          <span className="js-attention-label">Требуют внимания
+            {attentionCount > 0 && <CountBadge count={attentionCount} tone={attention ? 'accent' : 'danger'} className="js-attention-count" />}
+          </span>
+        </button>
+      </span>}
       {workViews}
       <div className="js-filter-area" ref={area} onKeyDown={e => {
         if (e.key === 'Escape' && filters) { e.stopPropagation(); setFilters(false); trigger.current?.focus() }
@@ -346,15 +358,10 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, a
         if (next && !e.currentTarget.contains(next) && !next.closest('[data-dropdown-menu]')) setFilters(false)
       }}>
         <button type="button" className="cj-button js-filter-trigger" aria-label="Фильтры журнала" title="Фильтры журнала"
-          ref={trigger} aria-controls={id} aria-expanded={filters} data-filtered={!!selected.module || attention || undefined}
+          ref={trigger} aria-controls={id} aria-expanded={filters} data-filtered={!!selected.module || undefined}
           onClick={() => setFilters(v => !v)}><SlidersHorizontal size={15}/><span>Фильтры</span></button>
         <div id={id} className="js-filter-items" data-open={filters || undefined}>
           {picker}
-          {selected.tab !== 'Обзор' && <button type="button" className="cj-button js-attention" aria-pressed={attention} onClick={toggle}
-            title={attentionCount ? `Требуют внимания · ${attentionCount}` : 'Требуют внимания'}>
-            <CircleAlert size={14} /><span>Требуют внимания</span>
-            {attentionCount > 0 && <CountBadge count={attentionCount} tone={attention ? 'accent' : 'danger'} className="js-attention-count" />}
-          </button>}
         </div>
       </div>
       <label className="js-search teacher-table-search" data-filtered={!!selected.search || undefined} title="Поиск ученика">
