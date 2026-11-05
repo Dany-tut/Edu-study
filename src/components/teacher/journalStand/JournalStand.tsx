@@ -302,8 +302,11 @@ function shortDate(value: string | null) {
 function monogram(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map(v => v[0]).join('')
 }
-function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, workViews }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
-  attention: boolean; toggle: () => void; pendingCount: number
+/** Статусы работ, из-за которых ученик «требует внимания». */
+const ATTENTION_STATUSES = ['Просрочено', 'На проверке', 'На доработке', 'Ниже порога']
+const needsAttention = (e: RosterEntry) => e.works.some(w => ATTENTION_STATUSES.includes(w.status))
+function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, attentionCount, workViews }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
+  attention: boolean; toggle: () => void; pendingCount: number; attentionCount: number
   /** «По ученикам / По домашкам» — в той же строке, сразу за вкладками. */
   workViews?: ReactNode
 }) {
@@ -347,8 +350,10 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, w
           onClick={() => setFilters(v => !v)}><SlidersHorizontal size={15}/><span>Фильтры</span></button>
         <div id={id} className="js-filter-items" data-open={filters || undefined}>
           {picker}
-          {selected.tab !== 'Обзор' && <button type="button" className="cj-button js-attention" aria-pressed={attention} onClick={toggle}>
-            <CircleAlert size={14} />Требуют внимания
+          {selected.tab !== 'Обзор' && <button type="button" className="cj-button js-attention" aria-pressed={attention} onClick={toggle}
+            title={attentionCount ? `Требуют внимания · ${attentionCount}` : 'Требуют внимания'}>
+            <CircleAlert size={14} /><span>Требуют внимания</span>
+            {attentionCount > 0 && <CountBadge count={attentionCount} tone={attention ? 'accent' : 'danger'} className="js-attention-count" />}
           </button>}
         </div>
       </div>
@@ -425,7 +430,7 @@ export function Matrix(props: MatrixProps) {
   return <section className="course-journal js-matrix" ref={host} data-report-open={drawerOpen || undefined}
     aria-label={'Журнал успеваемости · ' + groupLabel}>
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
-      pendingCount={props.pendingAttendance?.length ?? 0} attention={!overview && attention} toggle={() => setAttention(v => !v)}
+      pendingCount={props.pendingAttendance?.length ?? 0} attentionCount={entries.filter(needsAttention).length} attention={!overview && attention} toggle={() => setAttention(v => !v)}
       workViews={selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views js-work-views" role="group" aria-label="Представление работ">
         <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
         <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
@@ -461,7 +466,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
   const detail = selected.workRef ?? ''
   const visible = entries.filter(e =>
     e.student.name.toLocaleLowerCase('ru').includes(selected.search.trim().toLocaleLowerCase('ru')) &&
-    (!attention || e.works.some(w => ['Просрочено', 'На проверке', 'На доработке', 'Ниже порога'].includes(w.status)))
+    (!attention || needsAttention(e))
   )
   const entry = visible.find(e => e.student.id === selected.student)
   const work = entry?.works.find(w => w.slot.ref === detail)
