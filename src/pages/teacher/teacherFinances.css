@@ -18,7 +18,8 @@
   gap: 16px;
   margin-bottom: 20px;
 }
-.finance-identity { min-width: 0; min-height: 54px; display: flex; flex-direction: column; justify-content: center; }
+/* Заголовок стоит на поле скругления карточек, как .profile-section-heading. */
+.finance-identity { min-width: 0; min-height: 54px; padding-inline-start: 20px; display: flex; flex-direction: column; justify-content: center; }
 .finance-identity h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: var(--color-text); }
 .finance-identity p { margin: 0; padding: 3px 0; font-size: 12px; color: var(--color-text-3); }
 .finance-add {
