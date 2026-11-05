@@ -125,7 +125,7 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
         const label = provider === 'google' ? 'Google' : 'Apple'
         return <div key={provider} style={{ display: 'grid', gridTemplateColumns: `28px minmax(0, 1fr) ${identity && cramped[provider] ? 44 : 124}px`, alignItems: 'center', gap: 10, minHeight: 76, padding: '12px 0', borderTop: '1px solid var(--color-border-soft)' }}>
           <span style={{ display: 'grid', placeItems: 'center' }}>{provider === 'google' ? <GoogleMark /> : <AppleMark />}</span>
-          <div style={{ minWidth: 0, color: 'var(--color-text)', fontSize: 14 }}>
+          <div style={{ minWidth: 0, color: 'var(--color-text)', fontSize: 14, lineHeight: 1.25 }}>
             <strong>{label}</strong>
             {identity && <LinkedEmail email={identity.identity_data?.email || t('Подключено')} onCramped={cramped => setCramped(c => ({ ...c, [provider]: cramped }))} />}
           </div>
@@ -167,5 +167,5 @@ function LinkedEmail({ email, onCramped }: { email: string; onCramped: (cramped:
     if (el.parentElement?.parentElement) observer.observe(el.parentElement.parentElement)
     return () => observer.disconnect()
   }, [email])
-  return <div ref={ref} title={email} style={{ marginTop: 3, color: 'var(--color-muted)', fontSize: 12, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{email}</div>
+  return <div ref={ref} title={email} style={{ marginTop: 2, color: 'var(--color-muted)', fontSize: 12, lineHeight: 1.3, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{email}</div>
 }
