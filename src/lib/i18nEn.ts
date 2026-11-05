@@ -5898,6 +5898,7 @@ export const EN: Record<string, string> = {
   "Отключить двухфакторную защиту?": "Turn off two-factor protection?",
   "Для входа снова хватит пароля или Google/Apple. Запасные коды перестанут работать.": "A password or Google/Apple will be enough to sign in again. Backup codes will stop working.",
   "Двухфакторная защита": "Two-factor protection",
+  "Настройки двухфакторной защиты": "Two-factor protection settings",
   "Включена": "On",
   "Включить": "Turn on",
   "Запасные коды": "Backup codes",
