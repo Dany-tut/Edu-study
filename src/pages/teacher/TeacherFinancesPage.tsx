@@ -7,7 +7,6 @@ import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { Alert } from '../../components/Alert'
 import { useAsyncTask } from '../../lib/useAsyncTask'
 import { paymentAmount, paymentLessons } from '../../lib/paymentInput'
-import CountBadge from '../../components/CountBadge'
 import Segmented from '../../components/Segmented'
 import { FIELD } from '../../lib/fieldStyle'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -403,7 +402,7 @@ export default function TeacherFinancesPage() {
           variant="filter" value={filter} onChange={setFilter} style={{ marginBottom: 14 }}
           items={tabs.map(tab => ({
             id: tab.id, title: tab.label,
-            label: tab.count ? <>{tab.label} <CountBadge count={tab.count} tone={tab.id === 'overdue' ? 'danger' : 'accent'} /></> : tab.label,
+            label: tab.label, count: tab.count, countTone: tab.id === 'overdue' ? 'danger' as const : 'accent' as const,
           }))}
         />
 
