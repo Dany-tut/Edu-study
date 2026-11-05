@@ -297,6 +297,10 @@ export { lessonShortIdMap } from '../../lib/lessonReferences'
 // ─── Style constants ──────────────────────────────────────────────────────────
 
 const inputSt: React.CSSProperties = { ...FIELD }
+/** Низ списка уроков в одном формате с рядом «Таймкод»/«Добавлено» панели
+ *  глав: высота 40, скругление 12, текст 13. */
+const RAIL_CONTROL_H = 40
+const railFieldSt: React.CSSProperties = { ...inputSt, height: RAIL_CONTROL_H, padding: '0 12px' }
 
 /** Три строки под смысловые поля задания — правило описано в GrowTextarea. */
 const TASK_TEXT_MIN_H = growMinHeight(3, 13, 9)
@@ -1670,6 +1674,7 @@ function TimecodeRail({
       <div style={{ display: 'flex', gap: 6 }}>
         <button disabled={rail?.saving}
           onClick={addHere}
+          className="rail-tone-btn" data-tone="green"
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             height: 'var(--rail-control-h, 40px)', padding: '0 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
@@ -1677,20 +1682,20 @@ function TimecodeRail({
             fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
           }}
         >
-          <Plus size={14} /> {t('Таймкод')}
+          <Plus size={16} /> {t('Таймкод')}
           <span style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.75 }}>{clock(at)}</span>
         </button>
         <button disabled={rail?.saving}
           onClick={() => setBulk(bulk === null ? '' : null)}
-          title={t('Вставить списком')}
+          title={t('Вставить списком')} aria-label={t('Вставить списком')}
+          className="rail-icon-btn"
           style={{
             width: 'var(--rail-control-h, 40px)', height: 'var(--rail-control-h, 40px)', flexShrink: 0,
-            borderRadius: 12, border: '1px solid var(--color-border-medium)',
-            background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)',
+            borderRadius: 12, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          <ListPlus size={14} />
+          <ListPlus size={16} />
         </button>
       </div>
     </div>
@@ -5567,24 +5572,25 @@ function RightPanelLessons({
         </div>
       </div>
 
-      <div style={{ padding: '10px 12px', borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+      <div style={{ padding: 12, borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         {addingModule ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <input
               value={newModuleLabel}
               onChange={e => setNewModuleLabel(e.target.value)}
               placeholder={t('Название модуля')}
-              style={{ ...inputSt, fontSize: 12, padding: '8px 10px' }}
+              style={railFieldSt}
               autoFocus
               onKeyDown={e => { if (e.key === 'Enter') addModule(); if (e.key === 'Escape') setAddingModule(false) }}
             />
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setAddingModule(false)}
-                style={{ ...btn('S', 'secondary'), flex: 1 }}>
+                style={{ ...btn('S', 'secondary'), flex: 1, height: RAIL_CONTROL_H, borderRadius: 12, fontSize: 13, fontWeight: 700 }}>
                 {t('Отмена')}
               </button>
               <button onClick={addModule}
-                style={btn('S', 'primary', { flex: 1, background: 'var(--color-green-soft)', color: 'var(--color-green-text)' })}>
+                className="rail-tone-btn" data-tone="green"
+                style={btn('S', 'primary', { flex: 1, height: RAIL_CONTROL_H, borderRadius: 12, fontSize: 13, fontWeight: 700, background: 'var(--color-green-soft)', color: 'var(--color-green-text)' })}>
                 {t('Создать')}
               </button>
             </div>
@@ -5596,34 +5602,35 @@ function RightPanelLessons({
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 placeholder={t('Название урока…')}
-                style={{ ...inputSt, fontSize: 12, padding: '8px 10px' }}
+                style={railFieldSt}
                 onKeyDown={e => { if (e.key === 'Enter') addLesson() }}
               />
-              <button onClick={addLesson} style={{
-                width: 32, height: 32, borderRadius: 9, border: 'none',
+              <button onClick={addLesson} aria-label={t('Добавить урок')} title={t('Добавить урок')}
+                className="rail-tone-btn" data-tone="green" style={{
+                width: RAIL_CONTROL_H, height: RAIL_CONTROL_H, borderRadius: 12, border: 'none',
                 background: 'var(--color-green-soft)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'var(--color-green-text)', flexShrink: 0,
               }}>
-                <Plus size={14} />
+                <Plus size={16} />
               </button>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => setAddingModule(true)} style={{
-                flex: 1, padding: '6px 0', borderRadius: 9,
+              <button onClick={() => setAddingModule(true)} className="rail-dashed-btn" style={{
+                flex: 1, height: RAIL_CONTROL_H, borderRadius: 12,
                 border: '1.5px dashed var(--color-border)', background: 'transparent',
-                cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: 'inherit',
+                cursor: 'pointer', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit',
               }}>
-                <Layers size={12} /> {t('Модуль')}
+                <Layers size={16} /> {t('Модуль')}
               </button>
-              <button onClick={addTest} style={{
-                flex: 1, padding: '6px 0', borderRadius: 9,
+              <button onClick={addTest} className="rail-dashed-btn" data-tone="green" style={{
+                flex: 1, height: RAIL_CONTROL_H, borderRadius: 12,
                 border: '1.5px dashed var(--color-green-text)', background: 'transparent',
-                cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: 'inherit',
+                cursor: 'pointer', fontSize: 13, fontWeight: 700, color: 'var(--color-green-text)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit',
               }}>
-                <ClipboardCheck size={12} /> {t('Тест')}
+                <ClipboardCheck size={16} /> {t('Тест')}
               </button>
             </div>
           </>

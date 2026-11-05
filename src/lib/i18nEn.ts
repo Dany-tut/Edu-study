@@ -183,6 +183,7 @@ export const EN: Record<string, string> = {
   "Не удалось подтвердить сохранение всех отметок.\nЧерновик сохранён. Проверьте журнал и повторите оставшиеся изменения.": "Could not confirm that all marks were saved.\nYour draft has been kept. Check the gradebook and retry the remaining changes.",
   'Изменить высоту виджета': 'Change widget height',
   'Добавить задачу': 'Add a task',
+  'Добавить урок': 'Add a lesson',
   'Занятия модуля': 'Module lessons',
   '← Предыдущие занятия': '← Previous lessons',
   'Дальше есть ещё занятия →': 'More lessons ahead →',
