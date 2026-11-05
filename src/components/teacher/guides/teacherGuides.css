@@ -23,7 +23,7 @@ dialog.teacher-guide {
 .teacher-guide-list {display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .teacher-guide-list button {display:grid;text-align:left;gap:6px;min-height:86px}
 .teacher-guide-list span {color:var(--color-muted)}
-.teacher-guides-entry {margin-left:auto}
+.teacher-guides-entry {justify-self:end;white-space:nowrap}
 @media(max-height:630px) {
   dialog.teacher-guide {width:min(1080px,calc(100vw - 32px))}
   .teacher-guide-sheet {grid-template:40px auto minmax(0,1fr) 44px / minmax(0,1.6fr) minmax(0,1fr)}

@@ -97,7 +97,14 @@ function GuideDialog({ current, onChoose, onClose }: {
     else dialog.current?.querySelector<HTMLButtonElement>('button')?.focus()
   }, [current])
   return createPortal(<dialog ref={dialog} className="teacher-guide" aria-labelledby="guide-heading"
-    onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()}
+    onPointerDown={event => event.stopPropagation()} onClick={event => {
+      event.stopPropagation()
+      // Клик по затемнению вокруг окна: у <dialog> фон — это он сам, поэтому
+      // сверяем точку с рамкой окна, а не только event.target.
+      if (event.target !== event.currentTarget) return
+      const r = event.currentTarget.getBoundingClientRect()
+      if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) onClose()
+    }}
     onKeyDown={event => { event.stopPropagation(); if (event.key === 'Escape') {event.preventDefault(); onClose()} }}
     onCancel={event => {event.preventDefault(); onClose()}}>
     {current === 'catalog' ? <div className="teacher-guide-catalog">
