@@ -7,7 +7,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react
 import {
   Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Timer, Watch, TrendingUp,
   X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen, CalendarClock, CalendarX,
-  Bell, Clock, BookOpen, ClipboardList,
+  Bell, Clock, BookOpen, ClipboardList, AudioLines,
 } from './icons/appIcons'
 import { useNotificationsStore, followNotifAction, type Notification } from '../store/notificationsStore'
 import { getContrastColor } from '../lib/utils'
@@ -1069,6 +1069,7 @@ const NOTIF_ICON_S: Record<string, React.ReactNode> = {
   test_completed:       <CheckCircle2  size={18} />,
   payment_due:          <Banknote      size={18} />,
   fill_journal:         <NotebookPen   size={18} />,
+  module_update:        <AudioLines    size={18} />,
   lesson_moved:         <CalendarClock size={18} />,
   lesson_cancelled:     <CalendarX     size={18} />,
 }

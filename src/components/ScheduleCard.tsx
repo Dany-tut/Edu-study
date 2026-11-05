@@ -223,7 +223,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                     minHeight: 58,
                     filter: st.hasEnded ? 'grayscale(1)' : undefined,
                     opacity: st.hasEnded ? 0.65 : 1,
-                    padding: '10px 12px 10px 16px',
+                    // With the open button the row ends on the button: keep the
+                    // bottom inset equal to the left one so it sits in the corner evenly.
+                    padding: !isCancelled && (isCurrent || isUpcoming || st.hasEnded || st.phase === 'available') ? '10px 12px 16px 16px' : '10px 12px 10px 16px',
                     gap: 14,
                     background: (isEmphasized || isMissed) ? pal.soft : 'var(--color-schedule-row)',
                     outline: isSelected ? `2px solid ${pal.accent}` : '2px solid transparent',

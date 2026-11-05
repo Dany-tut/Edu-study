@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
 import { Alert } from '../Alert'
@@ -31,6 +31,17 @@ export default function TranscriptTermsManager() {
   const [draft, setDraft] = useState({ written: '', heard: '', spoken: '' })
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState<{ id: string; written: string; heard: string; spoken: string } | null>(null)
+  // Правка открывается поверх сетки, как выпадающее меню: клик мимо сохраняет
+  // и закрывает её (Esc и «Отмена» — без сохранения).
+  const editorRef = useRef<HTMLFormElement>(null)
+  const saveRef = useRef<() => Promise<void>>(async () => {})
+  const editingId = editing?.id
+  useEffect(() => {
+    if (!editingId) return
+    const close = (e: PointerEvent) => { if (!editorRef.current?.contains(e.target as Node)) void saveRef.current() }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [editingId])
 
   async function load() {
     setLoading(true); setError('')
@@ -66,14 +77,20 @@ export default function TranscriptTermsManager() {
   async function saveEdit() {
     if (!editing || busy) return
     const written = editing.written.trim(), heard = editing.heard.trim() || null, spoken = editing.spoken.trim() || null
-    if (!written) return
+    const id = editing.id
+    // Клик по другой карточке сохраняет эту и сразу открывает ту — закрываем только свою правку.
+    const closeOwn = () => setEditing(cur => cur?.id === id ? null : cur)
+    const row = rows.find(r => r.id === id)
+    // Ничего не поменяли или стёрли написание — закрываем, базу не трогаем.
+    if (!written || (row && row.written === written && (row.heard ?? null) === heard && (row.spoken ?? null) === spoken)) { closeOwn(); return }
     setBusy(true); setError('')
-    const { error } = await supabase.from('transcript_terms').update({ written, heard, spoken, updated_at: new Date().toISOString() }).eq('id', editing.id)
+    const { error } = await supabase.from('transcript_terms').update({ written, heard, spoken, updated_at: new Date().toISOString() }).eq('id', id)
     setBusy(false)
     if (error) { setError(error.code === '23505' ? t('Такая запись уже есть в словаре.') : t('Не удалось сохранить. Попробуйте ещё раз.')); return }
-    setRows(prev => prev.map(r => r.id === editing.id ? { ...r, written, heard, spoken } : r))
-    setEditing(null)
+    setRows(prev => prev.map(r => r.id === id ? { ...r, written, heard, spoken } : r))
+    closeOwn()
   }
+  saveRef.current = saveEdit
   async function add() {
     const written = draft.written.trim(), heard = draft.heard.trim(), spoken = draft.spoken.trim()
     if (!written || busy) return
@@ -114,17 +131,8 @@ export default function TranscriptTermsManager() {
     </div>}
 
     <div className="tterms-grid">
-      {visible.map(r => editing?.id === r.id
-        ? <form key={r.id} className="tterms-card is-editing" onSubmit={e => { e.preventDefault(); void saveEdit() }} onKeyDown={e => { if (e.key === 'Escape') setEditing(null) }}>
-          <input autoFocus style={FIELD} value={editing.written} onChange={e => setEditing({ ...editing, written: e.target.value })} placeholder={t('Как пишется')} aria-label={t('Как пишется')} maxLength={80} />
-          <input style={FIELD} value={editing.heard} onChange={e => setEditing({ ...editing, heard: e.target.value })} placeholder={t('Как распознаётся (необязательно)')} aria-label={t('Как распознаётся')} maxLength={80} />
-          <input style={FIELD} value={editing.spoken} onChange={e => setEditing({ ...editing, spoken: e.target.value })} placeholder={t('Как произносят (необязательно)')} aria-label={t('Как произносят')} maxLength={80} />
-          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-            <button type="button" style={btn('S', 'quiet')} onClick={() => setEditing(null)}>{t('Отмена')}</button>
-            <button type="submit" style={btn('S', 'primary')} disabled={!editing.written.trim() || busy}>{t('Сохранить')}</button>
-          </div>
-        </form>
-        : <div key={r.id} className="tterms-card" role="button" tabIndex={0} title={t('Нажмите, чтобы изменить')}
+      {visible.map(r => <div key={r.id} className="tterms-slot">
+        <div className="tterms-card" role="button" tabIndex={0} title={t('Нажмите, чтобы изменить')}
           onClick={() => startEdit(r)} onKeyDown={e => { if (e.key === 'Enter' && e.target === e.currentTarget) startEdit(r) }}>
           {r.heard
             ? <div className="tterms-word tterms-pair"><FadeText className="tterms-heard">{r.heard}</FadeText><ArrowRight size={12} aria-label={t('исправляется на')} className="tterms-arrow" /><FadeText>{r.written}</FadeText></div>
@@ -135,7 +143,17 @@ export default function TranscriptTermsManager() {
             {r.status !== 'rejected' && <button type="button" aria-label={t('Отклонить')} title={t('Отклонить')} onClick={() => void setTermStatus(r.id, 'rejected')}><X size={14} /></button>}
             <button type="button" className="is-danger" aria-label={t('Удалить из словаря')} title={t('Удалить из словаря')} onClick={() => void remove(r.id)}><Trash2 size={14} /></button>
           </div>
-        </div>)}
+        </div>
+        {editing?.id === r.id && <form ref={editorRef} className="tterms-card tterms-editor" onSubmit={e => { e.preventDefault(); void saveEdit() }} onKeyDown={e => { if (e.key === 'Escape') setEditing(null) }}>
+          <input autoFocus style={FIELD} value={editing.written} onChange={e => setEditing({ ...editing, written: e.target.value })} placeholder={t('Как пишется')} aria-label={t('Как пишется')} maxLength={80} />
+          <input style={FIELD} value={editing.heard} onChange={e => setEditing({ ...editing, heard: e.target.value })} placeholder={t('Как распознаётся (необязательно)')} aria-label={t('Как распознаётся')} maxLength={80} />
+          <input style={FIELD} value={editing.spoken} onChange={e => setEditing({ ...editing, spoken: e.target.value })} placeholder={t('Как произносят (необязательно)')} aria-label={t('Как произносят')} maxLength={80} />
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+            <button type="button" style={btn('S', 'quiet')} onClick={() => setEditing(null)}>{t('Отмена')}</button>
+            <button type="submit" style={btn('S', 'primary')} disabled={!editing.written.trim() || busy}>{t('Сохранить')}</button>
+          </div>
+        </form>}
+      </div>)}
     </div>
   </div>
 }

@@ -24,6 +24,8 @@ export type NotifType =
   // перенос и отмена занятия (0121_schedule_reschedule.sql)
   | 'lesson_moved'
   | 'lesson_cancelled'
+  // вышла новая версия модуля расшифровки (lib/transcriptionModuleUpdate.ts)
+  | 'module_update'
 
 export type NotifLink = { page?: string; tab?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string; homeworkId?: string; scheduleId?: string }
 
@@ -102,7 +104,12 @@ export const CONSTRUCTOR_TAB_EVENT = 'iskra:constructor-tab'
 /** Перейти по действию уведомления (колокольчик, тост, таблетка — одно место). */
 export function followNotifAction(action: NotifAction | undefined): boolean {
   if (!action?.page) return false
-  if (action.tab) {
+  if (action.tab && action.page.startsWith('#/teacher/profile')) {
+    // Раздел профиля («Интеграции»): страница читает его при открытии,
+    // а уже открытая — ловит событие.
+    try { sessionStorage.setItem('profile_section', action.tab) } catch {}
+    window.dispatchEvent(new CustomEvent('iskra:profile-section', { detail: action.tab }))
+  } else if (action.tab) {
     try { localStorage.setItem('constructor-active-tab', action.tab) } catch {}
     window.dispatchEvent(new CustomEvent(CONSTRUCTOR_TAB_EVENT, { detail: action.tab }))
   }

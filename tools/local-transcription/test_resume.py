@@ -106,4 +106,9 @@ class ResumeTests(unittest.TestCase):
         self.assertEqual((line['text'],line['before'],line['subject']),('на s-подуровне','на из-под уровне','chemistry'))
         self.assertTrue((self.s.TRAINING/line['audio']).exists())
 
+    def test_version_is_code_fingerprint(self):
+        r=self.client.get('/version',base_url='http://127.0.0.1:18764',headers={k:v for k,v in self.headers.items() if k!='Authorization'})
+        self.assertEqual(r.get_json()['version'],self.s.module_version())
+        self.assertRegex(r.get_json()['version'],r'^[0-9a-f]{12}$')
+
 if __name__=='__main__': unittest.main()
