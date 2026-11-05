@@ -663,6 +663,7 @@ export const EN: Record<string, string> = {
   'Числа': 'Numbers',
   'Уравнения': 'Equations',
   'Функции': 'Functions',
+  'ИИ': 'AI',
   'Пределы': 'Limits',
   'Буквы': 'Letters',
   'Предложения': 'Sentences',

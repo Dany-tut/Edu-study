@@ -7,7 +7,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles } from '../../components/icons/appIcons'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles, Ghost, ToggleRight } from '../../components/icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
@@ -927,6 +927,9 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
   )
 }
 
+const OVERVIEW_SECTIONS = ['teachers', 'features', 'ai', 'themes', 'storage'] as const
+type OverviewSection = typeof OVERVIEW_SECTIONS[number]
+
 export default function TeacherAdminPage() {
   const t = useT()
   const { tc, tn } = useTc()
@@ -941,6 +944,11 @@ export default function TeacherAdminPage() {
   const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests' | 'dictionary'>(() => {
     const saved = sessionStorage.getItem('admin_tab')
     return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' || saved === 'dictionary' ? saved : 'overview'
+  })
+  // Второй уровень «Обзора», как разделы в «Аналитике»: каждый блок — своя вкладка.
+  const [section, setSection] = useState<OverviewSection>(() => {
+    const saved = sessionStorage.getItem('admin_overview_section')
+    return OVERVIEW_SECTIONS.includes(saved as OverviewSection) ? (saved as OverviewSection) : 'teachers'
   })
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -1000,6 +1008,7 @@ export default function TeacherAdminPage() {
 
   // Persist the active tab so F5 doesn't kick the admin back to «Обзор».
   useEffect(() => { sessionStorage.setItem('admin_tab', tab) }, [tab])
+  useEffect(() => { sessionStorage.setItem('admin_overview_section', section) }, [section])
 
   const firstLoad = loading && !storage
   const dbPct = storage ? pct(storage.db_bytes, storage.db_limit_bytes) : 0
@@ -1082,12 +1091,20 @@ export default function TeacherAdminPage() {
           />
         </div>
 
-        <SeasonAdmin />
+        <Segmented
+          variant="mode" value={section} onChange={setSection} style={{ marginBottom: 20 }}
+          items={([['teachers', t('Учителя'), Users], ['features', t('Функции'), ToggleRight], ['ai', t('ИИ'), Sparkles], ['themes', t('Темы'), Ghost], ['storage', t('Хранилище'), HardDrive]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
+        />
 
-        <AiSwitches />
+        {/* Блок выключен — он остаётся в коде и ждёт следующего сезона на своей вкладке. */}
+        {section === 'themes' && <SeasonAdmin />}
 
-        <FeatureFlags />
+        {section === 'ai' && <AiSwitches />}
 
+        {section === 'features' && <FeatureFlags />}
+
+        {section === 'teachers' && (
+        <>
         {/* Teachers */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -1236,7 +1253,11 @@ export default function TeacherAdminPage() {
           </div>
         )}
 
+        </>
+        )}
+
         {/* Storage — compact tiles on the same 3-column grid as the stat cards above. */}
+        {section === 'storage' && (
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('Хранилище')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
@@ -1250,6 +1271,7 @@ export default function TeacherAdminPage() {
             </div>
           </div>
         </div>
+        )}
         </>
         )}
 
