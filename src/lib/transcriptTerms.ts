@@ -29,18 +29,50 @@ export async function fetchTermsPack(subject: string): Promise<TranscriptTerm[]>
 /** Сколько терминов Whisper успевает «прочитать» перед каждым куском (~224 токена). */
 const PROMPT_CHARS = 520
 
-/** То, что уходит модулю полем `terms`: подсказка и пары замен. */
-export function termsForModule(pack: readonly TranscriptTerm[], lessonTitle?: string) {
+// Сравниваем без регистра, «ё» и индексов: в конспекте «KMnO4», в словаре «KMnO₄».
+const SUB = '₀₁₂₃₄₅₆₇₈₉', SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹'
+const flat = (text: string) => text.toLocaleLowerCase('ru').replace(/ё/g, 'е')
+  .replace(/[₀-₉]/g, c => String(SUB.indexOf(c))).replace(/[⁰-⁹]/g, c => String(SUP.indexOf(c))).replace(/[⁺⁻]/g, '')
+
+/**
+ * Сколько раз термин встречается в тексте урока. Окончания русских слов
+ * меняются («митоз» → «митоза», «митозом»), поэтому русское слово ищем по основе —
+ * без последних двух букв, но не короче 4; многословный термин засчитываем,
+ * когда в тексте подряд стоят основы всех его слов.
+ */
+export function termMentions(term: string, text: string): number {
+  const words = flat(term.replace(/\*$/, '')).match(/[\p{L}\p{N}]+/gu) ?? []
+  if (!words.length || !text) return 0
+  const stem = (w: string) => w.length <= 4 ? w : w.slice(0, Math.max(4, w.length - 2))
+  const escape = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // Формулы и латиница («KMnO4», «pH») — только целиком: KMnO3 не KMnO4.
+  const part = (w: string) => /[a-z0-9]/.test(w) ? `${escape(w)}(?![\\p{L}\\p{N}])` : `${escape(stem(w))}[\\p{L}\\p{N}]*`
+  const pattern = words.map(part).join('[^\\p{L}\\p{N}]{1,3}')
+  return (flat(text).match(new RegExp(`(?<![\\p{L}\\p{N}])${pattern}`, 'gu')) ?? []).length
+}
+
+/**
+ * То, что уходит модулю полем `terms`: подсказка и пары замен. Подсказка
+ * вмещает ~35 терминов, а в словаре предмета их сотни, поэтому порядок такой:
+ * название урока → свои пары учителя → термины, которые есть в тексте урока
+ * (название, описание, конспект, главы; чаще упомянутые — раньше) → остальные
+ * по числу встреч в словаре.
+ */
+export function termsForModule(pack: readonly TranscriptTerm[], lessonTitle?: string, lessonText?: string) {
   const prompt: string[] = []
+  const seen = new Set<string>()
   let size = 0
   const add = (term: string) => {
     const clean = term.replace(/\*$/, '').trim()
-    if (!clean || prompt.includes(clean) || size + clean.length + 2 > PROMPT_CHARS) return
-    prompt.push(clean); size += clean.length + 2
+    if (!clean || seen.has(flat(clean)) || size + clean.length + 2 > PROMPT_CHARS) return
+    prompt.push(clean); seen.add(flat(clean)); size += clean.length + 2
   }
   if (lessonTitle) add(lessonTitle)
-  // Свои пары учителя — первыми: он их только что поправил.
-  for (const t of [...pack].sort((a, b) => Number(b.mine) - Number(a.mine))) if (!t.written.endsWith('*')) add(t.written)
+  const context = [lessonTitle, lessonText].filter(Boolean).join('\n')
+  const hints = pack.filter(t => !t.written.endsWith('*'))
+  const mentions = new Map(hints.map(t => [t, context ? termMentions(t.written, context) : 0]))
+  // sort устойчивый: при равенстве остаётся порядок словаря (по числу встреч).
+  for (const t of [...hints].sort((a, b) => Number(b.mine) - Number(a.mine) || mentions.get(b)! - mentions.get(a)!)) add(t.written)
   const replace = pack.filter(t => t.heard).map(t => [t.heard!, t.written] as [string, string]).slice(0, 400)
   return { prompt, replace }
 }

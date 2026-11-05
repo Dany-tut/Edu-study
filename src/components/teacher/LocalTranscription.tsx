@@ -224,6 +224,8 @@ const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file
 type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean>
   /** Предмет словаря расшифровки (termsSubject) и название урока — подсказка модулю. */
   subject?: string; lessonTitle?: string
+  /** Текст урока (описание, конспект, главы): термины из него идут в подсказку первыми. */
+  lessonText?: string
   /** Уроки курса с итогами монтажа — для динамики во вкладке «Итоги». */
   trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }
 
@@ -402,7 +404,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   return <>{props.children(actions,rail)}</>
 }
 
-function Review({ owner, lessonKey, source, file, subject, lessonTitle, onReady, onClose }: Props & { onReady: (result: LocalDraft) => void; onClose: () => void }) {
+function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonText, onReady, onClose }: Props & { onReady: (result: LocalDraft) => void; onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
@@ -431,7 +433,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, onReady,
       // Словарь предмета: термины — подсказка Whisper, пары — исправления.
       // Нет словаря — модуль распознаёт как раньше.
       const pack = await fetchTermsPack(subject ?? '')
-      if (pack.length || lessonTitle) form.append('terms', JSON.stringify(termsForModule(pack, lessonTitle)))
+      if (pack.length || lessonTitle) form.append('terms', JSON.stringify(termsForModule(pack, lessonTitle, lessonText)))
       if (keepTraining) form.append('training', '1')
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
       const job = { id, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined }
