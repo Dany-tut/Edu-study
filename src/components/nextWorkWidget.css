@@ -101,3 +101,10 @@
   max-width:none; max-height:none;
  }
 }
+
+/* At the context line the plane's left fifth is transparent: the line may run into it,
+   so «Модуль 1/10/010» stays on the first line instead of wrapping its number. */
+@container next-work (width < 800px) and (height > 140px) {
+ .next-work-card[data-state=ready] .next-work-content { --nw-meta-reach:calc(4px + min(var(--ihw-art-size),38cqi)*.14); margin-right:calc(-1*var(--nw-meta-reach)); }
+ .next-work-card[data-state=ready] .ihw-heading,.next-work-card[data-state=ready] .next-work-title { padding-right:var(--nw-meta-reach); }
+}

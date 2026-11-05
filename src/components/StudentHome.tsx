@@ -83,7 +83,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     {id:13,content:<NextWorkWidget
       status={pending?'loading':error?'error':next||review?'ready':'empty'}
       title={status ?? (next?tc(next.lesson.title):review?t('Повторить карточки'):t('Всё сдано'))}
-      meta={ready&&next?`${tc(next.course.name)} · ${t('Модуль')} ${next.moduleOrder+1}`:review?`${t('Ждут повторения')}: ${deckDue} · ${t('около')} ${Math.max(1,Math.round(deckDue*8/60))} ${t('мин')}`:!status?t('Преподаватель откроет новые задания'):undefined}
+      meta={ready&&next?`${tc(next.course.name)} · ${t('Модуль')}\u00a0${next.moduleOrder+1}`:review?`${t('Ждут повторения')}: ${deckDue} · ${t('около')} ${Math.max(1,Math.round(deckDue*8/60))} ${t('мин')}`:!status?t('Преподаватель откроет новые задания'):undefined}
       due={ready&&next?<WorkDue entry={next} today={today}/>:undefined}
       dueShort={ready&&next?(next.due?new Intl.DateTimeFormat(lang==='en'?'en-GB':'ru-RU',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(next.due+'T12:00:00Z')):t('Без срока')):undefined}
       overdue={!!next&&diaryOverdue(next,today)}
@@ -109,7 +109,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     </Modal>}
     {scope&&<Modal title={t(scope.module!=null?'Несданные работы':scope.filter==='review'?'На проверке':scope.filter==='overdue'?'Просроченные работы':'Мои работы')} onClose={()=>setScope(null)} width={740}>
       <div className="lh-work-filters">{(['actions','upcoming','overdue','review'] as const).map(filter=><button type="button" key={filter} aria-pressed={scope.filter===filter} onClick={()=>setScope({...scope,filter})}>{t(filter==='actions'?'Нужно сдать':filter==='upcoming'?'Без просрочки':filter==='overdue'?'Просрочено':'На проверке')}</button>)}</div>
-      {status?<p>{status}{error&&<button type="button" onClick={reload}>{t('Повторить')}</button>}</p>:all.length?all.map(entry=><button type="button" className="lh-work-row" key={entry.id+entry.course.id} onClick={()=>open(entry)}><span><strong>{tc(entry.lesson.title)}{entry.suffix?` · ${entry.suffix}`:''}</strong><small>{tc(entry.course.name)} · {t('Модуль')} {entry.moduleOrder+1} · {t(diaryStatusText(entry))}</small></span><WorkDue entry={entry} today={today}/><ChevronRight size={16}/></button>):<p>{t('Работ нет')}</p>}
+      {status?<p>{status}{error&&<button type="button" onClick={reload}>{t('Повторить')}</button>}</p>:all.length?all.map(entry=><button type="button" className="lh-work-row" key={entry.id+entry.course.id} onClick={()=>open(entry)}><span><strong>{tc(entry.lesson.title)}{entry.suffix?` · ${entry.suffix}`:''}</strong><small>{tc(entry.course.name)} · {t('Модуль')}{'\u00a0'}{entry.moduleOrder+1} · {t(diaryStatusText(entry))}</small></span><WorkDue entry={entry} today={today}/><ChevronRight size={16}/></button>):<p>{t('Работ нет')}</p>}
       {scope.course&&<button type="button" onClick={()=>setScope({filter:scope.filter})}>{t('Все курсы')}</button>}
     </Modal>}
   </div>
