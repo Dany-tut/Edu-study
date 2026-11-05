@@ -3,7 +3,7 @@ import { useDesktopFriends } from './../lib/desktopFriends'
 import { Users } from './icons/appIcons'
 import FadeText from './FadeText'
 import { motion, AnimatePresence } from 'framer-motion'
-import CountBadge from './CountBadge'
+import CountBadge, { countBadgeInset } from './CountBadge'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, Camera, X,
@@ -923,7 +923,8 @@ export default function Sidebar() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0 16px',
+                // Со счётчиком внутри правый отступ = зазору над и под таблеткой.
+                padding: badge > 0 && !isCompact ? `0 ${countBadgeInset(44)}px 0 16px` : '0 16px',
                 height: 44,
                 borderRadius: 22,
                 border: 'none',
@@ -974,10 +975,11 @@ export default function Sidebar() {
                 <span data-topbar-label style={{ display: 'block', width: 'max-content' }}>{t(item.label)}</span>
               </motion.span>
 
-              {/* На активном пункте фон уже фиолетовый — там счётчик белый (inverse). */}
+              {/* Развёрнутый пункт — число внутри после слова, свёрнутый до иконки —
+                  в углу. На активном фон уже фиолетовый — там счётчик белый (inverse). */}
               <CountBadge
                 count={badge} tone={isActive ? 'inverse' : 'accent'}
-                style={{ position: 'absolute', top: 4, right: isCompact ? 2 : 6, boxShadow: isActive ? 'none' : '0 2px 6px rgba(var(--accent-rgb), 0.45)' }}
+                style={isCompact ? { position: 'absolute', top: 3, right: 2 } : { marginLeft: 8 }}
               />
             </motion.button>
           )

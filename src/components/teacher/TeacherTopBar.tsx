@@ -4,7 +4,7 @@ import { useTeacherGuides } from './guides/TeacherGuides'
 import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownSurface } from '../../lib/dropdownStyle'
-import CountBadge from '../CountBadge'
+import CountBadge, { countBadgeInset } from '../CountBadge'
 import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
@@ -426,7 +426,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               style={{
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: `0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
+                padding: `0 ${badgeCount > 0 && !collapsed ? countBadgeInset(44) : squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px 0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
                 background: 'transparent',
@@ -459,7 +459,11 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               }}>
                 {t(item.label)}
               </span>
-              <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5)' }} />
+              {/* Развёрнутая вкладка — число внутри после слова (отступ справа = зазору
+                  сверху/снизу), свёрнутая до иконки — в углу. */}
+              {collapsed
+                ? <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 3, right: 1, zIndex: 2 }} />
+                : <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} style={{ position: 'relative', zIndex: 1, marginLeft: 8 }} />}
             </motion.button>
           )
         })}
