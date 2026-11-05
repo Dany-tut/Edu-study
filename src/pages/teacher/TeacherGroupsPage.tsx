@@ -895,16 +895,17 @@ function Card({
  * ПОЯВЛЯЕТСЯ ТОЛЬКО КОГДА ЕСТЬ КОГО ЗВАТЬ и исчезает сама, когда последний
  * переехал: это не раздел кабинета, а работа с концом.
  */
-function DeleteStudentAction({ student, groupName, remove }: {
+function DeleteStudentAction({ student, groupName, remove, startEditing = false, onCancel }: {
   student: Student; groupName: string; remove: () => Promise<void>
+  startEditing?: boolean; onCancel?: () => void
 }) {
   const t = useT()
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState(startEditing)
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   const valid = !!name.trim() && name.trim() === student.name.trim()
-  const cancel = () => { setEditing(false); setName(''); setFailed(false) }
+  const cancel = () => { setEditing(false); setName(''); setFailed(false); onCancel?.() }
   if (!editing) return <button style={btn('M', 'secondary')} onClick={() => setEditing(true)}>
     {t('Удалить ученика')}
   </button>
@@ -1017,10 +1018,39 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
 
   const issuableCount = issuable?.length ?? pending.length
 
+  // Окно плашки — в портале по координатам чипа: открывается ПОВЕРХ таблицы и
+  // ничего на странице не сдвигает. Высоту и сторону открытия ограничиваем
+  // свободным местом окна (OVERLAY-01).
+  const chipRef = useRef<HTMLButtonElement>(null)
+  const [place, setPlace] = useState<{ left: number; width: number; top?: number; bottom?: number; maxHeight: number } | null>(null)
+  const measure = useCallback(() => {
+    const r = chipRef.current?.getBoundingClientRect()
+    if (!r) return
+    const vw = window.innerWidth, vh = window.innerHeight, gap = 8, edge = 16
+    const width = Math.min(400, vw - edge * 2)
+    const left = Math.max(edge, Math.min(r.left, vw - width - edge))
+    const below = vh - r.bottom - gap - edge, above = r.top - gap - edge
+    setPlace(below >= 280 || below >= above
+      ? { left, width, top: r.bottom + gap, maxHeight: below }
+      : { left, width, bottom: vh - r.top + gap, maxHeight: above })
+  }, [])
+  useEffect(() => {
+    if (!open) return
+    measure()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('resize', measure)
+    window.addEventListener('scroll', measure, true)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('resize', measure)
+      window.removeEventListener('scroll', measure, true)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open, measure])
+
   if (!cards.length && !issuableCount && !issued) return null
-  if (hidden) return <button style={btn('S', 'secondary')} onClick={() => setHidden(false)}>
-    {t('Показать плашку приглашений')}
-  </button>
+  const done = !cards.length && !issuableCount
+  const createdCount = issued?.filter(a => a.status === 'created').length ?? 0
 
   const linkFor = (s: Student) =>
     `${window.location.origin}${window.location.pathname}#/join?token=${s.inviteToken}`
@@ -1072,115 +1102,142 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
     setTimeout(() => setCopiedIssued(false), 2500)
   }
 
-  return (
-    <Card style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: open ? 12 : 0 }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
-      <button type="button" aria-expanded={open} onClick={() => setOpen(v => !v)}
-        style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 220px', background: 'none', border: 0, font: 'inherit', textAlign: 'start', cursor: 'pointer', padding: 0 }}>
-        <div style={{
-          width: 34, height: 34, borderRadius: 12, flexShrink: 0,
-          background: 'var(--color-bg-4)', display: 'grid', placeItems: 'center',
+  // Тот же «стеклянный» вид и высота, что у вкладок «Группы/Ученики» рядом.
+  const chipStyle: React.CSSProperties = {
+    height: 50, boxSizing: 'border-box', borderRadius: 16, flexShrink: 0,
+    display: 'flex', alignItems: 'center', gap: 8, padding: hidden ? 0 : '0 14px 0 16px',
+    width: hidden ? 50 : undefined, justifyContent: 'center', position: 'relative',
+    background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-glass)',
+    boxShadow: open ? '0 3px 10px rgba(99,84,207,0.18)' : 'var(--shadow-2)',
+    color: 'var(--color-text)', font: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+  }
+  const label = done ? t('Доступ заведён') : t('Без аккаунта')
+
+  return <>
+    <button ref={chipRef} type="button" aria-expanded={open} aria-haspopup="dialog"
+      aria-label={hidden ? `${label} · ${done ? createdCount : issuableCount}` : undefined}
+      title={hidden ? label : undefined}
+      onClick={() => setOpen(v => !v)} style={chipStyle}>
+      {done
+        ? <Check size={18} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+        : <UserPlus size={18} strokeWidth={2} style={{ color: 'var(--color-text-2)', flexShrink: 0 }} />}
+      {!hidden && <span style={{ whiteSpace: 'nowrap' }}>{label}</span>}
+      {!done && <CountBadge count={issuableCount} ring={hidden ? 'rgb(var(--glass-rgb))' : undefined}
+        style={hidden ? { position: 'absolute', top: -6, right: -6 } : undefined} />}
+      {!hidden && <ChevronDown size={16} strokeWidth={2.2} style={{ color: 'var(--color-text-3)', flexShrink: 0,
+        transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s ease' }} />}
+    </button>
+
+    {open && place && createPortal(<>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1100 }} onClick={() => setOpen(false)} />
+      <motion.div role="dialog" aria-label={t('Ещё без своего аккаунта')}
+        initial={{ opacity: 0, y: place.top !== undefined ? -6 : 6 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          position: 'fixed', zIndex: 1101, left: place.left, width: place.width,
+          top: place.top, bottom: place.bottom, maxHeight: Math.max(200, place.maxHeight),
+          display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
+          background: 'var(--color-bg-input)', borderRadius: 18,
+          boxShadow: 'var(--shadow-4)', border: '1px solid var(--color-border-soft)',
         }}>
-          <UserPlus size={18} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
-            {t('Ещё без своего аккаунта')} · {issuableCount}
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
-            {t('Отправьте ученикам приглашения, чтобы они могли войти в свой кабинет')}
-          </div>
-        </div>
-        <span style={btn('S', 'secondary')}>{open ? t('Свернуть') : t('Показать')}</span>
-      </button>
-      <button style={btn('S', 'secondary')} onClick={() => setHidden(true)}>{t('Скрыть плашку')}</button>
-      </div>
-
-      {open && (
-        <>
-          {pending.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {pending.map(s => (
-              <button
-                key={s.id}
-                onClick={() => copyOne(s)}
-                title={t('Скопировать ссылку приглашения')}
-                style={btn('S', 'secondary')}
-              >
-                {copiedId === s.id
-                  ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
-                  : <Copy size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />}
-                {s.name}
-              </button>
-            ))}
-          </div>
-          )}
-          {/* Два пути, и главный — первый. Ссылка перекладывает работу на
-              ученика, выдача доступа не требует от него ничего. */}
-          <button
-            onClick={issueAll}
-            disabled={issuing}
-            style={{ height: 40,
-              padding: '0 16px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
-              border: 'none', opacity: issuing ? 0.7 : 1,
-              background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
-            }}
-          >
-            {issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${issuableCount}`}
-          </button>
-          {pending.length > 0 && (
-          <button
-            onClick={copyAll}
-            style={btn('M', 'secondary')}
-          >
-            {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
-          </button>
-          )}
-
-          {cards.length > 0 && <div style={{ display: 'grid', gap: 8 }}>
-            <TeacherSelect value={cardId} onChange={setCardId} placeholder={t('Выбрать карточку для удаления')}
-              options={cards.map(s => ({ value: s.id, label: s.name + ' · ' + groupName(s) }))} />
-            {card && <DeleteStudentAction key={card.id} student={card} groupName={groupName(card)}
-              remove={async () => { await remove(card); setCardId('') }} />}
-          </div>}
-
-          {issueErr && (
-            <Alert tone="danger" text={issueErr} />
-          )}
-
-          {issued && (
-            <div style={{
-              borderRadius: 12, padding: 12, background: 'var(--color-bg-3)',
-              border: '1px solid var(--color-border-soft)', display: 'flex',
-              flexDirection: 'column', gap: 8,
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-                {t('Заведено')}: {issued.filter(a => a.status === 'created').length}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
-                {t('Пароли показываются один раз. Скопируйте список — потом их можно только сбросить.')}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 220, overflowY: 'auto' }}>
-                {issued.map(a => (
-                  <div key={a.email} style={{ fontSize: 12, color: 'var(--color-text-2)', fontFamily: 'monospace' }}>
-                    {a.status === 'created'
-                      ? `${tn(a.name)} · ${a.email} · ${a.password}`
-                      : `${tn(a.name)} · ${t('не удалось')}`}
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={copyIssued}
-                style={btn('S', 'secondary')}
-              >
-                {copiedIssued ? t('Скопировано') : t('Скопировать логины и пароли')}
-              </button>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 14px 10px 16px', flexShrink: 0 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+              {done ? `${t('Заведено')}: ${createdCount}` : `${t('Ещё без своего аккаунта')} · ${issuableCount}`}
             </div>
-          )}
-        </>
-      )}
-    </Card>
-  )
+            <div style={{ fontSize: 12, lineHeight: 1.35, color: 'var(--color-text-3)', marginTop: 2 }}>
+              {done
+                ? t('Пароли показываются один раз. Скопируйте список — потом их можно только сбросить.')
+                : t('Отправьте ученикам приглашения, чтобы они могли войти в свой кабинет')}
+            </div>
+          </div>
+          <ModalClose onClose={() => setOpen(false)} style={{ width: 32, height: 32, borderRadius: 10 }} />
+        </div>
+
+        <OverlayScrollArea style={{ flex: '1 1 auto' }} padding="0 16px 14px">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {!done && <>
+              {/* Два пути, и главный — первый. Ссылка перекладывает работу на
+                  ученика, выдача доступа не требует от него ничего. */}
+              <button onClick={issueAll} disabled={issuing}
+                style={{ height: 40, padding: '0 16px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
+                  border: 'none', opacity: issuing ? 0.7 : 1, flexShrink: 0,
+                  background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700 }}>
+                {issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${issuableCount}`}
+              </button>
+              {pending.length > 0 && <>
+                <button onClick={copyAll} style={btn('M', 'secondary')}>
+                  {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
+                </button>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {pending.map(s => (
+                    <button key={s.id} onClick={() => copyOne(s)} title={t('Скопировать ссылку приглашения')}
+                      style={{ ...btn('S', 'secondary'), maxWidth: '100%' }}>
+                      {copiedId === s.id
+                        ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                        : <Copy size={14} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
+                      <FadeText>{s.name}</FadeText>
+                    </button>
+                  ))}
+                </div>
+              </>}
+            </>}
+
+            {issueErr && <Alert tone="danger" text={issueErr} />}
+
+            {issued && (
+              <div style={{ borderRadius: 12, padding: 12, background: 'var(--color-bg-3)',
+                border: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {!done && <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+                  {t('Заведено')}: {createdCount}
+                </div>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {issued.map(a => (
+                    <div key={a.email} style={{ fontSize: 12, color: 'var(--color-text-2)', fontFamily: 'monospace', overflowWrap: 'anywhere' }}>
+                      {a.status === 'created' ? `${tn(a.name)} · ${a.email} · ${a.password}` : `${tn(a.name)} · ${t('не удалось')}`}
+                    </div>
+                  ))}
+                </div>
+                <button onClick={copyIssued} style={btn('S', 'secondary')}>
+                  {copiedIssued ? t('Скопировано') : t('Скопировать логины и пароли')}
+                </button>
+              </div>
+            )}
+
+            {cards.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-3)', margin: '4px 0 2px' }}>{t('Удалить карточку')}</div>
+              {cards.map(s => cardId === s.id
+                ? <div key={s.id} style={{ padding: '6px 0 8px', fontSize: 13, color: 'var(--color-text-2)' }}>
+                    <DeleteStudentAction student={s} groupName={groupName(s)} startEditing onCancel={() => setCardId('')}
+                      remove={async () => { await remove(s); setCardId('') }} />
+                  </div>
+                : <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 36 }}>
+                    <FadeText style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--color-text)' }}>
+                      {`${s.name} · ${groupName(s)}`}
+                    </FadeText>
+                    <button type="button" aria-label={`${t('Удалить карточку')}: ${s.name}`} title={t('Удалить карточку')}
+                      onClick={() => setCardId(s.id)}
+                      style={{ width: 32, height: 32, flexShrink: 0, borderRadius: 10, border: 'none', background: 'transparent',
+                        color: 'var(--color-red-text)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+                      <Trash2 size={16} strokeWidth={2} />
+                    </button>
+                  </div>)}
+            </div>}
+          </div>
+        </OverlayScrollArea>
+
+        {/* Подвал вне прокрутки: «Готово» убирает чип совсем, когда делать
+            больше нечего; иначе чип можно свернуть до значка. */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '10px 14px 14px', borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+          {done
+            ? <button style={btn('S', 'secondary')} onClick={() => { setOpen(false); setIssued(null) }}>{t('Готово')}</button>
+            : <button style={btn('S', 'secondary')} onClick={() => setHidden(!hidden)}>
+                {hidden ? t('Показывать подпись') : t('Свернуть в значок')}
+              </button>}
+        </div>
+      </motion.div>
+    </>, document.body)}
+  </>
 }
 
 function ScrollFadeTable({ children }: { children: React.ReactNode }) {
@@ -2669,15 +2726,13 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
             }}
             tabConfig={stripTabConfig}
             onAddToGroup={activeStripTab === 'groups' ? (gid) => setAddToGroupTarget(gid) : undefined}
+            // Переезд на аккаунты: чип рядом с вкладками, пока есть кого звать.
+            // Окно открывается поверх таблицы и ничего не сдвигает.
+            trailing={renderRoster ? undefined : <PendingAccountsPanel students={allStudents} groups={groups} remove={card => deleteStudent(card.id, card.name, true)} />}
           />
         </motion.div>
 
         {renderRoster ? renderRoster(allRosterView ? null : selectedGroupId ?? '') : <>
-        {/* Переезд на аккаунты: показывается, только пока есть кого звать. */}
-        <motion.div {...fadeUp(0.06)}>
-          <PendingAccountsPanel students={allStudents} groups={groups} remove={card => deleteStudent(card.id, card.name, true)} />
-        </motion.div>
-
         {assignmentError && <Alert tone="danger" text={assignmentError} />}
         {/* Student table */}
         <AnimatePresence>

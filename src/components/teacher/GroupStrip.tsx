@@ -430,14 +430,17 @@ function pluralSubjects(n: number): string {
 }
 
 // ─── Strip ────────────────────────────────────────────────────────────────────
-function CompactRosterStrip({ tabs, groups, selected, select, add }: {
+function CompactRosterStrip({ tabs, groups, selected, select, add, trailing }: {
   tabs: TabConfig; groups: Group[]; selected: string | null
   select: (id: string | null) => void; add?: (id: string) => void
+  trailing?: React.ReactNode
 }) {
   const { viewport, scroller } = useScrollEdges()
   return (
     <div className="js-compact-rail">
       <TabPanel compact config={tabs} />
+      {/* Без групп чип стоит сразу у вкладок, с группами — в конце ленты. */}
+      {!groups.length && trailing}
       <div className="js-group-viewport" ref={viewport}>
         <div className="js-group-scroll" ref={scroller}>
           <div className="js-group-track">
@@ -454,6 +457,7 @@ function CompactRosterStrip({ tabs, groups, selected, select, add }: {
           </div>
         </div>
       </div>
+      {groups.length > 0 && trailing}
     </div>
   )
 }
@@ -472,6 +476,7 @@ export default function GroupStrip({
   onAddToGroup,
   mergePersons = false,
   compactRoster = false,
+  trailing,
 }: {
   groups: Group[]
   individualGroups?: Group[]
@@ -488,6 +493,8 @@ export default function GroupStrip({
   /** Merge a person's several 1:1 subject-groups into one card with subject chips. */
   mergePersons?: boolean
   compactRoster?: boolean
+  /** Extra control beside the tab panel (same row, no extra height). */
+  trailing?: React.ReactNode
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const dragState = useRef<{ startX: number; scrollLeft: number; moved: boolean } | null>(null)
@@ -536,12 +543,14 @@ export default function GroupStrip({
 
   const hasIndividual = individualGroups.length > 0
   if (compactRoster && tabConfig) return (
-    <CompactRosterStrip tabs={tabConfig} groups={groups} selected={selectedGroupId} select={onSelectGroup} add={onAddToGroup} />
+    <CompactRosterStrip tabs={tabConfig} groups={groups} selected={selectedGroupId} select={onSelectGroup} add={onAddToGroup} trailing={trailing} />
   )
-  if (tabConfig && !groups.length && !hasIndividual) return <div style={{ padding: '20px 0 4px' }}><TabPanel config={tabConfig} compact /></div>
+  if (tabConfig && !groups.length && !hasIndividual) return <div style={{ padding: '20px 0 4px', display: 'flex', alignItems: 'center', gap: BTN_GAP }}>
+    <TabPanel config={tabConfig} compact />{trailing}
+  </div>
 
-  return (
-    <div style={{ position: 'relative', height: CARD_H + PAD_TOP + PAD_BOTTOM }}>
+  const strip = (
+    <div style={{ position: 'relative', height: CARD_H + PAD_TOP + PAD_BOTTOM, flex: 1, minWidth: 0 }}>
       <div
         ref={scrollRef}
         onScroll={recomputeFade}
@@ -629,6 +638,11 @@ export default function GroupStrip({
       </div>
     </div>
   )
+  if (!trailing) return strip
+  return <div style={{ display: 'flex', alignItems: 'flex-start', gap: GAP }}>
+    {strip}
+    <div style={{ paddingTop: PAD_TOP, flexShrink: 0 }}>{trailing}</div>
+  </div>
 }
 
 function LegacySingleAction({ label, icon: Icon, onClick }: { label: string; icon?: React.ElementType; onClick: () => void }) {
