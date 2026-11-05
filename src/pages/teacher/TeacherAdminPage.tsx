@@ -7,7 +7,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles, Ghost, ToggleRight } from '../../components/icons/appIcons'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox, Sparkles, Ghost, ToggleRight } from '../../components/icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
@@ -31,17 +31,12 @@ import { Alert } from '../../components/Alert'
 import SeasonAdmin from '../../components/teacher/SeasonAdmin'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
 import { btn } from '../../lib/pillStyles'
+import { StorageStatsPanel, type StorageStatsData } from './TeacherStoragePage'
 
 // Маркер «без тарифа» для дропдауна (в БД это NULL).
 const NO_PLAN = '__no_plan__'
 
-type StorageStats = {
-  db_bytes: number
-  db_limit_bytes: number
-  storage_bytes: number
-  storage_limit_bytes: number
-  attachments_bytes: number
-}
+type StorageStats = StorageStatsData
 
 type TeacherRow = {
   id: string
@@ -83,25 +78,6 @@ function fmtBytes(n: number): string {
 
 function pct(used: number, limit: number) {
   return Math.min(100, Math.round((used / limit) * 100))
-}
-
-function StorageTile({ icon: Icon, label, value, pct: value_pct }: { icon: React.ElementType; label: string; value: string; pct: number }) {
-  const color = value_pct >= 85 ? 'var(--color-red-text)' : value_pct >= 60 ? 'var(--color-peach-text)' : 'var(--color-green-text)'
-  return (
-    <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '12px 14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-3)', fontSize: 12, fontWeight: 500 }}>
-        <Icon size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
-        <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{label}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '6px 0 8px' }}>
-        <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
-        <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>· {value_pct}%</span>
-      </div>
-      <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
-        <div style={{ width: `${value_pct}%`, height: '100%', borderRadius: 2, background: color, transition: 'width 0.38s ease' }} />
-      </div>
-    </div>
-  )
 }
 
 function StatCard({ icon: Icon, label, value, sub, loading }: { icon: React.ElementType; label: string; value: string; sub?: string; loading?: boolean }) {
@@ -1031,7 +1007,6 @@ export default function TeacherAdminPage() {
 
   const firstLoad = loading && !storage
   const dbPct = storage ? pct(storage.db_bytes, storage.db_limit_bytes) : 0
-  const storagePct = storage ? pct(storage.storage_bytes, storage.storage_limit_bytes) : 0
 
   // Admin-only area. Teachers never reach it (menu item is hidden), but guard
   // the page too in case activePage is set some other way.
@@ -1276,21 +1251,9 @@ export default function TeacherAdminPage() {
         </>
         )}
 
-        {/* Storage — compact tiles on the same 3-column grid as the stat cards above. */}
+        {/* Storage — the full breakdown right here, no separate page. */}
         {section === 'storage' && (
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('Хранилище')}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-            <StorageTile icon={Database} label={t('База данных')} value={storage ? fmtBytes(storage.db_bytes) : '—'} pct={dbPct} />
-            <StorageTile icon={HardDrive} label={t('Файловое хранилище')} value={storage ? fmtBytes(storage.storage_bytes) : '—'} pct={storagePct} />
-            <div
-              onClick={() => setActivePage('storage')}
-              style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}
-            >
-              {t('Подробная статистика')} <ChevronRight size={16} />
-            </div>
-          </div>
-        </div>
+          <StorageStatsPanel stats={storage} error={!loading && !storage} />
         )}
         </>
         )}

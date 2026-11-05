@@ -12,7 +12,7 @@ import { Alert } from '../../components/Alert'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
 import { btn } from '../../lib/pillStyles'
 
-type Stats = {
+export type StorageStatsData = {
   db_bytes: number
   db_limit_bytes: number
   storage_bytes: number
@@ -78,47 +78,14 @@ function BigUsageBar({ icon: Icon, label, used, limit, hint }: {
   )
 }
 
-export default function TeacherStoragePage() {
+/** Full storage breakdown: usage bars, photo note, per-table sizes.
+ *  Shown inline on Админка → Обзор → Хранилище and on the standalone page. */
+export function StorageStatsPanel({ stats, error }: { stats: StorageStatsData | null; error: boolean }) {
   const t = useT()
-  const setActivePage = useTeacher(s => s.setActivePage)
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(false)
-    const { data, error } = await supabase.rpc('storage_stats')
-    if (error || !data) { setError(true); setLoading(false); return }
-    setStats(data as Stats)
-    setLoading(false)
-  }, [])
-
-  useEffect(() => { load() }, [load])
-
   const dbPct = stats ? (stats.db_bytes / stats.db_limit_bytes) * 100 : 0
-  const maxTableBytes = stats ? Math.max(...stats.tables.map(t => t.bytes), 1) : 1
-
+  const maxTableBytes = stats ? Math.max(...(stats.tables ?? []).map(t => t.bytes), 1) : 1
   return (
-    <TeacherPageScroll><div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <BackCircle onClick={() => setActivePage('home')} label="На главную" />
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Хранилище')}</div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('База данных и файлы')}</div>
-        </div>
-        <motion.button
-          whileTap={{ scale: 0.94 }}
-          onClick={load}
-          title={t('Обновить')}
-          style={{ ...btn('S', 'secondary'), marginLeft: 'auto' }}
-        >
-          <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
-          {t('Обновить')}
-        </motion.button>
-      </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {error ? (
         <Alert tone="danger" text={t('Не удалось загрузить статистику')} style={{ marginTop: 16 }} />
       ) : (
@@ -154,7 +121,7 @@ export default function TeacherStoragePage() {
               {t('По таблицам')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[...stats.tables].sort((a, b) => b.bytes - a.bytes).map(tbl => (
+              {[...(stats.tables ?? [])].sort((a, b) => b.bytes - a.bytes).map(tbl => (
                 <div key={tbl.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ fontSize: 13, color: 'var(--color-text-2)', width: 160, flexShrink: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tbl.name}</span>
                   <div style={{ flex: 1, height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
@@ -175,6 +142,49 @@ export default function TeacherStoragePage() {
           {!stats && <div style={{ padding: '24px 0' }}><Skeleton.Text lines={3} /></div>}
         </>
       )}
+    </div>
+  )
+}
+
+export default function TeacherStoragePage() {
+  const t = useT()
+  const setActivePage = useTeacher(s => s.setActivePage)
+  const [stats, setStats] = useState<StorageStatsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(false)
+    const { data, error } = await supabase.rpc('storage_stats')
+    if (error || !data) { setError(true); setLoading(false); return }
+    setStats(data as StorageStatsData)
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  return (
+    <TeacherPageScroll><div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <BackCircle onClick={() => setActivePage('home')} label="На главную" />
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Хранилище')}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('База данных и файлы')}</div>
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.94 }}
+          onClick={load}
+          title={t('Обновить')}
+          style={{ ...btn('S', 'secondary'), marginLeft: 'auto' }}
+        >
+          <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
+          {t('Обновить')}
+        </motion.button>
+      </div>
+
+      <StorageStatsPanel stats={stats} error={error} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div></TeacherPageScroll>
   )
