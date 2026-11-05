@@ -1,6 +1,6 @@
 import QuizDialogContent from './QuizDialogContent'
 import { textFadeLines } from '../lib/textFades'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, ChevronLeft, ChevronRight, Pause, Trophy, Check, X } from './icons/appIcons'
 import { quizTimeLimit, type QuizAnswer } from '../data/mockData'
@@ -58,6 +58,12 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
   const [timeLeft, setTimeLeft] = useState(quizTimeLimit)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [results, setResults] = useState<(Result | undefined)[]>([])
+  // Окно викторины: выбранный ответ по каждому вопросу (для разбора) и время
+  // вопроса, на котором ученик остановился, пока он смотрит уже отвеченные.
+  const [picks, setPicks] = useState<(string | null)[]>([])
+  const liveTimeRef = useRef<number | null>(null)
+  // Вопрос, до которого дошёл ученик: дальше него в окне прыгать нельзя.
+  const [liveIndex, setLiveIndex] = useState(quizResumeIndex)
 
   const question = quizQuestions[current] ?? quizQuestions[0] ?? { id: 'q1', title: '…', subject: 'Химия', answers: [] }
   const shuffledAnswers = useMemo(
@@ -69,6 +75,7 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
     if (quizState !== 'active' || !active) return
     if (timeLeft <= 0) {
       setResults(r => { const n = [...r]; n[current] = 'timeout'; return n })
+      setLiveIndex(i => (i === current ? current + 1 : i))
       setQuizState('timeout')
       return
     }
@@ -77,7 +84,8 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
   }, [quizState, timeLeft, active, current])
 
   useEffect(() => {
-    if (quizState !== 'answered' && quizState !== 'timeout') return
+    // В окне ученик сам жмёт «Дальше»: автопереход сбивал бы разбор ответа.
+    if (dialog || (quizState !== 'answered' && quizState !== 'timeout')) return
     const id = setTimeout(() => {
       if (current + 1 >= TOTAL) {
         setQuizResumeIndex(0)
@@ -90,11 +98,13 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
       }
     }, RESULT_DELAY)
     return () => clearTimeout(id)
-  }, [quizState, current, setQuizResumeIndex, TOTAL])
+  }, [dialog, quizState, current, setQuizResumeIndex, TOTAL])
 
   const handleStart = () => {
     setSpoilerRevealed(true)
-    if (quizResumeIndex === 0) setResults(Array(TOTAL).fill(undefined))
+    if (quizResumeIndex === 0) { setResults(Array(TOTAL).fill(undefined)); setPicks([]) }
+    liveTimeRef.current = null
+    setLiveIndex(Math.min(Math.max(0, quizResumeIndex), TOTAL - 1))
     setCurrent(Math.min(Math.max(0, quizResumeIndex), TOTAL - 1))
     setSelectedAnswer(null)
     setTimeLeft(quizTimeLimit)
@@ -102,20 +112,22 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
   }
 
   const handleStop = useCallback(() => {
-    setQuizResumeIndex(current)
+    setQuizResumeIndex(dialog ? Math.min(liveIndex, TOTAL - 1) : current)
     setSelectedAnswer(null)
     setSpoilerRevealed(false)
     setQuizState('preview')
-  }, [current, setQuizResumeIndex])
+  }, [dialog, liveIndex, TOTAL, current, setQuizResumeIndex])
 
   const handleAnswer = useCallback((answerId: string) => {
     if (quizState !== 'active') return
     setSelectedAnswer(answerId)
+    setPicks(p => { const n = [...p]; n[current] = answerId; return n })
     setResults(r => {
       const n = [...r]
       n[current] = question.answers.find(a => a.id === answerId)?.correct ? 'correct' : 'wrong'
       return n
     })
+    setLiveIndex(i => (i === current ? current + 1 : i))
     setQuizState('answered')
   }, [quizState, current, question.answers])
 
@@ -127,8 +139,39 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
     setQuizState('active')
   }, [TOTAL])
 
+  // Окно: отвеченный вопрос открывается только для разбора (ответ не меняется),
+  // неотвеченный — только текущий, с тем временем, что на нём оставалось.
+  const reviewQuestion = useCallback((index: number) => {
+    const result = results[index]
+    if (index < 0 || index >= TOTAL || index === current || (index !== liveIndex && !result)) return
+    if (quizState === 'active') liveTimeRef.current = timeLeft
+    setCurrent(index)
+    if (result) {
+      setSelectedAnswer(picks[index] ?? null)
+      setQuizState(result === 'timeout' ? 'timeout' : 'answered')
+    } else {
+      setSelectedAnswer(null)
+      setTimeLeft(liveTimeRef.current ?? quizTimeLimit)
+      liveTimeRef.current = null
+      setQuizState('active')
+    }
+  }, [liveIndex, TOTAL, current, quizState, timeLeft, results, picks])
+
+  const handleNext = useCallback(() => {
+    if (quizState !== 'answered' && quizState !== 'timeout') return
+    if (current + 1 >= TOTAL) {
+      setQuizResumeIndex(0)
+      setQuizState('done')
+      return
+    }
+    reviewQuestion(current + 1)
+  }, [quizState, current, TOTAL, setQuizResumeIndex, reviewQuestion])
+
   const handleRestart = () => {
     setResults(Array(TOTAL).fill(undefined))
+    setPicks([])
+    liveTimeRef.current = null
+    setLiveIndex(0)
     setQuizResumeIndex(0)
     setCurrent(0)
     setSelectedAnswer(null)
@@ -149,7 +192,7 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
     return 'var(--color-border-medium)'
   }
 
-  if (dialog) return <QuizDialogContent state={quizState} question={question} answers={shuffledAnswers} current={current} questions={quizQuestions} timeLeft={timeLeft} selected={selectedAnswer} results={results} resumeIndex={quizResumeIndex} onStart={handleStart} onStop={handleStop} onAnswer={handleAnswer} onNavigate={goToQuestion} onRestart={handleRestart}/>
+  if (dialog) return <QuizDialogContent state={quizState} question={question} answers={shuffledAnswers} current={current} questions={quizQuestions} timeLeft={timeLeft} selected={selectedAnswer} results={results} resumeIndex={quizResumeIndex} onStart={handleStart} onStop={handleStop} onAnswer={handleAnswer} onNavigate={reviewQuestion} onNext={handleNext} liveIndex={liveIndex} onRestart={handleRestart}/>
 
   // Done state — score summary
   if (quizState === 'done') {
