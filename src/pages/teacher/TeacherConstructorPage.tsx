@@ -55,6 +55,7 @@ import { seedKeyOf } from '../../lib/seedSync'
 import { authoredLesson } from '../../data/authoredLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
+import { CONSTRUCTOR_TAB_EVENT } from '../../store/notificationsStore'
 import { useTheme } from '../../store/themeStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -7956,6 +7957,15 @@ export default function TeacherConstructorPage() {
     localStorage.getItem('constructor-selected-id')
   )
   useEffect(() => { localStorage.setItem('constructor-active-tab', activeTab) }, [activeTab])
+  // «Открыть» у уведомления «Тест пройден», когда конструктор уже на экране.
+  useEffect(() => {
+    const onTab = (e: Event) => {
+      const tab = (e as CustomEvent<string>).detail
+      if (tab === 'testing' || tab === 'course' || tab === 'widget' || tab === 'decks') setActiveTab(tab)
+    }
+    window.addEventListener(CONSTRUCTOR_TAB_EVENT, onTab)
+    return () => window.removeEventListener(CONSTRUCTOR_TAB_EVENT, onTab)
+  }, [])
   useEffect(() => {
     if (selectedId) localStorage.setItem('constructor-selected-id', selectedId)
     else localStorage.removeItem('constructor-selected-id')

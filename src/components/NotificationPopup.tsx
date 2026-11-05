@@ -6,7 +6,8 @@ import EmptyState from './EmptyState'
 import CountBadge from './CountBadge'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useNotificationsStore, type Notification } from '../store/notificationsStore'
+import { useNotificationsStore, followNotifAction, type Notification } from '../store/notificationsStore'
+import { getStudentSession } from '../lib/studentSession'
 import type { NotifType } from '../store/notificationsStore'
 import { useDashboard } from '../store/dashboardStore'
 import { findLessonById } from '../data/lessonContent'
@@ -100,19 +101,36 @@ export default function NotificationPopup({ requests = [], onRequests, open, anc
   const markRead      = useNotificationsStore(s => s.markRead)
   const markAllRead   = useNotificationsStore(s => s.markAllRead)
   const openLesson    = useDashboard(s => s.openLesson)
+  const setActivePage = useDashboard(s => s.setActivePage)
   const popupRef      = useRef<HTMLDivElement>(null)
   const unread = notifications.filter(n => !n.read).length
 
-  // Click a row → mark read, then deep-link to its lesson (if any) and close.
+  // Строка → прочитано и переход туда, о чём уведомление. Попап общий для
+  // ученика и учителя: у учительских строк своё действие (адрес кабинета).
   const activate = (n: Notification) => {
     if (!n.read) markRead(n.id)
-    const ref = n.link?.lessonRef
+    if (followNotifAction(n.action)) { onClose(); return }
+    const link = n.link
+    if (n.type === 'test_assigned' && link?.assignmentId && link.subject) {
+      const s = getStudentSession()
+      window.location.hash = `#/diagnostic?subject=${encodeURIComponent(link.subject)}&assignment=${link.assignmentId}`
+        + (s ? `&sid=${s.id}&sname=${encodeURIComponent(s.name || 'Аноним')}` : '')
+      onClose()
+      return
+    }
+    const ref = link?.lessonRef
     if (ref) {
       const base = baseLessonRef(ref)
       if (findLessonById(base)) {
         openLesson(base)
         onClose()
+        return
       }
+    }
+    // Перенос и отмена занятия: расписание — на главной.
+    if (n.type === 'lesson_moved' || n.type === 'lesson_cancelled') {
+      setActivePage('home')
+      onClose()
     }
   }
 

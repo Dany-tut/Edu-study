@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { t } from '../lib/i18n'
+import { teacherStudentHash } from '../lib/teacherStudentRoute'
 
 export type NotifType =
   // legacy / local types
@@ -24,7 +25,10 @@ export type NotifType =
   | 'lesson_moved'
   | 'lesson_cancelled'
 
-export type NotifLink = { page?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string }
+export type NotifLink = { page?: string; tab?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string; homeworkId?: string; scheduleId?: string }
+
+/** Куда ведёт «Открыть»: полный адрес кабинета + вкладка конструктора, если нужна. */
+export type NotifAction = { label: string; page?: string; tab?: string }
 
 export type Notification = {
   id: string
@@ -34,9 +38,11 @@ export type Notification = {
   createdAt: number
   read: boolean
   live: boolean
-  action?: { label: string; page?: string }
+  action?: NotifAction
   /** Deep-link payload (e.g. lessonRef) — used by the popup to navigate on click. */
   link?: NotifLink | null
+  /** Создано в браузере (журнал, напоминание дневника), в базе его нет. */
+  local?: boolean
 }
 
 /** Row shape coming from public.notifications (DB / realtime payload). */
@@ -47,7 +53,7 @@ export type NotifRow = {
   type: string
   title: string
   body: string
-  link: { page?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string } | null
+  link: NotifLink | null
   read: boolean
   created_at: string
 }
@@ -73,12 +79,39 @@ function runUpdate(ctx: string, q: PromiseLike<{ error: unknown }>) {
   q.then(({ error }) => { if (error) console.error(`[notifications:${ctx}]`, error) })
 }
 
+/**
+ * Адрес кабинета учителя для уведомления. Старые записи несут адреса, которых
+ * в навигации нет (`teacher/testing`, `teacher/homework`) — сводим их к живым.
+ */
+function teacherTarget(row: NotifRow): NotifAction | undefined {
+  const link = row.link
+  const open = t('Открыть')
+  if ((row.type === 'student_joined' || row.type === 'payment_due') && link?.studentId)
+    return { label: open, page: teacherStudentHash(link.studentId) }
+  if (row.type === 'test_completed' || link?.page === 'teacher/testing')
+    return { label: open, page: '#/teacher/constructor', tab: link?.tab ?? 'testing' }
+  if (row.type === 'hw_submitted' || link?.page === 'teacher/homework')
+    return { label: open, page: '#/teacher/gradebook' }
+  if (link?.page) return { label: open, page: link.page.startsWith('#') ? link.page : `#/${link.page}` }
+  return undefined
+}
+
+/** Событие для конструктора: открыть вкладку, даже если он уже на экране. */
+export const CONSTRUCTOR_TAB_EVENT = 'iskra:constructor-tab'
+
+/** Перейти по действию уведомления (колокольчик, тост, таблетка — одно место). */
+export function followNotifAction(action: NotifAction | undefined): boolean {
+  if (!action?.page) return false
+  if (action.tab) {
+    try { localStorage.setItem('constructor-active-tab', action.tab) } catch {}
+    window.dispatchEvent(new CustomEvent(CONSTRUCTOR_TAB_EVENT, { detail: action.tab }))
+  }
+  window.location.hash = action.page
+  return true
+}
+
 function rowToNotif(row: NotifRow, live: boolean): Notification {
-  // Only teacher rows get a navigable action (student routes are not deep-linkable yet).
-  const action =
-    row.recipient_role === 'teacher' && row.link?.page
-      ? { label: t('Открыть'), page: row.link.page }
-      : undefined
+  const action = row.recipient_role === 'teacher' ? teacherTarget(row) : undefined
   return {
     id: row.id,
     type: row.type as NotifType,
@@ -128,16 +161,20 @@ export const useNotificationsStore = create<State>()((set, get) => ({
         createdAt: Date.now(),
         read: false,
         live: true,
+        local: true,
       }, ...state.notifications],
     }))
     return id
   },
 
-  hydrate: (rows) => set({
-    notifications: rows
-      .map(r => rowToNotif(r, false))
-      .sort((a, b) => b.createdAt - a.createdAt),
-  }),
+  // Локальные (журнал, напоминания дневника) в базе не лежат: загрузка истории
+  // их не заменяет, иначе они пропадали, если ответ приходил позже них.
+  hydrate: (rows) => set(state => ({
+    notifications: [
+      ...state.notifications.filter(n => n.local),
+      ...rows.map(r => rowToNotif(r, false)),
+    ].sort((a, b) => b.createdAt - a.createdAt),
+  })),
 
   ingest: (row) => set(state => {
     if (state.notifications.some(n => n.id === row.id)) return state
@@ -154,6 +191,7 @@ export const useNotificationsStore = create<State>()((set, get) => ({
   reset: () => set({ notifications: [], recipientId: null }),
 
   markRead: (id) => {
+    const local = get().notifications.find(n => n.id === id)?.local
     set(state => ({
       notifications: state.notifications.map(n =>
         n.id === id ? { ...n, read: true } : n
@@ -161,14 +199,14 @@ export const useNotificationsStore = create<State>()((set, get) => ({
     }))
     if (id.startsWith('journal-')) {
       persistLocalRead([id])
-    } else {
+    } else if (!local) {
       runUpdate('markRead', supabase.from('notifications').update({ read: true }).eq('id', id))
     }
   },
 
   markAllRead: () => {
     const dbIds = get().notifications
-      .filter(n => !n.read && !n.id.startsWith('journal-'))
+      .filter(n => !n.read && !n.local)
       .map(n => n.id)
     set(state => {
       const updated = state.notifications.map(n => ({ ...n, read: true }))
@@ -210,6 +248,7 @@ export const useNotificationsStore = create<State>()((set, get) => ({
         createdAt: prevById.get(id)?.createdAt ?? Date.now(),
         read: localRead.has(id) || (prevById.get(id)?.read ?? false),
         live: false,
+        local: true,
         action: { label: t('Заполнить'), page: '#/teacher/gradebook' },
       }
     })
