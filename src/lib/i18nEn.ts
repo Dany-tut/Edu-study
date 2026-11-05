@@ -5848,4 +5848,8 @@ export const EN: Record<string, string> = {
   "К карточкам": "To cards",
   "Следующий урок": "Next lesson",
   "Настройки взяты у учеников этой группы — поменяйте, если нужно.": "Settings copied from this group’s students — change them if needed.",
+  "Предпросмотр": "Preview",
+  "Просмотр": "Preview",
+  "Как увидит ученик: вырезанное пропускается, тихое ускорено": "As the student sees it: cuts skipped, quiet parts sped up",
+  "Монтажа пока нет — сначала примените монтаж и сохраните расшифровку": "No montage yet — apply the montage and save the transcript first",
 }

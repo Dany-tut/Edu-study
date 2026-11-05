@@ -264,3 +264,14 @@
 .transcription-form .transcription-picker small { color:var(--color-text-3); font-size:12px; line-height:1.4; }
 .transcription-picker input { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
 .transcription-picker:focus-within { outline:2px solid var(--color-control-accent); outline-offset:2px; }
+
+/* Реплики идут за плеером, как текст песни: звучащая — ярче, остальные приглушены.
+   Меняется только цвет и фон — высота строк не прыгает. */
+.recording-lines .transcript-line {transition:background-color .45s ease;border-radius:8px}
+.recording-lines .transcript-line button,.recording-lines .transcript-line time {transition:color .45s ease}
+.recording-lines.is-live .transcript-line:not(.is-now) > button {color:var(--color-text-3)}
+.recording-lines .transcript-line.is-now {background:color-mix(in srgb,var(--color-accent) 8%,transparent)}
+.recording-lines .transcript-line.is-now time {color:var(--color-accent)}
+.recording-lines .transcript-line-time {display:block;padding:3px 0;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.recording-lines .transcript-line-time:hover time {color:var(--color-accent)}
+@media (prefers-reduced-motion: reduce) {.recording-lines .transcript-line,.recording-lines .transcript-line button,.recording-lines .transcript-line time {transition:none}}

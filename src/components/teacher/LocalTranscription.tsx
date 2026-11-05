@@ -243,21 +243,70 @@ function lineClock(seconds: number, withHours: boolean) {
   return withHours ? two(Math.floor(s / 3600)) + ':' + mmss : two(Math.floor(s / 60)) + ':' + two(s % 60)
 }
 
-export function RecordingLines({rail, fill}: {rail: TranscriptRail; fill?: boolean}) {
+/** Индекс реплики, которая звучит в момент `at`: последняя, начавшаяся не позже. */
+function lineAt(segments: readonly { start: number }[], at: number) {
+  let lo = 0, hi = segments.length - 1, found = -1
+  while (lo <= hi) { const mid = (lo + hi) >> 1; if (segments[mid].start <= at + 0.05) { found = mid; lo = mid + 1 } else hi = mid - 1 }
+  return found
+}
+
+/** Сколько ждать после ручной прокрутки, прежде чем список снова поедет за плеером. */
+const FOLLOW_PAUSE_MS = 3500
+
+/**
+ * Реплики записи. С плеером (`at`) список ведёт себя как текст песни в Apple
+ * Music: звучащая реплика ярче остальных и плавно встаёт на треть высоты.
+ * Прокрутил сам — список не дёргается под пальцем, догоняет через пару секунд.
+ * Время реплики — переход в это место записи (`onSeek`).
+ */
+export function RecordingLines({rail, fill, at, onSeek}: {rail: TranscriptRail; fill?: boolean; at?: number; onSeek?: (seconds: number) => void}) {
   const [editing, setEditing] = useState<number | null>(null)
   const {draft, change, saving} = rail
-  const withHours = draft.transcript.segments.some(s => s.start >= 3600)
+  const segments = draft.transcript.segments
+  const withHours = segments.some(s => s.start >= 3600)
+  const now = at == null || at <= 0 ? -1 : lineAt(segments, at)
+  const listRef = useRef<HTMLDivElement>(null)
+  const userAt = useRef(0)
+  // Свою прокрутку отличаем по жестам, а не по событию scroll: его же шлёт и
+  // плавная прокрутка самого списка.
+  useEffect(() => {
+    const scroller = listRef.current?.parentElement
+    if (!scroller) return
+    const mark = () => { userAt.current = Date.now() }
+    const opts = { passive: true } as const
+    scroller.addEventListener('wheel', mark, opts)
+    scroller.addEventListener('touchstart', mark, opts)
+    scroller.addEventListener('pointerdown', mark, opts)
+    scroller.addEventListener('keydown', mark)
+    return () => {
+      scroller.removeEventListener('wheel', mark)
+      scroller.removeEventListener('touchstart', mark)
+      scroller.removeEventListener('pointerdown', mark)
+      scroller.removeEventListener('keydown', mark)
+    }
+  }, [])
+  useEffect(() => {
+    if (now < 0 || editing != null || Date.now() - userAt.current < FOLLOW_PAUSE_MS) return
+    const scroller = listRef.current?.parentElement, line = listRef.current?.children[now] as HTMLElement | undefined
+    if (!scroller || !line) return
+    const top = line.offsetTop - listRef.current!.offsetTop - scroller.clientHeight / 3
+    const target = Math.max(0, Math.min(top, scroller.scrollHeight - scroller.clientHeight))
+    if (Math.abs(scroller.scrollTop - target) < 2) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    scroller.scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' })
+  }, [now, editing])
   // fill — в левой рельсе: карточка занимает всю высоту колонки.
-  return <section className={'recording-lines' + (fill ? ' is-fill' : '')} aria-label="Реплики записи">
-    <header><AudioLines size={16}/><strong>Реплики</strong><small>{draft.transcript.segments.length}</small></header>
+  return <section className={'recording-lines' + (fill ? ' is-fill' : '') + (now >= 0 ? ' is-live' : '')} aria-label="Реплики записи">
+    <header><AudioLines size={16}/><strong>Реплики</strong><small>{segments.length}</small></header>
     <ScrollFade maxHeight={fill ? '100%' : 'min(32dvh, 280px)'} fadeHeight={12} style={fill ? { flex: 1, minHeight: 0 } : undefined}>
       {/* Колонка времени — по формату списка: 5 знаков без часов, 8 с часами. */}
-      <div style={{'--time-chars': withHours ? 8 : 5} as CSSProperties}>{draft.transcript.segments.map((line,index) => <div key={index} className="transcript-line">
-        <time>{lineClock(line.start, withHours)}</time>
+      <div ref={listRef} style={{'--time-chars': withHours ? 8 : 5} as CSSProperties}>{segments.map((line,index) => <div key={index} className={'transcript-line' + (index === now ? ' is-now' : '')} aria-current={index === now ? 'true' : undefined}>
+        {onSeek ? <button type="button" className="transcript-line-time" aria-label={'Перейти к ' + lineClock(line.start, withHours)} onClick={() => { userAt.current = 0; onSeek(line.start) }}><time>{lineClock(line.start, withHours)}</time></button>
+          : <time>{lineClock(line.start, withHours)}</time>}
         {editing === index ? <span className="transcript-line-text" data-text={line.text + ' '}>
           <textarea rows={1} autoFocus aria-label={'Реплика ' + (index+1)} value={line.text} disabled={saving}
             onBlur={() => setEditing(null)} onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.blur() }}
-            onChange={e => change({...draft, transcript:{...draft.transcript, segments:draft.transcript.segments.map((s,i) =>
+            onChange={e => change({...draft, transcript:{...draft.transcript, segments:segments.map((s,i) =>
               i === index ? {...s,text:e.target.value} : s)}})}/>
         </span> : <button type="button" disabled={saving} aria-label={'Редактировать реплику ' + (index+1)} onClick={() => setEditing(index)}>{line.text || 'Введите текст'}</button>}
       </div>)}</div>

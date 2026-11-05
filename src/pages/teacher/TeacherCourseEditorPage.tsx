@@ -109,7 +109,7 @@ type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
 
 import { RecordingLines, TranscriptionAction, useTranscriptionOwner, type TranscriptRail } from '../../components/teacher/LocalTranscription'
 import { readTranscript, type LessonTranscript } from '../../lib/localTranscription'
-import type { LessonStatsSummary } from '../../lib/lessonMontage'
+import { playbackPlan, type LessonStatsSummary } from '../../lib/lessonMontage'
 
 export interface CELesson {
   transcript?: LessonTranscript
@@ -1709,10 +1709,18 @@ function TimecodeRail({
   )
 }
 
+/** План монтажа сохранённой расшифровки — только если она от этой же записи. */
+function montagePlan(lesson: CELesson) {
+  const transcript = lesson.transcript
+  return transcript && transcript.source === (lesson.videoUrl?.trim() || '') ? playbackPlan(transcript.montage) : undefined
+}
+
 function CenterRecording({
-  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend,
+  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false,
 }: {
   lesson: CELesson
+  /** «Предпросмотр»: плеер пропускает вырезанное и ускоряет тихое — как у ученика. */
+  preview?: boolean
   /** Уроки курса с итогами монтажа — динамика во вкладке «Итоги». */
   trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[]
   /** Слот в левой рельсе: реплики стоят там, а не под плеером. */
@@ -1871,7 +1879,7 @@ function CenterRecording({
                 style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>
-              {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill/>, linesSlot) : <RecordingLines rail={rail}/>)}
+              {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>, linesSlot) : <RecordingLines rail={rail} at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>)}
               {rail ? timecodePanel : transcriptionAction}
             </div>
           </div>
@@ -1901,6 +1909,7 @@ function CenterRecording({
                   initialWatch={startWatch}
                   onPersist={() => {}}
                   onTime={(s, d) => { setAt(s); setTotal(d) }}
+                  montage={preview ? montagePlan(lesson) : undefined}
                 />
                 {/* У Диска нет внешнего API: если файл не расшарен, его страница
                     /preview сама покажет «Нет доступа» внутри iframe, и перехватить
@@ -1932,7 +1941,7 @@ function CenterRecording({
                 <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Предпросмотра нет — таймкоды справа можно проставить вручную')}</div>
               </div>
             )}
-            {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill/>, linesSlot) : <RecordingLines rail={rail}/>)}
+            {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>, linesSlot) : <RecordingLines rail={rail} at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>)}
           </div>
 
           {timecodePanel}
@@ -5656,6 +5665,38 @@ const LESSON_MODES: { id: LessonMode; label: string }[] = [
   { id: 'students',  label: 'Ученики' },
 ]
 
+/**
+ * Открытая вкладка «Запись» — две половины в той же ячейке: «Оригинал» (вставляем,
+ * правим, расставляем главы) и «Предпросмотр» (как увидит ученик после монтажа).
+ * Размер вкладки не меняется: половины лежат поверх подписи, а сама подпись
+ * остаётся невидимой и держит высоту и ширину. На узкой ячейке — «Просмотр».
+ * Половины — span с ролью кнопки: настоящая кнопка внутри кнопки недопустима.
+ */
+function RecordingViewSplit({ view, hasMontage, onView, label }: {
+  view: 'original' | 'preview'; hasMontage: boolean; onView: (view: 'original' | 'preview') => void; label: string
+}) {
+  const t = useT()
+  const pick = (next: 'original' | 'preview') => (e: React.SyntheticEvent) => {
+    e.stopPropagation()
+    if (next === 'preview' && !hasMontage) return
+    onView(next)
+  }
+  const half = (id: 'original' | 'preview', children: React.ReactNode, title?: string) => (
+    <span role="button" tabIndex={0} className="recording-split-half" aria-pressed={view === id || (id === 'original' && !hasMontage)}
+      aria-disabled={id === 'preview' && !hasMontage ? true : undefined} title={title}
+      onClick={pick(id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(id)(e) } }}>{children}</span>
+  )
+  return <>
+    <span aria-hidden style={{ visibility: 'hidden' }}>{label}</span>
+    <span className="recording-split" role="group" aria-label={label}>
+      {half('original', t('Оригинал'))}
+      <span className="recording-split-divider" aria-hidden />
+      {half('preview', <><span className="recording-split-long">{t('Предпросмотр')}</span><span className="recording-split-short">{t('Просмотр')}</span></>,
+        hasMontage ? t('Как увидит ученик: вырезанное пропускается, тихое ускорено') : t('Монтажа пока нет — сначала примените монтаж и сохраните расшифровку'))}
+    </span>
+  </>
+}
+
 // ─── Left rail geometry ───────────────────────────────────────────────────────
 // Обёртки рельса режут по overflow (нужно для анимации ширины и скролла), а
 // карточки внутри — с тенью. Поэтому коробка обёртки шире карточки на BLEED со
@@ -5931,6 +5972,8 @@ export default function TeacherCourseEditorPage() {
     savedPos?.lessonId && course.lessons.some(l => l.id === savedPos.lessonId) ? savedPos.lessonId : null
   )
   const [lessonMode, setLessonMode] = useState<LessonMode>(savedPos?.mode ?? 'lesson')
+  // Вкладка «Запись» в открытом виде делится на «Оригинал | Предпросмотр».
+  const [recordingView, setRecordingView] = useState<'original' | 'preview'>('original')
   const [recordingLinesSlot, setRecordingLinesSlot] = useState<HTMLDivElement | null>(null)
   // Открытая домашка урока (основная / доп., см. hwSlot) — lifted here so the left
   // meta rail and the center task list stay in sync. Живёт на уровне страницы,
@@ -7391,7 +7434,9 @@ export default function TeacherCourseEditorPage() {
                               }}
                             />
                           )}
-                          <span style={{ position: 'relative', zIndex: 1 }}>{t(m.label)}</span>
+                          {m.id === 'recording' && active && selectedLesson.videoUrl
+                            ? <RecordingViewSplit view={recordingView} hasMontage={!!montagePlan(selectedLesson)} onView={setRecordingView} label={t(m.label)} />
+                            : <span style={{ position: 'relative', zIndex: 1 }}>{t(m.label)}</span>}
                         </button>
                       )
                     })}
@@ -7415,6 +7460,7 @@ export default function TeacherCourseEditorPage() {
                       <CenterRecording
                         trend={course.lessons.map(l => ({ id: l.id, title: l.title, current: l.id === selectedLesson.id, stats: l.transcript?.montage?.stats }))}
                         linesSlot={recordingLinesSlot}
+                        preview={recordingView === 'preview' && !!montagePlan(selectedLesson)}
                         courseKey={course.id} loading={!!(course.metadataPending || course.heavyPending)} published={course.status === 'published'}
                         key={lessonShortIdById[selectedLesson.id] ?? selectedLesson.id}
                         lesson={selectedLesson}

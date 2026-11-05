@@ -89,3 +89,16 @@
 .rail-dashed-btn {transition:background .15s,color .15s,border-color .15s}
 .rail-dashed-btn:hover {background:var(--color-bg-3) !important;color:var(--color-text-2) !important;border-color:var(--color-border-medium) !important}
 .rail-dashed-btn[data-tone=green]:hover {background:var(--color-green-soft) !important;color:var(--color-green-text) !important;border-color:var(--color-green-text) !important}
+
+/* Открытая вкладка «Запись»: «Оригинал | Предпросмотр» в той же ячейке.
+   Слой лежит поверх невидимой подписи — размер вкладки не меняется. */
+.recording-split {position:absolute;inset:0;z-index:1;display:flex;align-items:stretch;container-type:inline-size}
+.recording-split-half {flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;padding:0 4px;border-radius:7px;margin:3px 2px;color:var(--color-text-3);white-space:nowrap;overflow:hidden;cursor:pointer;transition:color .2s,background-color .2s}
+.recording-split-half[aria-pressed=true] {color:var(--color-green-text);background:color-mix(in srgb,var(--color-bg) 70%,transparent)}
+.recording-split-half:not([aria-pressed=true]):not([aria-disabled=true]):hover {color:var(--color-text)}
+.recording-split-half[aria-disabled=true] {cursor:default;opacity:.5}
+.recording-split-half:focus-visible {outline:2px solid var(--color-green-text);outline-offset:-2px}
+.recording-split-divider {flex:none;width:1px;margin:8px 0;background:color-mix(in srgb,var(--color-green-text) 30%,transparent)}
+.recording-split-short {display:none}
+@container (max-width:250px) {.recording-split-long {display:none}.recording-split-short {display:inline}}
+@container (max-width:165px) {.recording-split-half {font-size:12px;letter-spacing:-.01em;padding:0 2px}}
