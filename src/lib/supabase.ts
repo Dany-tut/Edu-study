@@ -17,6 +17,26 @@ if (!url || !key) {
   )
 }
 
+// Steal has a victim. When a tab waits past lockAcquireTimeout it takes the
+// lock by force, and the tab that held it gets «Lock … was released because
+// another request stole it» (or the raw AbortError «Lock broken by another
+// request with the 'steal' option») out of getUser/getSession. Nobody handles
+// that: 12 unhandled rejections on the constructor on 04.11, each one a call
+// whose answer was lost. Requeue once WITHOUT stealing — the call waits behind
+// the stealer like any other, so there is no steal-back cascade.
+function isStolenLock(e: unknown): boolean {
+  const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message: unknown }).message) : ''
+  return /stole it|with the 'steal' option/.test(msg)
+}
+async function requeueStolenLock<R>(name: string, acquireTimeout: number, fn: () => Promise<R>): Promise<R> {
+  try {
+    return await navigatorLock(name, acquireTimeout, fn)
+  } catch (e) {
+    if (!isStolenLock(e)) throw e
+    return navigatorLock(name, acquireTimeout, fn)
+  }
+}
+
 // OAuth returns a one-time query code, leaving the application's hash router intact.
 export const supabase = createClient(url, key, {
   auth: {
@@ -27,7 +47,7 @@ export const supabase = createClient(url, key, {
     // so a sleeping or stalled tab holding it froze the whole app on
     // «Проверяем доступ…» for the full wait. Steal after the SDK's 5s default:
     // a rare overlapping refresh is cheaper than a frozen cabinet.
-    ...(typeof navigator !== 'undefined' && navigator.locks ? { lock: navigatorLock, lockAcquireTimeout: 5_000 } : {}),
+    ...(typeof navigator !== 'undefined' && navigator.locks ? { lock: requeueStolenLock, lockAcquireTimeout: 5_000 } : {}),
   }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(teacherViewFetch, url), url)) },
 })
 

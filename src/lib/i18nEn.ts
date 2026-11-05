@@ -1276,6 +1276,7 @@ export const EN: Record<string, string> = {
   "Выберите, кому назначить урок (группа или ученик) — иначе можно только сохранить черновик.": "Choose who to assign the lesson to (a group or student) — otherwise you can only save a draft.",
   "Укажите дату и время урока — иначе можно только сохранить черновик.": "Specify the lesson date and time — otherwise you can only save a draft.",
   "Черновик": "Draft",
+  "Сохранён": "Saved",
   "Создать урок": "Create lesson",
   "Урок": "Lesson",
   "Опубликовать урок": "Publish lesson",
