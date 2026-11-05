@@ -98,6 +98,14 @@
 .js-toolbar .js-search:focus-within, .js-toolbar .js-scope label:focus-within { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .js-toolbar .js-scope select:focus-visible { outline: 0; }
 .js-filter-area { position: relative; min-width: 0; margin-inline-start: auto; }
+/* «По ученикам / По домашкам» в строке инструментов: без своей полосы и рамки. */
+.js-toolbar .js-work-views { flex: none; padding: 0; border-bottom: 0; white-space: nowrap; }
+/* Узко (телефон): всё в одну строку не влезает — переключатель уходит
+   отдельной строкой под вкладки, фильтры и поиск остаются на месте. */
+@container journal-tools (max-width: 720px) {
+  .js-toolbar:has(.js-work-views) { flex-wrap: wrap; row-gap: 8px; }
+  .js-toolbar .js-work-views { order: 9; flex-basis: 100%; }
+}
 .js-filter-items { display: flex; align-items: center; gap: 8px; }
 .js-filter-items .js-scope { flex-wrap: nowrap; }
 .js-filter-items .js-attention, .js-filter-trigger { min-height: 40px; padding: 5px 12px; white-space: nowrap; font-size: 12px; }

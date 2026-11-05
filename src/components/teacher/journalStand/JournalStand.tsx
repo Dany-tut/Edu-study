@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import ScrollFade from '../../ScrollFade'
 import CountBadge from '../../CountBadge'
 import { useJournalPending, type PendingJournal } from '../../../lib/useGroups'
@@ -302,8 +302,10 @@ function shortDate(value: string | null) {
 function monogram(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map(v => v[0]).join('')
 }
-function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
+function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, workViews }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
   attention: boolean; toggle: () => void; pendingCount: number
+  /** «По ученикам / По домашкам» — в той же строке, сразу за вкладками. */
+  workViews?: ReactNode
 }) {
   const [filters, setFilters] = useState(false)
   const area = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null)
@@ -333,6 +335,7 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount }:
           )
         })}
       </div>
+      {workViews}
       <div className="js-filter-area" ref={area} onKeyDown={e => {
         if (e.key === 'Escape' && filters) { e.stopPropagation(); setFilters(false); trigger.current?.focus() }
       }} onBlur={e => {
@@ -422,7 +425,11 @@ export function Matrix(props: MatrixProps) {
   return <section className="course-journal js-matrix" ref={host} data-report-open={drawerOpen || undefined}
     aria-label={'Журнал успеваемости · ' + groupLabel}>
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
-      pendingCount={props.pendingAttendance?.length ?? 0} attention={!overview && attention} toggle={() => setAttention(v => !v)} /></div>
+      pendingCount={props.pendingAttendance?.length ?? 0} attention={!overview && attention} toggle={() => setAttention(v => !v)}
+      workViews={selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views js-work-views" role="group" aria-label="Представление работ">
+        <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
+        <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
+      </div>} /></div>
     {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && <details className="js-pending-lessons">
       <summary><ChevronRight size={16} aria-hidden="true" />Незаполненная посещаемость · {props.pendingAttendance.length}</summary>
       <ScrollFade maxHeight="min(24dvh, 180px)">
@@ -433,10 +440,6 @@ export function Matrix(props: MatrixProps) {
       </ScrollFade>
     </details>}
     {selected.tab === 'Посещаемость' && props.onOpenAttendance && <p className="cj-note" role="status">Нажмите ячейку, чтобы отметить посещаемость или поставить оценку. Название урока открывает отметки для учеников из текущего списка, у которых есть это занятие в расписании.</p>}
-    {selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views" role="group" aria-label="Представление работ">
-      <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
-      <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
-    </div>}
     {overview ? <GroupOverview key={[selected.strip, groupLabel, selected.course, selected.module].join(':')}
       entries={entries} studentId={selected.student} search={selected.search} today={today} scopeLabel={scopeLabel}
       groupLabel={groupLabel} studentGroupLabel={groups.find(g => g.id === entry?.student.groupId)?.name} example={example} onStudent={student => {setReportHost(null);set({student,workRef:''})}}
