@@ -23,6 +23,8 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
   const errorRef = useRef(error)
   const errorProviderRef = useRef(sessionStorage.getItem('iskra:link-error-provider') || '')
   const [notice, setNotice] = useState('')
+  // длинная почта упирается в «Подключено» — тогда вместо таблетки квадрат с галочкой
+  const [cramped, setCramped] = useState<Record<string, boolean>>({})
   const [available, setAvailable] = useState<Record<string, boolean> | null>(null)
   const updateError = (message: string, provider?: string) => {
     errorRef.current = message
@@ -121,13 +123,13 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
       {(['google', 'apple'] as const).map(provider => {
         const identity = user?.identities?.find(identity => identity.provider === provider)
         const label = provider === 'google' ? 'Google' : 'Apple'
-        return <div key={provider} style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr) 124px', alignItems: 'center', gap: 10, minHeight: 76, padding: '12px 0', borderTop: '1px solid var(--color-border-soft)' }}>
+        return <div key={provider} style={{ display: 'grid', gridTemplateColumns: `28px minmax(0, 1fr) ${identity && cramped[provider] ? 44 : 124}px`, alignItems: 'center', gap: 10, minHeight: 76, padding: '12px 0', borderTop: '1px solid var(--color-border-soft)' }}>
           <span style={{ display: 'grid', placeItems: 'center' }}>{provider === 'google' ? <GoogleMark /> : <AppleMark />}</span>
           <div style={{ minWidth: 0, color: 'var(--color-text)', fontSize: 14 }}>
             <strong>{label}</strong>
-            {identity && <div title={identity.identity_data?.email} style={{ marginTop: 3, color: 'var(--color-muted)', fontSize: 12, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{identity.identity_data?.email || t('Подключено')}</div>}
+            {identity && <LinkedEmail email={identity.identity_data?.email || t('Подключено')} onCramped={cramped => setCramped(c => ({ ...c, [provider]: cramped }))} />}
           </div>
-          {identity ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, width: '100%', boxSizing: 'border-box', borderRadius: 14, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 650, whiteSpace: 'nowrap' }}><Check size={14} strokeWidth={2.2} />{t('Подключено')}</span>
+          {identity ? <span aria-label={t('Подключено')} title={t('Подключено')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, width: cramped[provider] ? 44 : '100%', justifySelf: 'end', boxSizing: 'border-box', borderRadius: 14, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 650, whiteSpace: 'nowrap' }}><Check size={cramped[provider] ? 18 : 14} strokeWidth={2.2} />{!cramped[provider] && t('Подключено')}</span>
             : <button type="button" onClick={() => void connect(provider)} disabled={!ready || !user || busy !== null || !available?.[provider]}
               aria-label={`${t('Подключить')} ${label}`}
               style={{ minHeight: 44, width: '100%', boxSizing: 'border-box', padding: '0 10px', borderRadius: 14, border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650, whiteSpace: 'nowrap', opacity: !ready || !user || busy !== null || !available?.[provider] ? .55 : 1, cursor: 'pointer' }}>
@@ -142,4 +144,28 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
       <a href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-muted)', fontSize: 12 }}>Политика конфиденциальности</a>
     </section>
   )
+}
+
+/** Почта подключённого способа входа. Сообщает, не помещается ли она рядом с полной таблеткой «Подключено». */
+function LinkedEmail({ email, onCramped }: { email: string; onCramped: (cramped: boolean) => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const report = useRef(onCramped)
+  report.current = onCramped
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    // меряем по ширине, которую почта получила бы рядом с полной таблеткой (124 px):
+    // иначе после сжатия таблетки почта влезет и таблетка снова станет полной
+    const check = () => {
+      const row = el.parentElement?.parentElement
+      if (!row) return
+      const room = row.clientWidth - 28 - 124 - 20
+      report.current(el.scrollWidth > room)
+    }
+    check()
+    const observer = new ResizeObserver(check)
+    if (el.parentElement?.parentElement) observer.observe(el.parentElement.parentElement)
+    return () => observer.disconnect()
+  }, [email])
+  return <div ref={ref} title={email} style={{ marginTop: 3, color: 'var(--color-muted)', fontSize: 12, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{email}</div>
 }
