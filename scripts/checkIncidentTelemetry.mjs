@@ -24,6 +24,10 @@ assert.ok(events.some(e=>e.event==='ui_loading_stalled'))
 const count=events.length
 for(let i=0;i<10;i++){clock+=1000;tick()}
 assert.equal(events.length,count,'loading alerts are throttled')
+doc.querySelectorAll=()=>[{tagName:'DIV',className:'course-track-loading',getAttribute:k=>k==='aria-label'?'Загрузка…':null,getBoundingClientRect:()=>({width:100,height:20})}]
+for(let i=0;i<61;i++){clock+=1000;tick()}
+assert.equal(events.at(-1).event,'ui_loading_stalled')
+assert.equal(events.at(-1).loader,'div · Загрузка… · course-track-loading','stalled loader is named')
 for(let i=0;i<40;i++)m.rememberDiagnosticEvent('page_view','#/teacher',{password:'SECRET',text:'PRIVATE'})
 const context=m.incidentContext()
 assert.equal(context.breadcrumbs.length,30)

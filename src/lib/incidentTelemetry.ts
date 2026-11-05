@@ -58,10 +58,12 @@ export function installRuntimeDiagnostics(report: (event: string, meta: Record<s
     if (loadingSince && now - loadingSince >= 15000 && now - lastLoadingReport > 60000) {
       // Name the loader: without it the report says «something spins» and the
       // stalled widget cannot be found.
-      const first = loaders[0]
-      const loader = first ? [first.tagName.toLowerCase(), first.getAttribute('aria-label'),
-        (typeof first.className === 'string' ? first.className : first.getAttribute('class') ?? '').slice(0, 60)]
-        .filter(Boolean).join(' · ') : undefined
+      // Optional chaining: a diagnostic must never throw out of the interval,
+      // whatever the matched node turns out to be.
+      const first = loaders[0] as Partial<Element> | undefined
+      const cls = typeof first?.className === 'string' ? first.className : first?.getAttribute?.('class') ?? ''
+      const loader = [first?.tagName?.toLowerCase(), first?.getAttribute?.('aria-label'), cls.slice(0, 60)]
+        .filter(Boolean).join(' · ') || undefined
       report('ui_loading_stalled', { duration_ms: Math.round(now - loadingSince), loaders: loaders.length, loader })
       lastLoadingReport = now
     }
