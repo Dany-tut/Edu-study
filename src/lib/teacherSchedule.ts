@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { useGroups, useAllStudents } from './useGroups'
+import { LOAD_FIXTURE, fixtureWeek } from './loadFixture'
 
 /*
  * Расписание учителя на неделю + перенос занятий (экран «Расписание»).
@@ -91,6 +92,7 @@ export function useTeacherWeek(start: string) {
   useEffect(() => {
     let alive = true
     setError(false)
+    if (LOAD_FIXTURE) { setItems(fixtureWeek(LOAD_FIXTURE, start)); return }
     // DEV без входа: групп нет (getOwnerId = null) — показываем пример недели,
     // как журнал и проверка (teacherDevDemo). Действия тогда упадут на сервере.
     if (import.meta.env.DEV && groups.length === 0) {

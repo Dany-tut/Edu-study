@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { withLoadFixture, fixtureGroups, fixtureStudents, fixtureJournal } from './loadFixture'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { NetworkReadError, createSharedQuery, readSharedQuery, useSharedQuery } from './sharedQuery'
@@ -100,7 +101,7 @@ export async function bindGroupToCourse(groupId: string, courseId: string): Prom
 
 // Группы владельца. Общий запрос: хук зовут 20 компонентов кабинета, и раньше
 // каждый слал свой (см. lib/sharedQuery.ts).
-const groupsQuery = createSharedQuery<Group[]>(async () => {
+const groupsQuery = createSharedQuery<Group[]>(withLoadFixture(fixtureGroups, async () => {
   const uid = await getOwnerId()
   if (!uid) return []
   const { data } = await supabase
@@ -123,7 +124,7 @@ const groupsQuery = createSharedQuery<Group[]>(async () => {
     isIndividual: g.is_individual,
     tracks: Array.isArray(g.tracks) ? g.tracks : [],
   }))
-}, [])
+}), [])
 
 export async function readTeacherRoster() {
   const [groups, students] = await Promise.all([readSharedQuery(groupsQuery), readSharedQuery(allStudentsQuery)])
@@ -934,7 +935,7 @@ export function bumpJournalPending() {
 }
 
 // Header, its measurement layer and home cards share one pending-journal read.
-const pendingJournalsQuery = createSharedQuery<PendingJournal[]>(async () => {
+const pendingJournalsQuery = createSharedQuery<PendingJournal[]>(withLoadFixture(fixtureJournal, async () => {
   const now = Date.now()
   const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, local
   const fromStr = new Date(now - 30 * 86_400_000).toLocaleDateString('en-CA')
@@ -967,7 +968,7 @@ const pendingJournalsQuery = createSharedQuery<PendingJournal[]>(async () => {
   ])
   if (await getOwnerId() !== uid) throw new Error('Сессия изменилась')
   return pendingJournalRows(data, myStudents, legacy, sessions, now)
-}, [], { watch: reload => {
+}), [], { watch: reload => {
   journalSubs.add(reload)
   return () => { journalSubs.delete(reload) }
 } })
@@ -1025,7 +1026,7 @@ export function groupStudentsByPerson(students: PersonRow[]): PersonCards[] {
 }
 
 // Все ученики владельца. Тоже общий запрос: хук зовут 17 компонентов.
-const allStudentsQuery = createSharedQuery<Student[]>(async () => {
+const allStudentsQuery = createSharedQuery<Student[]>(withLoadFixture(fixtureStudents, async () => {
   const uid = await getOwnerId()
   if (!uid) return []
   if (!navigator.onLine) throw new NetworkReadError('Список учеников недоступен без сети')
@@ -1067,7 +1068,7 @@ const allStudentsQuery = createSharedQuery<Student[]>(async () => {
     inviteToken: s.invite_token ?? null,
     email: s.email ?? '',
   }))
-}, [])
+}), [])
 
 export function useAllStudentsSnapshot() {
   return useSharedQuery(allStudentsQuery)

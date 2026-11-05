@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { confirmDialog } from '../components/ConfirmHost'
 import { t } from '../lib/i18n'
 import { supabase } from '../lib/supabase'
+import { LOAD_FIXTURE, fixtureTasks } from '../lib/loadFixture'
 
 export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'cards-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances'
 
@@ -349,6 +350,7 @@ export const useTeacher = create<TeacherStore>(set => ({
   tasks: [],
   tasksLoaded: false,
   loadTasks: async () => {
+    if (LOAD_FIXTURE) { set({ tasks: fixtureTasks(LOAD_FIXTURE), tasksLoaded: true }); return }
     const { data } = await supabase
       .from('teacher_tasks')
       .select('*')
