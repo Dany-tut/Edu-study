@@ -34,7 +34,7 @@ export default function WidgetTodayReminders() {
   return <section className="teacher-reminders-panel" {...widgetNavigationProps(action)} aria-label={t('Напоминания')}>
     <header className="widget-panel-header"><Bell size={17}/><h3>{t('Напоминания')}</h3>{action&&<button type="button" onClick={action} aria-label={t('Открыть')}><ArrowUpRight size={17}/></button>}</header>
     {active&&<div className="reminder-category-tabs" ref={nav} role="tablist" aria-label={t('Напоминания')}>
-      {groups.map(c=><button key={c.type} type="button" role="tab" aria-selected={active.type===c.type} aria-controls={queueId} onClick={()=>{setSelected(c.type);body.current?.scrollTo({top:0})}}><span>{t(c.label)}</span><b data-hot={c.items.some(hot)||undefined}>{count(c.items)}</b></button>)}
+      {groups.map(c=><button key={c.type} type="button" role="tab" aria-selected={active.type===c.type} aria-controls={queueId} onClick={()=>{setSelected(c.type);body.current?.scrollTo({top:0})}}><span data-label={t(c.label)}>{t(c.label)}</span><b data-hot={c.items.some(hot)||undefined}>{count(c.items)}</b></button>)}
     </div>}
     <div ref={body} id={queueId} className="teacher-reminder-queue" role="tabpanel" aria-label={active?t(active.label):t('Напоминания')}>
       {!active?<div className="widget-panel-empty" role="status">{loading?t('Загрузка…'):t('Нет напоминаний')}</div>:<>
