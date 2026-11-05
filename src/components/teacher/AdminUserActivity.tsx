@@ -302,11 +302,7 @@ function TeachersTable({ rows, onDeleted }: { rows: TeacherUsageRow[]; onDeleted
               <button
                 onClick={() => setToDelete(r)}
                 title={t('Стереть данные или удалить аккаунт')}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  width: 32, height: 32, borderRadius: 10, cursor: 'pointer',
-                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: 'var(--color-red-text)',
-                }}
+                style={uiBtn('S', 'secondary', { width: 32, padding: 0, flexShrink: 0, color: 'var(--color-red-text)' })}
               >
                 <Trash2 size={14} strokeWidth={2} />
               </button>
