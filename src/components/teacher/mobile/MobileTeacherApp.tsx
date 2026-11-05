@@ -7,6 +7,7 @@ import MobileTeacherProfile from './MobileTeacherProfile'
 import { useTeacherAccess, type TeacherTabId } from '../../../lib/teacherAccess'
 import { useDeskStore } from '../../../store/deskStore'
 import { useTeacher } from '../../../store/teacherStore'
+import NotificationSheet from '../../NotificationSheet'
 import './mobileTeacher.css'
 
 // Each mobile tab maps to a desktop nav tab for access checks (profile is always
@@ -36,6 +37,7 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
     else if (teacherPage === 'profile-settings') setTab('profile')
     else if (teacherPage === 'groups') setTab('students')
   }, [teacherPage, pendingJournal])
+  const [notifOpen, setNotifOpen] = useState(false)
   const [dayDetailOpen, setDayDetailOpen] = useState(false)
   const [reviewDetailOpen, setReviewDetailOpen] = useState(false)
 
@@ -55,12 +57,13 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
 
   return (
     <div inert={libraryOpen} className="mobile-teacher-app lg:hidden">
-      {tab === 'home'      && <MobileTeacherDay onNavigate={next => setTab(next === 'review' ? 'gradebook' : next)} onDetailChange={setDayDetailOpen} />}
+      {tab === 'home'      && <MobileTeacherDay onNavigate={next => setTab(next === 'review' ? 'gradebook' : next)} onDetailChange={setDayDetailOpen} onOpenNotifications={() => setNotifOpen(true)} />}
       {tab === 'students'  && <MobileTeacherStudents />}
 
       {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
-      {tab === 'profile'   && <MobileTeacherProfile onOpenWidgets={widgetsReady && !isHidden('home') ? () => useDeskStore.getState().setShowWidgetLibrary(true) : undefined} onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} />}
+      {tab === 'profile'   && <MobileTeacherProfile onOpenWidgets={widgetsReady && !isHidden('home') ? () => useDeskStore.getState().setShowWidgetLibrary(true) : undefined} onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} onOpenNotifications={() => setNotifOpen(true)} />}
 
+      <NotificationSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
       {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}
     </div>
   )
