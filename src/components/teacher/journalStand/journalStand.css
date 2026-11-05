@@ -97,7 +97,9 @@
 .js-toolbar .js-search input { outline: 0; font-size: 13px; }
 .js-toolbar .js-search:focus-within, .js-toolbar .js-scope label:focus-within { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .js-toolbar .js-scope select:focus-visible { outline: 0; }
-.js-filter-area { position: relative; min-width: 0; margin-inline-start: auto; }
+/* Курс и «Требуют внимания» стоят сразу за вкладками, как в «Группах»;
+   к правому краю прижат только поиск. */
+.js-filter-area { position: relative; min-width: 0; }
 /* «По ученикам / По домашкам» в строке инструментов: без своей полосы и рамки. */
 .js-toolbar .js-work-views { flex: none; padding: 0; border-bottom: 0; white-space: nowrap; }
 /* Узко (телефон): всё в одну строку не влезает — переключатель уходит
@@ -109,6 +111,12 @@
 .js-filter-items { display: flex; align-items: center; gap: 8px; }
 .js-filter-items .js-scope { flex-wrap: nowrap; }
 .js-filter-items .js-attention, .js-filter-trigger { min-height: 40px; padding: 5px 12px; white-space: nowrap; font-size: 12px; }
+/* «Требуют внимания» — таблетка-переключатель той же высоты и шрифта, что
+   вкладки; счётчик учеников внутри, правый отступ = зазору над и под ним. */
+.js-filter-items .js-attention { height: 40px; padding: 0 14px; gap: 7px; font-size: 13px; font-weight: 600; color: var(--color-text-2); }
+.js-filter-items .js-attention:hover { background: var(--color-bg-3); }
+.js-filter-items .js-attention[aria-pressed='true'] { border-color: transparent; color: var(--color-accent); background: var(--color-purple-soft); }
+.js-filter-items .js-attention:has(.js-attention-count) { padding-inline-end: 11px; }
 .js-filter-area .js-filter-trigger { display: none; }
 .js-filter-trigger[data-filtered] { color: var(--color-accent); background: var(--color-purple-soft); }
 @container (max-width: 1100px) {
