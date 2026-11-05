@@ -145,6 +145,7 @@ import { LoopArtworkClipboardCheck } from './loopArtwork'
 import { LoopArtworkClipboardCopy } from './loopArtwork'
 import { LoopArtworkClipboardList } from './loopArtwork'
 import { LoopArtworkClipboardPaste } from './loopArtwork'
+import { LoopArtworkTimedTest } from './loopArtwork'
 import { LoopArtworkColumns3 } from './loopArtwork'
 import { LoopArtworkCopy } from './loopArtwork'
 import { LoopArtworkDatabase } from './loopArtwork'
@@ -396,6 +397,7 @@ export const ClipboardCheck = /* @__PURE__ */ createLoopIcon('ClipboardCheck', L
 export const ClipboardCopy = /* @__PURE__ */ createLoopIcon('ClipboardCopy', LoopArtworkClipboardCopy)
 export const ClipboardList = /* @__PURE__ */ createLoopIcon('ClipboardList', LoopArtworkClipboardList)
 export const ClipboardPaste = /* @__PURE__ */ createLoopIcon('ClipboardPaste', LoopArtworkClipboardPaste)
+export const TimedTest = /* @__PURE__ */ createLoopIcon('TimedTest', LoopArtworkTimedTest)
 export const Columns3 = /* @__PURE__ */ createLoopIcon('Columns3', LoopArtworkColumns3)
 export const Copy = /* @__PURE__ */ createLoopIcon('Copy', LoopArtworkCopy)
 export const Database = /* @__PURE__ */ createLoopIcon('Database', LoopArtworkDatabase)

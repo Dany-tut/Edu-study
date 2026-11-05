@@ -19,7 +19,7 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
+  TimedTest, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
   ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock,
 } from '../../components/icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
@@ -4506,7 +4506,7 @@ function CenterTestView({
       <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>
-            <ClipboardCheck size={12} /> {t('Финальный тест')}
+            <TimedTest size={12} /> {t('Финальный тест')}
           </div>
         </div>
         <Label>{t('Название теста')}</Label>
@@ -4520,7 +4520,7 @@ function CenterTestView({
       <OverlayScrollArea style={{ flex: 1 }} padding="20px 24px">
         {tasks.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
-            <ClipboardCheck size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
+            <TimedTest size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
             <span style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 240 }}>{t('Выберите тип вопроса слева — составьте сами или возьмите из тренажёра')}</span>
           </div>
         ) : (
@@ -5005,7 +5005,7 @@ function LessonRow({
           ? (selected ? '#fff' : 'var(--color-green-text)')
           : (selected ? '#fff' : 'var(--color-muted)'),
       }}>
-        {lesson.kind === 'test' ? <ClipboardCheck size={14} /> : (displayIndex ?? lesson.number)}
+        {lesson.kind === 'test' ? <TimedTest size={14} /> : (displayIndex ?? lesson.number)}
       </div>
       <span className={selected && !multiMode ? 'lesson-row-title has-delete' : 'lesson-row-title'} style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
@@ -5630,7 +5630,7 @@ function RightPanelLessons({
                 cursor: 'pointer', fontSize: 13, fontWeight: 700, color: 'var(--color-green-text)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit',
               }}>
-                <ClipboardCheck size={16} /> {t('Тест')}
+                <TimedTest size={16} /> {t('Тест')}
               </button>
             </div>
           </>
