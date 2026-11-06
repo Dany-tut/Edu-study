@@ -448,7 +448,7 @@ function LeftCourseMeta({
             ].map(l => {
               const active = course.level === l
               return (
-                <button
+                <button data-hover="layer"
                   key={l}
                   onClick={() => setCourse(c => ({ ...c, level: l }))}
                   style={{
@@ -567,7 +567,7 @@ const ASSIGN_PREVIEW = 5
 function RemoveDot({ onClick, label }: { onClick: () => void; label: string }) {
   const [hover, setHover] = useState(false)
   return (
-    <button
+    <button data-hover="own"
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -675,7 +675,7 @@ function AssignPicker({
               background: on ? 'var(--color-green-soft)' : 'transparent',
               transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}>
-              <button onClick={() => onToggle(item)} style={{
+              <button data-hover="layer" onClick={() => onToggle(item)} style={{
                 display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                 padding: on ? '10px 42px 10px 14px' : '10px 14px', border: 'none', background: 'transparent',
                 cursor: 'pointer', fontFamily: 'inherit',
@@ -713,7 +713,7 @@ function AssignPicker({
                   {chips.map(c => {
                     const active = c.id === selected
                     return (
-                      <button key={c.id} onClick={() => onPickCard(item, c.id)} style={{
+                      <button data-hover="layer" key={c.id} onClick={() => onPickCard(item, c.id)} style={{
                         padding: '4px 10px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
                         fontSize: 11, fontWeight: 700,
                         border: '1px solid transparent',
@@ -731,7 +731,7 @@ function AssignPicker({
                       students упирается в квоту тарифа, и молча тратить её
                       нельзя. */}
                   {needsPick && !hasWantCard && wantSubject && onCreateCard && (
-                    <button onClick={() => onCreateCard(item)} disabled={creatingId === item.id} style={{
+                    <button data-hover="layer" onClick={() => onCreateCard(item)} disabled={creatingId === item.id} style={{
                       padding: '4px 10px', borderRadius: 999, cursor: creatingId === item.id ? 'default' : 'pointer',
                       fontFamily: 'inherit', fontSize: 11, fontWeight: 700,
                       border: '1px dashed var(--color-green-text)', background: 'transparent',
@@ -762,12 +762,12 @@ function AssignPicker({
       </div>
 
       {!query && !expanded && hiddenCount > 0 && (
-        <button onClick={() => setExpanded(true)} style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}>
+        <button data-hover="layer" onClick={() => setExpanded(true)} style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}>
           {t('Показать всех')} ({hiddenCount})
         </button>
       )}
       {!query && expanded && (
-        <button onClick={() => setExpanded(false)} style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}>
+        <button data-hover="layer" onClick={() => setExpanded(false)} style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}>
           {t('Свернуть')}
         </button>
       )}
@@ -945,7 +945,7 @@ function CenterCourseAccess({
     }
   }
   const resetBtn = (rowKey: string, studentIds: string[], name: string) => (
-    <button
+    <button data-hover="layer"
       onClick={() => resetCourseProgress(rowKey, studentIds, name)}
       disabled={resetting === rowKey}
       title={t('Сбросить прогресс по курсу — начать курс заново')}
@@ -1124,7 +1124,7 @@ function CenterCourseAccess({
           {/* Tabs */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
             {(['group', 'student'] as const).map(tab => (
-              <button key={tab} onClick={() => setAssignTab(tab)} style={{
+              <button data-hover="layer" key={tab} onClick={() => setAssignTab(tab)} style={{
                 padding: '6px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
                 fontSize: 12, fontWeight: 700,
                 background: assignTab === tab ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
@@ -1383,7 +1383,7 @@ function ScheduleCard({
           {isRec ? t('Дата записи') : t('Дата урока')}
         </span>
         {date && (
-          <button
+          <button data-hover="layer"
             onClick={clearAll}
             style={{ marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-4)', padding: 0 }}
           >
@@ -1666,11 +1666,11 @@ function TimecodeRail({
               style={{ ...inputSt, resize: 'none', lineHeight: 1.5, fontVariantNumeric: 'tabular-nums' }}
             />
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => setBulk(null)}
+              <button data-hover="layer" onClick={() => setBulk(null)}
                 style={btn('S', 'secondary')}>
                 {t('Отмена')}
               </button>
-              <button onClick={applyBulk}
+              <button data-hover="layer" onClick={applyBulk}
                 style={btn('S', 'primary', { flex: 1, background: 'var(--color-green-soft)', color: 'var(--color-green-text)' })}>
                 {t('Добавить')}
               </button>
@@ -1834,8 +1834,8 @@ function CenterRecording({
             <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
               {t('Удалить запись и главы?')}
             </span>
-            <button type="button" onClick={() => setRemoveArmed(false)} style={{ ...btn('M', 'secondary'), flexShrink: 0 }}>{t('Отмена')}</button>
-            <button type="button" autoFocus onClick={removeRecording}
+            <button data-hover="layer" type="button" onClick={() => setRemoveArmed(false)} style={{ ...btn('M', 'secondary'), flexShrink: 0 }}>{t('Отмена')}</button>
+            <button data-hover="layer" type="button" autoFocus onClick={removeRecording}
               style={{ ...btn('M', 'secondary'), flexShrink: 0, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
               <Trash2 size={14} /> {t('Удалить')}
             </button>
@@ -1852,11 +1852,11 @@ function CenterRecording({
             </span>
           )}
         </div>
-        <button onClick={() => setLinkMode(true)}
+        <button data-hover="layer" onClick={() => setLinkMode(true)}
           style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
           {t('Изменить')}
         </button>
-        <button type="button" onClick={() => setRemoveArmed(true)} title={t('Удалить запись')} aria-label={t('Удалить запись')}
+        <button data-hover="layer" type="button" onClick={() => setRemoveArmed(true)} title={t('Удалить запись')} aria-label={t('Удалить запись')}
           style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <LoopMarkX size={15} />
         </button>
@@ -1975,7 +1975,7 @@ function CenterRecording({
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button disabled={uploading} onClick={() => setLinkMode(true)}
+          <button data-hover="layer" disabled={uploading} onClick={() => setLinkMode(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Link2 size={14} /> {t('Вставить ссылку')}
           </button>
@@ -1984,7 +1984,7 @@ function CenterRecording({
             event.currentTarget.value = ''
             void addVideo(file)
           }} />
-          <button disabled={uploading || !!saveUnavailable} title={saveUnavailable} onClick={() => fileInput.current?.click()} style={btn('M', 'secondary')}>
+          <button data-hover="layer" disabled={uploading || !!saveUnavailable} title={saveUnavailable} onClick={() => fileInput.current?.click()} style={btn('M', 'secondary')}>
             <Upload size={14} /> {uploading ? 'Загружаем видео…' : t('Загрузить файл')}
           </button>
         </div>
@@ -2059,7 +2059,7 @@ function FigureBtn({ onClick, disabled, title, children }: {
   children: React.ReactNode
 }) {
   return (
-    <button onClick={onClick} disabled={disabled} title={title}
+    <button data-hover="layer" onClick={onClick} disabled={disabled} title={title}
       style={{
         width: 24, height: 24, borderRadius: 8, border: 'none',
         background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
@@ -2289,7 +2289,7 @@ function TheoryEditor({
             <div key={image.key} style={{ width: 96 }}>
               <img src={image.src} alt="" style={{ display: 'block', width: '100%', borderRadius: 8, background: '#fff', opacity: 0.55 }} />
               <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                <button onClick={() => restore(image.key)}
+                <button data-hover="layer" onClick={() => restore(image.key)}
                   style={{
                     flex: 1, padding: '4px 0', borderRadius: 8, border: 'none',
                     background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
@@ -2308,7 +2308,7 @@ function TheoryEditor({
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <button onClick={() => fileRef.current?.click()}
+        <button data-hover="layer" onClick={() => fileRef.current?.click()}
           style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10,
             border: '1.5px dashed var(--color-border-medium)', background: 'transparent',
@@ -2439,7 +2439,7 @@ function CenterLesson({
                   style={{ display: 'none' }}
                   onChange={e => { void applyFiles(slot, Array.from(e.target.files ?? [])); e.target.value = '' }}
                 />
-                <button
+                <button data-hover="layer"
                   onClick={() => !busy && inputRefs[slot].current?.click()}
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
@@ -2497,7 +2497,7 @@ function CenterLesson({
                           : <FileText size={11} style={{ flexShrink: 0, color: 'var(--color-muted)' }} />}
                         <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{f.name}</span>
                         {!isLinkFile(f) && <span style={{ flexShrink: 0, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>}
-                        <button
+                        <button data-hover="layer"
                           onClick={() => removeFile(slot, f)}
                           style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, display: 'flex', flexShrink: 0 }}
                         >
@@ -2511,13 +2511,13 @@ function CenterLesson({
                 {/* Одинаковый ряд действий у всех слотов: загрузить файл или дать ссылку. */}
                 {canAdd && (
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 7 }}>
-                    <button
+                    <button data-hover="layer"
                       onClick={() => inputRefs[slot].current?.click()}
                       style={chipSt(false)}
                     >
                       <Upload size={12} /> {t('Файл')}
                     </button>
-                    <button
+                    <button data-hover="layer"
                       onClick={() => { setLinkSlot(s => (s === slot ? null : slot)) }}
                       style={chipSt(linkSlot === slot)}
                     >
@@ -2527,7 +2527,7 @@ function CenterLesson({
                 )}
 
                 {has && !multiple && (
-                  <button
+                  <button data-hover="layer"
                     onClick={e => { e.stopPropagation(); removeFile(slot, files[0]) }}
                     style={{
                       position: 'absolute', top: 6, right: 6,
@@ -2561,7 +2561,7 @@ function CenterLesson({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
               <Label>{t('Описание урока')}</Label>
-              <button
+              <button data-hover="layer"
                 type="button"
                 onClick={() => { onUpdate({ ...lesson, description: '' }); setDescriptionVisible(false) }}
                 style={{ border: 0, background: 'transparent', color: 'var(--color-muted)', font: 'inherit', fontSize: 12, cursor: 'pointer' }}
@@ -2576,7 +2576,7 @@ function CenterLesson({
             />
           </div>
         ) : (
-          <button
+          <button data-hover="layer"
             type="button"
             onClick={() => setDescriptionVisible(true)}
             style={{
@@ -2630,7 +2630,7 @@ function CenterLesson({
               {FILE_CARDS.map(({ slot, Icon, label, multiple }) => {
                 const taken = slotFiles(lesson.files, slot).length > 0
                 return (
-                  <button key={slot}
+                  <button data-hover="layer" key={slot}
                     onClick={() => { void applyFiles(slot, [pastePicker]); setPastePicker(null) }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
@@ -2654,7 +2654,7 @@ function CenterLesson({
                   </button>
                 )
               })}
-              <button onClick={() => setPastePicker(null)}
+              <button data-hover="layer" onClick={() => setPastePicker(null)}
                 style={{ padding: '8px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', fontSize: 12, fontFamily: 'inherit', marginTop: 2 }}>
                 {t('Отмена')}
               </button>
@@ -2746,7 +2746,7 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
 
   return (
     <div ref={ref} style={{ position: 'relative', width: width ?? '100%' }}>
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
@@ -2782,13 +2782,13 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
             <ScrollFade maxHeight={224} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {allowEmpty && (
-                  <button onClick={() => { onChange(''); setOpen(false) }} style={pickerOptionStyle(value === '')}
+                  <button data-hover="own" onClick={() => { onChange(''); setOpen(false) }} style={pickerOptionStyle(value === '')}
                     onMouseEnter={e => { if (value !== '') (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-5)' }}
                     onMouseLeave={e => { if (value !== '') (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                   >—</button>
                 )}
                 {options.map(o => (
-                  <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }} style={pickerOptionStyle(o.value === value)}
+                  <button data-hover="own" key={o.value} onClick={() => { onChange(o.value); setOpen(false) }} style={pickerOptionStyle(o.value === value)}
                     onMouseEnter={e => { if (o.value !== value) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-5)' }}
                     onMouseLeave={e => { if (o.value !== value) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                   >
@@ -2863,7 +2863,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
@@ -2879,7 +2879,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
           {value || ph}
         </span>
         {value ? (
-          <button onClick={e => { e.stopPropagation(); onChange('') }}
+          <button data-hover="layer" onClick={e => { e.stopPropagation(); onChange('') }}
             style={{ width: 18, height: 18, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(52,168,83,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-green-text)', flexShrink: 0, padding: 0 }}>
             <X size={12} />
           </button>
@@ -2904,9 +2904,9 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <button style={navBtnSt} onClick={prevMonth}><ChevronLeft size={14} /></button>
+              <button data-hover="layer" style={navBtnSt} onClick={prevMonth}><ChevronLeft size={14} /></button>
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS_CAL[viewMonth])} {viewYear}</span>
-              <button style={navBtnSt} onClick={nextMonth}><ChevronRight size={14} /></button>
+              <button data-hover="layer" style={navBtnSt} onClick={nextMonth}><ChevronRight size={14} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
               {RU_DAYS_SHORT.map(d => (
@@ -2920,7 +2920,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
                 const isSelected = thisStr === value
                 const isToday = thisStr === todayStr
                 return (
-                  <button key={idx} onClick={() => pickDay(day)} style={{
+                  <button data-hover="own" key={idx} onClick={() => pickDay(day)} style={{
                     width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
                     cursor: 'pointer', fontSize: 12, fontWeight: isSelected || isToday ? 700 : 400,
                     background: isSelected ? 'var(--grad-purple)' : 'transparent',
@@ -2937,11 +2937,11 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
               })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
-              <button onClick={() => { onChange(''); setOpen(false) }}
+              <button data-hover="layer" onClick={() => { onChange(''); setOpen(false) }}
                 style={{ fontSize: 12, color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
                 {t('Очистить')}
               </button>
-              <button onClick={() => { onChange(todayStr); setOpen(false) }}
+              <button data-hover="layer" onClick={() => { onChange(todayStr); setOpen(false) }}
                 style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>
                 {t('Сегодня')}
               </button>
@@ -3005,7 +3005,7 @@ function ChamoPicker({ value, onChange, accent, accentBg }: {
             {ALL_CHAMO.filter(c => c.kind === g.kind).map(c => {
               const on = c.ch === value
               return (
-                <button
+                <button data-hover="layer"
                   key={c.ch}
                   onClick={() => onChange(on ? '' : c.ch)}
                   title={`${c.name} · ${c.sound}`}
@@ -3061,7 +3061,7 @@ function PairSideImage({ image, onPick }: { image?: string; onPick: (url: string
       {image ? (
         <>
           <img src={image} alt="" style={{ width: 34, height: 34, objectFit: 'cover', borderRadius: 7, border: '1px solid var(--color-border-medium)' }} />
-          <button
+          <button data-hover="layer"
             onClick={() => onPick(undefined)}
             title={t('Убрать картинку')}
             style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}
@@ -3070,7 +3070,7 @@ function PairSideImage({ image, onPick }: { image?: string; onPick: (url: string
           </button>
         </>
       ) : (
-        <button
+        <button data-hover="layer"
           onClick={() => ref.current?.click()}
           title={t('Картинка вместо текста')}
           style={{ width: 30, height: 30, borderRadius: 8, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-4)' }}
@@ -3099,7 +3099,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   return (
     <GlassCard style={{ overflow: 'hidden' }}>
       {/* Header */}
-      <div
+      <div data-hover="layer"
         onClick={() => setExpanded(e => !e)}
         style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px',
@@ -3123,7 +3123,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
         <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {task.question || <span style={{ fontStyle: 'italic' }}>{t('без текста')}</span>}
         </div>
-        <button
+        <button data-hover="layer"
           onClick={e => { e.stopPropagation(); onDelete() }}
           style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
         >
@@ -3166,16 +3166,16 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {IMG_SIZES.map(s => (
-                      <button key={s.value} onClick={() => onUpdate({ ...task, imageSize: s.value })}
+                      <button data-hover="layer" key={s.value} onClick={() => onUpdate({ ...task, imageSize: s.value })}
                         style={{ padding: '4px 10px', borderRadius: 7, border: `1.5px solid ${(task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.color : 'var(--color-border-medium)'}`, background: (task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.bg : 'var(--color-bg-2)', color: (task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.color : 'var(--color-text-3)', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
                         {s.label}
                       </button>
                     ))}
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginLeft: 2 }}>{task.imageSize ?? DEFAULT_IMAGE_SIZE}%</span>
-                    <button onClick={() => imgInputRef.current?.click()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
+                    <button data-hover="layer" onClick={() => imgInputRef.current?.click()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
                       <Camera size={12} /> {t('Заменить')}
                     </button>
-                    <button onClick={() => onUpdate({ ...task, image: undefined, imageSize: undefined })} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', color: 'var(--color-text-3)' }}>
+                    <button data-hover="layer" onClick={() => onUpdate({ ...task, image: undefined, imageSize: undefined })} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', color: 'var(--color-text-3)' }}>
                       <X size={12} />
                     </button>
                   </div>
@@ -3184,7 +3184,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   </div>
                 </div>
               ) : (
-                <button onClick={() => imgInputRef.current?.click()}
+                <button data-hover="layer" onClick={() => imgInputRef.current?.click()}
                   style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
                   <Camera size={14} /> {t('Добавить фото к условию')}
                 </button>
@@ -3200,7 +3200,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       const letter = 'АБВГДЕЖЗИ'[ci] ?? String(ci + 1)
                       return (
                       <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <button
+                        <button data-hover="layer"
                           type="button"
                           aria-label={`${t('Верный ответ')} ${letter}`}
                           aria-pressed={isCorrect}
@@ -3234,7 +3234,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           />
                         </div>
                         {choices.length > 2 && (
-                          <button
+                          <button data-hover="layer"
                             type="button"
                             aria-label={`${t('Удалить вариант')} ${letter}`}
                             onClick={() => {
@@ -3250,7 +3250,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       </div>
                       )
                     })}
-                    <button
+                    <button data-hover="layer"
                       onClick={() => onUpdate({ ...task, choices: [...choices, ''] })}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
@@ -3289,7 +3289,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           onPick={url => { const next = [...pairs]; next[pi] = { ...pair, rightImage: url }; onUpdate({ ...task, pairs: next }) }}
                         />
                         {pairs.length > 2 && (
-                          <button
+                          <button data-hover="layer"
                             onClick={() => onUpdate({ ...task, pairs: pairs.filter((_, i) => i !== pi) })}
                             style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                           >
@@ -3298,7 +3298,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         )}
                       </div>
                     ))}
-                    <button
+                    <button data-hover="layer"
                       onClick={() => onUpdate({ ...task, pairs: [...pairs, { left: '', right: '' }] })}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
@@ -3330,14 +3330,14 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
                           <AutoTextarea value={it} onChange={v => { const n = [...items]; n[i] = v; setItems(n) }} placeholder={`${t('Шаг')} ${i + 1}`} style={{ ...taskTextSt, flex: 1 }} />
-                          <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)} title={t('Выше')}><ArrowUp size={12} /></button>
-                          <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)} title={t('Ниже')}><ArrowDown size={12} /></button>
+                          <button data-hover="layer" onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)} title={t('Выше')}><ArrowUp size={12} /></button>
+                          <button data-hover="layer" onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)} title={t('Ниже')}><ArrowDown size={12} /></button>
                           {items.length > 2 && (
-                            <button onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={12} /></button>
+                            <button data-hover="layer" onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={12} /></button>
                           )}
                         </div>
                       ))}
-                      <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
+                      <button data-hover="layer" onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
                         <Plus size={12} /> {t('Добавить шаг')}
                       </button>
                     </div>
@@ -3452,7 +3452,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           placeholder={t('Что должно получиться целиком')}
                           style={{ ...taskTextSt, flex: 1 }}
                         />
-                        <button
+                        <button data-hover="layer"
                           onClick={() => onUpdate({ ...task, patternItems: (task.patternItems ?? []).filter((_, k) => k !== ii) })}
                           aria-label={t('Удалить строку')}
                           style={{
@@ -3465,7 +3465,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       </div>
                     )
                   })}
-                  <button
+                  <button data-hover="layer"
                     onClick={() => onUpdate({ ...task, patternItems: [...(task.patternItems ?? []), { cue: '', answer: '' }] })}
                     style={{
                       alignSelf: 'flex-start', padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
@@ -3689,7 +3689,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           style={{ ...taskTextSt, flex: 1 }}
                         />
                         {lines.length > 2 && (
-                          <button
+                          <button data-hover="layer"
                             onClick={() => setLines(lines.filter((_, k) => k !== li))}
                             style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, marginTop: 6 }}
                           >
@@ -3698,7 +3698,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         )}
                       </div>
                     ))}
-                    <button
+                    <button data-hover="layer"
                       onClick={() => setLines([...lines, { speaker: lines.length % 2 ? 'A' : 'B', text: '' }])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
@@ -3767,7 +3767,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                             </div>
                           </div>
                           {rows.length > 1 && (
-                            <button
+                            <button data-hover="layer"
                               onClick={() => setRows(rows.filter((_, k) => k !== ri))}
                               style={{ width: 24, height: 24, marginTop: 6, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
@@ -3777,7 +3777,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         </div>
                       )
                     })}
-                    <button
+                    <button data-hover="layer"
                       onClick={() => setRows([...rows, { text: '', answer: '' }])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
@@ -3825,7 +3825,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                             style={{ ...taskTextSt, flex: 1 }}
                           />
                           {items.length > 2 && (
-                            <button
+                            <button data-hover="layer"
                               onClick={() => setItems(items.filter((_, k) => k !== ci))}
                               style={{ width: 24, height: 24, marginTop: 6, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
@@ -3835,7 +3835,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         </div>
                       )
                     })}
-                    <button
+                    <button data-hover="layer"
                       onClick={() => setItems([...items, { answer: '', clue: '' }])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
@@ -4050,14 +4050,14 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHar
   // домашку открытой вкладки (ДЗ или Доп).
   const addButton = (
     <div style={{ flexShrink: 0, display: 'flex', gap: 6 }}>
-      <button onClick={addExtra} style={{
+      <button data-hover="layer" onClick={addExtra} style={{
         ...btnBase, color: 'var(--color-green-text)',
         background: 'transparent', border: '1px dashed var(--color-green-text)',
       }}>
         <Plus size={14} strokeWidth={2} />
         {t('Доп. ДЗ')}
       </button>
-      <button onClick={onToggleHard} aria-pressed={hardMode} style={{
+      <button data-hover="layer" onClick={onToggleHard} aria-pressed={hardMode} style={{
         ...btnBase, color: '#D97706',
         background: hardMode ? 'rgba(245,158,11,0.16)' : 'transparent',
         border: `1px ${hardMode ? 'solid' : 'dashed'} rgba(245,158,11,0.7)`,
@@ -4084,7 +4084,7 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHar
       {tabs.map(tt => {
         const on = active === tt.id
         return (
-          <div key={tt.id} role="button" tabIndex={0}
+          <div key={tt.id} role="button" tabIndex={0} data-hover="layer"
             onClick={() => setHwTab(tt.id)}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHwTab(tt.id) } }}
             style={{
@@ -4099,7 +4099,7 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHar
               <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: on ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: on ? '#fff' : 'var(--color-muted)' }}>{tt.n}</span>
             )}
             {on && tt.extra && (
-              <button
+              <button data-hover="layer"
                 onClick={e => { e.stopPropagation(); void removeExtra(tt.extra!, tt.label) }}
                 title={t('Удалить')} aria-label={`${t('Удалить')} ${tt.label}`}
                 style={{ display: 'flex', padding: 0, margin: '0 -2px 0 0', border: 'none', background: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.7 }}
@@ -4144,7 +4144,7 @@ function BankPicker({ onPick, hard, open: openProp, onToggle }: {
 
   return (
     <div>
-      <button onClick={() => setOpen(o => !o)} style={{
+      <button data-hover="layer" onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%',
         padding: '10px 12px', borderRadius: 13, border: `1.5px dashed ${border}`,
         background: accentBg, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: accent,
@@ -4169,7 +4169,7 @@ function BankPicker({ onPick, hard, open: openProp, onToggle }: {
               </div>
               <OverlayScrollArea style={{ maxHeight: 'min(240px, 26vh)' }} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {filtered.slice(0, 80).map(bt => (
-                  <button
+                  <button data-hover="layer"
                     key={bt.id}
                     onClick={() => onPick(bt)}
                     style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}
@@ -4206,7 +4206,7 @@ function TestlyButton({ onPick, addedIds, open: openProp, onToggle }: {
   const setOpen = onToggle ? () => onToggle() : setOpenSelf
   return (
     <div>
-      <button onClick={() => setOpen(o => !o)} style={{
+      <button data-hover="layer" onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%',
         padding: '10px 12px', borderRadius: 13, border: '1.5px dashed var(--color-border)',
         background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)',
@@ -4345,7 +4345,7 @@ function HomeworkLeftPanel({
       ) : (
       <PaletteSection title={t('СЛОЖНОЕ ЗАДАНИЕ')} count={hardCount} accent="#D97706">
         {hardTaskTypes.map(tt => (
-          <button key={tt.type + '_hard'} onClick={() => addTask(tt.type, true)} style={{
+          <button data-hover="own" key={tt.type + '_hard'} onClick={() => addTask(tt.type, true)} style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '10px 12px', borderRadius: 13,
             border: 'none', background: 'rgba(245,158,11,0.1)',
@@ -4661,7 +4661,7 @@ function StudentsLeftPanel({
       {/* student / group toggle */}
       <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 12, background: 'var(--color-bg-2)' }}>
         {(['student', 'group'] as const).map(tab => (
-          <button key={tab} onClick={() => setAddTab(tab)} style={{
+          <button data-hover="layer" key={tab} onClick={() => setAddTab(tab)} style={{
             flex: 1, padding: '6px 8px', borderRadius: 9, border: 'none', cursor: 'pointer',
             fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
             background: addTab === tab ? 'var(--color-green-soft)' : 'transparent',
@@ -4688,7 +4688,7 @@ function StudentsLeftPanel({
         {addTab === 'student' && studentChoices.map(s => {
           const on = extraStudentIds.includes(s.id)
           return (
-            <button key={s.id} onClick={() => toggleExtraStudent(s.id)} style={{
+            <button data-hover="layer" key={s.id} onClick={() => toggleExtraStudent(s.id)} style={{
               display: 'flex', alignItems: 'center', gap: 8, width: '100%',
               padding: '8px 10px', borderRadius: 11,
               border: on ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
@@ -4720,7 +4720,7 @@ function StudentsLeftPanel({
         {addTab === 'group' && groupChoices.map(g => {
           const on = extraGroupIds.includes(g.id)
           return (
-            <button key={g.id} onClick={() => toggleExtraGroup(g.id)} style={{
+            <button data-hover="layer" key={g.id} onClick={() => toggleExtraGroup(g.id)} style={{
               display: 'flex', alignItems: 'center', gap: 8, width: '100%',
               padding: '8px 10px', borderRadius: 11,
               border: on ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
@@ -4955,7 +4955,7 @@ function CenterLessonStudents({
                   <Users size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                   <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-green-text)' }}>{g.name}</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)', opacity: 0.7 }}>{t('группа')}</span>
-                  <button onClick={() => removeExtraGroup(g.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-green-text)', padding: 0, display: 'flex', flexShrink: 0 }}>
+                  <button data-hover="layer" onClick={() => removeExtraGroup(g.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-green-text)', padding: 0, display: 'flex', flexShrink: 0 }}>
                     <X size={14} />
                   </button>
                 </div>
@@ -4969,7 +4969,7 @@ function CenterLessonStudents({
                     {tn(s.name).slice(0, 1).toUpperCase()}
                   </div>
                   <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-green-text)' }}>{tn(s.name)}</span>
-                  <button onClick={() => removeExtraStudent(s.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-green-text)', padding: 0, display: 'flex', flexShrink: 0 }}>
+                  <button data-hover="layer" onClick={() => removeExtraStudent(s.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-green-text)', padding: 0, display: 'flex', flexShrink: 0 }}>
                     <X size={14} />
                   </button>
                 </div>
@@ -5002,7 +5002,7 @@ function LessonRow({
       className="lesson-row editor-delete-row"
       onClick={onClick}
       whileTap={{ scale: 0.98 }}
-      onMouseEnter={e => { if (!selected && !checked) e.currentTarget.style.background = 'var(--color-bg-2)' }}
+      onMouseEnter={e => { if (!selected && !checked) e.currentTarget.style.background = 'var(--color-bg-3)' }}
       onMouseLeave={e => { if (!selected && !checked) e.currentTarget.style.background = 'transparent' }}
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: 8,
@@ -5311,7 +5311,7 @@ function RightPanelLessons({
                 {t('Выбрано:')} {selectedIds.size}
               </span>
               <div style={{ position: 'relative' }}>
-                <button
+                <button data-hover="layer"
                   onClick={() => setMoveMenuOpen(o => !o)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 8,
@@ -5337,7 +5337,7 @@ function RightPanelLessons({
                       {course.modules.length === 0 ? (
                         <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '8px 10px' }}>{t('Нет модулей')}</div>
                       ) : course.modules.map(m => (
-                        <button
+                        <button data-hover="own"
                           key={m.id}
                           onClick={() => bulkMoveToModule(m.id)}
                           style={{
@@ -5345,7 +5345,7 @@ function RightPanelLessons({
                             border: 'none', background: 'transparent', cursor: 'pointer',
                             fontSize: 12, fontWeight: 600, color: 'var(--color-text)', fontFamily: 'inherit',
                           }}
-                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-2)')}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-3)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                           {isLooseModule(m) ? t('Без модуля') : tc(m.label)}
@@ -5356,7 +5356,7 @@ function RightPanelLessons({
                   )}
                 </AnimatePresence>
               </div>
-              <button
+              <button data-hover="layer"
                 onClick={bulkDelete}
                 title={t('Удалить выбранные')}
                 style={{
@@ -5367,7 +5367,7 @@ function RightPanelLessons({
               >
                 <Trash2 size={12} /> {t('Удалить')}
               </button>
-              <button
+              <button data-hover="layer"
                 onClick={clearSelection}
                 title={t('Снять выделение')}
                 style={{
@@ -5425,7 +5425,7 @@ function RightPanelLessons({
           const loose = isLooseModule(mod)
           return (
             <div key={mod.id} style={{ marginBottom: 6 }}>
-              {!loose && <button
+              {!loose && <button data-hover="layer"
                 onClick={e => {
                   // e.detail > 1 — это второй клик двойного, его глотаем:
                   // раскрытие/сворачивание должно реагировать только на одиночный.
@@ -5456,11 +5456,11 @@ function RightPanelLessons({
                 }}
               >
                 <span
-                  role="button"
+                  role="button" data-hover="layer"
                   aria-label={mod.expanded ? t('Свернуть') : t('Развернуть')}
                   onClick={e => { e.stopPropagation(); if (e.detail > 1) return; toggleModule(mod.id) }}
                   onDoubleClick={e => e.stopPropagation()}
-                  style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', padding: 1, margin: -1 }}
+                  style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', padding: 3, margin: -3, borderRadius: 6 }}
                 >
                   <ChevronDown
                     size={14}
@@ -5519,11 +5519,11 @@ function RightPanelLessons({
                 )}
                 {isActive && editingModuleId !== mod.id && (
                   <span
-                    role="button"
+                    role="button" data-hover="layer"
                     title={t('Убрать модуль — уроки останутся без модуля')}
                     onClick={e => { e.stopPropagation(); dissolveModule(mod.id) }}
                     onDoubleClick={e => e.stopPropagation()}
-                    style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', color: 'var(--color-green-text)', padding: 1, margin: -1 }}
+                    style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', color: 'var(--color-green-text)', padding: 3, margin: -3, borderRadius: 6 }}
                   >
                     <X size={12} />
                   </span>
@@ -5604,7 +5604,7 @@ function RightPanelLessons({
               onKeyDown={e => { if (e.key === 'Enter') addModule(); if (e.key === 'Escape') setAddingModule(false) }}
             />
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => setAddingModule(false)}
+              <button data-hover="layer" onClick={() => setAddingModule(false)}
                 style={{ ...btn('S', 'secondary'), flex: 1, height: RAIL_CONTROL_H, borderRadius: 12, fontSize: 13, fontWeight: 700 }}>
                 {t('Отмена')}
               </button>
@@ -7040,7 +7040,7 @@ export default function TeacherCourseEditorPage() {
           <BackCircle onClick={handleBack} label="Назад" />
           <AnimatePresence>
             {selectedLesson && (
-              <motion.button
+              <motion.button data-hover="layer"
                 key="back-to-course"
                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }}
                 transition={{ duration: 0.15 }}
@@ -7079,7 +7079,7 @@ export default function TeacherCourseEditorPage() {
             </div>
           )}
           {seedDiff.changes.length > 0 && (
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
+            <motion.button data-hover="layer" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
               title={`${t('Из сида')} · ${seedDiff.changes.length} — ${t('Показать, что изменилось в готовом курсе с момента добавления')}`}
               style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: seedCompact ? '0 12px' : '0 16px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: 'var(--shadow-2)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               <RefreshCw size={14} strokeWidth={2} />
@@ -7087,7 +7087,7 @@ export default function TeacherCourseEditorPage() {
             </motion.button>
           )}
           {course.dbCourseId && (
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={openHandout}
+            <motion.button data-hover="layer" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={openHandout}
               title={t('Скопировать курс для другой группы со своим стартом дат')}
               style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, height: 40, boxSizing: 'border-box', padding: '0 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
@@ -7186,7 +7186,7 @@ export default function TeacherCourseEditorPage() {
                 {handoutGroups.map(g => {
                   const on = handoutGroupId === g.id
                   return (
-                    <button key={g.id} onClick={() => setHandoutGroupId(g.id)}
+                    <button data-hover="layer" key={g.id} onClick={() => setHandoutGroupId(g.id)}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                         border: on ? '1px solid var(--color-green-text)' : '1px solid var(--color-border-soft)',
                         background: on ? 'var(--color-green-soft)' : 'var(--color-bg-3)' }}>
@@ -7219,7 +7219,7 @@ export default function TeacherCourseEditorPage() {
               style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit' }} />
 
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-              <button onClick={() => !handoutBusy && setHandoutOpen(false)}
+              <button data-hover="layer" onClick={() => !handoutBusy && setHandoutOpen(false)}
                 style={btn('M', 'secondary')}>
                 {t('Отмена')}
               </button>
@@ -7392,7 +7392,7 @@ export default function TeacherCourseEditorPage() {
                     {course.dbCourseId && (() => {
                       const isOpened = openLessonShortIds.has(lessonShortIdById[selectedLesson.id])
                       return (
-                        <motion.button
+                        <motion.button data-hover="layer"
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => openLessonForStudents(selectedLesson.id)}
@@ -7426,7 +7426,7 @@ export default function TeacherCourseEditorPage() {
                     {LESSON_MODES.map(m => {
                       const active = lessonMode === m.id
                       return (
-                        <button key={m.id} onClick={() => setLessonMode(m.id)} onMouseDown={e => e.preventDefault()} style={{
+                        <button data-hover="layer" key={m.id} onClick={() => setLessonMode(m.id)} onMouseDown={e => e.preventDefault()} style={{
                           position: 'relative', flex: 1, padding: '8px 10px', borderRadius: 9,
                           border: 'none', cursor: 'pointer', background: 'transparent',
                           color: active ? 'var(--color-green-text)' : 'var(--color-text)',

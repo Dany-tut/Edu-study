@@ -70,12 +70,12 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
       border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
       boxShadow: 'var(--shadow-2)', ...style,
     }}>
-      <button role="radio" aria-checked={!published}
+      <button role="radio" aria-checked={!published} data-hover={draftClickable || !published ? 'layer' : undefined}
         onClick={onDraftTap} aria-live="polite"
         style={seg(!published, 'var(--color-yellow-soft)', 'var(--color-yellow-text)', draftClickable)}>
         <Pencil size={14} strokeWidth={2} /> {draftNote ? label(t('Сохранён'), [t('Черновик')]) : label(t('Черновик'), published ? [] : [t('Сохранён')])}
       </button>
-      <button role="radio" aria-checked={published}
+      <button role="radio" aria-checked={published} data-hover={publishClickable ? 'layer' : undefined}
         onClick={publishClickable ? onPublish : undefined}
         style={seg(published, 'var(--color-purple-soft)', 'var(--color-purple-text)', publishClickable)}>
         {saving

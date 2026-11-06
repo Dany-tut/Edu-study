@@ -20,7 +20,7 @@ export default function BackCircle({ onClick, label = 'Назад', style }: {
   const t = useT()
   return (
     <button
-      type="button"
+      type="button" data-hover="layer"
       onClick={onClick}
       aria-label={t(label)}
       title={t(label)}
