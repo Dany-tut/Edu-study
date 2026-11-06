@@ -1,0 +1,32 @@
+{
+  "tag": "04fa9f94",
+  "checks": [
+    "Prepared real teacher a with empty contacts",
+    "Prepared real teacher b with empty contacts",
+    "B found A by A’s clipboard value",
+    "Exactly one outgoing and one matching incoming request",
+    "Accepted by A; reciprocal friendship persisted after reload in both browsers and both authenticated server snapshots"
+  ],
+  "cleanup": [
+    "Deleted and verified temporary qa_a_04fa9f94",
+    "Deleted and verified temporary qa_b_04fa9f94"
+  ],
+  "browserErrors": [],
+  "release": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "f71206e43f70f44dd2cc6f3d6874eaa0b23c488b",
+    "build": 2053,
+    "version": "1.0.2053"
+  },
+  "connectionId": "c3fc6217-4112-4d64-afd8-6bf857faf3c8",
+  "finalRelease": {
+    "repository": "Dany-tut/Edu-study",
+    "branch": "main",
+    "environment": "production",
+    "commit": "f71206e43f70f44dd2cc6f3d6874eaa0b23c488b",
+    "build": 2053,
+    "version": "1.0.2053"
+  }
+}
