@@ -3,7 +3,7 @@
 // parent_report). Данные отдаёт edge-функция parent-report, mode 'page'.
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { weekLabel, type ReportStats } from '../lib/parentReports'
+import { demoParentPage, weekLabel, type ReportStats } from '../lib/parentReports'
 import EmptyState from '../components/EmptyState'
 import { ChevronLeft, ChevronRight, FileText } from '../components/icons/appIcons'
 import '../components/teacher/parentReports/parentReports.css'
@@ -19,6 +19,8 @@ export default function ParentReportPage({ token }: { token: string }) {
   const [index, setIndex] = useState(0)
   useEffect(() => {
     let alive = true
+    const dev = token === 'demo' ? demoParentPage() : null
+    if (dev) { setPage(dev as Page); setState('ready'); return }
     void supabase.functions.invoke('parent-report', { body: { mode: 'page', token } }).then(({ data, error }) => {
       if (!alive) return
       if (data?.child) { setPage(data as Page); setState('ready'); return }

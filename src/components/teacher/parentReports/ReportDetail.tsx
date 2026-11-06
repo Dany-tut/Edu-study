@@ -12,7 +12,7 @@ import { copyToClipboard } from '../../../lib/clipboard'
 import { useT } from '../../../lib/i18n'
 import {
   createReportLink, decideReports, flagReason, inviteParent, removeParent, renewInvite, reportState,
-  revokeReportLinks, saveReportText, type ParentReport,
+  revokeReportLinks, saveReportText, weekLabel, type ParentReport,
 } from '../../../lib/parentReports'
 
 export function initials(name: string) {
@@ -26,7 +26,7 @@ export const STATE_LABEL = {
 /** Текст, как его увидит родитель в Telegram (без разметки). */
 export function previewText(r: ParentReport, teacher = 'Вы'): string {
   const s = r.stats
-  const lines = [`${s.child} · неделя`]
+  const lines = [`${s.child} · неделя ${weekLabel(r.weekStart)}`]
   lines.push(s.lessons_total ? `Уроки: ${s.lessons_attended} из ${s.lessons_total}` : 'Уроков на этой неделе не было')
   lines.push(s.hw_done || s.hw_returned ? `Домашние работы: сдано ${s.hw_done}${s.hw_returned ? `, на доработке ${s.hw_returned}` : ''}` : 'Домашние работы: не сдавались')
   if (s.avg_pct != null) lines.push(`Средний балл: ${s.avg_pct}%${s.prev_avg_pct != null ? ` (было ${s.prev_avg_pct}%)` : ''}`)
@@ -106,7 +106,7 @@ export default function ReportDetail({ report, mobile = false, onDecided }: {
       <div className="pr-stats">
         <div className="pr-stat"><b>{s.lessons_total ? `${s.lessons_attended}/${s.lessons_total}` : '—'}</b><span>{t('уроков')}</span></div>
         <div className="pr-stat"><b>{s.hw_done}</b><span>{t('работ сдано')}</span></div>
-        <div className="pr-stat"><b>{s.avg_pct != null ? `${s.avg_pct}%` : '—'}</b><span>{s.prev_avg_pct != null ? `${t('было')} ${s.prev_avg_pct}%` : t('средний балл')}</span></div>
+        <div className="pr-stat"><b>{s.avg_pct != null ? `${s.avg_pct}%` : '—'}</b><span>{s.avg_pct != null && s.prev_avg_pct != null ? `${t('было')} ${s.prev_avg_pct}%` : t('средний балл')}</span></div>
       </div>
 
       <div className="pr-label">{t('Получается')}</div>

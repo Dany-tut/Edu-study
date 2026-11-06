@@ -158,7 +158,7 @@ export default function ParentReportsView() {
           <div className="pr-grid">
             <div className="pr-card" style={{ padding: '4px 8px 8px' }}>
               <table className="pr-table">
-                <colgroup><col style={{ width: '26%' }} /><col style={{ width: 72 }} /><col style={{ width: 70 }} /><col style={{ width: 64 }} /><col /><col style={{ width: 150 }} /></colgroup>
+                <colgroup><col style={{ width: '24%' }} /><col style={{ width: 68 }} /><col style={{ width: 64 }} /><col style={{ width: 60 }} /><col /><col style={{ width: 128 }} /></colgroup>
                 <thead><tr><th>{t('Ученик')}</th><th>{t('Уроки')}</th><th>{t('Работы')}</th><th>{t('Балл')}</th><th>{t('Получается')}</th><th /></tr></thead>
                 <tbody>
                   {list.map(r => {
@@ -205,8 +205,8 @@ export function ParentReportsMobile() {
     return (
       <button data-hover="layer" type="button" className="pr-m-row" onClick={() => setOpen(r.id)}>
         <span className="pr-avatar" aria-hidden="true">{initials(r.studentName)}</span>
-        <div><b><FadeText>{r.studentName}</FadeText></b><FadeText className="pr-sub">{st === 'flagged' ? flagChip(r) : (r.strengths || t('фраза не написана'))}</FadeText></div>
-        <span className={`pr-chip ${st}`}>{t(STATE_LABEL[st])}</span>
+        <div><b><FadeText>{r.studentName}</FadeText></b><FadeText className="pr-sub">{st === 'flagged' ? flagChip(r) : st === 'failed' ? (r.sendError ?? t('не дошёл')) : (r.strengths || t('фраза не написана'))}</FadeText></div>
+        <span className={`pr-chip ${st}`}>{st === 'flagged' ? t('Решить') : t(STATE_LABEL[st])}</span>
       </button>
     )
   }

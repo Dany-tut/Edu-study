@@ -197,7 +197,7 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     iconBg: 'var(--color-purple-soft)',
     iconColor: 'var(--color-accent)',
     description: 'Сколько отчётов готово и какие требуют решения',
-    defaultW: 3, defaultH: 3,
+    defaultW: 3, defaultH: 4,
     minW: 2, minH: 2, minWidthPx: 280, minHeightPx: 240,
     feature: 'parent_report' as FeatureKey,
     component: WidgetParentReports,

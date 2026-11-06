@@ -319,3 +319,14 @@ function bump() {
 
 /** Детали отчёта из сводки виджета: открыть экран сразу на нужном ученике. */
 export const useReportFocus = create<{ id: string | null; set: (id: string | null) => void }>(set => ({ id: null, set: id => set({ id }) }))
+
+/** DEV: данные страницы родителя для /#/r/demo (без деплоя функции). */
+export function demoParentPage() {
+  if (!import.meta.env.DEV) return null
+  const weeks = [0, -1, -2, -3].map((w, i) => {
+    const r = demoWeek(mondayMsk(w)).find(x => x.studentName.startsWith('Маша'))!
+    return { week_start: mondayMsk(w), stats: { ...r.stats, avg_pct: [81, 74, 77, 70][i] }, strengths: r.strengths, focus: r.focus }
+  })
+  demo = null
+  return { child: 'Маша', subject: 'Химия', teacher: 'Анна Сергеевна', weeks }
+}

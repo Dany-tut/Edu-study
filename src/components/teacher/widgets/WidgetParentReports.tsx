@@ -59,8 +59,8 @@ export default function WidgetParentReports() {
             <FadeText style={{ fontSize: 11, color: s.flagged + s.failed ? 'var(--color-peach-text)' : 'var(--color-text-3)' }}>{t('решить')}</FadeText>
           </div>
           <div style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 14, background: 'var(--color-bg-3)' }}>
-            <b style={{ fontSize: 20, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)' }}>{s.approved + s.sent}</b>
-            <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{s.sent ? t('отправлено') : t('утверждено')}</FadeText>
+            <b style={{ fontSize: 20, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text)' }}>{s.approved || s.sent}</b>
+            <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{s.approved ? t('утверждено') : t('отправлено')}</FadeText>
           </div>
         </div>
 
