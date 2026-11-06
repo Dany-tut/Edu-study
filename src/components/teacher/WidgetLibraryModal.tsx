@@ -117,6 +117,7 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 16 }}
           transition={{ type: 'spring', stiffness: 440, damping: 30, mass: 0.7 }}
+          onUpdate={keepJsOpacity}
           onClick={e => e.stopPropagation()}
           onKeyDown={e => {
             if (e.key === 'Escape' && e.currentTarget.contains(e.target as Node)) onClose()
