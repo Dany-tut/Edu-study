@@ -516,8 +516,10 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
       <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0 }} />
 
-      {/* Avatar / profile pill */}
-      <motion.div data-hover="layer"
+      {/* Avatar / profile pill. data-hover="own": свой ховер — кольцо вокруг
+          круга (.topbar-avatar); слой поверх всей обёртки давал второй ховер —
+          серый скруглённый квадрат вокруг кольца. */}
+      <motion.div data-hover="own"
         ref={profileBtnRef}
         onClick={() => setProfileOpen(o => !o)}
         whileTap={{ scale: 0.97 }}
