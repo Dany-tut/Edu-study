@@ -942,6 +942,19 @@ const pendingJournalsQuery = createSharedQuery<PendingJournal[]>(withLoadFixture
 
   const uid = await getOwnerId()
   if (!uid) return []
+  // Правило живёт в базе (journal_pending, 20261106120000_journal_pending_notify.sql):
+  // по нему же крон кладёт учителю уведомление. Расчёт ниже — запасной путь,
+  // пока миграция не в базе.
+  const rpc = await supabase.rpc('journal_pending')
+  if (!rpc.error) {
+    if (await getOwnerId() !== uid) throw new Error('Сессия изменилась')
+    return ((rpc.data ?? []) as Array<{ schedule_id: string; date: string; time_start: string; lesson_title: string;
+      group_id: string | null; student_id: string | null; scope_name: string }>).map(r => ({
+      scheduleId: r.schedule_id, date: r.date, title: r.lesson_title, timeStart: r.time_start,
+      groupId: r.group_id, studentId: r.student_id, scopeName: r.scope_name,
+    }))
+  }
+  if (!['PGRST202', '42883'].includes(rpc.error.code)) throw rpc.error
   const { groups: myGroups, students: myStudents } = await readTeacherRoster()
   if (await getOwnerId() !== uid) throw new Error('Сессия изменилась')
   const groupIds = myGroups.map(g => g.id)

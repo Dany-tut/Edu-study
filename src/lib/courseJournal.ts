@@ -201,3 +201,22 @@ export function journalCsv(rows: (string | number | null)[][]): string {
     return `"${safe.replace(/"/g, '""')}"`
   }).join(';')).join('\r\n')
 }
+
+/**
+ * Ячейки посещаемости одного занятия — для перехода из уведомления «Журнал не
+ * заполнен»: та же колонка и те же ячейки, что открывает клик по названию урока,
+ * но без фильтров журнала (курс, модуль, поиск).
+ */
+export function scheduleAttendanceCells(data: CourseJournalData, scheduleId: string, today: string): JournalCell[] {
+  const event = data.events.find(e => e.id === scheduleId)
+  if (!event) return []
+  const index = buildJournalIndex(data)
+  for (const course of [...data.courses.map(c => c.id), OUTSIDE_COURSES]) {
+    const column = journalColumns(data, course).find(col => col.events.some(e => e.id === scheduleId))
+    if (!column) continue
+    return data.students.filter(s => eventReaches(event, s))
+      .map(s => journalCell(data, index, s, column, today))
+      .filter(cell => !!cell.event && !cell.cancelled)
+  }
+  return []
+}
