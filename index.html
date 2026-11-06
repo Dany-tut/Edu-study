@@ -102,6 +102,69 @@
          рендере и док не мигнул сначала не там. -->
     <div id="mobile-dock-layer"
          style="position:absolute; top:0; left:0; right:0; height:100dvh; z-index:50; pointer-events:none"></div>
+    <!-- СТАРЫЙ БРАУЗЕР. Ниже iOS 15 (и Chrome < 88, Firefox < 89) бандл либо
+         не разбирается вовсе (?. и ?? — Safari 13.4+), либо собирается в
+         неработающую вёрстку. Раньше такой телефон бесконечно показывал
+         пульсирующую заглушку. Теперь — понятный экран с тем, что делать.
+         Скрипт обычный и на ES5, чтобы выполниться даже на iOS 9–12.
+         Признак iOS 15+: aspect-ratio (Safari 15.0, Chrome 88, Firefox 89).
+         main.tsx видит window.__iskraUnsupported и не монтирует приложение. -->
+    <!-- Проба синтаксиса без eval (не зависит от будущей CSP): на браузере
+         без ?. и ?? этот скрипт не разберётся и флаг останется пустым. -->
+    <script>window.__iskraSyntax = ({}).a?.b ?? true</script>
+    <script>
+      (function () {
+        var syntax = window.__iskraSyntax === true
+        var css = false
+        try { css = !!(window.CSS && CSS.supports && CSS.supports('aspect-ratio: 1')) } catch (e) {}
+        if (syntax && css) return
+        window.__iskraUnsupported = true
+        var en = false
+        try { en = localStorage.getItem('lang') === 'en' } catch (e) {}
+        var ios = /iP(hone|ad|od)/.test(navigator.userAgent)
+        var t = en ? {
+          h: 'Your browser is too old for Iskra',
+          p: ios ? 'Iskra works on iOS 15 and newer. Update your iPhone: Settings → General → Software Update. It is free; iPhone 6s and newer can update.'
+                 : 'Iskra works in current Chrome, Safari, Edge and Firefox. Update your browser and open this page again.',
+          n: ios ? 'If the phone can no longer update (iPhone 6 and older), open Iskra on a computer or another phone.' : '',
+          b: 'Try again'
+        } : {
+          h: 'Браузер слишком старый для Искры',
+          p: ios ? 'Искра работает на iOS 15 и новее. Обновите айфон: Настройки → Основные → Обновление ПО. Это бесплатно, обновляются все айфоны начиная с 6s.'
+                 : 'Искра работает в свежих Chrome, Safari, Edge и Firefox. Обновите браузер и откройте страницу снова.',
+          n: ios ? 'Если телефон больше не обновляется (iPhone 6 и старше), откройте Искру на компьютере или другом телефоне.' : '',
+          b: 'Проверить ещё раз'
+        }
+        var root = document.getElementById('root')
+        if (!root) return
+        var box = document.createElement('div')
+        box.setAttribute('role', 'alert')
+        box.style.cssText = 'max-width:420px;margin:0 auto;padding:18vh 24px 24px;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:' +
+          (document.documentElement.getAttribute('data-theme') === 'dark' ? '#F2F2F5' : '#1C1C1F')
+        var h = document.createElement('h1')
+        h.style.cssText = 'font-size:22px;line-height:1.25;font-weight:600;margin:0 0 12px'
+        h.appendChild(document.createTextNode(t.h))
+        box.appendChild(h)
+        var p = document.createElement('p')
+        p.style.cssText = 'margin:0 0 10px'
+        p.appendChild(document.createTextNode(t.p))
+        box.appendChild(p)
+        if (t.n) {
+          var n = document.createElement('p')
+          n.style.cssText = 'margin:0 0 20px;opacity:.7;font-size:14px'
+          n.appendChild(document.createTextNode(t.n))
+          box.appendChild(n)
+        }
+        var b = document.createElement('button')
+        b.type = 'button'
+        b.style.cssText = 'font:inherit;font-weight:600;color:#fff;background:#786AD7;border:0;border-radius:12px;padding:12px 18px;min-height:44px;cursor:pointer'
+        b.appendChild(document.createTextNode(t.b))
+        b.onclick = function () { location.reload() }
+        box.appendChild(b)
+        root.innerHTML = ''
+        root.appendChild(box)
+      })()
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

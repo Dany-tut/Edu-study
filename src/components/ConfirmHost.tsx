@@ -100,12 +100,16 @@ export default function ConfirmHost() {
   useEffect(() => {
     if (!top) return
     okRef.current?.focus()
+    // Перехват на фазе capture и stopPropagation: иначе тот же Esc доходил до
+    // Modal под подтверждением и закрывал заодно и его.
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.preventDefault(); close(false) }
-      if (e.key === 'Enter') { e.preventDefault(); close(true) }
+      if (e.key !== 'Escape' && e.key !== 'Enter') return
+      e.preventDefault()
+      e.stopPropagation()
+      close(e.key === 'Enter')
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [top?.id])
 

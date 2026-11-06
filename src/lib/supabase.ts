@@ -37,6 +37,26 @@ async function requeueStolenLock<R>(name: string, acquireTimeout: number, fn: ()
   }
 }
 
+// Потолок для запросов к базе (/rest/v1). У самой базы statement_timeout 8 с,
+// так что ответ дольше минуты — это повисшая мобильная сеть, а не работа. Без
+// потолка сохранение крутилось бесконечно и не показывало ошибку. Ставим с
+// запасом на медленный 3G и большие курсы; Auth держит свой срок в
+// authTransport, функции и хранилище (загрузки, ИИ) не трогаем.
+const REST_DEADLINE_MS = 60_000
+function withRestDeadline(base: typeof fetch, backend: string): typeof fetch {
+  const origin = new URL(backend).origin
+  return (input, init) => {
+    const href = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+    let rest = false
+    try { const u = new URL(href); rest = u.origin === origin && u.pathname.startsWith('/rest/v1/') } catch { /* относительный адрес — не наш */ }
+    if (!rest) return base(input, init)
+    const deadline = new AbortController()
+    setTimeout(() => deadline.abort(new DOMException('Timed out', 'TimeoutError')), REST_DEADLINE_MS)
+    const own = init?.signal ?? (input instanceof Request ? input.signal : undefined)
+    return base(input, { ...init, signal: own ? AbortSignal.any([own, deadline.signal]) : deadline.signal })
+  }
+}
+
 // OAuth returns a one-time query code, leaving the application's hash router intact.
 export const supabase = createClient(url, key, {
   auth: {
@@ -48,7 +68,7 @@ export const supabase = createClient(url, key, {
     // «Проверяем доступ…» for the full wait. Steal after the SDK's 5s default:
     // a rare overlapping refresh is cheaper than a frozen cabinet.
     ...(typeof navigator !== 'undefined' && navigator.locks ? { lock: requeueStolenLock, lockAcquireTimeout: 5_000 } : {}),
-  }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(teacherViewFetch, url), url)) },
+  }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(withRestDeadline(teacherViewFetch, url), url), url)) },
 })
 
 // Адрес и ключ отдельно: на выгрузке страницы обычный клиент не годится —

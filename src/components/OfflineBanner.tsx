@@ -53,6 +53,12 @@ export default function OfflineBanner() {
     }
   }, [])
 
+  // Плашка занимает место у низа экрана: тосты (расписание) поднимаются над ней.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--offline-lift', offline ? '60px' : '0px')
+    return () => { document.documentElement.style.removeProperty('--offline-lift') }
+  }, [offline])
+
   useEffect(() => {
     if (!offline) return
     const id = window.setInterval(async () => {

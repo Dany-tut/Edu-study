@@ -119,8 +119,10 @@ function StatCard({ icon: Icon, label, value, sub, loading, onClick, bar }: { ic
 // Первая фраза описания — название задачи, остальное — что будет, если её
 // выключить. Печатать `about` целиком нельзя: заголовок повторялся бы строкой
 // ниже слово в слово.
-const head = (about: string) => about.split(/(?<=\.)\s+/)[0]?.replace(/\.$/, '') ?? ''
-const tail = (about: string) => about.split(/(?<=\.)\s+/).slice(1).join(' ')
+// Первое предложение и остаток. Без lookbehind: (?<=…) — SyntaxError на iOS < 16.4.
+const firstStop = (about: string) => about.search(/\.\s+/)
+const head = (about: string) => { const i = firstStop(about); return i < 0 ? about.replace(/\.$/, '') : about.slice(0, i) }
+const tail = (about: string) => { const i = firstStop(about); return i < 0 ? '' : about.slice(i + 1).replace(/^\s+/, '').replace(/\.\s+/g, '. ') }
 
 function AiSwitches() {
   const t = useT()

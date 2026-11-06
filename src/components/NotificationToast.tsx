@@ -158,6 +158,8 @@ export default function NotificationToastContainer() {
         // Outer: handles enter / exit only — no y movement to avoid flash
         <motion.div
           key="notif-widget"
+          role="status"
+          aria-live="polite"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}

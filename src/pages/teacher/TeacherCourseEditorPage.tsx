@@ -6629,7 +6629,13 @@ export default function TeacherCourseEditorPage() {
     const keepShortIds = lessonRows.map(r => r.short_id)
     let delQuery = supabase.from('lessons').delete().eq('course_id', courseDbId)
     if (keepShortIds.length > 0) delQuery = delQuery.not('short_id', 'in', `(${keepShortIds.join(',')})`)
-    await delQuery
+    // Ошибку удаления нельзя глотать: иначе «Сохранено», а удалённый урок
+    // остаётся у учеников.
+    const { error: deleteError } = await delQuery
+    if (deleteError) {
+      console.error('[syncAccessToSupabase] lessons delete failed', deleteError)
+      return await writeFailed()
+    }
 
     // Content saves carry no audience arrays. Apply only explicit UI actions,
     // under a database row lock, preserving concurrent assignments and modes.

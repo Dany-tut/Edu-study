@@ -1,7 +1,7 @@
 import { studentIdFromTeacherHash } from '../lib/teacherStudentRoute'
 import { useDeskStore } from './deskStore'
 import { create } from 'zustand'
-import { confirmDialog } from '../components/ConfirmHost'
+import { alertDialog, confirmDialog } from '../components/ConfirmHost'
 import { t } from '../lib/i18n'
 import { supabase } from '../lib/supabase'
 import { LOAD_FIXTURE, fixtureTasks } from '../lib/loadFixture'
@@ -351,10 +351,12 @@ export const useTeacher = create<TeacherStore>(set => ({
   tasksLoaded: false,
   loadTasks: async () => {
     if (LOAD_FIXTURE) { set({ tasks: fixtureTasks(LOAD_FIXTURE), tasksLoaded: true }); return }
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('teacher_tasks')
       .select('*')
       .order('created_at', { ascending: true })
+    // Сбой сети не равен «задач нет»: уже показанный список не затираем.
+    if (error) { console.warn('loadTasks failed', error.message); set({ tasksLoaded: true }); return }
     set({ tasks: (data ?? []).map(rowToTask), tasksLoaded: true })
   },
   addTask: async task => {
@@ -380,16 +382,31 @@ export const useTeacher = create<TeacherStore>(set => ({
       return { error: error instanceof Error ? error.message : String(error) }
     }
   },
+  // Оптимистично: экран меняется сразу. Если запись не прошла — возвращаем
+  // как было и говорим об этом, иначе после перезагрузки задача «оживала».
   toggleTask: id => {
     const next = !useTeacher.getState().tasks.find(t => t.id === id)?.done
     set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, done: next } : t) }))
+    const fail = (message: string) => {
+      console.warn('toggleTask persist failed', message)
+      set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, done: !next } : t) }))
+      void alertDialog({ title: t('Не удалось сохранить задачу'), message: t('Проверьте интернет и повторите попытку.') })
+    }
     supabase.from('teacher_tasks').update({ done: next }).eq('id', id)
-      .then(({ error }) => { if (error) console.warn('toggleTask persist failed', error.message) })
+      .then(({ error }) => { if (error) fail(error.message) }, (error: unknown) => fail(String(error)))
   },
   removeTask: id => {
+    const before = useTeacher.getState().tasks
+    const removed = before.find(t => t.id === id)
+    const index = before.findIndex(t => t.id === id)
     set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
+    const fail = (message: string) => {
+      console.warn('removeTask persist failed', message)
+      if (removed) set(s => s.tasks.some(t => t.id === id) ? s : { tasks: [...s.tasks.slice(0, index), removed, ...s.tasks.slice(index)] })
+      void alertDialog({ title: t('Не удалось сохранить задачу'), message: t('Проверьте интернет и повторите попытку.') })
+    }
     supabase.from('teacher_tasks').delete().eq('id', id)
-      .then(({ error }) => { if (error) console.warn('removeTask persist failed', error.message) })
+      .then(({ error }) => { if (error) fail(error.message) }, (error: unknown) => fail(String(error)))
   },
   studentTrainerStats: null,
   saveStudentTrainerStats: stats => set({ studentTrainerStats: { ...stats, savedAt: Date.now() } }),
