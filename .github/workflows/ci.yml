@@ -54,14 +54,14 @@ jobs:
     name: Типы, сторожа, сборка
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # 24, а не 20, как у сборки ленты. На двадцатом нет встроенного
       # WebSocket, а check:choicepos бандлит исходники приложения вместе с
       # клиентом Supabase — тот на старте создаёт RealtimeClient и падает
       # ещё до первой проверки. Локально этого не видно: там Node 24.
       # Правило простое — версия в CI совпадает с той, на которой пишут.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
@@ -207,7 +207,7 @@ jobs:
           ISKRA_BROWSER_CHANNEL=chromium node scripts/checkClaudeAccessRaces.mjs
           node scripts/checkOAuthConsentRaces.mjs
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: student-topbar-geometry
