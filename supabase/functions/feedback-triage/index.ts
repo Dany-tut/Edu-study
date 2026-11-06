@@ -153,7 +153,8 @@ async function sentryIssues() {
     if (!res.ok) return { configured: true, error: `HTTP ${res.status}` }
     return { configured: true, issues: pickSentryIssues(await res.json()) }
   } catch (e) {
-    return { configured: true, error: e instanceof Error ? e.message : String(e) }
+    console.error('feedback-triage: Sentry', e)
+    return { configured: true, error: 'запрос к Sentry не прошёл' }
   }
 }
 
@@ -233,6 +234,14 @@ Deno.serve(async (req) => {
   try {
     return json(mode === 'digest' ? await digest(admin, aiKey, days) : await classify(admin, aiKey))
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : String(e) }, 502)
+    // Подробности — в логах функции и в feedback_items.triage_error (видны
+    // админу по RLS). Клиенту — только суть: сырой текст исключения наружу не
+    // отдаём (CodeQL: information exposure through a stack trace).
+    console.error('feedback-triage', mode, e)
+    return json({
+      error: mode === 'digest'
+        ? 'Сводка не собралась: модель или база не ответили. Подробности — в логах функции feedback-triage.'
+        : 'Разбор не прошёл: модель не ответила. Обращения остались в очереди, причина записана у каждого.',
+    }, 502)
   }
 })
