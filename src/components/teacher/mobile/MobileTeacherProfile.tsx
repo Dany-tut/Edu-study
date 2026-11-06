@@ -33,6 +33,7 @@ import { Alert } from '../../Alert'
 import DesktopFriends from '../../DesktopFriends'
 import { useDesktopFriends } from '../../../lib/desktopFriends'
 import TeacherLoginMethods from '../TeacherLoginMethods'
+import TeacherFeatureSettings from '../TeacherFeatureSettings'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
@@ -195,6 +196,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         {onOpenJournal && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenJournal() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ClipboardCheck size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Журнал')}</span><ChevronRight size={18} /></button>}
 
         <div style={{ gridColumn: 'span 2' }}><TeacherLoginMethods /></div>
+        <div style={{ gridColumn: 'span 2' }}><TeacherFeatureSettings /></div>
 
         {/* Settings — span 2, grouped icon-list (C-style) */}
         <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>

@@ -31,6 +31,7 @@ import TeacherSubjectsField from '../../components/teacher/TeacherSubjectsField'
 import { Alert } from '../../components/Alert'
 import TeacherModules from '../../components/teacher/TeacherModules'
 import TeacherLoginMethods from '../../components/teacher/TeacherLoginMethods'
+import TeacherFeatureSettings from '../../components/teacher/TeacherFeatureSettings'
 import { copyToClipboard } from '../../lib/clipboard'
 import { PAGE_WIDTH } from '../../lib/pageWidth'
 
@@ -515,6 +516,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
           </div>
 
           </div>
+          <TeacherFeatureSettings />
           <div style={{ marginTop: 20 }}><TeacherLoginMethods /></div>
         {/* Цвета предметов — сохраняются сразу по выбору, отдельно от имени:
             менять цвет и жать «Сохранить» внизу формы — лишний шаг. */}

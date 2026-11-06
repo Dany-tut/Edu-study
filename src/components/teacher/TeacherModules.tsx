@@ -10,12 +10,15 @@ import { Alert } from '../Alert'
 import { TestlyTile } from '../TestlyMark'
 import ClaudeAccessCard from './ClaudeAccessCard'
 import { getViewAs } from '../../lib/teacherView'
+import { useFeature } from '../../lib/teacherFeatures'
 
 import { TranscriptionModuleCard, useTranscriptionOwner } from './LocalTranscription'
 
 export default function TeacherModules({ showHeading = true }: { showHeading?: boolean }) {
   const t = useT()
   const transcriptionOwner = useTranscriptionOwner()
+  const transcription = useFeature('transcription')
+  const mcp = useFeature('mcp')
   const { loaded, connected, email, tests, load } = useTestlyModule()
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
@@ -70,7 +73,7 @@ export default function TeacherModules({ showHeading = true }: { showHeading?: b
         {t('Подключённый модуль появляется в домашке, уроках курса и Конструкторе: через него можно добавлять задания.')}
       </div></>}
 
-      {transcriptionOwner && <TranscriptionModuleCard key={transcriptionOwner} owner={transcriptionOwner} />}
+      {transcription && transcriptionOwner && <TranscriptionModuleCard key={transcriptionOwner} owner={transcriptionOwner} />}
       <div style={{
         background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20,
         padding: 18, display: 'flex', flexDirection: 'column', gap: 14,
@@ -154,7 +157,7 @@ export default function TeacherModules({ showHeading = true }: { showHeading?: b
         {error && <Alert tone="danger" text={error} />}
       </div>
 
-      {!getViewAs() && <ClaudeAccessCard />}
+      {mcp && !getViewAs() && <ClaudeAccessCard />}
     </div>
   )
 }

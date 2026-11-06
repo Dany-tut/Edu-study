@@ -13,6 +13,7 @@ import AdminUserActivity, { USERS_VIEW_KEY } from '../../components/teacher/Admi
 import FeedbackRequestsManager from '../../components/teacher/FeedbackRequestsManager'
 import TranscriptTermsManager from '../../components/teacher/TranscriptTermsManager'
 import { AudioLines } from '../../components/icons/appIcons'
+import AdminFeatureAccess from '../../components/teacher/AdminFeatureAccess'
 import Checkbox from '../../components/Checkbox'
 import Switch from '../../components/Switch'
 import { fetchAppFlags, setAppFlag } from '../../lib/cardGroups'
@@ -553,9 +554,9 @@ export default function TeacherAdminPage() {
   const [groupCount, setGroupCount] = useState(0)
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests' | 'dictionary'>(() => {
+  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests' | 'dictionary' | 'features'>(() => {
     const saved = sessionStorage.getItem('admin_tab')
-    return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' || saved === 'dictionary' ? saved : 'overview'
+    return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' || saved === 'dictionary' || saved === 'features' ? saved : 'overview'
   })
   // Второй уровень «Обзора», как разделы в «Аналитике»: каждый блок — своя вкладка.
   const [section, setSection] = useState<OverviewSection>(() => {
@@ -684,7 +685,7 @@ export default function TeacherAdminPage() {
         {/* Tabs */}
         <Segmented
           variant="mode" value={tab} onChange={setTab} style={{ marginBottom: 24 }}
-          items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox], ['dictionary', t('Словарь'), AudioLines]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
+          items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox], ['dictionary', t('Словарь'), AudioLines], ['features', t('Функции'), ToggleRight]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
         />
 
         {tab === 'analytics' && <TeacherAnalytics />}
@@ -694,6 +695,8 @@ export default function TeacherAdminPage() {
         {tab === 'requests' && <FeedbackRequestsManager />}
 
         {tab === 'dictionary' && <TranscriptTermsManager />}
+
+        {tab === 'features' && <AdminFeatureAccess teachers={teachers} />}
 
         {tab === 'data' && (
           <>
