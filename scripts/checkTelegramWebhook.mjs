@@ -5,11 +5,11 @@ import vm from 'node:vm'
 import assert from 'node:assert/strict'
 const path=process.env.QA_WEBHOOK_SOURCE||'supabase/functions/tg-webhook/index.ts'
 const source=transformSync(readFileSync(path,'utf8').replace(/^import .*;\s*$/gm,''),{loader:'ts',format:'cjs'}).code
-async function invoke(secret,header,body,claim='Анна',parent=false){
+async function invoke(secret,header,body,claim='Анна',parent=false,stops={}){
  let handler,writes=0
  const rpcs=[],replies=[],logged=[]
  const db={from(table){return {upsert(row){writes++;logged.push(row.last_message_text);return {select(){return {single:async()=>({data:{id:'fixture-thread'},error:null})}}}},async insert(row){writes++;logged.push(row.text);return {error:null}}}},
-  async rpc(name,args){rpcs.push([name,args]);return {data:name==='tg_link_claim'?claim:1,error:null}}}
+  async rpc(name,args){rpcs.push([name,args]);return {data:name==='tg_link_claim'?claim:(name in stops?stops[name]:1),error:null}}}
  const fetch=async(url,init)=>{replies.push(JSON.parse(init.body).text);return new Response('{}')}
  vm.runInNewContext(source,{Request,Response,Date,JSON,fetch,Deno:{env:{get:n=>n==='TELEGRAM_WEBHOOK_SECRET'?secret:'fixture'},serve:fn=>handler=fn},createClient:()=>db,handleParentCommand:async()=>parent})
  const response=await handler(new Request('https://fixture.invalid',{method:'POST',headers:{'content-type':'application/json',...(header?{'x-telegram-bot-api-secret-token':header}:{})},body:JSON.stringify(body)}))
@@ -35,11 +35,21 @@ const group=await invoke('configured','configured',{message:{...msg.message,text
 assert.equal(group.rpcs.length,0)
 // Правка старого сообщения не привязывает.
 assert.equal((await invoke('configured','configured',{edited_message:{...msg.message,text:`/start ${code}`}})).rpcs.length,0)
-const stop=await invoke('configured','configured',{message:{...msg.message,text:'/stop'}})
-assert.deepEqual(JSON.parse(JSON.stringify(stop.rpcs)),[['tg_unlink_chat',{p_chat:1}]])
-assert.match(stop.replies[0],/отключены/)
+// /stop гасит обе подписки: родительские отчёты и напоминания ученику.
+const stopMsg={message:{...msg.message,text:'/stop'}}
+const both=await invoke('configured','configured',stopMsg)
+assert.deepEqual(JSON.parse(JSON.stringify(both.rpcs)).map(r=>r[0]).sort(),['parent_contact_stop_chat','tg_unlink_chat'])
+assert.match(both.replies[0],/отчёты и напоминания/)
+const onlyStudent=await invoke('configured','configured',stopMsg,'Анна',false,{parent_contact_stop_chat:0})
+assert.match(onlyStudent.replies[0],/Напоминания отключены/)
+assert.equal(onlyStudent.writes,2,'/stop ученика пишется в обращения, как раньше')
+const onlyParent=await invoke('configured','configured',stopMsg,'Анна',false,{tg_unlink_chat:0})
+assert.match(onlyParent.replies[0],/отчёты больше не придут/)
+assert.equal(onlyParent.writes,0,'/stop родителя в обращения не пишется')
+const nobody=await invoke('configured','configured',stopMsg,'Анна',false,{tg_unlink_chat:0,parent_contact_stop_chat:0})
+assert.equal(nobody.replies.length,0)
 // /start p_<код> и /stop родителя обрабатывает parentLink и не пишет их в обращения.
 const par=await invoke('configured','configured',msg,'Анна',true)
 assert.deepEqual(pick(par),{status:200,writes:0})
 assert.equal(par.rpcs.length,0,'команда родителя не трогает привязку ученика')
-console.log('Telegram webhook: 13 authorization/handler cases passed; parent commands handled first; missing configuration denies writes; /start code links privately without logging the code; /stop unlinks')
+console.log('Telegram webhook: 16 authorization/handler cases passed; parent /start handled by parentLink; /stop stops both subscriptions; missing configuration denies writes; /start code links privately without logging the code; /stop unlinks')

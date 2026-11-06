@@ -7,9 +7,9 @@
 // обращений (tg_threads).
 //
 // Напоминания ученикам (функция reminders) тоже привязывают чат через /start,
-// но кодом из 32 hex без префикса. tg-webhook зовёт этот обработчик первым:
-// /start p_<код> и /stop родителя гасятся здесь; если чат не родительский,
-// /stop идёт дальше и отвязывает ученика (tg_unlink_chat).
+// но кодом из 32 hex без префикса. /stop tg-webhook разбирает сам и гасит обе
+// подписки сразу (parent_contact_stop_chat + tg_unlink_chat), сюда он не доходит;
+// ветка /stop ниже остаётся для вызова без tg-webhook.
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { isStopCommand, parentStartCode, welcomeMessage } from "./parentReport.ts";
 

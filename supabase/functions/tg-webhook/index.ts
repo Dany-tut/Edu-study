@@ -22,8 +22,26 @@ Deno.serve(async (req: Request) => {
   if (!msg || !chat) return new Response("ok");
   let text: string = (msg.text ?? msg.caption ?? "[вложение]").toString().slice(0, 4000);
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  // Родитель: /start p_<код> и /stop (отчёт родителю). Не попадает в обращения.
-  if (await handleParentCommand(sb, msg, Deno.env.get("TELEGRAM_BOT_TOKEN"))) return new Response("ok");
+  // /stop гасит обе подписки чата: родительские отчёты и напоминания ученику.
+  if (update.message && STOP.test(text.trim())) {
+    const [{ data: p }, { data: s }] = await Promise.all([
+      sb.rpc("parent_contact_stop_chat", { p_chat: chat.id }),
+      sb.rpc("tg_unlink_chat", { p_chat: chat.id }),
+    ]);
+    const parent = Number(p) > 0, student = Number(s) > 0;
+    if (parent || student) {
+      await reply(chat.id, parent && student
+        ? "Готово: отчёты и напоминания больше не придут. Чтобы подключиться снова, попросите новую ссылку."
+        : parent
+          ? "Готово: отчёты больше не придут. Чтобы подключиться снова, попросите у преподавателя новую ссылку."
+          : "Напоминания отключены. Чтобы вернуть, попросите у учителя новую ссылку.");
+    }
+    // Команда родителя в обращения не пишется; ученика — пишется, как раньше.
+    if (parent && !student) return new Response("ok");
+  } else if (await handleParentCommand(sb, msg, Deno.env.get("TELEGRAM_BOT_TOKEN"))) {
+    // Родитель: /start p_<код>. Не попадает в обращения.
+    return new Response("ok");
+  }
   const start = update.message && chat.type === "private" ? START.exec(text.trim()) : null;
   if (start) {
     const { data: name } = await sb.rpc("tg_link_claim", { p_code: start[1].toLowerCase(), p_chat: chat.id, p_username: chat.username ?? null, p_first_name: chat.first_name ?? null });
@@ -31,9 +49,6 @@ Deno.serve(async (req: Request) => {
       ? `${name}, готово! Сюда будут приходить напоминания об уроках и домашке. Отключиться — /stop`
       : "Ссылка устарела или уже использована. Попросите учителя прислать новую.");
     text = name ? "/start · подключил напоминания" : "/start · ссылка не подошла";
-  } else if (update.message && STOP.test(text.trim())) {
-    const { data: n } = await sb.rpc("tg_unlink_chat", { p_chat: chat.id });
-    if (Number(n) > 0) await reply(chat.id, "Напоминания отключены. Чтобы вернуть, попросите у учителя новую ссылку.");
   }
   const now = new Date().toISOString();
   const { data: thread, error } = await sb.from("tg_threads").upsert({ chat_id: chat.id, username: chat.username ?? null, first_name: chat.first_name ?? null, last_name: chat.last_name ?? null, last_message_text: text.slice(0,200), last_message_at: now, last_in_at: now }, { onConflict: "chat_id" }).select("id").single();
