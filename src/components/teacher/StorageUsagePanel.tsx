@@ -109,7 +109,7 @@ export default function StorageUsagePanel() {
 
   return (
     <div style={cardStyle}>
-      <div
+      <div data-hover="layer"
         onClick={() => setOpen(o => !o)}
         style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}
       >
@@ -122,7 +122,7 @@ export default function StorageUsagePanel() {
         >
           <ChevronDown size={16} strokeWidth={2} />
         </motion.span>
-        <button
+        <button data-hover="layer"
           onClick={e => { e.stopPropagation(); load() }}
           title={t('Обновить')}
           style={{ marginLeft: 'auto', width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}

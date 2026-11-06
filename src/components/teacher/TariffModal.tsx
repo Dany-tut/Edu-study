@@ -101,7 +101,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
                         <Check size={14} strokeWidth={2.5} /> {t('Ваш тариф')}
                       </div>
                     ) : (
-                      <button
+                      <button data-hover="layer"
                         onClick={() => void requestPlan(p)}
                         disabled={requesting !== null}
                         style={{ height: 48,

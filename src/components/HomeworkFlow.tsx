@@ -241,7 +241,7 @@ function EmojiSlider({ value, onChange }: { value: number | null; onChange: (v: 
       {/* Quick-tap emoji row */}
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         {EMOJI_STEPS.map((s, i) => (
-          <button key={i} onClick={() => handleChange(i)} style={{
+          <button data-hover="layer" key={i} onClick={() => handleChange(i)} style={{
             fontSize: i === value ? 20 : 15,
             background: 'none', border: 'none', cursor: 'pointer',
             transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
@@ -1306,8 +1306,8 @@ function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
             <span style={{ flex: 1, fontSize: 14, lineHeight: 1.4, color: 'var(--color-text)' }}>{items[itemIdx]}</span>
             {!disabled && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <button type="button" aria-label={`${tStatic('Переместить вверх')}: ${items[itemIdx]}`} onClick={() => move(pos, -1)} disabled={pos === 0} style={arrowBtn(pos === 0)}><ChevronUp size={14} /></button>
-                <button type="button" aria-label={`${tStatic('Переместить вниз')}: ${items[itemIdx]}`} onClick={() => move(pos, 1)} disabled={pos === order.length - 1} style={arrowBtn(pos === order.length - 1)}><ChevronDown size={14} /></button>
+                <button data-hover="layer" type="button" aria-label={`${tStatic('Переместить вверх')}: ${items[itemIdx]}`} onClick={() => move(pos, -1)} disabled={pos === 0} style={arrowBtn(pos === 0)}><ChevronUp size={14} /></button>
+                <button data-hover="layer" type="button" aria-label={`${tStatic('Переместить вниз')}: ${items[itemIdx]}`} onClick={() => move(pos, 1)} disabled={pos === order.length - 1} style={arrowBtn(pos === order.length - 1)}><ChevronDown size={14} /></button>
               </div>
             )}
           </div>
@@ -1371,7 +1371,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
           {t('Без записи')}
         </span>
         {!disabled && (
-          <button
+          <button data-hover="layer"
             onClick={() => onChange('')}
             className="cursor-pointer"
             style={{
@@ -1391,7 +1391,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
   const retry = () => onChange(formatVoiceAnswer({ path: '', heard: '', attempts: answer.attempts }))
 
   const sampleBtn = lang && hasVoiceFor(lang) && (
-    <button
+    <button data-hover="layer"
       onClick={() => speak(want, { lang })}
       className="flex items-center cursor-pointer"
       style={btn('S', 'secondary')}
@@ -1435,7 +1435,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {/* Незачтённая попытка ведёт не к «неверно», а обратно к микрофону. */}
         {checks && answer.path && !ok && !disabled && (
-          <button
+          <button data-hover="layer"
             onClick={retry}
             className="flex items-center cursor-pointer"
             style={{
@@ -1454,7 +1454,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
         {checks && !ok && !disabled && sampleBtn}
 
         {!answer.path && !disabled && (
-          <button
+          <button data-hover="layer"
             onClick={() => onChange(NO_VOICE)}
             className="flex items-center cursor-pointer"
             style={btn('S', 'secondary')}
@@ -1592,7 +1592,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, reve
                   {!disabled && !showVerdict && (
                     <span style={{ flexShrink: 0, width: 34, height: 34 }}>
                       {!shown && (
-                        <button
+                        <button data-hover="layer"
                           onClick={() => onReveal(i)}
                           title={t('Показать ответ')}
                           aria-label={t('Показать ответ')}
@@ -3490,7 +3490,7 @@ export default function HomeworkFlow({
               {/* Возврат на место. Ответы переживают закрытие вкладки, но ученик
                   всё равно приземлялся в начало списка и искал, докуда дошёл. */}
               {!flowMode && !state.basicSubmitted && answeredCount > 0 && !basicCompleted && (
-                <button
+                <button data-hover="layer"
                   onClick={() => {
                     const next = basicQuestions.find(q => !questionAnswered(q, state.basicAnswers[q.id]))
                     questionSectionRefs.current[next?.id ?? '']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -3806,7 +3806,7 @@ export default function HomeworkFlow({
                         const wrongSelected = reveal && active && !correct
                         const correctSelected = reveal && correct
                         return (
-                          <button
+                          <button data-hover="layer"
                             key={option.id}
                             // НЕ `disabled`: внутри плитки живёт динамик
                             // ScriptHint, а у выключенной кнопки браузер гасит
@@ -4148,7 +4148,7 @@ export default function HomeworkFlow({
                           const active = selectedAnswer === side
                           const right = question.correctPair === side
                           return (
-                            <button
+                            <button data-hover="layer"
                               key={side}
                               disabled={locked}
                               onClick={() => setFreeAnswer(question.id, side)}
@@ -4317,7 +4317,7 @@ export default function HomeworkFlow({
                             {question.answerSkeleton}
                           </span>
                           {!!question.ttsText && !!question.lang && hasVoiceFor(question.lang) && (
-                            <span
+                            <span data-hover="layer"
                               role="button"
                               tabIndex={-1}
                               aria-label={t('Озвучить')}
@@ -4419,7 +4419,7 @@ export default function HomeworkFlow({
                           </motion.button>
                         )}
                         {canHint && (
-                          <button
+                          <button data-hover="layer"
                             onClick={() => revealHint(question.id)}
                             className="flex items-center cursor-pointer"
                             style={btn('M', 'secondary')}
@@ -4704,7 +4704,7 @@ export default function HomeworkFlow({
             cursor: 'zoom-out', backdropFilter: 'blur(4px)',
           }}
         >
-          <button
+          <button data-hover="layer"
             onClick={() => setLightbox(null)}
             style={{ position: 'absolute', top: 20, right: 20, width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.14)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
@@ -5044,7 +5044,7 @@ function BottomProgressBar({
                   onClick={jump}
                   title={label}
                   aria-label={label}
-                  className={jump ? 'cursor-pointer' : undefined}
+                  className={jump ? 'cursor-pointer' : undefined} data-hover={jump ? 'layer' : undefined}
                   style={{
                     width: TICK_ACTIVE, height: TICK_ACTIVE, borderRadius: '50%', flexShrink: 0,
                     padding: 0, border: 'none', fontFamily: 'inherit',

@@ -99,7 +99,7 @@ function SectionLabel({ children, action, onAction }: {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', marginBottom: 2 }}>
       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{children}</span>
       {action && (
-        <button onClick={() => { tactile(); onAction?.() }} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>
+        <button data-hover="layer" onClick={() => { tactile(); onAction?.() }} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>
           {action} <TaskliIcon name="continue" size={13} style={{ display: 'inline-block', verticalAlign: '-0.12em' }} />
         </button>
       )}
@@ -178,7 +178,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
           <div style={{ fontSize: 12, fontWeight: 500, color: pair.text, opacity: 0.82, marginTop: 2 }}>{sub}</div>
         </div>
       </div>
-      <motion.button
+      <motion.button data-hover="layer"
         whileTap={{ scale: 0.98 }}
         onClick={() => { tactile(); onOpen() }}
         className="cursor-pointer"
@@ -196,7 +196,7 @@ function MoneyStrip({ received, debt, debtorCount, plannedLessons, onOpen }: {
 }) {
   const t = useT()
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       whileTap={{ scale: 0.99 }}
       onClick={() => { tactile(); onOpen() }}
       className="cursor-pointer"
@@ -248,7 +248,7 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
       {/* «Материалы» рядом была без обработчика с июля — кнопка, которая ничего
           не делает. В мобильном кабинете экрана материалов нет; убрана. */}
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ height: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 16px', borderRadius: 12, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700}}>
+        <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ height: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 16px', borderRadius: 12, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700}}>
           <TaskliIcon name="open" size={14} style={{ color: '#fff' }} /> {t('Открыть')}
         </motion.button>
       </div>
@@ -285,7 +285,7 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
       <div style={{ width: 32, height: 32, borderRadius: '50%', background: c.avBg, color: c.avText, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{item.initials}</div>
-      <button onClick={() => { tactile(); onOpen() }} className="cursor-pointer text-left" style={{ flex: 1, minWidth: 0 }}>
+      <button data-hover="layer" onClick={() => { tactile(); onOpen() }} className="cursor-pointer text-left" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
           {tn(item.name)}
           <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: c.bg, color: c.text, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -295,7 +295,7 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>{item.sub}</div>
       </button>
-      <button onClick={() => { tactile(); onRemind() }} aria-label={t('Напомнить в Telegram')} className="cursor-pointer flex-shrink-0" style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--color-bg-3)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--color-border-soft)' }}>
+      <button data-hover="layer" onClick={() => { tactile(); onRemind() }} aria-label={t('Напомнить в Telegram')} className="cursor-pointer flex-shrink-0" style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--color-bg-3)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--color-border-soft)' }}>
         <TaskliIcon name="message" size={16} tone="accent" />
       </button>
     </div>
@@ -312,7 +312,7 @@ function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string
     setTimeout(() => setCopied(false), 1600)
   }
   return (
-    <button onClick={copy} className="flex items-center cursor-pointer text-left" style={{ gap: 12, width: '100%', padding: '12px 12px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+    <button data-hover="layer" onClick={copy} className="flex items-center cursor-pointer text-left" style={{ gap: 12, width: '100%', padding: '12px 12px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</FadeText>
         {sub && <FadeText style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</FadeText>}
@@ -412,10 +412,10 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
   )
 
   return (
-    <MobileScreen topZone={topZone} glassHeader={{ leading: model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя'), trailingText: String(model.studentTotal), trailingSymbol: 'person.2' }} topPad={72} scrollKey="t-home" bottomDockRaise={80} bottomDock={!linksOpen ? (model.totalReview > 0 ? <button
+    <MobileScreen topZone={topZone} glassHeader={{ leading: model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя'), trailingText: String(model.studentTotal), trailingSymbol: 'person.2' }} topPad={72} scrollKey="t-home" bottomDockRaise={80} bottomDock={!linksOpen ? (model.totalReview > 0 ? <button data-hover="layer"
         onClick={() => { tactile(); onNavigate('review') }}
         style={{ width: '100%', minHeight: 48, borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}
-      >{t('Проверить сейчас')}</button> : <button
+      >{t('Проверить сейчас')}</button> : <button data-hover="layer"
           onClick={() => { tactile(); setLinksOpen(true) }}
           className="flex items-center cursor-pointer text-left"
           style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 16, background: PAIR.success.bg }}
@@ -487,7 +487,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
           </div>
         )}
 
-        {model.totalReview > 0 && (<button
+        {model.totalReview > 0 && (<button data-hover="layer"
           onClick={() => { tactile(); setLinksOpen(true) }}
           className="flex items-center cursor-pointer text-left"
           style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 16, background: PAIR.success.bg }}

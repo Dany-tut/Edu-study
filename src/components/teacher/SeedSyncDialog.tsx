@@ -71,7 +71,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
         <span style={{ paddingTop: 2 }}>
           <Checkbox checked={picked.has(c.key)} onChange={() => toggle(c.key)} />
         </span>
-        <button
+        <button data-hover="layer"
           onClick={() => c.details?.length && setOpenKey(openKey === c.key ? null : c.key)}
           className="flex-1 min-w-0 cursor-pointer"
           style={{ border: 'none', background: 'none', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
@@ -137,7 +137,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
       <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
         <Icon size={15} style={{ color: tone, flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: tone }}>{title} · {list.length}</span>
-        <button
+        <button data-hover="layer"
           onClick={() => toggleAll(list, !list.every(c => picked.has(c.key)))}
           className="cursor-pointer"
           style={{
@@ -175,7 +175,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
               {t('Применится к курсу в редакторе — в базу уйдёт после «Сохранить»')}
             </span>
           </span>
-          <button onClick={onClose} aria-label={t('Закрыть')} className="cursor-pointer flex items-center justify-center flex-shrink-0"
+          <button data-hover="layer" onClick={onClose} aria-label={t('Закрыть')} className="cursor-pointer flex items-center justify-center flex-shrink-0"
             style={{ width: 32, height: 32, borderRadius: 11, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-muted)' }}>
             <X size={16} />
           </button>
@@ -193,7 +193,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
               // мышью труднее, чем в слово рядом с ним. Клик отмечает всю группу.
               const all = n === g.list.length
                 return (
-                  <button key={g.id} type="button"
+                  <button data-hover="layer" key={g.id} type="button"
                     onClick={() => toggleAll(g.list, !all)}
                     className="cursor-pointer flex items-center"
                     style={{
@@ -245,11 +245,11 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
           <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
             {t('Выбрано:')} {picked.size} {t('из')} {diff.changes.length}
           </span>
-          <button onClick={onClose} className="cursor-pointer"
+          <button data-hover="layer" onClick={onClose} className="cursor-pointer"
             style={{ ...btn('M', 'secondary'), marginLeft: 'auto' }}>
             {t('Отмена')}
           </button>
-          <button
+          <button data-hover="layer"
             onClick={() => onApply(picked)}
             disabled={picked.size === 0}
             className="cursor-pointer flex items-center"

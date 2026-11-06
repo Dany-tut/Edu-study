@@ -112,9 +112,9 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2} /></button>
+        <button data-hover="layer" onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS[viewMonth])} {viewYear}</span>
-        <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2} /></button>
+        <button data-hover="layer" onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2} /></button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
         {RU_DAYS_SHORT.map(d => (
@@ -342,7 +342,7 @@ function UploadTile({
               }}>{isLinkFile(f) ? 'URL' : fileExt(f.name)}</div>
               <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{f.name}</span>
               <span style={{ flexShrink: 0, fontSize: 10, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
-              <button
+              <button data-hover="layer"
                 onClick={e => { e.stopPropagation(); remove(f.path) }}
                 style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
               >
@@ -378,7 +378,7 @@ function HomeworkCard({
   const total = (hw?.basic ?? 0) + (hw?.hard ?? 0)
 
   return (
-    <button
+    <button data-hover="layer"
       onClick={onOpen}
       style={{
         display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4,
@@ -435,7 +435,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
               placeholder={t('Глава...')}
               style={{ ...inputStyle, flex: 1, padding: '8px 10px' }}
             />
-            <button
+            <button data-hover="layer"
               onClick={() => onChange(codes.filter((_, j) => j !== i))}
               style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
             >
@@ -449,7 +449,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
           </div>
         )}
       </div>
-      <button
+      <button data-hover="layer"
         onClick={() => onChange([...codes, { time: '', label: '' }])}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -489,7 +489,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t('Запись прикреплена')}</div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', ...textFadeStyle, maxWidth: 360, whiteSpace: 'nowrap' }}>{url}</div>
         </div>
-        <button
+        <button data-hover="layer"
           onClick={() => onChange('')}
           style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 11,
@@ -530,7 +530,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             placeholder="https://rutube.ru/video/..."
             style={{ ...inputStyle, flex: 1, background: 'var(--color-bg-input)' }}
           />
-          <button
+          <button data-hover="layer"
             onClick={() => { if (draft.trim()) { onChange(draft.trim()); setEditing(false) } }}
             style={{
               padding: '0 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
@@ -543,7 +543,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 10 }}>
-          <button
+          <button data-hover="layer"
             onClick={() => setEditing(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12,
@@ -554,7 +554,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
           >
             <Link2 size={16} /> {t('Вставить ссылку')}
           </button>
-          <button
+          <button data-hover="layer"
             onClick={() => onChange('https://rutube.ru/video/upload-' + Math.random().toString(36).slice(2, 8))}
             style={btn('M', 'secondary')}
           >
@@ -681,7 +681,7 @@ function AudiencePicker({
                 }}>
                   {d.name}
                 </span>
-                <button
+                <button data-hover="layer"
                   onClick={() => remove(r.kind, r.id)}
                   style={{
                     width: 16, height: 16, borderRadius: 5, border: 'none', cursor: 'pointer',
@@ -699,7 +699,7 @@ function AudiencePicker({
 
       {/* Add button + dropdown */}
       <div style={{ position: 'relative' }}>
-        <button
+        <button data-hover="layer"
           onClick={() => setOpen(o => !o)}
           style={{
             display: 'flex', alignItems: 'center', gap: 8, width: '100%',
@@ -739,7 +739,7 @@ function AudiencePicker({
                     style={{ ...inputStyle, paddingLeft: 30, paddingRight: query ? 30 : undefined }}
                   />
                   {query && (
-                    <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
+                    <button data-hover="layer" onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
                       <X size={14} />
                     </button>
                   )}
@@ -759,7 +759,7 @@ function AudiencePicker({
                         key={g.id}
                         onClick={() => add('group', g.id)}
                         style={pickerRow}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-4)')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-3)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
@@ -787,7 +787,7 @@ function AudiencePicker({
                           key={s.id}
                           onClick={() => add('student', s.id)}
                           style={pickerRow}
-                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-4)')}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-3)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                           <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#fff' }}>
@@ -813,7 +813,7 @@ function AudiencePicker({
               </div>
 
               <div style={{ padding: 8, borderTop: '1px solid var(--color-border-soft)' }}>
-                <button
+                <button data-hover="layer"
                   onClick={() => { setOpen(false); setQuery('') }}
                   style={{
                     width: '100%', padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -901,7 +901,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
       <div>
         <Label>{t('Дата')}</Label>
         <div ref={calRef} style={{ position: 'relative' }}>
-          <button
+          <button data-hover="layer"
             onClick={() => { setShowCal(v => !v); setShowStartTime(false); setShowEndTime(false) }}
             style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 12, textAlign: 'left' }}
           >
@@ -924,7 +924,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         <Label>{t('Время')}</Label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div ref={startRef} style={{ position: 'relative', flex: 1 }}>
-            <button
+            <button data-hover="layer"
               onClick={() => { setShowStartTime(v => !v); setShowCal(false); setShowEndTime(false) }}
               style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
             >
@@ -943,7 +943,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           </div>
           <span style={{ color: 'var(--color-text-4)', fontSize: 14 }}>—</span>
           <div ref={endRef} style={{ position: 'relative', flex: 1 }}>
-            <button
+            <button data-hover="layer"
               onClick={() => { setShowEndTime(v => !v); setShowCal(false); setShowStartTime(false) }}
               style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
             >
@@ -1412,7 +1412,7 @@ export default function TeacherLessonEditorPage() {
                     {t('В курсе нет урока с таким названием или номером — откроется курс целиком:')} «{tc(courseTarget.courseTitle)}»
                   </p>
                 )}
-                <button
+                <button data-hover="layer"
                   disabled={courseTarget === undefined && !!editingScheduleId}
                   onClick={async () => {
                     if (courseTarget) {

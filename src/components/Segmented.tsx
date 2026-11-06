@@ -68,7 +68,7 @@ export default function Segmented<T extends string>({ variant, items, value, onC
         const on = it.id === value
         const Icon = it.icon
         const btn = (
-          <button
+          <button data-hover="layer"
             key={it.id}
             type="button" role="tab" aria-selected={on}
             onClick={() => onChange(it.id)}

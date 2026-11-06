@@ -97,7 +97,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
 
   return (
     <div ref={ref} style={{ position: 'relative', width: compact ? 'auto' : '100%', ...style }}>
-      <button
+      <button data-hover="layer"
         type="button"
         onClick={() => setOpen(o => !o)}
         style={{

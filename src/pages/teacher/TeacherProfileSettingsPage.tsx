@@ -60,7 +60,7 @@ function CopyProfileLabel({ value, isHandle }: { value: string; isHandle: boolea
     return () => window.clearTimeout(timer)
   }, [feedback])
   const action = isHandle ? t('Скопировать ник') : t('Скопировать имя')
-  return <button type="button" className="profile-header-copy" title={action} aria-label={action + ' ' + value}
+  return <button data-hover="layer" type="button" className="profile-header-copy" title={action} aria-label={action + ' ' + value}
     onClick={async () => setFeedback(await copyToClipboard(value) ? 'Скопировано' : 'Не удалось скопировать')}>
     <FadeText>{feedback ? t(feedback) : value}</FadeText>
     {feedback === 'Скопировано' ? <Check size={12}/> : <Copy size={12}/>}
@@ -322,7 +322,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
               else { friends.setTab(null); setPage(id) }
             }}/>
           </HScrollFade>
-          {teacherGuides && <button type="button" className="teacher-guides-entry" onClick={teacherGuides.catalog}>{t('Подсказки')}</button>}
+          {teacherGuides && <button data-hover="layer" type="button" className="teacher-guides-entry" onClick={teacherGuides.catalog}>{t('Подсказки')}</button>}
         </header>
         <div className="profile-section-heading">
           <h2>{t(section === 'main' ? 'Личные данные' : section === 'friends' ? 'Друзья' : section === 'integrations' ? 'Интеграции' : 'Настройки')}</h2>
@@ -338,11 +338,11 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
             <p className="profile-social-caption">{t('Один ник, чтобы найти друг друга.')}</p>
             {friends.tab === 'profile' ? <>
               <FriendsContent model={friends} suggestedName={friends.account === profileOwner ? savedName : ''}/>
-              <button className="profile-social-edit" type="button" onClick={() => friends.setTab('contacts')}>{t('Готово')}</button>
+              <button data-hover="layer" className="profile-social-edit" type="button" onClick={() => friends.setTab('contacts')}>{t('Готово')}</button>
             </> : <>
               <div className="profile-social-handle"><FadeText>{handle ? '@' + handle : t('Ник ещё не выбран')}</FadeText></div>
               <p className="profile-social-visibility">{t(friends.snapshot?.searchable ? 'Вас можно найти по точному нику' : 'Поиск по нику выключен')}</p>
-              <button className="profile-social-edit" type="button" onClick={() => friends.setTab('profile')}>{t('Изменить ник и видимость')}</button>
+              <button data-hover="layer" className="profile-social-edit" type="button" onClick={() => friends.setTab('profile')}>{t('Изменить ник и видимость')}</button>
             </>}
             <p className="profile-social-privacy">{t('Ваш email остаётся приватным.')}</p>
           </aside>
@@ -375,7 +375,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
           </div>
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-            <motion.button
+            <motion.button data-hover="layer"
               whileTap={{ scale: 0.96 }}
               onClick={() => pickImageFile(setCropFile)}
               style={photoBtnStyle}
@@ -384,7 +384,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
               <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
             </motion.button>
             {avatarPath && (
-              <motion.button
+              <motion.button data-hover="layer"
                 whileTap={{ scale: 0.96 }}
                 onClick={removePhoto}
                 style={photoBtnStyle}
@@ -491,8 +491,8 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
             <h3 style={{ marginBottom: 18 }}>{t('Время в расписании')}</h3>
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для просмотра расписания')}</div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-              <button type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
-              <button type="button" onClick={() => chooseDisplayZone('manual')} style={tzChoiceStyle(teacherTzMode === 'manual')}>{t('Выбрать город')}</button>
+              <button data-hover="layer" type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
+              <button data-hover="layer" type="button" onClick={() => chooseDisplayZone('manual')} style={tzChoiceStyle(teacherTzMode === 'manual')}>{t('Выбрать город')}</button>
             </div>
             {teacherTzMode === 'manual' && <LoopSelect value={teacherTz} onChange={e => changeTz(e.target.value)} style={{ ...inputStyle, cursor: 'pointer', marginTop: 4 }}>
               {!TZ_OPTIONS.some(o => o.value === teacherTz) && <option value={teacherTz}>{tzShortLabel(teacherTz)}</option>}
@@ -502,8 +502,8 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
 
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для ввода времени урока')}</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" onClick={() => chooseInputZone('local')} style={tzChoiceStyle(inputTz === 'local')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
-              <button type="button" onClick={() => chooseInputZone('manual')} style={tzChoiceStyle(inputTz !== 'local')}>{t('Выбрать город')}</button>
+              <button data-hover="layer" type="button" onClick={() => chooseInputZone('local')} style={tzChoiceStyle(inputTz === 'local')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
+              <button data-hover="layer" type="button" onClick={() => chooseInputZone('manual')} style={tzChoiceStyle(inputTz !== 'local')}>{t('Выбрать город')}</button>
             </div>
             {inputTz !== 'local' && <LoopSelect value={inputTz} onChange={e => { void setInputTz(e.target.value) }} style={{ ...inputStyle, cursor: 'pointer', marginTop: 8 }}>
               {!TZ_OPTIONS.some(o => o.value === inputTz) && <option value={inputTz}>{tzShortLabel(inputTz)}</option>}

@@ -124,7 +124,7 @@ export default function WordBankSolver({
           {answerNow.length === 0
             ? <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Нажимай на слова, чтобы собрать предложение')}</span>
             : answerNow.map((word, i) => (
-                <button key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true, verdictAt(word, i))}>{word}</button>
+                <button data-hover="layer" key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true, verdictAt(word, i))}>{word}</button>
               ))}
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function WordBankSolver({
       {/* Банк слов: потраченная плитка гаснет на месте, а не пропадает. */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {bank.map(tile => (
-          <button
+          <button data-hover="layer"
             key={tile.key}
             onClick={() => pick(tile.word)}
             disabled={disabled || tile.spent}

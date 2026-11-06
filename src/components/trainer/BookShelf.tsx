@@ -181,7 +181,7 @@ export function BookShelf({ books, lang, accent, soft }: {
               const { label, Icon } = ACTION[book.access ?? 'page']
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignSelf: 'flex-start' }}>
-                  <a
+                  <a data-hover="link"
                     href={book.url}
                     target="_blank"
                     rel="noreferrer noopener"

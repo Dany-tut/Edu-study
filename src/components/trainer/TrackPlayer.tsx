@@ -382,7 +382,7 @@ export default function TrackPlayer({
                 ? TTS_RATES.map(r => {
                     const on = r.id === ttsRate
                     return (
-                      <button
+                      <button data-hover="layer"
                         key={r.id}
                         onClick={() => { setTtsRate(r.id); if (playing) say(line, r.id) }}
                         style={rateStyle(on, accent, soft)}
@@ -394,7 +394,7 @@ export default function TrackPlayer({
                 : FILE_RATES.map(r => {
                     const on = r === fileRate
                     return (
-                      <button
+                      <button data-hover="layer"
                         key={r}
                         onClick={() => {
                           setFileRate(r)

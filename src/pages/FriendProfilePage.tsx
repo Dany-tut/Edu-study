@@ -52,10 +52,10 @@ export default function FriendProfilePage({ account, token, home }: { account: s
       {result?.status === 'handle_required' && <label>{t('Выбери свой ник')}
         <input value={nick} autoCapitalize="none" placeholder="@luna_7" maxLength={21} onChange={e => setNick(e.target.value)}/>
       </label>}
-      {(result?.status === 'found' || result?.status === 'handle_required') && <button className="friend-primary" disabled={busy || (result.status === 'handle_required' && !/^[a-z][a-z0-9_]{3,19}$/i.test(nick.trim().replace(/^@/, '')))} onClick={send}>{t('Добавить в друзья')}</button>}
+      {(result?.status === 'found' || result?.status === 'handle_required') && <button data-hover="layer" className="friend-primary" disabled={busy || (result.status === 'handle_required' && !/^[a-z][a-z0-9_]{3,19}$/i.test(nick.trim().replace(/^@/, '')))} onClick={send}>{t('Добавить в друзья')}</button>}
       {result && messages[result.status] && <p role="status">{t(messages[result.status])}</p>}
-      {error && <p role="alert">{t(error)} <button onClick={() => setRetry(n => n + 1)}>{t('Повторить')}</button></p>}
-      <a href={home}>{t('В свой кабинет')}</a>
+      {error && <p role="alert">{t(error)} <button data-hover="layer" onClick={() => setRetry(n => n + 1)}>{t('Повторить')}</button></p>}
+      <a data-hover="link" href={home}>{t('В свой кабинет')}</a>
     </section></main>
   </ScrollFade>
 }

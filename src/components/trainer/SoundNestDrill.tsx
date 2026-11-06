@@ -303,7 +303,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 700 }}>
             {t('Какое слово прозвучало?')}
           </div>
-          <button
+          <button data-hover="layer"
             onClick={() => say(q.word.term, lang)}
             style={{
               width: 68, height: 68, borderRadius: '50%', border: 'none', cursor: 'pointer',
@@ -314,7 +314,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           >
             <Volume2 size={28} />
           </button>
-          <button
+          <button data-hover="layer"
             onClick={() => say(q.word.term, lang, 0.55)}
             style={{
               border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
@@ -331,7 +331,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
             const chosen = picked?.term === o.term
             const show = !!picked && (isAnswer || chosen)
             return (
-              <button
+              <button data-hover="layer"
                 key={o.term}
                 onClick={() => pick(o)}
                 disabled={!!picked}
@@ -366,7 +366,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
             {/* Подпись различия показывается ровно в момент ошибки: тогда она
                 читается как ответ на «а почему», а не как справка. */}
             <WordRow word={q.word} lang={lang} accent={accent} tone={right ? 'good' : 'bad'} />
-            <button onClick={next} style={primaryBtn(accent)}>
+            <button data-hover="layer" onClick={next} style={primaryBtn(accent)}>
               {idx + 1 >= run.length ? t('Итог') : t('Дальше')}
             </button>
           </div>
@@ -404,11 +404,11 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           </div>
         )}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button onClick={start} style={primaryBtn(accent)}>
+          <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <RotateCcw size={14} />
             {t('Ещё прогон')}
           </button>
-          <button onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
+          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
         </div>
       </div>
     )
@@ -428,7 +428,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {audible ? (
-          <button onClick={start} style={primaryBtn(accent)}>
+          <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <Ear size={16} />
             {t('Проверить на слух')}
           </button>
@@ -444,7 +444,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
               : t('Проверки на слух здесь нет: эти звуки в современной речи слились, и носители их тоже не различают. Учить надо написание слова целиком.')}
           </div>
         )}
-        <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
+        <button data-hover="layer" onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
           {saving ? t('Добавляю…') : t('Взять слова в колоду')}
         </button>
         {added !== null && (

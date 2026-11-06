@@ -235,7 +235,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
           boxShadow: 'var(--shadow-lg)', ...cardStyle,
         }}
       >
-        <button
+        <button data-hover="layer"
           onClick={onClose}
           aria-label={t('Закрыть подсказки')}
           style={{
@@ -278,7 +278,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
             ))}
           </div>
           {!last && (
-            <button
+            <button data-hover="layer"
               onClick={onClose}
               style={{
                 flexShrink: 0,
@@ -290,7 +290,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
               {t('Пропустить')}
             </button>
           )}
-          <button
+          <button data-hover="layer"
             onClick={next}
             style={{
               flexShrink: 0,

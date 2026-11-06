@@ -35,7 +35,7 @@ export default function MobilePill({
   const fontSize = size === 'sm' ? 13 : 14
 
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       type="button"
       aria-label={ariaLabel}
       aria-pressed={active}

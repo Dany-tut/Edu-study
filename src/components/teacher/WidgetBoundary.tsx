@@ -53,7 +53,7 @@ export default class WidgetBoundary extends Component<Props, State> {
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)' }}>
           {chunk ? t('Вышла новая версия') : t('Виджет не загрузился')}
         </span>
-        <button
+        <button data-hover="layer"
           onClick={() => {
             diagnosticRetry(this.failureId, chunk ? 'reload' : 'retry')
             if (chunk) window.location.reload()

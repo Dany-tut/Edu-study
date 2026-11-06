@@ -32,19 +32,19 @@ export default function WidgetTodayReminders() {
   // «Горит» — просрочено или ждёт дольше суток: подсвечиваем янтарём строку и счётчик вкладки.
   const hot=(r:Reminder)=>!reminderDone(r)&&r.urgency==='high'
   return <section className="teacher-reminders-panel" {...widgetNavigationProps(action)} aria-label={t('Напоминания')}>
-    <header className="widget-panel-header"><Bell size={17}/><h3>{t('Напоминания')}</h3>{action&&<button type="button" onClick={action} aria-label={t('Открыть')}><ArrowUpRight size={17}/></button>}</header>
+    <header className="widget-panel-header"><Bell size={17}/><h3>{t('Напоминания')}</h3>{action&&<button data-hover="layer" type="button" onClick={action} aria-label={t('Открыть')}><ArrowUpRight size={17}/></button>}</header>
     {active&&<div className="reminder-category-tabs" ref={nav} role="tablist" aria-label={t('Напоминания')}>
-      {groups.map(c=><button key={c.type} type="button" role="tab" aria-selected={active.type===c.type} aria-controls={queueId} onClick={()=>{setSelected(c.type);body.current?.scrollTo({top:0})}}><span data-label={t(c.label)}>{t(c.label)}</span><b data-hot={c.items.some(hot)||undefined}>{count(c.items)}</b></button>)}
+      {groups.map(c=><button data-hover="layer" key={c.type} type="button" role="tab" aria-selected={active.type===c.type} aria-controls={queueId} onClick={()=>{setSelected(c.type);body.current?.scrollTo({top:0})}}><span data-label={t(c.label)}>{t(c.label)}</span><b data-hot={c.items.some(hot)||undefined}>{count(c.items)}</b></button>)}
     </div>}
     <div ref={body} id={queueId} className="teacher-reminder-queue" role="tabpanel" aria-label={active?t(active.label):t('Напоминания')}>
       {!active?<div className="widget-panel-empty" role="status">{loading?t('Загрузка…'):t('Нет напоминаний')}</div>:<>
         <div className="reminder-queue-hero"><div><span>{t('Напоминания')}</span><strong>{t(active.action)}</strong><small>{active.type==='check-hw'?`${count(active.items)} ${t('работ')} · ${active.items.length} ${t('ДЗ')}`:`${active.items.length} ${lang==='en'?'items':t('записей')}`}</small></div><img src={active.art} alt="" aria-hidden="true" decoding="async"/></div>
-        {active.items.map((item,index)=>{const done=reminderDone(item),onAction=reminderAction(item);return <button key={item.id} type="button" className="reminder-queue-row" data-reminder-row={item.id} data-done={done||undefined} data-hot={hot(item)||undefined} disabled={!onAction} onClick={onAction}>
+        {active.items.map((item,index)=>{const done=reminderDone(item),onAction=reminderAction(item);return <button data-hover="layer" key={item.id} type="button" className="reminder-queue-row" data-reminder-row={item.id} data-done={done||undefined} data-hot={hot(item)||undefined} disabled={!onAction} onClick={onAction}>
           <span className="reminder-queue-index">{done?<CheckCircle2 size={14}/>:String(index+1).padStart(2,'0')}</span>
           <span className="reminder-queue-copy"><strong>{item.text}</strong>{item.detail&&<span>{item.detail}</span>}{(item.statusLabel||done)&&<small>{done?t('Готово'):item.statusLabel}</small>}</span>
           {onAction&&<ChevronRight size={16}/>}</button>})}
       </>}
     </div>
-    {action&&<footer className="widget-panel-footer"><span>{active&&`${count(active.items)} ${active.type==='check-hw'?t('работ'):t('записей')}`}</span><button type="button" onClick={action}>{t('Открыть')}<ArrowUpRight size={14}/></button></footer>}
+    {action&&<footer className="widget-panel-footer"><span>{active&&`${count(active.items)} ${active.type==='check-hw'?t('работ'):t('записей')}`}</span><button data-hover="layer" type="button" onClick={action}>{t('Открыть')}<ArrowUpRight size={14}/></button></footer>}
   </section>
 }

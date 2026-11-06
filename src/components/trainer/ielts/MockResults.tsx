@@ -109,7 +109,7 @@ export default function MockResults({ attempt, mock, accent, soft }: {
         <div key={s} style={{
           borderRadius: 18, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', overflow: 'hidden',
         }}>
-          <button type="button" onClick={() => setOpen(open === s ? null : s)} style={{
+          <button data-hover="layer" type="button" onClick={() => setOpen(open === s ? null : s)} style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px',
             background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
           }}>
@@ -263,7 +263,7 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
           <span style={{ fontSize: 13, color: error ? 'var(--color-red-text)' : 'var(--color-text-2)' }}>
             {error ? t(error) : t('Оценки ещё нет')}
           </span>
-          <button type="button" onClick={onRetry} style={outlineBtn(accent)}>
+          <button data-hover="layer" type="button" onClick={onRetry} style={outlineBtn(accent)}>
             <RotateCcw size={14} /> {t('Оценить')}
           </button>
         </div>
@@ -295,7 +295,7 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
 
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: 4, borderRadius: 12, background: 'var(--color-bg-3)', alignSelf: 'flex-start' }}>
             {tabs.map(x => (
-              <button key={x.id} type="button" onClick={() => setTab(x.id)} style={{
+              <button data-hover="layer" key={x.id} type="button" onClick={() => setTab(x.id)} style={{
                 height: 30, padding: '0 12px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 fontSize: 13, fontWeight: 700,
                 background: tab === x.id ? 'var(--color-bg-2)' : 'transparent',
@@ -389,7 +389,7 @@ function LexisList({ lexis, accent }: { lexis: NonNullable<Grade['lexis']>; acce
         </div>
       ))}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
-        <button type="button" onClick={save} disabled={state === 'saving' || state === 'done'} style={{
+        <button data-hover="layer" type="button" onClick={save} disabled={state === 'saving' || state === 'done'} style={{
           ...outlineBtn(accent), opacity: state === 'saving' || state === 'done' ? 0.6 : 1,
         }}>
           <Layers size={14} /> {t('В карточки')}
@@ -417,7 +417,7 @@ function Transcript({ lines }: { lines: string[] }) {
   const [open, setOpen] = useState(false)
   return (
     <div>
-      <button type="button" onClick={() => setOpen(v => !v)} style={{
+      <button data-hover="layer" type="button" onClick={() => setOpen(v => !v)} style={{
         border: 'none', background: 'transparent', padding: 0, color: 'var(--color-text-2)', fontWeight: 700,
         fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline',
       }}>

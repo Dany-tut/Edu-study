@@ -123,7 +123,7 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
           : picked.map((idx, pos) => {
             const verdict = showVerdict ? (idx === pos ? 'good' as const : 'bad' as const) : undefined
             return (
-              <motion.button
+              <motion.button data-hover="layer"
                 key={`ans-${idx}`}
                 initial={{ scale: 0.92, opacity: 0.4 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -151,7 +151,7 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
         {bankOrder.map(idx => {
           const spent = pickedSet.has(idx)
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={`bank-${idx}`}
               whileTap={disabled || spent || full ? undefined : { scale: 0.96 }}
               onClick={() => pick(idx)}

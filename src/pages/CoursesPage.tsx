@@ -254,7 +254,7 @@ export default function CoursesPage() {
             }}
           />
           {deskSearchOpen && (
-            <button
+            <button data-hover="layer"
               onClick={e => { e.stopPropagation(); setSearch(''); setDeskSearchOpen(false) }}
               aria-label={t('Закрыть поиск')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
@@ -430,7 +430,7 @@ export default function CoursesPage() {
           const completedLessons = module?.lessons.filter(l => l.status === 'completed').length ?? 0
           const pct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={tab.id}
               ref={modulePill.registerItem(tab.id)}
               whileTap={{ scale: 0.97 }}
@@ -645,7 +645,7 @@ export default function CoursesPage() {
                 // suppresses the child circle's `backdrop-filter`.
                 style={{ pointerEvents: searchExpanded ? 'none' : 'auto' }}
               >
-                <motion.button
+                <motion.button data-hover="layer"
                   whileTap={{ scale: 0.9 }}
                   onClick={() => { tactile(); c.onClick() }}
                   aria-label={c.opts.label}
@@ -696,7 +696,7 @@ export default function CoursesPage() {
                 style={{ flex: searchExpanded ? 1 : 0, width: searchExpanded ? undefined : 0, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none',
                   maskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)' }} />
               {searchExpanded && (
-                <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label={t('Закрыть поиск')}
+                <button data-hover="layer" onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label={t('Закрыть поиск')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
                   <X size={18} />
                 </button>
@@ -712,7 +712,7 @@ export default function CoursesPage() {
           {FILTER_OPTIONS.map(o => {
             const active = statusFilter === o.id
             return (
-              <button
+              <button data-hover="layer"
                 key={o.id}
                 onClick={() => { tactile(); setStatusFilter(o.id); setFilterSheet(false) }}
                 style={{

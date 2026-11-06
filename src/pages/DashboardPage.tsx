@@ -673,7 +673,7 @@ function AssignedTestsBlock({ compact = false }: { compact?: boolean }) {
     </div>
   )
   return compact ? <>
-    <button type="button" className="home-assignment-button" onClick={() => setExpanded(true)}><ClipboardList size={14} />{t('Назначенные тесты')} · {pending.length}<ChevronRight size={14} /></button>
+    <button data-hover="layer" type="button" className="home-assignment-button" onClick={() => setExpanded(true)}><ClipboardList size={14} />{t('Назначенные тесты')} · {pending.length}<ChevronRight size={14} /></button>
     {expanded && <Modal title={t('Назначенные тесты')} onClose={() => setExpanded(false)} width={640}>{list}</Modal>}
   </> : list
 }

@@ -383,7 +383,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
   const clickable = !done && !!onAction
   const accent = done ? 'var(--color-green-text)' : reminderAccent(item)
   return (
-    <motion.div
+    <motion.div data-hover="layer"
       onClick={clickable ? onAction : undefined}
       whileTap={clickable ? { scale: 0.99 } : undefined}
       style={{
@@ -571,7 +571,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
           }}
         >
           <div style={{ paddingBottom: 16 }}>
-            <div
+            <div data-hover="layer"
               onClick={() => setExpanded(false)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -672,7 +672,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         transition: 'opacity 0.22s, background 0.15s',
         cursor: 'pointer',
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-4)' : 'var(--color-bg-3)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-5)' : 'var(--color-bg-3)' }}
       onMouseLeave={e => { setShowDelete(false); (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)' }}
     >
       {/* Общий Checkbox: своя рамка #C4B0F0 не менялась с темой. Клик не

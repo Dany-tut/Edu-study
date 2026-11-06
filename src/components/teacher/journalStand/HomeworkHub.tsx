@@ -183,7 +183,7 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
     <div className={'course-journal jh-review-shell' + (target.keys.length > 1 ? ' jh-shell-has-stack' : '') + (expanded ? ' jh-shell-expanded' : '') + (aiEnabled ? ' jh-has-ai' : '')} ref={body}>
       <header className="jh-review-top"><div className="jh-review-emblem"><ClipboardList size={20}/></div><div className="jh-review-title"><span>{'Домашняя работа'}</span><h2 title={target.title}>{target.title}</h2></div>
         <button type="button" className="jh-full-review" aria-label={expanded?'Свернуть':'Открыть полную проверку'} disabled={busy || !entry} onClick={fullReview}>{expanded ? <Minimize2 size={15}/> : <Maximize2 size={15}/>}<span>{expanded ? 'Свернуть' : 'Открыть полную проверку'}</span></button>
-        <button type="button" className="jh-review-close" disabled={busy} aria-label="Закрыть" onClick={() => setTarget(null)}><X size={19}/></button>
+        <button data-hover="layer" type="button" className="jh-review-close" disabled={busy} aria-label="Закрыть" onClick={() => setTarget(null)}><X size={19}/></button>
       </header>
       <div className="jh-review-body">
         {target.keys.length > 1 && <aside className="jh-review-roster" aria-label="Стопка работ учеников"><div className="jh-roster-heading"><strong>{'Ученики'}</strong><span>{stack.length}</span></div>
@@ -199,9 +199,9 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
               <span className={'jh-document-status '+(pending?'jh-status-pending':entry.work.status==='Зачтено'?'jh-status-passed':'')}>{entry.work.status}</span>
             </div>
             {target.keys.length>1 && <label className="jh-mobile-student">Ученик<select aria-label="Выбрать ученика в стопке" disabled={busy} value={entry.key} onChange={e=>setTarget({...target,selected:e.target.value})}>{stack.map(e=><option key={e.key} value={e.key}>{e.student.name} · {e.work.status}</option>)}</select></label>}
-            <div className="jh-document-tools" role="group" aria-label="Фильтр ответов"><button type="button" aria-pressed={answerFilter==='all'} onClick={()=>setAnswerFilter('all')}>Все задания <span>{payload?.rows.length??0}</span></button>
-              {pending && <button type="button" aria-pressed={answerFilter==='manual'} disabled={!manual.length} onClick={()=>setAnswerFilter('manual')}>На проверку <span>{manual.length}</span></button>}
-              <button type="button" aria-pressed={answerFilter==='errors'} disabled={!errors.length} onClick={()=>setAnswerFilter('errors')}>Ошибки <span>{errors.length}</span></button></div>
+            <div className="jh-document-tools" role="group" aria-label="Фильтр ответов"><button data-hover="layer" type="button" aria-pressed={answerFilter==='all'} onClick={()=>setAnswerFilter('all')}>Все задания <span>{payload?.rows.length??0}</span></button>
+              {pending && <button data-hover="layer" type="button" aria-pressed={answerFilter==='manual'} disabled={!manual.length} onClick={()=>setAnswerFilter('manual')}>На проверку <span>{manual.length}</span></button>}
+              <button data-hover="layer" type="button" aria-pressed={answerFilter==='errors'} disabled={!errors.length} onClick={()=>setAnswerFilter('errors')}>Ошибки <span>{errors.length}</span></button></div>
             <div className="jh-document-scroll" ref={documentArea}>
               {entry.work.submitted ? shownPayload?.rows.length ? shownPayload.rows.map(answer => {
                 const feedback = ai.grade?.tasks.find(task => task.n === answer.n)
@@ -234,8 +234,8 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
           </aside>
         </> : <p className="jh-empty">Работа больше не доступна. Закройте окно и обновите журнал.</p>}
       </div>
-      <footer className="jh-review-footer"><div>{target.keys.length===1&&allAssignment.length>1?<button type="button" className="jh-footer-link" disabled={busy} onClick={showAll}>Все работы по этой домашке <ChevronRight size={14}/></button>:<span>{group?.name??'Все группы'} · {stack.length} {'учеников'}</span>}</div>
-        {stack.length>1&&<div className="jh-review-pager"><button type="button" aria-label="Предыдущая работа" disabled={busy||at<=0} onClick={()=>setTarget({...target,selected:stack[at-1].key})}><ArrowLeft size={15}/></button><span>{at+1} / {stack.length}</span><button type="button" aria-label="Следующая работа" disabled={busy||at>=stack.length-1} onClick={()=>setTarget({...target,selected:stack[at+1].key})}><ArrowRight size={15}/></button></div>}
+      <footer className="jh-review-footer"><div>{target.keys.length===1&&allAssignment.length>1?<button data-hover="layer" type="button" className="jh-footer-link" disabled={busy} onClick={showAll}>Все работы по этой домашке <ChevronRight size={14}/></button>:<span>{group?.name??'Все группы'} · {stack.length} {'учеников'}</span>}</div>
+        {stack.length>1&&<div className="jh-review-pager"><button data-hover="layer" type="button" aria-label="Предыдущая работа" disabled={busy||at<=0} onClick={()=>setTarget({...target,selected:stack[at-1].key})}><ArrowLeft size={15}/></button><span>{at+1} / {stack.length}</span><button data-hover="layer" type="button" aria-label="Следующая работа" disabled={busy||at>=stack.length-1} onClick={()=>setTarget({...target,selected:stack[at+1].key})}><ArrowRight size={15}/></button></div>}
       </footer>
     </div>
   </Modal>

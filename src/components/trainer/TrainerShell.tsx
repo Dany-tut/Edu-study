@@ -599,7 +599,7 @@ function ShareRow({ url, accent }: { url: string; accent?: string }) {
   const { onClick, label, done, sheet } = useShareAction(url)
   const tint = accent ?? MENU_ACCENT
   return (
-    <button
+    <button data-hover="layer"
       onClick={onClick}
       aria-label={label}
       style={{
@@ -630,7 +630,7 @@ function HelpButton({ onClick, wide }: { onClick: () => void; wide?: boolean }) 
   const t = useT()
   const label = t('Подсказки')
   return (
-    <button
+    <button data-hover="layer"
       onClick={onClick}
       title={label}
       aria-label={label}
@@ -654,7 +654,7 @@ function ShareCircle({ url, accent }: { url: string; accent?: string }) {
   const on = done ? (accent ?? MENU_ACCENT) : 'var(--color-text-2)'
 
   return (
-    <button
+    <button data-hover="layer"
       onClick={onClick}
       title={label}
       aria-label={label}
@@ -695,7 +695,7 @@ function NavSheetBody({ nav, onDone }: { nav: TrainerNav; onDone: () => void }) 
         {nav.modes.map(m => {
           const on = m.id === nav.mode
           return (
-            <button
+            <button data-hover="layer"
               key={m.id}
               onClick={() => { if (!on) nav.onMode(m.id); onDone() }}
               style={{
@@ -736,7 +736,7 @@ function NavSheetBody({ nav, onDone }: { nav: TrainerNav; onDone: () => void }) 
           {nav.views.map(v => {
             const on = v.id === nav.view
             return (
-              <button
+              <button data-hover="layer"
                 key={v.id}
                 onClick={() => { if (!on) nav.onView!(v.id); onDone() }}
                 style={{
@@ -843,7 +843,7 @@ export function RailCard({ icon, title, accent, children, action }: {
         {icon && <span style={{ display: 'flex', color: accent }}>{icon}</span>}
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(title)}</span>
         {action && (
-          <button
+          <button data-hover="layer"
             onClick={action.onClick}
             style={{
               marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer',
@@ -879,7 +879,7 @@ export function RailModes<T extends string>({ items, value, onChange, accent, so
       {items.map(m => {
         const on = m.id === value
         return (
-          <button
+          <button data-hover="layer"
             key={m.id}
             onClick={() => onChange(m.id)}
             style={{
@@ -935,7 +935,7 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
         // Значок вместо подписи — только пока кнопка не выбрана и значок есть.
         const mute = idleIcon && !on && !!o.icon
         return (
-          <button
+          <button data-hover="layer"
             key={o.value}
             onClick={() => onChange(on && clearable ? '' : o.value)}
             title={t(o.label)}
@@ -1050,7 +1050,7 @@ export function RailList({ items, value, onChange, accent, soft }: {
           ...(wide ? { ...textFadeLines(3) } : null),
         }
         return (
-          <button
+          <button data-hover="layer"
             key={i.id}
             onClick={() => onChange(i.id)}
             title={t(i.label)}
@@ -1102,7 +1102,7 @@ export function RailToggle({ label, on, onChange, accent }: {
 }) {
   const t = useT()
   return (
-    <button
+    <button data-hover="layer"
       onClick={() => onChange(!on)}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
@@ -1249,7 +1249,7 @@ export function Toolbar({ children, count }: {
              ответ на вопрос, ради которого фильтр открывали: сколько останется. */
           footer={
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button
+              <button data-hover="layer"
                 onClick={resetAll}
                 disabled={active === 0}
                 style={{
@@ -1261,7 +1261,7 @@ export function Toolbar({ children, count }: {
               >
                 {t('Сбросить')}
               </button>
-              <button
+              <button data-hover="layer"
                 onClick={close}
                 style={{
                   ...SHEET_BTN, flex: 1, padding: '0 20px', border: 'none', color: '#fff',
@@ -1307,7 +1307,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
   const t = useT()
   const on = count > 0
   return (
-    <button
+    <button data-hover="layer"
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
@@ -1445,7 +1445,7 @@ function ChipGroup({ g }: { g: SheetGroup }) {
           const on = g.values.includes(o.value)
           const tint = g.accent ?? 'var(--color-accent, #7c3aed)'
           return (
-            <button
+            <button data-hover="layer"
               key={o.value}
               onClick={() => g.toggle(o.value)}
               style={{
@@ -1480,7 +1480,7 @@ function DrillRow({ g, onClick }: { g: SheetGroup; onClick: () => void }) {
       ? t(g.options.find(o => o.value === chosen[0])?.label ?? chosen[0])
       : `${chosen.length} ${t('выбрано')}`
   return (
-    <button
+    <button data-hover="layer"
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
@@ -1509,7 +1509,7 @@ function OptionRows({ g }: { g: SheetGroup }) {
       {g.options.map(o => {
         const on = g.values.includes(o.value)
         return (
-          <button
+          <button data-hover="layer"
             key={o.value}
             onClick={() => g.toggle(o.value)}
             style={{
@@ -1544,7 +1544,7 @@ export function SearchPill({ value, onChange, placeholder }: {
   const ref = useRef<HTMLInputElement>(null)
   const wide = open || !!value
   return (
-    <div
+    <div data-hover="layer"
       onClick={() => { setOpen(true); ref.current?.focus() }}
       style={{
         // Высота не своя, а от строки: alignSelf: 'stretch' тянет таблетку до
@@ -1590,7 +1590,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         }}
       />
       {value && (
-        <button aria-label={t('Очистить')}
+        <button data-hover="layer" aria-label={t('Очистить')}
           onClick={e => { e.stopPropagation(); onChange('') }}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}
         ><X size={14} strokeWidth={2.5} /></button>
@@ -1675,7 +1675,7 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
       {options.map(o => {
         const on = o.value === value
         return (
-          <button
+          <button data-hover="layer"
             key={o.value}
             ref={pill.registerItem(o.value)}
             onClick={() => onChange(o.value)}
@@ -1727,7 +1727,7 @@ export function ToolButton({ children, on, onClick, accent, btnRef, icon, label 
 }) {
   const t = useT()
   return (
-    <button
+    <button data-hover="layer"
       ref={btnRef}
       onClick={onClick}
       title={label ? t(label) : undefined}
@@ -1838,7 +1838,7 @@ export function SortMenu({ options, value, onChange, accent, soft }: {
 
   return (
     <>
-      <button
+      <button data-hover="layer"
         ref={btn}
         onClick={() => {
           const r = btn.current?.getBoundingClientRect()
@@ -1876,7 +1876,7 @@ export function SortMenu({ options, value, onChange, accent, soft }: {
               {options.map(o => {
                 const on = o.value === value
                 return (
-                  <button
+                  <button data-hover="layer"
                     key={o.value}
                     onClick={() => { onChange(o.value); setOpen(false) }}
                     style={dropdownRow(on, { accent: tint, accentBg: tintBg })}
@@ -1961,7 +1961,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
 
   return (
     <>
-      <button
+      <button data-hover="layer"
         ref={btn}
         onClick={() => {
           const r = btn.current?.getBoundingClientRect()
@@ -2018,7 +2018,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
               {options.map(o => {
                 const picked = value.includes(o.value)
                 return (
-                  <button
+                  <button data-hover="layer"
                     key={o.value}
                     onClick={() => toggle(o.value)}
                     style={dropdownRow(picked, { accent: tint, accentBg: soft ?? MENU_ACCENT_BG })}
@@ -2037,7 +2037,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
               </div>
               </ScrollFade>
               {on && (
-                <button
+                <button data-hover="layer"
                   onClick={() => { onChange([]); setOpen(false) }}
                   {...dropdownRowHover(false)}
                   style={{

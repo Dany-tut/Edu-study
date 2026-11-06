@@ -173,7 +173,7 @@ export default function DateTimeField({ value, onChange, label }: {
         />
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-4)', letterSpacing: '0.04em' }}>{tzBadge}</span>
         <span style={{ flex: 1 }} />
-        <button
+        <button data-hover="layer"
           type="button"
           onClick={() => { setView({ y: cur.y, m: cur.m }); setOpen(o => !o) }}
           aria-label={t('Открыть календарь')}
@@ -203,9 +203,9 @@ export default function DateTimeField({ value, onChange, label }: {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <button type="button" onClick={() => shift(-1)} aria-label={t('Предыдущий месяц')} style={navBtn}><ChevronLeft size={14} /></button>
+                  <button data-hover="layer" type="button" onClick={() => shift(-1)} aria-label={t('Предыдущий месяц')} style={navBtn}><ChevronLeft size={14} /></button>
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t(MONTHS[view.m])} {view.y}</span>
-                  <button type="button" onClick={() => shift(1)} aria-label={t('Следующий месяц')} style={navBtn}><ChevronRight size={14} /></button>
+                  <button data-hover="layer" type="button" onClick={() => shift(1)} aria-label={t('Следующий месяц')} style={navBtn}><ChevronRight size={14} /></button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
                   {DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', padding: '2px 0' }}>{t(d)}</div>)}

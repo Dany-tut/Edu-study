@@ -63,7 +63,7 @@ function PersonRow({ student, subject, onClick }: { student: Student; subject?: 
   const { tc, tn } = useTc()
   const signal = studentSignal(student, t)
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
@@ -92,7 +92,7 @@ type GroupAgg = { avgHw: number | null; debtCount: number; pending: number }
 function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClick: () => void }) {
   const t = useT()
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
@@ -211,13 +211,13 @@ function StudentAssignments({ student }: { student: Student }) {
   }
   return <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
     <div style={{ display: 'flex', gap: 8 }}>
-      <button style={{ ...btn('S', mode === 'group' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'group'} onClick={() => setMode('group')}>{t('В группу')}</button>
-      <button style={{ ...btn('S', mode === 'individual' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'individual'} onClick={() => setMode('individual')}>{t('Занятия 1:1')}</button>
+      <button data-hover="layer" style={{ ...btn('S', mode === 'group' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'group'} onClick={() => setMode('group')}>{t('В группу')}</button>
+      <button data-hover="layer" style={{ ...btn('S', mode === 'individual' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'individual'} onClick={() => setMode('individual')}>{t('Занятия 1:1')}</button>
     </div>
     {mode === 'group'
       ? <TeacherSelect value={groupId} onChange={setGroupId} placeholder={t('Выберите группу')} options={groups.filter(g => !g.isIndividual && !memberships.some(s => s.groupId === g.id)).map(g => ({value:g.id,label:g.name}))} />
       : <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет для занятий 1:1')} options={mySubjectNames(useTeacherAccess.getState().subjects).map(s => ({value:s,label:t(s)}))} />}
-    <button style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }} disabled={busy || !(mode === 'group' ? groupId : subject)} onClick={() => void assign(mode === 'individual')}>{busy ? t('Сохранение...') : mode === 'group' ? t('Добавить в группу') : t('Назначить занятия 1:1')}</button>
+    <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }} disabled={busy || !(mode === 'group' ? groupId : subject)} onClick={() => void assign(mode === 'individual')}>{busy ? t('Сохранение...') : mode === 'group' ? t('Добавить в группу') : t('Назначить занятия 1:1')}</button>
     {error && <Alert tone="danger" text={error} />}
   </section>
 }
@@ -345,7 +345,7 @@ export default function MobileTeacherStudents() {
     <MobileScreen topZone={topZone} glassHeader={{ leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}
       bottomDockRaise={80}
       bottomDock={!openGroup && !addOpen && !sheetOpen ? (
-        <button style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }}
+        <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }}
           onClick={() => { setInvite(''); setCreateError(''); setCopiedInvite(false); setAddOpen(true) }}>
           {t('Добавить ученика')}
         </button>
@@ -357,10 +357,10 @@ export default function MobileTeacherStudents() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')} footer={<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {invite ? <>
-                <button style={btn('M', 'primary')} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</button>
-                <button style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}>{t('Готово')}</button>
+                <button data-hover="layer" style={btn('M', 'primary')} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</button>
+                <button data-hover="layer" style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}>{t('Готово')}</button>
               </> : <>
-                <button style={btn('M', 'primary')} disabled={!newName.trim() || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
+                <button data-hover="layer" style={btn('M', 'primary')} disabled={!newName.trim() || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
               </>}
             </div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -383,7 +383,7 @@ export default function MobileTeacherStudents() {
             {FILTERS.map(f => {
               const active = filter === f.key
               return (
-                <button
+                <button data-hover="layer"
                   key={f.key}
                   onClick={() => setFilter(f.key)}
                   className="cursor-pointer"

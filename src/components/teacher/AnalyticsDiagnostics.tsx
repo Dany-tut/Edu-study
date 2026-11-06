@@ -68,8 +68,8 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
   return <section style={{ display: 'grid', gap: 16, color: 'var(--color-text)', overflowWrap: 'anywhere' }}>
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
       <h3 style={{ margin: 0, flex: 1 }}>Диагностика Искры</h3>
-      <button style={button} disabled={busy} onClick={() => setRefresh(n => n+1)}>Обновить</button>
-      <button style={button} disabled={busy || !!error} onClick={download}>Скачать JSON</button>
+      <button data-hover="layer" style={button} disabled={busy} onClick={() => setRefresh(n => n+1)}>Обновить</button>
+      <button data-hover="layer" style={button} disabled={busy || !!error} onClick={download}>Скачать JSON</button>
     </div>
     <p style={{ margin: 0, color: 'var(--color-text-3)', fontSize: 13 }}>За {days} дней: последние 500 ошибок и отключений, 500 запросов. Показатели относятся только к этой выборке. Обновлено: {updated || '—'}. Клиентский журнал не подтверждает доступность сервера; при полном сбое доставки события могут отсутствовать. Тестли имеет отдельную базу и здесь не контролируется.</p>
     {error && <Alert tone="danger" title="Диагностика недоступна" text={error} />}
@@ -85,7 +85,7 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
         <h4 style={{ marginTop: 0 }}>Сбои · выберите сессию для разбора</h4>
         {!incidents.length && <p>В выборке сбоев нет. Это не гарантия отсутствия проблем.</p>}
         <ScrollFade maxHeight={420}>
-          {incidents.map(r => <button key={r.id} style={{ ...button, display: 'block', width: '100%', textAlign: 'left', marginBottom: 8 }} onClick={() => setSession(r.session_id)}>
+          {incidents.map(r => <button data-hover="layer" key={r.id} style={{ ...button, display: 'block', width: '100%', textAlign: 'left', marginBottom: 8 }} onClick={() => setSession(r.session_id)}>
             <strong>{String(r.meta.msg ?? r.meta.endpoint ?? r.event)}</strong><br />
             {new Date(r.created_at).toLocaleString('ru-RU')} · {r.role} · {r.path} · {String(r.meta.app_version ?? 'Версия неизвестна')}
             {r.event === 'api_request' && <span> · HTTP {String(r.meta.status)} · {String(r.meta.duration_ms)} мс</span>}

@@ -222,7 +222,7 @@ function Composer({ accent, onAdd }: { accent: string; onAdd: (ru: string) => Pr
         }}
       />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button onClick={() => void submit()} disabled={!text.trim() || busy}
+        <button data-hover="layer" onClick={() => void submit()} disabled={!text.trim() || busy}
           style={{ ...primaryBtn(accent), ...smallBtn, opacity: !text.trim() || busy ? 0.5 : 1 }}>
           {busy ? t('Записываю…') : t('Записать')}
         </button>
@@ -290,7 +290,7 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
         <div style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, ...proseWrap }}>
           {gap.ru}
         </div>
-        <button onClick={onRemove} aria-label={t('Удалить')} title={t('Удалить')} style={{
+        <button data-hover="layer" onClick={onRemove} aria-label={t('Удалить')} title={t('Удалить')} style={{
           border: 'none', background: 'transparent', cursor: 'pointer', padding: 4,
           color: 'var(--color-text-3)', display: 'inline-flex', flexShrink: 0,
         }}>
@@ -322,7 +322,7 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
           {variants.map(v => {
             const on = en.trim() === v.term
             return (
-              <button key={v.term} onClick={() => pick(v)} style={{
+              <button data-hover="layer" key={v.term} onClick={() => pick(v)} style={{
                 textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', padding: '10px 12px',
                 borderRadius: 12, border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
                 background: on ? `${accent}14` : 'var(--color-bg)', display: 'flex', gap: 8, alignItems: 'flex-start',
@@ -344,11 +344,11 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {helpOn && (
-          <button onClick={() => void ask()} disabled={asking} style={{ ...ghostBtn(accent), ...smallBtn, opacity: asking ? 0.6 : 1 }}>
+          <button data-hover="layer" onClick={() => void ask()} disabled={asking} style={{ ...ghostBtn(accent), ...smallBtn, opacity: asking ? 0.6 : 1 }}>
             <Sparkles size={14} /> {asking ? t('Думаю…') : variants ? t('Ещё варианты') : t('Как сказать?')}
           </button>
         )}
-        <button onClick={() => void cards()} disabled={!canCard}
+        <button data-hover="layer" onClick={() => void cards()} disabled={!canCard}
           style={{ ...primaryBtn(accent), ...smallBtn, opacity: canCard ? 1 : 0.45, cursor: canCard ? 'pointer' : 'default' }}>
           {carding ? t('Добавляю…') : t('В карточки')}
         </button>
@@ -364,7 +364,7 @@ function DoneList({ gaps }: { gaps: PhraseGap[] }) {
   const [shown, setShown] = useState(false)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
-      <button onClick={() => setShown(s => !s)} style={{
+      <button data-hover="layer" onClick={() => setShown(s => !s)} style={{
         alignSelf: 'flex-start', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0,
         fontFamily: 'inherit', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)',
       }}>

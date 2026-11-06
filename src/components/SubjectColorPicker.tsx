@@ -150,7 +150,7 @@ export default function SubjectColorPicker({
           const current = own ?? baseColor(s.id)
           const open = openId === s.id
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={s.id}
               ref={el => { if (el) cardRefs.current.set(s.id, el); else cardRefs.current.delete(s.id) }}
               type="button"
@@ -203,7 +203,7 @@ export default function SubjectColorPicker({
                 {TINT_SWATCHES.map(hex => {
                   const active = openCurrent.toLowerCase() === hex.toLowerCase()
                   return (
-                    <motion.button
+                    <motion.button data-hover="layer"
                       key={hex}
                       type="button"
                       whileTap={{ scale: 0.88 }}
@@ -222,7 +222,7 @@ export default function SubjectColorPicker({
                 })}
               </div>
               {openOwn && (
-                <motion.button
+                <motion.button data-hover="layer"
                   type="button"
                   whileTap={{ scale: 0.97 }}
                   onClick={() => pick(openSubject.id, null)}

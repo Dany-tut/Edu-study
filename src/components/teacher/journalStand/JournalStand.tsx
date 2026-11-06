@@ -331,7 +331,7 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, a
           const count = tab === 'Посещаемость' ? pendingCount : 0
           const label = count ? `${tab} · незаполненные занятия · ${count}` : tab
           return (
-            <button type="button" key={tab} aria-label={label} title={label}
+            <button data-hover="layer" type="button" key={tab} aria-label={label} title={label}
               aria-pressed={selected.tab === tab} onClick={() => set(tab === 'Обзор' ? { tab, student: '', workRef: '' } : { tab })}>
               <Icon size={15} /><span>{tab}</span>{count > 0 && <CountBadge count={count} tone="danger" className="js-pending-count" />}
             </button>
@@ -439,8 +439,8 @@ export function Matrix(props: MatrixProps) {
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
       pendingCount={props.pendingAttendance?.length ?? 0} attentionCount={entries.filter(needsAttention).length} attention={!overview && attention} toggle={() => setAttention(v => !v)}
       workViews={selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views js-work-views" role="group" aria-label="Представление работ">
-        <button type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
-        <button type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
+        <button data-hover="layer" type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
+        <button data-hover="layer" type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
       </div>} /></div>
     {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && <details className="js-pending-lessons">
       <summary><ChevronRight size={16} aria-hidden="true" />Незаполненная посещаемость · {props.pendingAttendance.length}</summary>

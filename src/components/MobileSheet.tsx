@@ -308,7 +308,7 @@ export default function MobileSheet({
                   <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{title}</FadeText>
                 </div>
               )}
-              <button type="button" data-sheet-nodrag aria-label={t('Закрыть')} onClick={onClose} style={{ position: 'absolute', right: 8, top: 8, width: 44, height: 44, border: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)', cursor: 'pointer', touchAction: 'manipulation' }}><X size={20} /></button>
+              <button data-hover="layer" type="button" data-sheet-nodrag aria-label={t('Закрыть')} onClick={onClose} style={{ position: 'absolute', right: 8, top: 8, width: 44, height: 44, border: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)', cursor: 'pointer', touchAction: 'manipulation' }}><X size={20} /></button>
             </div>
             <div
               ref={scrollRef}

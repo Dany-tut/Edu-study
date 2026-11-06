@@ -238,7 +238,7 @@ export default function AudioPlayer({
       </button>
 
       {allowSlow && hasSource && (
-        <button
+        <button data-hover="layer"
           onClick={toggleSlow}
           aria-pressed={slow}
           title={t('Помедленнее')}

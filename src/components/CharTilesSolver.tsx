@@ -147,7 +147,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
               </span>
             )
             : picked.map((ch, i) => (
-              <motion.button
+              <motion.button data-hover="layer"
                 key={`p-${i}-${ch}`}
                 initial={{ scale: 0.8, opacity: 0.4 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -165,7 +165,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
       {/* Банк плиток. У unscramble его порядок — «неправильное написание». */}
       <div className="flex flex-wrap items-center justify-center" style={{ gap: 10 }}>
         {remaining.map(tile => (
-          <motion.button
+          <motion.button data-hover="layer"
             key={tile.key}
             whileTap={disabled || tile.spent || full ? undefined : { scale: 0.94 }}
             onClick={() => pick(tile.ch)}

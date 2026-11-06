@@ -54,7 +54,7 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
         ))}
       </div>
 
-      <button
+      <button data-hover="layer"
         disabled={current || requesting || requested}
         onClick={onRequest}
         style={{

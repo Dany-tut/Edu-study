@@ -230,7 +230,7 @@ function SaveToTrainerDialog({
             { value: 'both'   as const, label: t('Сохранить оба'),        desc: t('Добавить как новое, оригинал сохранить'), color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
             { value: 'skip'   as const, label: t('Только в домашку'),     desc: t('В тренажер не добавлять'),              color: 'var(--color-muted)', bg: 'var(--color-bg)' },
           ].map(opt => (
-            <button
+            <button data-hover="layer"
               key={opt.value}
               onClick={() => onChoice(opt.value)}
               style={{
@@ -288,7 +288,7 @@ function TaskCard({
     >
       <GlassCard style={{ overflow: 'hidden' }}>
         {/* Card header */}
-        <div
+        <div data-hover="layer"
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '12px 14px',
@@ -319,7 +319,7 @@ function TaskCard({
           <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
             {stripHtml(task.question) || <span style={{ fontStyle: 'italic' }}>{t('без текста')}</span>}
           </div>
-          <button
+          <button data-hover="layer"
             onClick={e => { e.stopPropagation(); onDelete() }}
             style={{
               width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer',
@@ -365,7 +365,7 @@ function TaskCard({
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {task.choices.map((ch, ci) => (
                         <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <button
+                          <button data-hover="layer"
                             onClick={() => {
                               if (task.type === 'single') {
                                 onUpdate({ correctChoices: [ci] })
@@ -396,7 +396,7 @@ function TaskCard({
                             style={{ ...inputStyle, flex: 1 }}
                           />
                           {(task.choices ?? []).length > 2 && (
-                            <button
+                            <button data-hover="layer"
                               type="button"
                               aria-label={`${t('Удалить вариант')} ${ci + 1}`}
                               onClick={() => {
@@ -411,7 +411,7 @@ function TaskCard({
                           )}
                         </div>
                       ))}
-                      <button
+                      <button data-hover="layer"
                         onClick={() => onUpdate({ choices: [...(task.choices ?? []), ''] })}
                         style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                       >
@@ -450,7 +450,7 @@ function TaskCard({
                             style={{ ...inputStyle, flex: 1 }}
                           />
                           {(task.pairs ?? []).length > 2 && (
-                            <button
+                            <button data-hover="layer"
                               onClick={() => onUpdate({ pairs: (task.pairs ?? []).filter((_, i) => i !== pi) })}
                               style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
@@ -459,7 +459,7 @@ function TaskCard({
                           )}
                         </div>
                       ))}
-                      <button
+                      <button data-hover="layer"
                         onClick={() => onUpdate({ pairs: [...(task.pairs ?? []), { left: '', right: '' }] })}
                         style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                       >
@@ -487,14 +487,14 @@ function TaskCard({
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
                             <GrowTextarea value={it} onChange={v => { const n = [...items]; n[i] = v; setItems(n) }} placeholder={`${t('Шаг')} ${i + 1}`} style={{ ...inputStyle, flex: 1 }} />
-                            <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)}><ArrowUp size={12} /></button>
-                            <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)}><ArrowDown size={12} /></button>
+                            <button data-hover="layer" onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)}><ArrowUp size={12} /></button>
+                            <button data-hover="layer" onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)}><ArrowDown size={12} /></button>
                             {items.length > 2 && (
-                              <button onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={12} /></button>
+                              <button data-hover="layer" onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={12} /></button>
                             )}
                           </div>
                         ))}
-                        <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
+                        <button data-hover="layer" onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
                           <Plus size={12} /> {t('Добавить шаг')}
                         </button>
                       </div>
@@ -610,7 +610,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, 
         />
       ))}
       {onTestly && <TestlyPaletteRow onClick={onTestly} />}
-      <button
+      <button data-hover="layer"
         onClick={onImport}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
@@ -628,7 +628,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, 
         {t('СЛОЖНОЕ ЗАДАНИЕ')}
       </div>
       {TASK_TYPES.slice(0, 2).map(tt => (
-        <button
+        <button data-hover="layer"
           key={'hard-' + tt.type}
           onClick={() => flash(tt.type, onAddHard)}
           style={{
@@ -644,7 +644,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, 
           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)' }}>{t(tt.label)}</div>
         </button>
       ))}
-      <button
+      <button data-hover="layer"
         onClick={onImportHard}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
@@ -835,7 +835,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
 
         {/* Right action cluster */}
         <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-          <button
+          <button data-hover="layer"
             onClick={() => !added && onAdd(task, editedFields(), variantId !== null ? 'both' : justReplaced ? 'update' : undefined)}
             style={{
               padding: '8px 16px', borderRadius: 12, border: 'none',
@@ -864,7 +864,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
               >
                 {/* Add-as-new-variant toggle — shown while editing or once a variant exists */}
                 {(modified || variantId !== null) && (
-                <button
+                <button data-hover="layer"
                   onClick={toggleVariant}
                   title={t('Добавить как новое задание в тренажёр (новый номер)')}
                   style={{
@@ -895,7 +895,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
 
                 {/* Replace original — also shows the "Заменено" confirmation flash */}
                 {(modified || justReplaced) && (
-                <button
+                <button data-hover="layer"
                   onClick={replaceInTrainer}
                   title={t('Заменить оригинал в тренажёре этим текстом')}
                   style={{
@@ -975,7 +975,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid var(--color-border-soft)' }}>
         <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>
-        <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <button data-hover="layer" onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer', fontFamily: 'inherit' }}>
           <AlertCircle size={12} />{reported ? t('Отправлено') : t('Ошибка')}
         </button>
       </div>
@@ -1119,7 +1119,7 @@ function PreviewTab({
                     {t(cfg.label)}
                   </span>
                   {task.modified && (
-                    <button
+                    <button data-hover="layer"
                       onClick={() => onOpenTrainerDialog(task.id)}
                       style={cardChipTone('peach', { border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}
                     >
@@ -1169,7 +1169,7 @@ function PreviewTab({
                 )}
 
                 {(task.type === 'extended' || task.type === 'fill') && (
-                  <button
+                  <button data-hover="layer"
                     onClick={() => toggleAnswer(task.id)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6,
@@ -1185,7 +1185,7 @@ function PreviewTab({
                   </button>
                 )}
               </div>
-              <button
+              <button data-hover="layer"
                 onClick={() => onDelete(task.id)}
                 style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
               >
@@ -1290,7 +1290,7 @@ function TrainerFilterPanel({
           {(['1', '2'] as string[]).map(p => {
             const active = filters.parts.includes(p)
             return (
-              <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
+              <button data-hover="layer" key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
                 style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                   background: active ? 'rgba(139,92,246,0.15)' : 'var(--color-bg-3)',
                   color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
@@ -1306,7 +1306,7 @@ function TrainerFilterPanel({
         onChange={v => onChange({ source: v })} />
 
       {hasFilters && (
-        <button
+        <button data-hover="layer"
           onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '' })}
           style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: 'var(--color-red-text)', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
         >
@@ -1361,7 +1361,7 @@ function HardTaskAccordion({
 
   return (
     <div style={{ marginTop: 8 }}>
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 10,
@@ -1411,7 +1411,7 @@ function HardTaskAccordion({
                 <Label>{t('Назначить')}</Label>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {[{ v: 'all', l: 'Всем в группе' }, { v: 'selected', l: 'Выбранным' }].map(opt => (
-                    <button
+                    <button data-hover="layer"
                       key={opt.v}
                       onClick={() => setAssignTo(opt.v as 'all' | 'selected')}
                       style={{
@@ -1436,7 +1436,7 @@ function HardTaskAccordion({
                     {groupStudents.map(s => {
                       const sel = selectedStudents.has(s.id)
                       return (
-                        <button
+                        <button data-hover="layer"
                           key={s.id}
                           onClick={() => toggleStudent(s.id)}
                           style={{
@@ -1471,7 +1471,7 @@ function HardTaskAccordion({
               <div>
                 <div style={{ display: 'flex', gap: 4, marginBottom: 12, background: 'var(--color-bg)', borderRadius: 11, padding: 4 }}>
                   {[{ v: 'compose', l: 'Составить' }, { v: 'trainer', l: 'Из тренажера' }].map(opt => (
-                    <button
+                    <button data-hover="layer"
                       key={opt.v}
                       onClick={() => setTab(opt.v as 'compose' | 'trainer')}
                       style={{
@@ -1496,7 +1496,7 @@ function HardTaskAccordion({
                         {/* Сложное задание собирают руками и проверяют глазами:
                             языковым тапалкам здесь делать нечего. */}
                         {TASK_TYPES.filter(tt => !tt.languageOnly).map(tt => (
-                          <button key={tt.type} onClick={() => onAdd(tt.type)} style={{
+                          <button data-hover="layer" key={tt.type} onClick={() => onAdd(tt.type)} style={{
                             display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10,
                             border: 'none', background: tt.bg, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: tt.color, fontFamily: 'inherit',
                           }}>
@@ -1601,7 +1601,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
@@ -1615,7 +1615,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
           {value || t('Выберите дату')}
         </div>
         {value && (
-          <span
+          <span data-hover="layer"
             role="button"
             tabIndex={0}
             onClick={e => { e.stopPropagation(); onChange('') }}
@@ -1647,9 +1647,9 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
           >
             {/* Month nav */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <button style={navBtnStyle} onClick={prevMonth}><ChevronLeft size={14} /></button>
+              <button data-hover="layer" style={navBtnStyle} onClick={prevMonth}><ChevronLeft size={14} /></button>
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS[viewMonth])} {viewYear}</span>
-              <button style={navBtnStyle} onClick={nextMonth}><ChevronRight size={14} /></button>
+              <button data-hover="layer" style={navBtnStyle} onClick={nextMonth}><ChevronRight size={14} /></button>
             </div>
 
             {/* Day headers */}
@@ -1667,7 +1667,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
                 const isSelected = cellStr === value
                 const isToday = cellStr === today
                 return (
-                  <button
+                  <button data-hover="layer"
                     key={i}
                     onClick={() => pickDay(day)}
                     style={{
@@ -1711,7 +1711,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
@@ -1725,7 +1725,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
           {selected ? selected.name : t('Группа')}
         </div>
         {selected && (
-          <span
+          <span data-hover="layer"
             role="button"
             tabIndex={0}
             onClick={e => { e.stopPropagation(); onChange('') }}
@@ -1844,7 +1844,7 @@ function LessonPicker({
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       {/* Trigger button */}
-      <button
+      <button data-hover="layer"
         onClick={() => { if (!open) { setQuery(''); setFade({ top: 0, bottom: 0 }) } setOpen(o => !o) }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
@@ -1865,7 +1865,7 @@ function LessonPicker({
           )}
         </div>
         {selected && (
-          <span
+          <span data-hover="layer"
             role="button"
             tabIndex={0}
             onClick={e => { e.stopPropagation(); onChange('') }}
@@ -1912,7 +1912,7 @@ function LessonPicker({
                 }}
               />
               {query && (
-                <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
+                <button data-hover="layer" onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
                   <X size={14} />
                 </button>
               )}
@@ -1928,7 +1928,7 @@ function LessonPicker({
                     padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
                     background: !value ? 'var(--color-purple-soft)' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
                   }}
-                  onMouseEnter={e => { if (value) e.currentTarget.style.background = 'var(--color-bg)' }}
+                  onMouseEnter={e => { if (value) e.currentTarget.style.background = 'var(--color-bg-3)' }}
                   onMouseLeave={e => { if (value) e.currentTarget.style.background = 'transparent' }}
                 >
                   <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1985,7 +1985,7 @@ function LessonOption({ lesson, active, suggested, onClick }: {
         padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
         background: active ? 'var(--color-purple-soft)' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
       }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg)' }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg-3)' }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
     >
       <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -2034,7 +2034,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         {/* Кому */}
         <div style={{ display: 'flex', gap: 6 }}>
           {(['group', 'student'] as const).map(mode => (
-            <button
+            <button data-hover="layer"
               key={mode}
               onClick={() => onChange({ assignTo: mode, studentId: '' })}
               style={{
@@ -2061,7 +2061,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
             {subjects.length > 1 && (
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {[{ v: '', label: 'Все' }, ...subjects.map(s => ({ v: s, label: tc(s) }))].map(opt => (
-                  <button
+                  <button data-hover="layer"
                     key={opt.v || 'all'}
                     onClick={() => { setSubjectFilter(opt.v); onChange({ studentId: '' }) }}
                     style={{
@@ -2477,7 +2477,7 @@ export default function TeacherHomeworkCreatePage() {
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
 
-            <button
+            <button data-hover="layer"
               style={{
                 flexShrink: 0, padding: '10px 16px', borderRadius: 999, ...dockGlass,
                 cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--color-muted)',
@@ -2524,7 +2524,7 @@ export default function TeacherHomeworkCreatePage() {
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 600 }}>
               {hwTasks.length} {t('зад.')}{hardTasks.length > 0 ? ` + ${hardTasks.length} ${t('сложн.')}` : ''}
             </div>
-            <button
+            <button data-hover="layer"
               style={{
                 padding: '10px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)',
                 background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', cursor: 'pointer',
@@ -2572,7 +2572,7 @@ export default function TeacherHomeworkCreatePage() {
             border: '1px solid var(--color-border-glass)',
           }}>
             {TABS.map(tab => (
-              <button
+              <button data-hover="layer"
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 style={{
@@ -2757,7 +2757,7 @@ export default function TeacherHomeworkCreatePage() {
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{tc(lesson?.courseTitle)}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setShowPublishConfirm(false)}
                     style={{ ...btn('M', 'secondary'), flex: 1 }}
                   >

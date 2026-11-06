@@ -56,7 +56,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
       {providers.map(({ id, label }) => (
-        <button
+        <button data-hover="layer"
           key={id}
           data-auth-provider={id}
           type="button"
@@ -85,9 +85,9 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
 
 export function AuthLegalLinks() {
   return <p className="auth-legal">
-        <a href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
+        <a data-hover="link" href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
         {' · '}
-        <a href="https://edu-study-app.vercel.app/terms.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Условия использования</a>
+        <a data-hover="link" href="https://edu-study-app.vercel.app/terms.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Условия использования</a>
       </p>
 }
 

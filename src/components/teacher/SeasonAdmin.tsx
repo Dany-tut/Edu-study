@@ -115,7 +115,7 @@ export default function SeasonAdmin() {
               // у ученика); не спрашиваем — общую тему в базе, по «Сохранить».
               const on = draft.ask ? view.choice === v.key : draft.variant === v.key
               return (
-                <button
+                <button data-hover="layer"
                   key={v.key}
                   onClick={() => (draft.ask ? setSeasonChoice(on ? 'off' : v.key) : patch({ variant: v.key }))}
                   aria-pressed={on}

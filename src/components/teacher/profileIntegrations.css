@@ -36,3 +36,6 @@
   .integration-step-arrow {align-self:center;transform:rotate(90deg)}
   .integration-steps .integration-action:not(.integration-disconnect) {width:100%}
 }
+/* Ховер — тот же приём, что у слоя data-hover: цвет текста кнопки на 10 % поверх заливки. */
+.integration-action {transition:box-shadow .15s}
+@media (hover:hover) and (pointer:fine) {.integration-action:hover:not(:disabled) {box-shadow:inset 0 0 0 100vmax color-mix(in srgb,currentColor 10%,transparent)}}

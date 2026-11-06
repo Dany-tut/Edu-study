@@ -103,7 +103,7 @@ function Bubble({ c, accent, onRemove }: {
         </span>
         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{whenLabel(c.createdAt)}</span>
         {c.mine && (
-          <button
+          <button data-hover="layer"
             onClick={() => onRemove(c.id)}
             title={t('Удалить')}
             style={{
@@ -171,7 +171,7 @@ function Composer({ accent, placeholder, onSend, compact }: {
           fontSize: 16, lineHeight: 1.4, fontFamily: 'inherit',
         }}
       />
-      <button
+      <button data-hover="layer"
         onClick={() => void send()}
         disabled={!value.trim() || sending}
         style={{

@@ -29,7 +29,7 @@ export default function QuizDialogContent({ state, question, answers, current, q
           <div className="qd-toolbar">
             <span className="qd-subject"><FadeText>{question.subject}</FadeText></span>
             <div className="qd-timer" data-urgent={timeLeft <= 5}><Clock size={17}/><span>{timeLeft} {t('сек')}</span></div>
-            <button type="button" className="qd-icon-button" onClick={onStop} aria-label={t('Остановить')}><Pause size={19}/></button>
+            <button data-hover="layer" type="button" className="qd-icon-button" onClick={onStop} aria-label={t('Остановить')}><Pause size={19}/></button>
           </div>
           <OverlayScrollArea key={`question-${question.id}`} showScrollbar={false} className="qd-question-scroll" style={{ minHeight: 0 }}>
             <h3 className="qd-question-text">{question.title}</h3>
@@ -57,12 +57,12 @@ export default function QuizDialogContent({ state, question, answers, current, q
     </div>
     <footer className="qd-navigation">
       {playing ? <>
-        <button type="button" className="qd-icon-button" disabled={current === 0} onClick={() => onNavigate(current - 1)} aria-label={t('Предыдущий вопрос')}><ChevronLeft size={21}/></button>
+        <button data-hover="layer" type="button" className="qd-icon-button" disabled={current === 0} onClick={() => onNavigate(current - 1)} aria-label={t('Предыдущий вопрос')}><ChevronLeft size={21}/></button>
         <div className="qd-progress-control"><LoopSelect value={current} aria-label={t('Вопрос')} onChange={event => onNavigate(Number(event.target.value))} style={{ width: '100%', height: 44, border: 0, borderRadius: 12, paddingLeft: 12, background: 'var(--color-bg-3)', fontSize: 13 }}>
           {questions.map((item, index) => <option key={item.id} value={index}>{index + 1} {t('из')} {total}</option>)}
         </LoopSelect><div className="qd-progress" aria-hidden="true"><span style={{ width: `${total ? (current + 1) / total * 100 : 0}%` }}/></div></div>
-        <button type="button" className="qd-icon-button" disabled={current === total - 1} onClick={() => onNavigate(current + 1)} aria-label={t('Следующий вопрос')}><ChevronRight size={21}/></button>
-      </> : <button type="button" className="qd-primary" disabled={!total} onClick={state === 'done' ? onRestart : onStart}>{state === 'done' ? t('Начать заново') : resumeIndex > 0 ? t('Продолжить') : t('Начать')}<ChevronRight size={19}/></button>}
+        <button data-hover="layer" type="button" className="qd-icon-button" disabled={current === total - 1} onClick={() => onNavigate(current + 1)} aria-label={t('Следующий вопрос')}><ChevronRight size={21}/></button>
+      </> : <button data-hover="layer" type="button" className="qd-primary" disabled={!total} onClick={state === 'done' ? onRestart : onStart}>{state === 'done' ? t('Начать заново') : resumeIndex > 0 ? t('Продолжить') : t('Начать')}<ChevronRight size={19}/></button>}
     </footer>
   </div>
 }

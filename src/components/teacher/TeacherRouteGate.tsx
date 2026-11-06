@@ -96,7 +96,7 @@ export default function TeacherRouteGate({ session, children }: { session: Sessi
         <div className="auth-page-layout" style={{ minHeight: '100dvh' }}><div className="auth-page-content auth-page-card">
           <p role="status" style={{ color: 'var(--color-text)', fontSize: 15 }}>{t(current?.status === 'loading' ? 'Проверяем доступ…' : 'Не удалось проверить доступ')}</p>
           <p style={{ color: 'var(--color-muted)', fontSize: 14 }}>{t('Повторите проверку доступа, чтобы продолжить работу.')}</p>
-          <button type="button" disabled={current?.status === 'loading'} aria-busy={current?.status === 'loading'}
+          <button data-hover="layer" type="button" disabled={current?.status === 'loading'} aria-busy={current?.status === 'loading'}
             onClick={() => setRetry(value => value + 1)}
             style={{ width: '100%', minHeight: 44, padding: 12, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600 }}>
             {t('Проверить доступ ещё раз')}

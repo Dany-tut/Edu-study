@@ -252,10 +252,10 @@ function SetRun({ item, subjectId, accent, owner, states }: {
           кнопки «12 на сегодня» и «12 всего» — выбор без разницы. */}
       {dueOnly.length > 0 && dueOnly.length < all.length && (
         <div style={{ display: 'flex', gap: 8, alignSelf: 'flex-start' }}>
-          <button type="button" onClick={() => setWhole(false)} style={pill(accent, !whole)}>
+          <button data-hover="layer" type="button" onClick={() => setWhole(false)} style={pill(accent, !whole)}>
             {dueOnly.length} {t('на сегодня')}
           </button>
-          <button type="button" onClick={() => setWhole(true)} style={pill(accent, whole)}>
+          <button data-hover="layer" type="button" onClick={() => setWhole(true)} style={pill(accent, whole)}>
             {t('Весь набор')} · {all.length}
           </button>
         </div>

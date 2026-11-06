@@ -72,7 +72,7 @@ export function ViewSwitch<V extends string>({ value, options, accent = 'var(--c
       {options.map(([val, title, Icon]) => {
         const active = value === val
         return (
-          <button key={val} type="button" onClick={() => onChange(val)} title={t(title)} aria-label={t(title)} aria-pressed={active}
+          <button data-hover="layer" key={val} type="button" onClick={() => onChange(val)} title={t(title)} aria-label={t(title)} aria-pressed={active}
             style={{ width: 30, height: 23, padding: 0, flexShrink: 0, borderRadius: 7, border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: active ? 'var(--color-surface)' : 'transparent',
@@ -158,7 +158,7 @@ export function SortDropdown<V extends string>({ value, options, accent, minWidt
     <div style={{ position: 'relative' }}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false) }}
       onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); trigger.current?.focus() } }}>
-      <button ref={trigger} type="button" aria-expanded={open} onClick={() => setOpen(o => !o)} style={pillStyle(open)}>
+      <button data-hover="layer" ref={trigger} type="button" aria-expanded={open} onClick={() => setOpen(o => !o)} style={pillStyle(open)}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ minWidth, textAlign: 'left', whiteSpace: 'nowrap' }}>{label}</span>
         <Caret open={open} />
@@ -240,7 +240,7 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
     <div style={{ position: 'relative' }}
       onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); setQuery(''); trigger.current?.focus() } }}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
-      <button ref={trigger} type="button" aria-expanded={open} onClick={() => { setOpen(o => !o); setQuery('') }}
+      <button data-hover="layer" ref={trigger} type="button" aria-expanded={open} onClick={() => { setOpen(o => !o); setQuery('') }}
         // Выбранное значение помечаем только жирным текстом: своя яркая рамка у
         // заполненного фасета выбивалась из ряда таблеток шапки.
         style={pillStyle(open, { gap: iconGap, fontWeight: value ? 700 : 600 })}>
@@ -300,7 +300,7 @@ export function SegmentFilter<V extends string>({ value, options, onChange, comp
       {options.map(([val, lbl, color]) => {
         const active = value === val
         return (
-          <button key={val || 'all'} onClick={() => onChange(val)}
+          <button data-hover="layer" key={val || 'all'} onClick={() => onChange(val)}
             style={{ padding: compact ? '6px 8px' : '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 12, whiteSpace: 'nowrap', fontWeight: active ? 700 : 500,
               background: active ? 'var(--color-surface)' : 'transparent',
@@ -354,7 +354,7 @@ export function ShelfSearch({ value, onChange, placeholder, style, collapsed }: 
           font: 'inherit', fontWeight: 500, color: 'var(--color-text)', lineHeight: '15px',
         }} />
       {value
-        ? <button type="button" aria-label={t('Очистить')} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(''); ref.current?.focus() }}
+        ? <button data-hover="layer" type="button" aria-label={t('Очистить')} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(''); ref.current?.focus() }}
             style={{ display: 'flex', padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-3)' }}>
             <X size={12} />
           </button>
@@ -460,7 +460,7 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
     <div style={{ position: 'relative' }}
       onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); setQuery(''); trigger.current?.focus() } }}
       onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); setQuery('') } }}>
-      <button ref={trigger} type="button" aria-expanded={open} onClick={() => { setOpen(o => !o); setQuery('') }}
+      <button data-hover="layer" ref={trigger} type="button" aria-expanded={open} onClick={() => { setOpen(o => !o); setQuery('') }}
         // Таблетка как у соседей по ряду: своя обводка акцентом выбивалась из
         // ряда. Куда нажать, подсказывает строка под рядом (PickSubjectHint).
         style={pillStyle(open, { fontWeight: on.length ? 700 : 600 })}>
@@ -484,7 +484,7 @@ export function SubjectFacet({ values, onChange, accent, only, minWidth = 116, s
             )}
             <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
               {allowAll && (
-                <button type="button" aria-pressed={showAll} onClick={() => onChange([])}
+                <button data-hover="layer" type="button" aria-pressed={showAll} onClick={() => onChange([])}
                   style={rowStyle(showAll, soft)}>
                   <MenuRowLabel label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><BookOpen size={16} />{t('Все предметы')}</span>} on={showAll} accent={accent} />
                 </button>

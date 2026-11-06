@@ -57,7 +57,7 @@ export function GlassPill({
   }
   if (!onClick) return <div data-swipe-morph={morph} style={inner}>{children}</div>
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       type="button"
       data-swipe-morph={morph}
       whileTap={{ scale: TAP_SCALE }}
@@ -93,7 +93,7 @@ export function GlassIconButton({
   // шапки стояли на два пикселя ниже, чем на экранах без круглой кнопки.
   const hit = Math.max(size, 44)
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       type="button"
       aria-label={ariaLabel}
       whileTap={{ scale: 0.9 }}

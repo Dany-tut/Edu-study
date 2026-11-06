@@ -130,7 +130,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                             />
                             <div style={{ display: 'flex', gap: 6 }}>
                               {CAPS.map(c => (
-                                <button
+                                <button data-hover="layer"
                                   key={c.v}
                                   onClick={() => patch({ verdict: c.v })}
                                   style={{
@@ -147,7 +147,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                             </div>
                           </div>
                           {rows.length > 1 && (
-                            <button
+                            <button data-hover="layer"
                               onClick={() => setRows(rows.filter((_, k) => k !== ri))}
                               style={{ width: 24, height: 24, marginTop: 6, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
@@ -157,7 +157,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                         </div>
                       )
                     })}
-                    <button
+                    <button data-hover="layer"
                       onClick={() => setRows([...rows, { text: '', verdict: 'T' }])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
@@ -205,7 +205,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                           </div>
                           {gap.options.map((opt, oi) => (
                             <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <button
+                              <button data-hover="layer"
                                 onClick={() => patch({ correct: oi })}
                                 title={t('Верный вариант')}
                                 style={{
@@ -224,7 +224,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                                 style={{ ...fieldSt, flex: 1 }}
                               />
                               {gap.options.length > 2 && (
-                                <button
+                                <button data-hover="layer"
                                   onClick={() => patch({
                                     options: gap.options.filter((_, k) => k !== oi),
                                     correct: gap.correct > oi ? gap.correct - 1 : Math.min(gap.correct, gap.options.length - 2),
@@ -236,7 +236,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                               )}
                             </div>
                           ))}
-                          <button
+                          <button data-hover="layer"
                             onClick={() => patch({ options: [...gap.options, ''] })}
                             style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                           >
@@ -272,7 +272,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                             style={{ ...fieldSt, width: 116 }}
                           />
                           {cols.length > 2 && (
-                            <button
+                            <button data-hover="layer"
                               onClick={() => onUpdate({
                                 ...task,
                                 columns: cols.filter((_, k) => k !== ci),
@@ -292,7 +292,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                         </div>
                       ))}
                       {cols.length < 4 && (
-                        <button
+                        <button data-hover="layer"
                           onClick={() => onUpdate({ ...task, columns: [...cols, ''] })}
                           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                         >
@@ -312,7 +312,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                         />
                         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                           {cols.map((col, ci) => (
-                            <button
+                            <button data-hover="layer"
                               key={ci}
                               onClick={() => onUpdate({ ...task, sortItems: items.map((x, k) => k === ii ? { ...x, column: ci } : x) })}
                               style={{
@@ -329,7 +329,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                           ))}
                         </div>
                         {items.length > 1 && (
-                          <button
+                          <button data-hover="layer"
                             onClick={() => onUpdate({ ...task, sortItems: items.filter((_, k) => k !== ii) })}
                             style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                           >
@@ -338,7 +338,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                         )}
                       </div>
                     ))}
-                    <button
+                    <button data-hover="layer"
                       onClick={() => onUpdate({ ...task, sortItems: [...items, { text: '', column: 0 }] })}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >

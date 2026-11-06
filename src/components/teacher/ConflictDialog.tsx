@@ -108,7 +108,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
               {t('Выберите, чью версию оставить — слить автоматически нельзя')}
             </span>
           </span>
-          <button onClick={onClose} aria-label={t('Закрыть')} className="cursor-pointer flex items-center justify-center flex-shrink-0"
+          <button data-hover="layer" onClick={onClose} aria-label={t('Закрыть')} className="cursor-pointer flex items-center justify-center flex-shrink-0"
             style={{ width: 32, height: 32, borderRadius: 11, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-muted)' }}>
             <X size={16} />
           </button>
@@ -168,10 +168,10 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
         </div>
 
         <footer className="flex items-center flex-shrink-0" style={{ gap: 10, padding: '14px 22px', borderTop: '1px solid var(--color-border-soft)' }}>
-          <button onClick={onReload} className="cursor-pointer flex items-center" style={{ ...btn('M', 'secondary'), gap: 8 }}>
+          <button data-hover="layer" onClick={onReload} className="cursor-pointer flex items-center" style={{ ...btn('M', 'secondary'), gap: 8 }}>
             <RotateCcw size={14} /> {t('Взять из базы')}
           </button>
-          <button
+          <button data-hover="layer"
             onClick={onOverwrite}
             className="cursor-pointer flex items-center"
             style={{

@@ -107,8 +107,8 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
       <Modal onClose={handleClose} title={t('Импорт из Google Forms')} width={520} closeButtonStyle={{ width: 44, height: 44 }}
         icon={<Link2 size={24} style={{ color: 'var(--color-accent)' }} />}
         footer={form ? <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button disabled={importing} onClick={() => { setForm(null); setError(null) }} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Назад')}</button>
-          <button onClick={handleImport} disabled={importing || !selectedCount} style={{ ...btn('M', 'primary'), background: 'var(--color-control-accent)', minHeight: 44 }}>{t('Импортировать')} {selectedCount || ''}</button>
+          <button data-hover="layer" disabled={importing} onClick={() => { setForm(null); setError(null) }} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Назад')}</button>
+          <button data-hover="layer" onClick={handleImport} disabled={importing || !selectedCount} style={{ ...btn('M', 'primary'), background: 'var(--color-control-accent)', minHeight: 44 }}>{t('Импортировать')} {selectedCount || ''}</button>
         </div> : undefined}>
           {!form && (
             <div style={{ marginTop: 14 }}>
@@ -129,7 +129,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
                     background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 16, fontFamily: 'inherit', minHeight: 44, boxSizing: 'border-box',
                   }}
                 />
-                <button
+                <button data-hover="layer"
                   onClick={handleParse}
                   disabled={loading || !url.trim()}
                   style={{ minHeight: 44,
@@ -170,7 +170,7 @@ function QuestionRow({ q, index, excluded, disabled, onToggle }: { q: ImportedQu
   const visual = typeVisual(q.type)
   const needsAnswer = q.type !== 'extended'
   return (
-    <button type="button" role="checkbox" aria-checked={!excluded} aria-label={q.title} disabled={disabled}
+    <button data-hover="layer" type="button" role="checkbox" aria-checked={!excluded} aria-label={q.title} disabled={disabled}
       onClick={onToggle}
       style={{
         display: 'flex', width: '100%', textAlign: 'left', fontFamily: 'inherit', minHeight: 44, alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 12, cursor: 'pointer',

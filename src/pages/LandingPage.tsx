@@ -125,20 +125,20 @@ export default function LandingPage() {
           Искра
         </div>
         <nav style={{ marginLeft: 28, display: 'flex', gap: 22 }} className="lp-nav">
-          <a href="#how" style={navLink}>{t('Как работает')}</a>
-          <a href="#features" style={navLink}>{t('Возможности')}</a>
-          <a href="#modes" style={navLink}>{t('Задания')}</a>
-          <a href="#tariffs" style={navLink}>{t('Тарифы')}</a>
+          <a data-hover="link" href="#how" style={navLink}>{t('Как работает')}</a>
+          <a data-hover="link" href="#features" style={navLink}>{t('Возможности')}</a>
+          <a data-hover="link" href="#modes" style={navLink}>{t('Задания')}</a>
+          <a data-hover="link" href="#tariffs" style={navLink}>{t('Тарифы')}</a>
         </nav>
         <div className="lp-actions" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <ThemeToggleBtn />
           {/* на телефоне шапка не вмещает две кнопки: остаётся короткое «Войти»,
               заявка — большой кнопкой в первом экране */}
-          <button onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, whiteSpace: 'nowrap' }}>
+          <button data-hover="layer" onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, whiteSpace: 'nowrap' }}>
             <span className="lp-wide">{t('Личный кабинет')}</span>
             <span className="lp-narrow">{t('Войти')}</span>
           </button>
-          <button onClick={() => openLead()} className="lp-wide" style={{ ...primaryBtn, whiteSpace: 'nowrap' }}>{t('Оставить заявку')}</button>
+          <button data-hover="layer" onClick={() => openLead()} className="lp-wide" style={{ ...primaryBtn, whiteSpace: 'nowrap' }}>{t('Оставить заявку')}</button>
         </div>
       </header>
       {/* спейсер под фиксированную шапку */}
@@ -181,10 +181,10 @@ export default function LandingPage() {
           </Reveal>
           <Reveal delay={0.15}>
             <div className="lp-hero-cta" style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 34 }}>
-              <button onClick={() => openLead()} style={{ ...primaryBtn, justifyContent: 'center', padding: '15px 30px', fontSize: 16, boxShadow: `0 12px 30px -10px ${ACCENT}` }}>
+              <button data-hover="layer" onClick={() => openLead()} style={{ ...primaryBtn, justifyContent: 'center', padding: '15px 30px', fontSize: 16, boxShadow: `0 12px 30px -10px ${ACCENT}` }}>
                 <Send size={17} /> {t('Оставить заявку')}
               </button>
-              <button onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, justifyContent: 'center', padding: '15px 28px', fontSize: 16 }}>
+              <button data-hover="layer" onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, justifyContent: 'center', padding: '15px 28px', fontSize: 16 }}>
                 {t('Войти в кабинет')} <ArrowRight size={17} />
               </button>
             </div>
@@ -324,7 +324,7 @@ export default function LandingPage() {
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
                     {p.features.filter(f => f !== limit).map(f => <PlanFeature key={f} text={f} />)}
                   </ul>
-                  <button onClick={() => openLead(`${p.name} · ${planPrice(p, lang)}`)}
+                  <button data-hover="layer" onClick={() => openLead(`${p.name} · ${planPrice(p, lang)}`)}
                     style={{ ...(featured ? primaryBtn : outlineBtn), marginTop: 24, justifyContent: 'center', width: '100%', padding: '12px' }}>
                     {p.priceRub === 0 ? t('Начать бесплатно') : t('Оставить заявку')}
                   </button>
@@ -356,7 +356,7 @@ export default function LandingPage() {
               }}>
                 {wideTier.features.map(f => <PlanFeature key={f} text={f} />)}
               </ul>
-              <button onClick={() => openLead(`${wideTier.name} · ${planPrice(wideTier, lang)}`)}
+              <button data-hover="layer" onClick={() => openLead(`${wideTier.name} · ${planPrice(wideTier, lang)}`)}
                 style={{ ...outlineBtn, justifyContent: 'center', padding: '12px 26px', flexShrink: 0 }}>
                 {t('Оставить заявку')}
               </button>
@@ -375,7 +375,7 @@ export default function LandingPage() {
               <p style={{ fontSize: 16.5, opacity: 0.92, margin: '14px auto 28px', maxWidth: 500, lineHeight: 1.55 }}>
                 {t('Оставьте контакт — расскажем, как начать, и поможем перенести учеников.')}
               </p>
-              <button onClick={() => openLead()} style={{ ...onAccentBtn, padding: '15px 32px', fontSize: 16, boxShadow: '0 14px 34px -12px rgba(0,0,0,0.4)' }}>
+              <button data-hover="layer" onClick={() => openLead()} style={{ ...onAccentBtn, padding: '15px 32px', fontSize: 16, boxShadow: '0 14px 34px -12px rgba(0,0,0,0.4)' }}>
                 <Send size={17} /> {t('Оставить заявку')}
               </button>
             </div>
@@ -387,8 +387,8 @@ export default function LandingPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 700, color: 'var(--color-text-2)' }}>
           <img src="/icon.svg?v=3" alt="" width={22} height={22} style={{ borderRadius: 6 }} /> Искра
         </div>
-        <a href="/privacy.html" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
-        <a href="/terms.html" style={{ color: 'inherit' }}>Условия использования</a>
+        <a data-hover="link" href="/privacy.html" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
+        <a data-hover="link" href="/terms.html" style={{ color: 'inherit' }}>Условия использования</a>
         <span style={{ marginLeft: 'auto' }}>© Искра · {t('Платформа для преподавателей')}</span>
       </footer>
 
@@ -507,14 +507,14 @@ function RoleChooser({ onClose }: { onClose: () => void }) {
         <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>{t('Личный кабинет')}</h3>
         <p style={{ fontSize: 14, color: 'var(--color-text-2)', margin: '0 0 22px' }}>{t('Кто вы?')}</p>
         <div style={{ display: 'grid', gap: 12 }}>
-          <button ref={firstOption} onClick={() => go('#/login')} style={roleBtn}>
+          <button data-hover="layer" ref={firstOption} onClick={() => go('#/login')} style={roleBtn}>
             <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT} 20%, transparent)`, color: ACCENT }}><User size={22} /></div>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Я ученик')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Вход по логину и паролю от учителя')}</div>
             </div>
           </button>
-          <button onClick={() => go('#/teacher')} style={roleBtn}>
+          <button data-hover="layer" onClick={() => go('#/teacher')} style={roleBtn}>
             <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT} 20%, transparent)`, color: ACCENT }}><GraduationCap size={22} /></div>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 700, fontSize: 16 }}>{t('Я препод')}</div>
@@ -566,7 +566,7 @@ export function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose
             <p style={{ fontSize: 14.5, color: 'var(--color-text-2)', margin: '0 0 24px', lineHeight: 1.5 }}>
               {t('Спасибо! Мы свяжемся с вами по указанному контакту.')}
             </p>
-            <button onClick={onClose} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '13px' }}>{t('Готово')}</button>
+            <button data-hover="layer" onClick={onClose} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '13px' }}>{t('Готово')}</button>
           </div>
         ) : (
           <>
@@ -584,7 +584,7 @@ export function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose
                     const label = `${p.name} · ${planPrice(p, lang)}`
                     const active = plan === label
                     return (
-                      <button key={p.code} type="button" onClick={() => setPlan(active ? '' : label)} style={{
+                      <button data-hover="layer" key={p.code} type="button" onClick={() => setPlan(active ? '' : label)} style={{
                         padding: '10px 8px', borderRadius: 12, cursor: 'pointer', textAlign: 'center',
                         border: `1.5px solid ${active ? ACCENT : 'var(--color-border)'}`,
                         background: active ? `color-mix(in srgb, ${ACCENT} 15%, transparent)` : 'var(--color-surface)',
@@ -599,7 +599,7 @@ export function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose
               </div>
               <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t('Сообщение — коротко о задаче (необязательно)')} rows={3} style={{ ...field, resize: 'vertical', minHeight: 84 }} />
               {error && <Alert tone="danger" text={error} />}
-              <button onClick={send} disabled={sending} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '14px', fontSize: 16, opacity: sending ? 0.7 : 1, cursor: sending ? 'default' : 'pointer' }}>
+              <button data-hover="layer" onClick={send} disabled={sending} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '14px', fontSize: 16, opacity: sending ? 0.7 : 1, cursor: sending ? 'default' : 'pointer' }}>
                 <Send size={17} /> {sending ? t('Отправляем…') : t('Отправить заявку')}
               </button>
             </div>
@@ -631,7 +631,7 @@ function ModalCard({ children, width }: { children: React.ReactNode; width: numb
 function ModalClose({ onClose }: { onClose: () => void }) {
   const t = useT()
   return (
-    <button onClick={onClose} aria-label={t('Закрыть')} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: 9, border: 'none', background: 'transparent', color: 'var(--color-text-3)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
+    <button data-hover="layer" onClick={onClose} aria-label={t('Закрыть')} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: 9, border: 'none', background: 'transparent', color: 'var(--color-text-3)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
       <X size={20} />
     </button>
   )

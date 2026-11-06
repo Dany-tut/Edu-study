@@ -106,10 +106,10 @@ export function PendingInvites({ invites, onRevoked }: { invites: PendingInvite[
                   : <span title={t('Приглашение создано не из админки или аккаунт автора удалён')}>{t('автор неизвестен')}</span>}
               </div>
             </div>
-            <button onClick={() => { void copyToClipboard(inviteLink(inv.token)) }} title={t('Скопировать ссылку')} style={{ ...btn('S', 'secondary'), flexShrink: 0 }}>
+            <button data-hover="layer" onClick={() => { void copyToClipboard(inviteLink(inv.token)) }} title={t('Скопировать ссылку')} style={{ ...btn('S', 'secondary'), flexShrink: 0 }}>
               <Copy size={14} strokeWidth={2} />{t('Ссылка')}
             </button>
-            <button
+            <button data-hover="layer"
               onClick={() => { void revoke(inv.token) }}
               title={t('Отозвать приглашение')}
               style={{ ...btn('S', 'secondary', { width: 32, padding: 0, color: 'var(--color-red-text)' }), flexShrink: 0 }}
@@ -190,7 +190,7 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Пригласить учителя')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{t('Выберите доступ и контент — они «запекутся» в ссылку')}</div>
           </div>
-          <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+          <button data-hover="layer" onClick={onClose} style={{ width: 30, height: 30, borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
             <X size={14} />
           </button>
         </div>
@@ -208,11 +208,11 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
             </div>
             <div style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', borderRadius: 12, padding: '10px 12px', wordBreak: 'break-all', marginBottom: 12 }}>{link}</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={copyLink} style={{ height: 40, flex: 1, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <button data-hover="layer" onClick={copyLink} style={{ height: 40, flex: 1, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} />}
                 {copied ? t('Скопировано!') : t('Скопировать ссылку')}
               </button>
-              <button onClick={onClose} style={btn('M', 'secondary')}>{t('Готово')}</button>
+              <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}>{t('Готово')}</button>
             </div>
           </div>
         ) : (
@@ -247,7 +247,7 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
 
             {error && <Alert tone="danger" text={error} style={{ marginTop: 12 }} />}
 
-            <button
+            <button data-hover="layer"
               onClick={createInvite}
               disabled={creating}
               style={{ height: 48,
@@ -398,7 +398,7 @@ export function AccessEditor({ teacher, onSaved }: { teacher: TeacherAccess; onS
           hash); admin can issue a new one and relay it. */}
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button
+          <button data-hover="layer"
             onClick={resetPassword}
             disabled={pwLoading}
             style={btn('S', 'secondary')}
@@ -407,7 +407,7 @@ export function AccessEditor({ teacher, onSaved }: { teacher: TeacherAccess; onS
             {pwLoading ? t('Сбрасываем…') : t('Сбросить пароль')}
           </button>
           {pwValue && (
-            <div
+            <div data-hover="layer"
               onClick={() => { void copyToClipboard(pwValue).then(ok => { if (ok) { setPwCopied(true); setTimeout(() => setPwCopied(false), 1500) } }) }}
               title={t('Скопировать')}
               style={{

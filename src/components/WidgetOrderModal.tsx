@@ -57,7 +57,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
         <w.Icon size={17} />
       </span>
       <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{w.label}</span>
-      <motion.button
+      <motion.button data-hover="layer"
         whileTap={{ scale: 0.9 }}
         onClick={() => onHide(id)}
         disabled={disabled}
@@ -168,7 +168,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   {t('Перетащите за ручку, чтобы изменить порядок. Скрытые — ниже черты.')}
                 </p>
               </div>
-              <motion.button
+              <motion.button data-hover="layer"
                 whileTap={{ scale: 0.92 }}
                 onClick={onClose}
                 aria-label={t('Закрыть')}
@@ -225,7 +225,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                           <w.Icon size={17} />
                         </span>
                         <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--color-muted)' }}>{w.label}</span>
-                        <motion.button
+                        <motion.button data-hover="layer"
                           whileTap={{ scale: 0.9 }}
                           onClick={() => show(w.id)}
                           aria-label={`${t('Показать')} «${w.label}»`}
@@ -246,7 +246,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
 
               {/* Footer */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 24 }}>
-                <motion.button
+                <motion.button data-hover="layer"
                   whileTap={isDefault ? undefined : { scale: 0.97 }}
                   onClick={reset}
                   disabled={isDefault}
@@ -256,14 +256,14 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   <RotateCcw size={16} />
                   {t('Сбросить')}
                 </motion.button>
-                <motion.button
+                <motion.button data-hover="layer"
                   whileTap={{ scale: 0.97 }}
                   onClick={onClose}
                   style={btn('M', 'secondary')}
                 >
                   {t('Отмена')}
                 </motion.button>
-                <motion.button
+                <motion.button data-hover="layer"
                   whileTap={{ scale: 0.97 }}
                   onClick={apply}
                   style={btn('M', 'primary')}

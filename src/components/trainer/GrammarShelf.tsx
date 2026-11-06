@@ -221,7 +221,7 @@ export function GrammarPage({ form, all, lang, subject, accent, soft, onOpenForm
             {form.contrast.map(c => {
               const other = all.forms.find(f => f.id === c.with)
               return (
-                <button
+                <button data-hover="layer"
                   key={c.with}
                   type="button"
                   onClick={() => other && onOpenForm(other.id)}
@@ -375,7 +375,7 @@ function Quiz({ form, accent, soft, onDone }: {
               // подсказка обесценивает вопрос.
               const tone = !done ? 'idle' : right ? 'right' : chosen ? 'wrong' : 'idle'
               return (
-                <button
+                <button data-hover="layer"
                   key={oi}
                   type="button"
                   onClick={() => pick(qi, oi)}

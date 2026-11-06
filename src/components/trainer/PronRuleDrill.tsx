@@ -305,7 +305,7 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
             const chosen = picked === o
             const show = !!picked && (isAnswer || chosen)
             return (
-              <button
+              <button data-hover="layer"
                 key={o}
                 onClick={() => pick(o)}
                 disabled={!!picked}
@@ -340,7 +340,7 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
             {/* Разбор примера показывается ровно в момент ответа: тогда note
                 читается как ответ на «а почему», а не как справка. */}
             <ExampleRow rule={rule} ex={q.ex} lang={lang} accent={accent} tone={right ? 'good' : 'bad'} />
-            <button onClick={next} style={primaryBtn(accent)}>
+            <button data-hover="layer" onClick={next} style={primaryBtn(accent)}>
               {idx + 1 >= run.length ? t('Итог') : t('Дальше')}
             </button>
           </div>
@@ -378,11 +378,11 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
           </div>
         )}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button onClick={start} style={primaryBtn(accent)}>
+          <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <RotateCcw size={14} />
             {t('Ещё прогон')}
           </button>
-          <button onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
+          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
         </div>
       </div>
     )
@@ -411,11 +411,11 @@ export function PronPage({ rule, lang, accent, soft, owner, subjectId, onFinishe
       )}
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button onClick={start} style={primaryBtn(accent)}>
+        <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
           <BookOpenCheck size={16} />
           {t('Проверить чтение')}
         </button>
-        <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
+        <button data-hover="layer" onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
           {saving ? t('Добавляю…') : t('Взять слова в колоду')}
         </button>
         {added !== null && (

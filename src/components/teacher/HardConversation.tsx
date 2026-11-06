@@ -67,7 +67,7 @@ function TabBar({ tabs, statuses, activeKey, onSelect }: {
         const meta = STATUS_META[statuses[tab.key] ?? 'in_progress']
         const active = tab.key === activeKey
         return (
-          <button
+          <button data-hover="layer"
             key={tab.key}
             onClick={() => onSelect(tab.key)}
             style={{
@@ -143,7 +143,7 @@ function CommentCard({ ev, repliesTo, onZoomPhoto }: { ev: HardEvent & { kind: '
           <Label color={`var(--color-${tone}-text)`}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ImageIcon size={12} /> {t('Фото от преподавателя')}</span></Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
             {ev.photos.map((src, i) => (
-              <button key={i} onClick={() => onZoomPhoto?.(src)} disabled={!onZoomPhoto} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 12, overflow: 'hidden', cursor: onZoomPhoto ? 'zoom-in' : 'default', background: 'var(--color-bg)' }}>
+              <button data-hover="layer" key={i} onClick={() => onZoomPhoto?.(src)} disabled={!onZoomPhoto} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 12, overflow: 'hidden', cursor: onZoomPhoto ? 'zoom-in' : 'default', background: 'var(--color-bg)' }}>
                 <img src={src} alt="" style={{ width: '100%', display: 'block', maxHeight: 200, objectFit: 'contain' }} />
               </button>
             ))}
@@ -225,7 +225,7 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
           {photos.map((src, i) => (
             <div key={i} style={{ position: 'relative', width: 90, height: 90, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
               <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <button onClick={() => setPhotos(p => p.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
+              <button data-hover="layer" onClick={() => setPhotos(p => p.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
             </div>
           ))}
         </div>
@@ -239,10 +239,10 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-          <button onClick={() => fileRef.current?.click()} style={btn('M', 'secondary')}>
+          <button data-hover="layer" onClick={() => fileRef.current?.click()} style={btn('M', 'secondary')}>
             <ImageIcon size={16} /> {t('Фото')}
           </button>
-          <button onClick={() => setShowBoard(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 14, border: `1px solid ${showBoard || board ? palette.accent : 'var(--color-border-medium)'}`, background: showBoard || board ? palette.soft : 'var(--color-bg-2)', color: showBoard || board ? palette.text : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button data-hover="layer" onClick={() => setShowBoard(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 14, border: `1px solid ${showBoard || board ? palette.accent : 'var(--color-border-medium)'}`, background: showBoard || board ? palette.soft : 'var(--color-bg-2)', color: showBoard || board ? palette.text : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <PenLine size={16} /> {board ? t('Доска ✓') : t('Доска')}
           </button>
         </div>
@@ -299,7 +299,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
             <Label>{t('Разметка поверх решения')}</Label>
-            <button onClick={() => setAnnotating(a => !a)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, border: `1px solid ${annotating ? 'transparent' : 'var(--color-border-medium)'}`, background: annotating ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: annotating ? 'var(--color-green-text)' : 'var(--color-text)' }}>
+            <button data-hover="layer" onClick={() => setAnnotating(a => !a)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, border: `1px solid ${annotating ? 'transparent' : 'var(--color-border-medium)'}`, background: annotating ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: annotating ? 'var(--color-green-text)' : 'var(--color-text)' }}>
               {annotating ? <><Check size={14} /> {t('Готово')}</> : <><PenLine size={14} /> {t('Разметить')}</>}
             </button>
           </div>
@@ -330,10 +330,10 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
         <Label>{t('Приложить к ответу')}</Label>
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => fileRef.current?.click()} style={{ ...btn('M', 'secondary'), flex: 1 }}>
+          <button data-hover="layer" onClick={() => fileRef.current?.click()} style={{ ...btn('M', 'secondary'), flex: 1 }}>
             <ImageIcon size={14} /> {t('Фото')}
           </button>
-          <button onClick={() => setShowBoard(v => !v)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button data-hover="layer" onClick={() => setShowBoard(v => !v)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
           </button>
         </div>
@@ -343,7 +343,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
             {photos.map((src, i) => (
               <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
                 <img src={src} alt="" style={{ width: '100%', height: 64, objectFit: 'cover', display: 'block' }} />
-                <button onClick={() => setPhotos(p => p.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>
+                <button data-hover="layer" onClick={() => setPhotos(p => p.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>
               </div>
             ))}
           </div>
@@ -355,7 +355,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
         <Label>{t('Оценка при принятии')}</Label>
         <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
           {[1, 2, 3, 4, 5].map(n => (
-            <button key={n} onClick={() => setScore(n)} style={{ width: 34, height: 34, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, border: `1px solid ${score === n ? 'transparent' : 'var(--color-border-medium)'}`, background: score === n ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: score === n ? 'var(--color-green-text)' : 'var(--color-text)' }}>{n}</button>
+            <button data-hover="layer" key={n} onClick={() => setScore(n)} style={{ width: 34, height: 34, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, border: `1px solid ${score === n ? 'transparent' : 'var(--color-border-medium)'}`, background: score === n ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: score === n ? 'var(--color-green-text)' : 'var(--color-text)' }}>{n}</button>
           ))}
         </div>
       </div>

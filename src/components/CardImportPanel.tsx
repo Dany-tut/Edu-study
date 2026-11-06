@@ -185,14 +185,14 @@ export default function CardImportPanel({
         <>
           {variant === 'tiles' ? (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <button onClick={() => fileRef.current?.click()} disabled={loading} style={tile(accent, busy === 'photo')}>
+              <button data-hover="layer" onClick={() => fileRef.current?.click()} disabled={loading} style={tile(accent, busy === 'photo')}>
                 {busy === 'photo' ? <Spin size={20} /> : <Camera size={20} />}
                 <div style={{ fontSize: 13, fontWeight: 700 }}>
                   {busy === 'photo' ? reading : t('Снимок списка')}
                 </div>
                 <div style={{ fontSize: 11, opacity: 0.8 }}>{t('можно пачкой страниц')}</div>
               </button>
-              <button onClick={() => setMode(m => (m === 'link' ? 'idle' : 'link'))} disabled={loading} style={tile(accent, mode === 'link')}>
+              <button data-hover="layer" onClick={() => setMode(m => (m === 'link' ? 'idle' : 'link'))} disabled={loading} style={tile(accent, mode === 'link')}>
                 <Link2 size={20} />
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{t('Ссылка')}</div>
                 <div style={{ fontSize: 11, opacity: 0.8 }}>{t('таблица, набор, страница')}</div>
@@ -204,7 +204,7 @@ export default function CardImportPanel({
               <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginRight: 'auto' }}>
                 {caption ?? t('Собрать карточки за меня')}
               </div>
-              <button
+              <button data-hover="layer"
                 onClick={() => fileRef.current?.click()}
                 disabled={loading}
                 title={t('Снимки списка слов из тетради или учебника — можно сразу пачкой, до двух десятков страниц.')}
@@ -213,7 +213,7 @@ export default function CardImportPanel({
                 {busy === 'photo' ? <Spin /> : <Camera size={14} />}
                 {busy === 'photo' ? reading : t('Фото')}
               </button>
-              <button
+              <button data-hover="layer"
                 onClick={() => setMode(m => (m === 'link' ? 'idle' : 'link'))}
                 disabled={loading}
                 style={pill(accent, mode === 'link')}
@@ -248,7 +248,7 @@ export default function CardImportPanel({
               padding: '0 12px', outline: 'none', caretColor: accent,
             }}
           />
-          <button onClick={onLink} disabled={!url.trim() || loading} style={pill(accent, busy === 'link')}>
+          <button data-hover="layer" onClick={onLink} disabled={!url.trim() || loading} style={pill(accent, busy === 'link')}>
             {busy === 'link' ? <Spin /> : null}
             {busy === 'link' ? t('Читаю страницу…') : t('Разобрать')}
           </button>
@@ -279,7 +279,7 @@ export default function CardImportPanel({
             <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
               {sourceLabel(found.source)}{found.title ? ` · ${found.title}` : ''}
             </div>
-            <button onClick={reset} title={t('Отменить импорт')} style={{
+            <button data-hover="layer" onClick={reset} title={t('Отменить импорт')} style={{
               marginLeft: 'auto', width: 28, height: 28, display: 'flex', alignItems: 'center',
               justifyContent: 'center', borderRadius: 9, border: '1px solid var(--color-border-soft)',
               background: 'transparent', color: 'var(--color-text-2)', cursor: 'pointer',
@@ -340,10 +340,10 @@ export default function CardImportPanel({
                 <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginRight: 'auto' }}>
                   {t('Куда положить')}
                 </div>
-                <button onClick={() => setSplit(true)} style={pill(accent, split)}>
+                <button data-hover="layer" onClick={() => setSplit(true)} style={pill(accent, split)}>
                   {t('По стопкам')} · {groups.length}
                 </button>
-                <button onClick={() => setSplit(false)} style={pill(accent, !split)}>
+                <button data-hover="layer" onClick={() => setSplit(false)} style={pill(accent, !split)}>
                   {t('Одной кучей')}
                 </button>
               </div>
@@ -359,7 +359,7 @@ export default function CardImportPanel({
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
+            <button data-hover="layer"
               onClick={add}
               disabled={kept === 0}
               style={{ height: 40,

@@ -60,7 +60,7 @@ export default function TgDialogs() {
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {t('Диалоги')} · {threads.length}
           </div>
-          <button onClick={loadThreads} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button data-hover="layer" onClick={loadThreads} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
             <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           </button>
         </div>
@@ -78,7 +78,7 @@ export default function TgDialogs() {
             const sel = th.id === activeId
             const sm = STATUS_META[th.status]
             return (
-              <button key={th.id} onClick={() => setActiveId(th.id)} style={{
+              <button data-hover="layer" key={th.id} onClick={() => setActiveId(th.id)} style={{
                 textAlign: 'left', padding: '12px 12px', borderRadius: 12, cursor: 'pointer', width: '100%',
                 border: `1px solid ${sel ? 'var(--color-purple)' : 'var(--color-border)'}`,
                 background: sel ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
@@ -177,7 +177,7 @@ function Conversation({ thread, onBack, onStatus }: {
             const on = thread.status === s
             const sm = STATUS_META[s]
             return (
-              <button key={s} onClick={() => onStatus(s)} disabled={on} style={{
+              <button data-hover="layer" key={s} onClick={() => onStatus(s)} disabled={on} style={{
                 padding: '4px 10px', borderRadius: 8, border: '1px solid var(--color-border)', cursor: on ? 'default' : 'pointer',
                 fontSize: 12, fontWeight: 600,
                 background: on ? sm.bg : 'transparent', color: on ? sm.color : 'var(--color-text-3)',
@@ -220,7 +220,7 @@ function Conversation({ thread, onBack, onStatus }: {
               color: 'var(--color-text)', background: 'var(--color-surface)', fontFamily: 'inherit', lineHeight: 1.4,
             }}
           />
-          <button onClick={send} disabled={sending || !text.trim()} style={{
+          <button data-hover="layer" onClick={send} disabled={sending || !text.trim()} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12,
             border: 'none', cursor: sending || !text.trim() ? 'default' : 'pointer', flexShrink: 0,
             background: 'var(--grad-purple)', color: '#fff', opacity: sending || !text.trim() ? 0.5 : 1,

@@ -116,7 +116,7 @@ export default function AdminInactiveCleanup({ onClose, onDone }: { onClose: () 
     const all = list.every(r => picked.has(r.id))
     return (
       <div style={{ marginTop: 16 }}>
-        <button
+        <button data-hover="layer"
           onClick={() => toggleAll(k)}
           style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '6px 0', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
         >
@@ -161,8 +161,8 @@ export default function AdminInactiveCleanup({ onClose, onDone }: { onClose: () 
       width={600}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={btn('M', 'secondary')}>{t('Закрыть')}</button>
-          <button onClick={() => { void run() }} disabled={busy || total === 0} style={btn('M', 'danger', { opacity: busy || total === 0 ? 0.45 : 1, cursor: busy || total === 0 ? 'default' : 'pointer' })}>
+          <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}>{t('Закрыть')}</button>
+          <button data-hover="layer" onClick={() => { void run() }} disabled={busy || total === 0} style={btn('M', 'danger', { opacity: busy || total === 0 ? 0.45 : 1, cursor: busy || total === 0 ? 'default' : 'pointer' })}>
             <Eraser size={16} strokeWidth={2} />
             {busy ? t('Удаляем…') : `${t('Удалить')} ${total}`}
           </button>

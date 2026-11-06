@@ -111,13 +111,13 @@ export default function AdminUserActivity() {
           items={[{ id: 'people', label: t('Все пользователи') }, { id: 'teachers', label: t('По учителям') }, { id: 'students', label: t('Ученики') }]}
         />
         {view === 'people' && (
-          <button onClick={() => setCleanupOpen(true)} style={{ ...uiBtn('S', 'secondary'), marginLeft: 'auto' }}>
+          <button data-hover="layer" onClick={() => setCleanupOpen(true)} style={{ ...uiBtn('S', 'secondary'), marginLeft: 'auto' }}>
             <Eraser size={14} strokeWidth={2} />
             {t('Удалить неактивных')}
           </button>
         )}
         {view === 'teachers' && (
-          <button onClick={() => setInviteOpen(true)} style={{ ...uiBtn('S', 'primary'), marginLeft: 'auto' }}>
+          <button data-hover="layer" onClick={() => setInviteOpen(true)} style={{ ...uiBtn('S', 'primary'), marginLeft: 'auto' }}>
             <UserPlus size={14} strokeWidth={2.5} />
             {t('Пригласить учителя')}
           </button>
@@ -331,7 +331,7 @@ function PeopleTable({ rows, onDeleted }: { rows: UserActivityRow[]; onDeleted: 
               <td style={numTd}>{fmtWhen(r.last_seen)}</td>
               <td style={{ ...tdStyle, textAlign: 'right', width: 1 }}>
                 {deletable && (
-                  <button
+                  <button data-hover="layer"
                     onClick={() => { void remove(r) }}
                     disabled={busyId === r.actor_id}
                     title={isGhost(r) ? t('Удалить след удалённого аккаунта') : t('Удалить')}
@@ -416,7 +416,7 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
             <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                 {editable && (
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setExpandedId(expanded ? null : r.teacher_id)}
                     title={t('Настроить доступы')}
                     aria-expanded={expanded}
@@ -429,7 +429,7 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
                 {getViewAs()?.id === r.teacher_id ? (
                   <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-peach-text)' }}>{t('смотрите сейчас')}</span>
                 ) : (
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setViewAs({ id: r.teacher_id, name: r.name })}
                     title={t('Посмотреть кабинет преподавателя')}
                     style={uiBtn('S', 'secondary')}
@@ -438,7 +438,7 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
                     {t('Кабинет')}
                   </button>
                 )}
-                <button
+                <button data-hover="layer"
                   onClick={() => setToDelete(r)}
                   title={t('Стереть данные или удалить аккаунт')}
                   aria-label={t('Стереть данные или удалить аккаунт')}
@@ -541,9 +541,9 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
         />
         {err && <Alert tone="danger" text={err} style={{ marginBottom: 12 }} />}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <button onClick={onClose} style={uiBtn('M', 'secondary')}>{t('Отмена')}</button>
-          <button disabled={!armed || !!busy} onClick={() => run(true)} style={btn(false)}>{busy === 'wipe' ? t('Стираем…') : t('Стереть данные')}</button>
-          <button disabled={!armed || !!busy} onClick={() => run(false)} style={btn(true)}>{busy === 'delete' ? t('Удаляем…') : t('Удалить аккаунт')}</button>
+          <button data-hover="layer" onClick={onClose} style={uiBtn('M', 'secondary')}>{t('Отмена')}</button>
+          <button data-hover="layer" disabled={!armed || !!busy} onClick={() => run(true)} style={btn(false)}>{busy === 'wipe' ? t('Стираем…') : t('Стереть данные')}</button>
+          <button data-hover="layer" disabled={!armed || !!busy} onClick={() => run(false)} style={btn(true)}>{busy === 'delete' ? t('Удаляем…') : t('Удалить аккаунт')}</button>
         </div>
       </div>
     </div>,

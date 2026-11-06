@@ -458,7 +458,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
         </div>
         <div style={{ flex: 1 }} />
         {!disabled && (strokeIndex > 0 || takenCount > 0) && strokeIndex < strokes.length && (
-          <button
+          <button data-hover="layer"
             onClick={reset}
             className="flex items-center cursor-pointer"
             style={btn('S', 'secondary')}

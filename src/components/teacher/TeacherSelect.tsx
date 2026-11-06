@@ -249,7 +249,7 @@ export default function TeacherSelect({
         )}
 
         {!isEmpty && clearable ? (
-          <button
+          <button data-hover="layer"
             type="button"
             onMouseDown={handleClear}
             // Иконка, а не глиф «×»: символ сидит на линии шрифта и уезжает ниже середины поля.
@@ -309,7 +309,7 @@ export default function TeacherSelect({
                         fontSize: small ? 11 : 13, color: 'var(--color-text)', fontFamily: 'inherit',
                       }}
                     />
-                    <button
+                    <button data-hover="layer"
                       type="button"
                       onMouseDown={e => { e.preventDefault(); e.stopPropagation(); commitAdd() }}
                       style={{ display: 'flex', background: accentBg, border: 'none', borderRadius: 7, padding: 4, cursor: 'pointer', color: accent, flexShrink: 0 }}

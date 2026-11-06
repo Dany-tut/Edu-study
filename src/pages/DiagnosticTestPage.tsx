@@ -266,7 +266,7 @@ function ImageZoom({ src, onClose }: { src: string; onClose: () => void }) {
         }}
       />
       </motion.div>
-      <button
+      <button data-hover="layer"
         onClick={e => { e.stopPropagation(); close() }}
         aria-label={t('Закрыть')}
         style={{
@@ -350,7 +350,7 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
             : t('Результаты сохранены и отправлены преподавателю — он ознакомится с ними и свяжется с тобой :)')}
         </div>
         {saveFailed && (
-          <button onClick={onRetry} disabled={retrying}
+          <button data-hover="layer" onClick={onRetry} disabled={retrying}
             style={{
               width: '100%', padding: '12px 0', marginBottom: verdict ? 16 : 24, borderRadius: 14,
               border: 'none', cursor: retrying ? 'default' : 'pointer', fontFamily: 'inherit',
@@ -831,7 +831,7 @@ export default function DiagnosticTestPage() {
         <div style={{ fontSize: 14, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 320 }}>
           {t('Вопросы этого теста не удалось загрузить. Возможно, тест был создан на другом устройстве и не сохранился на сервер.')}
         </div>
-        <button onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#786AD7', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+        <button data-hover="layer" onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#786AD7', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
           {t('На главную')}
         </button>
       </div>
@@ -847,7 +847,7 @@ export default function DiagnosticTestPage() {
         <div style={{ fontSize: 14, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 320 }}>
           {t('Все ответы сохранены у преподавателя.')}
         </div>
-        <button onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: theme.accent, color: getContrastColor(theme.accent), fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+        <button data-hover="layer" onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: theme.accent, color: getContrastColor(theme.accent), fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
           {t('На главную')}
         </button>
       </div>
@@ -902,7 +902,7 @@ export default function DiagnosticTestPage() {
                   {/* Имя уже стоит строкой выше: в кнопке «как Аня Смирнова» переносилось на две строки */}
                   {t('Продолжить')} <ChevronRight size={16} />
                 </motion.button>
-                <button
+                <button data-hover="layer"
                   onClick={startOver}
                   style={{ ...btn('M', 'secondary'), width: '100%' }}
                 >
@@ -1086,7 +1086,7 @@ export default function DiagnosticTestPage() {
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 8 }}>{t('Насколько уверен в ответе?')}</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {([[true, t('Уверен'), '#22c55e'], [false, t('Не уверен'), '#f59e0b']] as [boolean, string, string][]).map(([val, label, col]) => (
-                    <button key={label} onClick={() => setConfident(val)}
+                    <button data-hover="layer" key={label} onClick={() => setConfident(val)}
                       style={{ flex: 1, padding: '10px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                         border: `1.5px solid ${confident === val ? col : 'var(--color-border-medium)'}`,
                         background: confident === val ? `${col}1a` : 'var(--color-bg-2)',
@@ -1273,7 +1273,7 @@ export default function DiagnosticTestPage() {
             {/* Next button */}
             <AnimatePresence>
               {picked !== undefined && !isLinkMode && current < total - 1 && (
-                <motion.button
+                <motion.button data-hover="layer"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}

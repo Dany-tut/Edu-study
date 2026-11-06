@@ -162,14 +162,14 @@ export default function ConfirmHost() {
 
             <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
               {top.kind === 'confirm' && (
-                <button
+                <button data-hover="layer"
                   onClick={() => close(false)}
                   style={{ ...btn('M', 'secondary'), flex: 1 }}
                 >
                   {top.cancelLabel ?? t('Отмена')}
                 </button>
               )}
-              <button
+              <button data-hover="layer"
                 ref={okRef}
                 onClick={() => close(true)}
                 style={{

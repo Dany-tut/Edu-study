@@ -61,7 +61,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
     >
       {/* Emoji tile — also a click target, opens the lesson with the reaction's
          paragraph highlighted. */}
-      <div
+      <div data-hover="card"
         role="button"
         aria-label={`${t('Открыть урок')} «${reaction.lesson}»`}
         onClick={openLesson}
@@ -113,7 +113,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
           </span>
         </div>
 
-        <div
+        <div data-hover="card"
           role="button"
           aria-label={`${t('Открыть урок')} «${reaction.lesson}»`}
           onClick={openLesson}
@@ -147,7 +147,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
         {/* Reaction dots */}
         <div className="mt-2 flex items-center gap-2 ww-media-pages">
           {courseReactions.map((r, i) => (
-            <button
+            <button data-hover="layer"
               key={r.id}
               onClick={() => goTo(i)}
               aria-label={`${t('Реакция')} ${i + 1}`}

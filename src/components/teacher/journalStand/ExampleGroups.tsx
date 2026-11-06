@@ -226,10 +226,10 @@ export default function ExampleGroups() {
     <main className={'js-example' + (page === 'widgets' ? ' js-example--widgets' : '')}>
       <div className="js-example-label">
         Пример с учебными данными · изменения до обновления страницы{' '}
-        <a className="sw-stand-link" href="#/student/widgets" onClick={event => {event.preventDefault();navigate('widgets')}}>Виджеты ученика</a>
-        <a href="#/student/schedule" onClick={event => {event.preventDefault();navigate('schedule')}}>Расписание ученика</a>
-        <a href="#/student/diary" onClick={event => {event.preventDefault();navigate('diary')}}>Дневник</a>
-        <a href="/journal-stand/?example=live#/teacher/gradebook">Мой журнал</a>
+        <a data-hover="link" className="sw-stand-link" href="#/student/widgets" onClick={event => {event.preventDefault();navigate('widgets')}}>Виджеты ученика</a>
+        <a data-hover="link" href="#/student/schedule" onClick={event => {event.preventDefault();navigate('schedule')}}>Расписание ученика</a>
+        <a data-hover="link" href="#/student/diary" onClick={event => {event.preventDefault();navigate('diary')}}>Дневник</a>
+        <a data-hover="link" href="/journal-stand/?example=live#/teacher/gradebook">Мой журнал</a>
       </div>
       {page === 'widgets' || page === 'schedule' || page === 'diary' ? <div className="sw-backbar"><button type="button" className="cj-button" onClick={() => navigate('journal')}>← К журналу</button><span>{page === 'diary' ? 'Концепты дневника' : page === 'schedule' ? 'Концепты расписания' : 'Концепты ученика'}</span></div>
         : page !== 'full-review' && <HomeworkNavigation page={page} onChange={navigate}/>}

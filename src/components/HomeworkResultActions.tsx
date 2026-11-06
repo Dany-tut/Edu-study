@@ -38,15 +38,15 @@ export default function HomeworkResultActions({ isMobile, navCollapsed, onSummar
       padding: 8, borderRadius: 24, background: 'var(--color-bg)',
       border: '1px solid var(--color-border-medium)', boxShadow: 'var(--shadow-lg)',
     }}>
-      <button type="button" onClick={onSummary} style={actionStyle}><ChevronUp size={16} style={{ flexShrink: 0 }} />{t('К результату')}</button>
+      <button data-hover="layer" type="button" onClick={onSummary} style={actionStyle}><ChevronUp size={16} style={{ flexShrink: 0 }} />{t('К результату')}</button>
       {onReview ? (
-        <button type="button" onClick={onReview} style={{ ...actionStyle, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}><RotateCcw size={16} style={{ flexShrink: 0 }} />{t('Разобрать ошибки')}</button>
+        <button data-hover="layer" type="button" onClick={onReview} style={{ ...actionStyle, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}><RotateCcw size={16} style={{ flexShrink: 0 }} />{t('Разобрать ошибки')}</button>
       ) : reviewUrl ? (
-        <a href={reviewUrl} target="_blank" rel="noopener noreferrer" style={{ ...actionStyle, textDecoration: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>{t('Открыть разбор')}<ExternalLink size={16} style={{ flexShrink: 0 }} /></a>
+        <a data-hover="layer" href={reviewUrl} target="_blank" rel="noopener noreferrer" style={{ ...actionStyle, textDecoration: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>{t('Открыть разбор')}<ExternalLink size={16} style={{ flexShrink: 0 }} /></a>
       ) : null}
-      {onHard && <button type="button" onClick={onHard} style={{ ...actionStyle, background: 'var(--grad-purple)', color: '#fff' }}>{t('Открыть хард')}<ArrowRight size={16} style={{ flexShrink: 0 }} /></button>}
-      <button type="button" onClick={onBack} style={actionStyle}><ChevronLeft size={16} style={{ flexShrink: 0 }} />{t('К уроку')}</button>
-      {onNext && !onReview && !onHard && <button type="button" onClick={onNext} style={{ ...actionStyle, background: 'var(--grad-purple)', color: '#fff' }}>{t('Следующий урок')}<ArrowRight size={16} style={{ flexShrink: 0 }} /></button>}
+      {onHard && <button data-hover="layer" type="button" onClick={onHard} style={{ ...actionStyle, background: 'var(--grad-purple)', color: '#fff' }}>{t('Открыть хард')}<ArrowRight size={16} style={{ flexShrink: 0 }} /></button>}
+      <button data-hover="layer" type="button" onClick={onBack} style={actionStyle}><ChevronLeft size={16} style={{ flexShrink: 0 }} />{t('К уроку')}</button>
+      {onNext && !onReview && !onHard && <button data-hover="layer" type="button" onClick={onNext} style={{ ...actionStyle, background: 'var(--grad-purple)', color: '#fff' }}>{t('Следующий урок')}<ArrowRight size={16} style={{ flexShrink: 0 }} /></button>}
     </nav>,
     document.body,
   )

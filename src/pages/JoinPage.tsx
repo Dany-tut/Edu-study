@@ -144,13 +144,13 @@ export default function JoinPage() {
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>{t('Ссылка недействительна')}</div>
             <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Попросите учителя отправить новую ссылку.')}</div>
             <div style={{ display: 'flex', gap: 10, marginTop: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
+              <button data-hover="layer"
                 onClick={() => { window.location.hash = '#/'; window.location.reload() }}
                 style={{ padding: '10px 22px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
               >
                 {t('На главную')}
               </button>
-              <button
+              <button data-hover="layer"
                 onClick={() => { window.location.hash = '#/login'; window.location.reload() }}
                 style={btn('M', 'secondary')}
               >
@@ -194,7 +194,7 @@ export default function JoinPage() {
                     style={{ ...inputStyle, marginTop: 0, paddingRight: 52, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
                     onKeyDown={e => e.key === 'Enter' && handleRegister()}
                   />
-                  <button
+                  <button data-hover="layer"
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
                     aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
@@ -219,7 +219,7 @@ export default function JoinPage() {
               <Alert tone="danger" text={errorMsg} style={{ marginTop: 12 }} />
             )}
 
-            <button
+            <button data-hover="layer"
               onClick={handleRegister}
               disabled={!emailValid || !passwordValid || saving}
               style={{ height: 48,

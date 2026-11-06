@@ -587,7 +587,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           {/* В режиме «строка за строкой» шапка читает ТЕКУЩИЙ фрагмент, а не
               текст целиком: экран показывает один фрагмент, и голос, ушедший на
               три экрана вперёд, подсвечивал бы то, чего не видно. */}
-          <button
+          <button data-hover="layer"
             onClick={() => (stepping ? playUnit(units[at]) : toggle())}
             aria-label={sounding
               ? (stepping ? t('Стоп') : t('Пауза'))
@@ -624,7 +624,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             </span>
           )}
 
-          <button
+          <button data-hover="layer"
             onClick={() => setRate(!slow)}
             style={{
               height: CTL_H, padding: '0 10px', borderRadius: 999, cursor: 'pointer',
@@ -898,7 +898,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
             <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 8 }}>{t('Скорость')}</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {[false, true].map(v => (
-                <button
+                <button data-hover="layer"
                   key={String(v)}
                   onClick={() => setRate(v)}
                   style={{
@@ -1060,7 +1060,7 @@ function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, acc
       />
 
       {canPeek && (
-        <button
+        <button data-hover="layer"
           onClick={onPeek}
           style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -1099,7 +1099,7 @@ function NavButton({ onClick, disabled, accent, soft, primary, children }: {
   children: React.ReactNode
 }) {
   return (
-    <button
+    <button data-hover="layer"
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -1388,7 +1388,7 @@ function TranslationText({ ru, source, lang, glossary, accent, picked, spoken, o
         // Одинаковая заливка в бегущей строке читалась бы как мигание клика.
         const now = !on && tk.pair === spoken
         return (
-          <span
+          <span data-hover="layer"
             key={i}
             role="button"
             tabIndex={-1}

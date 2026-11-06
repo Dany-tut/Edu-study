@@ -394,7 +394,7 @@ export default function RichConditionEditor({
             >
               {/* Font size */}
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <button
+                <button data-hover="layer"
                   ref={sizeBtnRef}
                   onMouseDown={e => {
                     e.preventDefault()
@@ -426,7 +426,7 @@ export default function RichConditionEditor({
                     display: 'flex', flexDirection: 'column', gap: 1, minWidth: 70,
                   }}>
                     {FONT_SIZES.map(s => (
-                      <button key={s}
+                      <button data-hover="layer" key={s}
                         onMouseDown={e => { e.preventDefault(); applyFontSize(s); setSizeOpen(false) }}
                         style={{
                           padding: '6px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
@@ -471,7 +471,7 @@ export default function RichConditionEditor({
               {divider}
 
               {HIGHLIGHT_COLORS.map(({ hex, label }) => (
-                <button
+                <button data-hover="layer"
                   key={hex}
                   title={`${t('Выделить')}: ${t(label)}`}
                   onMouseDown={e => { e.preventDefault(); exec('hiliteColor', hexToRgba(hex, hlAlpha)) }}
@@ -482,7 +482,7 @@ export default function RichConditionEditor({
                   }}
                 />
               ))}
-              <button
+              <button data-hover="layer"
                 title={t('Убрать выделение')}
                 onMouseDown={e => { e.preventDefault(); exec('hiliteColor', 'transparent') }}
                 style={{
@@ -542,13 +542,13 @@ export default function RichConditionEditor({
           >
             <WhiteboardCanvas compact onSave={data => { drawDataRef.current = data }} />
             <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-              <button
+              <button data-hover="layer"
                 onClick={() => { drawDataRef.current = ''; setDrawMode(false) }}
                 style={btn('S', 'secondary')}
               >
                 {t('Отменить')}
               </button>
-              <button
+              <button data-hover="layer"
                 onClick={insertDrawing}
                 style={btn('S', 'primary', { background: 'var(--color-blue-pill-bg)', color: 'var(--color-blue-pill-text)' })}
               >

@@ -130,7 +130,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
           onRetake={async () => { setAnswers({}); setResult(null); await reload() }} />
         <HomeworkAttemptHistorySection result={useSavedSubmission ? result.homework : progress?.result}
           studentId={ownerStudentIdFor(lesson.subject)} lessonRef={lesson.id} />
-        <button onClick={onBack} style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+        <button data-hover="layer" onClick={onBack} style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
           {t('К курсу')}
         </button>
       </div>
@@ -193,7 +193,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     {(task.choices ?? []).map((ch, ci) => {
                       const selected = answers[task.id] === ci
                       return (
-                        <button key={ci} onClick={() => setAnswer(task.id, ci)} style={{
+                        <button data-hover="layer" key={ci} onClick={() => setAnswer(task.id, ci)} style={{
                           display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
                           padding: '12px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
                           border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
@@ -214,7 +214,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     {(task.choices ?? []).map((ch, ci) => {
                       const selected = ((answers[task.id] as number[] | undefined) ?? []).includes(ci)
                       return (
-                        <button key={ci} onClick={() => toggleMulti(task.id, ci)} style={{
+                        <button data-hover="layer" key={ci} onClick={() => toggleMulti(task.id, ci)} style={{
                           display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
                           padding: '12px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
                           border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
@@ -288,11 +288,11 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                           {seqItems[itemIdx]}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <button onClick={() => moveSeq(task.id, seqItems, pos, -1)} disabled={pos === 0}
+                          <button data-hover="layer" onClick={() => moveSeq(task.id, seqItems, pos, -1)} disabled={pos === 0}
                             style={{ width: 24, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: pos === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pos === 0 ? 0.4 : 1 }}>
                             <ArrowUp size={12} style={{ color: 'var(--color-text-3)' }} />
                           </button>
-                          <button onClick={() => moveSeq(task.id, seqItems, pos, 1)} disabled={pos === seqOrder.length - 1}
+                          <button data-hover="layer" onClick={() => moveSeq(task.id, seqItems, pos, 1)} disabled={pos === seqOrder.length - 1}
                             style={{ width: 24, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: pos === seqOrder.length - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pos === seqOrder.length - 1 ? 0.4 : 1 }}>
                             <ArrowDown size={12} style={{ color: 'var(--color-text-3)' }} />
                           </button>
@@ -496,7 +496,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                         const label = side === 'A' ? task.pairA : task.pairB
                         const selected = answers[task.id] === side
                         return (
-                          <button key={side} onClick={() => setAnswer(task.id, side)} style={{
+                          <button data-hover="layer" key={side} onClick={() => setAnswer(task.id, side)} style={{
                             flex: 1, padding: '14px 16px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                             fontSize: 15, fontWeight: 700, textAlign: 'center',
                             border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',

@@ -228,7 +228,7 @@ export default function AdminStudentsManager() {
           />
         </div>
         {byOwner.length > 1 && !searching && (
-          <button
+          <button data-hover="layer"
             onClick={() => { setForceAll(!allOpen); if (allOpen) setOpenOwners(new Set()) }}
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
           >
@@ -251,7 +251,7 @@ export default function AdminStudentsManager() {
             </span>
           </button>
         )}
-        <button onClick={load} title={t('Обновить')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button data-hover="layer" onClick={load} title={t('Обновить')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
         </button>
@@ -271,7 +271,7 @@ export default function AdminStudentsManager() {
             const open = expandAll || openOwners.has(ownerId)
             return (
             <div key={ownerId}>
-              <button
+              <button data-hover="layer"
                 onClick={() => toggleOwner(ownerId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8, width: '100%',
@@ -341,7 +341,7 @@ export default function AdminStudentsManager() {
                         }}
                       />
                     </div>
-                    <button
+                    <button data-hover="layer"
                       onClick={() => setEditing(row)}
                       disabled={busyId === row.id}
                       title={t('Изменить')}
@@ -349,7 +349,7 @@ export default function AdminStudentsManager() {
                     >
                       <Pencil size={14} strokeWidth={2} />
                     </button>
-                    <button
+                    <button data-hover="layer"
                       onClick={() => void confirmDialog({
                         title: t('Удалить безвозвратно?'),
                         message: `${t('Ученик')} «${tn(row.name)}» ${t('и весь его прогресс, посещаемость, расписание и платежи будут удалены навсегда.')}${row.has_account ? ' ' + t('Аккаунт входа останется в системе — сбросить его можно на карточке ученика у учителя.') : ''}`,
@@ -456,7 +456,7 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
           <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Карточка ученика')}</div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{tn(row.owner_name)}</div>
         </div>
-        <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+        <button data-hover="layer" onClick={onClose} style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
           <X size={14} />
         </button>
       </div>
@@ -484,7 +484,7 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
       </div>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button onClick={onClose} style={btn('S', 'secondary')}>{t('Отмена')}</button>
+        <button data-hover="layer" onClick={onClose} style={btn('S', 'secondary')}>{t('Отмена')}</button>
         <TeacherSaveButton
           label={t('Сохранить')}
           onClick={() => onSave({

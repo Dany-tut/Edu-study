@@ -111,7 +111,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
       background: 'var(--color-bg-2)', overflow: 'hidden',
     }}>
       <div className="flex items-center" style={{ gap: 10, padding: '14px 18px' }}>
-        <button
+        <button data-hover="layer"
           onClick={() => setOpen(o => !o)}
           className="flex items-center cursor-pointer flex-1 min-w-0"
           style={{ gap: 10, border: 'none', background: 'none', padding: 0, fontFamily: 'inherit', textAlign: 'left' }}
@@ -160,7 +160,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                   у английского или португальского его нет ни у одного слова, и
                   пустая кнопка «Чтение» в такой домашке только сбивала бы. */}
               {hasReading && (
-                <button
+                <button data-hover="layer"
                   onClick={toggleReading}
                   className="flex items-center cursor-pointer"
                   style={{
@@ -179,7 +179,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
               {/* Переключатель «проход по одному ↔ вся сетка». Не показывается
                   на двух-трёх словах: проход по ним не отличается от списка. */}
               {words.length > 3 && (
-                <button
+                <button data-hover="layer"
                   onClick={() => setStep(s => (s === null ? 0 : null))}
                   className="flex items-center cursor-pointer"
                   style={{
@@ -311,7 +311,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                   и по точкам сразу видно, сколько ещё осталось. */}
               {walking && (
                 <div className="flex items-center" style={{ gap: 10, marginTop: 12 }}>
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setStep(s => Math.max(0, (s ?? 0) - 1))}
                     disabled={step === 0}
                     className="flex items-center justify-center cursor-pointer"
@@ -328,7 +328,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
 
                   <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
                     {words.map((w, i) => (
-                      <button
+                      <button data-hover="layer"
                         key={w.id}
                         onClick={() => setStep(i)}
                         className="cursor-pointer"
@@ -345,7 +345,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
 
                   {/* Последнее слово закрывает проход и оставляет сетку: она и
                       нужна дальше — как справочник посреди заданий. */}
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setStep(s => ((s ?? 0) + 1 >= words.length ? null : (s ?? 0) + 1))}
                     className="flex items-center cursor-pointer"
                     style={{

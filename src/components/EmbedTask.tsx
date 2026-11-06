@@ -73,7 +73,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
             <span style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
               {t('Упражнение откроется в новой вкладке — вернитесь сюда, когда закончите.')}
             </span>
-            <a
+            <a data-hover="layer"
               href={target.url}
               target="_blank"
               rel="noopener noreferrer"
@@ -90,7 +90,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
       </div>
 
       <div className="flex" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <button
+        <button data-hover="layer"
           onClick={mark}
           disabled={disabled || done}
           style={{

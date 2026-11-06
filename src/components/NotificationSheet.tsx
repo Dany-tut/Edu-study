@@ -23,7 +23,7 @@ export default function NotificationSheet({ open, onClose }: { open: boolean; on
   const unread = notifications.filter(n => !n.read).length
 
   const footer = unread > 0
-    ? <button type="button" onClick={() => { tactile(); markAllRead() }}
+    ? <button data-hover="layer" type="button" onClick={() => { tactile(); markAllRead() }}
         style={{ ...btn('L', 'secondary'), ...softBtn, width: '100%', minHeight: 48, borderRadius: 999 }}>
         {t('Прочитать все')}
       </button>

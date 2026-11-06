@@ -173,7 +173,7 @@ export default function TeacherStoragePage() {
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Хранилище')}</div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('База данных и файлы')}</div>
         </div>
-        <motion.button
+        <motion.button data-hover="layer"
           whileTap={{ scale: 0.94 }}
           onClick={load}
           title={t('Обновить')}

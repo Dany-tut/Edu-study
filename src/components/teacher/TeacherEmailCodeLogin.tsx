@@ -55,11 +55,11 @@ export default function TeacherEmailCodeLogin({ onLogin, onBack }: { onLogin: ()
     <input className="auth-input" aria-describedby={feedback.descriptionId} type="email" aria-label="Email" placeholder="Email" value={email} onChange={event => { setEmail(event.target.value); feedback.clear() }} readOnly={!!sentTo || busy} autoComplete="username" autoCapitalize="none" aria-invalid={feedback.message?.invalid === 'email'} style={field} />
     <input className="auth-input" aria-describedby={feedback.descriptionId} aria-label={t('Код из письма')} placeholder={t('Код из письма')} value={code} onChange={event => { setCode(event.target.value.replace(/\D/g, '')); feedback.clear() }} disabled={!sentTo} readOnly={busy} inputMode="numeric" autoComplete="one-time-code" maxLength={10} aria-invalid={feedback.message?.invalid === 'code'} style={field} />
     <AuthFeedbackSlot idleText="Код указан в последнем письме." />
-    <button type="button" disabled={!sentTo || busy} onClick={changeEmail} style={{ ...link, justifySelf: 'end', padding: '0 8px' }}>{t('Изменить почту')}</button>
-    <button type="submit" disabled={busy} style={{ minHeight: 48, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700, opacity: busy ? 0.65 : 1 }}>{sentTo ? t('Подтвердить') : t('Отправить код')}</button>
+    <button data-hover="layer" type="button" disabled={!sentTo || busy} onClick={changeEmail} style={{ ...link, justifySelf: 'end', padding: '0 8px' }}>{t('Изменить почту')}</button>
+    <button data-hover="layer" type="submit" disabled={busy} style={{ minHeight: 48, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700, opacity: busy ? 0.65 : 1 }}>{sentTo ? t('Подтвердить') : t('Отправить код')}</button>
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 8 }}>
-      <button type="button" disabled={!sentTo || busy || cooldown > 0} onClick={send} style={link}>{cooldown ? `${t('Отправить повторно через')} ${cooldown}` : t('Отправить код ещё раз')}</button>
-      <button type="button" onClick={onBack} style={link}>{t('Назад ко входу')}</button>
+      <button data-hover="layer" type="button" disabled={!sentTo || busy || cooldown > 0} onClick={send} style={link}>{cooldown ? `${t('Отправить повторно через')} ${cooldown}` : t('Отправить код ещё раз')}</button>
+      <button data-hover="layer" type="button" onClick={onBack} style={link}>{t('Назад ко входу')}</button>
     </div>
   </form>
 }

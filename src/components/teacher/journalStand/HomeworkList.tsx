@@ -20,7 +20,7 @@ export default function HomeworkList({ entries, slots, search, attention, onStud
   })
   return <div className="jh-homework-list" aria-label="Домашние задания группы">
     {groups.map(({slot, rows}) => <section key={slot.ref} className="jh-homework-group">
-      <header><button type="button" className="jh-expand" aria-label={(open.has(slot.ref) ? 'Свернуть · ' : 'Развернуть · ') + slot.title} aria-expanded={open.has(slot.ref)} onClick={() => setOpen(prev => {const next = new Set(prev);next.has(slot.ref) ? next.delete(slot.ref) : next.add(slot.ref);return next})}><ChevronRight size={16}/></button>
+      <header><button data-hover="layer" type="button" className="jh-expand" aria-label={(open.has(slot.ref) ? 'Свернуть · ' : 'Развернуть · ') + slot.title} aria-expanded={open.has(slot.ref)} onClick={() => setOpen(prev => {const next = new Set(prev);next.has(slot.ref) ? next.delete(slot.ref) : next.add(slot.ref);return next})}><ChevronRight size={16}/></button>
         <button type="button" className="jh-assignment-title" onClick={() => onAssignment(slot.ref)}><strong>{slot.title}</strong><small>{slot.ref.includes('~') ? 'Доп. ДЗ' : 'ДЗ'}{slot.due ? ' · до ' + workDueLabel(slot.due) : ' · без срока'} · Ученики: {rows.length}</small></button>
         <span className="jh-submitted">Сдали {rows.filter(e => e.work.submitted).length}/{rows.length}</span>
         {rows.some(e => e.work.status === 'На проверке') && <button type="button" className="cj-button jh-review-button" onClick={() => onAssignment(slot.ref)}>Проверить · {rows.filter(e => e.work.status === 'На проверке').length}</button>}

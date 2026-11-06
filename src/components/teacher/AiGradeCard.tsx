@@ -114,7 +114,7 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit, onRet
         </p>
       )}
 
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(o => !o)}
         className="flex items-center cursor-pointer"
         style={{

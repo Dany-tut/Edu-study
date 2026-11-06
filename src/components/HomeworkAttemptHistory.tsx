@@ -39,7 +39,7 @@ export default function HomeworkAttemptHistory({ authorName, attempts, attemptCo
     </button>
     {open && <div id={`${id}-thread`} className="hw-history-thread">
       <p className="hw-history-note">{t('Для зачёта учитывается лучший проверенный результат.')}</p>
-      {attempts.length < attemptCount && <button type="button" className="hw-history-older" disabled={loadingOlder} onClick={onLoadOlder}>
+      {attempts.length < attemptCount && <button data-hover="layer" type="button" className="hw-history-older" disabled={loadingOlder} onClick={onLoadOlder}>
         {loadingOlder ? <Loader2 className="hw-history-spinner" size={15} aria-hidden="true" /> : <Clock size={15} aria-hidden="true" />}
         {t('Показать более ранние попытки')}
       </button>}
@@ -65,7 +65,7 @@ export default function HomeworkAttemptHistory({ authorName, attempts, attemptCo
                   </span>
                 </div>
                 <p className="hw-history-state">{pending && !returned ? t('Работа отправлена') : label}</p>
-                <button type="button" className="hw-history-answers-toggle" aria-expanded={!!expanded[attempt.id]} aria-controls={expandedId} onClick={() => {
+                <button data-hover="layer" type="button" className="hw-history-answers-toggle" aria-expanded={!!expanded[attempt.id]} aria-controls={expandedId} onClick={() => {
                   const next = !expanded[attempt.id]
                   setExpanded(before => ({ ...before, [attempt.id]: next }))
                   if (next) onRead(attempt.id)
@@ -74,7 +74,7 @@ export default function HomeworkAttemptHistory({ authorName, attempts, attemptCo
                 </button>
                 {expanded[attempt.id] && <div id={expandedId} className="hw-history-answers" aria-busy={!!reading[attempt.id]}>
                   {reading[attempt.id] && <p className="hw-history-loading" role="status"><Loader2 className="hw-history-spinner" size={15} aria-hidden="true" />{t('Загружаем ответы…')}</p>}
-                  {readErrors[attempt.id] && <div className="hw-history-read-error" role="alert"><span>{readErrors[attempt.id]}</span><button type="button" onClick={() => onRead(attempt.id)}>{t('Попробовать ещё раз')}</button></div>}
+                  {readErrors[attempt.id] && <div className="hw-history-read-error" role="alert"><span>{readErrors[attempt.id]}</span><button data-hover="layer" type="button" onClick={() => onRead(attempt.id)}>{t('Попробовать ещё раз')}</button></div>}
                   {payload && <>
                     <p className="hw-history-assessment">{assessment ? <>{assessment.emoji} {t(assessment.label)}</> : t('Самооценка не указана')}</p>
                     {payload.rows.map((row, i) => <div key={`${row.n}-${i}`} className="hw-history-answer">

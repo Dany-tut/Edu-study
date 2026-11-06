@@ -128,7 +128,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
       title={toCheck > 0 ? `${toCheck} ${t('работ ждут проверки')}` : t('Всё проверено — красавец!')}
       expanded={expanded}
       action={toCheck > 0 ? (
-        <button
+        <button data-hover="layer"
           onClick={e => { e.stopPropagation(); tactile(); setActivePage('gradebook') }}
           style={{
             padding: 6, borderRadius: '50%',
@@ -274,7 +274,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {pendingJournals.slice(0, 5).map(p => (
-                <button
+                <button data-hover="layer"
                   key={p.scheduleId}
                   onClick={e => { e.stopPropagation(); tactile(); openGradebook(p.scheduleId) }}
                   style={{
@@ -406,7 +406,7 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
             {dedupBody(latest.body)}
           </span>
           {latest.action && (
-            <button onClick={onAction} style={{
+            <button data-hover="layer" onClick={onAction} style={{
               alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '6px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
               background: `${typeof accent === 'string' && accent.startsWith('#') ? accent : 'var(--color-accent)'}22`,
@@ -427,7 +427,7 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
               +{extra}
             </span>
           )}
-          <button onClick={onClose} style={{
+          <button data-hover="layer" onClick={onClose} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             color: 'var(--color-text-3)', display: 'flex', padding: 2,
           }}>
@@ -797,7 +797,7 @@ export default function TeacherCompactPill() {
                 { side: 'left' as const, label: t('Предыдущий'), d: -1 },
                 { side: 'right' as const, label: t('Следующий'), d: 1 },
               ].map(({ side, label, d }) => (
-                <button
+                <button data-hover="layer"
                   key={side}
                   type="button"
                   aria-label={label}

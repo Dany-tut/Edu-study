@@ -160,7 +160,7 @@ export default function MobileBottomNav() {
         {items.map(item => {
           const isActive = active === item.id
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={item.id}
               whileTap={{ scale: 0.9 }}
               onClick={() => handleClick(item.id)}

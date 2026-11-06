@@ -113,7 +113,7 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
   }
 
   const key = (label: string, onPress: () => void, wide = false) => (
-    <motion.button
+    <motion.button data-hover="layer"
       key={label}
       type="button"
       whileTap={disabled ? undefined : { scale: 0.9 }}
@@ -179,7 +179,7 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
 
       <div className="flex justify-center" style={{ gap: 6 }}>
         {key(t('пробел'), space, true)}
-        <motion.button
+        <motion.button data-hover="layer"
           type="button"
           whileTap={disabled ? undefined : { scale: 0.9 }}
           onMouseDown={e => e.preventDefault()}

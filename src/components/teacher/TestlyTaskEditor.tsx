@@ -30,14 +30,14 @@ export default function TestlyTaskEditor({ value, onChange }: {
               {testlyMeta(value)} · {value.manual ? t('часть проверяете вы в Тестли') : t('проверка автоматически')}
             </div>
           </div>
-          <a href={testlyEditUrl(value.id)} target="_blank" rel="noopener noreferrer" style={{
+          <a data-hover="layer" href={testlyEditUrl(value.id)} target="_blank" rel="noopener noreferrer" style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, flexShrink: 0,
             background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
             color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, textDecoration: 'none',
           }}>
             <ExternalLink size={13} /> {t('Открыть в Тестли')}
           </a>
-          <button onClick={() => setPicking(p => !p)} style={{ ...btn('S', 'secondary'), flexShrink: 0 }}>
+          <button data-hover="layer" onClick={() => setPicking(p => !p)} style={{ ...btn('S', 'secondary'), flexShrink: 0 }}>
             {picking ? t('Скрыть') : t('Другой тест')}
           </button>
         </div>

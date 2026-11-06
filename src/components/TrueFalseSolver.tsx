@@ -81,7 +81,7 @@ export default function TrueFalseSolver({ rows, value, disabled, showVerdict, on
                 // когда ученик его не выбрал: иначе ошибка остаётся без ответа.
                 const truth = showVerdict && v === row.verdict
                 return (
-                  <button
+                  <button data-hover="layer"
                     key={v}
                     onClick={() => pick(i, v)}
                     disabled={disabled}

@@ -645,7 +645,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
                 </div>
               )}
             </div>
-            <button
+            <button data-hover="layer"
               onClick={() => say(active.seg.text)}
               title={t('Произнести')}
               aria-label={t('Произнести')}
@@ -703,7 +703,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               Кнопка последней строкой: сперва ответ на вопрос «что это значит»,
               и только потом решение «беру себе». */}
           {subject && activeCard && (
-            <button
+            <button data-hover="layer"
               onClick={() => collect(active.seg)}
               disabled={savedState === 'saving' || inDeck}
               title={inDeck ? undefined : `${t('Лицом карточки станет')} «${activeCard.prompt}»`}

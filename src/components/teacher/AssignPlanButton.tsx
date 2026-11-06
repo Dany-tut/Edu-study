@@ -137,7 +137,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
 
   return (
     <>
-      <button ref={btnRef} onClick={() => (open ? (setOpen(false), setPendingPlan(null)) : openMenu())} style={{
+      <button data-hover="layer" ref={btnRef} onClick={() => (open ? (setOpen(false), setPendingPlan(null)) : openMenu())} style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between', gap: 6,
         width: TRIGGER_W[size], boxSizing: 'border-box', padding: pad, borderRadius: 9,
         border: '1px solid var(--color-border)', cursor: 'pointer', fontSize: fs, fontWeight: 600,
@@ -184,7 +184,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
             >
               {pendingPlan !== null ? (
                 <>
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setPendingPlan(null)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left',
@@ -197,7 +197,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                     {t(PLAN_TIERS.find(p => p.code === pendingPlan)?.name ?? '')} · {t('на сколько?')}
                   </button>
                   {PERIODS.map(per => (
-                    <button
+                    <button data-hover="layer"
                       key={per.label}
                       onClick={() => apply(pendingPlan, per.months)}
                       disabled={busy !== null}
@@ -218,7 +218,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
               {PLAN_TIERS.map(p => {
                 const sel = p.code === currentCode
                 return (
-                  <button key={p.code} onClick={() => setPendingPlan(p.code)} disabled={busy !== null} style={{
+                  <button data-hover="layer" key={p.code} onClick={() => setPendingPlan(p.code)} disabled={busy !== null} style={{
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
                     padding: '10px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
                     fontFamily: 'inherit',
@@ -236,7 +236,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                 )
               })}
               <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 2px' }} />
-              <button onClick={() => apply(null)} disabled={busy !== null} style={{
+              <button data-hover="layer" onClick={() => apply(null)} disabled={busy !== null} style={{
                 width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 8, border: 'none',
                 cursor: 'pointer', background: 'transparent', color: 'var(--color-text-3)',
                 fontSize: 13, fontWeight: 600, fontFamily: 'inherit',

@@ -109,7 +109,7 @@ export function AuthFeedbackSlot({ idleText }: { idleText: string }) {
         {message && <strong>{t(message.title)}</strong>}
         {(message?.text || !message) && <p>{t(message?.text ?? idleText)}</p>}
       </ScrollFade>
-      {message?.busy && message.onCancel && <button type="button" className="auth-feedback-cancel" onClick={message.onCancel}>{t('Отмена')}</button>}
+      {message?.busy && message.onCancel && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.onCancel}>{t('Отмена')}</button>}
     </div>
   </div>
 }

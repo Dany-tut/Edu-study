@@ -241,7 +241,7 @@ export function FeedContentSettings({ items }: { items: FeedItem[] }) {
         <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
           {t('Настройка своя на каждом устройстве и общая для всех курсов.')}
         </span>
-        <motion.button
+        <motion.button data-hover="layer"
           whileTap={{ scale: 0.95 }}
           onClick={() => { tactile(); reset() }}
           disabled={!dirty}

@@ -85,7 +85,7 @@ function CourseOrderActions({ saving, onCancel, onApply, stretch }: {
   const grow = stretch ? { flex: 1 } : {}
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-      <motion.button
+      <motion.button data-hover="layer"
         whileTap={{ scale: 0.97 }}
         onClick={onCancel}
         style={{
@@ -96,7 +96,7 @@ function CourseOrderActions({ saving, onCancel, onApply, stretch }: {
       >
         {t('Отмена')}
       </motion.button>
-      <motion.button
+      <motion.button data-hover="layer"
         whileTap={{ scale: 0.97 }}
         onClick={onApply}
         disabled={saving}
@@ -181,7 +181,7 @@ export default function CourseOrderModal({ open, onClose }: Props) {
                   {t('Перетащите за ручку. Этот порядок будет везде: на треке, в «Курсах» и в домашках.')}
                 </p>
               </div>
-              <motion.button
+              <motion.button data-hover="layer"
                 whileTap={{ scale: 0.92 }}
                 onClick={onClose}
                 aria-label={t('Закрыть')}

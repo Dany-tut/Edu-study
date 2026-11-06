@@ -140,7 +140,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
 
   return (
     <>
-      <button
+      <button data-hover="layer"
         ref={btnRef}
         type="button"
         onClick={() => many && setOpen(o => !o)}
@@ -198,7 +198,7 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
                     const selected = s.id === active.id
                     const pct = coursePct(s)
                     return (
-                      <button
+                      <button data-hover="layer"
                         key={s.id}
                         type="button"
                         role="option"
@@ -280,7 +280,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
           <div key={mod.id}
             style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', height: BAR_H, flexShrink: 0, marginRight: debts ? 10 : 0 }}>
             <Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
-              <motion.button
+              <motion.button data-hover="layer"
                 type="button"
                 data-module-tab={mod.id}
                 aria-label={label}
@@ -319,7 +319,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
               </motion.button>
             </Tooltip>
             {/* Anchor to the number, independent of the expanding module title. */}
-            {debts > 0 && <motion.button type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`}
+            {debts > 0 && <motion.button data-hover="layer" type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`}
               whileTap={reduceMotion ? undefined : { scale: 0.9 }}
               onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)}
               style={{ position: 'absolute', top: -4, left: 20, zIndex: 1, border: 0, borderRadius: 999,

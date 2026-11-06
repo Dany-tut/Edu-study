@@ -52,7 +52,7 @@ export default function StickerCollectionModal({ stickers, initialId, loading, o
         </section>
         <div className="album-strip">
           <HScrollFade padX={4} padTop={4} padBottom={4} fadeWidth={18} style={{ minWidth:0 }}>
-          {stickers.map((s, i) => <button type="button" key={s.id} aria-pressed={s.id === selected.id}
+          {stickers.map((s, i) => <button data-hover="layer" type="button" key={s.id} aria-pressed={s.id === selected.id}
             aria-label={`№ ${i + 1} · ${t(emblemNames[emblems[s.id]])} · ${stickerLabel(s, t)}`}
             ref={s.id === selected.id ? selectedButton : undefined}
             onClick={() => setSelectedId(s.id)}>

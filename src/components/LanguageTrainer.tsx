@@ -1519,7 +1519,7 @@ export function Chips({ label, value, options, onChange, accent }: {
       {options.map(o => {
         const on = value === o
         return (
-          <button key={o} onClick={() => onChange(on ? '' : o)}
+          <button data-hover="layer" key={o} onClick={() => onChange(on ? '' : o)}
             style={{
               padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 13, fontWeight: 600,
@@ -1794,7 +1794,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
               soft={palette.soft}
             />
           </div>
-          <button
+          <button data-hover="layer"
             onClick={takeWords}
             disabled={takingWords || tookWords !== null}
             style={{
@@ -1855,7 +1855,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             основание («вот откуда это взято»), и как условие свободных
             лицензий, которые требуют указать источник. */}
         {feed && (
-          <a
+          <a data-hover="link"
             href={feed.url}
             target="_blank"
             rel="noopener noreferrer"
@@ -1997,7 +1997,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
       </div>
 
       {!checked ? (
-        <button
+        <button data-hover="layer"
           ref={checkRef}
           onClick={check}
           disabled={!allAnswered}
@@ -2050,7 +2050,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
                 В разборе его уже переключает рейл партитуры — второй такой же
                 тумблер на титрах только сбивает: два места, одно и то же. */}
             {text.translation && !(hasScore && scoreView) && (
-              <button
+              <button data-hover="layer"
                 onClick={() => setShowTranslation(v => !v)}
                 style={{
                   ...finishChip,
@@ -2065,7 +2065,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             {/* Та же кнопка, что в рейле, и то же состояние: слова забирают
                 именно здесь, когда текст только что дочитан. */}
             {text.glossary.length > 0 && (
-              <button
+              <button data-hover="layer"
                 onClick={takeWords}
                 disabled={takingWords || tookWords !== null}
                 style={{
@@ -2082,7 +2082,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
               </button>
             )}
 
-            <button
+            <button data-hover="layer"
               onClick={onBack}
               style={{
                 ...finishChip, marginLeft: 'auto', padding: '10px 16px',
@@ -2146,7 +2146,7 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
             ? <GlossedText text={q.q} lang={glossLang} extra={glossExtra} accent={accent} subject={subject} style={{ flex: 1, minWidth: 0 }} />
             : <span style={{ flex: 1, minWidth: 0, ...proseWrap }}>{bindShortWords(q.q)}</span>}
         {ru && (
-          <button
+          <button data-hover="layer"
             onClick={() => setShowRu(v => !v)}
             title={on ? t('Показать оригинал') : t('Перевести вопрос')}
             aria-label={on ? t('Показать оригинал') : t('Перевести вопрос')}
@@ -2170,7 +2170,7 @@ function QuestionCard({ q, index, value, checked, accent, lang, glossLang, gloss
           const showRight = checked && right
           const showWrong = checked && picked && !right
           return (
-            <button
+            <button data-hover="layer"
               key={oi}
               onClick={() => onPick(oi)}
               disabled={checked}
@@ -2298,7 +2298,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
       </div>
 
       {!checked ? (
-        <button
+        <button data-hover="layer"
           onClick={check}
           disabled={!allAnswered}
           style={{

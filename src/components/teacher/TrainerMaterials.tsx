@@ -573,14 +573,14 @@ export default function TrainerMaterials({ createNonce = 0, subjects, onSubjects
               // а не две стопки подряд.
               <div style={ROWS_BOX}>
                 {mixed.map(x => x.kind === 'task' ? (
-                  <button key={`task-${x.task.id}`} onClick={() => tasks?.onOpenCard?.(x.task.id)}
+                  <button data-hover="layer" key={`task-${x.task.id}`} onClick={() => tasks?.onOpenCard?.(x.task.id)}
                     style={{ ...ROW, border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-text)' }}>
                     <span style={cardChip(TASK_COLOR)}>{t('Задание')}</span>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{x.task.title}</span>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{x.task.chip}</span>
                   </button>
                 ) : x.kind === 'deck' ? (
-                  <button key={`deck-${x.deck.id}`} onClick={x.deck.open}
+                  <button data-hover="layer" key={`deck-${x.deck.id}`} onClick={x.deck.open}
                     style={{ ...ROW, border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-text)' }}>
                     <span style={cardChip(MAT_COLOR)}>{t('Подборка')}</span>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{x.deck.title}</span>
@@ -813,7 +813,7 @@ function FilterPanel({
       )}
 
       {dirty && (
-        <button onClick={onReset}
+        <button data-hover="layer" onClick={onReset}
           style={btn('S', 'secondary')}>
           <Trash2 size={12} /> {t('Сбросить фильтры')}
         </button>
@@ -1084,7 +1084,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
         {/* Вместо «Сохранить» — честное «Из кода» и путь к файлу, по которому
             материал правится; копируется по клику. */}
         {family && (
-          <button
+          <button data-hover="layer"
             onClick={copyPath}
             title={t('Скопировать путь к файлу')}
             style={{
@@ -1168,7 +1168,7 @@ export function MaterialPage({ target, onSwitch, onClose }: {
                   {segments.map(s => {
                     const active = s === seg
                     return (
-                      <button key={s.label} onClick={() => setSegLabel(s.label)} onMouseDown={e => e.preventDefault()}
+                      <button data-hover="layer" key={s.label} onClick={() => setSegLabel(s.label)} onMouseDown={e => e.preventDefault()}
                         style={{
                           position: 'relative', flex: 1, padding: '8px 10px', borderRadius: 10,
                           border: 'none', cursor: 'pointer', background: 'transparent',
@@ -1230,7 +1230,7 @@ function PassportRow({ label, value, accent }: { label: string; value: string; a
 
 function StepBtn({ disabled, onClick, children }: { disabled: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} disabled={disabled}
+    <button data-hover="layer" onClick={onClick} disabled={disabled}
       style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
         padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-soft)',
@@ -1297,7 +1297,7 @@ function ShelfRail({ groups, flat, loading, current, onPick }: {
           return (
             <div key={g.name || '_'}>
               {named && (
-                <button
+                <button data-hover="layer"
                   onClick={() => setOpenGroups(prev => {
                     const next = new Set(prev)
                     if (next.has(g.name)) next.delete(g.name)

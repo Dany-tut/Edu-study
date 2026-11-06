@@ -81,7 +81,7 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
     const ok = showVerdict && at !== undefined ? Number(at) === item.column : null
     const active = picked === i
     return (
-      <motion.button
+      <motion.button data-hover="layer"
         layout
         whileTap={disabled ? undefined : { scale: 0.96 }}
         onClick={() => {
@@ -138,7 +138,7 @@ export default function ColumnSortSolver({ columns, items, value, disabled, show
           const inside = order.filter(i => Number(given[String(i)]) === ci)
           const armed = picked !== null && !disabled
           return (
-            <div
+            <div data-hover="card"
               key={ci}
               onClick={() => placeIn(ci)}
               style={{

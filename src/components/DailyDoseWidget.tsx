@@ -125,7 +125,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
         )}
       </div>
 
-      <a
+      <a data-hover="layer"
         className="ww-reading-body"
         href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
         style={{
@@ -152,7 +152,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
           на десктопе), и чипсы переносились на вторую строку — карточка вылезала
           за свою рамку на соседний ряд. Обещание «ровно три слова» держит кнопка. */}
       <div className="ww-reading-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
-        <a
+        <a data-hover="layer"
           href={trainerHash({ lang: text.lang, subjectId: text.subject, screen: 'texts', id: text.id })}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
@@ -164,7 +164,7 @@ export default function DailyDoseWidget({ columns }: { columns: number }) {
         </a>
 
         {words.length > 0 && (
-          <button
+          <button data-hover="layer"
             onClick={() => void take()}
             disabled={taking || taken !== null}
             style={btn('S', 'secondary')}

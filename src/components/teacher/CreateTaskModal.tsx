@@ -172,11 +172,11 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2} /></button>
+        <button data-hover="layer" onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
           {t(RU_MONTHS[viewMonth])} {viewYear}
         </span>
-        <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2} /></button>
+        <button data-hover="layer" onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2} /></button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
@@ -299,7 +299,7 @@ function TypePill({ type, onRemove }: { type: TaskType; onRemove: () => void }) 
       transition={{ duration: 0.15, ease: 'easeInOut' }}
       style={{ overflow: 'hidden', flexShrink: 0 }}
     >
-      <span
+      <span data-hover="layer"
         onClick={onRemove}
         style={{
           display: 'inline-flex', alignItems: 'center',
@@ -519,7 +519,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             padding: '18px 20px 0',
           }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{initialTask ? t('Редактировать') : t('Новая личная задача')}</span>
-            <button
+            <button data-hover="layer"
               aria-label={t('Закрыть')}
               disabled={saving}
               onClick={handleClose}
@@ -654,7 +654,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               {TASK_TYPES.map(tt => {
                 const active = taskType?.id === tt.id
                 return (
-                  <button
+                  <button data-hover="layer"
                     key={tt.id}
                     onClick={() => { setTaskType(active ? null : tt); inputRef.current?.focus() }}
                     style={{
@@ -683,7 +683,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   <Calendar size={12} strokeWidth={2} />
                   {t('ДАТА')}
                 </span>
-                <button
+                <button data-hover="layer"
                   onClick={() => { setShowCalendar(v => !v); setShowTimePicker(false) }}
                   style={{
                     padding: '10px 12px', borderRadius: 12,
@@ -711,7 +711,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   <Clock size={12} strokeWidth={2} />
                   {t('ВРЕМЯ')}
                 </span>
-                <button
+                <button data-hover="layer"
                   onClick={() => { setShowTimePicker(v => !v); setShowCalendar(false) }}
                   style={{
                     padding: '10px 12px', borderRadius: 12,
@@ -759,7 +759,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             {saveError && <div role="alert" style={{ color: 'var(--color-red-text)' }}>{saveError}</div>}
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-              <button
+              <button data-hover="layer"
                 onClick={handleClose}
                 style={{ ...btn('M', 'secondary'), flex: 1 }}
               >

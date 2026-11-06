@@ -103,7 +103,7 @@ function AddInline({ onAdd, placeholder, accent }: { onAdd: (v: string) => void;
   const commit = () => { if (draft.trim()) onAdd(draft.trim()); setDraft(''); setOpen(false) }
   if (!open) {
     return (
-      <button onClick={() => { setOpen(true); setTimeout(() => ref.current?.focus(), 20) }}
+      <button data-hover="layer" onClick={() => { setOpen(true); setTimeout(() => ref.current?.focus(), 20) }}
         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
         <Plus size={14} strokeWidth={2.5} /> {placeholder}
       </button>
@@ -116,7 +116,7 @@ function AddInline({ onAdd, placeholder, accent }: { onAdd: (v: string) => void;
         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit() } if (e.key === 'Escape') { setDraft(''); setOpen(false) } }}
         placeholder={placeholder}
         style={{ border: `1.5px solid ${accent}`, borderRadius: 999, padding: '6px 12px', outline: 'none', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', minWidth: 160 }} />
-      <button onMouseDown={e => { e.preventDefault(); commit() }}
+      <button data-hover="layer" onMouseDown={e => { e.preventDefault(); commit() }}
         style={{ display: 'flex', background: accent, color: getContrastColor(accent), border: 'none', borderRadius: 999, padding: 6, cursor: 'pointer' }}>
         <Check size={14} strokeWidth={2.5} />
       </button>
@@ -153,7 +153,7 @@ function TopicChip({ subject, section, topic, accent, renameTopic, removeTopic }
         // первой. Оставляем базовое подчёркивание — правится только размер шрифта.
         inputStyle={{ fontSize: 13 }} />
       {showCross && (
-        <button onClick={e => { e.stopPropagation(); removeTopic(subject, section, topic) }}
+        <button data-hover="layer" onClick={e => { e.stopPropagation(); removeTopic(subject, section, topic) }}
           style={{ display: 'flex', width: 18, height: 18, borderRadius: 999, border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', background: 'transparent', color: 'var(--color-red-text)', flexShrink: 0 }}>
           <X size={12} strokeWidth={2.5} />
         </button>
@@ -187,14 +187,14 @@ function LineRow({ subject, l, accent, accentBg, updateLine, removeLine }: {
       {/* Part toggle */}
       <div style={{ display: 'flex', borderRadius: 8, background: 'var(--color-bg-3)', padding: 2, flexShrink: 0 }}>
         {([1, 2] as const).map(p => (
-          <button key={p} onClick={() => updateLine(subject, l.n, { part: p })}
+          <button data-hover="layer" key={p} onClick={() => updateLine(subject, l.n, { part: p })}
             style={{ padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', outline: 'none',
               background: l.part === p ? accentBg : 'transparent', color: l.part === p ? accent : 'var(--color-text-3)' }}>
             {t('Ч')}{p}
           </button>
         ))}
       </div>
-      <button onClick={() => removeLine(subject, l.n)} style={{ display: 'flex', width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', flexShrink: 0, ...revealStyle(del.visible, 28, 8) }}>
+      <button data-hover="layer" onClick={() => removeLine(subject, l.n)} style={{ display: 'flex', width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', flexShrink: 0, ...revealStyle(del.visible, 28, 8) }}>
         <Trash2 size={12} />
       </button>
     </div>
@@ -224,7 +224,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
       background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: 'var(--shadow-2)', overflow: 'hidden',
     }}>
       {/* Header */}
-      <div onClick={() => setOpen(o => !o)} {...del.bind}
+      <div data-hover="layer" onClick={() => setOpen(o => !o)} {...del.bind}
         style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', cursor: 'pointer' }}>
         <GripVertical size={16} style={{ color: 'var(--color-text-5)', flexShrink: 0 }} />
         <motion.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.15 }} style={{ display: 'flex', color: 'var(--color-text-3)', flexShrink: 0 }}>
@@ -242,7 +242,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
             <BookOpen size={12} /> {topics.length}
           </span>
         </span>
-        <button onClick={e => { e.stopPropagation(); void confirmDialog({ title: `${t('Удалить раздел')} «${section}»?`, message: t('Темы и линии раздела тоже удалятся.'), confirmLabel: t('Удалить'), tone: 'danger' }).then(ok => { if (ok) removeSection(subject, section) }) }}
+        <button data-hover="layer" onClick={e => { e.stopPropagation(); void confirmDialog({ title: `${t('Удалить раздел')} «${section}»?`, message: t('Темы и линии раздела тоже удалятся.'), confirmLabel: t('Удалить'), tone: 'danger' }).then(ok => { if (ok) removeSection(subject, section) }) }}
           style={{ display: 'flex', width: 30, height: 30, borderRadius: 9, border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', flexShrink: 0, ...revealStyle(del.visible, 30, 10) }}>
           <Trash2 size={14} />
         </button>
@@ -276,7 +276,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
                   )}
                 </div>
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                  <button onClick={() => addLine(subject, section, partFilter === 2 ? 2 : 1)}
+                  <button data-hover="layer" onClick={() => addLine(subject, section, partFilter === 2 ? 2 : 1)}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                     <Plus size={14} strokeWidth={2.5} /> {t('Добавить линию')}
                   </button>
@@ -359,7 +359,7 @@ export default function CurriculumManager() {
               ariaLabel={t('Предмет')}
             />
           </div>
-          <button onClick={() => { void confirmDialog({ title: t('Вернуть стандартную структуру ЕГЭ?'), message: t('Ваши правки структуры этого предмета будут потеряны.'), confirmLabel: t('Вернуть'), tone: 'danger' }).then(ok => { if (ok) resetSubject(subject) }) }}
+          <button data-hover="layer" onClick={() => { void confirmDialog({ title: t('Вернуть стандартную структуру ЕГЭ?'), message: t('Ваши правки структуры этого предмета будут потеряны.'), confirmLabel: t('Вернуть'), tone: 'danger' }).then(ok => { if (ok) resetSubject(subject) }) }}
             title={t('Сбросить к стандарту ЕГЭ')}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
             <RotateCcw size={14} /> {t('Сбросить')}
@@ -374,7 +374,7 @@ export default function CurriculumManager() {
         </span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, padding: 4, borderRadius: 999, background: 'var(--color-bg-3)' }}>
           {([[0, t('Все')], [1, t('Часть 1')], [2, t('Часть 2')]] as [0 | 1 | 2, string][]).map(([p, l]) => (
-            <button key={p} onClick={() => setPartFilter(p)}
+            <button data-hover="layer" key={p} onClick={() => setPartFilter(p)}
               style={{ padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                 background: partFilter === p ? 'var(--color-surface)' : 'transparent', color: partFilter === p ? 'var(--color-text)' : 'var(--color-muted)',
                 boxShadow: partFilter === p ? '0 1px 4px rgba(0,0,0,0.08)' : 'none' }}>

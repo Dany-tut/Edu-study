@@ -255,7 +255,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   грабером сверху и жестом вниз; вторая кнопка в углу повторяет
                   то же действие и съедает место у заголовка урока. */}
               {isDesktop && (
-                <button
+                <button data-hover="layer"
                   onClick={onClose}
                   aria-label={t('Закрыть')}
                   className="flex items-center justify-center cursor-pointer flex-shrink-0"

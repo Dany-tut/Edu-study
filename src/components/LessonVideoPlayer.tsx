@@ -1382,7 +1382,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             </div>
 
             <div className="lesson-player-controls-row flex items-center">
-              <button onClick={() => (paused ? doPlay() : doPause())} style={iconBtn()} aria-label={paused ? t('Продолжить') : t('Пауза')}>
+              <button data-hover="layer" onClick={() => (paused ? doPlay() : doPause())} style={iconBtn()} aria-label={paused ? t('Продолжить') : t('Пауза')}>
                 {paused ? <Play size={24} fill="#fff" /> : <Pause size={24} fill="#fff" />}
               </button>
               {/* Кнопок «−10 / +10» в строке нет НАМЕРЕННО. У длинного ролика
@@ -1391,7 +1391,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   жестах по кадру (двойной тап по краю, удержание), скорость же
                   нажимается только отсюда. */}
               <div ref={volumeBoxRef} className="lesson-player-volume">
-                <button
+                <button data-hover="layer"
                   onClick={() => { setVolumeOpen(o => !o); setRateOpen(false) }}
                   style={iconBtn(volumeOpen ? { background: 'rgba(255,255,255,0.16)' } : undefined)}
                   aria-label={t('Громкость')}
@@ -1436,7 +1436,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               <span style={{ flex: 1 }} />
 
               {canCaptions && ccAvailable && (
-                <button
+                <button data-hover="layer"
                   onClick={toggleCaptions}
                   style={iconBtn(captions ? { background: 'rgba(255,255,255,0.2)' } : undefined)}
                   aria-label={t('Субтитры')}
@@ -1447,7 +1447,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
               {canRate && (
                 <div style={{ position: 'relative' }}>
-                  <button
+                  <button data-hover="layer"
                     className="lesson-player-rate-trigger"
                     ref={rateBtnRef}
                     onClick={() => { if (!rateOpen) placeRateMenu(); setRateOpen(o => !o); setRateKnob(null); setVolumeOpen(false) }}
@@ -1499,7 +1499,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 </div>
               )}
 
-              <button onClick={toggleFullscreen} style={iconBtn()} aria-label={t('Во весь экран')}>
+              <button data-hover="layer" onClick={toggleFullscreen} style={iconBtn()} aria-label={t('Во весь экран')}>
                 {fullscreen ? <Minimize size={22} /> : <Maximize size={22} />}
               </button>
             </div>
@@ -1517,7 +1517,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 ? t('Попробуйте ещё раз или откройте видео на Google Диске.')
                 : t('Попробуйте ещё раз или откройте исходное видео.')}</p>
               <div className="lesson-player-message-actions">
-                <button onClick={() => {
+                <button data-hover="layer" onClick={() => {
                   setStartAt(currentRef.current)
                   setMediaError(false)
                   if (originalSource.kind === 'gdrive') {
@@ -1527,7 +1527,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     void videoRef.current?.play().catch(() => setPaused(true))
                   }
                 }}>{t('Попробовать ещё раз')}</button>
-                <a href={originalSource.kind === 'gdrive'
+                <a data-hover="link" href={originalSource.kind === 'gdrive'
                   ? `https://drive.google.com/file/d/${originalSource.id}/view`
                   : 'url' in originalSource ? originalSource.url : undefined}
                   target="_blank" rel="noopener noreferrer">
@@ -1574,7 +1574,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           {/* Большая кнопка продолжает с того места, где остановились в прошлый
               раз; «сначала» рядом — для тех, кто пересматривает урок целиком. */}
           <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ gap: 14 }}>
-            <button
+            <button data-hover="layer"
               onClick={() => { setStartAt(resumeAt); setStarted(true) }}
               aria-label={resumeAt > 0 ? `${t('Продолжить с')} ${formatClock(resumeAt)}` : t('Смотреть')}
               className="cursor-pointer"
@@ -1596,7 +1596,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
             {resumeAt > 0 && (
               <div className="flex items-center" style={{ gap: 8 }}>
-                <button
+                <button data-hover="layer"
                   onClick={() => { setStartAt(resumeAt); setStarted(true) }}
                   className="cursor-pointer"
                   style={{
@@ -1607,7 +1607,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                 >
                   {t('Продолжить с')} {formatClock(resumeAt)}
                 </button>
-                <button
+                <button data-hover="layer"
                   onClick={() => { setStartAt(0); setStarted(true) }}
                   className="cursor-pointer"
                   style={{

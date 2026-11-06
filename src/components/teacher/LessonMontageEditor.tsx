@@ -217,8 +217,8 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
     bodyStyle={desktop ? { overflowY: 'hidden', display: 'flex', flexDirection: 'column' } : undefined}
     footer={<div className="lm-footer">
       <span className="lm-footer-sum"><strong>−{clock(duration - after)}</strong><span className="lm-footer-detail">Вырезано {span(cutTotal)}, ускорено {span(speedTotal)}</span><span className="lm-footer-short">урок станет короче</span></span>
-      <button type="button" style={btn('M', 'secondary')} onClick={onClose}>Отмена</button>
-      <button type="button" style={btn('M', 'primary')} onClick={apply}>Применить монтаж</button>
+      <button data-hover="layer" type="button" style={btn('M', 'secondary')} onClick={onClose}>Отмена</button>
+      <button data-hover="layer" type="button" style={btn('M', 'primary')} onClick={apply}>Применить монтаж</button>
     </div>}>
     {desktop
       ? <div className="lm-editor">
@@ -264,7 +264,7 @@ function Player({ t, duration, after, view, setView, playing, setPlaying, pauses
       {notice && <div className="lm-notice" role="status">{notice}</div>}
     </div>
     <div className="lm-controls">
-      <button type="button" className="lm-play" aria-label={playing ? 'Пауза' : 'Смотреть'} onClick={() => { if (t >= duration) onSeek(0); setPlaying(!playing) }}>{playing ? <Pause size={18} /> : <Play size={18} />}</button>
+      <button data-hover="layer" type="button" className="lm-play" aria-label={playing ? 'Пауза' : 'Смотреть'} onClick={() => { if (t >= duration) onSeek(0); setPlaying(!playing) }}>{playing ? <Pause size={18} /> : <Play size={18} />}</button>
       <span className="lm-time">{clock(shown)} / {clock(total)}</span>
       {/* Глава — по центру между временем и переключателем. */}
       <FadeText className="lm-chapter">{chapter?.label ?? 'Начало урока'}</FadeText>
@@ -442,7 +442,7 @@ function Timeline({ duration, speakers, lines, pauses, t, selected, follow, onSe
     </div>
     <div className="lm-row lm-zoom-hint"><span /><div>{zoomed
       ? <><small>Масштаб ×{(duration / len >= 100 ? Math.round(duration / len) : (duration / len).toFixed(1).replace('.0', '').replace('.', ','))} · {clockFine(view.from, ruler.digits)}–{clockFine(view.to, ruler.digits)} · Shift + колёсико — сдвиг</small>
-        <button type="button" className="lm-zoom-reset" onClick={() => setView({ from: 0, to: duration })}>Весь урок</button></>
+        <button data-hover="layer" type="button" className="lm-zoom-reset" onClick={() => setView({ from: 0, to: duration })}>Весь урок</button></>
       : <small>Cmd + колёсико — масштаб · Shift + колёсико — сдвиг</small>}</div></div>
     <div className="lm-row lm-playhead-row" aria-hidden><span /><div className="lm-track">
       {/* Столбец выбранной паузы: поднимается от её блока через все голоса. */}
@@ -622,12 +622,12 @@ function PauseDetailBody({ duration, t, follow, onSeek, pause, pauses, lines, sp
 
   return <section className="lm-detail" aria-label="Выбранная пауза">
     <header className="lm-detail-head">
-      <button type="button" className="lm-icon-btn" aria-label="Предыдущая пауза" disabled={index <= 0} onClick={() => onStep(-1)}><ChevronLeft size={18} /></button>
+      <button data-hover="layer" type="button" className="lm-icon-btn" aria-label="Предыдущая пауза" disabled={index <= 0} onClick={() => onStep(-1)}><ChevronLeft size={18} /></button>
       <div className="lm-detail-title">
         <strong>Пауза {index + 1} из {pauses.length} · {clock(pause.start)}–{clock(pause.end)}</strong>
         <small>{KIND_LABEL[pause.kind]}{pause.board ? ' · кадр меняется' : ''} · {span(pause.end - pause.start)} · {Math.round(pause.level)} дБ{pause.edited ? ' · края изменены' : ''}</small>
       </div>
-      <button type="button" className="lm-icon-btn" aria-label="Следующая пауза" disabled={index >= pauses.length - 1} onClick={() => onStep(1)}><ChevronRight size={18} /></button>
+      <button data-hover="layer" type="button" className="lm-icon-btn" aria-label="Следующая пауза" disabled={index >= pauses.length - 1} onClick={() => onStep(1)}><ChevronRight size={18} /></button>
     </header>
     <div className="lm-wave" ref={track} style={{ '--fade-l': win.from > 0.05 ? '28px' : '0px', '--fade-r': win.to < duration - 0.05 ? '28px' : '0px' } as CSSProperties} onPointerDown={seekDown} onPointerMove={move} onPointerUp={() => setDrag(null)} onPointerCancel={() => setDrag(null)}>
       <div className="lm-wave-lines">{near.map(l => { const sp = speakerOf(l.speaker); return <i key={l.id} title={`${sp?.label}: ${l.text}`}
@@ -650,17 +650,17 @@ function PauseDetailBody({ duration, t, follow, onSeek, pause, pauses, lines, sp
       ? <div className="lm-warn" role="alert">
         <AlertTriangle size={15} />
         <FadeText className="lm-warn-text">Край задевает реплику: {speakerOf(hit[0].speaker)?.label} — «{hit[0].text}»</FadeText>
-        <button type="button" style={btn('S', 'secondary', { height: 28, padding: '0 12px', borderRadius: 9, fontSize: 12 })} onClick={fit}>Отодвинуть края</button>
+        <button data-hover="layer" type="button" style={btn('S', 'secondary', { height: 28, padding: '0 12px', borderRadius: 9, fontSize: 12 })} onClick={fit}>Отодвинуть края</button>
       </div>
       : <FadeText className="lm-detail-hint">Тяните края паузы · Cmd + колёсико — масштаб · Shift + колёсико — сдвиг</FadeText>}</div>
     <div className="lm-detail-actions">
       <Segmented variant="filter" value={pause.action} onChange={onAction} items={[
         { id: 'cut', label: 'Вырезать' }, { id: 'speed', label: <><span className="lm-long">Ускорить </span>×{speed}</>, title: `Ускорить ×${speed}` }, { id: 'keep', label: 'Оставить' },
       ]} />
-      <button type="button" style={btn('S', 'secondary')} onClick={() => onListen(pause.start - 4, 'source')}><Headphones size={15} />Прослушать</button>
-      <button type="button" style={btn('S', 'secondary')} onClick={() => onListen(pause.start - 4, 'edited')}><Play size={14} />Как будет</button>
+      <button data-hover="layer" type="button" style={btn('S', 'secondary')} onClick={() => onListen(pause.start - 4, 'source')}><Headphones size={15} />Прослушать</button>
+      <button data-hover="layer" type="button" style={btn('S', 'secondary')} onClick={() => onListen(pause.start - 4, 'edited')}><Play size={14} />Как будет</button>
       {/* Место под кнопку занято всегда: иначе ряд перестраивался при первой правке края. */}
-      <button type="button" style={btn('S', 'quiet', pause.edited ? undefined : { visibility: 'hidden' })} tabIndex={pause.edited ? undefined : -1} aria-hidden={!pause.edited} onClick={onReset}><RotateCcw size={14} />Края как нашлись</button>
+      <button data-hover="layer" type="button" style={btn('S', 'quiet', pause.edited ? undefined : { visibility: 'hidden' })} tabIndex={pause.edited ? undefined : -1} aria-hidden={!pause.edited} onClick={onReset}><RotateCcw size={14} />Края как нашлись</button>
     </div>
   </section>
 }
@@ -674,7 +674,7 @@ function PauseHead({ count, speed, onAll, cutTotal, speedTotal }: {
     <p className="lm-lead">Найдено {count} пауз. Вырежем {span(cutTotal)}, ускорим {span(speedTotal)}. Тишина вырезается, тихая работа — ускоряется: в кадре может быть доска.</p>
     <div className="lm-bulk" role="group" aria-label="Для всех пауз">
       {(['cut', 'speed', 'keep'] as const).map(a => { const label = a === 'speed' ? `Ускорить ×${speed}` : ACTION_LABEL[a]
-        return <button key={a} type="button" title={label + ' — все паузы'} aria-label={label + ' все паузы'} style={btn('S', 'secondary', { minWidth: 0, padding: '0 8px' })} onClick={() => onAll(a)}>{label}</button> })}
+        return <button data-hover="layer" key={a} type="button" title={label + ' — все паузы'} aria-label={label + ' все паузы'} style={btn('S', 'secondary', { minWidth: 0, padding: '0 8px' })} onClick={() => onAll(a)}>{label}</button> })}
     </div>
   </div>
 }
@@ -722,7 +722,7 @@ function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd, onFo
           <span className="lm-avatar">{initial(sp.label)}</span>
           <label className="lm-name"><span className="lm-visually-hidden">Имя</span>
             <input value={sp.label} aria-label={'Имя: ' + sp.label} onChange={e => patch(sp.id, { label: e.target.value })} /></label>
-          <button type="button" style={btn('S', 'secondary')} disabled={!own.length} onClick={() => own[0] && onListen(own[0].start)}><Headphones size={15} />Голос</button>
+          <button data-hover="layer" type="button" style={btn('S', 'secondary')} disabled={!own.length} onClick={() => own[0] && onListen(own[0].start)}><Headphones size={15} />Голос</button>
         </div>
         <div className="lm-share"><i style={{ width: share + '%' }} /></div>
         <small className="lm-speaker-meta">{share}% речи · {own.length} реплик</small>
@@ -733,10 +733,10 @@ function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd, onFo
         </div>
       </article>
     })}
-    <button type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onAdd}><Plus size={14} />Добавить голос</button>
+    <button data-hover="layer" type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onAdd}><Plus size={14} />Добавить голос</button>
     {onForget && <p className="lm-lead">Голоса с именами запоминаются только на этом Mac и в следующих уроках подписываются сами. {forgotten
       ? 'Запомненные голоса удалены.'
-      : <button type="button" className="lm-inline-link" onClick={() => { onForget(); setForgotten(true) }}>Забыть все голоса</button>}</p>}
+      : <button data-hover="layer" type="button" className="lm-inline-link" onClick={() => { onForget(); setForgotten(true) }}>Забыть все голоса</button>}</p>}
   </div>
 }
 
@@ -755,7 +755,7 @@ function LineList({ lines, speakers, pauses, t, who, onChange, onListen }: {
       const now = t >= l.start && t < l.end
       return <div key={l.id} className={'lm-line' + (now ? ' is-now' : '') + (cut ? ' is-cut' : '')}>
         <div className="lm-line-head">
-          <button type="button" className="lm-time-btn" aria-label={'Слушать с ' + clock(l.start)} onClick={() => onListen(l.start)}><Play size={12} />{clock(l.start)}</button>
+          <button data-hover="layer" type="button" className="lm-time-btn" aria-label={'Слушать с ' + clock(l.start)} onClick={() => onListen(l.start)}><Play size={12} />{clock(l.start)}</button>
           <div className="lm-line-who"><TeacherSelect small clearable={false} search={false} value={l.speaker} options={speakers.map(s => ({ value: s.id, label: s.label }))}
             onChange={v => v && patch(l.id, { speaker: v })} accent={sp ? TONE[sp.tone].text : undefined} accentBg={sp ? TONE[sp.tone].bg : undefined}
             triggerStyle={sp ? { background: TONE[sp.tone].bg, color: TONE[sp.tone].text, fontWeight: 700 } : undefined} /></div>
@@ -815,9 +815,9 @@ function SettingsPanel({ settings, onChange, found, edited, onResetAll }: {
   return <div className="lm-list">
     <p className="lm-lead">Паузы ищутся по громкости, без ИИ. Сейчас найдено: <strong>{found}</strong>. Ручные правки сохраняются при смене настроек.</p>
     {row('Минимальная пауза', 'Короче — обычная заминка речи, её не трогаем.', <div className="lm-stepper">
-      <button type="button" className="lm-icon-btn" aria-label="Меньше" disabled={settings.minPause <= 5} onClick={() => set('minPause', Math.max(5, settings.minPause - 5))}><Minus size={16} /></button>
+      <button data-hover="layer" type="button" className="lm-icon-btn" aria-label="Меньше" disabled={settings.minPause <= 5} onClick={() => set('minPause', Math.max(5, settings.minPause - 5))}><Minus size={16} /></button>
       <span>{settings.minPause} с</span>
-      <button type="button" className="lm-icon-btn" aria-label="Больше" disabled={settings.minPause >= 120} onClick={() => set('minPause', Math.min(120, settings.minPause + 5))}><Plus size={16} /></button>
+      <button data-hover="layer" type="button" className="lm-icon-btn" aria-label="Больше" disabled={settings.minPause >= 120} onClick={() => set('minPause', Math.min(120, settings.minPause + 5))}><Plus size={16} /></button>
     </div>)}
     {row('Что считать тишиной', 'В шумном классе тихая работа громче — порог выше.', <Segmented variant="filter" value={settings.sensitivity} onChange={v => set('sensitivity', v)}
       items={[{ id: 'strict', label: 'Полная' }, { id: 'normal', label: 'Обычная' }, { id: 'loud', label: 'Шумный класс' }]} />)}
@@ -827,6 +827,6 @@ function SettingsPanel({ settings, onChange, found, edited, onResetAll }: {
       items={[{ id: 'speed', label: 'Ускорить' }, { id: 'cut', label: 'Вырезать' }, { id: 'keep', label: 'Оставить' }]} />)}
     {row('Ускорение', 'Во сколько раз быстрее идёт ускоренная пауза.', <Segmented variant="filter" value={String(settings.speed) as '2' | '4' | '8'} onChange={v => set('speed', Number(v) as 2 | 4 | 8)}
       items={[{ id: '2', label: '×2' }, { id: '4', label: '×4' }, { id: '8', label: '×8' }]} />)}
-    {edited > 0 && <button type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onResetAll}><RotateCcw size={14} />Сбросить ручные правки ({edited})</button>}
+    {edited > 0 && <button data-hover="layer" type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onResetAll}><RotateCcw size={14} />Сбросить ручные правки ({edited})</button>}
   </div>
 }

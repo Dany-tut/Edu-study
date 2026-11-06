@@ -128,7 +128,7 @@ export default function TeacherModules({ showHeading = true }: { showHeading?: b
                   }}
                 />
                 {/* Вставить из буфера: код копируют в Тестли кнопкой «Скопировать». */}
-                <button onClick={() => void pasteFromClipboard()} disabled={busy} style={{
+                <button data-hover="layer" onClick={() => void pasteFromClipboard()} disabled={busy} style={{
                   position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
                   display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 9,
                   border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
@@ -137,7 +137,7 @@ export default function TeacherModules({ showHeading = true }: { showHeading?: b
                   <ClipboardPaste size={13} /> {t('Вставить')}
                 </button>
               </div>
-              <button onClick={() => void connect()} disabled={busy || code.length < 6} style={{
+              <button data-hover="layer" onClick={() => void connect()} disabled={busy || code.length < 6} style={{
                 padding: '10px 18px', borderRadius: 12, border: 'none', background: 'var(--color-accent)', color: '#fff',
                 fontSize: 13, fontWeight: 700, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit', flexShrink: 0,
                 display: 'flex', alignItems: 'center', gap: 6, opacity: busy || code.length < 6 ? 0.6 : 1,

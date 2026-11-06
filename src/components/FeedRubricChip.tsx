@@ -47,7 +47,7 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
   const Icon = filterIcon(rubric.id)
   const text = t(rubric.label)
   return (
-    <button
+    <button data-hover="layer"
       type="button"
       onClick={onClick}
       // Значок без подписи обязан называть себя мышью и диктору: свёрнутый ряд

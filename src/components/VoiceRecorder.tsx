@@ -159,7 +159,7 @@ export default function VoiceRecorder({
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <AudioPlayer audioUrl={value} compact accent={accent} />
         <span style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>{t('Ответ записан')}</span>
-        <button onClick={() => onChange(null)} title={t('Перезаписать')}
+        <button data-hover="layer" onClick={() => onChange(null)} title={t('Перезаписать')}
           style={{ marginLeft: 'auto', border: 'none', background: 'var(--color-bg-3)', borderRadius: 8, height: 30, padding: '0 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
           <Trash2 size={14} /> {t('Заново')}
         </button>
@@ -170,15 +170,15 @@ export default function VoiceRecorder({
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
       {phase === 'recording' ? (
-        <button onClick={stop} style={recBtn('var(--color-red-text)')}>
+        <button data-hover="layer" onClick={stop} style={recBtn('var(--color-red-text)')}>
           <Square size={16} /> {t('Стоп')}
         </button>
       ) : phase === 'uploading' ? (
-        <button disabled style={recBtn('var(--color-muted)')}>
+        <button data-hover="layer" disabled style={recBtn('var(--color-muted)')}>
           <Loader2 size={16} className="spin" /> {t('Загрузка…')}
         </button>
       ) : (
-        <button onClick={start} style={recBtn(accent ?? 'var(--color-accent)')}>
+        <button data-hover="layer" onClick={start} style={recBtn(accent ?? 'var(--color-accent)')}>
           <Mic size={16} /> {t('Записать')}
         </button>
       )}

@@ -413,9 +413,9 @@ export default function StudentDiaryPage({
             <aside className="ds-feed-aside">
               <section className="ds-feed-planner" aria-label={t('План на неделю')}>
                 <div className="ds-section-head"><h2>{t('План на неделю')}</h2></div>
-                <button type="button" className="ds-feed-all" aria-pressed={feedDay === null} onClick={() => setFeedDay(null)}>{t('Все сроки')}</button>
+                <button data-hover="layer" type="button" className="ds-feed-all" aria-pressed={feedDay === null} onClick={() => setFeedDay(null)}>{t('Все сроки')}</button>
                 <div className="ds-day-picker" role="group" aria-label={t('Дни недели')}>
-                  {feedDays.map(day => <button key={day} type="button" aria-label={feedDate(day)} aria-pressed={feedDay === day}
+                  {feedDays.map(day => <button data-hover="layer" key={day} type="button" aria-label={feedDate(day)} aria-pressed={feedDay === day}
                     onClick={() => setFeedDay(feedDay === day ? null : day)}>
                     <span>{new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {weekday:'short',timeZone:'UTC'}).format(new Date(day+'T12:00:00Z'))}</span>
                     <strong>{Number(day.slice(-2))}</strong><i aria-hidden="true" data-has-work={list.some(entry => entry.due === day) || undefined}/>

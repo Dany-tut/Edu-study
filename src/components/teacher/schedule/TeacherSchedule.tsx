@@ -199,19 +199,19 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
         <div className="calendar-widget-title" style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
         <div className="calendar-widget-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {!mobile && !readOnly && (
-            <button
+            <button data-hover="layer"
               aria-label={t('Добавить занятие')}
               onClick={() => overlays.current?.openAdd(day)}
               style={btn('S', 'primary', { width: 32, padding: 0 })}
             ><Plus size={17} /></button>
           )}
           {(visibleDates.first !== weekStart(today) || visibleDates.last !== addDays(weekStart(today), 6)) && (
-            <button onClick={returnToToday} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
+            <button data-hover="layer" onClick={returnToToday} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
           )}
           {!mobile && (
             <>
-              <button aria-label={t('Прошлая неделя')} onClick={() => moveVisibleWeek(-1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
-              <button aria-label={t('Следующая неделя')} onClick={() => moveVisibleWeek(1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
+              <button data-hover="layer" aria-label={t('Прошлая неделя')} onClick={() => moveVisibleWeek(-1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
+              <button data-hover="layer" aria-label={t('Следующая неделя')} onClick={() => moveVisibleWeek(1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
             </>
           )}
         </div>
@@ -227,7 +227,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
           const hot = target === d && drag?.item.date !== d
           const dots = (items ?? []).filter(x => x.date === d && !x.cancelled).slice(0, 3)
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={d}
               type="button"
               aria-label={dayLabel(d)}
@@ -332,7 +332,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
             >
               <span style={{ flex: 1, minWidth: 0 }}>{toast.text}</span>
               {toast.undo && (
-                <button onClick={() => undo(toast.undo!)} style={{
+                <button data-hover="layer" onClick={() => undo(toast.undo!)} style={{
                   border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 14, fontWeight: 700, color: 'var(--color-purple-soft)', padding: '4px 2px',
                 }}>{t('Отменить')}</button>
@@ -855,7 +855,7 @@ function RescheduleSheet({ mobile, item, onClose, onDone }: {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {options.map(o => (
-          <button
+          <button data-hover="layer"
             key={o.id}
             onClick={() => setMode(o.id)}
             style={{
@@ -877,14 +877,14 @@ function RescheduleSheet({ mobile, item, onClose, onDone }: {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {[[1, t('Завтра')], [2, t('Послезавтра')], [7, t('Через неделю')]].map(([n, label]) => (
-              <button key={String(n)} onClick={() => setWhen(toIso(addDays(it.date, Number(n)), target?.time ?? it.time))} style={btn('S', 'secondary')}>{label}</button>
+              <button data-hover="layer" key={String(n)} onClick={() => setWhen(toIso(addDays(it.date, Number(n)), target?.time ?? it.time))} style={btn('S', 'secondary')}>{label}</button>
             ))}
           </div>
           {when && <DateTimeField key={when} label={t('Новая дата и время')} value={when} onChange={setWhen} />}
         </div>
       )}
 
-      <button
+      <button data-hover="layer"
         onClick={() => setNotify(n => !n)}
         style={{ display: 'flex', alignItems: 'center', gap: 10, border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', padding: 0, fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}
       >
@@ -906,7 +906,7 @@ function RescheduleSheet({ mobile, item, onClose, onDone }: {
   }
   const cta = mode === 'move' ? t('Перенести') : mode === 'shift' ? t('Сдвинуть') : t('Отменить занятие')
   const footer = (
-    <button onClick={submit} style={btn('L', mode === 'cancel' ? 'danger' : 'primary')}>{cta}</button>
+    <button data-hover="layer" onClick={submit} style={btn('L', mode === 'cancel' ? 'danger' : 'primary')}>{cta}</button>
   )
   const title = it ? `${it.who} · ${shortLabel(it.date)}, ${it.time}` : ''
 

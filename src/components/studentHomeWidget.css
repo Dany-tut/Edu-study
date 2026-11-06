@@ -144,3 +144,6 @@
  .ihw-card .ihw-metric>span{font-size:9px;line-height:10px}
 }
 .ihw-card .ihw-footer .ihw-action:first-child{flex:0 1 auto}
+
+/* Строка дела без своих полей: подсветка ховера выходит за текст на пару пикселей. */
+.ihw-task[data-hover=layer]::after{inset:-2px -6px;border-radius:8px}

@@ -448,7 +448,7 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
 function DrillButton({ accent, onClick }: { accent: string; onClick: () => void }) {
   const t = useT()
   return (
-    <button
+    <button data-hover="layer"
       onClick={onClick}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: DECK_CTA.gap, borderRadius: 999,
@@ -500,7 +500,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
         const on = open === i
         const sp = speaking?.id === `p${i}` ? speaking : null
         return (
-          <div
+          <div data-hover="card"
             key={`${p.term}-${i}`}
             onClick={() => setOpen(on ? null : i)}
             style={{
@@ -624,7 +624,7 @@ function PhraseList({ phrases, accent, view, lang, onRemove }: {
             {sp && <SoundTrack state={sp} accent={accent} soft={`${accent}33`} />}
 
             {onRemove && on && (
-              <button
+              <button data-hover="layer"
                 onClick={e => { e.stopPropagation(); onRemove(p) }}
                 title={t('Убрать из словаря')}
                 aria-label={t('Убрать из словаря')}
@@ -683,7 +683,7 @@ export function TakeWholeTheme({ phrases, owner, subjectId, accent, onAdded }: {
 
   const done = added !== null
   return (
-    <button
+    <button data-hover="layer"
       onClick={take}
       disabled={busy || done}
       style={{

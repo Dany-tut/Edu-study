@@ -135,7 +135,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
     // разъезжаются, и таблица перестаёт быть таблицей.
     if (!onPress) return <div key={label} style={{ width: 40, height: 42, flexShrink: 0 }} />
     return (
-      <motion.button
+      <motion.button data-hover="layer"
         key={label}
         type="button"
         whileTap={disabled ? undefined : { scale: 0.9 }}
@@ -231,7 +231,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
 
       <div className="flex" style={{ gap: 6, marginTop: 6 }}>
         {key(t('пробел'), () => { if (!disabled) { playPop(); emit(prev => `${prev} `) } }, { wide: true })}
-        <motion.button
+        <motion.button data-hover="layer"
           type="button"
           whileTap={disabled ? undefined : { scale: 0.9 }}
           onMouseDown={e => e.preventDefault()}

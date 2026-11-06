@@ -260,7 +260,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
   return (
     <>
       {variant === 'icon' ? (
-        <button
+        <button data-hover="layer"
           ref={btn}
           onClick={toggle}
           aria-expanded={open}
@@ -282,7 +282,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
           <ChevronDown size={14} strokeWidth={2} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
         </button>
       ) : (
-        <button
+        <button data-hover="layer"
           ref={btn}
           onClick={toggle}
           aria-expanded={open}
@@ -370,7 +370,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                 )
               })}
               {!all && total > voices.length && (
-                <button
+                <button data-hover="layer"
                   onClick={() => setAll(true)}
                   style={{
                     marginTop: 2, padding: '8px 10px', width: '100%', textAlign: 'left',

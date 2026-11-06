@@ -200,23 +200,23 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
             <p style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Заполненность пока недоступна.')}</p>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            {sessionError && <a href={`#/login?next=${encodeURIComponent(window.location.hash)}`} style={{ ...btn('var(--color-purple-soft)', 'var(--color-purple-text)'), textDecoration: 'none' }}>{t('Войти учеником')}</a>}
+            {sessionError && <a data-hover="link" href={`#/login?next=${encodeURIComponent(window.location.hash)}`} style={{ ...btn('var(--color-purple-soft)', 'var(--color-purple-text)'), textDecoration: 'none' }}>{t('Войти учеником')}</a>}
             {doneAt === null && !disabled && !embedUrl && !sessionError && (
-              <button type="button" onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
+              <button data-hover="layer" type="button" onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
                 {opening ? <Loader2 size={14} /> : <Play size={14} />}
                 {opening ? t('Открываем тест…') : started || opened ? t('Продолжить тест') : t('Начать тест')}
               </button>
             )}
             {doneAt !== null && score?.review && !pending && (
-              <a href={testlyReviewUrl(score.review)} target="_blank" rel="noopener noreferrer" style={{
+              <a data-hover="link" href={testlyReviewUrl(score.review)} target="_blank" rel="noopener noreferrer" style={{
                 ...btn('var(--color-purple-soft)', 'var(--color-purple-text)'), textDecoration: 'none', cursor: 'pointer',
               }}>{t('Открыть разбор')} <ExternalLink size={14} /></a>
             )}
-            {offline && <button type="button" onClick={() => void refresh()} style={{ ...btn('var(--color-bg-3)', 'var(--color-text)'), cursor: 'pointer' }}><RotateCcw size={14} />{t('Обновить статус')}</button>}
+            {offline && <button data-hover="layer" type="button" onClick={() => void refresh()} style={{ ...btn('var(--color-bg-3)', 'var(--color-text)'), cursor: 'pointer' }}><RotateCcw size={14} />{t('Обновить статус')}</button>}
             {started && attempt?.startedAt && side(`${t('Начат в')} ${fmt(attempt.startedAt, false)}`)}
             {doneAt && side(`${t('Сдан')} ${fmt(doneAt)}`)}
             {offline && opened && !embedUrl && doneAt === null && (
-              <button type="button" onClick={mark} disabled={disabled} style={btn('var(--btn-green-bg)', '#fff')}><Check size={14} /> {t('Я сдал тест')}</button>
+              <button data-hover="layer" type="button" onClick={mark} disabled={disabled} style={btn('var(--btn-green-bg)', '#fff')}><Check size={14} /> {t('Я сдал тест')}</button>
             )}
           </div>
         </div>

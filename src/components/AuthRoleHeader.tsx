@@ -11,7 +11,7 @@ export default function AuthRoleHeader({ onLeave, logoTone = 'default' }: { onLe
         <IskraMark size={30} tone={logoTone} />
         <span style={{ fontSize: 18, lineHeight: '30px', transform: 'translateY(-0.5px)', fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
       </div>
-      <button type="button" onClick={() => {
+      <button data-hover="layer" type="button" onClick={() => {
         onLeave()
         window.location.hash = Capacitor.isNativePlatform() ? '#/entry' : '#/landing?role=choose'
       }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 44, padding: '0 4px', transform: 'translateY(-7px)', border: 0, background: 'transparent', color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 650, cursor: 'pointer' }}>

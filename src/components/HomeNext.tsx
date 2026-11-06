@@ -154,7 +154,7 @@ function ContinueCard({ info }: { info: { lesson: Lesson; subject: Subject } | n
           <div style={{ width: `${Math.max(3, subject.progress)}%`, height: '100%', background: '#fff' }} />
         </div>
         <span style={{ fontSize: 13, fontWeight: 600, ...NUM }}>{subject.progress}% {t('курса')}</span>
-        <motion.button
+        <motion.button data-hover="layer"
           type="button"
           whileTap={{ scale: 0.96 }}
           onClick={() => (lesson.status === 'locked' ? openCourses() : openLesson(lesson.id))}
@@ -208,7 +208,7 @@ function HomeworkCard({ items }: { items: Array<{ lesson: Lesson; subject: Subje
         )
       })}
       {items.length > HW_SHOWN && (
-        <button type="button" onClick={() => openCourses()} style={{ alignSelf: 'flex-start', marginTop: 4, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-control-accent)' }}>
+        <button data-hover="layer" type="button" onClick={() => openCourses()} style={{ alignSelf: 'flex-start', marginTop: 4, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-control-accent)' }}>
           {t('Ещё')} {items.length - HW_SHOWN} <ArrowRight size={14} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
         </button>
       )}
@@ -264,7 +264,7 @@ function TodayCard({ date, lessons, nextDay }: { date: string | null; lessons: S
             const passed = states[i].hasEnded
             const hot = running || upcoming
             return (
-              <button
+              <button data-hover="layer"
                 key={l.id}
                 type="button"
                 data-schedule-state={states[i].phase}

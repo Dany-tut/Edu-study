@@ -278,7 +278,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   </div>
                   {!isCancelled && (isCurrent || isUpcoming || st.hasEnded || st.phase === 'available') && (
                     <div style={{ flexBasis: '100%' }}>
-                      <button type="button" aria-label={t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')} onClick={e => { e.stopPropagation(); openScheduledLesson(lesson) }} style={{
+                      <button data-hover="layer" type="button" aria-label={t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')} onClick={e => { e.stopPropagation(); openScheduledLesson(lesson) }} style={{
                         border: 'none', borderRadius: 10, padding: '7px 11px', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                         background: isCurrent ? pal.text : 'var(--color-bg-card)', color: isCurrent ? pal.onAccent : pal.text,
                       }}><span className="schedule-open-label">{t(st.recordingAvailable ? 'Смотреть запись' : st.hasEnded || st.phase === 'available' ? 'Материалы' : 'Открыть урок')}</span>{mobile && <ChevronRight size={16} className="schedule-open-icon hidden" aria-hidden/>}</button>

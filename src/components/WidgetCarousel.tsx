@@ -255,7 +255,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
         }}
       >
         {Array.from({ length: pageCount }, (_, i) => (
-          <button
+          <button data-hover="layer"
             key={i}
             onClick={() => goTo(i, i > page ? 1 : -1)}
             aria-label={`${t('Страница')} ${i + 1}`}

@@ -109,7 +109,7 @@ export function TaskTypeRow({ type, onClick, active = false }: {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => { setHover(false); hide() }}
     >
-      <button
+      <button data-hover="layer"
         onClick={onClick}
         style={{
           display: 'flex', alignItems: 'center', gap: 10, width: '100%',

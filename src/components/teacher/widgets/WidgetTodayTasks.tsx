@@ -73,7 +73,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         transition: 'opacity 0.22s, background 0.15s',
         cursor: 'pointer',
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-4)' : 'var(--color-bg-3)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-5)' : 'var(--color-bg-3)' }}
       onMouseLeave={e => { setShowDelete(false); (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)' }}
     >
       {/* Общий Checkbox: своя рамка #C4B0F0 не менялась с темой. Клик не
@@ -197,7 +197,7 @@ export default function WidgetTodayTasks() {
                 {pending.length}
               </span>
             )}
-            <button type="button" className="ww-task-add" onClick={()=>setCreating(true)} aria-label={t('Добавить')} ><Plus size={20}/></button>
+            <button data-hover="layer" type="button" className="ww-task-add" onClick={()=>setCreating(true)} aria-label={t('Добавить')} ><Plus size={20}/></button>
           </CardTitle>
           <div
             className="no-scrollbar ww-task-list"

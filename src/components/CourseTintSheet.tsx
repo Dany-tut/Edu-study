@@ -179,7 +179,7 @@ export function CourseTintModal({ open, onClose }: { open: boolean; onClose: () 
                   {t('Интерфейс подстраивается под открытый курс.')}
                 </p>
               </div>
-              <motion.button
+              <motion.button data-hover="layer"
                 whileTap={{ scale: 0.92 }}
                 onClick={onClose}
                 aria-label={t('Закрыть')}

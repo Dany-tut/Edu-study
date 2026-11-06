@@ -59,7 +59,7 @@ function pct(used: number, limit: number) {
 function StatCard({ icon: Icon, label, value, sub, loading, onClick, bar }: { icon: React.ElementType; label: string; value: string; sub?: string; loading?: boolean; onClick?: () => void; bar?: number }) {
   const barColor = bar == null ? '' : bar >= 85 ? 'var(--color-red-text)' : bar >= 60 ? 'var(--color-peach-text)' : 'var(--color-green-text)'
   return (
-    <div
+    <div data-hover="card"
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -328,7 +328,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
             {orphanCount} {t('без владельца')}
           </span>
         )}
-        <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button data-hover="layer" onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
         </button>
@@ -380,7 +380,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                   }}
                 />
               </div>
-              <button
+              <button data-hover="layer"
                 onClick={() => askDelete(row)}
                 disabled={busyId === row.id}
                 title={t('Удалить')}
@@ -461,7 +461,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {t('Задачи учителей')}
         </div>
-        <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button data-hover="layer" onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
         </button>
@@ -511,7 +511,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                         }}
                       />
                     </div>
-                    <button
+                    <button data-hover="layer"
                       onClick={() => doDelete(row)}
                       disabled={busyId === row.id}
                       title={t('Удалить')}
@@ -647,7 +647,7 @@ export default function TeacherAdminPage() {
         <div style={{ textAlign: 'center', color: 'var(--color-text-3)' }}>
           <ShieldAlert size={32} strokeWidth={1.5} style={{ opacity: 0.6 }} />
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', marginTop: 10 }}>{t('Раздел доступен только администратору')}</div>
-          <button onClick={() => setActivePage('home')} style={{ ...btn('S', 'secondary'), marginTop: 16 }}>
+          <button data-hover="layer" onClick={() => setActivePage('home')} style={{ ...btn('S', 'secondary'), marginTop: 16 }}>
             {t('На главную')}
           </button>
         </div>
@@ -667,7 +667,7 @@ export default function TeacherAdminPage() {
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Управление платформой')}</div>
           </div>
           {tab === 'overview' && (
-            <motion.button
+            <motion.button data-hover="layer"
               whileTap={{ scale: 0.94 }}
               onClick={load}
               title={t('Обновить')}

@@ -31,7 +31,7 @@ export const selectedWidgetsFrom = (hidden: string[]) => ALL_WIDGET_TYPES.filter
 
 function Chip({ label, on, onToggle, dimmed }: { label: React.ReactNode; on: boolean; onToggle: () => void; dimmed?: boolean }) {
   return (
-    <button
+    <button data-hover="layer"
       onClick={onToggle}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -174,7 +174,7 @@ export default function AccessConfigurator({
                 const a = courseAssign(c.id)
                 return (
                   <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 11, border: `1px solid ${a ? 'var(--color-purple)' : 'var(--color-border)'}`, background: a ? 'var(--color-purple-soft)' : 'transparent' }}>
-                    <button onClick={() => toggleCourse(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
+                    <button data-hover="layer" onClick={() => toggleCourse(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
                       <CheckboxMark checked={!!a} />
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(c.title) || '—'}</span>
                       <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>· {tn(c.owner_name)}</span>
@@ -182,7 +182,7 @@ export default function AccessConfigurator({
                     {a && (
                       <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 8, padding: 2, flexShrink: 0 }}>
                         {([['copy', tr('Копия'), Copy], ['share', tr('Общий'), Share2]] as const).map(([m, label, Icon]) => (
-                          <button key={m} onClick={() => setCourseMode(c.id, m)} title={m === 'copy' ? tr('Независимый дубликат') : tr('Общий доступ (read-only)')} style={{
+                          <button data-hover="layer" key={m} onClick={() => setCourseMode(c.id, m)} title={m === 'copy' ? tr('Независимый дубликат') : tr('Общий доступ (read-only)')} style={{
                             display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
                             fontSize: 11, fontWeight: 600,
                             background: a.mode === m ? 'var(--color-bg)' : 'transparent',

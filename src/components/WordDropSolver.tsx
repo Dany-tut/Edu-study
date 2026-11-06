@@ -105,7 +105,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
           const ok = showVerdict && rowCorrect?.(i, word)
           const chosen = active === i && !disabled && !showVerdict
           return (
-            <div
+            <div data-hover="card"
               key={i}
               onClick={() => !disabled && setActive(i)}
               style={{
@@ -126,7 +126,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {before}
-                <motion.button
+                <motion.button data-hover="layer"
                   key={word || 'empty'}
                   initial={word ? { scale: 0.8, opacity: 0.4 } : false}
                   animate={{ scale: 1, opacity: 1 }}
@@ -166,7 +166,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
           const left = usedCount.get(word) ?? 0
           const spent = left > 0 && bank.slice(0, i).filter(w => w === word).length < left
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={`${word}#${i}`}
               whileTap={disabled || spent ? undefined : { scale: 0.95 }}
               onClick={() => !spent && put(word)}

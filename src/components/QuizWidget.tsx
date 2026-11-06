@@ -330,7 +330,7 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
 
             <div className="flex items-center gap-1.5">
               {quizQuestions.map((q, i) => (
-                <button
+                <button data-hover="layer"
                   key={q.id}
                   onClick={() => goToQuestion(i)}
                   aria-label={`${t('Вопрос')} ${i + 1}`}

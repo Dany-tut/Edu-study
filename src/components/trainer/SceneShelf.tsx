@@ -270,7 +270,7 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
               {work.source.translator && <> · {t('перевод')}: {work.source.translator}
                 {work.source.translatedIn ? `, ${work.source.translatedIn}` : ''}</>}
             </span>
-            <a
+            <a data-hover="link"
               href={work.source.url}
               target="_blank"
               rel="noreferrer"
@@ -387,7 +387,7 @@ function SceneRow({ scene, passed, hidden, accent, soft, onOpen }: {
   }
 
   return (
-    <button
+    <button data-hover="layer"
       onClick={onOpen}
       style={{
         display: 'flex', flexDirection: 'column', gap: 8, width: '100%',

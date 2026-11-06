@@ -39,7 +39,7 @@ export interface CardActions {
 function CardActionBar({ actions, visible, accentColor }: { actions: CardActions; visible: boolean; accentColor: string }) {
   const t = useT()
   const btn = (onClick: () => void, title: string, danger: boolean, children: React.ReactNode) => (
-    <button
+    <button data-hover="layer"
       title={title}
       onClick={e => { e.stopPropagation(); onClick() }}
       style={{

@@ -72,7 +72,7 @@ export function Block({ children, tone, accent, size = 'md', dashed, state, onCl
     cursor: onClick ? 'pointer' : 'default',
   }
   return onClick
-    ? <button type="button" onClick={onClick} title={title} style={style}>{children}</button>
+    ? <button data-hover="layer" type="button" onClick={onClick} title={title} style={style}>{children}</button>
     : <span title={title} style={style}>{children}</span>
 }
 
@@ -91,7 +91,7 @@ export function SpeakBtn({ term, lang, accent, size = 32, style }: {
 }) {
   const t = useT()
   return (
-    <button
+    <button data-hover="layer"
       onClick={e => { e.stopPropagation(); speak(speechText(term), { lang, rate: 0.85 }) }}
       title={t('Произнести')}
       aria-label={t('Произнести')}

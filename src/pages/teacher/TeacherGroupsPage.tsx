@@ -200,7 +200,7 @@ function AddGroupModal({ onClose, onSave }: {
             <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>{t('Цвет')}</div>
             <div style={{ display: 'flex', gap: 10 }}>
               {GROUP_COLORS.map((c, i) => (
-                <div key={i} onClick={() => setColorIdx(i)} style={{
+                <div data-hover="layer" key={i} onClick={() => setColorIdx(i)} style={{
                   width: 28, height: 28, borderRadius: '50%', background: c.color,
                   cursor: 'pointer', outline: colorIdx === i ? `3px solid ${c.color}` : 'none',
                   outlineOffset: 2,
@@ -213,7 +213,7 @@ function AddGroupModal({ onClose, onSave }: {
         {saveErr && (
           <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
         )}
-        <button
+        <button data-hover="layer"
           onClick={handleSave}
           disabled={!name.trim() || saving}
           style={{ height: 48,
@@ -263,7 +263,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
           <ModalClose onClose={onClose} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button
+          <button data-hover="layer"
             onClick={onPickIndividual}
             style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
@@ -279,7 +279,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{t('Карточку можно добавить в группу позже')}</div>
             </div>
           </button>
-          <button
+          <button data-hover="layer"
             onClick={groups.length > 0 ? onPickGroup : undefined}
             disabled={groups.length === 0}
             style={{
@@ -303,7 +303,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
             </div>
           </button>
           {hasPeople && (
-            <button
+            <button data-hover="layer"
               onClick={onPickExisting}
               style={{
                 display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
@@ -434,7 +434,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0 }}>
               {t('Отправьте эту ссылку ученику — он перейдёт по ней и создаст свой аккаунт.')}
             </p>
-            <button
+            <button data-hover="layer"
               onClick={copyLink}
               style={{
                 width: '100%', padding: '12px 0',
@@ -446,7 +446,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             >
               {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
             </button>
-            <button
+            <button data-hover="layer"
               onClick={onClose}
               style={{
                 width: '100%', padding: '10px 0',
@@ -483,7 +483,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
           )}
 
           <div style={{ border: '1px solid var(--color-border-soft)', borderRadius: 14, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
-            <button type="button" aria-expanded={showDetails} onClick={() => setShowDetails(v => !v)}
+            <button data-hover="layer" type="button" aria-expanded={showDetails} onClick={() => setShowDetails(v => !v)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 14px', border: 'none', background: 'transparent', color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
               <Phone size={15} strokeWidth={1.8} aria-hidden="true" />
               <span style={{ flex: 1 }}>{t('Дополнительно')}</span>
@@ -522,7 +522,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         )}
         </div>
         <div style={{ flexShrink: 0, paddingTop: 16 }}>
-        <button
+        <button data-hover="layer"
           onClick={handleSave}
           disabled={!name.trim() || saving}
           style={{ height: 48,
@@ -620,7 +620,7 @@ function TrackFields({
           <div style={{ flex: 1 }}>
             <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={levelOptionsForSubject(tr.subject).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
           </div>
-          <Tooltip label={t('Убрать направление')}><button
+          <Tooltip label={t('Убрать направление')}><button data-hover="layer"
             type="button" onClick={() => removeTrack(i)}
             style={{
               width: 32, height: 32, flexShrink: 0, borderRadius: 9, cursor: 'pointer',
@@ -633,7 +633,7 @@ function TrackFields({
         </div>
       ))}
 
-      <button
+      <button data-hover="layer"
         type="button" onClick={addTrack}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -762,7 +762,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
             </div>
-            <button onClick={copyLink} style={{
+            <button data-hover="layer" onClick={copyLink} style={{
               width: '100%', padding: '12px 0',
               background: copied ? 'var(--btn-green-bg)' : 'var(--grad-purple)',
               color: '#fff', fontWeight: 700, fontSize: 15,
@@ -770,7 +770,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             }}>
               {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
             </button>
-            <button onClick={onClose} style={{
+            <button data-hover="layer" onClick={onClose} style={{
               width: '100%', padding: '10px 0',
               background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14,
               border: 'none', cursor: 'pointer',
@@ -779,7 +779,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
         ) : (
           <>
             {onPickExisting && (
-              <button
+              <button data-hover="layer"
                 type="button" onClick={onPickExisting}
                 style={{ width: '100%', marginBottom: 14, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit' }}
               >
@@ -818,7 +818,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>{t('Цвет')}</div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {INDIV_COLORS.map((c, i) => (
-                    <div key={i} onClick={() => setColorIdx(i)} style={{
+                    <div data-hover="layer" key={i} onClick={() => setColorIdx(i)} style={{
                       width: 28, height: 28, borderRadius: '50%', background: c.color,
                       cursor: 'pointer', outline: colorIdx === i ? `3px solid ${c.color}` : 'none',
                       outlineOffset: 2,
@@ -830,7 +830,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             {saveErr && (
               <Alert tone="danger" text={saveErr} style={{ marginTop: 14 }} />
             )}
-            <button
+            <button data-hover="layer"
               onClick={handleSave}
               disabled={!name.trim() || saving}
               style={{ height: 48,
@@ -861,7 +861,7 @@ function Card({
   children, style, onClick,
 }: { children: React.ReactNode; style?: React.CSSProperties; onClick?: () => void }) {
   return (
-    <div
+    <div data-hover="card"
       onClick={onClick}
       style={{
         background: 'rgba(var(--glass-rgb), 0.88)',
@@ -906,7 +906,7 @@ function DeleteStudentAction({ student, groupName, remove, startEditing = false,
   const [failed, setFailed] = useState(false)
   const valid = !!name.trim() && name.trim() === student.name.trim()
   const cancel = () => { setEditing(false); setName(''); setFailed(false); onCancel?.() }
-  if (!editing) return <button style={btn('M', 'secondary')} onClick={() => setEditing(true)}>
+  if (!editing) return <button data-hover="layer" style={btn('M', 'secondary')} onClick={() => setEditing(true)}>
     {t('Удалить ученика')}
   </button>
   return <form style={{ display: 'grid', gap: 8 }} onKeyDown={e => {
@@ -925,8 +925,8 @@ function DeleteStudentAction({ student, groupName, remove, startEditing = false,
     </label>
     {failed && <Alert tone="danger" text={t('Не удалось удалить карточку. Обновите список и попробуйте снова.')} />}
     <div style={{ display: 'flex', gap: 8 }}>
-      <button type="button" style={btn('M', 'secondary')} disabled={busy} onClick={cancel}>{t('Отмена')}</button>
-      <button type="submit" disabled={!valid || busy} style={{ ...btn('M', 'secondary'), background: 'var(--btn-red-bg)', color: '#fff', opacity: !valid || busy ? 0.5 : 1 }}>
+      <button data-hover="layer" type="button" style={btn('M', 'secondary')} disabled={busy} onClick={cancel}>{t('Отмена')}</button>
+      <button data-hover="layer" type="submit" disabled={!valid || busy} style={{ ...btn('M', 'secondary'), background: 'var(--btn-red-bg)', color: '#fff', opacity: !valid || busy ? 0.5 : 1 }}>
         {busy ? t('Удаление...') : t('Удалить')}
       </button>
     </div>
@@ -1114,7 +1114,7 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
   const label = done ? t('Доступ заведён') : t('Без аккаунта')
 
   return <>
-    <button ref={chipRef} type="button" aria-expanded={open} aria-haspopup="dialog"
+    <button data-hover="layer" ref={chipRef} type="button" aria-expanded={open} aria-haspopup="dialog"
       aria-label={hidden ? `${label} · ${done ? createdCount : issuableCount}` : undefined}
       title={hidden ? label : undefined}
       onClick={() => setOpen(v => !v)} style={chipStyle}>
@@ -1159,19 +1159,19 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
             {!done && <>
               {/* Два пути, и главный — первый. Ссылка перекладывает работу на
                   ученика, выдача доступа не требует от него ничего. */}
-              <button onClick={issueAll} disabled={issuing}
+              <button data-hover="layer" onClick={issueAll} disabled={issuing}
                 style={{ height: 40, padding: '0 16px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
                   border: 'none', opacity: issuing ? 0.7 : 1, flexShrink: 0,
                   background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700 }}>
                 {issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${issuableCount}`}
               </button>
               {pending.length > 0 && <>
-                <button onClick={copyAll} style={btn('M', 'secondary')}>
+                <button data-hover="layer" onClick={copyAll} style={btn('M', 'secondary')}>
                   {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
                 </button>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {pending.map(s => (
-                    <button key={s.id} onClick={() => copyOne(s)} title={t('Скопировать ссылку приглашения')}
+                    <button data-hover="layer" key={s.id} onClick={() => copyOne(s)} title={t('Скопировать ссылку приглашения')}
                       style={{ ...btn('S', 'secondary'), maxWidth: '100%' }}>
                       {copiedId === s.id
                         ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
@@ -1198,7 +1198,7 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
                     </div>
                   ))}
                 </div>
-                <button onClick={copyIssued} style={btn('S', 'secondary')}>
+                <button data-hover="layer" onClick={copyIssued} style={btn('S', 'secondary')}>
                   {copiedIssued ? t('Скопировано') : t('Скопировать логины и пароли')}
                 </button>
               </div>
@@ -1215,7 +1215,7 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
                     <FadeText style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--color-text)' }}>
                       {`${s.name} · ${groupName(s)}`}
                     </FadeText>
-                    <button type="button" aria-label={`${t('Удалить карточку')}: ${s.name}`} title={t('Удалить карточку')}
+                    <button data-hover="layer" type="button" aria-label={`${t('Удалить карточку')}: ${s.name}`} title={t('Удалить карточку')}
                       onClick={() => setCardId(s.id)}
                       style={{ width: 32, height: 32, flexShrink: 0, borderRadius: 10, border: 'none', background: 'transparent',
                         color: 'var(--color-red-text)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>
@@ -1230,8 +1230,8 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
             больше нечего; иначе чип можно свернуть до значка. */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '10px 14px 14px', borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
           {done
-            ? <button style={btn('S', 'secondary')} onClick={() => { setOpen(false); setIssued(null) }}>{t('Готово')}</button>
-            : <button style={btn('S', 'secondary')} onClick={() => setHidden(!hidden)}>
+            ? <button data-hover="layer" style={btn('S', 'secondary')} onClick={() => { setOpen(false); setIssued(null) }}>{t('Готово')}</button>
+            : <button data-hover="layer" style={btn('S', 'secondary')} onClick={() => setHidden(!hidden)}>
                 {hidden ? t('Показывать подпись') : t('Свернуть в значок')}
               </button>}
         </div>
@@ -1274,7 +1274,7 @@ function RosterDescription({ text }: { text: string }) {
         whiteSpace: expanded ? 'normal' : 'nowrap', overflow: 'hidden', overflowWrap: 'anywhere',
         maskImage: !expanded && overflow ? 'linear-gradient(to right, black calc(100% - 32px), transparent)' : undefined,
       }}>{text}</span>
-      {(overflow || expanded) && <button
+      {(overflow || expanded) && <button data-hover="layer"
         type="button" aria-expanded={expanded}
         aria-label={t(expanded ? 'Свернуть' : 'Показать все')}
         onClick={event => { event.stopPropagation(); setExpanded(value => !value) }}
@@ -1319,7 +1319,7 @@ function GroupCard({
       {/* Delete button */}
       <AnimatePresence>
         {hovered && (
-          <motion.button
+          <motion.button data-hover="layer"
             key="del"
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -1547,10 +1547,10 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
         {phase === 'revealed'
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{login}</span>
           : (
-            <button type="button" onClick={() => setPhase('revealed')} title={t('Нажмите чтобы показать')} aria-label={t('Показать логин')} style={{ ...shimBar, border: 0, cursor: 'pointer' }} />
+            <button data-hover="layer" type="button" onClick={() => setPhase('revealed')} title={t('Нажмите чтобы показать')} aria-label={t('Показать логин')} style={{ ...shimBar, border: 0, cursor: 'pointer' }} />
           )
         }
-        <button type="button" onClick={() => void handleCopy('login', login)} disabled={!login} title={copiedField === 'login' ? t('Скопировано') : t('Скопировать логин')} aria-label={copiedField === 'login' ? t('Скопировано') : t('Скопировать логин')} style={{ ...copyButtonStyle, opacity: login ? 1 : 0.4, cursor: login ? 'pointer' : 'default' }}>
+        <button data-hover="layer" type="button" onClick={() => void handleCopy('login', login)} disabled={!login} title={copiedField === 'login' ? t('Скопировано') : t('Скопировать логин')} aria-label={copiedField === 'login' ? t('Скопировано') : t('Скопировать логин')} style={{ ...copyButtonStyle, opacity: login ? 1 : 0.4, cursor: login ? 'pointer' : 'default' }}>
           {copiedField === 'login' ? <Check size={14} /> : <Copy size={14} />}
         </button>
       </div>
@@ -1559,10 +1559,10 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
         {phase === 'revealed'
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{password}</span>
           : (
-            <button type="button" onClick={() => setPhase('revealed')} title={t('Нажмите чтобы показать')} aria-label={t('Показать пароль')} style={{ ...shimBar, border: 0, cursor: 'pointer' }} />
+            <button data-hover="layer" type="button" onClick={() => setPhase('revealed')} title={t('Нажмите чтобы показать')} aria-label={t('Показать пароль')} style={{ ...shimBar, border: 0, cursor: 'pointer' }} />
           )
         }
-        <button type="button" onClick={() => void handleCopy('password', password)} disabled={!password} title={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} aria-label={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} style={{ ...copyButtonStyle, opacity: password ? 1 : 0.4, cursor: password ? 'pointer' : 'default' }}>
+        <button data-hover="layer" type="button" onClick={() => void handleCopy('password', password)} disabled={!password} title={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} aria-label={copiedField === 'password' ? t('Скопировано') : t('Скопировать пароль')} style={{ ...copyButtonStyle, opacity: password ? 1 : 0.4, cursor: password ? 'pointer' : 'default' }}>
           {copiedField === 'password' ? <Check size={14} /> : <Copy size={14} />}
         </button>
       </div>}
@@ -1704,14 +1704,14 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 </div>
               </div>
             </div>
-            <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+            <button data-hover="layer" onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
               <X size={16} />
             </button>
           </div>
           {/* Tabs */}
           <div style={{ display: 'flex', gap: 0 }}>
             {([['main', BookOpen, 'Основное'], ['trainer', Target, 'Тренажёр']] as const).map(([key, Icon, label]) => (
-              <button key={key} onClick={() => setTab(key)}
+              <button data-hover="layer" key={key} onClick={() => setTab(key)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === key ? 700 : 500, color: tab === key ? 'var(--color-text)' : 'var(--color-text-3)', borderBottom: `2px solid ${tab === key ? group.color : 'transparent'}`, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                 <Icon size={13} />
                 {t(label)}
@@ -1961,7 +1961,7 @@ function TracksSection({
             <span>{group.id ? tc(group.subject) : tc(group.name)}{group.level ? ` · ${t(group.level)}` : ''}</span>
           </div>
           {individual && (
-            <Tooltip label={t('Удалить карточку')}><button
+            <Tooltip label={t('Удалить карточку')}><button data-hover="layer"
               type="button"
               onClick={async () => {
                 const ok = await confirmDialog({
@@ -1982,14 +1982,14 @@ function TracksSection({
         {/* Другие карточки этого ученика — клик открывает, крестик удаляет */}
         {siblings.map(sc => (
           <div key={sc.id} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <button
+            <button data-hover="layer"
               type="button" onClick={() => onOpenCard(sc.id)} title={t('Открыть карточку')}
               style={{ ...chip(sc.icon, sc.subject, sc.level, sc.color), cursor: 'pointer', flex: 1, justifyContent: 'flex-start' }}
             >
               <span><SubjectMark subject={sc.subject} size={14} /></span>
               <span>{tc(sc.subject)}{sc.level ? ` · ${t(sc.level)}` : ''}</span>
             </button>
-            <Tooltip label={t('Удалить карточку')}><button
+            <Tooltip label={t('Удалить карточку')}><button data-hover="layer"
               type="button" onClick={() => onRemoveCard(sc.id)}
               style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
@@ -2020,7 +2020,7 @@ function TracksSection({
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button
+              <button data-hover="layer"
                 type="button" onClick={confirmAdd} disabled={!subject.trim() || busy}
                 // Заливка — канонический --grad-purple (как у всех «Сохранить»):
                 // --color-purple/--color-accent светлые, они для ТЕКСТА, и белые
@@ -2029,7 +2029,7 @@ function TracksSection({
               >
                 {busy ? t('Сохраняем…') : t('Назначить занятия')}
               </button>
-              <button
+              <button data-hover="layer"
                 type="button" onClick={() => { setAdding(false); setSubject(''); setLevel('') }}
                 style={btn('S', 'secondary')}
               >
@@ -2038,7 +2038,7 @@ function TracksSection({
             </div>
           </div>
         ) : (
-          <button
+          <button data-hover="layer"
             type="button" onClick={() => setAdding(true)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
           >
@@ -2165,7 +2165,7 @@ function StudentPanel({
             <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '8px 0 0', lineHeight: 1.45 }}>
               {t(newPass ? 'Скопируйте новый пароль и передайте ученику. Он исчезнет из этой панели через две минуты.' : 'Пароль ученика не хранится. При необходимости выдайте новый.')}
             </p>
-            <button
+            <button data-hover="layer"
               onClick={resetPassword}
               disabled={resetting}
               style={{ ...btn('S', 'secondary'), marginTop: 8, width: '100%' }}
@@ -2781,7 +2781,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       ] as { id: RosterFilter; label: string }[]).map(f => {
                         const count = filterCounts[f.id]
                         return (
-                          <button type="button" key={f.id} aria-pressed={rosterFilter === f.id}
+                          <button data-hover="layer" type="button" key={f.id} aria-pressed={rosterFilter === f.id}
                             onClick={() => setRosterFilter(f.id)}>
                             <span>{f.label}</span>
                             {count > 0 && <CountBadge count={count} className="roster-filter-count" tone={f.id === 'all' ? 'accent' : 'danger'} />}
@@ -2812,7 +2812,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       {/* Add student to this group (new or existing) */}
                       {!activeGroup.isIndividual && !allRosterView && (
                         <div style={{ position: 'relative', flex: 'none' }}>
-                          <button
+                          <button data-hover="layer"
                             onClick={e => {
                               if (allRosterView) { setShowAddStudent(true); return }
                               const r = e.currentTarget.getBoundingClientRect()

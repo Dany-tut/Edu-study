@@ -26,13 +26,13 @@ export function AiReviewSummary({ grade, reviewed, busy, onApply, onDetails, onR
     <div className="aic-heading"><span><Sparkles size={14}/>Проверка ИИ</span><small>{issue ? 'Нужно внимание' : loading || busy ? 'Подключаемся' : waiting ? grade?.status === 'pending' ? 'В очереди' : 'В процессе' : ready ? 'Готово' : ''}</small></div>
     {issue ? <div className="aic-issue"><Alert stacked tone={['configuration','disabled','missing_evidence'].includes(errorCode) ? 'info' : 'danger'} title={issue.title} text={issue.text} style={{boxShadow:'none',background:'transparent'}}/>
       {grade?.nextRetryAt && <p className="aic-retry-hint">Повторим автоматически после паузы сервиса.</p>}
-      {onRequest && <button type="button" className="aic-retry-button" disabled={busy} onClick={onRequest}>{busy ? 'Подключаемся…' : issue.retry ? 'Повторить проверку' : 'Попробовать снова'}</button>}</div>
+      {onRequest && <button data-hover="layer" type="button" className="aic-retry-button" disabled={busy} onClick={onRequest}>{busy ? 'Подключаемся…' : issue.retry ? 'Повторить проверку' : 'Попробовать снова'}</button>}</div>
       : waiting || loading || busy ? <div className="aic-waiting" role="status"><Loader2 size={20} className="animate-spin"/><strong>{grade?.status === 'pending' ? 'Работа в очереди на проверку' : 'Читаем ответы и сверяем решение'}</strong><p>Разбор появится здесь автоматически. Можно продолжить проверку самостоятельно.</p></div>
-      : !ready ? <div className="aic-waiting"><strong>Подготовить разбор работы</strong><p>ИИ проверит ответы и подготовит комментарий. Итог утверждаете вы.</p>{onRequest&&!reviewed&&<button className="aic-retry-button" type="button" disabled={busy} onClick={onRequest}>Проверить с ИИ</button>}</div>
+      : !ready ? <div className="aic-waiting"><strong>Подготовить разбор работы</strong><p>ИИ проверит ответы и подготовит комментарий. Итог утверждаете вы.</p>{onRequest&&!reviewed&&<button data-hover="layer" className="aic-retry-button" type="button" disabled={busy} onClick={onRequest}>Проверить с ИИ</button>}</div>
       : <>{hasScore && <div className="aic-recommendation"><strong>{grade.score}<small>%</small></strong><span className={'aic-outcome' + (issues.length ? ' aic-outcome-warning' : '')}>{issues.length ? 'Есть замечания' : 'Без замечаний'}</span></div>}
         {hasScore && <p className="aic-score-scope">{grade.primary} / {grade.max} баллов за задания с критериями</p>}
         <p className="aic-summary-copy">{issues.length ? 'Посмотрите замечания к заданиям: ' + issues.map(task=>task.n).join(', ') + '.' : 'Разбор готов. Проверьте комментарии к ответам.'}{!hasScore ? ' Итоговую оценку выставляет преподаватель.' : ''}</p>
-        <div className="aic-summary-actions">{!reviewed && hasScore && onApply && <button type="button" disabled={busy} onClick={onApply}><Check size={13}/>Применить оценку</button>}<button type="button" className="aic-text-button" onClick={onDetails}>К разбору<ArrowDown size={12}/></button></div>
+        <div className="aic-summary-actions">{!reviewed && hasScore && onApply && <button data-hover="layer" type="button" disabled={busy} onClick={onApply}><Check size={13}/>Применить оценку</button>}<button data-hover="layer" type="button" className="aic-text-button" onClick={onDetails}>К разбору<ArrowDown size={12}/></button></div>
         {grade.teacherNote && <aside className="aic-teacher-note"><span>Только преподавателю</span><p>{grade.teacherNote}</p></aside>}
         {reviewed && <span className="aic-approved"><Check size={12}/>Решение сохранено преподавателем</span>}</>}
   </section>
@@ -52,7 +52,7 @@ export function AiCommentDraft({ comment, busy, onUse }: { comment: string; busy
   return <details className="aic-comment-draft">
     <summary><span><Sparkles size={13}/>Черновик от ИИ</span><ChevronDown size={13}/></summary>
     <p>{comment}</p>
-    <button type="button" disabled={busy} onClick={onUse}>Вставить в комментарий</button>
+    <button data-hover="layer" type="button" disabled={busy} onClick={onUse}>Вставить в комментарий</button>
     <small>Ученик увидит итог после завершения проверки</small>
   </details>
 }

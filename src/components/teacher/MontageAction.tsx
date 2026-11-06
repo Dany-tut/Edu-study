@@ -47,7 +47,7 @@ export default function MontageAction({ draft, change, disabled, file, token, tr
     if (named.length) void localRequest('/voices', token, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ voices: named }) }).catch(() => {})
   }
   return <>
-    <button type="button" aria-label="Монтаж записи" title="Монтаж записи: паузы и голоса" disabled={disabled} onClick={() => setOpen(true)}><SlidersHorizontal size={16} /></button>
+    <button data-hover="layer" type="button" aria-label="Монтаж записи" title="Монтаж записи: паузы и голоса" disabled={disabled} onClick={() => setOpen(true)}><SlidersHorizontal size={16} /></button>
     <Suspense fallback={null}>
       <AnimatePresence>{open && <LessonMontageEditor key="montage" title="Монтаж записи" duration={duration} voices={voices} lines={lines}
         quiet={montage?.quiet ?? []} chapters={draft.timecodes} levelAt={levelAt} initial={initial} missingAudio={!montage} video={video} floor={montage?.floor}

@@ -142,7 +142,7 @@ export default function ProductMock() {
             }}>
               <ShieldCheck size={12} style={{ color: OK, flexShrink: 0 }} />
               <span style={{ flex: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{url}</span>
-              <button onClick={reload} title={t('Обновить')} style={{ ...iconBtnBase, width: 18, height: 18 }}>
+              <button data-hover="layer" onClick={reload} title={t('Обновить')} style={{ ...iconBtnBase, width: 18, height: 18 }}>
                 <RotateCw size={12} className={spinning ? 'lp-spin' : ''} />
               </button>
             </div>
@@ -163,7 +163,7 @@ export default function ProductMock() {
         }}>
           <BrowserTabBtn on={tab === 'teacher'} onClick={() => setTab('teacher')} title="Искра — кабинет учителя" favicon="/icon-teacher.svg?v=3" />
           <BrowserTabBtn on={tab === 'student'} onClick={() => setTab('student')} title="Искра — кабинет ученика" favicon="/icon.svg?v=3" />
-          <button title={t('Новая вкладка')} style={{ ...iconBtnBase, width: 24, height: 24, marginLeft: 2, marginBottom: 2, color: 'var(--color-text-3)' }}>
+          <button data-hover="layer" title={t('Новая вкладка')} style={{ ...iconBtnBase, width: 24, height: 24, marginLeft: 2, marginBottom: 2, color: 'var(--color-text-3)' }}>
             <Plus size={14} />
           </button>
         </div>
@@ -179,7 +179,7 @@ export default function ProductMock() {
               {SECTIONS.map((s, i) => {
                 const on = section === i
                 return (
-                  <button key={s.key} onClick={() => go(i)} className="lp-mock-nav" style={{
+                  <button data-hover="layer" key={s.key} onClick={() => go(i)} className="lp-mock-nav" style={{
                     display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 9, marginBottom: 3, width: '100%',
                     fontSize: 13, fontWeight: on ? 700 : 500, cursor: 'pointer', border: 'none', textAlign: 'left',
                     color: on ? ACCENT : 'var(--color-text-2)',
@@ -199,7 +199,7 @@ export default function ProductMock() {
               <div ref={tabsRef} className="lp-mock-tabs" style={{ display: 'none', marginBottom: 12 }}>
                 <HScrollFade gap={6} fade="var(--color-surface)" fadeWidth={32} style={{ flex: 1, minWidth: 0 }}>
                 {SECTIONS.map((s, i) => (
-                  <button key={s.key} data-on={section === i || undefined} onClick={() => go(i)} style={{
+                  <button data-hover="layer" key={s.key} data-on={section === i || undefined} onClick={() => go(i)} style={{
                     flexShrink: 0, padding: '6px 11px', borderRadius: 999, cursor: 'pointer', fontSize: 12, fontWeight: section === i ? 700 : 500,
                     border: `1px solid ${section === i ? ACCENT : 'var(--color-border)'}`,
                     color: section === i ? '#fff' : 'var(--color-text-2)',
@@ -222,10 +222,10 @@ export default function ProductMock() {
                   <Search size={13} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
                   <input value={query} onChange={e => setQuery(e.target.value)} placeholder={narrow ? t('Поиск') : t('Поиск ученика')}
                     style={{ border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 12, width: '100%', minWidth: 0 }} />
-                  {query && <button onClick={() => setQuery('')} style={{ ...iconBtnBase, width: 16, height: 16 }}><X size={11} /></button>}
+                  {query && <button data-hover="layer" onClick={() => setQuery('')} style={{ ...iconBtnBase, width: 16, height: 16 }}><X size={11} /></button>}
                 </div>
                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <button onClick={() => setBellOpen(o => !o)} title={t('Уведомления')} style={{
+                  <button data-hover="layer" onClick={() => setBellOpen(o => !o)} title={t('Уведомления')} style={{
                     ...iconBtnBase, width: 30, height: 30, borderRadius: 9,
                     background: bellOpen ? `color-mix(in srgb, ${ACCENT} 14%, transparent)` : 'var(--color-bg)',
                     border: '1px solid var(--color-border)', color: bellOpen ? ACCENT : 'var(--color-text-2)',
@@ -341,7 +341,7 @@ const iconBtnBase: CSSProperties = {
 function ToolBtn({ children, onClick, disabled, title }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; title?: string }) {
   const t = useT()
   return (
-    <button className="lp-tool" onClick={onClick} disabled={disabled} title={title ? t(title) : undefined} style={{
+    <button data-hover="layer" className="lp-tool" onClick={onClick} disabled={disabled} title={title ? t(title) : undefined} style={{
       ...iconBtnBase, width: 26, height: 26, flexShrink: 0,
       color: 'var(--color-text-2)', opacity: disabled ? 0.32 : 1,
       cursor: disabled ? 'default' : 'pointer',
@@ -352,7 +352,7 @@ function ToolBtn({ children, onClick, disabled, title }: { children: React.React
 function BrowserTabBtn({ on, onClick, title, favicon }: { on: boolean; onClick: () => void; title: string; favicon: string }) {
   const t = useT()
   return (
-    <button onClick={onClick} style={{
+    <button data-hover="layer" onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 7, maxWidth: 230, minWidth: 44, height: 28, padding: '0 10px',
       borderRadius: 8, cursor: 'pointer', fontSize: 11.5, fontWeight: on ? 700 : 500,
       color: on ? 'var(--color-text)' : 'var(--color-text-3)',
@@ -385,7 +385,7 @@ function BellPopup({ onClose }: { onClose: () => void }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '2px 6px 8px' }}>
         <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Уведомления')}</span>
-        <button onClick={onClose} style={{ ...iconBtnBase, marginLeft: 'auto', width: 18, height: 18, color: 'var(--color-text-3)' }}><X size={12} /></button>
+        <button data-hover="layer" onClick={onClose} style={{ ...iconBtnBase, marginLeft: 'auto', width: 18, height: 18, color: 'var(--color-text-3)' }}><X size={12} /></button>
       </div>
       {items.map(n => (
         <div key={n.t} className="lp-row lp-clickrow" onClick={onClose} style={{ display: 'flex', gap: 8, padding: '8px 8px', borderRadius: 9, border: '1px solid transparent' }}>
@@ -475,7 +475,7 @@ function MockOverview({ query, accepted, onAccept, onGo }: {
               </div>
               {ok
                 ? <span style={pill(true)}><Check size={11} /> {t('Принято')}</span>
-                : <button onClick={() => onAccept(r.n)} style={{ ...pill(false), cursor: 'pointer', border: `1px solid color-mix(in srgb, ${ACCENT} 35%, transparent)` }}>{t('Проверить')}</button>}
+                : <button data-hover="layer" onClick={() => onAccept(r.n)} style={{ ...pill(false), cursor: 'pointer', border: `1px solid color-mix(in srgb, ${ACCENT} 35%, transparent)` }}>{t('Проверить')}</button>}
             </div>
           )
         })}
@@ -580,7 +580,7 @@ function MockSchedule({ query }: { query: string }) {
           const cnt = visible.filter(s => s.day === i).length
           const on = day === i
           return (
-            <button key={d} onClick={() => setDay(i)} className="lp-chip" style={{
+            <button data-hover="layer" key={d} onClick={() => setDay(i)} className="lp-chip" style={{
               padding: '8px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
               border: `1px solid ${on ? `color-mix(in srgb, ${ACCENT} 55%, var(--color-border))` : 'var(--color-border)'}`,
               background: on ? `color-mix(in srgb, ${ACCENT} 12%, var(--color-bg))` : 'var(--color-bg)',
@@ -614,11 +614,11 @@ function MockSchedule({ query }: { query: string }) {
                 <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t(s.topic)}</div>
               </div>
               <div className="lp-slot-btns" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                <button onClick={() => move(s.id)} title={t('Перенести на следующий день')} style={{
+                <button data-hover="layer" onClick={() => move(s.id)} title={t('Перенести на следующий день')} style={{
                   ...iconBtnBase, width: 28, height: 28, borderRadius: 9, color: 'var(--color-text-2)',
                   background: 'var(--color-surface)', border: '1px solid var(--color-border)',
                 }}><ChevronRight size={14} /></button>
-                <button onClick={() => hold(s.id)} style={{
+                <button data-hover="layer" onClick={() => hold(s.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 9, cursor: 'pointer',
                   fontSize: 11.5, fontWeight: 700, border: '1px solid transparent', color: '#fff',
                   background: on ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, transition: 'background .2s',
@@ -634,7 +634,7 @@ function MockSchedule({ query }: { query: string }) {
             {q ? t('Ничего не нашлось — очистите поиск') : `${t(DAY_LABELS[day])}, ${WEEK_DATES[day]} — ${t('занятий нет')}`}
           </div>
         )}
-        <button onClick={add} className="lp-clickrow" style={{
+        <button data-hover="layer" onClick={add} className="lp-clickrow" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', borderRadius: 11,
           fontSize: 12, fontWeight: 700, cursor: 'pointer', color: ACCENT,
           background: `color-mix(in srgb, ${ACCENT} 8%, transparent)`,
@@ -686,7 +686,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
           {[{ id: 'pen', icon: Pencil, label: 'Перо' }, { id: 'shape', icon: Circle, label: 'Фигура' }, { id: 'note', icon: MessageSquare, label: 'Комментарий' }].map(tool => {
             const on = tools.includes(tool.id)
             return (
-              <button key={tool.id} title={t(tool.label)} onClick={() => toggle(tool.id)} style={{
+              <button data-hover="layer" key={tool.id} title={t(tool.label)} onClick={() => toggle(tool.id)} style={{
                 ...iconBtnBase, width: 24, height: 24, borderRadius: 7, flexShrink: 0,
                 color: on ? '#fff' : 'var(--color-text-2)',
                 background: on ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-surface)',
@@ -714,7 +714,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
               {/* заготовки комментариев — учитель не печатает одно и то же руками */}
               <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
                 {NOTE_PRESETS.map((p, i) => (
-                  <button key={p.k} className="lp-chip" onClick={() => setNote(i)} style={{
+                  <button data-hover="layer" key={p.k} className="lp-chip" onClick={() => setNote(i)} style={{
                     padding: '4px 9px', borderRadius: 999, fontSize: 10.5, fontWeight: note === i ? 700 : 500, cursor: 'pointer',
                     color: note === i ? '#fff' : 'var(--color-text-2)',
                     background: note === i ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-surface)',
@@ -729,7 +729,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 12px', borderTop: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>{t('Балл')}</span>
           {[2, 3, 4, 5].map(g => (
-            <button key={g} className="lp-chip" onClick={() => setGrade(g)} style={{
+            <button data-hover="layer" key={g} className="lp-chip" onClick={() => setGrade(g)} style={{
               width: 24, height: 24, borderRadius: 8, fontSize: 12, fontWeight: 700,
               color: grade === g ? '#fff' : 'var(--color-text-2)',
               background: grade === g ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-surface)',
@@ -737,7 +737,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
             }}>{g}</button>
           ))}
           {/* вернуть на доработку: работа остаётся у ученика, стикер не выдаётся */}
-          <button onClick={() => setRework(r => (r.includes(cur.n) ? r.filter(x => x !== cur.n) : [...r, cur.n]))} style={{
+          <button data-hover="layer" onClick={() => setRework(r => (r.includes(cur.n) ? r.filter(x => x !== cur.n) : [...r, cur.n]))} style={{
             marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 9,
             fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
             color: rework.includes(cur.n) ? '#fff' : WARN,
@@ -746,7 +746,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
           }}>
             <Undo2 size={12} /> {rework.includes(cur.n) ? t('Отправлено') : t('На доработку')}
           </button>
-          <button onClick={() => {
+          <button data-hover="layer" onClick={() => {
             const g = grade ?? 4
             onAccept(cur.n); setGrade(g)
             setRework(r => r.filter(x => x !== cur.n))
@@ -855,7 +855,7 @@ function MockJournal({ query }: { query: string }) {
       <div className="lp-mock-journal" style={{ display: 'grid', gridTemplateColumns: `96px repeat(${DATES.length}, 1fr) 44px`, gap: 6, minWidth: 380 }}>
         <div />
         {DATES.map((d, i) => (
-          <button key={d} className="lp-chip" onClick={() => markColumn(i)} title={t('Отметить всех присутствующими')}
+          <button data-hover="layer" key={d} className="lp-chip" onClick={() => markColumn(i)} title={t('Отметить всех присутствующими')}
             style={{ fontSize: 10.5, color: 'var(--color-text-3)', fontWeight: 600, cursor: 'pointer', border: 'none', background: 'transparent', padding: '2px 0', borderRadius: 6 }}>
             {d}
           </button>
@@ -1073,7 +1073,7 @@ function MockStudent() {
               const on = pick === i
               return (
                 <div key={l} style={{ display: 'flex', alignItems: 'center', flex: i === LESSONS.length - 1 ? '0 0 auto' : 1 }}>
-                  <button title={t(l)} onClick={() => { setPick(i); setSent(false) }} style={{
+                  <button data-hover="layer" title={t(l)} onClick={() => { setPick(i); setSent(false) }} style={{
                     width: 30, height: 30, borderRadius: 999, flexShrink: 0, cursor: 'pointer', display: 'grid', placeItems: 'center',
                     fontSize: 11, fontWeight: 700, transition: 'transform .15s, box-shadow .15s',
                     color: state === 'lock' ? 'var(--color-text-3)' : '#fff',
@@ -1097,7 +1097,7 @@ function MockStudent() {
           <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>{t(LESSONS[pick])} · {t('Иррациональные уравнения')}</div>
           <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginBottom: 12 }}>{t('Конспект · 6 заданий · дедлайн 18.09')}</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button onClick={submit} disabled={sent} style={{
+            <button data-hover="layer" onClick={submit} disabled={sent} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 10, border: 'none',
               fontSize: 12.5, fontWeight: 700, color: '#fff', cursor: sent ? 'default' : 'pointer',
               background: sent ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
@@ -1105,7 +1105,7 @@ function MockStudent() {
             }}>
               {sent ? <><Check size={14} /> {t('Отправлено')}</> : t('Сдать домашку')}
             </button>
-            <button style={{ padding: '9px 14px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', color: 'var(--color-text-2)', background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+            <button data-hover="layer" style={{ padding: '9px 14px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', color: 'var(--color-text-2)', background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
               {t('Открыть конспект')}
             </button>
           </div>
@@ -1134,7 +1134,7 @@ function MockStudent() {
               const right = i === QUIZ.right
               const show = answer !== null && (chosen || right)
               return (
-                <button key={o} onClick={() => setAnswer(i)} style={{
+                <button data-hover="layer" key={o} onClick={() => setAnswer(i)} style={{
                   display: 'flex', alignItems: 'center', gap: 8, padding: '9px 11px', borderRadius: 10, cursor: 'pointer',
                   fontSize: 12.5, fontWeight: 600, textAlign: 'left',
                   color: show ? (right ? OK : '#ED6A5E') : 'var(--color-text)',
@@ -1192,7 +1192,7 @@ function StepsTask() {
         {order.map((s, pos) => {
           const right = full && s === pos
           return (
-            <button key={s} onClick={() => setOrder(o => o.filter(x => x !== s))} className="lp-chip" style={{
+            <button data-hover="layer" key={s} onClick={() => setOrder(o => o.filter(x => x !== s))} className="lp-chip" style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 9, cursor: 'pointer',
               fontSize: 12, fontWeight: 600, textAlign: 'left', border: '1px solid var(--color-border)',
               color: full ? (right ? OK : '#ED6A5E') : 'var(--color-text)',
@@ -1209,7 +1209,7 @@ function StepsTask() {
       {/* банк шагов */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {bank.map(s => (
-          <button key={s} onClick={() => setOrder(o => [...o, s])} className="lp-chip" style={{
+          <button data-hover="layer" key={s} onClick={() => setOrder(o => [...o, s])} className="lp-chip" style={{
             padding: '7px 11px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 600,
             color: 'var(--color-text)', background: 'var(--color-surface)', border: '1px solid var(--color-border)',
           }}>{t(STEPS[s])}</button>
@@ -1218,7 +1218,7 @@ function StepsTask() {
       {full && (
         <div className="lp-mock-panel" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 11.5, lineHeight: 1.45, color: ok ? OK : 'var(--color-text-2)' }}>
           {ok ? t('Верно — порядок шагов правильный, задание засчитано.') : t('Порядок не тот: ОДЗ пишут до возведения в квадрат.')}
-          {!ok && <button onClick={() => setOrder([])} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: ACCENT, background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, border: 'none' }}>{t('Заново')}</button>}
+          {!ok && <button data-hover="layer" onClick={() => setOrder([])} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: ACCENT, background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, border: 'none' }}>{t('Заново')}</button>}
         </div>
       )}
     </div>
@@ -1276,7 +1276,7 @@ function Segmented<T extends string>({ value, options, onChange }: { value: T; o
   return (
     <div style={{ marginLeft: 'auto', display: 'flex', gap: 3, padding: 3, borderRadius: 9, background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
       {options.map(o => (
-        <button key={o} className="lp-chip" onClick={() => onChange(o)} style={{
+        <button data-hover="layer" key={o} className="lp-chip" onClick={() => onChange(o)} style={{
           padding: '3px 9px', borderRadius: 7, fontSize: 10.5, fontWeight: value === o ? 700 : 500, border: 'none',
           color: value === o ? '#fff' : 'var(--color-text-2)',
           background: value === o ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'transparent',

@@ -42,7 +42,7 @@ export default function ReviewSession({ owner, onDone }: {
         <AlertIcon tone="success" style={{ margin: '0 auto 10px' }} />
         <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', ...balancedWrap }}>{bindShortWords(t('На сегодня всё повторено'))}</div>
         {done > 0 && <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>{t('Повторено карточек:')} {done}</div>}
-        {onDone && <button onClick={onDone} style={{ marginTop: 16, padding: '10px 20px', borderRadius: 12, border: 'none', background: ACC_FILL, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Готово')}</button>}
+        {onDone && <button data-hover="layer" onClick={onDone} style={{ marginTop: 16, padding: '10px 20px', borderRadius: 12, border: 'none', background: ACC_FILL, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Готово')}</button>}
       </div>
     </Shell>
   )
@@ -100,7 +100,7 @@ export default function ReviewSession({ owner, onDone }: {
 
       <div style={{ marginTop: 16 }}>
         {!revealed ? (
-          <button onClick={() => setRevealed(true)} style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: ACC_FILL, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button data-hover="layer" onClick={() => setRevealed(true)} style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: ACC_FILL, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <Check size={16} /> {t('Показать ответ')}
           </button>
         ) : (
@@ -108,7 +108,7 @@ export default function ReviewSession({ owner, onDone }: {
             {GRADE_BUTTONS.map(g => {
               const next = scheduleReview(card, g.grade, Date.now())
               return (
-                <button key={g.grade} onClick={() => grade(g)}
+                <button data-hover="layer" key={g.grade} onClick={() => grade(g)}
                   style={{ padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${TONE[g.tone]}`, background: `color-mix(in srgb, ${TONE[g.tone]} 10%, transparent)`, color: TONE[g.tone], fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {t(g.label)}
                   <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.85 }}>{intervalLabel(next.intervalDays)}</span>

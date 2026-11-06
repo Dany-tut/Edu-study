@@ -58,7 +58,7 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
             </span>
           </Checkbox>
 
-          <button
+          <button data-hover="layer"
             onClick={accept}
             disabled={!checked}
             style={{

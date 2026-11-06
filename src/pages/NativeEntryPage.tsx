@@ -91,7 +91,7 @@ export default function NativeEntryPage() {
     object: 'reminders' | 'stats'
     sample: React.ReactNode
   }) => (
-    <button
+    <button data-hover="layer"
       type="button"
       className="iskra-role-option"
       style={roleCard}

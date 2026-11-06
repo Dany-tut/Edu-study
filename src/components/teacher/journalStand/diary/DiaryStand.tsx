@@ -303,7 +303,7 @@ export default function DiaryStand() {
               {works
                 .sort((a, b) => a.number - b.number)
                 .map((work) => (
-                  <button
+                  <button data-hover="layer"
                     type="button"
                     key={work.id}
                     className="ds-track-step"
@@ -343,7 +343,7 @@ export default function DiaryStand() {
           <p>
             {work.score}% в ДЗ №{work.number}, порог — 70%. Начни с двух заданий с ошибками.
           </p>
-          <button type="button" className="ds-text-action" onClick={() => open(work)}>
+          <button data-hover="layer" type="button" className="ds-text-action" onClick={() => open(work)}>
             Разобрать ошибки <ArrowRight size={15} />
           </button>
         </div>
@@ -478,7 +478,7 @@ export default function DiaryStand() {
         </div>
         <div className="ds-section-head ds-bottom-heading">
           <h2>Продолжить курс</h2>
-          <button type="button" className="ds-text-action" onClick={() => setTab('courses')}>
+          <button data-hover="layer" type="button" className="ds-text-action" onClick={() => setTab('courses')}>
             Все курсы <ArrowRight size={15} />
           </button>
         </div>
@@ -487,7 +487,7 @@ export default function DiaryStand() {
           {!visibleCourses.length && <Empty>Курсы ещё не добавлены</Empty>}
         </div>
         {pending.length ? (
-          <button
+          <button data-hover="layer"
             type="button"
             className="ds-pending-strip"
             onClick={() => {
@@ -518,7 +518,7 @@ export default function DiaryStand() {
             {Array.from({ length: 7 }, (_, i) => {
               const d = diaryDate(today, i)
               return (
-                <button type="button" key={i} aria-pressed={weekDay === i} onClick={() => setWeekDay(i)}>
+                <button data-hover="layer" type="button" key={i} aria-pressed={weekDay === i} onClick={() => setWeekDay(i)}>
                   <span>
                     {new Intl.DateTimeFormat('ru-RU', { weekday: 'short', timeZone: 'UTC' }).format(d)}
                   </span>
@@ -678,7 +678,7 @@ export default function DiaryStand() {
               <option value="course">По курсу</option>
             </select>
           </label>
-          <button
+          <button data-hover="layer"
             type="button"
             className="ds-sort-direction"
             aria-label={descending ? 'Изменить порядок на возрастание' : 'Изменить порядок на убывание'}
@@ -713,7 +713,7 @@ export default function DiaryStand() {
         <span>Дневник · редизайн</span>
         <div className="ds-design-options" aria-label="Вариант дизайна">
           {(Object.keys(names) as Design[]).map((id) => (
-            <button
+            <button data-hover="layer"
               type="button"
               key={id}
               aria-pressed={design === id}
@@ -763,14 +763,14 @@ export default function DiaryStand() {
             <span>
               <Home size={20} />
             </span>
-            <button type="button" aria-current="page" onClick={() => setTab('today')}>
+            <button data-hover="layer" type="button" aria-current="page" onClick={() => setTab('today')}>
               <TaskliIcon name="courses" size={23} style={{ color: 'inherit' }} />
               <span>Дневник</span>
             </button>
             <span>
               <Dumbbell size={20} />
             </span>
-            <button
+            <button data-hover="layer"
               type="button"
               className="ds-nav-bell"
               aria-label="Открыть напоминания"
@@ -801,7 +801,7 @@ export default function DiaryStand() {
               ['courses', 'Курсы'],
             ] as const
           ).map(([id, label]) => (
-            <button type="button" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>
+            <button data-hover="layer" type="button" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>
               {label}
               {id === 'work' && actions.length ? <span>{actions.length}</span> : null}
             </button>
@@ -868,10 +868,10 @@ export default function DiaryStand() {
               <Due work={selected} today={today} />
             </div>
             <div className="ds-dialog-tabs">
-              <button type="button" aria-pressed={detailTab === 'work'} onClick={() => setDetailTab('work')}>
+              <button data-hover="layer" type="button" aria-pressed={detailTab === 'work'} onClick={() => setDetailTab('work')}>
                 Задание
               </button>
-              <button
+              <button data-hover="layer"
                 type="button"
                 aria-pressed={detailTab === 'lesson'}
                 onClick={() => setDetailTab('lesson')}
@@ -924,7 +924,7 @@ export default function DiaryStand() {
                       .filter((w) => w.course === selected.course && w.student === selected.student)
                       .sort((a, b) => a.number - b.number)
                       .map((work) => (
-                        <button
+                        <button data-hover="layer"
                           type="button"
                           key={work.id}
                           className="ds-track-step"

@@ -270,21 +270,21 @@ export default function Shadowing({ lines, lang, accent, soft }: {
       {/* Кнопки идут в том порядке, в каком делается сам приём: послушал —
           повторил — сравнил. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <button onClick={() => playModel()} style={btn(accent, phase === 'model')}>
+        <button data-hover="layer" onClick={() => playModel()} style={btn(accent, phase === 'model')}>
           <Volume2 size={16} /> {t('Образец')}
         </button>
 
         {phase === 'recording' ? (
-          <button onClick={stopRec} style={btn('var(--color-red-text)', true)}>
+          <button data-hover="layer" onClick={stopRec} style={btn('var(--color-red-text)', true)}>
             <Square size={16} /> {t('Стоп')} · <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '2ch', textAlign: 'right' }}>{elapsed}</span>
           </button>
         ) : (
-          <button onClick={() => void startRec()} style={btn('var(--color-red-text)', false)}>
+          <button data-hover="layer" onClick={() => void startRec()} style={btn('var(--color-red-text)', false)}>
             <Mic size={16} /> {mine ? t('Ещё раз') : t('Повторить')}
           </button>
         )}
 
-        <button
+        <button data-hover="layer"
           onClick={() => playMine()}
           disabled={!mine}
           style={{ ...btn('var(--color-text-2)', phase === 'mine'), opacity: mine ? 1 : 0.4, cursor: mine ? 'pointer' : 'default' }}
@@ -292,7 +292,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           <Play size={16} /> {t('Я')}
         </button>
 
-        <button
+        <button data-hover="layer"
           onClick={playBoth}
           disabled={!mine}
           style={{
@@ -306,7 +306,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           <Repeat size={16} /> {t('Сравнить')}
         </button>
 
-        <button
+        <button data-hover="layer"
           onClick={() => setSlow(v => !v)}
           style={{
             ...btn(slow ? accent : 'var(--color-text-3)', false),
@@ -317,7 +317,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
         </button>
 
         {mine && (
-          <button
+          <button data-hover="layer"
             onClick={() => {
               setRecs(prev => {
                 const next = { ...prev }
@@ -339,7 +339,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           </button>
         )}
 
-        <button onClick={() => go(at + 1)} disabled={at >= lines.length - 1}
+        <button data-hover="layer" onClick={() => go(at + 1)} disabled={at >= lines.length - 1}
           style={{
             ...btn(accent, false), marginLeft: 'auto',
             opacity: at >= lines.length - 1 ? 0.4 : 1,
@@ -363,7 +363,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           не далась. Точка слева = запись уже есть. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {lines.map((l, i) => (
-          <button
+          <button data-hover="layer"
             key={i}
             onClick={() => go(i)}
             style={{

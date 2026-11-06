@@ -70,7 +70,7 @@ export default function SubjectPicker({
         {options.map(o => {
           const on = value === o.value
           return (
-            <button key={o.value} onClick={() => onChange(o.value)} aria-pressed={on}
+            <button data-hover="layer" key={o.value} onClick={() => onChange(o.value)} aria-pressed={on}
               style={{
                 flex: 1, padding: pad, borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: fs,
                 fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -139,7 +139,7 @@ function SubjectDropdown({
           фильтров, и своя заливка (--color-bg) с постоянной рамкой читалась как
           поле другого рода — темнее соседей и в рамке, когда те безрамочные.
           Рамка прозрачная, а не отсутствует: иначе на открытии коробка прыгает. */}
-      <button ref={btnRef} onClick={() => setOpen(o => !o)} aria-haspopup="listbox" aria-expanded={open} aria-label={ariaLabel}
+      <button data-hover="layer" ref={btnRef} onClick={() => setOpen(o => !o)} aria-haspopup="listbox" aria-expanded={open} aria-label={ariaLabel}
         style={{
           width: '100%', minWidth: 0, boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8,
           padding: size === 'sm' ? '6px 10px' : '8px 12px', minHeight: size === 'sm' ? 32 : 38,
@@ -160,7 +160,7 @@ function SubjectDropdown({
           {options.map(o => {
             const on = o.value === value
             return (
-              <button key={o.value} role="option" aria-selected={on}
+              <button data-hover="layer" key={o.value} role="option" aria-selected={on}
                 onClick={() => { onChange(o.value); setOpen(false) }}
                 {...dropdownRowHover(on)}
                 style={{

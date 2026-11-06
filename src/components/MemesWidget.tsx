@@ -133,7 +133,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
         {/* Meme dots */}
         <div className="mt-2 flex items-center gap-2 ww-media-pages">
           {scienceMemes.map((m, i) => (
-            <button
+            <button data-hover="layer"
               key={m.id}
               onClick={() => goTo(i)}
               aria-label={`${t('Мем')} ${i + 1}`}

@@ -193,10 +193,10 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
             {photos.length > 0 && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: 8, marginBottom: 10 }}>
               {photos.map((src, i) => (
                 <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: 'var(--color-bg-3)' }}>
-                  <button type="button" aria-label={`${t('Открыть фото')} ${i + 1}`} onClick={() => setPhotoIndex(i)} style={{ width: '100%', height: '100%', padding: 0, border: 'none', background: 'none', cursor: 'zoom-in', display: 'block' }}>
+                  <button data-hover="layer" type="button" aria-label={`${t('Открыть фото')} ${i + 1}`} onClick={() => setPhotoIndex(i)} style={{ width: '100%', height: '100%', padding: 0, border: 'none', background: 'none', cursor: 'zoom-in', display: 'block' }}>
                     <img src={src} alt={`${t('Фото')} ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </button>
-                  <button type="button" disabled={saving || addingPhotos}
+                  <button data-hover="layer" type="button" disabled={saving || addingPhotos}
                     aria-label={`${t('Удалить фото')} ${i + 1}`}
                     onClick={() => setPhotos(p => p.filter((_, j) => j !== i))}
                     style={{ position: 'absolute', top: 3, right: 3, width: 28, height: 28, borderRadius: 8, border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -204,7 +204,7 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
                 </div>
               ))}
             </div>}
-            {photos.length < MAX_ATTACHMENTS && <button type="button"
+            {photos.length < MAX_ATTACHMENTS && <button data-hover="layer" type="button"
               disabled={saving || addingPhotos}
               onClick={() => fileRef.current?.click()}
               style={{ width: '100%', minHeight: 80, padding: 12, borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, ...dropOverStyle(drop.over) }}

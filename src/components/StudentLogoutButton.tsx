@@ -50,7 +50,7 @@ export default function StudentLogoutButton({ onComplete }: { onComplete: () => 
   return <>
     {failed && <Alert tone="danger" stacked title={t('Не удалось выйти из аккаунта')}
       text={t('Проверьте подключение и попробуйте ещё раз.')} />}
-    <motion.button type="button" whileTap={{ scale: 0.97 }} disabled={busy} aria-busy={busy}
+    <motion.button data-hover="layer" type="button" whileTap={{ scale: 0.97 }} disabled={busy} aria-busy={busy}
       onClick={() => { void logout() }} className="flex items-center justify-center cursor-pointer"
       style={{ gap: 8, padding: 12, minHeight: 44, borderRadius: 16, background: 'transparent', color: PAIR.error.text, border: 'none', fontSize: 15, fontWeight: 600, opacity: busy ? 0.65 : 1, cursor: busy ? 'wait' : 'pointer' }}>
       <LogOut size={18} />{t(busy ? 'Выходим…' : failed ? 'Попробовать ещё раз' : 'Выйти из аккаунта')}

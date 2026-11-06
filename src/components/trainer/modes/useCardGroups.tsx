@@ -220,7 +220,7 @@ export function useCardGroups({
       {/* Своя подборка правится оттуда же, где открыта: кнопка стоит под
           списком полок и появляется, только когда открыта СВОЯ. */}
       {mySetsOn && openGroup?.authorStudentId && (
-        <button
+        <button data-hover="layer"
           onClick={() => setEditGroup(openGroup)}
           style={{
             height: 34, borderRadius: 12, border: `1px solid ${accent}55`,

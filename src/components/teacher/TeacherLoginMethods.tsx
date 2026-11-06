@@ -130,7 +130,7 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
             {identity && <LinkedEmail email={identity.identity_data?.email || t('Подключено')} onCramped={cramped => setCramped(c => ({ ...c, [provider]: cramped }))} />}
           </div>
           {identity ? <span aria-label={t('Подключено')} title={t('Подключено')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, width: cramped[provider] ? 44 : '100%', justifySelf: 'end', boxSizing: 'border-box', borderRadius: 14, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 650, whiteSpace: 'nowrap' }}><Check size={cramped[provider] ? 18 : 14} strokeWidth={2.2} />{!cramped[provider] && t('Подключено')}</span>
-            : <button type="button" onClick={() => void connect(provider)} disabled={!ready || !user || busy !== null || !available?.[provider]}
+            : <button data-hover="layer" type="button" onClick={() => void connect(provider)} disabled={!ready || !user || busy !== null || !available?.[provider]}
               aria-label={`${t('Подключить')} ${label}`}
               style={{ minHeight: 44, width: '100%', boxSizing: 'border-box', padding: '0 10px', borderRadius: 14, border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650, whiteSpace: 'nowrap', opacity: !ready || !user || busy !== null || !available?.[provider] ? .55 : 1, cursor: 'pointer' }}>
               {!available ? t('Загрузка...') : !available[provider] ? t('Пока недоступно') : busy === provider ? t('Открываем…') : t('Подключить')}
@@ -141,7 +141,7 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
       </div>
       {error && <Alert tone="danger" text={t(error)} />}
       {notice && <Alert tone="info" text={t(notice)} />}
-      <a href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-muted)', fontSize: 12 }}>Политика конфиденциальности</a>
+      <a data-hover="link" href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-muted)', fontSize: 12 }}>Политика конфиденциальности</a>
     </section>
   )
 }

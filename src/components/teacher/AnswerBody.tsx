@@ -28,7 +28,7 @@ export function HomeworkPhotoTile({ photo, clickable = false, onZoom }: { photo:
   const state = useHomeworkPhoto(photo)
   if (state.status === 'expired' || state.status === 'missing') return <UnavailablePhoto expired={state.status === 'expired'} />
   const src = state.status === 'ready' ? state.src : undefined
-  return <button type="button" onClick={clickable && src ? () => onZoom?.(src) : undefined} disabled={!clickable || !src}
+  return <button data-hover="layer" type="button" onClick={clickable && src ? () => onZoom?.(src) : undefined} disabled={!clickable || !src}
     aria-label={t('Фото')}
     style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 14, overflow: 'hidden', cursor: clickable ? 'zoom-in' : 'crosshair', background: 'var(--color-bg-2)', minHeight: src ? undefined : 140 }}>
     {src && <img src={src} alt="" style={{ width: '100%', display: 'block', maxHeight: 260, objectFit: 'contain' }} />}
@@ -61,7 +61,7 @@ function PhotoTile({ src: ref, clickable, onZoom }: { src: string; clickable: bo
   if (ph.status === 'expired' || ph.status === 'missing') return <ExpiredPhoto minHeight={140} expired={ph.status === 'expired'} />
   const src = ph.status === 'ready' ? ph.src : undefined
   return (
-    <button
+    <button data-hover="layer"
       onClick={clickable && src ? () => onZoom?.(src) : undefined}
       disabled={!clickable}
       style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 14, overflow: 'hidden', cursor: clickable ? 'zoom-in' : 'crosshair', background: 'var(--color-bg-2)', minHeight: src ? undefined : 140 }}

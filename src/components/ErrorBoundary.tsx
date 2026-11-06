@@ -83,7 +83,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           {t('Произошла ошибка на этой странице. Попробуйте обновить — если повторяется, сообщите нам.')}
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button
+          <button data-hover="layer"
             // Чанковый крах, дошедший до экрана, значит, обычная перезагрузка уже
             // не помогла: её обслужил воркер со старой оболочкой. Снимаем его.
             onClick={() => { diagnosticRetry(this.failureId, 'reload'); if (isChunkError(String(this.state.error?.message ?? ''))) void hardReload({ full: true }); else window.location.reload() }}
@@ -91,7 +91,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           >
             {t('Обновить')}
           </button>
-          <button
+          <button data-hover="layer"
             onClick={() => {
               // Перезагрузка на сломанном адресе возвращает тот же крах.
               // «На главную» — единственный выход из такой петли. Оставляем
@@ -111,7 +111,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           >
             {t('На главную')}
           </button>
-          <button
+          <button data-hover="layer"
             onClick={() => this.setState({ reporting: true })}
             style={{ ...btn('M', 'secondary'), lineHeight: 1.2 }}
           >

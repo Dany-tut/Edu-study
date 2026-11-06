@@ -33,6 +33,8 @@ export function widgetNavigationProps(action?: () => void): HTMLAttributes<HTMLE
   if (!action) return {}
   return {
     role: 'link', tabIndex: 0, 'data-widget-navigation': 'true',
+    // Кликабельная карточка целиком — слабый ховер-слой (index.css).
+    'data-hover': 'card',
     onClick: event => { if (isCardSurface(event)) action() },
     onKeyDown: event => {
       if (event.target === event.currentTarget && !event.defaultPrevented && (event.key === 'Enter' || event.key === ' ')) {

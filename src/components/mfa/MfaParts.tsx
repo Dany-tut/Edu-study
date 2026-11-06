@@ -67,7 +67,7 @@ export const linkButton: CSSProperties = {
 
 /** Кнопка «значок + подпись» в одну линию. */
 export function IconButton({ icon, children, onClick, style, disabled }: { icon: ReactNode; children: ReactNode; onClick: () => void; style?: CSSProperties; disabled?: boolean }) {
-  return <button type="button" onClick={onClick} disabled={disabled} style={{ ...softButton, ...style, opacity: disabled ? 0.55 : 1 }}>
+  return <button data-hover="layer" type="button" onClick={onClick} disabled={disabled} style={{ ...softButton, ...style, opacity: disabled ? 0.55 : 1 }}>
     <span style={{ display: 'inline-flex', flexShrink: 0 }}>{icon}</span>
     <span>{children}</span>
   </button>

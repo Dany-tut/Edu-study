@@ -66,7 +66,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
         {/* Desk tabs */}
         <div style={{ display: 'flex', gap: 6, flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
           {desks.map(desk => (
-            <button
+            <button data-hover="layer"
               key={desk.id}
               onClick={() => onSetActive(desk.id)}
               style={{
@@ -84,7 +84,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
             </button>
           ))}
 
-          <button
+          <button data-hover="layer"
             onClick={onAddDesk}
             style={{
               padding: '6px 12px', borderRadius: 100,
@@ -100,7 +100,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
         </div>
 
         {onAddWidget && (
-          <button
+          <button data-hover="layer"
             onClick={onAddWidget}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
@@ -117,7 +117,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           </button>
         )}
 
-        <button
+        <button data-hover="layer"
           onClick={() => { onResetDesk(activeDeskId); setEditMode(false) }}
           style={{ ...btn('M', 'secondary'), flexShrink: 0 }}
         >
@@ -125,7 +125,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           {t('Сбросить')}
         </button>
 
-        <button
+        <button data-hover="layer"
           onClick={() => setEditMode(false)}
           style={{ height: 40,
             display: 'flex', alignItems: 'center', gap: 6,
@@ -225,7 +225,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
                   overflow: 'hidden',
                 }}
               />
-              <motion.button
+              <motion.button data-hover="layer"
                 animate={{ opacity: pencilHovered ? 1 : 0, width: pencilHovered ? 32 : 8 }}
                 transition={{ duration: 0.15 }}
                 onClick={() => setEditMode(true)}

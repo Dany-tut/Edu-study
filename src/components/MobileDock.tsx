@@ -241,7 +241,7 @@ export function DockSegment<T extends string | number>({
         {options.map(opt => {
           const active = opt.id === value
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={String(opt.id)}
               type="button"
               data-active={active}
@@ -283,7 +283,7 @@ export function DockCircle({
 }) {
   const collapsed = useSmoothCollapse()
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       type="button"
       aria-label={ariaLabel}
       whileTap={{ scale: 0.9 }}

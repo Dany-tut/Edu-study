@@ -38,7 +38,7 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t(def.label)}</div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>{t(def.description)}</div>
       </div>
-      <button type="button" className="ww-gallery-add" aria-label={`${t('Добавить')}: ${t(def.label)}`} onClick={onAdd}><Plus size={18}/><span>{t('Добавить')}</span></button>
+      <button data-hover="layer" type="button" className="ww-gallery-add" aria-label={`${t('Добавить')}: ${t(def.label)}`} onClick={onAdd}><Plus size={18}/><span>{t('Добавить')}</span></button>
     </div>
   )
 }
@@ -137,7 +137,7 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
                 {t('Кликните — виджет появится на столе')}
               </div>
             </div>
-            <button
+            <button data-hover="layer"
               autoFocus
               aria-label={t('Закрыть')}
               onClick={onClose}
@@ -162,7 +162,7 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
             ))}
           </div>
           {onEditDesk && (
-            <button type="button" className="ww-gallery-edit" onClick={onEditDesk}>
+            <button data-hover="layer" type="button" className="ww-gallery-edit" onClick={onEditDesk}>
               <Pencil size={16} />{t('Настроить на экране')}
             </button>
           )}

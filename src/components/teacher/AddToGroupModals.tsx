@@ -337,7 +337,7 @@ export function AddExistingIndividualModal({
               triggerStyle={selectTrigger}
             />
             <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={levelOptionsForSubject(subject)} triggerStyle={selectTrigger} />
-            <button onClick={create} disabled={!subject.trim() || busy}
+            <button data-hover="layer" onClick={create} disabled={!subject.trim() || busy}
               style={{ height: 48, marginTop: 4, width: '100%', padding: '0 22px', background: 'var(--grad-purple)', opacity: subject.trim() ? 1 : 0.45, color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
               {busy ? t('Создаём…') : t('Создать карточку 1:1')}
             </button>
@@ -357,12 +357,12 @@ export function AddExistingIndividualModal({
                   <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
                 </div>
-                <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.22s' }}>
+                <button data-hover="layer" onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.22s' }}>
                   {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
                 </button>
               </>
             )}
-            <button onClick={onClose} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer' }}>{t('Закрыть')}</button>
+            <button data-hover="layer" onClick={onClose} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer' }}>{t('Закрыть')}</button>
           </div>
         )}
       </motion.div>

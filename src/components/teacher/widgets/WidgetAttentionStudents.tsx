@@ -65,7 +65,7 @@ export default function WidgetAttentionStudents() {
       // shadow on wrapper
       overflow: 'hidden',
     }}>
-      <button type="button" className="ww-attention-compact" onClick={() => setActivePage('groups')}
+      <button data-hover="layer" type="button" className="ww-attention-compact" onClick={() => setActivePage('groups')}
         aria-label={`${t('Требуют внимания')}: ${atRisk.length}`}>
         <div className="ww-attention-summary">
           <div className="ww-attention-heading iskra-mini-stat-heading">

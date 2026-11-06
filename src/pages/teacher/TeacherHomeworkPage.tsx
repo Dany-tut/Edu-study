@@ -150,7 +150,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Выдать домашнее задание')}</div>
-        <button onClick={onClose} style={{
+        <button data-hover="layer" onClick={onClose} style={{
           width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer',
           background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
         }}>
@@ -178,7 +178,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
             <Label>{t('Кому')}</Label>
             <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
               {(['group', 'student'] as const).map(mode => (
-                <button
+                <button data-hover="layer"
                   key={mode}
                   type="button"
                   onClick={() => { setAssignTo(mode); setSelectedStudent('') }}
@@ -439,7 +439,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
               <span style={{ fontSize: 11, fontWeight: 700, color: group.color }}>{hw.groupName}</span>
             </div>
           </div>
-          <button onClick={onClose} style={{
+          <button data-hover="layer" onClick={onClose} style={{
             width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer',
             background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0,
           }}>
@@ -780,7 +780,7 @@ export default function TeacherHomeworkPage() {
                       <GrowTextarea disabled={viewOnly} aria-label={t('Комментарий преподавателя')} placeholder={t('Комментарий преподавателя')}
                         value={testlyComments[sub.id] ?? ''} onChange={value => setTestlyComments(c => ({ ...c, [sub.id]: value }))}
                         style={{ ...FIELD, minHeight: 64 }} />
-                      <button disabled={viewOnly || returningTestly !== null} style={{ ...btn('S', 'secondary'), justifySelf: 'start' }} onClick={async () => {
+                      <button data-hover="layer" disabled={viewOnly || returningTestly !== null} style={{ ...btn('S', 'secondary'), justifySelf: 'start' }} onClick={async () => {
                         setReturningTestly(sub.id); setTestlyReturnError('')
                         try { await reviewHomework(sub.id, 'returned', sub.score ?? 0, testlyComments[sub.id] ?? '', undefined, sub.payload.attemptId).then(ok => {if (!ok) throw new Error('Review failed')}); await reloadCourseTestly() }
                         catch (error) { setTestlyReturnError(error instanceof Error ? error.message : t('Не удалось сохранить изменения')) }
@@ -793,7 +793,7 @@ export default function TeacherHomeworkPage() {
                   <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginTop:12}}>
                     <label style={{fontSize:13}}>{t('ИТОГ ДЗ (0–100%)')} <input disabled={viewOnly} type="number" min={0} max={100} value={finalGrades[sub.id] ?? ''}
                       onChange={e => setFinalGrades(v => ({...v,[sub.id]:e.target.value}))} style={{width:80,padding:8}} /></label>
-                    <button disabled={viewOnly || returningTestly === sub.id || !finalGrades[sub.id]?.trim()} style={btn('M','primary')}
+                    <button data-hover="layer" disabled={viewOnly || returningTestly === sub.id || !finalGrades[sub.id]?.trim()} style={btn('M','primary')}
                       onClick={async () => {
                         const grade=Number(finalGrades[sub.id]); if (!Number.isFinite(grade) || grade<0 || grade>100) return
                         setReturningTestly(sub.id); setTestlyReturnError('')
@@ -881,7 +881,7 @@ export default function TeacherHomeworkPage() {
                   <div style={{ flex: 'none', fontSize: 12, fontWeight: 600, textAlign: 'right', color: item.overdue ? 'var(--color-red-text)' : 'var(--color-text-3)', marginRight: 4, whiteSpace: 'nowrap' }}>
                     {item.overdue ? t('просрочено') : item.due || ''}
                   </div>
-                  <motion.button
+                  <motion.button data-hover="layer"
                     whileTap={{ scale: 0.96 }}
                     onClick={item.onClick}
                     style={{ height: 40,
@@ -905,7 +905,7 @@ export default function TeacherHomeworkPage() {
           >
             <Card style={{ padding: 0, overflow: 'hidden' }}>
               {/* Clickable header — collapses whole panel */}
-              <div
+              <div data-hover="layer"
                 onClick={() => setHardPanelCollapsed(c => !c)}
                 style={{
                   padding: '14px 18px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -965,7 +965,7 @@ export default function TeacherHomeworkPage() {
                     {/* Accepted — collapsible */}
                     {acceptedHardSubs.length > 0 && (
                       <div style={{ borderTop: '1px solid var(--color-border-soft)' }}>
-                        <div
+                        <div data-hover="layer"
                           onClick={() => setAcceptedCollapsed(c => !c)}
                           style={{
                             padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6,

@@ -80,13 +80,13 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
   const next = pending.find(s => s.id !== current?.id)
   const footer = current && (!loading || demo) ? <div className="mhr-actions">
     {saveError && <Alert tone="danger" text={saveError} />}
-    {done ? <button type="button" style={btn('L', 'primary')} onClick={() => {
+    {done ? <button data-hover="layer" type="button" style={btn('L', 'primary')} onClick={() => {
       if (next) { setSelectedId(next.id); tactile() } else onBack()
     }}>{next ? t('Следующая работа') : t('К списку ДЗ')}<ChevronRight size={18} /></button> : <>
-      <button type="button" disabled={busy || !!getViewAs()} style={btn('L', 'primary')} onClick={() => void publish('accepted')}>
+      <button data-hover="layer" type="button" disabled={busy || !!getViewAs()} style={btn('L', 'primary')} onClick={() => void publish('accepted')}>
         {busy ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}{t(busy ? 'Сохраняем…' : 'Завершить проверку')}
       </button>
-      <button type="button" disabled={busy || !!getViewAs()} style={btn('L', 'secondary')} onClick={() => void publish('returned')}><RotateCcw size={18} />{t('На доработку')}</button>
+      <button data-hover="layer" type="button" disabled={busy || !!getViewAs()} style={btn('L', 'secondary')} onClick={() => void publish('returned')}><RotateCcw size={18} />{t('На доработку')}</button>
     </>}
   </div> : undefined
   return <div className="mobile-homework-review"><MobileScreen
@@ -110,13 +110,13 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
             {draftWarning && <Alert tone="danger" text={t('Не удалось сохранить черновик. Не закрывайте экран до отправки.')} />}
             <fieldset disabled={busy} style={{border:0,padding:0,margin:0,minWidth:0}}>
               <div className="mhr-fields">{tasks.length ? tasks.map(task => <label key={task.id} className="mhr-label">{task.title} · {task.maxScore}<input style={FIELD} type="number" inputMode="decimal" min={0} max={task.maxScore} aria-label={t('Балл за задание')+' '+task.title} value={draft.taskScores[task.id] ?? ''} onChange={e => update({taskScores:{...draft.taskScores,[task.id]:e.target.value}})} /></label>) : <label className="mhr-label">{t('Итоговый результат')} · %<input style={FIELD} type="number" inputMode="decimal" min={0} max={100} aria-label={t('Итог ДЗ в процентах')} value={draft.score} onChange={e => update({score:e.target.value})} /></label>}
-                {!tasks.length && <div className="mhr-quick">{[60,75,85,100].map(n => <button key={n} type="button" style={btn('M','secondary')} aria-pressed={draft.score===String(n)} onClick={()=>update({score:String(n)})}>{n}%</button>)}</div>}
+                {!tasks.length && <div className="mhr-quick">{[60,75,85,100].map(n => <button data-hover="layer" key={n} type="button" style={btn('M','secondary')} aria-pressed={draft.score===String(n)} onClick={()=>update({score:String(n)})}>{n}%</button>)}</div>}
                 <label className="mhr-label">{t('Комментарий ученику')}<textarea style={{...FIELD,minHeight:140}} value={draft.comment} placeholder={t('Что получилось и что исправить')} onChange={e=>update({comment:e.target.value})}/></label>
               </div>
             </fieldset>
           </section>
         </>}
-      </> : !loadError && <section className="mhr-card"><h2>{t('Все работы проверены')}</h2><button type="button" style={btn('L','secondary')} onClick={back}>{t('К списку ДЗ')}</button></section>}
+      </> : !loadError && <section className="mhr-card"><h2>{t('Все работы проверены')}</h2><button data-hover="layer" type="button" style={btn('L','secondary')} onClick={back}>{t('К списку ДЗ')}</button></section>}
     </div>
   </MobileScreen></div>
 }

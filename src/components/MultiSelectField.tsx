@@ -173,7 +173,7 @@ export default function MultiSelectField({
   const chip = (v: string) => (
     <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0, maxWidth: '100%', padding: field ? '4px 8px' : '2px 8px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
       <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(v)}</span>
-      <button type="button" aria-label={`${t('Удалить')}: ${t(v)}`} onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', opacity: 0.7, padding: 0, background: 'none', border: 'none', color: 'inherit' }}><X size={12} strokeWidth={2.5} /></button>
+      <button data-hover="layer" type="button" aria-label={`${t('Удалить')}: ${t(v)}`} onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', opacity: 0.7, padding: 0, background: 'none', border: 'none', color: 'inherit' }}><X size={12} strokeWidth={2.5} /></button>
     </span>
   )
 
@@ -246,7 +246,7 @@ export default function MultiSelectField({
           </div>
         )}
         {!isEmpty ? (
-          <button type="button" aria-label={t('Очистить выбор')} onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onChange([]); if (open) inputRef.current?.focus() }}
+          <button data-hover="layer" type="button" aria-label={t('Очистить выбор')} onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onChange([]); if (open) inputRef.current?.focus() }}
             style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '0 2px', flexShrink: 0 }}>
             <X size={14} strokeWidth={2} />
           </button>

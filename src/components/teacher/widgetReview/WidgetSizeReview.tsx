@@ -48,7 +48,7 @@ export default function WidgetSizeReview({ hiddenWidgets = [] }: { hiddenWidgets
   const [all, setAll] = useState(true)
   const [selected, setSelected] = useState<Size | null>(null)
   const def = widgets.find(widget => widget.type === id) ?? widgets[0]
-  if (!def) return <div ref={root} className="widget-size-review"><header className="size-review-top"><h1>Нет доступных виджетов</h1><a href="/#/teacher">Вернуться в приложение</a></header></div>
+  if (!def) return <div ref={root} className="widget-size-review"><header className="size-review-top"><h1>Нет доступных виджетов</h1><a data-hover="link" href="/#/teacher">Вернуться в приложение</a></header></div>
   const [screenWidth, screenHeight] = screens[screen]
   const width = screenWidth - 2 * DESK_INSET
   const columns = deskColumns(width, 8)
@@ -58,20 +58,20 @@ export default function WidgetSizeReview({ hiddenWidgets = [] }: { hiddenWidgets
   const size = selected && allowed(def, grid, selected) ? selected : presets(def, grid)[0]
   const chooseWidget = (value: string) => { setId(value); setSelected(null); setAll(false); pane.current?.scrollTo({ top: 0 }) }
   return <div ref={root} className="widget-size-review">
-    <header className="size-review-top"><div><h1>Искра · сетка размеров</h1><p>{widgets.length} текущих виджетов · настоящие компоненты и данные вашей сессии</p></div><a href="/#/teacher">Вернуться в приложение</a></header>
+    <header className="size-review-top"><div><h1>Искра · сетка размеров</h1><p>{widgets.length} текущих виджетов · настоящие компоненты и данные вашей сессии</p></div><a data-hover="link" href="/#/teacher">Вернуться в приложение</a></header>
     <div className="size-review-layout">
       <nav className="size-review-nav size-review-scroll" aria-label="Выбор виджета">
-        {widgets.map(widget => <button key={widget.type} aria-pressed={def.type === widget.type} onClick={() => chooseWidget(widget.type)}>{widget.label}</button>)}
+        {widgets.map(widget => <button data-hover="layer" key={widget.type} aria-pressed={def.type === widget.type} onClick={() => chooseWidget(widget.type)}>{widget.label}</button>)}
       </nav>
       <main ref={pane} className="size-review-main size-review-scroll">
-        <div className="size-review-controls"><label>Экран <select value={screen} onChange={event => { setScreen(Number(event.target.value)); setSelected(null) }}>{screens.map(([w, h], index) => <option key={index} value={index}>{w} × {h}</option>)}</select></label><button aria-pressed={all} onClick={() => setAll(!all)}>{all ? 'Показать выбранный' : `Показать все ${widgets.length} виджетов`}</button></div>
+        <div className="size-review-controls"><label>Экран <select value={screen} onChange={event => { setScreen(Number(event.target.value)); setSelected(null) }}>{screens.map(([w, h], index) => <option key={index} value={index}>{w} × {h}</option>)}</select></label><button data-hover="layer" aria-pressed={all} onClick={() => setAll(!all)}>{all ? 'Показать выбранный' : `Показать все ${widgets.length} виджетов`}</button></div>
         <h2>{def.label}: все допустимые размеры</h2>
         <p>Ширина × высота в ячейках. Минимум: <b>{bounds.minW}×{bounds.minH}</b>. Сетка экрана: {grid.columns}×{grid.rows}. Нажмите размер — ниже появится виджет.</p>
         <div className="size-review-viewport"><div className="size-review-matrix" style={{ gridTemplateColumns: `44px repeat(${grid.columns}, minmax(38px, 1fr))` }}>
           <span>В / Ш</span>{Array.from({ length: grid.columns }, (_, n) => <b key={`w${n}`}>{n + 1}</b>)}
           {Array.from({ length: grid.rows }, (_, y) => [<b key={`h${y}`}>{y + 1}</b>, ...Array.from({ length: grid.columns }, (_, x) => {
             const next = { w: x + 1, h: y + 1 }, valid = allowed(def, grid, next)
-            return <button key={`${x}-${y}`} disabled={!valid} aria-pressed={size.w === next.w && size.h === next.h} title={valid ? `${next.w}×${next.h}` : `Недоступно: минимум ${bounds.minW}×${bounds.minH}`} onClick={() => setSelected(next)}>{next.w}×{next.h}</button>
+            return <button data-hover="layer" key={`${x}-${y}`} disabled={!valid} aria-pressed={size.w === next.w && size.h === next.h} title={valid ? `${next.w}×${next.h}` : `Недоступно: минимум ${bounds.minW}×${bounds.minH}`} onClick={() => setSelected(next)}>{next.w}×{next.h}</button>
           })])}
         </div></div>
         <p className="size-review-hint">Серые размеры недоступны. Календарь 1×1 запрещён. Прокрутка карточек доступна; действия с данными в этом просмотре отключены.</p>

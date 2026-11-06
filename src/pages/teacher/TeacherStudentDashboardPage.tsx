@@ -590,7 +590,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
             <ArrowLeft size={14} />
             {t(backLabel ?? 'Назад к группам')}
           </button>
-          <button
+          <button data-hover="layer"
             onClick={() => printStudentCard(tn(student.name))}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px 8px 14px', borderRadius: 999, border: `1px solid ${group.color}40`, background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: group.color, fontSize: 13, fontWeight: 600, backdropFilter: 'var(--blur-glass)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontFamily: 'inherit' }}
           >
@@ -620,9 +620,9 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
               </div>
             </div>
             <div className="student-profile-contacts">
-              {student.phone && <a href={`tel:${student.phone}`} title={student.phone}><Phone size={18} /></a>}
-              {student.telegramLink && <a href={contactHref(student.telegramLink)} target="_blank" rel="noreferrer" title={contactLabel(student.telegramLink)}><Send size={18} /></a>}
-              {student.parentContact && <a href={`tel:${student.parentContact}`} title={`${t('Родитель:')} ${student.parentContact}`}><User size={18} /></a>}
+              {student.phone && <a data-hover="layer" href={`tel:${student.phone}`} title={student.phone}><Phone size={18} /></a>}
+              {student.telegramLink && <a data-hover="layer" href={contactHref(student.telegramLink)} target="_blank" rel="noreferrer" title={contactLabel(student.telegramLink)}><Send size={18} /></a>}
+              {student.parentContact && <a data-hover="layer" href={`tel:${student.parentContact}`} title={`${t('Родитель:')} ${student.parentContact}`}><User size={18} /></a>}
             </div>
           </section>
         )}

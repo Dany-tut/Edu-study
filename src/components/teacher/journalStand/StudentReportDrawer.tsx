@@ -32,8 +32,8 @@ export default function StudentReportDrawer({ student, group, host, children, on
           <strong title={student.name}>{student.name}</strong>
           <small>{group?.name ?? 'Без группы'}</small>
         </div>
-        <button type="button" aria-label="Скачать PDF" title="Скачать PDF" onClick={onPrint}><Download size={15} /></button>
-        <button type="button" ref={closeButton} aria-label="Закрыть статистику" title="Закрыть статистику" onClick={onClose}><X size={16} /></button>
+        <button data-hover="layer" type="button" aria-label="Скачать PDF" title="Скачать PDF" onClick={onPrint}><Download size={15} /></button>
+        <button data-hover="layer" type="button" ref={closeButton} aria-label="Закрыть статистику" title="Закрыть статистику" onClick={onClose}><X size={16} /></button>
       </header>
       <OverlayScrollArea key={student.id} className="js-report-scroll" style={{ flex: 1 }}>
         {children}

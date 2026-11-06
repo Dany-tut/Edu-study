@@ -57,14 +57,14 @@ function TabPanel({ config, compact = false }: { config: TabConfig; compact?: bo
             boxShadow: isActive ? '0 3px 10px rgba(99,84,207,0.28)' : 'var(--shadow-2)',
             color: isActive ? '#fff' : 'var(--color-muted)',
           }}>
-            <button type="button" aria-label={tab.label} title={tab.label} aria-pressed={isActive} onClick={() => config.onTabChange(tab.id)}
+            <button data-hover="layer" type="button" aria-label={tab.label} title={tab.label} aria-pressed={isActive} onClick={() => config.onTabChange(tab.id)}
               style={{ flex: 1, alignSelf: 'stretch', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 16 }}>
               {compact ? <>
                 <span className="js-roster-tab-icon" aria-hidden="true">{tab.id === 'groups' ? <Layers size={21} /> : <Users size={21} />}</span>
                 <span className="js-roster-tab-label">{tab.label}</span>
               </> : tab.label}
             </button>
-            {config.onTabPlusClick && <button type="button"
+            {config.onTabPlusClick && <button type="button" data-hover="layer"
               className={compact ? 'js-roster-tab-add' : undefined} disabled={collapsed} tabIndex={collapsed ? -1 : undefined} aria-hidden={collapsed || undefined}
               aria-label={`${t('Добавить')}: ${tab.label}`} title={`${t('Добавить')}: ${tab.label}`}
               onClick={() => config.onTabPlusClick?.(tab.id)}
@@ -163,7 +163,7 @@ function GroupMiniCard({
       {/* Add existing student to this group — hover affordance */}
       <AnimatePresence>
         {onAddToGroup && hovered && (
-          <motion.button
+          <motion.button data-hover="layer"
             key="add"
             initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
             transition={{ duration: 0.15 }}

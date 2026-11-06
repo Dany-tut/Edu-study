@@ -41,7 +41,7 @@ export function LessonLinkPanel({
         <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-2)' }}>
           {t('Ссылка для')} «{slotLabel}»
         </span>
-        <button
+        <button data-hover="layer"
           onClick={onCancel}
           aria-label={t('Отмена')}
           style={{ marginLeft: 'auto', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex', padding: 2 }}
@@ -72,7 +72,7 @@ export function LessonLinkPanel({
             }}
           />
         </div>
-        <button
+        <button data-hover="layer"
           onClick={submit}
           style={{
             flexShrink: 0, padding: '0 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -115,7 +115,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
 
   if (!open) {
     return (
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(true)}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: compact ? 'center' : 'flex-start', gap: 4,
@@ -153,7 +153,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
             }}
           />
         </div>
-        <button
+        <button data-hover="layer"
           onClick={submit}
           style={{
             flexShrink: 0, padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer',

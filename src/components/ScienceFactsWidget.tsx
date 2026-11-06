@@ -130,7 +130,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
         {/* Fact dots */}
         <div className="mt-2 flex items-center gap-2 ww-media-pages">
           {scienceFacts.map((f, i) => (
-            <button
+            <button data-hover="layer"
               key={f.id}
               onClick={() => goTo(i)}
               aria-label={`${t('Факт')} ${i + 1}`}

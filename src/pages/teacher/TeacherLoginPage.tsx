@@ -117,7 +117,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
         {accessNotice && <Alert tone="danger" stacked
           title={t(accessNotice === 'denied' ? 'Нет доступа к кабинету преподавателя' : 'Не удалось проверить доступ')}
           text={t(accessNotice === 'denied' ? 'Войдите под другой учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.' : 'Проверьте подключение и попробуйте ещё раз или войдите под другой учётной записью.')} />}
-        {accessNotice === 'error' && onRetryAccess && <button type="button" onClick={onRetryAccess}
+        {accessNotice === 'error' && onRetryAccess && <button data-hover="layer" type="button" onClick={onRetryAccess}
           style={{ width: '100%', minHeight: 44, margin: '8px 0', padding: 12, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600 }}>
           {t('Попробовать ещё раз')}
         </button>}
@@ -183,7 +183,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
                 background: 'var(--color-bg-input)',
               }}
             />
-            <button
+            <button data-hover="layer"
               type="button"
               onMouseDown={event => event.preventDefault()}
               onClick={() => setShowPassword(v => !v)}
@@ -213,7 +213,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
 
           <AuthFeedbackSlot idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : 'Аккаунт — по приглашению администратора'} />
           {mode === 'login' && (
-            <button disabled={feedback.busy} type="button"
+            <button data-hover="layer" disabled={feedback.busy} type="button"
               onClick={() => switchMode('reset')}
               style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginTop: -4 }}
             >
@@ -221,7 +221,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
             </button>
           )}
 
-          <button
+          <button data-hover="layer"
             type="submit"
             disabled={loading || feedback.busy}
             style={{ height: 48,
@@ -241,9 +241,9 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
         </form>}
 
         {mode === 'login' && <SocialLoginButtons role="teacher" />}
-        {mode === 'login' && <button type="button" disabled={feedback.busy} onClick={() => switchMode('code')} style={{ minHeight: 44, width: '100%', marginTop: 4, padding: 0, border: 0, background: 'transparent', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650 }}>{t('Войти по коду из письма')}</button>}
+        {mode === 'login' && <button data-hover="layer" type="button" disabled={feedback.busy} onClick={() => switchMode('code')} style={{ minHeight: 44, width: '100%', marginTop: 4, padding: 0, border: 0, background: 'transparent', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650 }}>{t('Войти по коду из письма')}</button>}
 
-        {mode === 'reset' && <button type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, width: '100%', border: 0, background: 'none', color: 'var(--color-purple)', fontWeight: 600 }}>
+        {mode === 'reset' && <button data-hover="layer" type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, width: '100%', border: 0, background: 'none', color: 'var(--color-purple)', fontWeight: 600 }}>
           <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} />
         </button>}
       </div>

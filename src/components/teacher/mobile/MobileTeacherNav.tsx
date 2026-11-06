@@ -89,7 +89,7 @@ export default function MobileTeacherNav({
         {visibleItems.map(item => {
           const isActive = active === item.id
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={item.id}
               whileTap={{ scale: 0.9 }}
               onClick={() => { if (item.id !== active) { tactile(); onChange(item.id) } }}

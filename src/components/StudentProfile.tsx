@@ -62,7 +62,7 @@ export default function StudentProfile({ section, onChange, onClose, name, avata
           <div className="student-profile-detail"><span>{t('Имя')}</span><strong>{name || t('Ученик')}</strong></div>
           <div className="student-profile-detail"><span>{t('Ник в Искре')}</span><strong>{handle ? '@' + handle : t('Ник ещё не выбран')}</strong></div>
           <p className="student-profile-subtitle">{t('По нику друзья смогут найти тебя и отправить заявку.')}</p>
-          <button className="profile-social-edit" onClick={() => change('friends')}>{t('Открыть друзей')}</button>
+          <button data-hover="layer" className="profile-social-edit" onClick={() => change('friends')}>{t('Открыть друзей')}</button>
         </section>
       </div>}
       {section === 'friends' && <div className="profile-social-grid">
@@ -71,7 +71,7 @@ export default function StudentProfile({ section, onChange, onClose, name, avata
           <div className="profile-social-monogram" aria-hidden="true">@</div><h3>{t('Твой ник в Искре')}</h3><p className="profile-social-caption">{t('Один ник, чтобы найти друг друга.')}</p>
           <div className="profile-social-handle"><FadeText>{handle ? '@' + handle : t('Ник ещё не выбран')}</FadeText></div>
           <p className="profile-social-visibility">{t(!handle ? 'Выбери ник, чтобы друзья могли тебя найти' : model.snapshot?.searchable ? 'Тебя можно найти по точному нику' : 'Поиск по нику выключен')}</p>
-          <button className="profile-social-edit" onClick={() => change('settings')}>{t('Изменить ник и видимость')}</button>
+          <button data-hover="layer" className="profile-social-edit" onClick={() => change('settings')}>{t('Изменить ник и видимость')}</button>
           <p className="profile-social-privacy">{t('Твой email остаётся приватным.')}</p>
         </aside>
       </div>}

@@ -110,7 +110,7 @@ export default function LessonReview({
             // Свой промах виден рядом с верным: без него непонятно, что нажал.
             const wrong = done && pickedIdx === i && !right
             return (
-              <button
+              <button data-hover="layer"
                 key={`${card.id}-${i}`}
                 disabled={done}
                 onClick={() => { setPickedIdx(i); report(right) }}
@@ -134,7 +134,7 @@ export default function LessonReview({
           })}
         </div>
       ) : !shown && !done ? (
-        <button
+        <button data-hover="layer"
           onClick={() => setShown(true)}
           className="cursor-pointer"
           style={{
@@ -159,7 +159,7 @@ export default function LessonReview({
           </div>
           {!done && (
             <div style={{ display: 'flex', gap: 10 }}>
-              <button
+              <button data-hover="layer"
                 onClick={() => report(false)}
                 className="cursor-pointer"
                 style={{
@@ -170,7 +170,7 @@ export default function LessonReview({
               >
                 {t('Не вспомнил')}
               </button>
-              <button
+              <button data-hover="layer"
                 onClick={() => report(true)}
                 className="cursor-pointer"
                 style={{

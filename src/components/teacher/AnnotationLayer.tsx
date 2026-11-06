@@ -360,18 +360,18 @@ export default function AnnotationLayer({
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 12,
           position: 'sticky', top: 8, zIndex: 6,
         }}>
-          <Tooltip label={t('Карандаш')}><button onClick={() => setTool('pen')} style={iconBtn(tool === 'pen', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
+          <Tooltip label={t('Карандаш')}><button data-hover="layer" onClick={() => setTool('pen')} style={iconBtn(tool === 'pen', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
             <Pencil size={14} />
           </button></Tooltip>
-          <Tooltip label={t('Маркер — полупрозрачное выделение в строку')}><button onClick={() => setTool('marker')} style={iconBtn(tool === 'marker', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
+          <Tooltip label={t('Маркер — полупрозрачное выделение в строку')}><button data-hover="layer" onClick={() => setTool('marker')} style={iconBtn(tool === 'marker', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
             <Highlighter size={14} />
           </button></Tooltip>
-          <Tooltip label={t('Ластик')}><button onClick={() => setTool('eraser')} style={iconBtn(tool === 'eraser', 'var(--color-peach-soft)', 'var(--color-peach-text)')}>
+          <Tooltip label={t('Ластик')}><button data-hover="layer" onClick={() => setTool('eraser')} style={iconBtn(tool === 'eraser', 'var(--color-peach-soft)', 'var(--color-peach-text)')}>
             <Eraser size={14} />
           </button></Tooltip>
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
           {PEN_COLORS.map(c => (
-            <button key={c} title={t('Цвет')} onClick={() => { setColor(c); if (tool === 'eraser') setTool('pen') }} style={{
+            <button data-hover="layer" key={c} title={t('Цвет')} onClick={() => { setColor(c); if (tool === 'eraser') setTool('pen') }} style={{
               width: 17, height: 17, borderRadius: '50%', cursor: 'pointer', flexShrink: 0, background: c,
               border: color === c && tool !== 'eraser' ? '2.5px solid var(--color-blue-pill-text)' : '2px solid var(--color-border)',
             }} />
@@ -379,10 +379,10 @@ export default function AnnotationLayer({
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
           <input type="range" min={1} max={14} value={activeSize} onChange={e => setActiveSize(+e.target.value)} style={{ width: 64 }} />
           <div style={{ flex: 1 }} />
-          <Tooltip label={t('Отменить')}><button onClick={undo} disabled={!canUndo} style={{ ...iconBtn(false), cursor: canUndo ? 'pointer' : 'not-allowed', opacity: canUndo ? 1 : 0.35 }}>
+          <Tooltip label={t('Отменить')}><button data-hover="layer" onClick={undo} disabled={!canUndo} style={{ ...iconBtn(false), cursor: canUndo ? 'pointer' : 'not-allowed', opacity: canUndo ? 1 : 0.35 }}>
             <Undo2 size={14} />
           </button></Tooltip>
-          <Tooltip label={t('Стереть всю разметку')}><button onClick={clear} style={{ ...iconBtn(false), background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
+          <Tooltip label={t('Стереть всю разметку')}><button data-hover="layer" onClick={clear} style={{ ...iconBtn(false), background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
             <Trash2 size={14} />
           </button></Tooltip>
         </div>

@@ -126,7 +126,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
 
   return (
     <div className="flex flex-col" style={{ gap: 14 }}>
-      <button
+      <button data-hover="layer"
         onClick={() => { if (playing) { stopSpeech(); setSpeakingLine(-1) } else speakAll(0) }}
         className="flex items-center self-start cursor-pointer"
         style={{ height: 40,
@@ -157,7 +157,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                   <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-accent)' }}>
                     {line.speaker}
                   </span>
-                  <button
+                  <button data-hover="layer"
                     onClick={() => { stopSpeech(); speakLine(i) }}
                     aria-label={t('Озвучить реплику')}
                     className="cursor-pointer"
@@ -188,7 +188,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
             {options.map(opt => {
               const active = value === opt
               return (
-                <button
+                <button data-hover="layer"
                   key={opt}
                   onClick={() => {
                     if (disabled) return

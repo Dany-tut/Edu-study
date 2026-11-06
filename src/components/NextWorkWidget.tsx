@@ -42,7 +42,7 @@ export default function NextWorkWidget({ title, meta, due, dueShort, overdue, st
       <HomeWidgetObject id={settled ? 8 : 13}/>
       {hasFooter && <footer className="ihw-footer next-work-footer">
         {loading ? <Skeleton className="next-work-action-skeleton" w={110} h={32}/> : <>
-          {action && <button type="button" className="next-work-action" data-secondary={secondary} onClick={onOpen}><FadeText>{action}</FadeText><ChevronRight size={16}/></button>}
+          {action && <button data-hover="layer" type="button" className="next-work-action" data-secondary={secondary} onClick={onOpen}><FadeText>{action}</FadeText><ChevronRight size={16}/></button>}
           {due && <span className="next-work-due" data-overdue={overdue}>
             <span className={dueShort ? 'next-work-due-full' : undefined}><FadeText lines={2} fadeMode="last-line">{due}</FadeText></span>
             {dueShort && <span className="next-work-due-short">{overdue && <span className="sr-only">{t('Просрочено')} </span>}<FadeText lines={2} fadeMode="last-line">{!overdue && dueShort !== t('Без срока') ? `${t('До')} ${dueShort}` : dueShort}</FadeText></span>}

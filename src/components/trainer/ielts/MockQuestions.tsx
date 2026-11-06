@@ -117,7 +117,7 @@ function QuestionRow({ q, group, value, onAnswer, review, accent, soft }: {
             {choices.map(c => {
               const on = value === c.key
               return (
-                <button
+                <button data-hover="layer"
                   key={c.key}
                   type="button"
                   disabled={review}

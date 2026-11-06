@@ -49,7 +49,7 @@ export default function ViewAsBanner() {
           {t('Режим просмотра · изменения отключены')}
         </div>
       </div>
-      <button
+      <button data-hover="layer"
         onClick={() => setViewAs(null)}
         title={t('Вернуться в админку')}
         style={{ ...btn('S', 'secondary'), flexShrink: 0 }}

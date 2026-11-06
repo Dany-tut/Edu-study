@@ -236,7 +236,7 @@ function ActionChip({ action, on, onPick }: { action: FeedAction; on: boolean; o
   const t = useT()
   const tone = actionTone(action)
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       whileTap={{ scale: 0.94 }}
       onClick={onPick}
       aria-pressed={on}
@@ -407,7 +407,7 @@ export function FeedGesturesSettings() {
         <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
           {t('Раскладка своя на каждом устройстве — на планшете она может быть другой.')}
         </span>
-        <motion.button
+        <motion.button data-hover="layer"
           whileTap={{ scale: 0.95 }}
           onClick={() => { tactile(); reset(); setFocus('swipeLeft') }}
           disabled={JSON.stringify(map) === JSON.stringify(DEFAULT_MAP)}

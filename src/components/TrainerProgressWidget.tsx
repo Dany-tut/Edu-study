@@ -40,7 +40,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
     // написано; а если человек уже что-то решал — вместо уговора стоит его
     // собственный счёт.
     return (
-      <button
+      <button data-hover="layer"
         className="ww-trainer-entry" data-empty={todayMs===0 && doneCount===0 || undefined}
         onClick={() => setActivePage('trainer')}
         style={{
@@ -83,7 +83,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
           </span>
         </div>
         {kind === 'bank' && (
-          <button
+          <button data-hover="layer"
             onClick={() => setOpenModal(true)}
             style={{ fontSize: 11, fontWeight: 600, color: palette.text, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >

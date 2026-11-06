@@ -176,7 +176,7 @@ export function SubjectHero({ state, subtitle, palette }: {
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <div
+      <div data-hover="layer"
         onClick={toggle}
         role={many ? 'button' : undefined}
         tabIndex={many ? 0 : undefined}
@@ -291,7 +291,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <button
+      <button data-hover="layer"
         type="button"
         onClick={toggle}
         aria-label={compact ? (current ? t(current.def.name) : t('Тренажёр')) : undefined}

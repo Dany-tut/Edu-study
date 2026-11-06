@@ -249,19 +249,19 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
         )}
 
         {canPause && (
-          <button type="button" onClick={togglePause} title={d.paused ? t('Продолжить') : t('Пауза')}
+          <button data-hover="layer" type="button" onClick={togglePause} title={d.paused ? t('Продолжить') : t('Пауза')}
             style={{ ...ghostBtn, ...(wide ? {} : { width: 34, padding: 0, justifyContent: 'center' }) }}>
             {d.paused ? <Play size={14} /> : <Pause size={14} />} {wide && (d.paused ? t('Продолжить') : t('Пауза'))}
           </button>
         )}
 
         {canSubmit && (
-          <button type="button" onClick={finishSection} style={solidBtn}>
+          <button data-hover="layer" type="button" onClick={finishSection} style={solidBtn}>
             {wide ? t('Сдать секцию') : t('Сдать')}
           </button>
         )}
 
-        <button type="button" onClick={() => (done ? onClose() : setConfirmExit(true))}
+        <button data-hover="layer" type="button" onClick={() => (done ? onClose() : setConfirmExit(true))}
           title={done ? t('Закрыть') : t('Выйти')}
           style={{ ...ghostBtn, ...(wide ? {} : { width: 34, padding: 0, justifyContent: 'center' }) }}>
           <LogOut size={14} /> {wide && (done ? t('Закрыть') : t('Выйти'))}
@@ -276,8 +276,8 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
           <span style={{ flex: 1, minWidth: 220, fontSize: 13, lineHeight: 1.45, color: 'var(--color-text)' }}>
             {t('Ответы сохранятся, пробник можно продолжить позже. Таймер секции не останавливается — как на настоящем экзамене.')}
           </span>
-          <button type="button" onClick={() => { stopSpeech(); onClose() }} style={solidBtn}>{t('Выйти')}</button>
-          <button type="button" onClick={() => setConfirmExit(false)} style={ghostBtn}>{t('Остаться')}</button>
+          <button data-hover="layer" type="button" onClick={() => { stopSpeech(); onClose() }} style={solidBtn}>{t('Выйти')}</button>
+          <button data-hover="layer" type="button" onClick={() => setConfirmExit(false)} style={ghostBtn}>{t('Остаться')}</button>
         </div>
       )}
 
@@ -302,7 +302,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
           }}>
             <Pause size={32} style={{ color: accent }} />
             <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{t('Пауза')} · {mmss(d.paused)}</div>
-            <button type="button" onClick={togglePause} style={solidBtn}><Play size={14} /> {t('Продолжить')}</button>
+            <button data-hover="layer" type="button" onClick={togglePause} style={solidBtn}><Play size={14} /> {t('Продолжить')}</button>
           </div>
         )}
       </div>
@@ -392,7 +392,7 @@ function SectionIntro({ section, index, total, onStart, accent }: {
         />
       )}
       <div>
-        <button type="button" onClick={onStart} style={{ ...solidBtn, height: 44, padding: '0 26px', fontSize: 15 }}>
+        <button data-hover="layer" type="button" onClick={onStart} style={{ ...solidBtn, height: 44, padding: '0 26px', fontSize: 15 }}>
           {t('Начать')}
         </button>
       </div>
@@ -419,7 +419,7 @@ function QuestionStrip({ numbers, answers, onPick, accent, soft }: {
       {numbers.map(n => {
         const on = !!answers[n]?.trim()
         return (
-          <button key={n} type="button" onClick={() => onPick(n)} style={{
+          <button data-hover="layer" key={n} type="button" onClick={() => onPick(n)} style={{
             width: 28, height: 28, borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
             fontSize: 12, fontWeight: 800, border: `1.5px solid ${on ? accent : 'var(--color-border-soft)'}`,
             background: on ? soft : 'var(--color-bg-2)', color: on ? accent : 'var(--color-text-2)',
@@ -535,13 +535,13 @@ function ListeningRun({ mock, d, update, patch, finish, now, accent, soft }: Run
           <>
             <Clock size={16} style={{ color: accent }} />
             <span style={{ flex: 1 }}>{t('Запись закончилась. Время проверить ответы — потом секция сдастся сама.')}</span>
-            <button type="button" onClick={finish} style={solidBtn}>{t('Сдать')}</button>
+            <button data-hover="layer" type="button" onClick={finish} style={solidBtn}>{t('Сдать')}</button>
           </>
         ) : phase === 'preview' ? (
           <>
             <Clock size={16} style={{ color: accent }} />
             <span style={{ flex: 1 }}>{part.title} · {t('прочитайте вопросы, запись начнётся через')} {mmss(previewEnd - now)}</span>
-            <button type="button" onClick={play} style={ghostBtn}>{t('Начать сейчас')}</button>
+            <button data-hover="layer" type="button" onClick={play} style={ghostBtn}>{t('Начать сейчас')}</button>
           </>
         ) : (
           <>
@@ -645,7 +645,7 @@ function ReadingRun({ mock, d, update, patch, accent, soft }: RunProps & { accen
         )
       })}
       {pick && (
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={addMark} style={{
+        <button data-hover="layer" type="button" onMouseDown={e => e.preventDefault()} onClick={addMark} style={{
           position: 'fixed', left: pick.x, top: Math.max(8, pick.y - 42), transform: 'translateX(-50%)', zIndex: 5,
           ...solidBtn, height: 32, boxShadow: 'var(--shadow-3)',
         }}>
@@ -684,7 +684,7 @@ function ReadingRun({ mock, d, update, patch, accent, soft }: RunProps & { accen
           {mock.reading.map((_, i) => {
             const n = all[i].filter(q => answers[q]?.trim()).length
             return (
-              <button key={i} type="button" onClick={() => go(i)} style={{
+              <button data-hover="layer" key={i} type="button" onClick={() => go(i)} style={{
                 ...ghostBtn, height: 30, fontSize: 13,
                 background: i === step ? soft : 'var(--color-bg-3)', color: i === step ? accent : 'var(--color-text)',
               }}>
@@ -758,7 +758,7 @@ function WritingRun({ mock, d, update, patch, accent }: RunProps & { accent: str
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', gap: 6 }}>
           {mock.writing.map((w, i) => (
-            <button key={w.task} type="button" onClick={() => update(x => ({ ...x, step: i }))} style={{
+            <button data-hover="layer" key={w.task} type="button" onClick={() => update(x => ({ ...x, step: i }))} style={{
               ...ghostBtn, height: 30, fontSize: 13,
               background: i === step ? 'var(--grad-purple)' : 'var(--color-bg-3)',
               color: i === step ? '#fff' : 'var(--color-text)',
@@ -928,7 +928,7 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
       {phase === 'ask' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--color-text-2)' }}>
           <Volume2 size={16} style={{ color: accent }} /> {t('Экзаменатор задаёт вопрос…')}
-          <button type="button" onClick={() => { stopSpeech(); proceedRef.current() }} style={{ ...ghostBtn, marginLeft: 'auto' }}>
+          <button data-hover="layer" type="button" onClick={() => { stopSpeech(); proceedRef.current() }} style={{ ...ghostBtn, marginLeft: 'auto' }}>
             {t('Отвечать')}
           </button>
         </div>
@@ -938,7 +938,7 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
             <Clock size={16} style={{ color: accent }} /> {t('Подготовка')}: {mmss(until - now)}
-            <button type="button" onClick={startAnswer} style={{ ...ghostBtn, marginLeft: 'auto' }}>{t('Готов говорить')}</button>
+            <button data-hover="layer" type="button" onClick={startAnswer} style={{ ...ghostBtn, marginLeft: 'auto' }}>{t('Готов говорить')}</button>
           </div>
           <GrowTextarea value={notes} onChange={setNotes} minHeight={growMinHeight(4, 14, 12)}
             placeholder={t('Заметки — как на листке на экзамене. Они никуда не уходят.')}
@@ -955,7 +955,7 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--color-red-text)' }} />
             {t('Говорите')} · {mmss(until - now)}
           </span>
-          <button type="button" onClick={() => void save()} style={{ ...solidBtn, marginLeft: 'auto' }}>
+          <button data-hover="layer" type="button" onClick={() => void save()} style={{ ...solidBtn, marginLeft: 'auto' }}>
             <Square size={14} /> {t('Закончить ответ')}
           </button>
         </div>

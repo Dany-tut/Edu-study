@@ -182,7 +182,7 @@ export default function LessonGradeModal({ groupId, onClose, initialLessonId, sc
               {t('Присутствовало')} {presentCount} {t('из')} {groupStudents.length} · {t('оценок выставлено')} {gradedCount}
             </p>
           </div>
-          <button
+          <button data-hover="layer"
             onClick={onClose}
             style={{
               width: 30, height: 30, borderRadius: 10, border: 'none',
@@ -219,7 +219,7 @@ export default function LessonGradeModal({ groupId, onClose, initialLessonId, sc
         </div>
 
         <div style={{ padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button type="button" disabled={attendanceLoading || eventAttendance.error} onClick={() => setPresent(p => ({ ...p, ...Object.fromEntries(groupStudents.filter(s => p[s.id] == null).map(s => [s.id, true])) }))} style={btn('S', 'secondary')}>{t(groupStudents.some(s => present[s.id] === false) ? 'Остальные присутствовали' : 'Все присутствовали')}</button>
+          <button data-hover="layer" type="button" disabled={attendanceLoading || eventAttendance.error} onClick={() => setPresent(p => ({ ...p, ...Object.fromEntries(groupStudents.filter(s => p[s.id] == null).map(s => [s.id, true])) }))} style={btn('S', 'secondary')}>{t(groupStudents.some(s => present[s.id] === false) ? 'Остальные присутствовали' : 'Все присутствовали')}</button>
           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Без отметки — не значит пропуск. Можно заполнить позже.')}</span>
         </div>
         {eventAttendance.error && <Alert tone="danger" text={t('Не удалось загрузить посещаемость. Откройте журнал ещё раз.')} />}
@@ -287,7 +287,7 @@ export default function LessonGradeModal({ groupId, onClose, initialLessonId, sc
 
                 {/* Attendance toggle */}
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <button
+                  <button data-hover="layer"
                     type="button"
                     disabled={attendanceLoading || eventAttendance.error}
                     aria-label={`${tn(student.name)}: ${t(unmarked ? 'Без отметки' : studentPresent ? 'Присутствовал' : 'Пропущен')}`}
@@ -345,7 +345,7 @@ export default function LessonGradeModal({ groupId, onClose, initialLessonId, sc
           {saveError && (
             <Alert tone="danger" text={saveError} style={{ flex: 1, minWidth: 0, marginRight: 14 }} />
           )}
-          <button
+          <button data-hover="layer"
             onClick={onClose}
             style={btn('M', 'secondary')}
           >

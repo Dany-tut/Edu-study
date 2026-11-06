@@ -320,7 +320,7 @@ function ModuleRow({ label, total, done, active, onClick, pal }: { label: string
   const t = useT()
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       whileTap={{ scale: 0.99 }}
       onClick={() => { tactile(); onClick() }}
       className="flex items-center text-left"
@@ -346,7 +346,7 @@ function LessonCard({ lesson, status, scheduleState, index, focused, onOpen, pal
   const isCurrent = status === 'current' || !!scheduleState?.isCurrent
 
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       data-schedule-state={scheduleState?.phase}
       whileTap={isLocked ? undefined : { scale: 0.985 }}
       onClick={() => { if (!isLocked) { tactile(); onOpen() } }}

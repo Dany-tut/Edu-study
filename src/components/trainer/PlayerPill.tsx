@@ -103,7 +103,7 @@ export default function PlayerPill({
         boxShadow: 'var(--shadow-pill)',
       }}
     >
-      <motion.button
+      <motion.button data-hover="layer"
         onClick={onPlay}
         aria-label={playLabel}
         initial={false}
@@ -225,7 +225,7 @@ export default function PlayerPill({
           капсулы давала обводку в обводке. Мишень остаётся 32×32, а нажатие
           показывает прозрачность — любая подсветка на стекле снова
           превращается в ту же коробку. */}
-      <button
+      <button data-hover="layer"
         onClick={onMenu}
         onPointerDown={() => setMenuHeld(true)}
         onPointerUp={() => setMenuHeld(false)}
@@ -275,7 +275,7 @@ export function CueList({ items, active, playing, accent, soft, onPick }: {
       {items.map((l, i) => {
         const on = i === active
         return (
-          <button
+          <button data-hover="layer"
             key={`${i}-${l}`}
             onClick={() => onPick(i)}
             style={{

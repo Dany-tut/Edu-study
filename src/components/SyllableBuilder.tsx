@@ -149,7 +149,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
           {slots.map((slot, i) => {
             const filled = picked[i]
             return (
-              <motion.button
+              <motion.button data-hover="layer"
                 key={slot.key}
                 initial={filled ? { scale: 0.8, opacity: 0.4 } : false}
                 animate={{ scale: 1, opacity: 1 }}
@@ -207,7 +207,7 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
           const inNeed = need.filter(x => x === c).length
           const spent = usedCount >= Math.max(1, inNeed)
           return (
-            <motion.button
+            <motion.button data-hover="layer"
               key={c}
               whileTap={disabled || spent ? undefined : { scale: 0.94 }}
               onClick={() => pick(c)}

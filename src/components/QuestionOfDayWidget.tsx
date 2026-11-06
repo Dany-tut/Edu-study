@@ -105,7 +105,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                 <Check size={16 * scale} strokeWidth={2.5} style={{ flexShrink: 0 }} />
                 <span>{correct?.text}</span>
               </div>
-              <button
+              <button data-hover="layer"
                 onClick={() => setRevealed(false)}
                 style={{
                   flexShrink: 0, border: 'none', cursor: 'pointer', background: 'none',

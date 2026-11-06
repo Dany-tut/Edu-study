@@ -150,13 +150,13 @@ function GuestBar({ onLead }: { onLead: () => void }) {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-          <button
+          <button data-hover="layer"
             onClick={() => { window.location.hash = '#/login' }}
             style={btn('M', 'secondary')}
           >
             <LogIn size={14} /> {t('Войти')}
           </button>
-          <button
+          <button data-hover="layer"
             onClick={onLead}
             style={{ height: 40,
               display: 'inline-flex', alignItems: 'center', gap: 6,

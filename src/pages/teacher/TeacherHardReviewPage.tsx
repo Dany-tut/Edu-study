@@ -60,7 +60,7 @@ export default function TeacherHardReviewPage() {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
         <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t('Работа не найдена')}</div>
-        <button onClick={() => setActivePage('gradebook')} style={btn('M', 'secondary')}>{t('Назад')}</button>
+        <button data-hover="layer" onClick={() => setActivePage('gradebook')} style={btn('M', 'secondary')}>{t('Назад')}</button>
       </div>
     )
   }

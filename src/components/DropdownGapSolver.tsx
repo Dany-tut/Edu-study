@@ -82,7 +82,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                 хвост предложения, и списка за ним нет. */}
             {gap && (
               <span style={{ position: 'relative', display: 'inline-block', margin: '0 4px' }}>
-                <button
+                <button data-hover="layer"
                   onClick={() => !disabled && setOpen(open === i ? null : i)}
                   disabled={disabled}
                   aria-label={chosenText ?? t('Выбрать')}
@@ -164,7 +164,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                     boxShadow: 'var(--shadow-lg)',
                   }}>
                     {gap.options.map((opt, oi) => (
-                      <button
+                      <button data-hover="layer"
                         key={oi}
                         onClick={() => choose(i, oi)}
                         style={{

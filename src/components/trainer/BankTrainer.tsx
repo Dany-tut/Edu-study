@@ -169,7 +169,7 @@ function FilterField({ label, options, value, onChange, accent }: {
           }}
         />
         {value && !open ? (
-          <button aria-label={t('Очистить')} onMouseDown={e => { e.preventDefault(); onChange('') }}
+          <button data-hover="layer" aria-label={t('Очистить')} onMouseDown={e => { e.preventDefault(); onChange('') }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: 0 }}><X size={14} strokeWidth={2.5} /></button>
         ) : (
           <LoopInlineIcon icon={LoopInlineChevronDown}><svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease', pointerEvents: 'none' }}>
@@ -237,7 +237,7 @@ function NumberBadge({ id, onCopied, icon }: { id: number; onCopied: () => void;
     setTimeout(() => setTipped(false), 1400)
   }
   return (
-    <span
+    <span data-hover="layer"
       onClick={copy}
       title={t('Скопировать номер')}
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
@@ -413,7 +413,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               {isCorrect ? t('Верно') : t('Неверно')}
             </div>
           )}
-          <button
+          <button data-hover="layer"
             onClick={() => { tap(); onFavorite(task.id) }}
             aria-label={isFav ? t('Убрать из избранного') : t('В избранное')}
             style={{
@@ -588,7 +588,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                   the field morphs straight to its final width in one motion. */}
               <AnimatePresence mode="popLayout" initial={false}>
                 {!alreadyChecked && !!inputVal.trim() && (
-                  <motion.button
+                  <motion.button data-hover="layer"
                     layout
                     key="check-btn"
                     onClick={check}
@@ -609,7 +609,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 )}
               </AnimatePresence>
               <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.button
+                  <motion.button data-hover="layer"
                     layout
                     key="solution-btn"
                     onClick={peek}
@@ -691,10 +691,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         {mobile
           ? <span style={{ flex: 1 }} />
           : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>}
-        <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
+        <button data-hover="layer" onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
           <AlertTriangle size={12} />{reported ? t('Отправлено') : t('Ошибка')}
         </button>
-        <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: 'var(--color-text-3)', cursor: 'pointer' }}>
+        <button data-hover="layer" onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: 'var(--color-text-3)', cursor: 'pointer' }}>
           <Share2 size={12} />{copied ? t('Скопировано') : t('Поделиться')}
         </button>
       </div>
@@ -763,7 +763,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
             background: isCorrect ? 'var(--color-green-soft)' : isWrong ? 'var(--color-red-soft)' : 'var(--color-bg-input)',
           }}
         />
-        <button onClick={check} disabled={!inputVal.trim()} style={{
+        <button data-hover="layer" onClick={check} disabled={!inputVal.trim()} style={{
           padding: '8px 10px', borderRadius: 10, border: 'none', fontSize: 12, fontWeight: 700,
           background: inputVal.trim() ? palette.accent : 'var(--color-bg-5)',
           color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
@@ -771,12 +771,12 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
         }}><LoopTextIcon icon={LoopMarkCheck}>✓</LoopTextIcon></button>
         {/* Тот же глазок, что и в большой карточке: работает и до ответа,
             подсмотренное задание уходит в нейтральные. */}
-        <button onClick={peek} aria-label={t('Показать ответ')} style={{
+        <button data-hover="layer" onClick={peek} aria-label={t('Показать ответ')} style={{
           padding: '8px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'var(--color-border-medium)'}`,
           background: showSolution ? palette.soft : 'transparent', cursor: 'pointer', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}><Eye size={12} color={showSolution ? palette.text : 'var(--color-text-3)'} /></button>
-        <button onClick={() => onFavorite(task.id)} style={{
+        <button data-hover="layer" onClick={() => onFavorite(task.id)} style={{
           padding: '8px 8px', borderRadius: 10, border: `1px solid ${isFav ? 'var(--color-yellow-border)' : 'var(--color-border-medium)'}`,
           background: isFav ? 'var(--color-yellow-soft)' : 'transparent', cursor: 'pointer', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -821,7 +821,7 @@ function MobileStatusTabs({ value, onChange, accent }: {
         // «Все» по своей короткой подписи; два длинных делят остаток.
         const isAll = val === 'all'
         return (
-          <button
+          <button data-hover="layer"
             key={val}
             onClick={() => { tactile(); onChange(val) }}
             style={{
@@ -858,7 +858,7 @@ function MobileViewTabs({ value, onChange, accent, items }: {
       {options.map(([val, label, Icon]) => {
         const active = value === val
         return (
-          <button
+          <button data-hover="layer"
             key={val}
             onClick={() => { tactile(); onChange(val) }}
             title={t(label)}
@@ -1096,7 +1096,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                       style={{ height: '100%', background: '#F48B91', flexShrink: 0 }} />
                   </div>
                 </div>
-                <button onClick={onOpenModal}
+                <button data-hover="layer" onClick={onOpenModal}
                   style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: `${palette.accent}20`, color: palette.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                   <LoopActionLabel icon={LoopActionArrow} label={t('Детали →')} />
                 </button>
@@ -1112,12 +1112,12 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
               {active === 'wrong' && (<>
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{wrongCount} {t('заданий с ошибкой')}</span>
                 {wrongCount > 0 && (
-                  <button onClick={() => { onRetryWrong(); setActive(null) }}
+                  <button data-hover="layer" onClick={() => { onRetryWrong(); setActive(null) }}
                     style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <XCircle size={14} />{t('Повторить ошибки')}
                   </button>
                 )}
-                <button onClick={onOpenModal}
+                <button data-hover="layer" onClick={onOpenModal}
                   style={btn('S', 'secondary')}>
                   {t('Полная статистика')}
                 </button>
@@ -1125,7 +1125,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
 
               {active === 'fav' && (<>
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{favCount} {t('в избранном')}</span>
-                <button onClick={() => { onToggleFav(); setActive(null) }}
+                <button data-hover="layer" onClick={() => { onToggleFav(); setActive(null) }}
                   style={{ padding: '8px 14px', borderRadius: 10, border: `1px solid ${showFavOnly ? 'rgba(248,200,50,0.4)' : 'var(--color-border-medium)'}`, background: showFavOnly ? 'rgba(248,239,140,0.22)' : 'transparent', color: showFavOnly ? '#7A6B00' : 'var(--color-text-2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Star size={14} fill={showFavOnly ? 'currentColor' : 'none'} />
                   {showFavOnly ? t('Показать все') : t('Только избранное')}
@@ -1205,7 +1205,7 @@ function ProgressModal({
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Мой прогресс')}</div>
-            <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+            <button data-hover="layer" onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
               <X size={14} />
             </button>
           </div>
@@ -1266,7 +1266,7 @@ function ProgressModal({
             <div style={{ paddingBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Ошибки')} ({wrongTasks.length})</div>
-                <button onClick={onRetryMistakes} style={{ padding: '4px 12px', borderRadius: 999, border: 'none', background: `${palette.accent}22`, color: palette.text, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                <button data-hover="layer" onClick={onRetryMistakes} style={{ padding: '4px 12px', borderRadius: 999, border: 'none', background: `${palette.accent}22`, color: palette.text, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                   <LoopActionLabel icon={LoopActionArrow} label={t('Повторить все →')} />
                 </button>
               </div>
@@ -1301,12 +1301,12 @@ function ProgressModal({
         {/* Footer */}
         {wrongTasks.length > 0 && (
           <div style={{ padding: '14px 24px 20px', flexShrink: 0, display: 'flex', gap: 8 }}>
-            <button onClick={onRetryMistakes}
+            <button data-hover="layer" onClick={onRetryMistakes}
               style={{ flex: 1, padding: '12px 0', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 6px 18px ${palette.ring}` }}>
               <XCircle size={14} />{t('Повторить ошибки')}
             </button>
             {wrongLines.length > 0 && (
-              <button onClick={() => onSimilarTasks(wrongLines)}
+              <button data-hover="layer" onClick={() => onSimilarTasks(wrongLines)}
                 style={{ flex: 1, padding: '12px 0', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Target size={14} />{t('Похожие задания')}
               </button>
@@ -1399,12 +1399,12 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
         {/* Actions */}
         {wrongTasks.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
-            <button onClick={onRetryMistakes}
+            <button data-hover="layer" onClick={onRetryMistakes}
               style={{ width: '100%', padding: '12px', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 4px 14px ${palette.ring}` }}>
               <XCircle size={16} />{t('Повторить ошибки')} ({wrongTasks.length})
             </button>
             {wrongLines.length > 0 && (
-              <button onClick={() => onSimilarTasks(wrongLines)}
+              <button data-hover="layer" onClick={() => onSimilarTasks(wrongLines)}
                 style={{ width: '100%', padding: '12px', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 14, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Target size={16} />{t('Похожие задания')}
               </button>
@@ -1812,7 +1812,7 @@ export default function BankTrainer({ subjectState }: {
     // Match the bottom nav's collapse motion so the dock and nav move as one.
     const DOCK_COLLAPSE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] as const }
     const dockCircle = (key: string, icon: ReactNode, onClick: () => void, opts: { label: string; badge?: number; active?: boolean } = { label: '' }) => (
-      <motion.button
+      <motion.button data-hover="layer"
         key={key}
         whileTap={{ scale: 0.9 }}
         onClick={() => { tactile(); onClick() }}
@@ -1879,7 +1879,7 @@ export default function BankTrainer({ subjectState }: {
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
-              <button onClick={() => { tactile(); clearFilters() }}
+              <button data-hover="layer" onClick={() => { tactile(); clearFilters() }}
                 style={btn('S', 'secondary')}>
                 {t('Сбросить фильтры')}
               </button>
@@ -2017,7 +2017,7 @@ export default function BankTrainer({ subjectState }: {
                   // before the ✕ instead of hard-clipping against the pill edge.
                   maskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)' }} />
               {searchExpanded && (
-                <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label={t('Закрыть поиск')}
+                <button data-hover="layer" onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label={t('Закрыть поиск')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
                   <X size={18} />
                 </button>
@@ -2037,7 +2037,7 @@ export default function BankTrainer({ subjectState }: {
                 const active = parts.includes(p)
                 const avail = availableParts.includes(p as '1' | '2')
                 return (
-                <button key={p} disabled={!avail} onClick={() => { tactile(); setParts(active ? parts.filter(x => x !== p) : [...parts, p]) }} style={{
+                <button data-hover="layer" key={p} disabled={!avail} onClick={() => { tactile(); setParts(active ? parts.filter(x => x !== p) : [...parts, p]) }} style={{
                   flex: 1, padding: '12px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
                   background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
                   border: 'none',
@@ -2053,7 +2053,7 @@ export default function BankTrainer({ subjectState }: {
             <MobileStatusTabs value={statusFilter} onChange={setStatusFilter} accent={palette.accent} />
             {/* Always reserve the button's slot so toggling filters doesn't
                 change the sheet height (grabber would otherwise jump). */}
-            <button onClick={() => { if (!hasFilters) return; tactile(); clearFilters() }}
+            <button data-hover="layer" onClick={() => { if (!hasFilters) return; tactile(); clearFilters() }}
               aria-hidden={!hasFilters} tabIndex={hasFilters ? 0 : -1}
               style={{ marginTop: 2, padding: '12px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: 'none', fontSize: 13, color: 'var(--color-red-text)', fontWeight: 600,
                 cursor: hasFilters ? 'pointer' : 'default', opacity: hasFilters ? 1 : 0, pointerEvents: hasFilters ? 'auto' : 'none', transition: 'opacity 0.15s ease' }}>
@@ -2066,7 +2066,7 @@ export default function BankTrainer({ subjectState }: {
         <MobileSheet open={sheet === 'sort'} onClose={() => setSheet(null)} title={t('Сортировка')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {SORT_OPTIONS.map(([mode, label]) => (
-              <button key={mode} onClick={() => { tactile(); setSortMode(mode); setSheet(null) }}
+              <button data-hover="layer" key={mode} onClick={() => { tactile(); setSortMode(mode); setSheet(null) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: sortMode === mode ? 'var(--color-purple-soft)' : 'transparent', color: sortMode === mode ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 15, fontWeight: 600 }}>
                 {t(label)}
                 {sortMode === mode && <CheckCircle2 size={18} />}
@@ -2228,7 +2228,7 @@ export default function BankTrainer({ subjectState }: {
                 const active = parts.includes(p)
                 const avail = availableParts.includes(p as '1' | '2')
                 return (
-                <button key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
+                <button data-hover="layer" key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
                   flex: 1, padding: '10px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
                   background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
                   border: 'none',
@@ -2244,7 +2244,7 @@ export default function BankTrainer({ subjectState }: {
             <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
           </div>
           {hasFilters && (
-            <button onClick={clearFilters}
+            <button data-hover="layer" onClick={clearFilters}
               style={{ padding: '8px 0', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 12, color: 'rgba(176,48,64,0.75)', cursor: 'pointer', fontWeight: 600 }}>
               {t('Сбросить фильтры')}
             </button>
@@ -2260,7 +2260,7 @@ export default function BankTrainer({ subjectState }: {
               целиком), «решённых» у карточек не бывает, а «Всего: 9» считает
               задания и на экране карточек прямо врёт. */}
           {view !== 'decks' && (<>
-          <div
+          <div data-hover="layer"
             onClick={() => { setSearchOpen(true); searchInputRef.current?.focus(); }}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'rgba(var(--glass-rgb), 0.96)', ...PILL_GLASS, border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: 'var(--shadow-2)', flexShrink: 0 }}>
             <Search size={14} style={{ color: searchOpen || search ? 'var(--color-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
@@ -2273,7 +2273,7 @@ export default function BankTrainer({ subjectState }: {
               placeholder={searchOpen || search ? t('Поиск по тексту или №...') : t('Поиск')}
               style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)', minWidth: 0, width: searchOpen || search ? 'auto' : 0, pointerEvents: searchOpen || search ? 'auto' : 'none' }}
             />
-            {search && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}><X size={14} strokeWidth={2.5} /></button>}
+            {search && <button data-hover="layer" aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}><X size={14} strokeWidth={2.5} /></button>}
           </div>
           {/* Статус, вид и сортировка — общие со скелетом (components/trainer).
               Своих копий у банка больше нет: расходились бы при первой правке. */}
@@ -2304,7 +2304,7 @@ export default function BankTrainer({ subjectState }: {
             soft={palette.soft}
           />
 
-          <button onClick={() => setShowFavOnly(f => !f)}
+          <button data-hover="layer" onClick={() => setShowFavOnly(f => !f)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999, ...PILL_GLASS, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
             <Star size={14} fill={showFavOnly ? 'currentColor' : 'none'} />
             {showFavOnly ? `${t('Избранное')} (${favorites.size})` : t('Избранное')}
@@ -2333,7 +2333,7 @@ export default function BankTrainer({ subjectState }: {
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
-          <button onClick={clearFilters}
+          <button data-hover="layer" onClick={clearFilters}
             style={btn('S', 'secondary')}>
             {t('Сбросить фильтры')}
           </button>

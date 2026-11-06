@@ -156,7 +156,7 @@ function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: stri
   return (
     <>
       <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <button
+        <button data-hover="layer"
           onClick={() => setZoom(true)}
           style={{
             padding: 10, borderRadius: 16, cursor: 'zoom-in',
@@ -316,7 +316,7 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
       onClick={click}
       className="flex items-center w-full cursor-pointer"
       style={{ gap: 10, padding: 10, borderRadius: 12, border: 'none', background: 'transparent', textAlign: 'left', opacity: busy ? 0.6 : 1 }}
-      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
     >
       <div
@@ -828,7 +828,7 @@ export default function LessonPage() {
     return (
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 300, color: 'var(--color-muted)' }}>
         <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t('Урок не найден')}</p>
-        <button
+        <button data-hover="layer"
           onClick={closeLesson}
           style={{ marginTop: 12, padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-text)', color: '#fff', fontSize: 13, fontWeight: 600 }}
         >
@@ -1109,7 +1109,7 @@ export default function LessonPage() {
             {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не
                 попадает — считаются только отрезки, пройденные воспроизведением. */}
             <LessonVideoProgress watch={watch} duration={videoDuration || watch.duration} />
-            {watchSyncFailed && <p role="status" style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Прогресс сохранён на этом устройстве. Не удалось синхронизировать.')} <button type="button" onClick={() => persistWatch(watch)} style={{ minHeight: 44 }}>{t('Повторить')}</button></p>}
+            {watchSyncFailed && <p role="status" style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Прогресс сохранён на этом устройстве. Не удалось синхронизировать.')} <button data-hover="layer" type="button" onClick={() => persistWatch(watch)} style={{ minHeight: 44 }}>{t('Повторить')}</button></p>}
             {studyProgress.attended && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Запись можно пересмотреть для повторения.')}</p>}
           </div>
 
@@ -1172,7 +1172,7 @@ export default function LessonPage() {
                       background: active ? 'var(--color-purple-soft)' : 'transparent',
                       transition: 'background 0.15s ease', overflow: 'hidden',
                     }}
-                    onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
+                    onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                     onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                   >
                     <span
@@ -1246,7 +1246,7 @@ export default function LessonPage() {
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Конспект')}</span>
             {/* Кегль конспекта. Кнопка стоит у самого текста, а не в шапке
                 страницы: включают её, уже начав читать и споткнувшись о размер. */}
-            <button
+            <button data-hover="layer"
               onClick={toggleBig}
               title={t(big ? 'Обычный текст' : 'Крупный текст')}
               aria-pressed={big}

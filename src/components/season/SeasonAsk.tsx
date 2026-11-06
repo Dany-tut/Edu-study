@@ -81,7 +81,7 @@ export default function SeasonAsk() {
               ))}
             </div>
 
-            <button className="season-ask__btn season-ask__btn--ghost" onClick={() => setSeasonChoice('off')}>
+            <button data-hover="layer" className="season-ask__btn season-ask__btn--ghost" onClick={() => setSeasonChoice('off')}>
               {t(s.picking ? 'Без темы' : 'Оставить как есть')}
             </button>
             <p className="season-ask__note">{t('Поменять тему или выключить — в меню профиля.')}</p>

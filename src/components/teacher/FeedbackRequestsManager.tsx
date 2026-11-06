@@ -83,7 +83,7 @@ export default function FeedbackRequestsManager() {
           variant="filter" value={filter} onChange={setFilter}
           items={(['all', ...STATUS_ORDER] as const).map(key => ({ id: key, label: `${key === 'all' ? t('Все') : t(STATUS_META[key].label)} · ${counts[key]}` }))}
         />
-        <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
+        <button data-hover="layer" onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
         </button>
@@ -134,7 +134,7 @@ export default function FeedbackRequestsManager() {
               {r.attachments.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
                   {r.attachments.map((src, i) => (
-                    <button key={i} aria-label={`${t('Открыть фото')} ${i + 1}`} onClick={() => setLightbox({ photos: r.attachments, index: i })} style={{ width: 64, height: 64, borderRadius: 9, overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', padding: 0, background: 'none' }}>
+                    <button data-hover="layer" key={i} aria-label={`${t('Открыть фото')} ${i + 1}`} onClick={() => setLightbox({ photos: r.attachments, index: i })} style={{ width: 64, height: 64, borderRadius: 9, overflow: 'hidden', border: '1px solid var(--color-border)', cursor: 'pointer', padding: 0, background: 'none' }}>
                       <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </button>
                   ))}
@@ -143,7 +143,7 @@ export default function FeedbackRequestsManager() {
 
               <div style={{ display: 'flex', gap: 6, marginTop: 14, alignItems: 'center', flexWrap: 'wrap' }}>
                 {STATUS_ORDER.map(s => (
-                  <button key={s} onClick={() => setStatus(r.id, s)} disabled={r.status === s}
+                  <button data-hover="layer" key={s} onClick={() => setStatus(r.id, s)} disabled={r.status === s}
                     style={{
                       padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border)', cursor: r.status === s ? 'default' : 'pointer',
                       fontSize: 12, fontWeight: 600,

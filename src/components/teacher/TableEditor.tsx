@@ -250,13 +250,13 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           {CELL_IMG_SIZES.map(s => {
                             const active = (cellImageSizes[key] ?? DEFAULT_IMAGE_SIZE) === s.value
                             return (
-                              <button key={s.value} onMouseDown={e => { e.stopPropagation(); setCellImageSize(key, s.value) }}
+                              <button data-hover="layer" key={s.value} onMouseDown={e => { e.stopPropagation(); setCellImageSize(key, s.value) }}
                                 style={{ padding: '1px 6px', borderRadius: 5, border: `1px solid ${active ? accent : 'var(--color-border-strong)'}`, background: active ? accentBg : 'var(--color-bg-3)', color: active ? accent : 'var(--color-text-2)', cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.4 }}>
                                 {s.label}
                               </button>
                             )
                           })}
-                          <button onMouseDown={e => { e.stopPropagation(); removeCellImage(key) }}
+                          <button data-hover="layer" onMouseDown={e => { e.stopPropagation(); removeCellImage(key) }}
                             style={{ marginLeft: 2, width: 18, height: 18, borderRadius: 5, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
                             <X size={12} />
                           </button>
@@ -267,7 +267,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                       // Student will type here — show "вписать" badge + X to remove
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
                         <span style={{ fontSize: 11, color: accent, fontWeight: 700, letterSpacing: 0.2 }}>{t('вписать')}</span>
-                        <button
+                        <button data-hover="layer"
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, false) }}
                           style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                           title={t('Убрать поле ответа')}
@@ -277,7 +277,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                       // Ячейка без ответа — та же раскладка, что у «вписать»: подпись + X, чтобы тип можно было сменить
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
                         <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 700, letterSpacing: 0.2 }}>{t('пусто')}</span>
-                        <button
+                        <button data-hover="layer"
                           onMouseDown={e => { e.stopPropagation(); setBlank(key, false) }}
                           style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                           title={t('Убрать отметку «Пусто»')}
@@ -295,25 +295,25 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           optimizePhoto(file).then(url => { setCellImage(key, url); if (!cellImageSizes[key]) setCellImageSize(key, DEFAULT_IMAGE_SIZE) }).catch(onPhotoTooLarge)
                         } : undefined}
                       >
-                        <button
+                        <button data-hover="layer"
                           // preventDefault: иначе фокус после mousedown уходит с только что смонтированного поля
                           // (кнопка исчезает → body), onBlur пустого поля тут же возвращает выбор — клик «не срабатывал».
                           onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setActiveCell(key) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >{t('Текст')}</button>
-                        <button
+                        <button data-hover="layer"
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, true) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >{t('Вписать')}</button>
-                        <button
+                        <button data-hover="layer"
                           onMouseDown={e => { e.stopPropagation(); setBlank(key, true) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >{t('Пусто')}</button>
                         {allowCellImages && (
-                          <button
+                          <button data-hover="layer"
                             onClick={e => { e.stopPropagation(); pickCellImage(key) }}
                             style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                           ><Camera size={12} /> {t('Фото')}</button>

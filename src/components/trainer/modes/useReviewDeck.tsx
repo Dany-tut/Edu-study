@@ -120,13 +120,13 @@ export function useReviewDeck({
         subject={subjectId}
         emptyExtra={
           glossary.length > 0 ? (
-            <button onClick={seedFromTexts} disabled={seeding} style={{ ...cta, cursor: seeding ? 'default' : 'pointer' }}>
+            <button data-hover="layer" onClick={seedFromTexts} disabled={seeding} style={{ ...cta, cursor: seeding ? 'default' : 'pointer' }}>
               {seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossary.length}`}
             </button>
           ) : texts.length > 0 ? (
             // Кнопка ведёт ровно в то единственное место, где колода начинает
             // набираться, — см. шапку файла.
-            <button onClick={onGoToTexts} style={{ ...cta, cursor: 'pointer' }}>
+            <button data-hover="layer" onClick={onGoToTexts} style={{ ...cta, cursor: 'pointer' }}>
               {`${t('Начать с текста')} · ${texts.length}`}
             </button>
           ) : null

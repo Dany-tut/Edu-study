@@ -349,7 +349,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
             const chosen = picked?.id === o.id
             const show = !!picked && (isAnswer || chosen)
             return (
-              <button
+              <button data-hover="layer"
                 key={o.id}
                 onClick={() => pick(o)}
                 disabled={!!picked}
@@ -390,7 +390,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
             }}>
               <b style={{ color: TONE[q.ending.tone].fg }}>{q.ending.block}</b> — {q.ending.note}
             </div>
-            <button onClick={next} style={primaryBtn(accent)}>
+            <button data-hover="layer" onClick={next} style={primaryBtn(accent)}>
               {idx + 1 >= run.length ? t('Итог') : t('Дальше')}
             </button>
           </div>
@@ -430,11 +430,11 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
           </div>
         )}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button onClick={start} style={primaryBtn(accent)}>
+          <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <RotateCcw size={14} />
             {t('Ещё прогон')}
           </button>
-          <button onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
+          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
         </div>
       </div>
     )
@@ -455,11 +455,11 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
       </div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button onClick={start} style={primaryBtn(accent)}>
+        <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
           <Blocks size={16} />
           {t('Собрать формы')}
         </button>
-        <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
+        <button data-hover="layer" onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
           {saving ? t('Добавляю…') : t('Взять формы в колоду')}
         </button>
         {added !== null && (

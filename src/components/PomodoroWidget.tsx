@@ -76,7 +76,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
           {/* Mode toggle */}
           <div className="flex" style={{ background: 'var(--color-bg-3)', borderRadius: 999, padding: 4 }}>
             {(['focus', 'break'] as PomoMode[]).map(m => (
-              <button
+              <button data-hover="layer"
                 key={m}
                 onClick={() => pomoSwitchMode(m)}
                 className="cursor-pointer"

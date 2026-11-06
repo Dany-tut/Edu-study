@@ -342,7 +342,7 @@ function PomoControls() {
         {([['timer', t('Таймер')], ['stopwatch', t('Секундомер')]] as const).map(([mode, label]) => {
           const active = pomoTimerMode === mode
           return (
-            <button
+            <button data-hover="layer"
               key={mode}
               onClick={e => { stop(e); pomoSetTimerMode(mode) }}
               style={{
@@ -366,7 +366,7 @@ function PomoControls() {
           {POMO_PRESETS.map(p => {
             const active = pomoMode === 'focus' && currentMin === p
             return (
-              <button
+              <button data-hover="layer"
                 key={p}
                 onClick={e => { stop(e); pomoSetPreset(p) }}
                 style={{
@@ -387,7 +387,7 @@ function PomoControls() {
 
       {/* Play / pause + repeat */}
       <div style={{ display: 'flex', gap: 8 }}>
-        <button
+        <button data-hover="layer"
           onClick={e => { stop(e); pomoRunning ? pomoPause() : pomoStart() }}
           aria-label={pomoRunning ? t('Пауза') : t('Старт')}
           style={{
@@ -401,7 +401,7 @@ function PomoControls() {
           {pomoRunning ? <Pause size={16} /> : <Play size={16} />}
           {pomoRunning ? t('Пауза') : t('Старт')}
         </button>
-        <button
+        <button data-hover="layer"
           onClick={e => { stop(e); pomoReset() }}
           aria-label={t('Повторить')}
           style={{
@@ -575,7 +575,7 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
         </motion.span>
       ) : (
         <span style={{ flex: 1, position: 'relative', height: 14 }}>
-          <button
+          <button data-hover="layer"
             ref={barRef}
             type="button"
             onClick={dissolve}
@@ -891,7 +891,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {/* Разбор есть только у банка: у языка модалки нет, и мёртвая
                 кнопка хуже отсутствующей. */}
             {kind === 'bank' && (
-              <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
+              <button data-hover="layer" onClick={e => { e.stopPropagation(); setOpenModal(true) }}
                 style={{ flexShrink: 0, padding: '4px 8px', borderRadius: 999, border: 'none', background: `${accent}26`, color: palette.text, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
                 <LoopActionLabel icon={ArrowRight} label={t('Подробнее →')} />
               </button>
@@ -1126,7 +1126,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
             {dedupBodyS(latest.body)}
           </span>
           {latest.action && (
-            <button onClick={onAction} style={{
+            <button data-hover="layer" onClick={onAction} style={{
               marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '6px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
               background: `${hexAccent}22`, color: accent, fontSize: 12, fontWeight: 700,
@@ -1146,7 +1146,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
             +{extra}
           </span>
         )}
-        <button onClick={onClose} style={{
+        <button data-hover="layer" onClick={onClose} style={{
           background: 'none', border: 'none', cursor: 'pointer',
           color: 'var(--color-text-3)', display: 'flex', padding: 2,
         }}>
@@ -1510,7 +1510,7 @@ export default function CompactWidgetPill() {
           shown while the pill is collapsed and the pointer is over it. */}
       {!expanded && !notifActive && total > 1 && (
         <>
-          <button
+          <button data-hover="layer"
             type="button"
             aria-label={t('Предыдущий виджет')}
             onClick={e => { e.stopPropagation(); goTo(idx - 1, -1) }}
@@ -1537,7 +1537,7 @@ export default function CompactWidgetPill() {
           >
             <ChevronLeft size={14} />
           </button>
-          <button
+          <button data-hover="layer"
             type="button"
             aria-label={t('Следующий виджет')}
             onClick={e => { e.stopPropagation(); goTo(idx + 1, 1) }}
@@ -1573,7 +1573,7 @@ export default function CompactWidgetPill() {
           glyph, sitting at the right edge so it never collides with the
           left/right nav chevrons. */}
       {showMiniPlay && (
-        <button
+        <button data-hover="layer"
           type="button"
           aria-label={pomoRunning ? t('Пауза') : t('Старт')}
           onClick={e => { e.stopPropagation(); tactile(); pomoRunning ? pomoPause() : pomoStart() }}

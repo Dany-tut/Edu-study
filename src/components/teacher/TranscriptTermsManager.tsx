@@ -112,7 +112,7 @@ export default function TranscriptTermsManager() {
         <Search size={14} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Найти в словаре')} aria-label={t('Найти в словаре')} style={{ border: 0, outline: 'none', background: 'transparent', color: 'inherit', font: 'inherit', minWidth: 0, flex: 1 }} />
       </label>
-      <button type="button" onClick={() => void load()} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
+      <button data-hover="layer" type="button" onClick={() => void load()} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
         <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />{t('Обновить')}
       </button>
     </div>
@@ -121,7 +121,7 @@ export default function TranscriptTermsManager() {
       <input style={FIELD} value={draft.written} onChange={e => setDraft({ ...draft, written: e.target.value })} placeholder={t('Как пишется: HSO₄⁻')} aria-label={t('Как пишется')} maxLength={80} />
       <input style={FIELD} value={draft.heard} onChange={e => setDraft({ ...draft, heard: e.target.value })} placeholder={t('Как распознаётся (необязательно)')} aria-label={t('Как распознаётся')} maxLength={80} />
       <input style={FIELD} value={draft.spoken} onChange={e => setDraft({ ...draft, spoken: e.target.value })} placeholder={t('Как произносят (необязательно)')} aria-label={t('Как произносят')} maxLength={80} onKeyDown={e => { if (e.key === 'Enter') void add() }} />
-      <button type="button" style={btn('M', 'primary')} disabled={!draft.written.trim() || busy} onClick={() => void add()}>{t('Добавить')}</button>
+      <button data-hover="layer" type="button" style={btn('M', 'primary')} disabled={!draft.written.trim() || busy} onClick={() => void add()}>{t('Добавить')}</button>
     </div>
 
     {error && <Alert tone="danger" text={error} style={{ marginBottom: 12 }} />}
@@ -139,8 +139,8 @@ export default function TranscriptTermsManager() {
             : <FadeText className="tterms-word">{r.written}</FadeText>}
           <FadeText className="tterms-meta">{[r.spoken && `${t('произносят')}: ${r.spoken}`, r.source === 'seed' ? null : r.source === 'admin' ? t('из админки') : `${t('учителей')}: ${r.voters ?? 1}`, `${t('встречалось')}: ${r.hits}`].filter(Boolean).join(' · ')}</FadeText>
           <div className="tterms-actions" onClick={e => e.stopPropagation()}>
-            {r.status !== 'approved' && <button type="button" aria-label={t('Одобрить')} title={t('Одобрить')} onClick={() => void setTermStatus(r.id, 'approved')}><Check size={14} /></button>}
-            {r.status !== 'rejected' && <button type="button" aria-label={t('Отклонить')} title={t('Отклонить')} onClick={() => void setTermStatus(r.id, 'rejected')}><X size={14} /></button>}
+            {r.status !== 'approved' && <button data-hover="layer" type="button" aria-label={t('Одобрить')} title={t('Одобрить')} onClick={() => void setTermStatus(r.id, 'approved')}><Check size={14} /></button>}
+            {r.status !== 'rejected' && <button data-hover="layer" type="button" aria-label={t('Отклонить')} title={t('Отклонить')} onClick={() => void setTermStatus(r.id, 'rejected')}><X size={14} /></button>}
             <button type="button" className="is-danger" aria-label={t('Удалить из словаря')} title={t('Удалить из словаря')} onClick={() => void remove(r.id)}><Trash2 size={14} /></button>
           </div>
         </div>
@@ -149,8 +149,8 @@ export default function TranscriptTermsManager() {
           <input style={FIELD} value={editing.heard} onChange={e => setEditing({ ...editing, heard: e.target.value })} placeholder={t('Как распознаётся (необязательно)')} aria-label={t('Как распознаётся')} maxLength={80} />
           <input style={FIELD} value={editing.spoken} onChange={e => setEditing({ ...editing, spoken: e.target.value })} placeholder={t('Как произносят (необязательно)')} aria-label={t('Как произносят')} maxLength={80} />
           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-            <button type="button" style={btn('S', 'quiet')} onClick={() => setEditing(null)}>{t('Отмена')}</button>
-            <button type="submit" style={btn('S', 'primary')} disabled={!editing.written.trim() || busy}>{t('Сохранить')}</button>
+            <button data-hover="layer" type="button" style={btn('S', 'quiet')} onClick={() => setEditing(null)}>{t('Отмена')}</button>
+            <button data-hover="layer" type="submit" style={btn('S', 'primary')} disabled={!editing.written.trim() || busy}>{t('Сохранить')}</button>
           </div>
         </form>}
       </div>)}

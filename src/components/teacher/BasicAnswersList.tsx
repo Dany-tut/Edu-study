@@ -111,7 +111,7 @@ function AnswerCard({ row, live, teacherReviewed }: { row: BasicAnswerRow; live?
                 : tl?.state === 'submitted' ? t('Тест сдан')
                   : row.answer ? t('Балл в Тестли скрыт от ученика') : t('Тест ещё не сдан')}
           </span>
-          <a href={testlyResultsUrl(row.testly.testId)} target="_blank" rel="noopener noreferrer" style={{
+          <a data-hover="link" href={testlyResultsUrl(row.testly.testId)} target="_blank" rel="noopener noreferrer" style={{
             ...btn('S', tl?.pending ? 'primary' : 'secondary'), display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none',
           }}>
             {tl?.pending ? t('Проверить в Тестли') : t('Разбор в Тестли')} <ExternalLink size={12} />
@@ -170,7 +170,7 @@ function ReviewAnswer({ row, live, teacherReviewed, passingScore }: { row: Basic
   return <section className="jh-task-answer" aria-label={t('Задание') + ' ' + row.n}>
     <header><span className="jh-task-number">{String(row.n).padStart(2, '0')}</span><h3>{bindShortWords(row.prompt)}</h3><span className={'jh-answer-verdict jh-verdict-' + tone}>{label}</span></header>
     {row.testly ? <div className="jh-external-answer"><span>{external?.submittedAt ? t('Сдан') + ' ' + new Date(external.submittedAt).toLocaleDateString('ru-RU', {day:'numeric',month:'short'}) : t('Результат теста из Тестли')}</span>
-      <a href={testlyResultsUrl(row.testly.testId)} target="_blank" rel="noopener noreferrer">{external?.pending ? t('Проверить в Тестли') : t('Разбор в Тестли')}<ExternalLink size={13}/></a></div>
+      <a data-hover="link" href={testlyResultsUrl(row.testly.testId)} target="_blank" rel="noopener noreferrer">{external?.pending ? t('Проверить в Тестли') : t('Разбор в Тестли')}<ExternalLink size={13}/></a></div>
       : <div className={'jh-answer-comparison' + (showReference ? ' jh-with-reference' : '')}><div><small>{t('Ответ ученика')}</small>
         {row.voice ? <AudioPlayer audioUrl={row.answer} compact/> : <p>{row.answer || t('Ответа нет.')}</p>}
         {row.heard && row.verdict !== 'correct' && <p className="jh-transcript">{t('Машина услышала')}: {row.heard}</p>}
@@ -285,7 +285,7 @@ export default function BasicAnswersList({ payload, studentId, teacherReviewed =
         )}
       </div>}
       {passed.length > 0 && (
-        <button
+        <button data-hover="layer"
           onClick={() => setShowPassed(v => !v)}
           className="flex items-center cursor-pointer"
           style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}

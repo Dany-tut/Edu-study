@@ -22,7 +22,7 @@ export function HomeWidgetFade({ children, className = '' }: { children: ReactNo
   return <div ref={ref} className={`ihw-fade ${className}`} data-overflow={overflow}>{children}</div>
 }
 export function HomeWidgetCard({ id, title, extra, children, footer, onOpen, artwork }: { onOpen?:()=>void;artwork?:ReactNode;id:number;title:string;extra?:ReactNode;children:ReactNode;footer:ReactNode }) {
-  return <section className="ihw-card" data-home-widget={id} onClick={onOpen ? event => { if (!(event.target as Element).closest('button, a, input, select')) onOpen() } : undefined} style={onOpen ? { cursor: 'pointer' } : undefined}><header className="ihw-heading"><h3><HomeWidgetFade>{onOpen ? <button type="button" className="ihw-card-open" onClick={onOpen}>{title}</button> : title}</HomeWidgetFade></h3>{extra}</header><div className="ihw-body"><div className="ihw-main">{children}</div></div>{artwork ?? <HomeWidgetObject id={id}/>}<footer className="ihw-footer">{footer}</footer></section>
+  return <section data-hover="card" className="ihw-card" data-home-widget={id} onClick={onOpen ? event => { if (!(event.target as Element).closest('button, a, input, select')) onOpen() } : undefined} style={onOpen ? { cursor: 'pointer' } : undefined}><header className="ihw-heading"><h3><HomeWidgetFade>{onOpen ? <button data-hover="layer" type="button" className="ihw-card-open" onClick={onOpen}>{title}</button> : title}</HomeWidgetFade></h3>{extra}</header><div className="ihw-body"><div className="ihw-main">{children}</div></div>{artwork ?? <HomeWidgetObject id={id}/>}<footer className="ihw-footer">{footer}</footer></section>
 }
 export function Value({ children, label }: { children:ReactNode;label:string }) { return <div className="ihw-metric"><strong><HomeWidgetFade className="ihw-number">{children}</HomeWidgetFade></strong><span><FadeText>{label}</FadeText></span></div> }
 export function Copy({ title, text }: { title:string;text?:string }) { return <HomeWidgetFade className="ihw-copy">{title&&<div className="ihw-title-window"><HomeWidgetFade><h4>{title}</h4></HomeWidgetFade></div>}{text && <p>{text}</p>}</HomeWidgetFade> }
@@ -30,7 +30,7 @@ function HomeTaskMark({ returned }: { returned: boolean }) { const Icon = return
 export function Action({ label,onClick }: { label:string;onClick:()=>void }) { return <button type="button" className="ihw-action" onClick={onClick}><FadeText>{label}</FadeText> <ArrowRight size={14} style={{ display: 'inline-block', verticalAlign: '-0.12em' }} /></button> }
 export function HomeTaskRow({ task, onOpen }: { task:HomeWidgetTask;onOpen:()=>void }) {
   const t=useT()
-  return <button type="button" className={`ihw-task ${task.returned?'is-returned':''}`} onClick={onOpen}><span className="ihw-task-mark" aria-hidden="true"><HomeTaskMark returned={task.returned} /></span><span className="ihw-task-copy"><HomeWidgetFade><strong>{t(task.label)}</strong></HomeWidgetFade><HomeWidgetFade className="ihw-task-topic">{tc(task.subjectName)} · {tc(task.lesson.title)}</HomeWidgetFade></span></button>
+  return <button type="button" data-hover="layer" className={`ihw-task ${task.returned?'is-returned':''}`} onClick={onOpen}><span className="ihw-task-mark" aria-hidden="true"><HomeTaskMark returned={task.returned} /></span><span className="ihw-task-copy"><HomeWidgetFade><strong>{t(task.label)}</strong></HomeWidgetFade><HomeWidgetFade className="ihw-task-topic">{tc(task.subjectName)} · {tc(task.lesson.title)}</HomeWidgetFade></span></button>
 }
 
 export type HomeWidgetPresentationProps = {

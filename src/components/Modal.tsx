@@ -149,7 +149,7 @@ export default function Modal({
 export function ModalClose({ onClose, style }: { onClose: () => void; style?: CSSProperties }) {
   const t = useT()
   return (
-    <button
+    <button data-hover="layer"
       type="button" onClick={onClose} aria-label={t('Закрыть')}
       style={{ width: 36, height: 36, borderRadius: 11, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0, ...style }}
     >

@@ -903,7 +903,7 @@ export default function TeacherAnalytics() {
         <>
           {/* Copy everything on this tab as text — for pasting into a bug report */}
           <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
-            <button onClick={() => void copyIssues()} style={{
+            <button data-hover="layer" onClick={() => void copyIssues()} style={{
               display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:10,
               border:'1px solid var(--color-border)', cursor:'pointer', fontSize:12, fontWeight:600,
               background: copied ? 'rgba(63,168,103,0.15)' : 'var(--color-bg-2)',
@@ -988,12 +988,12 @@ export default function TeacherAnalytics() {
               <SectionTitle action={
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   {closedBounce > 0 && (
-                    <button onClick={() => setShowClosedBounce(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+                    <button data-hover="layer" onClick={() => setShowClosedBounce(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
                       {showClosedBounce ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedBounce}`}
                     </button>
                   )}
                   {openBounce.length > 0 && (
-                    <button onClick={() => void resolveAllBounce()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
+                    <button data-hover="layer" onClick={() => void resolveAllBounce()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
                       <CheckCircle2 size={14}/>{t('Всё разобрано')}
                     </button>
                   )}
@@ -1013,7 +1013,7 @@ export default function TeacherAnalytics() {
                       <div style={{ flex:1, color:'var(--color-text)', textDecoration: p.closed?'line-through':undefined }}>{pLabel(p.path)}</div>
                       <div style={{ color:'var(--color-text-3)', fontSize:11 }}>{p.role}</div>
                       <div style={{ fontWeight:700, color: p.closed ? 'var(--color-text-3)' : 'var(--color-peach-text)', minWidth:40, textAlign:'right' }}>{p.avg_dwell_sec}{t('с')}</div>
-                      <button onClick={() => void resolveBounce(p)}
+                      <button data-hover="layer" onClick={() => void resolveBounce(p)}
                         title={p.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer',
                           color: p.closed ? 'var(--color-text-3)' : 'var(--color-green-text)', padding:0 }}>
@@ -1032,12 +1032,12 @@ export default function TeacherAnalytics() {
               <SectionTitle action={
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   {closedRage > 0 && (
-                    <button onClick={() => setShowClosedRage(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+                    <button data-hover="layer" onClick={() => setShowClosedRage(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
                       {showClosedRage ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedRage}`}
                     </button>
                   )}
                   {openRage.length > 0 && (
-                    <button onClick={() => void resolveAllRage()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
+                    <button data-hover="layer" onClick={() => void resolveAllRage()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
                       <CheckCircle2 size={14}/>{t('Всё разобрано')}
                     </button>
                   )}
@@ -1059,7 +1059,7 @@ export default function TeacherAnalytics() {
                         <div style={{ fontSize:10, color:'var(--color-text-3)' }}>{pLabel(r.path)}</div>
                       </div>
                       <div style={{ fontWeight:700, color: r.closed ? 'var(--color-text-3)' : 'var(--color-peach-text)' }}>{r.cnt}×</div>
-                      <button onClick={() => void resolveSignature(rageSignature(r), r.closed)}
+                      <button data-hover="layer" onClick={() => void resolveSignature(rageSignature(r), r.closed)}
                         title={r.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer',
                           color: r.closed ? 'var(--color-text-3)' : 'var(--color-green-text)', padding:0 }}>
@@ -1076,16 +1076,16 @@ export default function TeacherAnalytics() {
           <SectionTitle action={
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               {closedErrors > 0 && (
-                <button onClick={() => setShowClosed(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+                <button data-hover="layer" onClick={() => setShowClosed(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
                   {showClosed ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedErrors}`}
                 </button>
               )}
               {openGroups.length > 0 && (
-                <button onClick={() => void resolveAllOpen()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
+                <button data-hover="layer" onClick={() => void resolveAllOpen()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
                   <CheckCircle2 size={14}/>{t('Всё разобрано')}
                 </button>
               )}
-              <button onClick={() => setErrExpanded(e=>!e)} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
+              <button data-hover="layer" onClick={() => setErrExpanded(e=>!e)} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
                 {errExpanded ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
                 {errExpanded ? t('Свернуть') : t('Все ошибки')}
               </button>
@@ -1117,7 +1117,7 @@ export default function TeacherAnalytics() {
                       <div style={{ flexShrink:0, color:'var(--color-text-3)', fontSize:10 }}>
                         {e.role} · {e.path ? pLabel(e.path) : '—'}
                       </div>
-                      <button onClick={() => void resolveSignature(g.key, g.closed)} title={g.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
+                      <button data-hover="layer" onClick={() => void resolveSignature(g.key, g.closed)} title={g.closed ? t('Вернуть в открытые') : t('Пометить разобранным')}
                         style={{ flexShrink:0, display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer',
                           color: g.closed ? 'var(--color-text-3)' : 'var(--color-green-text)', fontSize:10, padding:0 }}>
                         {g.closed ? <RotateCcw size={12}/> : <CheckCircle2 size={14}/>}
@@ -1169,7 +1169,7 @@ export default function TeacherAnalytics() {
                   {pathsShown.map(p => {
                     const active = p.path === clickPath
                     return (
-                      <button key={p.path} onClick={() => setClickPath(p.path)} style={{
+                      <button data-hover="layer" key={p.path} onClick={() => setClickPath(p.path)} style={{
                         display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:10,
                         border:'1px solid', borderColor: active ? currentColor : 'var(--color-border)',
                         background: active ? withAlpha(currentColor,0.12) : 'var(--color-bg-2)',
@@ -1186,7 +1186,7 @@ export default function TeacherAnalytics() {
                     <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
                   )}
                   {!pathQ && (pathsHidden > 0 || pathsOpen) && (
-                    <button onClick={() => setPathsOpen(o => !o)} style={{
+                    <button data-hover="layer" onClick={() => setPathsOpen(o => !o)} style={{
                       padding:'8px 12px', borderRadius:10, border:'1px dashed var(--color-border)',
                       background:'transparent', color:'var(--color-text-3)',
                       fontSize:12, fontWeight:600, cursor:'pointer',
@@ -1227,7 +1227,7 @@ export default function TeacherAnalytics() {
         return (
           <>
             <SectionTitle action={
-              <button onClick={() => void runDigest()} disabled={digestBusy} style={{
+              <button data-hover="layer" onClick={() => void runDigest()} disabled={digestBusy} style={{
                 display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:10,
                 border:'1px solid var(--color-border)', background:'var(--color-bg-2)',
                 color: digestBusy ? 'var(--color-text-3)' : 'var(--color-text)',
@@ -1256,7 +1256,7 @@ export default function TeacherAnalytics() {
             {reports.length > 1 && (
               <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:14 }}>
                 {reports.map((r, i) => (
-                  <button key={r.id} onClick={() => setReportIdx(i)} style={{
+                  <button data-hover="layer" key={r.id} onClick={() => setReportIdx(i)} style={{
                     padding:'6px 12px', borderRadius:9, fontSize:12, fontWeight:600, cursor:'pointer',
                     border:'1px solid', borderColor: i === reportIdx ? ACCENT : 'var(--color-border)',
                     background: i === reportIdx ? withAlpha(ACCENT, 0.12) : 'var(--color-bg-2)',

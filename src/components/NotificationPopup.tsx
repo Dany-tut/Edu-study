@@ -205,7 +205,7 @@ export default function NotificationPopup({ requests = [], onRequests, open, anc
               <CountBadge count={unread + requests.length} tone="danger" />
             </div>
             {unread > 0 && (
-              <button onClick={markAllRead} style={{
+              <button data-hover="layer" onClick={markAllRead} style={{
                 flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-accent)',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               }}>
@@ -215,7 +215,7 @@ export default function NotificationPopup({ requests = [], onRequests, open, anc
           </div>
 
           <ScrollFade maxHeight={Math.min(380, Math.max(0, pos.maxHeight - 70))} fadeMode="mask" scrollStyle={{ padding: 6 }}>
-            {requests.map(request => <button key={request.id} onClick={onRequests} style={{ display:'flex', alignItems:'center', gap:12, width:'100%', minHeight:48, padding:'10px 14px', background:'var(--color-bg-3)', color:'var(--color-text)', border:0, borderRadius:12, textAlign:'left', cursor:'pointer' }}>
+            {requests.map(request => <button data-hover="layer" key={request.id} onClick={onRequests} style={{ display:'flex', alignItems:'center', gap:12, width:'100%', minHeight:48, padding:'10px 14px', background:'var(--color-bg-3)', color:'var(--color-text)', border:0, borderRadius:12, textAlign:'left', cursor:'pointer' }}>
               <UserPlus size={18} style={{ flexShrink:0 }}/><span><b>@{request.handle}</b> · {t('Заявка в друзья')}</span>
             </button>)}
             {notifications.length === 0 && requests.length === 0 ? (

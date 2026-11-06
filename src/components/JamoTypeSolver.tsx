@@ -91,7 +91,7 @@ export default function JamoTypeSolver({ answer, value, disabled, showVerdict, o
       >
         {typed
           ? (
-            <motion.button
+            <motion.button data-hover="layer"
               key={typed}
               initial={{ scale: 0.92, opacity: 0.5 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -118,7 +118,7 @@ export default function JamoTypeSolver({ answer, value, disabled, showVerdict, o
       {/* Клавиатура. */}
       <div className="flex flex-wrap items-center justify-center" style={{ gap: 8 }}>
         {keyboard.map(k => (
-          <motion.button
+          <motion.button data-hover="layer"
             key={k}
             whileTap={disabled || full ? undefined : { scale: 0.92 }}
             onClick={() => press(k)}

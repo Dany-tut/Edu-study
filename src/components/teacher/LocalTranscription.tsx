@@ -336,7 +336,7 @@ export function RecordingLines({rail, fill, at, onSeek}: {rail: TranscriptRail; 
             onBlur={e => { setEditing(null); const text = e.currentTarget.value; if (text !== original.current) rail.corrected?.(original.current, {...line, text}) }} onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.blur() }}
             onChange={e => change({...draft, transcript:{...draft.transcript, segments:segments.map((s,i) =>
               i === index ? {...s,text:e.target.value} : s)}})}/>
-        </span> : <button type="button" disabled={saving} aria-label={'Редактировать реплику ' + (index+1)} onClick={() => setEditing(index)}>{line.text || 'Введите текст'}</button>}
+        </span> : <button data-hover="layer" type="button" disabled={saving} aria-label={'Редактировать реплику ' + (index+1)} onClick={() => setEditing(index)}>{line.text || 'Введите текст'}</button>}
       </div>)}</div>
     </ScrollFade>
   </section>
@@ -381,7 +381,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     {view === 'review' ? <Review {...props} lessonKey={jobKey} onClose={() => setView('entry')}
       onReady={result => { change(result); setView('entry') }} /> :
       <section className="transcription-inline">
-        <button type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
+        <button data-hover="layer" type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
         {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
           draft && <LessonTranscriptPanel transcript={draft.transcript} time={-1} />}
       </section>}
@@ -407,9 +407,9 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
       {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено</span>}
-      <button aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={open}><RotateCcw size={16}/></button>
+      <button data-hover="layer" aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={open}><RotateCcw size={16}/></button>
       <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} />
-      <button aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
+      <button data-hover="layer" aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>
   if (!props.source && !props.file) return <section className="transcription-inline">
@@ -495,7 +495,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
   return <section className="transcription-inline">
     <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
       <div><strong>Расшифровка урока</strong><small>Обработка на вашем компьютере</small></div>
-      <button type="button" aria-label="К записи урока" disabled={busy} style={btn('S','secondary')} onClick={onClose}><X size={16}/></button>
+      <button data-hover="layer" type="button" aria-label="К записи урока" disabled={busy} style={btn('S','secondary')} onClick={onClose}><X size={16}/></button>
     </header>
     <div className="transcription-form">
     {!pending && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
@@ -530,11 +530,11 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       <p>{error}</p>
       {unavailable && pending && <p>Задание сохранено. Проверяем связь автоматически. Если модуль работает, обработка продолжается на Mac.</p>}
       {pending && (unavailable
-        ? <button type="button" style={btn('M','secondary')} onClick={() => { setError(''); setUnavailable(false); setRetry(value => value + 1) }}>Проверить связь</button>
-        : <button type="button" style={btn('M','secondary')} onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}>Начать заново</button>)}
+        ? <button data-hover="layer" type="button" style={btn('M','secondary')} onClick={() => { setError(''); setUnavailable(false); setRetry(value => value + 1) }}>Проверить связь</button>
+        : <button data-hover="layer" type="button" style={btn('M','secondary')} onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}>Начать заново</button>)}
     </div>}
     </div>
     {!pending ?
-      <button className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? 'Передаём запись…' : 'Начать расшифровку'}</button> : undefined}
+      <button data-hover="layer" className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? 'Передаём запись…' : 'Начать расшифровку'}</button> : undefined}
   </section>
 }

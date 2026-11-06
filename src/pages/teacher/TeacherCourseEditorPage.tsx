@@ -1879,7 +1879,7 @@ function CenterRecording({
               <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)' }}>
                 {t('Запись на диске не встраивается в плеер — ученик откроет её в новой вкладке. Таймкоды здесь недоступны.')}
               </div>
-              <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer"
+              <a data-hover="link" href={lesson.videoUrl} target="_blank" rel="noopener noreferrer"
                 style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>

@@ -107,7 +107,7 @@ function InfoDot({ info }: { info: DomainInfo }) {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(true)}
         aria-label={t('Что измеряет этот блок')}
         style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${ACC}`, background: `${ACC}1a`, color: ACC, cursor: 'pointer', flexShrink: 0, padding: 0 }}
@@ -133,7 +133,7 @@ function InfoDot({ info }: { info: DomainInfo }) {
                     <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{info.dimension}</div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: ACC, letterSpacing: 0.5 }}>{info.chc} · {info.label}</div>
                   </div>
-                  <button onClick={() => setOpen(false)} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><X size={18} /></button>
+                  <button data-hover="layer" onClick={() => setOpen(false)} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><X size={18} /></button>
                 </div>
                 {([
                   [t('Что измеряет'), t(info.measures)],

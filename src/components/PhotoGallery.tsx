@@ -89,11 +89,11 @@ export default function PhotoGallery({ photos, initialIndex = 0, onClose }: { ph
         <img src={src} alt={`${t('Фото')} ${i + 1}`} loading="lazy" decoding="async" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain', userSelect: 'none' }} />
       </div>)}
     </div>
-    <button ref={closeButton} type="button" onClick={onClose} aria-label={t('Закрыть просмотр фото')} style={{ ...control, position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', right: 16 }}><GalleryIcon close /></button>
+    <button data-hover="layer" ref={closeButton} type="button" onClick={onClose} aria-label={t('Закрыть просмотр фото')} style={{ ...control, position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', right: 16 }}><GalleryIcon close /></button>
     <div style={{ position: 'absolute', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
-      {photos.length > 1 && <button type="button" aria-label={t('Предыдущее фото')} disabled={index === 0} onClick={() => go(-1)} style={{ ...control, opacity: index === 0 ? 0.3 : 1 }}><GalleryIcon left /></button>}
+      {photos.length > 1 && <button data-hover="layer" type="button" aria-label={t('Предыдущее фото')} disabled={index === 0} onClick={() => go(-1)} style={{ ...control, opacity: index === 0 ? 0.3 : 1 }}><GalleryIcon left /></button>}
       <span aria-live="polite" aria-atomic="true" style={{ minWidth: 64, textAlign: 'center', fontSize: 15, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{index + 1} / {photos.length}</span>
-      {photos.length > 1 && <button type="button" aria-label={t('Следующее фото')} disabled={index === photos.length - 1} onClick={() => go(1)} style={{ ...control, opacity: index === photos.length - 1 ? 0.3 : 1 }}><GalleryIcon /></button>}
+      {photos.length > 1 && <button data-hover="layer" type="button" aria-label={t('Следующее фото')} disabled={index === photos.length - 1} onClick={() => go(1)} style={{ ...control, opacity: index === photos.length - 1 ? 0.3 : 1 }}><GalleryIcon /></button>}
     </div>
   </div>, document.body)
 }

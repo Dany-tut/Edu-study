@@ -179,7 +179,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button
+        <button data-hover="layer"
           onClick={() => onAt(Math.max(0, at - 1))}
           disabled={at === 0}
           style={{ ...btn('M', 'secondary'), opacity: at === 0 ? 0.4 : 1 }}
@@ -190,7 +190,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
           {at + 1} {t('из')} {chapter.cards.length}
         </span>
         <div style={{ flex: 1 }} />
-        <button
+        <button data-hover="layer"
           onClick={() => (last ? onDone() : onAt(at + 1))}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 20px',

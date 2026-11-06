@@ -39,7 +39,7 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
             boxShadow: '0 30px 70px -20px rgba(20, 12, 50, 0.5)', textAlign: 'center',
           }}
         >
-          <button onClick={onClose} aria-label={t('Закрыть')} style={{
+          <button data-hover="layer" onClick={onClose} aria-label={t('Закрыть')} style={{
             position: 'absolute', top: 12, right: 12, width: 30, height: 30, borderRadius: 10,
             border: 'none', background: 'var(--color-bg)', color: 'var(--color-muted)', cursor: 'pointer',
             display: 'grid', placeItems: 'center',
@@ -77,7 +77,7 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
             </div>
           )}
 
-          <button
+          <button data-hover="layer"
             onClick={() => (last ? onClose() : setI(i + 1))}
             style={{
               marginTop: 16, width: '100%', padding: '12px 16px', borderRadius: 14, border: 'none',

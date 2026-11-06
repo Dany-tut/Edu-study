@@ -80,7 +80,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
 
   if (variant === 'compact') {
     return (
-      <button
+      <button data-hover="layer"
         onClick={onTap}
         title={`${t('Проверить обновление')} · ${APP_COMMIT}`}
         style={{
@@ -103,7 +103,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
   }
 
   return (
-    <button
+    <button data-hover="layer"
       onClick={onTap}
       className="flex items-center justify-between cursor-pointer"
       style={{ width: '100%', height: 56, padding: '0 16px', background: 'transparent', border: 'none', ...style }}

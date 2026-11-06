@@ -163,7 +163,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         {/* Tariff + quota — span 2, gradient. Opens the tariff screen (same as
             the «Повысить» row below). Payment isn't wired, so choosing a plan
             there files a prefilled feedback request; admin assigns it by hand. */}
-        <button
+        <button data-hover="layer"
           onClick={() => { tactile(); setTariffOpen(true) }}
           style={{ gridColumn: 'span 2', padding: '14px 16px', borderRadius: 24, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', border: 'none', textAlign: 'left', cursor: 'pointer' }}
         >
@@ -192,20 +192,20 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         <StatTile icon={<Users size={18} />} value={m.studentTotal} label={`${t('Ученики')} · ${m.groupCount} ${t(m.groupCount % 10 === 1 && m.groupCount % 100 !== 11 ? 'группа' : m.groupCount % 10 >= 2 && m.groupCount % 10 <= 4 && (m.groupCount % 100 < 12 || m.groupCount % 100 > 14) ? 'группы' : 'групп')}`} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" />
         <StatTile icon={<ClipboardCheck size={18} />} value={m.pending} label={m.pending > 0 ? t('Ждут проверки') : t('Всё проверено')} bg="var(--color-yellow-soft)" fg="var(--color-yellow-text)" />
 
-        {onOpenJournal && <button type="button" onClick={() => { tactile(); onOpenJournal() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ClipboardCheck size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Журнал')}</span><ChevronRight size={18} /></button>}
+        {onOpenJournal && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenJournal() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ClipboardCheck size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Журнал')}</span><ChevronRight size={18} /></button>}
 
         <div style={{ gridColumn: 'span 2' }}><TeacherLoginMethods /></div>
 
         {/* Settings — span 2, grouped icon-list (C-style) */}
         <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
           {/* Уведомления — вход есть и в приложении iOS, где шапку рисует система */}
-          {onOpenNotifications && <button type="button" onClick={() => { tactile(); onOpenNotifications() }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
+          {onOpenNotifications && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenNotifications() }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
             <Bell size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} /><span style={{ flex:1 }}>{t('Уведомления')}</span>
             <CountBadge count={unreadNotifs} tone="danger" />
             <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
           </button>}
           {/* Тариф — actionable row (A-style «Повысить») */}
-          <button
+          <button data-hover="layer"
             onClick={() => { tactile(); setTariffOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
             style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
@@ -218,14 +218,14 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
               : <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />}
           </button>
 
-          {friends.account && <button type="button" onClick={() => { tactile(); friends.setTab('contacts') }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
+          {friends.account && <button data-hover="layer" type="button" onClick={() => { tactile(); friends.setTab('contacts') }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
             <Users size={18} style={{ color: 'var(--color-muted)' }} /><span style={{ flex:1 }}>{t('Друзья')}</span><ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
           </button>}
-          <button type="button" onClick={() => { tactile(); setIntegrations(true) }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
+          <button data-hover="layer" type="button" onClick={() => { tactile(); setIntegrations(true) }} style={{ width:'100%', height:ROW_H, padding:'0 16px', display:'flex', alignItems:'center', gap:10, background:'transparent', border:0, color:'var(--color-text)', font:'inherit', fontSize:15, fontWeight:500, textAlign:'left' }}>
             <Sparkles size={18} style={{ color: 'var(--color-muted)' }} /><span style={{ flex:1 }}>{t('Интеграции')}</span><ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
           </button>
           {/* Тема */}
-          <button
+          <button data-hover="layer"
             onClick={() => { tactile(); toggleTheme() }}
             className="flex items-center justify-between cursor-pointer"
             style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
@@ -237,7 +237,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           </button>
 
           {/* Язык — надпись показывает текущий язык, тап переключает на другой */}
-          <button
+          <button data-hover="layer"
             onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
             aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
             className="flex items-center justify-between cursor-pointer"
@@ -249,7 +249,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{lang === 'ru' ? 'Русский' : 'English'}</span>
           </button>
 
-          {onOpenWidgets && <button type="button"
+          {onOpenWidgets && <button data-hover="layer" type="button"
             onClick={() => { tactile(); onOpenWidgets() }}
             className="flex items-center justify-between cursor-pointer"
             style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
@@ -261,7 +261,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           </button>}
 
           {/* Обратная связь */}
-          <button
+          <button data-hover="layer"
             onClick={() => { tactile(); setFeedbackOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
             style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
@@ -274,7 +274,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
 
           {/* Установить приложение — скрыта, если уже запущено как PWA */}
           {!isStandalone() && (
-            <button
+            <button data-hover="layer"
               onClick={() => { tactile(); requestShowInstall() }}
               className="flex items-center justify-between cursor-pointer"
               style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
@@ -294,14 +294,14 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           { page: 'finances', label: t('Финансы'), Icon: Wallet, visible: showFinances },
           { page: 'constructor', label: t('Конструктор'), Icon: Monitor, visible: showConstructor },
         ] as const).filter(tool => tool.visible).map(({ page, label, Icon }) => (
-          <button key={page} type="button" onClick={() => openPage(page)}
+          <button data-hover="layer" key={page} type="button" onClick={() => openPage(page)}
             style={{ minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', color: 'var(--color-text)' }}>
             <Icon size={16} />{label}
           </button>
         ))}
 
-        {isAdmin && <motion.button
+        {isAdmin && <motion.button data-hover="layer"
           whileTap={{ scale: 0.97 }}
           onClick={() => { tactile(); studentCabinet.open() }}
           disabled={studentCabinet.busy} aria-busy={studentCabinet.busy}
@@ -312,7 +312,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         </motion.button>}
 
         {/* Logout — span 2 */}
-        <motion.button
+        <motion.button data-hover="layer"
           whileTap={{ scale: 0.97 }}
           onClick={logout}
           className="flex items-center justify-center cursor-pointer"

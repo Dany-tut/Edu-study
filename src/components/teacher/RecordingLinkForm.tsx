@@ -46,7 +46,7 @@ export function RecordingFileButton({ onUploaded, onBusy, onError, disabled, lab
   return <>
     <input ref={input} type="file" accept={RECORDING_ACCEPT} hidden
       onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; void pick(f) }} />
-    <button type="button" disabled={disabled || busy} onClick={() => input.current?.click()}
+    <button data-hover="layer" type="button" disabled={disabled || busy} onClick={() => input.current?.click()}
       style={{ ...btn('M', 'secondary'), ...style, ...(busy ? { opacity: 1, cursor: 'progress' } : {}) }}>
       <Upload size={14} /> {busy ? t('Загружаем…') : label ?? t('Файл')}
     </button>
@@ -102,20 +102,20 @@ export function RecordingInlineEdit({ initialUrl, onSave, onClose, onPickFile, u
         if (file) onPickFile(file)
       }} />
       {/* Строка над плеером узкая: «Файл» — одной иконкой, поле ссылки важнее подписей. */}
-      <button type="button" disabled={busy || !!unavailable} onClick={() => fileInput.current?.click()}
+      <button data-hover="layer" type="button" disabled={busy || !!unavailable} onClick={() => fileInput.current?.click()}
         title={uploading ? t('Загружаем…') : t('Загрузить файл')} aria-label={uploading ? t('Загружаем…') : t('Загрузить файл')}
         style={{ ...btn('M', 'secondary'), width: 40, padding: 0, justifyContent: 'center', flexShrink: 0, ...(uploading ? { opacity: 1, cursor: 'progress' } : {}) }}>
         <Upload size={14} />
       </button>
       {/* Сохранить — галочкой того же вида, что TeacherSaveButton: подпись не влезает
           над узким плеером, а Enter в поле сохраняет так же. */}
-      <button type="button" disabled={busy || !!unavailable} onClick={() => void save()}
+      <button data-hover="layer" type="button" disabled={busy || !!unavailable} onClick={() => void save()}
         title={saving ? t('Сохраняем…') : t('Сохранить')} aria-label={saving ? t('Сохраняем…') : t('Сохранить')}
         style={{ ...teacherSaveStyle({ disabled: busy || !!unavailable }), width: 40, padding: 0, ...(saving ? { opacity: 1, cursor: 'progress' } : {}) }}>
         {saving ? <Loader2 size={15} strokeWidth={2.5} /> : <Check size={15} strokeWidth={2.5} />}
       </button>
       {/* Крестик — выйти из правки без изменений, на том же месте, где был крестик удаления. */}
-      <button type="button" disabled={busy} onClick={onClose} title={t('Отмена')} aria-label={t('Отмена')}
+      <button data-hover="layer" type="button" disabled={busy} onClick={onClose} title={t('Отмена')} aria-label={t('Отмена')}
         style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'transparent', cursor: busy ? 'default' : 'pointer', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0 }}>
         <X size={15} />
       </button>
@@ -163,7 +163,7 @@ export default function RecordingLinkForm({ initialUrl, onSave, onClose, unavail
           style={{ flexShrink: 0, minHeight: 44 }} />
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button disabled={busy} onClick={onClose} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Отмена')}</button>
+        <button data-hover="layer" disabled={busy} onClick={onClose} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Отмена')}</button>
         <TeacherSaveButton label={t('Сохранить')} savingLabel={t('Сохраняем…')} saving={saving} disabled={busy || !!unavailable}
           onClick={save} style={{ flex: 1, minHeight: 44, ...(saving ? { opacity: 1 } : {}) }} />
       </div>

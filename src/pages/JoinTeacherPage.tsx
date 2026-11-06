@@ -143,13 +143,13 @@ export default function JoinTeacherPage() {
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>{t('Ссылка недействительна')}</div>
             <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Возможно, приглашение уже использовано или его срок истёк. Попросите администратора отправить новое.')}</div>
             <div style={{ display: 'flex', gap: 10, marginTop: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
+              <button data-hover="layer"
                 onClick={() => { window.location.hash = '#/'; window.location.reload() }}
                 style={{ padding: '10px 22px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
               >
                 {t('На главную')}
               </button>
-              <button
+              <button data-hover="layer"
                 onClick={() => { window.location.hash = '#/login'; window.location.reload() }}
                 style={btn('M', 'secondary')}
               >
@@ -190,7 +190,7 @@ export default function JoinTeacherPage() {
                     style={{ ...inputStyle, paddingRight: 52, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
                     onKeyDown={e => e.key === 'Enter' && handleRegister()}
                   />
-                  <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
+                  <button data-hover="layer" type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
               aria-pressed={showPassword}
                     style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-muted)' }}>
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -213,7 +213,7 @@ export default function JoinTeacherPage() {
               <Alert tone="danger" text={errorMsg} style={{ marginTop: 12 }} />
             )}
 
-            <button
+            <button data-hover="layer"
               onClick={handleRegister}
               disabled={!ready || saving}
               style={{ height: 48,

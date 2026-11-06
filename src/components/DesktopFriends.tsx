@@ -81,7 +81,7 @@ export function FriendsContent({ model, overview = false, polished = false, sugg
   const panes: (FriendsTab | 'outgoing')[] = overview ? ['search', 'requests', 'contacts', 'outgoing'] : [tab]
   return (
     <><div className={overview ? "desktop-friends friends-overview" : "desktop-friends"}>
-      {model.error && <p role="alert">{t(model.error)} <button onClick={model.refresh}>{t('Повторить')}</button></p>}
+      {model.error && <p role="alert">{t(model.error)} <button data-hover="layer" onClick={model.refresh}>{t('Повторить')}</button></p>}
       {snapshot ? panes.map(pane =>
         <FriendsPane key={account + pane} model={model} account={account} tab={pane} overview={overview} polished={polished} onOpen={setPerson} suggestedHandle={valid(suggestedName) ? clean(suggestedName) : ''}/>
       ) : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
@@ -116,8 +116,8 @@ function FriendsPane({ model, account, tab, overview, polished, onOpen, suggeste
   function rows(state: Contact['state'], empty: string) {
     const contacts = snapshot.contacts.filter(c => c.state === state)
     return contacts.length ? contacts.map(c => <div className="friend-row" key={c.id}> <PersonRow person={c} onOpen={onOpen}/>
-      {state === 'incoming' && <button className="friend-primary" disabled={busy} onClick={() => run(() => change('accept',c))}>{t('Принять')}</button>}
-      {state !== 'friend' && <button disabled={busy} onClick={() => run(() => change(state === 'incoming' ? 'decline' : 'cancel',c))}>{state === 'incoming' ? t('Отклонить') : t('Отменить')}</button>}
+      {state === 'incoming' && <button data-hover="layer" className="friend-primary" disabled={busy} onClick={() => run(() => change('accept',c))}>{t('Принять')}</button>}
+      {state !== 'friend' && <button data-hover="layer" disabled={busy} onClick={() => run(() => change(state === 'incoming' ? 'decline' : 'cancel',c))}>{state === 'incoming' ? t('Отклонить') : t('Отменить')}</button>}
     </div>) : <p>{t(empty)}</p>
   }
   const count = (state: Contact['state']) => snapshot.contacts.filter(contact => contact.state === state).length
@@ -131,9 +131,9 @@ function FriendsPane({ model, account, tab, overview, polished, onOpen, suggeste
       <p>{t('От 4 до 20 символов. Начни с латинской буквы. Можно добавить цифры и нижнее подчёркивание.')}</p>
       <label className="friend-check"><input type="checkbox" checked={visible} onChange={e=>setVisible(e.target.checked)} disabled={busy}/>{t('Можно найти меня по точному нику')}</label>
       <p>{t('Другие пользователи увидят имя, ник, аватар и роль.')}</p>
-      <button className="friend-primary" disabled={busy || !valid(nick)}>{t('Сохранить')}</button>
-    </form> : !snapshot.handle && !overview ? <><h3>{t('Выбери свой ник')}</h3><p>{t('По нему друзья узнают, от кого пришла заявка.')}</p><button className="friend-primary" onClick={()=>model.setTab('profile')}>{t('Выбрать ник')}</button></> :
-    tab === 'contacts' ? <><h3>{t('Мои друзья')} {overview && <small>{count('friend')}</small>}</h3>{polished && !count('friend') ? <div className="friend-empty"><div className="friend-empty-mark"><Users size={32} aria-hidden="true"/></div><strong>{t('Добавьте первого друга')}</strong><p>{t('Введите ник друга в поиске выше. После принятия заявки он появится здесь.')}</p></div> : rows('friend',overview ? 'Пока нет друзей' : 'Пока здесь никого нет. Найди друга по его нику.')}{!overview && <button onClick={()=>model.setTab('search')}>{t('Найти друга')}</button>}</> :
+      <button data-hover="layer" className="friend-primary" disabled={busy || !valid(nick)}>{t('Сохранить')}</button>
+    </form> : !snapshot.handle && !overview ? <><h3>{t('Выбери свой ник')}</h3><p>{t('По нему друзья узнают, от кого пришла заявка.')}</p><button data-hover="layer" className="friend-primary" onClick={()=>model.setTab('profile')}>{t('Выбрать ник')}</button></> :
+    tab === 'contacts' ? <><h3>{t('Мои друзья')} {overview && <small>{count('friend')}</small>}</h3>{polished && !count('friend') ? <div className="friend-empty"><div className="friend-empty-mark"><Users size={32} aria-hidden="true"/></div><strong>{t('Добавьте первого друга')}</strong><p>{t('Введите ник друга в поиске выше. После принятия заявки он появится здесь.')}</p></div> : rows('friend',overview ? 'Пока нет друзей' : 'Пока здесь никого нет. Найди друга по его нику.')}{!overview && <button data-hover="layer" onClick={()=>model.setTab('search')}>{t('Найти друга')}</button>}</> :
     tab === 'outgoing' ? <><h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</> :
     tab === 'requests' ? <><h3>{t(overview ? 'Входящие заявки' : 'Входящие')} {overview && <small>{count('incoming')}</small>}</h3>{rows('incoming','Новых заявок нет.')}{!overview && <><h3>{t('Отправленные')}</h3>{rows('outgoing','Отправленных заявок нет.')}</>}</> :
     <><h3>{t(overview ? 'Друзья' : 'Найти друга')}</h3><form className={overview ? 'friend-search' : undefined} onSubmit={e=>{e.preventDefault(); void run(async()=>{
@@ -141,8 +141,8 @@ function FriendsPane({ model, account, tab, overview, polished, onOpen, suggeste
       const found=await friendsAction<SearchResult>(account,'search',{handle:clean(nick)})
       if(active.current) setResult(found)
     })}}><label>{overview ? <Search size={18} aria-hidden="true"/> : t('Точный ник')}<input aria-label={t('Точный ник')} style={overview ? { background: 'transparent' } : undefined} placeholder={overview ? t('Найти друга по нику') : '@sever_9'} value={nick} maxLength={21} disabled={busy} onChange={e=>{setNick(e.target.value);setResult(null);setMessage('')}}/></label>
-      <button className="friend-primary" hidden={overview && !nick} disabled={busy || !valid(nick)}>{t('Найти')}</button></form>
-      {result?.handle && result.personKey ? <div className="friend-row"><PersonRow person={result as PersonCard} onOpen={onOpen}/>{result.status !== 'found' ? <p role="status">{t(results[result.status] ?? 'Попробуй ещё раз.')}</p> : <>{!snapshot.handle ? <button onClick={()=>model.setTab('profile')}>{t('Выбрать ник для заявки')}</button> : <button disabled={busy} onClick={()=>run(async()=>{
+      <button data-hover="layer" className="friend-primary" hidden={overview && !nick} disabled={busy || !valid(nick)}>{t('Найти')}</button></form>
+      {result?.handle && result.personKey ? <div className="friend-row"><PersonRow person={result as PersonCard} onOpen={onOpen}/>{result.status !== 'found' ? <p role="status">{t(results[result.status] ?? 'Попробуй ещё раз.')}</p> : <>{!snapshot.handle ? <button data-hover="layer" onClick={()=>model.setTab('profile')}>{t('Выбрать ник для заявки')}</button> : <button data-hover="layer" disabled={busy} onClick={()=>run(async()=>{
         const response=await friendsAction<SearchResult>(account,'send',{handle:result.handle,key:result.key})
         await model.refresh()
         if (!active.current) return

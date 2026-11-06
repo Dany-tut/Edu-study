@@ -48,7 +48,7 @@ export default function WidgetGroupsList() {
             {groups.length}
           </span>
         </div>
-        <button
+        <button data-hover="layer"
           onClick={() => setActivePage('groups')}
           style={{
             fontSize: 12, fontWeight: 600, color: 'var(--color-accent)',

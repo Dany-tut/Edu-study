@@ -71,7 +71,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
 
       {/* Delete button */}
       {editMode && (
-        <button
+        <button data-hover="layer"
           onPointerDown={e => e.stopPropagation()}
           onClick={e => { e.stopPropagation(); onRemove(item.i) }}
           style={{ position: 'absolute', top: -11, right: -11, width: 26, height: 26, borderRadius: '50%',

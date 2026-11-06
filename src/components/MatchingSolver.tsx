@@ -312,7 +312,7 @@ export default function MatchingSolver({
           // неверная пара распадается и остаётся вопросом, а не ответом.
           const showAnswer = showVerdict && !instant && ok === false
           return (
-            <button
+            <button data-hover="layer"
               key={i}
               onClick={() => tapLeft(i)}
               style={{
@@ -357,7 +357,7 @@ export default function MatchingSolver({
             : (showVerdict && row >= 0 ? row === idx : null)
           const num = !instant && row >= 0 && ok === null ? row + 1 : 0
           return (
-            <button
+            <button data-hover="layer"
               key={idx}
               onClick={() => tapRight(idx)}
               style={{

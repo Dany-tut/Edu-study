@@ -38,7 +38,7 @@ export default function LessonSelfAssessment({ lessonId, studentId, status, resu
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <button type="button" disabled={!editable || busy} aria-expanded={open}
+      <button data-hover="layer" type="button" disabled={!editable || busy} aria-expanded={open}
         onClick={() => setOpen(v => !v)}
         style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '4px 0', border: 0,
           background: 'transparent', textAlign: 'left', color: 'var(--color-muted)', fontSize: 12, cursor: editable ? 'pointer' : 'default' }}>
@@ -51,7 +51,7 @@ export default function LessonSelfAssessment({ lessonId, studentId, status, resu
         </span>}
       </button>
       {open && <div role="group" aria-label={t('Самооценка')} style={{ display: 'flex', gap: 6 }}>
-        {EMOJI_STEPS.map((choice, i) => <button key={choice.label} type="button"
+        {EMOJI_STEPS.map((choice, i) => <button data-hover="layer" key={choice.label} type="button"
           title={t(choice.label)} aria-label={t(choice.label)} aria-pressed={i === value} disabled={busy}
           onClick={() => { void save(i) }}
           style={{ flex: 1, minWidth: 0, minHeight: 44, fontSize: 24, borderRadius: 12, cursor: busy ? 'wait' : 'pointer',

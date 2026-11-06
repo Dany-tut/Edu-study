@@ -99,7 +99,7 @@ export default function InstallPrompt() {
                 button stays clickable where the two rows overlap. */}
             <div style={{ position: 'relative', paddingTop: 10, zIndex: 3 }}>
               <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)', margin: '0 auto' }} />
-              <button
+              <button data-hover="layer"
                 onClick={close}
                 aria-label={t('Закрыть')}
                 style={{
@@ -134,7 +134,7 @@ export default function InstallPrompt() {
                 captured; otherwise fall back to the manual add-to-home steps. */}
             {platform === 'android' && canPrompt ? (
               <div style={{ padding: '14px 22px 4px' }}>
-                <button
+                <button data-hover="layer"
                   onClick={onInstall}
                   style={{
                     width: '100%', padding: '16px 0', borderRadius: 16, border: 'none',

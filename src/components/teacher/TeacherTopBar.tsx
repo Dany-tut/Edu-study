@@ -516,7 +516,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0 }} />
 
       {/* Avatar / profile pill */}
-      <motion.div
+      <motion.div data-hover="layer"
         ref={profileBtnRef}
         onClick={() => setProfileOpen(o => !o)}
         whileTap={{ scale: 0.97 }}
@@ -616,7 +616,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
             </div>
 
             {/* Тариф: название + ползунок учеников + число дней до конца */}
-            <button
+            <button data-hover="layer"
               onClick={() => { setActivePage('payment'); setProfileOpen(false) }}
               style={{ display: 'block', width: 'calc(100% - 16px)', margin: '2px 8px 8px', padding: '10px 12px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', background: 'var(--color-purple-soft)', border: '1px solid var(--color-border)' }}
             >

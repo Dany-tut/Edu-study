@@ -204,7 +204,7 @@ function StudentRow({
 
         </div>
         {/* Pay button */}
-        <motion.button
+        <motion.button data-hover="layer"
           whileTap={{ scale: 0.95 }}
           onClick={e => { e.stopPropagation(); onPay(student) }}
           style={{
@@ -226,7 +226,7 @@ function StudentRow({
         </motion.button>
 
         {/* Expand toggle */}
-        <button type="button" aria-label={t('История платежей') + ': ' + tn(student.name)} aria-expanded={expanded} onClick={e => { e.stopPropagation(); onToggle() }} style={{ color: 'var(--color-text-3)', flexShrink: 0, border: 0, background: 'transparent', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gridColumn: compact ? 3 : undefined, gridRow: compact ? 1 : undefined, justifySelf: 'end' }}>
+        <button data-hover="layer" type="button" aria-label={t('История платежей') + ': ' + tn(student.name)} aria-expanded={expanded} onClick={e => { e.stopPropagation(); onToggle() }} style={{ color: 'var(--color-text-3)', flexShrink: 0, border: 0, background: 'transparent', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gridColumn: compact ? 3 : undefined, gridRow: compact ? 1 : undefined, justifySelf: 'end' }}>
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
       </div>
@@ -266,7 +266,7 @@ function StudentRow({
                   <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)' }}>
                     +{fmt(p.amount)} ₽
                   </div>
-                  <button
+                  <button data-hover="layer"
                     aria-label={t('Удалить платёж')}
                     disabled={deletion.busy}
                     onClick={() => handleDelete(p.id)}
@@ -350,7 +350,7 @@ export default function TeacherFinancesPage() {
               }))}
             />
           </HScrollFade>
-          <motion.button type="button" className="finance-add" whileTap={{ scale: 0.96 }} onClick={() => setPaying(null)}>
+          <motion.button data-hover="layer" type="button" className="finance-add" whileTap={{ scale: 0.96 }} onClick={() => setPaying(null)}>
             <Plus size={16} /> {t('Платёж')}
           </motion.button>
         </header>

@@ -81,7 +81,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
   const cta = picked === 'custom' ? t('Добавить') : movesFromOtherDay ? t('Перенести сюда') : t('Поставить сюда')
 
   const footer = (
-    <button onClick={submit} style={btn('L', 'primary', canSubmit ? undefined : { opacity: 0.5, pointerEvents: 'none' })}>{cta}</button>
+    <button data-hover="layer" onClick={submit} style={btn('L', 'primary', canSubmit ? undefined : { opacity: 0.5, pointerEvents: 'none' })}>{cta}</button>
   )
 
   return (
@@ -92,7 +92,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 8 }}>{t('Кому')}</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {groups.map(g => (
-                <button
+                <button data-hover="layer"
                   key={g.id}
                   onClick={() => setGroupId(g.id)}
                   style={{
@@ -122,7 +122,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
                     const on = picked === u.id
                     const sub = [u.number != null && u.number >= 0 && u.fromCourse ? `${t('Урок')} ${u.number + 1}` : '', u.title].filter(Boolean).join(' · ')
                     return (
-                      <button
+                      <button data-hover="layer"
                         key={u.id}
                         onClick={() => chooseLesson(u)}
                         style={{
@@ -141,7 +141,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
                       </button>
                     )
                   })}
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setPicked('custom')}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10,
@@ -178,7 +178,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
             </div>
           )}
 
-          <button
+          <button data-hover="layer"
             onClick={() => setNotify(n => !n)}
             style={{ display: 'flex', alignItems: 'center', gap: 10, border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', padding: 0, fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}
           >

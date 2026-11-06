@@ -99,7 +99,7 @@ export default function NewStudentConfig({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{t('ВИДЖЕТЫ')}</span>
-          <button
+          <button data-hover="layer"
             type="button"
             onClick={toggleAll}
             style={{
@@ -117,7 +117,7 @@ export default function NewStudentConfig({
         {WIDGET_META.map(w => {
           const isHidden = hidden.has(w.id)
           return (
-            <button
+            <button data-hover="layer"
               key={w.id}
               onClick={() => toggle(w.id)}
               style={{
@@ -168,7 +168,7 @@ export default function NewStudentConfig({
         }} />
       </div>
 
-      <button
+      <button data-hover="layer"
         onClick={apply}
         disabled={saving}
         style={{ height: 48,

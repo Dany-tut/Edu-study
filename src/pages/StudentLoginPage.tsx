@@ -195,7 +195,7 @@ function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryCom
               aria-label={t('Пароль')}
               style={{ ...inputStyle, paddingRight: 52 }}
             />
-            <button
+            <button data-hover="layer"
               type="button"
               onClick={() => setShowPassword(v => !v)}
               aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
@@ -213,8 +213,8 @@ function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryCom
             </button>
           </div>}
           <AuthFeedbackSlot idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : switchingCabinet ? 'Войдите аккаунтом, к которому привязан профиль ученика.' : 'Данные для входа выдаёт учитель.'} />
-          {mode === 'login' && <button type="button" disabled={feedback.busy} onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
-          <button
+          {mode === 'login' && <button data-hover="layer" type="button" disabled={feedback.busy} onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
+          <button data-hover="layer"
             type="submit"
             disabled={feedback.busy || loading || (mode !== 'newpassword' && !email.trim()) || (mode === 'login' && !password) || (mode === 'newpassword' && !password)}
             style={{ height: 48,
@@ -227,7 +227,7 @@ function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryCom
           >
             {loading ? t('Загрузка...') : mode === 'reset' ? (mailSent ? t('Вернуться ко входу') : t('Отправить письмо')) : mode === 'newpassword' ? t('Сохранить пароль') : t('Войти')}
           </button>
-          {mode === 'reset' && <button type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
+          {mode === 'reset' && <button data-hover="layer" type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
         </form>
 
         {mode === 'login' && !(switchingCabinet && loading) && <SocialLoginButtons role="student" />}

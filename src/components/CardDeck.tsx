@@ -609,7 +609,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
             <ActionButton tone="good" label={t('Верно')} onClick={() => swipe('right')} />
           </div>
         ) : !revealed ? (
-          <button
+          <button data-hover="layer"
             onClick={() => setRevealed(true)}
             style={{
               width: '100%', padding: 14, borderRadius: 14, border: 'none', background: accent,
@@ -656,7 +656,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
           {/* Онбординг проходят один раз, а забывают, какой свайп что значит, на
               третий день. Поэтому подсказки должны вызываться, и вызываться
               отсюда: строка про жесты уже здесь. */}
-          <button
+          <button data-hover="layer"
             onClick={() => setTour(true)}
             aria-label={t('Показать подсказки')}
             style={{
@@ -1226,7 +1226,7 @@ function UndoButton({ onClick, label, disabled, big }: {
   onClick: () => void; label: string; disabled?: boolean; big?: boolean
 }) {
   return (
-    <button
+    <button data-hover="layer"
       onClick={onClick}
       disabled={disabled}
       style={{

@@ -82,7 +82,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
   }
 
   return <>
-    <button type="button" onClick={() => setOpen(true)} aria-label={`${tn(sub.studentName)} · ${tc(sub.lessonTitle)}`} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+    <button data-hover="layer" type="button" onClick={() => setOpen(true)} aria-label={`${tn(sub.studentName)} · ${tc(sub.lessonTitle)}`} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -95,7 +95,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
     <MobileSheet open={open} onClose={() => setOpen(false)} title={`${tn(sub.studentName)} · ${tc(sub.lessonTitle)}`} footer={<>
       {reviewError && <Alert tone="danger" text={reviewError} style={{ marginBottom: 8 }} />}
       <div style={{ display: 'flex', gap: 10 }}>
-        <motion.button
+        <motion.button data-hover="layer"
           whileTap={{ scale: 0.97 }}
           onClick={() => act('returned')}
           disabled={!!busy}
@@ -104,7 +104,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         >
           {busy === 'returned' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="returned" size={16} tone="returned" />} {t('Вернуть')}
         </motion.button>
-        <motion.button
+        <motion.button data-hover="layer"
           whileTap={{ scale: 0.97 }}
           onClick={() => act('completed')}
           disabled={!!busy}
@@ -145,10 +145,10 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         <div style={{ display: 'flex', gap: 8 }}>
           {/* Пара кнопок одного вида: «Фото» на btn('M','secondary') в карточке
               без рамки сливалась с фоном рядом с обведённой «Доской». */}
-          <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={attachBtn(photos.length > 0)}>
+          <button data-hover="layer" onClick={() => fileRef.current?.click()} className="cursor-pointer" style={attachBtn(photos.length > 0)}>
             <ImageIcon size={14} /> {photos.length > 0 ? `${t('Фото')} · ${photos.length}` : t('Фото')}
           </button>
-          <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={attachBtn(showBoard || !!board)}>
+          <button data-hover="layer" onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={attachBtn(showBoard || !!board)}>
             <PenLine size={14} /> {board ? <LoopActionLabel icon={Check} label={t('Доска ✓')} /> : t('Доска')}
           </button>
         </div>
@@ -158,7 +158,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
             {photos.map((src, i) => (
               <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
                 <img src={src} alt="" style={{ width: '100%', height: 64, objectFit: 'cover', display: 'block' }} />
-                <button onClick={() => setPhotos(p => p.filter((_, j) => j !== i))} className="cursor-pointer" style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
+                <button data-hover="layer" onClick={() => setPhotos(p => p.filter((_, j) => j !== i))} className="cursor-pointer" style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
               </div>
             ))}
           </div>
@@ -229,7 +229,7 @@ export default function MobileTeacherReview({ onDetailChange }: { onDetailChange
               {t('ДОМАШНИЕ ЗАДАНИЯ')}
             </div>
             {pendingHw.map(h => (
-              <button type="button" key={h.id} onClick={() => { tactile(); setSelectedHomework(h) }} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+              <button data-hover="layer" type="button" key={h.id} onClick={() => { tactile(); setSelectedHomework(h) }} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
                 <ImageIcon size={18} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <FadeText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{tc(h.title)}</FadeText>

@@ -7,7 +7,7 @@ export default function ProfileChips<T extends string>({ label, value, items, on
   onChange: (id: T) => void
 }) {
   return <nav className="cj-tabs profile-chips" aria-label={label}>
-    {items.map(item => <button key={item.id} type="button" aria-pressed={item.id === value}
+    {items.map(item => <button data-hover="layer" key={item.id} type="button" aria-pressed={item.id === value}
       onClick={() => onChange(item.id)}>{item.label}</button>)}
   </nav>
 }

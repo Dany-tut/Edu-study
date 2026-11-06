@@ -60,7 +60,7 @@ function JournalDetails({ work, historyError, historyPending, onClose, onOpen }:
   return <Modal title={<span id={titleId}>{work.entry.lesson.title}</span>}
     subtitle={`${diaryWorkLabel(work.entry)}${work.hard ? ` · ${t('Развёрнутые задания')}` : ''}`}
     width={720} onClose={onClose}
-    footer={<button type="button" className="swj-open-work" onClick={onOpen}>
+    footer={<button data-hover="layer" type="button" className="swj-open-work" onClick={onOpen}>
       {t('Открыть работу')}<ChevronRight size={16} />
     </button>}>
     <div ref={content} className="swj-details">
@@ -168,7 +168,7 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
       {([
         ['all', 'Все работы', summary.total], ['improve', 'Ниже порога', summary.improve],
         ['passed', 'Зачтено', summary.passed], ['pending', 'На проверке', works.filter(w => w.state === 'pending').length],
-      ] as const).map(([id, label, count]) => <button type="button" key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>
+      ] as const).map(([id, label, count]) => <button data-hover="layer" type="button" key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>
         {t(label)}<span>{count}</span>
       </button>)}
     </div>
@@ -189,7 +189,7 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
           <td><span className="swj-result">{work.score ?? '—'}{work.score !== null ? <><small> / 100</small><small className="swj-result-percent">%</small></> : null}</span>
             {work.score !== null && (work.state === 'draft' || work.state === 'pending') ? <span className="swj-work-meta">{t('Предыдущий итог')}</span> : null}</td>
           <td className="swj-attempts-column">{work.attemptCount ?? '—'}</td>
-          <td><button type="button" className="swj-state-button" onClick={() => setSelectedKey(work.key)}
+          <td><button data-hover="layer" type="button" className="swj-state-button" onClick={() => setSelectedKey(work.key)}
             aria-label={`${t(STATE_LABEL[work.state])} · ${t('История попыток')} · ${work.entry.lesson.title}`} aria-haspopup="dialog"><WorkState work={work} /><ChevronRight size={15} /></button></td>
         </tr>)}</tbody>
       </table>

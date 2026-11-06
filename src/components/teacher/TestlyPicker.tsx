@@ -86,7 +86,7 @@ export default function TestlyPicker({ onPick, addedIds, compact = false }: {
             {shown.map(x => {
               const added = addedIds?.has(x.id)
               return (
-                <button key={x.id} onClick={() => onPick(x)} disabled={added} style={{
+                <button data-hover="layer" key={x.id} onClick={() => onPick(x)} disabled={added} style={{
                   display: 'flex', gap: 8, alignItems: 'center', textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none',
                   background: 'var(--color-bg-2)', cursor: added ? 'default' : 'pointer', fontFamily: 'inherit', opacity: added ? 0.6 : 1,
                 }}>
@@ -112,7 +112,7 @@ export default function TestlyPicker({ onPick, addedIds, compact = false }: {
       {search}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px', fontSize: 12, color: 'var(--color-text-3)' }}>
         {tests && <span>{tests.length} {t('в вашем Тестли')}</span>}
-        <a href={testlyNewUrl()} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>
+        <a data-hover="link" href={testlyNewUrl()} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>
           <ExternalLink size={12} /> {t('Новый тест в Тестли')}
         </a>
       </div>
@@ -134,7 +134,7 @@ export default function TestlyPicker({ onPick, addedIds, compact = false }: {
                 {x.minutes ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Clock size={12} /> {x.minutes} {t('мин')}</span> : null}
               </div>
             </div>
-            <button onClick={() => onPick(x)} disabled={added} style={{
+            <button data-hover="layer" onClick={() => onPick(x)} disabled={added} style={{
               display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 11, border: 'none',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: added ? 'default' : 'pointer', flexShrink: 0,
               background: added ? 'var(--color-green-soft)' : 'var(--color-purple-soft)',

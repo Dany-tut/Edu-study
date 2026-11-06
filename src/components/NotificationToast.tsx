@@ -87,7 +87,7 @@ function NotifRow({ n, onAction, onRead }: {
           {n.body}
         </div>
         {n.action && (
-          <button onClick={() => { onRead(n.id); onAction(n) }} style={{
+          <button data-hover="layer" onClick={() => { onRead(n.id); onAction(n) }} style={{
             marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '6px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
             background: 'rgba(255,90,90,0.18)', color: '#FF5A5A',
@@ -226,7 +226,7 @@ export default function NotificationToastContainer() {
                 <span style={{ color: 'var(--color-text-3)', display: 'flex' }}>
                   {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </span>
-                <button
+                <button data-hover="layer"
                   onClick={e => { e.stopPropagation(); dismissAll() }}
                   aria-label={t('Закрыть')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
@@ -257,7 +257,7 @@ export default function NotificationToastContainer() {
                       ))}
                     </div>
                     {live.length > 1 && (
-                      <button onClick={dismissAll} style={{
+                      <button data-hover="layer" onClick={dismissAll} style={{
                         marginTop: 10, width: '100%', padding: '8px 0', borderRadius: 10,
                         border: `1px solid rgba(${rgb},0.2)`, background: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600, color: 'var(--color-muted)',

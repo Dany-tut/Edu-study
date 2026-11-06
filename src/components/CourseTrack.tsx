@@ -384,8 +384,8 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
             </div>
 
             {(edges.left || edges.right) && <div className="course-track-hints" style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '4px 16px', padding: '0 32px', fontSize: 11, color: 'var(--color-text-3)' }}>
-              {edges.left && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowLeft} position="start" label={t('← Предыдущие занятия')} /></button>}
-              {edges.right && <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowRight} label={t('Дальше есть ещё занятия →')} /></button>}
+              {edges.left && <button data-hover="layer" type="button" onClick={() => scrollRef.current?.scrollBy({ left: -viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowLeft} position="start" label={t('← Предыдущие занятия')} /></button>}
+              {edges.right && <button data-hover="layer" type="button" onClick={() => scrollRef.current?.scrollBy({ left: viewportW * 0.85, behavior: 'smooth' })}><LoopActionLabel icon={LoopUiArrowRight} label={t('Дальше есть ещё занятия →')} /></button>}
             </div>}
 
             {/* ── Detail popover — overlay anchored to the selected node, rendered

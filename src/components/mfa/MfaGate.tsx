@@ -109,15 +109,15 @@ export function MfaChallengeScreen({ onPassed, client = supabase, onCancel }: { 
           autoCapitalize="characters" autoCorrect="off" spellCheck={false} autoComplete="off" aria-invalid={!!error}
           style={{ width: '100%', boxSizing: 'border-box', minHeight: 52, padding: '0 16px', borderRadius: 14, border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 18, letterSpacing: '.08em', textAlign: 'center', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }} />
         {error && <Alert tone="danger" text={t(error)} />}
-        <button type="submit" disabled={busy} style={{ ...primaryButton, opacity: busy ? 0.6 : 1 }}>{t(busy ? 'Проверяем…' : 'Войти')}</button>
-        <button type="button" onClick={() => { setBackup(false); setError('') }} style={linkButton}>{t('Ввести код из приложения')}</button>
+        <button data-hover="layer" type="submit" disabled={busy} style={{ ...primaryButton, opacity: busy ? 0.6 : 1 }}>{t(busy ? 'Проверяем…' : 'Войти')}</button>
+        <button data-hover="layer" type="button" onClick={() => { setBackup(false); setError('') }} style={linkButton}>{t('Ввести код из приложения')}</button>
       </form>
       : <form noValidate onSubmit={event => { event.preventDefault(); void submit() }} style={{ display: 'grid', gap: 12, marginTop: 8 }}>
         <CodeCells value={code} onChange={value => { setCode(value); setError('') }} onComplete={value => void submit(value)} disabled={busy} invalid={!!error} label={t('Код из приложения')} />
         {error && <Alert tone="danger" text={t(error)} />}
-        <button type="submit" disabled={busy || code.length !== 6 || !factorId} style={{ ...primaryButton, opacity: busy || code.length !== 6 ? 0.6 : 1 }}>{t(busy ? 'Проверяем…' : 'Подтвердить')}</button>
-        <button type="button" onClick={() => { setBackup(true); setError('') }} style={linkButton}>{t('Использовать запасной код')}</button>
+        <button data-hover="layer" type="submit" disabled={busy || code.length !== 6 || !factorId} style={{ ...primaryButton, opacity: busy || code.length !== 6 ? 0.6 : 1 }}>{t(busy ? 'Проверяем…' : 'Подтвердить')}</button>
+        <button data-hover="layer" type="button" onClick={() => { setBackup(true); setError('') }} style={linkButton}>{t('Использовать запасной код')}</button>
       </form>}
-    <button type="button" onClick={() => { if (onCancel) onCancel(); else void signOut() }} style={{ ...linkButton, width: '100%', color: 'var(--color-muted)' }}>{t(onCancel ? 'Отмена' : 'Выйти')}</button>
+    <button data-hover="layer" type="button" onClick={() => { if (onCancel) onCancel(); else void signOut() }} style={{ ...linkButton, width: '100%', color: 'var(--color-muted)' }}>{t(onCancel ? 'Отмена' : 'Выйти')}</button>
   </AuthShell>
 }

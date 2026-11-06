@@ -95,8 +95,8 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
   return <div className="live-student-home" data-testid="live-student-home">
     <SeasonBackdrop/><div className="lh-season-decor" aria-hidden><SeasonHero portalDecor={false}/></div><SeasonCornerPumpkin/>
     <header className="lh-header">
-      {desktop?<Sidebar/>:<><button type="button" className="lh-profile" aria-label={t('Профиль')} onClick={()=>dashboard.setActivePage('profile')}><User size={18}/></button><strong>{t('Главная')}</strong><MobileBell/></>}
-<div className="lh-assignments">{assignments}</div><button type="button" className="lh-appearance" aria-label={t('Оформление главной')} onClick={()=>setAppearance(true)}><Ghost size={18}/></button>
+      {desktop?<Sidebar/>:<><button data-hover="layer" type="button" className="lh-profile" aria-label={t('Профиль')} onClick={()=>dashboard.setActivePage('profile')}><User size={18}/></button><strong>{t('Главная')}</strong><MobileBell/></>}
+<div className="lh-assignments">{assignments}</div><button data-hover="layer" type="button" className="lh-appearance" aria-label={t('Оформление главной')} onClick={()=>setAppearance(true)}><Ghost size={18}/></button>
     </header>
     <main className="lh-content">
       <section className="lh-schedule" aria-label={t('Расписание')}><ScheduleCarousel/></section>
@@ -105,12 +105,12 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     </main>
     {!desktop&&<MobileBottomNav/>}
     {appearance&&<Modal title={t('Оформление главной')} onClose={()=>setAppearance(false)}>
-      <div className="lh-appearance-options"><button type="button" aria-pressed={!season.variant} onClick={()=>{setPersonalHalloween('off');setAppearance(false)}}>{t('Без праздника')}</button>{VARIANTS.map(item=><button type="button" key={item.key} aria-pressed={season.variant===item.key} onClick={()=>{setPersonalHalloween(item.key);setAppearance(false)}}>{t(item.title)}</button>)}</div>
+      <div className="lh-appearance-options"><button data-hover="layer" type="button" aria-pressed={!season.variant} onClick={()=>{setPersonalHalloween('off');setAppearance(false)}}>{t('Без праздника')}</button>{VARIANTS.map(item=><button data-hover="layer" type="button" key={item.key} aria-pressed={season.variant===item.key} onClick={()=>{setPersonalHalloween(item.key);setAppearance(false)}}>{t(item.title)}</button>)}</div>
     </Modal>}
     {scope&&<Modal title={t(scope.module!=null?'Несданные работы':scope.filter==='review'?'На проверке':scope.filter==='overdue'?'Просроченные работы':'Мои работы')} onClose={()=>setScope(null)} width={740}>
-      <div className="lh-work-filters">{(['actions','upcoming','overdue','review'] as const).map(filter=><button type="button" key={filter} aria-pressed={scope.filter===filter} onClick={()=>setScope({...scope,filter})}>{t(filter==='actions'?'Нужно сдать':filter==='upcoming'?'Без просрочки':filter==='overdue'?'Просрочено':'На проверке')}</button>)}</div>
-      {status?<p>{status}{error&&<button type="button" onClick={reload}>{t('Повторить')}</button>}</p>:all.length?all.map(entry=><button type="button" className="lh-work-row" key={entry.id+entry.course.id} onClick={()=>open(entry)}><span><strong>{tc(entry.lesson.title)}{entry.suffix?` · ${entry.suffix}`:''}</strong><small>{tc(entry.course.name)} · {t('Модуль')}{'\u00a0'}{entry.moduleOrder+1} · {t(diaryStatusText(entry))}</small></span><WorkDue entry={entry} today={today}/><ChevronRight size={16}/></button>):<p>{t('Работ нет')}</p>}
-      {scope.course&&<button type="button" onClick={()=>setScope({filter:scope.filter})}>{t('Все курсы')}</button>}
+      <div className="lh-work-filters">{(['actions','upcoming','overdue','review'] as const).map(filter=><button data-hover="layer" type="button" key={filter} aria-pressed={scope.filter===filter} onClick={()=>setScope({...scope,filter})}>{t(filter==='actions'?'Нужно сдать':filter==='upcoming'?'Без просрочки':filter==='overdue'?'Просрочено':'На проверке')}</button>)}</div>
+      {status?<p>{status}{error&&<button data-hover="layer" type="button" onClick={reload}>{t('Повторить')}</button>}</p>:all.length?all.map(entry=><button data-hover="layer" type="button" className="lh-work-row" key={entry.id+entry.course.id} onClick={()=>open(entry)}><span><strong>{tc(entry.lesson.title)}{entry.suffix?` · ${entry.suffix}`:''}</strong><small>{tc(entry.course.name)} · {t('Модуль')}{'\u00a0'}{entry.moduleOrder+1} · {t(diaryStatusText(entry))}</small></span><WorkDue entry={entry} today={today}/><ChevronRight size={16}/></button>):<p>{t('Работ нет')}</p>}
+      {scope.course&&<button data-hover="layer" type="button" onClick={()=>setScope({filter:scope.filter})}>{t('Все курсы')}</button>}
     </Modal>}
   </div>
 }

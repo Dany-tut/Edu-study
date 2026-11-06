@@ -88,7 +88,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 {t('Скрытые — ниже черты.')}
               </div>
             </div>
-            <button
+            <button data-hover="layer"
               onClick={onClose}
               style={{
                 width: 32, height: 32, borderRadius: '50%', border: 'none',
@@ -121,7 +121,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                   <GripVertical size={16} color="#C0C0CC" style={{ flexShrink: 0 }} />
                   <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
                   <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t(w.label)}</span>
-                  <button
+                  <button data-hover="layer"
                     onClick={() => toggle(w.id)}
                     style={{
                       width: 28, height: 28, borderRadius: 8, border: 'none',
@@ -162,7 +162,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                       <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
                     </div>
                     <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-muted)' }}>{t(w.label)}</span>
-                    <button
+                    <button data-hover="layer"
                       onClick={() => toggle(w.id)}
                       style={{
                         width: 28, height: 28, borderRadius: 8, border: 'none',
@@ -180,7 +180,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
 
           {/* Footer buttons */}
           <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
-            <button
+            <button data-hover="layer"
               onClick={onClose}
               style={{
                 padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)',
@@ -189,7 +189,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
             >
               {t('Отмена')}
             </button>
-            <button
+            <button data-hover="layer"
               onClick={onClose}
               style={{
                 padding: '10px 24px', borderRadius: 12, border: 'none',

@@ -159,7 +159,7 @@ export default function MobileProfilePage() {
             <div className="flex items-center" style={{ gap: 14 }}>
               {/* Тап по кружку — загрузить или сменить фото. */}
               <div className="flex-shrink-0" style={{ position: 'relative', width: 58, height: 58 }}>
-                <button
+                <button data-hover="layer"
                   type="button"
                   onClick={() => { tactile(); pickImageFile(setCropFile) }}
                   aria-label={avatarPath ? t('Сменить фото') : t('Загрузить фото')}
@@ -169,7 +169,7 @@ export default function MobileProfilePage() {
                   {initial}
                   <AvatarPhotoFill path={avatarPath} />
                 </button>
-                <button
+                <button data-hover="layer"
                   type="button"
                   onClick={() => { tactile(); if (avatarPath) void removePhoto(); else pickImageFile(setCropFile) }}
                   aria-label={avatarPath ? t('Убрать фото') : t('Загрузить фото')}
@@ -185,7 +185,7 @@ export default function MobileProfilePage() {
                   {/* Строка уровня — она же вход в смену карточки, когда их
                       несколько: стрелка появляется только тогда, иначе это
                       обычная подпись без обещания тапа. */}
-                  <span
+                  <span data-hover="layer"
                     className="flex items-center"
                     onClick={hasChoice ? () => { tactile(); setCardsOpen(true) } : undefined}
                     role={hasChoice ? 'button' : undefined}
@@ -316,7 +316,7 @@ export default function MobileProfilePage() {
             </div>
             <div style={{ borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
               {/* Тема — весь ряд кликабелен, один тап меняет тему */}
-              <button
+              <button data-hover="layer"
                 onClick={() => { tactile(); toggle() }}
                 className="flex items-center justify-between cursor-pointer"
                 style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
@@ -332,7 +332,7 @@ export default function MobileProfilePage() {
               {/* Праздничная тема — только пока сезон идёт: открывает окно выбора
                   из трёх тем (или «Без темы»), справа — что выбрано сейчас. */}
               {season.live && (
-                <button
+                <button data-hover="layer"
                   onClick={() => { tactile(); openSeasonPicker() }}
                   className="flex items-center justify-between cursor-pointer"
                   style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
@@ -345,7 +345,7 @@ export default function MobileProfilePage() {
               )}
 
               {/* Цвет курса — глубина перекраски и личные цвета предметов */}
-              {isAdmin && <motion.button
+              {isAdmin && <motion.button data-hover="layer"
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); window.location.hash = '#/teacher' }}
                 className="flex items-center justify-between cursor-pointer"
@@ -357,7 +357,7 @@ export default function MobileProfilePage() {
                 <ChevronRight size={18} style={{ color: 'var(--color-accent)' }} />
               </motion.button>}
 
-              <motion.button
+              <motion.button data-hover="layer"
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setTintOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
@@ -376,7 +376,7 @@ export default function MobileProfilePage() {
 
               {/* Порядок курсов — только тому, у кого их несколько */}
               {subjects.length > 1 && (
-                <motion.button
+                <motion.button data-hover="layer"
                   whileTap={{ scale: 0.99 }}
                   onClick={() => { tactile(); setCourseOrderOpen(true) }}
                   className="flex items-center justify-between cursor-pointer"
@@ -393,7 +393,7 @@ export default function MobileProfilePage() {
               )}
 
               {/* Лента и жесты — раскладка свайпов по посту */}
-              <motion.button
+              <motion.button data-hover="layer"
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
@@ -425,7 +425,7 @@ export default function MobileProfilePage() {
               </div>
 
               {/* Язык — весь ряд кликабелен, один тап меняет язык */}
-              <button
+              <button data-hover="layer"
                 onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
                 className="flex items-center justify-between cursor-pointer"
                 style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
@@ -437,7 +437,7 @@ export default function MobileProfilePage() {
                 </span>
               </button>
 
-              {isAdmin && <motion.button
+              {isAdmin && <motion.button data-hover="layer"
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); window.location.hash = '#/teacher' }}
                 className="flex items-center justify-between cursor-pointer"
@@ -449,7 +449,7 @@ export default function MobileProfilePage() {
                 <ChevronRight size={18} style={{ color: 'var(--color-accent)' }} />
               </motion.button>}
 
-              <motion.button
+              <motion.button data-hover="layer"
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); setFeedbackOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"
@@ -462,7 +462,7 @@ export default function MobileProfilePage() {
               </motion.button>
 
               {canInstall && (
-                <motion.button
+                <motion.button data-hover="layer"
                   whileTap={{ scale: 0.99 }}
                   onClick={() => { tactile(); requestShowInstall() }}
                   className="flex items-center justify-between cursor-pointer"
@@ -500,7 +500,7 @@ export default function MobileProfilePage() {
           {cards.map(c => {
             const active = c.groupId === currentCard?.groupId
             return (
-              <button
+              <button data-hover="layer"
                 key={c.id}
                 type="button"
                 onClick={() => { tactile(); if (!switchTo(c)) setCardsOpen(false) }}
@@ -601,7 +601,7 @@ function CourseCard({ title, icon, caption, progress, pair, active, onClick }: {
 }) {
   const accent = pair?.text ?? 'var(--color-accent)'
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       whileTap={{ scale: 0.97 }}
       onClick={() => { tactile(); onClick() }}
       className="flex flex-col cursor-pointer text-left flex-shrink-0"

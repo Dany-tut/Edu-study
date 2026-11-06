@@ -110,7 +110,7 @@ export default function HomeworkFlowBar({
             выглядела съехавшей вбок. */}
         <div className="flex items-stretch" style={{ gap: 12 }}>
           {onSkip && (
-            <button
+            <button data-hover="layer"
               onClick={onSkip}
               className="cursor-pointer flex items-center justify-center"
               style={{
@@ -130,7 +130,7 @@ export default function HomeworkFlowBar({
               {t('Пропустить')}
             </button>
           )}
-          <motion.button
+          <motion.button data-hover="layer"
             whileTap={disabled ? undefined : { scale: 0.98 }}
             onClick={disabled ? undefined : onPrimary}
             disabled={disabled}

@@ -706,7 +706,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                 placeholder={t('Название полки — например: Сверхъестественное')}
                 style={{ ...inputStyle, width: 320, flex: '0 1 320px' }}
               />
-              <button
+              <button data-hover="layer"
                 onClick={() => void doGroup()}
                 disabled={busy || !shelfName.trim()}
                 style={{
@@ -737,7 +737,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
           )}
 
           {anyOnShelf && (
-            <button
+            <button data-hover="layer"
               onClick={() => void doUngroup()}
               disabled={busy}
               style={btn('M', 'secondary')}
@@ -746,7 +746,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
             </button>
           )}
 
-          <button
+          <button data-hover="layer"
             onClick={() => setPicked(new Set())}
             style={{
               marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 12px',
@@ -796,13 +796,13 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
 
           {shelfPick && shelves.some(g => g.id === shelfPick) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button
+              <button data-hover="layer"
                 onClick={() => { const g = shelves.find(x => x.id === shelfPick); if (g) openEditor(g, null) }}
                 style={ghostWide}
               >
                 <Pencil size={14} /> {t('Настройки полки')}
               </button>
-              <button
+              <button data-hover="layer"
                 onClick={() => { const g = shelves.find(x => x.id === shelfPick); if (g) void removeShelf(g) }}
                 style={{ ...ghostWide, color: 'var(--color-red-text)' }}
               >
@@ -829,7 +829,7 @@ function ShelfChip({ label, hint, active, onClick, onEdit }: {
   label: string; hint: string; active: boolean; onClick: () => void; onEdit?: () => void
 }) {
   return (
-    <div
+    <div data-hover="layer"
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 8, height: 34, padding: onEdit ? '0 6px 0 12px' : '0 12px',
@@ -843,7 +843,7 @@ function ShelfChip({ label, hint, active, onClick, onEdit }: {
       <span>{label}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 600 }}>{hint}</span>
       {onEdit && (
-        <button
+        <button data-hover="layer"
           onClick={e => { e.stopPropagation(); onEdit() }}
           style={{
             width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -886,7 +886,7 @@ function SetCard({ set, group, checked, editMode, onCheck, onOpen, onDelete, onS
         icon={<Layers size={18} strokeWidth={2} style={{ color: MAT_COLOR }} />}
         iconBg={MAT_BG}
         badge={onShelfNow ? (
-          <span
+          <span data-hover="layer"
             onClick={e => { e.stopPropagation(); onShelf() }}
             title={t('Настройки полки')}
             style={cardChip(MAT_COLOR, { cursor: 'pointer', maxWidth: 130, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' })}
@@ -997,8 +997,8 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
                 {set.cards.length} {t('карточек')}
               </div>
             </div>
-            <Tooltip label={t('Открыть набор')}><button onClick={() => onOpenSet(set.id)} style={ghost}><Pencil size={14} /></button></Tooltip>
-            <button
+            <Tooltip label={t('Открыть набор')}><button data-hover="layer" onClick={() => onOpenSet(set.id)} style={ghost}><Pencil size={14} /></button></Tooltip>
+            <button data-hover="layer"
               onClick={() => {
                 if (i === 0) return
                 const next = [...group.sets]
@@ -1008,7 +1008,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
               style={ghost}
               title={t('Выше')}
             ><LoopUiArrowUp size={14}/></button>
-            <button
+            <button data-hover="layer"
               onClick={() => {
                 if (i === group.sets.length - 1) return
                 const next = [...group.sets]
@@ -1018,7 +1018,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
               style={ghost}
               title={t('Ниже')}
             ><LoopUiArrowDown size={14}/></button>
-            <Tooltip label={t('Удалить набор')}><button
+            <Tooltip label={t('Удалить набор')}><button data-hover="layer"
               onClick={() => setSets(group.sets.filter((_, j) => j !== i))}
               style={{ ...ghost, color: 'var(--color-red-text)' }}
             >
@@ -1026,7 +1026,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
             </button></Tooltip>
           </div>
         ))}
-        <button
+        <button data-hover="layer"
           onClick={() => {
             const set = emptySet(group.sets.length)
             setSets([...group.sets, set])
@@ -1266,10 +1266,10 @@ function SetStart({ lang, onAdd, onAddGrouped, onManual, onBulk }: {
       <div style={labelStyle}>{t('Откуда берём слова')}</div>
       <CardImportPanel lang={lang} variant="tiles" onAdd={onAdd} onAddGrouped={onAddGrouped} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <button type="button" onClick={onManual} style={startBtn}>
+        <button data-hover="layer" type="button" onClick={onManual} style={startBtn}>
           <Pencil size={14} /> {t('Вписать руками')}
         </button>
-        <button type="button" onClick={onBulk} style={startBtn}>
+        <button data-hover="layer" type="button" onClick={onBulk} style={startBtn}>
           <Plus size={14} /> {t('Вставить списком')}
         </button>
       </div>
@@ -1502,11 +1502,11 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
 
       {subsets.map(sub => (
         <div key={sub.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
-          <button type="button" onClick={() => setOpenId(sub.id)} style={{ ...ghostBtn, flex: 1, justifyContent: 'flex-start' }}>
+          <button data-hover="layer" type="button" onClick={() => setOpenId(sub.id)} style={{ ...ghostBtn, flex: 1, justifyContent: 'flex-start' }}>
             <span style={{ fontWeight: 700 }}>{sub.title || t('Без названия')}</span>
             <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>{sub.cards.length} {t('карточек')}</span>
           </button>
-          <Tooltip label={t('Удалить стопку')}><button
+          <Tooltip label={t('Удалить стопку')}><button data-hover="layer"
             type="button"
             onClick={() => patchSubsets(subsets.filter(x => x.id !== sub.id))}
             style={ghostBtn}
@@ -1515,7 +1515,7 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
           </button></Tooltip>
         </div>
       ))}
-      <button
+      <button data-hover="layer"
         type="button"
         onClick={() => patchSubsets([...subsets, { id: newSubsetId(subsets.length), title: '', about: '', cards: [] }])}
         style={ghostBtn}
@@ -1639,7 +1639,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
             placeholder="—"
             style={cellStyle({ fontSize: 12, color: 'var(--color-text-3)' })}
           />
-          <Tooltip label={t('Убрать карточку')}><button
+          <Tooltip label={t('Убрать карточку')}><button data-hover="layer"
             onClick={() => onCards(cards.filter((_, j) => j !== i))}
             style={{ ...ghost, width: 26, height: 26, border: 'none', color: 'var(--color-muted)' }}
           >
@@ -1689,7 +1689,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
           placeholder={t('S01E04')}
           style={cellStyle({ fontSize: 12, color: 'var(--color-text-3)' })}
         />
-        <Tooltip label={t('Добавить')}><button
+        <Tooltip label={t('Добавить')}><button data-hover="layer"
           onClick={addRow}
           disabled={!ready}
           style={{
@@ -1721,7 +1721,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
       />
 
       <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <button type="button" onClick={() => setBulkOpen(v => !v)} style={{ ...ghostBtn, padding: 0 }}>
+        <button data-hover="layer" type="button" onClick={() => setBulkOpen(v => !v)} style={{ ...ghostBtn, padding: 0 }}>
           <ChevronDown size={14} style={{ transform: bulkOpen ? 'rotate(180deg)' : 'none' }} />
           {t('Вставить списком')}
         </button>
@@ -1734,7 +1734,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
               placeholder={'hunter — охотник\nsalt and burn — засыпать солью и сжечь'}
               style={{ ...inputStyle, resize: 'none' }}
             />
-            <button
+            <button data-hover="layer"
               onClick={addBulk}
               disabled={parseBulk(bulk).length === 0}
               style={{

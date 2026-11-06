@@ -92,7 +92,7 @@ export default function MfaLoginRow() {
           </div>
           <span aria-label={t('Включена')} style={{ ...pill, width: 124, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12 }}><Check size={14} strokeWidth={2.2} />{t(busy ? 'Отключаем…' : 'Включена')}</span>
         </div>
-        : <button type="button" disabled={factorId === undefined} onClick={() => setSetupOpen(true)}
+        : <button data-hover="layer" type="button" disabled={factorId === undefined} onClick={() => setSetupOpen(true)}
           style={{ ...pill, width: 124, padding: '0 10px', border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', cursor: 'pointer', opacity: factorId === undefined ? 0.55 : 1 }}>
           {factorId === undefined ? t('Загрузка...') : t('Включить')}
         </button>}

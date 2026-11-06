@@ -141,7 +141,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--color-text-2)' }}>
           <Trophy size={14} style={{ color: accent }} /> {t('рекорд')}: {record.best} {t('слов')}
         </span>
-        <button type="button" onClick={onClose} title={t('Закрыть')} style={{
+        <button data-hover="layer" type="button" onClick={onClose} title={t('Закрыть')} style={{
           width: 34, height: 34, borderRadius: 999, border: 'none', background: 'var(--color-bg-3)',
           color: 'var(--color-text)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         }}><LogOut size={14} /></button>
@@ -161,7 +161,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
               </p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {LEVELS.map(l => (
-                  <button key={l.id} type="button" onClick={() => setLevel(l)} style={{
+                  <button data-hover="layer" key={l.id} type="button" onClick={() => setLevel(l)} style={{
                     height: 34, padding: '0 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
                     fontSize: 13, fontWeight: 700,
                     border: `1.5px solid ${level.id === l.id ? accent : 'var(--color-border-soft)'}`,
@@ -173,14 +173,14 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button type="button" onClick={start} disabled={!asr} style={{ height: 40,
+                <button data-hover="layer" type="button" onClick={start} disabled={!asr} style={{ height: 40,
                   padding: '0 16px', borderRadius: 12, border: 'none', cursor: asr ? 'pointer' : 'default',
                   background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
                   display: 'inline-flex', alignItems: 'center', gap: 8, opacity: asr ? 1 : 0.5,
                 }}>
                   <Mic size={16} /> {t('Начать')}
                 </button>
-                <button type="button" onClick={again} style={{
+                <button data-hover="layer" type="button" onClick={again} style={{
                   height: 44, padding: '0 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
                   background: 'var(--color-bg-3)', color: 'var(--color-text)', fontWeight: 700, fontSize: 14, fontFamily: 'inherit',
                   display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -240,11 +240,11 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                 </p>
               )}
               <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" onClick={start} style={{ height: 40,
+                <button data-hover="layer" type="button" onClick={start} style={{ height: 40,
                   padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                   background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
                 }}>{t('Ещё раз')}</button>
-                <button type="button" onClick={again} style={{
+                <button data-hover="layer" type="button" onClick={again} style={{
                   height: 42, padding: '0 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
                   background: 'var(--color-bg-3)', color: 'var(--color-text)', fontWeight: 700, fontSize: 14, fontFamily: 'inherit',
                 }}>{t('Новая тема')}</button>

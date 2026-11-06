@@ -1252,11 +1252,16 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 
 /* Ховер-слой (data-hover="layer"): у кнопок с инлайн-фоном своего :hover нет,
    а подбирать цвет под каждую — десятки разных фонов. Слой кладёт поверх кнопки её
-   же цвет текста на 12 %: виден на любой заливке (серой, мягкой, градиенте,
+   же цвет текста на 10 %: виден на любой заливке (серой, мягкой, градиенте,
    прозрачной) и в обеих темах. Кнопки со своим ховером — data-hover="own". */
-[data-hover=layer] {position:relative;isolation:isolate}
-[data-hover=layer]::after {content:'';position:absolute;inset:0;border-radius:inherit;background:currentColor;opacity:0;pointer-events:none;transition:opacity .15s;z-index:1}
+/* :where — нулевой вес: позицию из класса (absolute, fixed) не перебиваем. */
+:where([data-hover=layer],[data-hover=card]) {position:relative;isolation:isolate}
+[data-hover=layer]::after,[data-hover=card]::after {content:'';position:absolute;inset:0;border-radius:inherit;background:currentColor;opacity:0;pointer-events:none;transition:opacity .15s;z-index:1}
 @media (hover:hover) and (pointer:fine) {
-  [data-hover=layer]:hover:not(:disabled):not([aria-disabled=true])::after {opacity:.12}
+  [data-hover=layer]:hover:not(:disabled):not([aria-disabled=true])::after {opacity:.1}
+  /* Большие карточки целиком — слабее, иначе темнеет весь блок. */
+  [data-hover=card]:hover::after {opacity:.04}
+  /* Текстовая ссылка без заливки — подчёркивание. */
+  [data-hover=link]:hover {text-decoration:underline;text-underline-offset:3px}
 }
 [data-hover=layer]:active:not(:disabled)::after {opacity:.18}

@@ -16,7 +16,7 @@ export default function MobileStickersRow() {
     <div className="holo-mobile-shelf">
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
         <p style={{ fontSize: 12, fontWeight: 700, color:'inherit', margin: 0 }}>{t('Мои стикеры')}</p>
-        <button onClick={() => setSelected(stickers[0].id)} style={{ fontSize: 12, fontWeight: 600, color:'var(--color-purple-text)', minHeight:44, background: 'none', border: 'none', padding: 0 }}>
+        <button data-hover="layer" onClick={() => setSelected(stickers[0].id)} style={{ fontSize: 12, fontWeight: 600, color:'var(--color-purple-text)', minHeight:44, background: 'none', border: 'none', padding: 0 }}>
           {t('Коллекция')} · {stickers.length}
         </button>
       </div>

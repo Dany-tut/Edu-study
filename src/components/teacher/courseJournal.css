@@ -196,3 +196,8 @@
 .cj-mobile-panel-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .cj-mobile-panel-actions button { min-height: 44px; }
 .cj-mobile-panel-done { width: 100%; min-height: 48px; font-size: 15px; }
+/* «Требуют внимания» — кнопка-карточка: ховер тем же приёмом, что слой data-hover. */
+.cj-summaries > button { cursor: pointer; transition: box-shadow .15s; }
+@media (hover:hover) and (pointer:fine) {
+  .cj-summaries > button:hover { box-shadow: inset 0 0 0 100vmax color-mix(in srgb, currentColor 8%, transparent); }
+}

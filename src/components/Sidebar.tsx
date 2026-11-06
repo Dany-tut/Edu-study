@@ -169,7 +169,7 @@ function MenuHeader({ title, onBack }: { title: string; onBack: () => void }) {
   const t = useT()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '2px 8px 0' }}>
-      <motion.button
+      <motion.button data-hover="layer"
         whileTap={{ scale: 0.9 }}
         onClick={onBack}
         aria-label={t('Назад')}
@@ -181,7 +181,7 @@ function MenuHeader({ title, onBack }: { title: string; onBack: () => void }) {
       >
         <ChevronLeft size={16} />
       </motion.button>
-      <span onClick={onBack} style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>{title}</span>
+      <span data-hover="layer" onClick={onBack} style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>{title}</span>
     </div>
   )
 }
@@ -517,7 +517,7 @@ export default function Sidebar() {
                       })}
                     </div>
                     <div style={{ display: 'flex', gap: 6, marginTop: 12, padding: '0 8px' }}>
-                      <motion.button
+                      <motion.button data-hover="layer"
                         whileTap={{ scale: 0.96 }}
                         onClick={() => { pickImageFile(setCropFile); closePicker() }}
                         style={photoBtnStyle}
@@ -526,7 +526,7 @@ export default function Sidebar() {
                         <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
                       </motion.button>
                       {avatarPath && (
-                        <motion.button
+                        <motion.button data-hover="layer"
                           whileTap={{ scale: 0.96 }}
                           onClick={() => { void removePhoto() }}
                           aria-label={t('Убрать фото')}
@@ -868,7 +868,7 @@ export default function Sidebar() {
         </div>
         {/* Width collapses to 0 (instead of popLayout's absolute exit) so the
             name tucks behind the avatar in flow — nothing detaches sideways. */}
-        <motion.button
+        <motion.button data-hover="layer"
           type="button"
           aria-label={t('Профиль')}
           title={tn(displayName)}

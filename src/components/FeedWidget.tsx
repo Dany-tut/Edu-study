@@ -90,7 +90,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
         ) : (
           <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('всё просмотрено')}</span>
         )}
-        <a
+        <a data-hover="link"
           href={trainerHash({ lang, screen: 'feed' })}
           onClick={e => { e.preventDefault(); open() }}
           style={{
@@ -107,7 +107,7 @@ export default function FeedWidget({ columns }: { columns: number }) {
           const outlet = outletById(item.outletId)
           const fresh = unread.includes(item)
           return (
-            <a
+            <a data-hover="layer"
               key={item.id}
               href={trainerHash({ lang, screen: 'feed' })}
               onClick={e => { e.preventDefault(); open() }}

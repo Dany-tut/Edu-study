@@ -61,7 +61,7 @@ export default function AudioStimulusEditor({
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <AudioPlayer audioUrl={value.audioUrl} allowSlow={value.allowSlow} compact />
           <span style={{ fontSize: 12, color: 'var(--color-green-text)', fontWeight: 600 }}>{t('Аудио загружено')}</span>
-          <button onClick={() => onChange({ audioUrl: undefined })} title={t('Убрать аудио')}
+          <button data-hover="layer" onClick={() => onChange({ audioUrl: undefined })} title={t('Убрать аудио')}
             style={{ marginLeft: 'auto', border: 'none', background: 'var(--color-bg-3)', borderRadius: 8, width: 26, height: 26, cursor: 'pointer', display: 'grid', placeItems: 'center', color: 'var(--color-muted)' }}>
             <X size={14} />
           </button>
@@ -76,7 +76,7 @@ export default function AudioStimulusEditor({
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{t('или')}</span>
-            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={chip(false)}>
+            <button data-hover="layer" onClick={() => fileRef.current?.click()} disabled={uploading} style={chip(false)}>
               {uploading ? <Loader2 size={14} className="spin" /> : <Upload size={14} />}
               {uploading ? t('Загрузка…') : t('Загрузить аудио')}
             </button>

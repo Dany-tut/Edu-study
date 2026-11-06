@@ -78,7 +78,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <BackCircle onClick={onClose} label="К подборкам" />
-        <button
+        <button data-hover="layer"
           onClick={save}
           disabled={!draft.title.trim() || saving}
           style={{
@@ -120,7 +120,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
         />
       ))}
 
-      <button
+      <button data-hover="layer"
         onClick={() => setSets([...draft.sets, newSet(draft.sets.length)])}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -173,7 +173,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
           placeholder={`${t('Набор')} ${n} — ${t('например: Сезон 1')}`}
           style={{ ...input(accent), fontWeight: 700 }}
         />
-        <button
+        <button data-hover="layer"
           onClick={onRemove}
           title={t('Удалить набор')}
           style={{
@@ -199,7 +199,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
               <div style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{c.term}</div>
               {c.ep && <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{c.ep}</div>}
               <div style={{ fontSize: 13, color: 'var(--color-text-2)', width: '38%', textAlign: 'right' }}>{c.ru}</div>
-              <button
+              <button data-hover="layer"
                 onClick={() => patch({ cards: set.cards.filter((_, j) => j !== i) })}
                 style={{ border: 'none', background: 'transparent', color: 'var(--color-muted)', cursor: 'pointer', padding: 2 }}
                 title={t('Убрать карточку')}
@@ -232,7 +232,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
           placeholder={t('Серия')}
           style={input(accent)}
         />
-        <button
+        <button data-hover="layer"
           onClick={add}
           disabled={!row.term.trim() || !row.ru.trim()}
           style={{

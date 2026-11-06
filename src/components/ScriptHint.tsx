@@ -73,7 +73,7 @@ export default function ScriptHint({
         </span>
       )}
       {voice && (
-        <span
+        <span data-hover="layer"
           role="button"
           tabIndex={-1}
           aria-label={t('Озвучить')}

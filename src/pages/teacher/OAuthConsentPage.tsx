@@ -136,11 +136,11 @@ export default function OAuthConsentPage() {
         </ScrollFade>
         {(problem || (signedIn && details)) && <footer style={{ padding: '14px 24px 20px', flexShrink: 0, borderTop: '1px solid var(--color-border-medium)' }}>
           {problem ? <>
-            <button type="button" onClick={() => window.location.reload()} style={primaryButton}>{t('Попробовать ещё раз')}</button>
-            <button type="button" onClick={() => { window.location.href = '/#/teacher' }} style={{ ...primaryButton, marginTop: 6, background: 'var(--color-bg-3)', color: 'var(--color-text)' }}>{t('Перейти в Искру')}</button>
+            <button data-hover="layer" type="button" onClick={() => window.location.reload()} style={primaryButton}>{t('Попробовать ещё раз')}</button>
+            <button data-hover="layer" type="button" onClick={() => { window.location.href = '/#/teacher' }} style={{ ...primaryButton, marginTop: 6, background: 'var(--color-bg-3)', color: 'var(--color-text)' }}>{t('Перейти в Искру')}</button>
           </> : <>
-            <button type="button" disabled={busy} onClick={() => decide(true)} style={{ ...primaryButton, opacity: busy ? 0.65 : 1 }}>{busy ? t('Подключаем…') : t('Разрешить доступ')}</button>
-            <button type="button" disabled={busy} onClick={() => decide(false)} style={{ width: '100%', minHeight: 44, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 0, background: 'transparent', color: 'var(--color-text-3)', font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><X size={14} />{t('Не сейчас')}</button>
+            <button data-hover="layer" type="button" disabled={busy} onClick={() => decide(true)} style={{ ...primaryButton, opacity: busy ? 0.65 : 1 }}>{busy ? t('Подключаем…') : t('Разрешить доступ')}</button>
+            <button data-hover="layer" type="button" disabled={busy} onClick={() => decide(false)} style={{ width: '100%', minHeight: 44, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 0, background: 'transparent', color: 'var(--color-text-3)', font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><X size={14} />{t('Не сейчас')}</button>
           </>}
         </footer>}
       </section>

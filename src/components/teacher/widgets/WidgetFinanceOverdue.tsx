@@ -117,7 +117,7 @@ export default function WidgetFinanceOverdue() {
             {sorted.length}
           </span>
         </div>
-        <button
+        <button data-hover="layer"
           onClick={() => setActivePage('finances')}
           style={{
             fontSize: 12, fontWeight: 600, color: 'var(--color-accent)',
@@ -188,7 +188,7 @@ export default function WidgetFinanceOverdue() {
               ) : null}
 
               {/* Pay button */}
-              <button
+              <button data-hover="layer"
                 className="ww-pay"
                 aria-label={isPaid ? t('Готово') : t('Оплачено')}
                 title={isPaid ? t('Готово') : t('Оплачено')}

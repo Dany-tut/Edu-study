@@ -166,7 +166,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
             const ok = showVerdict && got === want
             const chosen = at === k && !disabled && !showVerdict
             return (
-              <motion.button
+              <motion.button data-hover="layer"
                 key={k}
                 whileTap={disabled ? undefined : { scale: 0.94 }}
                 onClick={() => pick(k)}
@@ -208,7 +208,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
             <div className="flex flex-col" style={{ gap: 8 }}>
               <div className="flex flex-wrap items-center justify-center" style={{ gap: 6 }}>
                 {keyboard.map(kk => (
-                  <motion.button
+                  <motion.button data-hover="layer"
                     key={kk}
                     whileTap={{ scale: 0.92 }}
                     onClick={() => press(kk)}
@@ -223,7 +223,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                   </motion.button>
                 ))}
               </div>
-              <button
+              <button data-hover="layer"
                 onClick={clear}
                 className="self-center cursor-pointer"
                 style={btn('S', 'secondary')}

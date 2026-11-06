@@ -109,14 +109,14 @@ function GuideDialog({ current, onChoose, onClose }: {
     onCancel={event => {event.preventDefault(); onClose()}}>
     {current === 'catalog' ? <div className="teacher-guide-catalog">
       <div className="teacher-guide-row"><h2 id="guide-heading">Подсказки</h2><Close onClose={onClose}/></div>
-      <ScrollFade maxHeight="100%"><div className="teacher-guide-list">{ids.map(id => <button key={id} data-guide={id}
+      <ScrollFade maxHeight="100%"><div className="teacher-guide-list">{ids.map(id => <button data-hover="layer" key={id} data-guide={id}
         onClick={() => {selected.current = id; onChoose(id)}}><b>{sections[id][0]}</b><span>{sections[id][1]}</span></button>)}</div></ScrollFade>
     </div> : <GuideSheet key={current} id={current} onClose={onClose}/>}
   </dialog>, document.body)
 }
 
 function Close({ onClose }: {onClose: () => void}) {
-  return <button type="button" aria-label="Закрыть подсказку" onClick={onClose}><X size={18}/></button>
+  return <button data-hover="layer" type="button" aria-label="Закрыть подсказку" onClick={onClose}><X size={18}/></button>
 }
 
 function GuideSheet({ id, onClose }: {id: GuideId; onClose: () => void}) {
@@ -133,16 +133,16 @@ function GuideSheet({ id, onClose }: {id: GuideId; onClose: () => void}) {
   const move = (n: number) => {setChoice(0); setIndex(n)}
   return <div className="teacher-guide-sheet">
     <div className="teacher-guide-row"><span>{sections[id][0]} · {index + 1} из {steps.length}</span>
-      {!history && <button onClick={() => setPlaying(p => !p)}>{playing ? 'Остановить' : 'Смотреть GIF'}</button>}
+      {!history && <button data-hover="layer" onClick={() => setPlaying(p => !p)}>{playing ? 'Остановить' : 'Смотреть GIF'}</button>}
       <Close onClose={onClose}/></div>
     <h2 id="guide-heading">{title}</h2>
     <div className="teacher-guide-media"><img alt={history ? attempts[choice].status + '. ' + description : title}
       src={media(file + (history ? '.png' : playing ? '.gif' : '.webp'))}/></div>
     <ScrollFade maxHeight="100%"><div className="teacher-guide-description">
       {options.length > 0 && <div role="group" aria-label={history ? 'Попытка Миши' : 'Урок'}>{options.map((option, n) =>
-        <button key={option.file} aria-pressed={n === choice} onClick={() => setChoice(n)}>{option.label}</button>)}</div>}
+        <button data-hover="layer" key={option.file} aria-pressed={n === choice} onClick={() => setChoice(n)}>{option.label}</button>)}</div>}
       <p>{description}</p></div></ScrollFade>
-    <footer><button onClick={() => index ? move(index-1) : onClose()}>{index ? 'Назад' : 'Закрыть'}</button>
-      <button onClick={() => index + 1 === steps.length ? onClose() : move(index+1)}>{index + 1 === steps.length ? 'Готово' : next}</button></footer>
+    <footer><button data-hover="layer" onClick={() => index ? move(index-1) : onClose()}>{index ? 'Назад' : 'Закрыть'}</button>
+      <button data-hover="layer" onClick={() => index + 1 === steps.length ? onClose() : move(index+1)}>{index + 1 === steps.length ? 'Готово' : next}</button></footer>
   </div>
 }

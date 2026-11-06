@@ -232,7 +232,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
       {outlet && (
         <header style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <Avatar outlet={outlet} small={variant === 'flat'} />
-          <a
+          <a data-hover="link"
             href={outlet.home}
             target="_blank"
             rel="noreferrer noopener"
@@ -314,7 +314,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
             />
           ) : (
-            <button
+            <button data-hover="layer"
               onClick={() => { setPlaying(true); touched() }}
               aria-label={t('Смотреть')}
               style={{
@@ -362,7 +362,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
           {!ru && item.levels && item.levels.length > 1 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {item.levels.map((l, i) => (
-                <button
+                <button data-hover="layer"
                   key={l.level}
                   onClick={() => { setTier(i); setExpanded(false); touched() }}
                   style={{
@@ -399,7 +399,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
           </div>
 
           {long && !expanded && (
-            <button
+            <button data-hover="layer"
               onClick={() => { setExpanded(true); touched() }}
               style={{
                 alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0,
@@ -417,7 +417,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
               называет то, что произойдёт по нажатию, — на переведённом посте
               это «оригинал», потому что русский уже перед глазами. */}
           {full && (
-            <button
+            <button data-hover="layer"
               onClick={toggleTranslate}
               style={{
                 alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0,

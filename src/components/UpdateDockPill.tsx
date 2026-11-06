@@ -47,7 +47,7 @@ export default function UpdateDockPill() {
   )
 
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       type="button"
       // Приезжает снизу пружиной: обновление появилось только что, и таблетка
       // должна это показать, а не подмениться беззвучно.

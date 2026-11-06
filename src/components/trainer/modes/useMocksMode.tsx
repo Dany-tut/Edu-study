@@ -157,7 +157,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
         <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{t('Пробники')}</div>
         {/* Случайный — сначала непройденный: повтор уже решённого пробника
             измеряет память на ответы, а не уровень. */}
-        <button type="button" onClick={() => start(freshMock(history, 'full'), 'full')} style={pillBtn(accent)}>
+        <button data-hover="layer" type="button" onClick={() => start(freshMock(history, 'full'), 'full')} style={pillBtn(accent)}>
           <Shuffle size={14} /> {t('Случайный непройденный')}
         </button>
       </div>
@@ -338,9 +338,9 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 700 }}>{t('цель')}</div>
           {/* Степпер — одна капсула: 34 = 3 + круг 28 + 3, число постоянной ширины. */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, height: 34, padding: 4, borderRadius: 999, background: 'var(--color-bg-3)' }}>
-            <button type="button" onClick={() => set({ target: Math.max(4, target - 0.5) })} style={stepBtn} aria-label={t('Ниже')}><Minus size={14} /></button>
+            <button data-hover="layer" type="button" onClick={() => set({ target: Math.max(4, target - 0.5) })} style={stepBtn} aria-label={t('Ниже')}><Minus size={14} /></button>
             <span style={{ fontSize: 24, fontWeight: 800, lineHeight: 1, color: accent, minWidth: 48, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{fmtBand(target)}</span>
-            <button type="button" onClick={() => set({ target: Math.min(9, target + 0.5) })} style={stepBtn} aria-label={t('Выше')}><Plus size={14} /></button>
+            <button data-hover="layer" type="button" onClick={() => set({ target: Math.min(9, target + 0.5) })} style={stepBtn} aria-label={t('Выше')}><Plus size={14} /></button>
           </div>
         </div>
       </div>
@@ -348,7 +348,7 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
       <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text)' }}>{verdict}</div>
 
       <div style={{ position: 'relative' }}>
-        <button type="button" onClick={() => setCal(v => !v)} style={{
+        <button data-hover="layer" type="button" onClick={() => setCal(v => !v)} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 12px', borderRadius: 999,
           border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontWeight: 700, fontSize: 13,
           cursor: 'pointer', fontFamily: 'inherit',
@@ -406,11 +406,11 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
       background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', boxShadow: 'var(--shadow-4)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-        <button type="button" onClick={() => shift(-1)} style={stepBtn}><ChevronLeft size={14} /></button>
+        <button data-hover="layer" type="button" onClick={() => shift(-1)} style={stepBtn}><ChevronLeft size={14} /></button>
         <span style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 800, color: 'var(--color-text)' }}>
           {first.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
         </span>
-        <button type="button" onClick={() => shift(1)} style={stepBtn}><ChevronRight size={14} /></button>
+        <button data-hover="layer" type="button" onClick={() => shift(1)} style={stepBtn}><ChevronRight size={14} /></button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
         {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => (
@@ -422,7 +422,7 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
           const on = value === iso(d)
           const past = new Date(y, m, d) < today
           return (
-            <button key={d} type="button" disabled={past} onClick={() => onPick(iso(d))} style={{
+            <button data-hover="layer" key={d} type="button" disabled={past} onClick={() => onPick(iso(d))} style={{
               height: 30, borderRadius: 8, border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: on ? 800 : 600,
               cursor: past ? 'default' : 'pointer', opacity: past ? 0.35 : 1,
               background: on ? accent : 'transparent', color: on ? '#fff' : 'var(--color-text)',
@@ -431,7 +431,7 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
         })}
       </div>
       {onClear && (
-        <button type="button" onClick={onClear} style={{
+        <button data-hover="layer" type="button" onClick={onClear} style={{
           marginTop: 8, border: 'none', background: 'transparent', color: 'var(--color-text-2)', fontSize: 12,
           fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 0,
         }}>{t('Убрать дату')}</button>
@@ -495,7 +495,7 @@ function PlanCard({ history, goal, weakest, accent, soft, onPractice, onFull, on
         </span>
       </div>
       {items.map((x, i) => (
-        <button key={i} type="button" onClick={x.go} style={{
+        <button data-hover="layer" key={i} type="button" onClick={x.go} style={{
           display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 14, textAlign: 'left',
           border: '1px solid var(--color-border-soft)', background: x.done ? soft : 'var(--color-bg)',
           cursor: 'pointer', fontFamily: 'inherit',
@@ -585,7 +585,7 @@ function HistoryRow({ a, accent, onOpen, onDelete }: {
       display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 14, flexWrap: 'wrap',
       background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
     }}>
-      <button type="button" onClick={onOpen} style={{
+      <button data-hover="layer" type="button" onClick={onOpen} style={{
         flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
         background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
       }}>
@@ -602,7 +602,7 @@ function HistoryRow({ a, accent, onOpen, onDelete }: {
         </span>
         {overall != null && <span style={{ fontSize: 16, fontWeight: 800, color: accent }}>{fmtBand(overall)}</span>}
       </button>
-      <button type="button" onClick={onDelete} title={t('Удалить попытку')} style={{
+      <button data-hover="layer" type="button" onClick={onDelete} title={t('Удалить попытку')} style={{
         border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-3)', padding: 4, display: 'inline-flex',
       }}>
         <Trash2 size={14} />

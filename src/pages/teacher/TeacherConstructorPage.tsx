@@ -182,8 +182,8 @@ function GoogleFormBankCategoryModal({
             options={SOURCES.map(s => ({ value: s, label: s }))} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
-          <button onClick={onClose} style={btn('M', 'secondary')}>{t('Отмена')}</button>
-          <button onClick={handleConfirm} disabled={saving}
+          <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}>{t('Отмена')}</button>
+          <button data-hover="layer" onClick={handleConfirm} disabled={saving}
             style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
             {t('Импортировать')} {questions.length}
           </button>
@@ -550,7 +550,7 @@ function SectionHead({ children }: { children: React.ReactNode }) {
 
 function SegBtn({ label, active, color, bg, onClick }: { label: string; active: boolean; color: string; bg: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{
+    <button data-hover="layer" onClick={onClick} style={{
       flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
       fontSize: 12, fontWeight: 600,
       background: active ? bg : 'var(--color-bg-3)',
@@ -574,11 +574,11 @@ function PanelHeader({ title, accent, accentBg, Icon, onClose, onExpand }: {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         {onExpand && (
-          <button onClick={onExpand} title={t("Раскрыть на всю")} style={{ height: 26, padding: '0 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: accentBg, display: 'flex', alignItems: 'center', gap: 6, color: accent, fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
+          <button data-hover="layer" onClick={onExpand} title={t("Раскрыть на всю")} style={{ height: 26, padding: '0 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: accentBg, display: 'flex', alignItems: 'center', gap: 6, color: accent, fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
             <Maximize2 size={12} strokeWidth={2.5} /> {t('Раскрыть')}
           </button>
         )}
-        <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0 }}>
+        <button data-hover="layer" onClick={onClose} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0 }}>
           <X size={14} />
         </button>
       </div>
@@ -703,15 +703,15 @@ function CourseEditor({
               <div key={lesson.id} style={{ background: 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>{tc(lesson.title)}</div>
-                  <button onClick={() => moveLesson(idx, -1)} disabled={idx === 0}
+                  <button data-hover="layer" onClick={() => moveLesson(idx, -1)} disabled={idx === 0}
                     style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === 0 ? 0.3 : 1 }}>
                     <ArrowUp size={12} />
                   </button>
-                  <button onClick={() => moveLesson(idx, 1)} disabled={idx === lessons.length - 1}
+                  <button data-hover="layer" onClick={() => moveLesson(idx, 1)} disabled={idx === lessons.length - 1}
                     style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === lessons.length - 1 ? 0.3 : 1 }}>
                     <ArrowDown size={12} />
                   </button>
-                  <button onClick={() => removeLesson(lesson.id)}
+                  <button data-hover="layer" onClick={() => removeLesson(lesson.id)}
                     style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>
                     <Trash2 size={12} />
                   </button>
@@ -739,7 +739,7 @@ function CourseEditor({
           {/* Add lesson — with suggestions from the lesson library */}
           <div style={{ display: 'flex', gap: 6 }}>
             <LessonNameInput value={newLessonTitle} onChange={setNewLessonTitle} onAdd={addLessonByTitle} />
-            <motion.button whileTap={{ scale: 0.95 }} onClick={addLesson}
+            <motion.button data-hover="layer" whileTap={{ scale: 0.95 }} onClick={addLesson}
               style={{ width: 36, height: 36, borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)', flexShrink: 0 }}>
               <Plus size={16} strokeWidth={2.5} />
             </motion.button>
@@ -852,7 +852,7 @@ function TrainerEditor({
             <SectionHead>{t('Добавить вопрос')}</SectionHead>
             <input value={manQ} onChange={e => setManQ(e.target.value)} placeholder={t("Текст вопроса…")} style={inputSt} />
             <input value={manA} onChange={e => setManA(e.target.value)} placeholder={t("Правильный ответ…")} style={inputSt} />
-            <motion.button whileTap={{ scale: 0.97 }} onClick={addManual}
+            <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={addManual}
               style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <Plus size={14} /> {t('Добавить')}
             </motion.button>
@@ -877,7 +877,7 @@ function TrainerEditor({
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 2, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(q.text)}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(q.answer)}</div>
                 </div>
-                <button onClick={() => removeQ(q.id)} style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
+                <button data-hover="layer" onClick={() => removeQ(q.id)} style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
                   <X size={12} />
                 </button>
               </div>
@@ -980,7 +980,7 @@ function WidgetEditor({
               const WIcon = WTYPE_ICON[wt]
               const isActive = type === wt
               return (
-                <button key={wt} onClick={() => setType(wt)} style={{
+                <button data-hover="layer" key={wt} onClick={() => setType(wt)} style={{
                   padding: '8px 10px', borderRadius: 11,
                   border: 'none',
                   background: isActive ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
@@ -1041,7 +1041,7 @@ function WidgetEditor({
               />
               {qOpts.map((opt, oi) => (
                 <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <button onClick={() => setQCorr(oi)} style={{
+                  <button data-hover="layer" onClick={() => setQCorr(oi)} style={{
                     width: 20, height: 20, borderRadius: '50%', border: '2px solid', flexShrink: 0,
                     borderColor: qCorr === oi ? WTYPE_COLOR[type] : 'var(--color-text-4)',
                     background: qCorr === oi ? WTYPE_COLOR[type] : 'transparent', cursor: 'pointer',
@@ -1051,7 +1051,7 @@ function WidgetEditor({
                 </div>
               ))}
               <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{t('● — правильный ответ')}</div>
-              <motion.button whileTap={{ scale: 0.97 }} onClick={addQuiz}
+              <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={addQuiz}
                 style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG[type], color: WTYPE_COLOR[type], fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Plus size={14} /> {t('Добавить вопрос')}
               </motion.button>
@@ -1063,7 +1063,7 @@ function WidgetEditor({
               <input value={fcTerm} onChange={e => setFcTerm(e.target.value)} placeholder={t("Заголовок факта…")} style={inputSt} />
               <textarea value={fcDef} onChange={e => setFcDef(e.target.value)} placeholder={t("Текст факта…")} rows={3}
                 style={{ ...inputSt, resize: 'vertical' }} />
-              <motion.button whileTap={{ scale: 0.97 }} onClick={addFlashcard}
+              <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={addFlashcard}
                 style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.facts, color: WTYPE_COLOR.facts, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 <Plus size={14} /> {t('Добавить факт')}
               </motion.button>
@@ -1075,7 +1075,7 @@ function WidgetEditor({
               <input value={fcTerm} onChange={e => setFcTerm(e.target.value)} placeholder={t("Эмодзи (напр. 🔥)…")} style={inputSt} />
               <input value={fcDef} onChange={e => setFcDef(e.target.value)} placeholder={t("Цитата / реплика…")} style={inputSt} />
               <input value={dLabel} onChange={e => setDLabel(e.target.value)} placeholder={t("Название урока / темы…")} style={inputSt} />
-              <motion.button whileTap={{ scale: 0.97 }} onClick={() => {
+              <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={() => {
                 if (!fcTerm.trim()) return
                 setItems(prev => [...prev, { id: uid(), emoji: fcTerm.trim(), quote: fcDef.trim(), lesson: dLabel.trim() }])
                 setFcTerm(''); setFcDef(''); setDLabel('')
@@ -1111,7 +1111,7 @@ function WidgetEditor({
               <input value={fcTerm} onChange={e => setFcTerm(e.target.value)} placeholder={t("Эмодзи (напр. 😅)…")} style={inputSt} />
               <input value={fcDef} onChange={e => setFcDef(e.target.value)} placeholder={t("Название мема…")} style={inputSt} />
               <input value={dLabel} onChange={e => setDLabel(e.target.value)} placeholder={t("Подпись / шутка…")} style={inputSt} />
-              <motion.button whileTap={{ scale: 0.97 }} onClick={() => {
+              <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={() => {
                 if (!fcDef.trim()) return
                 setItems(prev => [...prev, { id: uid(), memeEmoji: fcTerm.trim() || '😄', memeTitle: fcDef.trim(), memeCaption: dLabel.trim() }])
                 setFcTerm(''); setFcDef(''); setDLabel('')
@@ -1137,7 +1137,7 @@ function WidgetEditor({
                       <span style={{ color: 'var(--color-text-3)' }}> · {item.factText?.slice(0, 30) ?? item.quote?.slice(0, 30) ?? item.memeTitle?.slice(0, 30)}</span>
                     )}
                   </div>
-                  <button onClick={() => removeItem(item.id)} style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
+                  <button data-hover="layer" onClick={() => removeItem(item.id)} style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
                     <X size={12} />
                   </button>
                 </div>
@@ -1621,7 +1621,7 @@ function WidgetFilterPanel({
         <input value={filters.search} onChange={e => onChange({ search: e.target.value })} placeholder={t("Поиск по названию…")}
           style={{ ...inputSt, paddingLeft: 30, paddingRight: filters.search ? 30 : undefined }} />
         {filters.search && (
-          <button onClick={() => onChange({ search: '' })} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
+          <button data-hover="layer" onClick={() => onChange({ search: '' })} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
             <X size={14} />
           </button>
         )}
@@ -1630,9 +1630,9 @@ function WidgetFilterPanel({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Тип')}</span>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          <button onClick={() => onChange({ type: '' })} style={pill(filters.type === '')}>{t('Все')}</button>
+          <button data-hover="layer" onClick={() => onChange({ type: '' })} style={pill(filters.type === '')}>{t('Все')}</button>
           {(Object.entries(WTYPE_LABEL) as [WidgetType, string][]).map(([wt, label]) => (
-            <button key={wt} onClick={() => onChange({ type: filters.type === wt ? '' : wt })} style={pill(filters.type === wt)}>{label}</button>
+            <button data-hover="layer" key={wt} onClick={() => onChange({ type: filters.type === wt ? '' : wt })} style={pill(filters.type === wt)}>{label}</button>
           ))}
         </div>
       </div>
@@ -1641,7 +1641,7 @@ function WidgetFilterPanel({
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Привязка')}</span>
         <div style={{ display: 'flex', gap: 6 }}>
           {([['', t('Все')], ['linked', t('Тренажёр')], ['unlinked', t('Вручную')]] as [WidgetFilters['linked'], string][]).map(([v, l]) => (
-            <button key={v} onClick={() => onChange({ linked: v })}
+            <button data-hover="layer" key={v} onClick={() => onChange({ linked: v })}
               style={{ ...pill(filters.linked === v), flex: 1, padding: '6px 0' }}>{l}</button>
           ))}
         </div>
@@ -1651,16 +1651,16 @@ function WidgetFilterPanel({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Группа')}</span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            <button onClick={() => onChange({ activeGroup: '' })} style={pill(filters.activeGroup === '')}>{t('Все')}</button>
+            <button data-hover="layer" onClick={() => onChange({ activeGroup: '' })} style={pill(filters.activeGroup === '')}>{t('Все')}</button>
             {(Object.entries(WTYPE_LABEL) as [WidgetType, string][]).map(([wt, label]) => (
-              <button key={wt} onClick={() => onChange({ activeGroup: filters.activeGroup === wt ? '' : wt })} style={pill(filters.activeGroup === wt)}>{label}</button>
+              <button data-hover="layer" key={wt} onClick={() => onChange({ activeGroup: filters.activeGroup === wt ? '' : wt })} style={pill(filters.activeGroup === wt)}>{label}</button>
             ))}
           </div>
         </div>
       )}
 
       {hasFilters && (
-        <button onClick={() => onChange({ search: '', type: '', linked: '', activeGroup: '' })}
+        <button data-hover="layer" onClick={() => onChange({ search: '', type: '', linked: '', activeGroup: '' })}
           style={btn('S', 'secondary')}>
           <Trash2 size={12} /> {t('Сбросить фильтры')}
         </button>
@@ -1729,7 +1729,7 @@ function WidgetGroupsView({
                       }}>
                         {checkedIds.has(w.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                       </div>
-                      <button onClick={e => { e.stopPropagation(); onDuplicateWidget(w) }} title={t("Дублировать")}
+                      <button data-hover="layer" onClick={e => { e.stopPropagation(); onDuplicateWidget(w) }} title={t("Дублировать")}
                         style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
                           background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
@@ -1777,7 +1777,7 @@ function HalfSwitch<T extends string>({ options, value, onChange, color, bg }: {
         const on = o.value === value
         const Icon = o.icon
         return (
-          <button
+          <button data-hover="layer"
             key={o.value}
             className="tab-pill"
             onClick={() => onChange(o.value)}
@@ -1945,7 +1945,7 @@ function LessonNameInput({ value, onChange, onAdd }: {
                   padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
                   background: 'transparent', textAlign: 'left', fontFamily: 'inherit',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg)')}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-3)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -2072,7 +2072,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
           <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Связано с базой ·')} {shortId}</div>
         </div>
         {msg && <span style={{ fontSize: 12, fontWeight: 600, color: msg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{msg}</span>}
-        <button onClick={save} disabled={saving || loading}
+        <button data-hover="layer" onClick={save} disabled={saving || loading}
           style={{ padding: '10px 18px', borderRadius: 999, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? t('Сохраняю…') : t('Сохранить в базу')}
         </button>
@@ -2084,7 +2084,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
           {/* tabs */}
           <div style={{ display: 'flex', gap: 6, padding: '14px 24px 0' }}>
             {([['lesson', t('Урок')], ['record', t('Запись')]] as const).map(([k, label]) => (
-              <button key={k} onClick={() => setTab(k)}
+              <button data-hover="layer" key={k} onClick={() => setTab(k)}
                 style={{ padding: '10px 18px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                   background: tab === k ? 'var(--color-purple-soft)' : 'transparent', color: tab === k ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
                 {label}
@@ -2102,10 +2102,10 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                   <div key={p.id} style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', width: 18, paddingTop: 10, flexShrink: 0 }}>{i + 1}</span>
                     <textarea value={p.text} onChange={e => setPara(p.id, e.target.value)} rows={3} placeholder={t("Текст абзаца конспекта…")} style={{ ...inputSt, resize: 'vertical', minHeight: 64, lineHeight: 1.5 }} />
-                    <button onClick={() => setParas(prev => prev.filter(x => x.id !== p.id))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={14} /></button>
+                    <button data-hover="layer" onClick={() => setParas(prev => prev.filter(x => x.id !== p.id))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={14} /></button>
                   </div>
                 ))}
-                <button onClick={() => setParas(prev => [...prev, { id: uid(), text: '' }])} style={dashBtn}><Plus size={14} /> {t('Добавить абзац')}</button>
+                <button data-hover="layer" onClick={() => setParas(prev => [...prev, { id: uid(), text: '' }])} style={dashBtn}><Plus size={14} /> {t('Добавить абзац')}</button>
 
                 <div style={{ ...sectionTitle, marginTop: 16 }}>{t('Домашка · базовый тест')}</div>
                 {quiz.map((q, qi) => (
@@ -2113,7 +2113,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)' }}>{t('Вопрос')} {qi + 1}</span>
                       <div style={{ flex: 1 }} />
-                      <button onClick={() => setQuiz(prev => prev.filter((_, i) => i !== qi))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={12} /></button>
+                      <button data-hover="layer" onClick={() => setQuiz(prev => prev.filter((_, i) => i !== qi))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={12} /></button>
                     </div>
                     <input value={q.prompt} onChange={e => setQ(qi, { prompt: e.target.value })} placeholder={t("Текст вопроса")} style={inputSt}
                       onPaste={e => {
@@ -2159,7 +2159,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                     <input value={q.explanation} onChange={e => setQ(qi, { explanation: e.target.value })} placeholder={t("Пояснение (после ответа)")} style={{ ...inputSt, fontSize: 12 }} />
                   </div>
                 ))}
-                <button onClick={addQuestion} style={dashBtn}><Plus size={14} /> {t('Добавить вопрос')}</button>
+                <button data-hover="layer" onClick={addQuestion} style={dashBtn}><Plus size={14} /> {t('Добавить вопрос')}</button>
 
                 <div style={{ ...sectionTitle, marginTop: 16 }}>{t('Домашка · хард-задание (на проверку преподавателю)')}</div>
                 <input value={hardTask.topic} onChange={e => setHardTask(t => ({ ...t, topic: e.target.value }))} placeholder={t("Тема задания")} style={inputSt} />
@@ -2175,10 +2175,10 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                   <div key={ti} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <input value={tc.time} onChange={e => setTimecodes(prev => prev.map((x, i) => i === ti ? { ...x, time: e.target.value } : x))} placeholder="00:00" style={{ ...inputSt, width: 80, flexShrink: 0 }} />
                     <input value={tc.label} onChange={e => setTimecodes(prev => prev.map((x, i) => i === ti ? { ...x, label: e.target.value } : x))} placeholder={t("Название главы")} style={{ ...inputSt, flex: 1 }} />
-                    <button onClick={() => setTimecodes(prev => prev.filter((_, i) => i !== ti))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={14} /></button>
+                    <button data-hover="layer" onClick={() => setTimecodes(prev => prev.filter((_, i) => i !== ti))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={14} /></button>
                   </div>
                 ))}
-                <button onClick={() => setTimecodes(prev => [...prev, { time: '', label: '', seconds: 0 }])} style={dashBtn}><Plus size={14} /> {t('Добавить таймкод')}</button>
+                <button data-hover="layer" onClick={() => setTimecodes(prev => [...prev, { time: '', label: '', seconds: 0 }])} style={dashBtn}><Plus size={14} /> {t('Добавить таймкод')}</button>
 
                 <div style={{ ...sectionTitle, marginTop: 16 }}>{t('Краткое описание урока')}</div>
                 <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} placeholder={t("Что разобрали, ключевые моменты…")} style={{ ...inputSt, resize: 'vertical', minHeight: 88 }} />
@@ -2195,7 +2195,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
         <div style={{ width: 280, flexShrink: 0, borderLeft: '1px solid var(--color-border-soft)', overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 4 }}>
           <div style={{ ...sectionTitle, padding: '0 4px' }}>{t('Уроки курса (')}{lessons.length})</div>
           {lessons.map((l, i) => (
-            <button key={i} onClick={() => i !== lessonIndex && onSwitch(i)}
+            <button data-hover="layer" key={i} onClick={() => i !== lessonIndex && onSwitch(i)}
               style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', padding: '10px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 background: i === lessonIndex ? 'var(--color-purple-soft)' : 'transparent' }}>
               <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-bg-3)', color: i === lessonIndex ? '#fff' : 'var(--color-muted)', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
@@ -2985,7 +2985,7 @@ function CreatorView({
                     <TeacherSelect value={assignStudentId} onChange={setAssignStudentId} placeholder={t("Выберите студента")}
                       options={enrollStudents.filter(s => s.subject === cSubject).map(s => ({ value: s.id, label: s.name }))} />
                   )}
-                  <button onClick={enrollCourse} disabled={enrolling}
+                  <button data-hover="layer" onClick={enrollCourse} disabled={enrolling}
                     style={{ padding: '10px 14px', borderRadius: 11, border: 'none', cursor: enrolling ? 'default' : 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: enrolling ? 0.6 : 1 }}>
                     {enrolling ? t('Зачисляю…') : t('Зачислить')}
                   </button>
@@ -3023,7 +3023,7 @@ function CreatorView({
                 {(['quiz', 'facts', 'reactions', 'pomodoro', 'memes', 'qod'] as WidgetType[]).map(wt => {
                   const WIcon = WTYPE_ICON[wt]
                   return (
-                    <button key={wt} onClick={() => setWType(wt)} style={{
+                    <button data-hover="layer" key={wt} onClick={() => setWType(wt)} style={{
                       padding: '8px 10px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8,
                       border: 'none',
                       background: wType === wt ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
@@ -3116,7 +3116,7 @@ function CreatorView({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: collapsed ? 0 : 6 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, flex: 1 }}>{labelText}</span>
                     {bothExist && (
-                      <button
+                      <button data-hover="layer"
                         onClick={() => setTkBlockOrder(prev => [...prev].reverse() as Array<'image' | 'table'>)}
                         title={t("Поменять местами с другим блоком")}
                         style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
@@ -3124,13 +3124,13 @@ function CreatorView({
                         <ArrowUpDown size={12} />{t('поменять')}
                       </button>
                     )}
-                    <button
+                    <button data-hover="layer"
                       onClick={() => setCollapsed((v: boolean) => !v)}
                       title={collapsed ? t('Развернуть') : t('Свернуть')}
                       style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}</button>
                     {!isImage && (
-                      <button onClick={() => setTkHasTable(false)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><X size={12} />{t('Убрать')}</button>
+                      <button data-hover="layer" onClick={() => setTkHasTable(false)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><X size={12} />{t('Убрать')}</button>
                     )}
                   </div>
                   {!collapsed && isImage && (
@@ -3142,7 +3142,7 @@ function CreatorView({
                           const titles = { 30: t('Маленькое (30%)'), 50: t('Среднее (50%)'), 70: t('Большое (70%)'), 100: t('Полная ширина') }
                           const active = tkImageSize === sz
                           return (
-                            <button key={sz} title={titles[sz]} onClick={() => setTkImageSize(sz)}
+                            <button data-hover="layer" key={sz} title={titles[sz]} onClick={() => setTkImageSize(sz)}
                               style={{ padding: '4px 10px', borderRadius: 8, border: `1px solid ${active ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                               {labels[sz]}
                             </button>
@@ -3154,7 +3154,7 @@ function CreatorView({
                       <div style={{ position: 'relative', alignSelf: 'flex-start', width: `${tkImageSize}%` }}>
                         <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)' }}>
                           <img src={tkImage} alt="" style={{ display: 'block', width: '100%' }} />
-                          <button onClick={() => setTkImage('')} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <button data-hover="layer" onClick={() => setTkImage('')} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <X size={14} />
                           </button>
                         </div>
@@ -3202,7 +3202,7 @@ function CreatorView({
                     const isCorrect = tkCorrect.includes(i)
                     return (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <button onClick={() => toggleCorrect(i)} style={{
+                        <button data-hover="layer" onClick={() => toggleCorrect(i)} style={{
                           width: 24, height: 24, borderRadius: tkAnswerType === 'single' ? '50%' : 7, flexShrink: 0,
                           // Заливка — приглушённый cfg.fill, а не cfg.color: тот подобран как
                           // цвет текста и рамок, под белой галочкой давал 1.7:1. Галочка белая
@@ -3227,13 +3227,13 @@ function CreatorView({
                             style={{ ...inputSt, width: 52, textAlign: 'center', padding: '10px 6px', flexShrink: 0, border: '1.5px solid var(--color-border-medium)', borderRadius: 10 }} />
                         )}
                         {tkChoices.length > 2 && (
-                          <button onClick={() => removeChoice(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
+                          <button data-hover="layer" onClick={() => removeChoice(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
                         )}
                       </div>
                     )
                   })}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
-                    <button onClick={addChoice} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Вариант')}</button>
+                    <button data-hover="layer" onClick={addChoice} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Вариант')}</button>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{tkAnswerType === 'single' ? t('Отметьте один верный вариант') : t('Отметьте все верные варианты')}</span>
                   </div>
                 </div>
@@ -3274,11 +3274,11 @@ function CreatorView({
                           options={tkMatchRight.map((_, j) => ({ value: String(j + 1), label: `= ${j + 1}` }))} />
                       </div>
                       {tkMatchLeft.length > 2 && (
-                        <button onClick={() => removeMatchRow(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
+                        <button data-hover="layer" onClick={() => removeMatchRow(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
                       )}
                     </div>
                   ))}
-                  <button onClick={addMatchRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Пара')}</button>
+                  <button data-hover="layer" onClick={addMatchRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Пара')}</button>
                 </div>
               )}
 
@@ -3290,14 +3290,14 @@ function CreatorView({
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
                       <GrowTextarea value={s} onChange={v => setTkSeq(prev => prev.map((x, j) => j === i ? v : x))} placeholder={t('Шаг ') + (i + 1) + '…'} style={{ ...inputSt, flex: 1 }} />
-                      <button onClick={() => moveSeq(i, -1)} disabled={i === 0} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: i === 0 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === 0 ? 0.3 : 1, flexShrink: 0 }}><ArrowUp size={14} /></button>
-                      <button onClick={() => moveSeq(i, 1)} disabled={i === tkSeq.length - 1} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: i === tkSeq.length - 1 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === tkSeq.length - 1 ? 0.3 : 1, flexShrink: 0 }}><ArrowDown size={14} /></button>
+                      <button data-hover="layer" onClick={() => moveSeq(i, -1)} disabled={i === 0} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: i === 0 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === 0 ? 0.3 : 1, flexShrink: 0 }}><ArrowUp size={14} /></button>
+                      <button data-hover="layer" onClick={() => moveSeq(i, 1)} disabled={i === tkSeq.length - 1} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: i === tkSeq.length - 1 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === tkSeq.length - 1 ? 0.3 : 1, flexShrink: 0 }}><ArrowDown size={14} /></button>
                       {tkSeq.length > 2 && (
-                        <button onClick={() => removeSeqRow(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
+                        <button data-hover="layer" onClick={() => removeSeqRow(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
                       )}
                     </div>
                   ))}
-                  <button onClick={addSeqRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Шаг')}</button>
+                  <button data-hover="layer" onClick={addSeqRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Шаг')}</button>
                 </div>
               )}
 
@@ -3310,7 +3310,7 @@ function CreatorView({
                       minHeight={growMinHeight(3, 13, 9, 0)}
                       placeholder={t("Развёрнутый правильный ответ…")} style={inputSt} />
                   </div>
-                  <button onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
+                  <button data-hover="layer" onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
                     <span style={{ width: 32, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', boxSizing: 'border-box', background: tkAllowPhoto ? cfg.color : 'var(--color-bg-5)', border: `1px solid ${tkAllowPhoto ? 'transparent' : 'var(--color-border-medium)'}`, transition: 'background 0.15s' }}>
                       <span style={{ position: 'absolute', top: 1, left: tkAllowPhoto ? 13 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: 'var(--shadow-1)', transition: 'left 0.15s' }} />
                     </span>
@@ -3326,7 +3326,7 @@ function CreatorView({
               <Label>{t('Как оценивать')}</Label>
               <div style={{ display: 'flex', gap: 6, marginTop: 2, marginBottom: 12 }}>
                 {([['perOption', t('За ответы')], ['criteria', t('По критериям')], ['whole', t('За всё задание')]] as [ScoreMode, string][]).map(([m, label]) => (
-                  <button key={m} onClick={() => setScoreMode(m)} style={{
+                  <button data-hover="layer" key={m} onClick={() => setScoreMode(m)} style={{
                     padding: '10px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                     background: scoreMode === m ? cfg.bg : 'var(--color-bg-3)', color: scoreMode === m ? cfg.color : 'var(--color-muted)',
                     fontSize: 13, fontWeight: 600, boxShadow: scoreMode === m ? `0 0 0 1.5px ${cfg.color}44` : 'none', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
@@ -3356,7 +3356,7 @@ function CreatorView({
                           <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: cfg.color, opacity: 0.7 }} />
                           <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{k.keyword}</div>
                           <div style={{ padding: '4px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{k.points}</div>
-                          <button onClick={() => removeKey(k.id)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
+                          <button data-hover="layer" onClick={() => removeKey(k.id)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
                         </div>
                       ))}
                     </div>
@@ -3368,7 +3368,7 @@ function CreatorView({
                     <div style={{ width: 80 }}><Label>{t('Баллов')}</Label>
                       <input type="number" min={1} max={20} value={newKwPts} onChange={e => setNewKwPts(Number(e.target.value))} onFocus={e => e.target.select()} style={inputSt} />
                     </div>
-                    <motion.button whileTap={{ scale: 0.95 }} onClick={addKey} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={16} strokeWidth={2.5} /></motion.button>
+                    <motion.button data-hover="layer" whileTap={{ scale: 0.95 }} onClick={addKey} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={16} strokeWidth={2.5} /></motion.button>
                   </div>
                 </div>
               )}
@@ -3390,7 +3390,7 @@ function CreatorView({
                           <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{idx + 1}</span>
                           <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{c.text}</div>
                           <div style={{ padding: '4px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{c.points}</div>
-                          <button onClick={() => removeCriterion(c.id)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
+                          <button data-hover="layer" onClick={() => removeCriterion(c.id)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={14} /></button>
                         </div>
                       ))}
                     </div>
@@ -3402,9 +3402,9 @@ function CreatorView({
                     <div style={{ width: 80 }}><Label>{t('Баллов')}</Label>
                       <input type="number" min={1} max={20} value={newCritPts} onChange={e => setNewCritPts(Number(e.target.value))} onFocus={e => e.target.select()} style={inputSt} />
                     </div>
-                    <motion.button whileTap={{ scale: 0.95 }} onClick={addCriterion} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={16} strokeWidth={2.5} /></motion.button>
+                    <motion.button data-hover="layer" whileTap={{ scale: 0.95 }} onClick={addCriterion} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={16} strokeWidth={2.5} /></motion.button>
                   </div>
-                  <button onClick={() => setCriteriaVisible(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${criteriaVisible ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: criteriaVisible ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
+                  <button data-hover="layer" onClick={() => setCriteriaVisible(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${criteriaVisible ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: criteriaVisible ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
                     <span style={{ width: 32, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', boxSizing: 'border-box', background: criteriaVisible ? cfg.color : 'var(--color-bg-5)', border: `1px solid ${criteriaVisible ? 'transparent' : 'var(--color-border-medium)'}` }}>
                       <span style={{ position: 'absolute', top: 1, left: criteriaVisible ? 13 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: 'var(--shadow-1)', transition: 'left 0.15s' }} />
                     </span>
@@ -3453,7 +3453,7 @@ function CreatorView({
                     {explPhotos.map((src, i) => (
                       <div key={i} style={{ position: 'relative', display: 'inline-block' }}>
                         <img src={src} alt="" style={{ maxWidth: 180, maxHeight: 140, borderRadius: 8, objectFit: 'cover', display: 'block' }} />
-                        <button aria-label={t('Очистить')}
+                        <button data-hover="layer" aria-label={t('Очистить')}
                           onClick={() => setExplPhotos(prev => prev.filter((_, j) => j !== i))}
                           style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, lineHeight: 1 }}
                         ><X size={14} strokeWidth={2.5} /></button>
@@ -3489,19 +3489,19 @@ function CreatorView({
                     <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text)', flexShrink: 0 }}>{idx + 1}</div>
                     <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>{tc(lesson.title)}</div>
                     {enrollDbId && (
-                      <button onClick={() => setEditingLessonIdx(idx)} title={t("Редактировать контент урока (конспект + ДЗ)")}
+                      <button data-hover="layer" onClick={() => setEditingLessonIdx(idx)} title={t("Редактировать контент урока (конспект + ДЗ)")}
                         style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-purple-text)' }}>
                         <FileText size={12} />
                       </button>
                     )}
-                    <button onClick={() => setCLessons(prev => prev.map((l, i) => {
+                    <button data-hover="layer" onClick={() => setCLessons(prev => prev.map((l, i) => {
                       if (i === idx - 1) return cLessons[idx]
                       if (i === idx) return cLessons[idx - 1]
                       return l
                     }))} disabled={idx === 0} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === 0 ? 0.3 : 1 }}>
                       <ArrowUp size={12} />
                     </button>
-                    <button onClick={() => setCLessons(prev => prev.filter(l => l.id !== lesson.id))} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>
+                    <button data-hover="layer" onClick={() => setCLessons(prev => prev.filter(l => l.id !== lesson.id))} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>
                       <Trash2 size={12} />
                     </button>
                   </div>
@@ -3509,7 +3509,7 @@ function CreatorView({
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                 <LessonNameInput value={newLessonTitle} onChange={setNewLessonTitle} onAdd={addLessonByTitle} />
-                <motion.button whileTap={{ scale: 0.95 }} onClick={addLesson}
+                <motion.button data-hover="layer" whileTap={{ scale: 0.95 }} onClick={addLesson}
                   style={{ width: 38, height: 38, borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-purple-text)', flexShrink: 0 }}>
                   <Plus size={16} strokeWidth={2.5} />
                 </motion.button>
@@ -3547,7 +3547,7 @@ function CreatorView({
                 /></div>
                 {wQOpts.map((opt, oi) => (
                   <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <button onClick={() => setWQCorr(oi)} style={{ width: 22, height: 22, borderRadius: '50%', border: wQCorr === oi ? 'none' : '2px solid var(--color-text-4)', flexShrink: 0, background: wQCorr === oi ? WTYPE_COLOR[wType] : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button data-hover="layer" onClick={() => setWQCorr(oi)} style={{ width: 22, height: 22, borderRadius: '50%', border: wQCorr === oi ? 'none' : '2px solid var(--color-text-4)', flexShrink: 0, background: wQCorr === oi ? WTYPE_COLOR[wType] : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {wQCorr === oi && <Check size={12} strokeWidth={2.5} style={{ color: '#fff' }} />}
                     </button>
                     <input value={opt} onChange={e => { const o = [...wQOpts]; o[oi] = e.target.value; setWQOpts(o) }} placeholder={t('Вариант ') + (oi + 1) + '…'}
@@ -3589,20 +3589,20 @@ function CreatorView({
               </>}
 
               {wType !== 'pomodoro' && (
-                <motion.button whileTap={{ scale: 0.97 }} onClick={addWidgetItem}
+                <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={addWidgetItem}
                   style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG[wType], color: WTYPE_COLOR[wType], fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Plus size={14} /> {t('Добавить элемент')}
                 </motion.button>
               )}
 
               {wType === 'pomodoro' && wItems.length === 0 && (
-                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
+                <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
                   style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Check size={14} /> {t('Применить настройки')}
                 </motion.button>
               )}
               {wType === 'pomodoro' && wItems.length > 0 && (
-                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
+                <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
                   style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Check size={14} /> {t('Обновить:')} {wPomoFocus} / {wPomoBreak} {t('мин')}
                 </motion.button>
@@ -3620,7 +3620,7 @@ function CreatorView({
                           <span style={{ color: 'var(--color-text-3)' }}> · {(item.factText ?? item.quote ?? item.memeCaption ?? '').slice(0, 30)}</span>
                         )}
                       </div>
-                      <button onClick={() => setWItems(prev => prev.filter(x => x.id !== item.id))} style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}><X size={12} /></button>
+                      <button data-hover="layer" onClick={() => setWItems(prev => prev.filter(x => x.id !== item.id))} style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}><X size={12} /></button>
                     </div>
                   ))}
                   {wItems.length > 6 && (
@@ -3645,7 +3645,7 @@ function CreatorView({
                     const active = tkAnswerType === type
                     const v = typeVisual(type)
                     return (
-                      <button key={type} onClick={() => {
+                      <button data-hover="layer" key={type} onClick={() => {
                         setTkAnswerType(type)
                         if (type === 'tableFill') setTkHasTable(true)
                         if (type === 'multi' && tkCorrect.length === 0) setTkCorrect([0])
@@ -3673,7 +3673,7 @@ function CreatorView({
                 <SectionHead>{t('Блоки условия')}</SectionHead>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div>
-                    <button
+                    <button data-hover="layer"
                       onClick={() => {
                         setCondImgPickerOpen(v => !v)
                         setTimeout(() => condImgPasteZoneRef.current?.focus(), 50)
@@ -3709,7 +3709,7 @@ function CreatorView({
                       </div>
                     )}
                   </div>
-                  <button onClick={() => setTkHasTable(v => !v)} style={{
+                  <button data-hover="layer" onClick={() => setTkHasTable(v => !v)} style={{
                     display: 'flex', alignItems: 'center', gap: 10, padding: '10px 10px', borderRadius: 11,
                     border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
                     background: tkHasTable ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
@@ -3966,7 +3966,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
   const iconBtn = (name: string, Ic: React.ElementType) => {
     const sel = iconKey === name
     return (
-      <button key={name} data-icb onClick={() => { onChange(name); setOpen(false); setSearch('') }} title={name}
+      <button data-hover="layer" key={name} data-icb onClick={() => { onChange(name); setOpen(false); setSearch('') }} title={name}
         style={{
           width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -3987,7 +3987,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
           const Ic = getIconByKey(k)
           const sel = iconKey === k
           return (
-            <button key={k} onClick={() => { onChange(k); setOpen(false); setSearch('') }} title={k}
+            <button data-hover="layer" key={k} onClick={() => { onChange(k); setOpen(false); setSearch('') }} title={k}
               style={{
                 flex: 1, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -3999,7 +3999,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
             </button>
           )
         })}
-        <button onClick={() => setOpen(o => !o)} title={t("Все иконки")}
+        <button data-hover="layer" onClick={() => setOpen(o => !o)} title={t("Все иконки")}
           style={{
             width: 28, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -4030,7 +4030,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
               <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Поиск иконки…")}
                 style={{ width: '100%', boxSizing: 'border-box', padding: '8px 28px 8px 28px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
               {search && (
-                <button aria-label={t('Очистить')} onClick={() => setSearch('')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}><X size={14} strokeWidth={2.5} /></button>
+                <button data-hover="layer" aria-label={t('Очистить')} onClick={() => setSearch('')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}><X size={14} strokeWidth={2.5} /></button>
               )}
             </div>
 
@@ -4277,7 +4277,7 @@ function ColorPickerPopup({ value, onChange, onClose, anchor }: {
           placeholder="#000000" maxLength={7}
           onFocus={e => e.target.select()}
         />
-        <button onClick={onClose}
+        <button data-hover="layer" onClick={onClose}
           style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: currentHex, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Check size={14} strokeWidth={2.5} style={{ color: contrastCheck }} />
         </button>
@@ -4375,7 +4375,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
         </div>
 
         {/* Copy link button */}
-        <button
+        <button data-hover="layer"
           onClick={copyLink}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
@@ -4391,7 +4391,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
         </button>
 
         {/* Expand/collapse */}
-        <button
+        <button data-hover="layer"
           onClick={() => setExpanded(v => !v)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}
         >
@@ -4428,7 +4428,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                   />
                   {editOpts.map((opt, oi) => (
                     <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <button
+                      <button data-hover="layer"
                         onClick={() => setEditCorrect(oi)}
                         style={{
                           width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
@@ -4442,7 +4442,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                         style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }}
                       />
                       {editOpts.length > 2 && (
-                        <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
+                        <button data-hover="layer" onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
                           style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, cursor: 'pointer', border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <X size={12} />
                         </button>
@@ -4450,14 +4450,14 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                     </div>
                   ))}
                   {editOpts.length < 6 && (
-                    <button onClick={() => setEditOpts([...editOpts, ''])}
+                    <button data-hover="layer" onClick={() => setEditOpts([...editOpts, ''])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                       <Plus size={12} /> {t('Добавить вариант')}
                     </button>
                   )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                    <button onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
-                    <button onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
+                    <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
+                    <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
                   </div>
                 </div>
               ) : (
@@ -4474,8 +4474,8 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    <button onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{t('Ред.')}</button>
-                    <button onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
+                    <button data-hover="layer" onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{t('Ред.')}</button>
+                    <button data-hover="layer" onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
                   </div>
                 </div>
               )}
@@ -4484,7 +4484,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
 
           {/* Footer actions */}
           <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-            <button
+            <button data-hover="layer"
               onClick={resetToDefault}
               style={{ ...btn('S', 'secondary'), flex: 1 }}
             >
@@ -4521,7 +4521,7 @@ function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, n
       >
         <div style={{ padding: '16px 16px 14px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Выбрать ученика')}</div>
-          <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)' }}><X size={14} /></button>
+          <button data-hover="layer" onClick={onClose} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)' }}><X size={14} /></button>
         </div>
         <div style={{ padding: '16px 16px 8px' }}>
           <input
@@ -4591,7 +4591,7 @@ function DiagnosticStudentCard({
       borderRadius: 18, overflow: 'hidden', transition: 'border-color 0.22s',
     }}>
       {/* Collapsed row — click to expand */}
-      <div
+      <div data-hover="layer"
         onClick={() => setExpanded(v => !v)}
         style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
       >
@@ -4785,17 +4785,17 @@ function DiagnosticStudentCard({
                     <div style={{ flex: 1, padding: '10px 12px', borderRadius: 10, background: 'var(--color-green-soft)', border: '1px solid #86efac44', fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Check size={14} strokeWidth={2.5} /> {linkedStudent?.name ?? t('Привязан')}
                     </div>
-                    <button onClick={onUnlink} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отвязать')}</button>
+                    <button data-hover="layer" onClick={onUnlink} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отвязать')}</button>
                   </>
                 ) : (
-                  <button
+                  <button data-hover="layer"
                     onClick={onLink}
                     style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${accent}`, background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit' }}
                   >
                     <Key size={14} strokeWidth={2.5} /> {t('Выбрать ученика')}
                   </button>
                 )}
-                <button
+                <button data-hover="layer"
                   onClick={e => { e.stopPropagation(); onDelete() }}
                   style={{ width: 38, borderRadius: 10, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                 >
@@ -4911,7 +4911,7 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
                 {anonResults.length}
               </span>
             )}
-            <button
+            <button data-hover="layer"
               onClick={refreshResults}
               title={t("Обновить")}
               style={{
@@ -4980,7 +4980,7 @@ function ResumeLinkButton({ result, accent, wide }: { result: AnonDiagResult; ac
       .then(ok => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
   return (
-    <button onClick={copy} title={t('Ссылка, по которой ученик продолжит с того же места')} style={wide
+    <button data-hover="layer" onClick={copy} title={t('Ссылка, по которой ученик продолжит с того же места')} style={wide
       ? { width: '100%', height: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }
       : { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 10, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
       {copied ? <Check size={wide ? 14 : 12} /> : <Link2 size={wide ? 14 : 12} />}
@@ -5023,12 +5023,12 @@ function DiagResultsTable({
             {results.length > 0 ? (results.length) + t(' прохождени') + (results.length === 1 ? t('е') : t('й')) : t('Ещё никто не прошёл')}
           </div>
         </div>
-        <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }} aria-label={t('Обновить')}><LoopUiRefreshCw size={14}/></button>
-        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : fillUnderWhite(accent), color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
+        <button data-hover="layer" onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }} aria-label={t('Обновить')}><LoopUiRefreshCw size={14}/></button>
+        <button data-hover="layer" onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : fillUnderWhite(accent), color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
           {copied ? <Check size={14} /> : <Link2 size={14} />}
           {copied ? t('Скопировано!') : t('Ссылка')}
         </button>
-        <button onClick={onOpenEditor} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700 }}>
+        <button data-hover="layer" onClick={onOpenEditor} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700 }}>
           <Pencil size={14} /> {t('Редактор')}
         </button>
       </div>
@@ -5254,7 +5254,7 @@ function DiagResultStudentPanel({
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
                   <SectionHead>{t('Ошибки')} · {wrong.length}</SectionHead>
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setShowAll(v => !v)}
                     style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: 11, fontWeight: 700, color: accent, fontFamily: 'inherit' }}
                   >
@@ -5335,10 +5335,10 @@ function DiagResultStudentPanel({
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tn(linkedStudent.name)}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-green-text)' }}>{t('Привязан к профилю')}</div>
                 </div>
-                <button onClick={handleUnlink} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}>{t('Отвязать')}</button>
+                <button data-hover="layer" onClick={handleUnlink} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}>{t('Отвязать')}</button>
               </div>
             ) : (
-              <button
+              <button data-hover="layer"
                 onClick={() => setPickerOpen(true)}
                 style={{ width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: fillUnderWhite(accent), color: '#fff', fontSize: 13, fontWeight: 700 }}
               >
@@ -5348,7 +5348,7 @@ function DiagResultStudentPanel({
           </div>
 
           {/* Delete */}
-          <button onClick={handleDelete} style={{ width: '100%', height: 46, minHeight: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
+          <button data-hover="layer" onClick={handleDelete} style={{ width: '100%', height: 46, minHeight: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
             <Trash2 size={14} /> {t('Удалить результат')}
           </button>
         </ScrollFade>
@@ -5416,9 +5416,9 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
     <motion.div ref={ref} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
       style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: 'var(--shadow-4)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <button onClick={prevMonth} style={calNavBtn}><ChevronLeft size={14} /></button>
+        <button data-hover="layer" onClick={prevMonth} style={calNavBtn}><ChevronLeft size={14} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS_FULL[viewMonth])} {viewYear}</span>
-        <button onClick={nextMonth} style={calNavBtn}><ChevronRight size={14} /></button>
+        <button data-hover="layer" onClick={nextMonth} style={calNavBtn}><ChevronRight size={14} /></button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
         {RU_DAYS_SHORT.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', paddingBottom: 4 }}>{t(d)}</div>)}
@@ -5429,7 +5429,7 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
           const sel = !!(selected && d.toDateString() === selected.toDateString())
           const tod = d.toDateString() === today.toDateString()
           return (
-            <button key={i} onClick={() => { onChange(formatDateISO(d)); onClose() }}
+            <button data-hover="layer" key={i} onClick={() => { onChange(formatDateISO(d)); onClose() }}
               style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? accent : 'transparent', boxShadow: !sel && tod ? `inset 0 0 0 1.5px ${accent}` : 'none', color: sel ? '#fff' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}>
               {d.getDate()}
             </button>
@@ -5498,7 +5498,7 @@ function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--c
           {TIME_SLOTS_DIAG.map(t => {
             const active = t === value
             return (
-              <button key={t} onClick={() => { onChange(t); onClose() }}
+              <button data-hover="layer" key={t} onClick={() => { onChange(t); onClose() }}
                 style={{ width: '100%', border: 'none', background: active ? accent : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '8px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.15s, color 0.15s' }}>
                 {t}
               </button>
@@ -5864,7 +5864,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{label}</span>
         </div>
         <div style={{ marginLeft: 'auto' }}>
-          <button onClick={resetToDefault} style={btn('S', 'secondary')}>
+          <button data-hover="layer" onClick={resetToDefault} style={btn('S', 'secondary')}>
             {t('Сбросить к стандарту')}
           </button>
         </div>
@@ -5907,10 +5907,10 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
             <div>
               <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between' }}>
                 {CREATOR_ACCENTS.map(a => (
-                  <button key={a.hex} onClick={() => handleColorChange(a.hex)} title={a.hex}
+                  <button data-hover="layer" key={a.hex} onClick={() => handleColorChange(a.hex)} title={a.hex}
                     style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: a.hex, cursor: 'pointer', outline: 'none', transition: 'box-shadow 0.15s', flexShrink: 0, boxShadow: accent === a.hex ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${a.hex}` : 'none' }} />
                 ))}
-                <button ref={pickerBtnRef} title={t("Свой цвет")} onClick={() => setShowPicker(p => !p)}
+                <button data-hover="layer" ref={pickerBtnRef} title={t("Свой цвет")} onClick={() => setShowPicker(p => !p)}
                   style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: !CREATOR_ACCENTS.some(a => a.hex === accent) ? accent : 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', boxShadow: !CREATOR_ACCENTS.some(a => a.hex === accent) ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${accent}` : 'none' }}>
                   <Plus size={14} style={{ color: !CREATOR_ACCENTS.some(a => a.hex === accent) ? getContrastColor(accent) : 'var(--color-muted)', pointerEvents: 'none' }} />
                 </button>
@@ -5971,7 +5971,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 { id: 'assign', icon: Target, label: t('Назначить') },
                 { id: 'link',   icon: Link2,  label: t('По ссылке') },
               ] as const).map(({ id, icon: Icon2, label }) => (
-                <button key={id} onClick={() => setDistMode(id)}
+                <button data-hover="layer" key={id} onClick={() => setDistMode(id)}
                   style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 4px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                     background: distMode === id ? 'var(--color-surface, var(--color-bg-input))' : 'transparent',
                     color: distMode === id ? accent : 'var(--color-text-3)',
@@ -5988,7 +5988,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 {/* Type toggle */}
                 <div style={{ display: 'flex', gap: 6 }}>
                   {(['test', 'trial'] as const).map(ty => (
-                    <button key={ty} onClick={() => setAssignType(ty)}
+                    <button data-hover="layer" key={ty} onClick={() => setAssignType(ty)}
                       style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                       {ty === 'test' ? t('Контрольная') : t('Пробник')}
                     </button>
@@ -6001,7 +6001,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 {/* Recipient toggle + search */}
                 <div style={{ display: 'flex', gap: 6 }}>
                   {(['group', 'student'] as const).map(m => (
-                    <button key={m} onClick={() => { setAssignRecipientMode(m); setAssignGroupId(''); setAssignStudentId('') }}
+                    <button data-hover="layer" key={m} onClick={() => { setAssignRecipientMode(m); setAssignGroupId(''); setAssignStudentId('') }}
                       style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', cursor: 'pointer', fontSize: 12,
                         fontWeight: assignRecipientMode === m ? 700 : 600,
                         background: assignRecipientMode === m ? `${accent}20` : 'var(--color-bg-3)',
@@ -6023,11 +6023,11 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <div style={{ display: 'flex', gap: 6 }}>
                     {/* Calendar trigger */}
                     <div ref={calAnchorRef} style={{ position: 'relative', flex: 1 }}>
-                      <button onClick={() => { setCalOpen(o => !o); setTimeOpen(false) }}
+                      <button data-hover="layer" onClick={() => { setCalOpen(o => !o); setTimeOpen(false) }}
                         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                         <Calendar size={14} style={{ flexShrink: 0, color: accent }} />
                         <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : t('Дата')}</span>
-                        {dueDate && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}><X size={14} strokeWidth={2.5} /></button>}
+                        {dueDate && <button data-hover="layer" aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}><X size={14} strokeWidth={2.5} /></button>}
                       </button>
                       <AnimatePresence>
                         {calOpen && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen(false) }} onClose={() => setCalOpen(false)} anchorRef={calAnchorRef} accent={accent} soft={soft} />}
@@ -6035,7 +6035,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     </div>
                     {/* Time trigger */}
                     <div ref={timeAnchorRef} style={{ position: 'relative', width: 80 }}>
-                      <button onClick={() => { setTimeOpen(o => !o); setCalOpen(false) }}
+                      <button data-hover="layer" onClick={() => { setTimeOpen(o => !o); setCalOpen(false) }}
                         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
                         <Clock size={14} style={{ flexShrink: 0, color: accent }} />
                         <span>{dueTime || t('Время')}</span>
@@ -6046,7 +6046,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     </div>
                   </div>
 
-                <button onClick={handleAssign} disabled={saving || !canAssign}
+                <button data-hover="layer" onClick={handleAssign} disabled={saving || !canAssign}
                   style={{ padding: '10px', borderRadius: 11, border: 'none', background: canAssign ? accent : 'var(--color-bg-5)', color: canAssign ? '#fff' : 'var(--color-text-3)', fontSize: 13, fontWeight: 700, cursor: canAssign ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                   {saving ? t('Назначаем…') : t('Назначить тест')}
                 </button>
@@ -6059,7 +6059,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <div style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.5 }}>
                   {t('Человек проходит тест по ссылке, вводит имя и появляется в таблице результатов. Подходит для первичной диагностики.')}
                 </div>
-                <button onClick={copyLink}
+                <button data-hover="layer" onClick={copyLink}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 14px', borderRadius: 11, cursor: 'pointer', border: 'none', outline: 'none', fontFamily: 'inherit', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                   {copied ? <Check size={14} /> : <Link2 size={14} />}
                   {copied ? t('Ссылка скопирована!') : t('Копировать ссылку')}
@@ -6084,7 +6084,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 const aStudents = allStudents.filter(s => a.studentIds.includes(s.id))
                 return (
                   <div key={a.id}>
-                    <div
+                    <div data-hover="card"
                       onClick={() => setExpandedAssignId(prev => prev === a.id ? null : a.id)}
                       style={{ padding: '10px 12px', borderRadius: 10, background: isExp ? soft : 'var(--color-bg-2)', border: `1px solid ${isExp ? accent : 'var(--color-border)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}
                     >
@@ -6096,7 +6096,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                           {a.dueDate && <span>{t('до')} {a.dueDate}</span>}
                         </div>
                       </div>
-                      <button onClick={e => { e.stopPropagation(); onDeleteAssignment(a.id) }}
+                      <button data-hover="layer" onClick={e => { e.stopPropagation(); onDeleteAssignment(a.id) }}
                         style={{ width: 22, height: 22, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
                         <Trash2 size={12} />
                       </button>
@@ -6147,7 +6147,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
                       <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Редактирование вопроса')}</div>
-                      <button onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <button data-hover="layer" onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                         <X size={14} /> {t('Удалить')}
                       </button>
                     </div>
@@ -6193,7 +6193,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {editOpts.map((opt, oi) => (
                           <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <button onClick={() => { setEditCorrect(oi); setDirty(true) }}
+                            <button data-hover="layer" onClick={() => { setEditCorrect(oi); setDirty(true) }}
                               style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accentFill : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accentFill : 'transparent', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accentFill) : 'none' }}>
                               {editCorrect === oi && <Check size={14} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
                             </button>
@@ -6203,7 +6203,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                                 style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
                             </div>
                             {editOpts.length > 2 && (
-                              <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0); setDirty(true) }}
+                              <button data-hover="layer" onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0); setDirty(true) }}
                                 style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, cursor: 'pointer', border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <X size={14} />
                               </button>
@@ -6211,7 +6211,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                           </div>
                         ))}
                         {editOpts.length < 6 && (
-                          <button onClick={() => { setEditOpts([...editOpts, '']); setDirty(true) }}
+                          <button data-hover="layer" onClick={() => { setEditOpts([...editOpts, '']); setDirty(true) }}
                             style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
                             <Plus size={14} /> {t('Добавить вариант')}
                           </button>
@@ -6220,7 +6220,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     </div>
                     )}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
-                      <button onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}>{t('Отмена')}</button>
+                      <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}>{t('Отмена')}</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
                         style={{ ...btn('M', 'primary'), background: accent, color: getContrastColor(accent), gap: 8 }}>
                         <Check size={16} strokeWidth={2.5} /> {t('Сохранить вопрос')}
@@ -6273,7 +6273,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
 
                 <div ref={qListRef} onScroll={updateQListFade} style={{ height: '100%', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 2 }}>
                   {questions.map((q, idx) => (
-                    <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
+                    <button data-hover="layer" key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
                       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                       <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
                       <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{diagListLabel(q) || t('Без текста')}</div>
@@ -6283,7 +6283,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               </div>
 
               {/* Always-visible add button */}
-              <button onClick={addQuestion}
+              <button data-hover="layer" onClick={addQuestion}
                 style={{ marginTop: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '8px', borderRadius: 10, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <Plus size={14} /> {t('Добавить вопрос')}
               </button>
@@ -6313,7 +6313,7 @@ const ALL_SERIES: SeriesType[] = ['arithmetic','geometric','fibonacci','alternat
 
 function ScrToggle({ on, label, onChange }: { on: boolean; label: string; onChange: (v: boolean) => void }) {
   return (
-    <button
+    <button data-hover="layer"
       onClick={() => onChange(!on)}
       style={{
         display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
@@ -6355,7 +6355,7 @@ function ScrPills<T extends string>({ label, all, active, labelMap, onChange }: 
         {all.map(key => {
           const on = active.includes(key)
           return (
-            <button key={key} onClick={() => onChange(on ? active.filter(k => k !== key) : [...active, key])}
+            <button data-hover="layer" key={key} onClick={() => onChange(on ? active.filter(k => k !== key) : [...active, key])}
               style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: on ? SCR_SOFT : 'var(--color-bg-3)', color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
               {t(labelMap[key])}
             </button>
@@ -6550,13 +6550,13 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button onClick={() => setEditId(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
-                <button onClick={() => onChange(items.filter(i => i.id !== it.id))} style={{ ...btn('S', 'primary'), background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontFamily: 'inherit' }}>{t('Удалить')}</button>
-                <button onClick={commitEdit} style={{ ...btn('S', 'primary'), background: SCR_ACC, color: '#fff', fontFamily: 'inherit' }}>{t('Сохранить')}</button>
+                <button data-hover="layer" onClick={() => setEditId(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
+                <button data-hover="layer" onClick={() => onChange(items.filter(i => i.id !== it.id))} style={{ ...btn('S', 'primary'), background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontFamily: 'inherit' }}>{t('Удалить')}</button>
+                <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: SCR_ACC, color: '#fff', fontFamily: 'inherit' }}>{t('Сохранить')}</button>
               </div>
             </div>
           ) : (
-            <button onClick={() => startEdit(it)} style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+            <button data-hover="layer" onClick={() => startEdit(it)} style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
               <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: `${SCR_ACC}22`, color: SCR_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
               <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                 {it.a} <span data-loop-content>→</span> {it.b} | {it.c} <span data-loop-content>→</span> <b>{it.answer || '?'}</b>
@@ -6566,7 +6566,7 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
           )}
         </div>
       ))}
-      <button onClick={addItem} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+      <button data-hover="layer" onClick={addItem} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
         <Plus size={14} /> {t('Добавить аналогию')}
       </button>
     </div>
@@ -6589,14 +6589,14 @@ function ScreeningColorEditor({ colors, onChange }: { colors: { name: string; he
             <input type="color" value={c.hex} onChange={e => { const next = [...colors]; next[i] = { ...c, hex: e.target.value }; onChange(next) }}
               style={{ width: 44, height: 34, padding: 2, borderRadius: 8, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', cursor: 'pointer' }} />
             {colors.length > 2 && (
-              <button onClick={() => onChange(colors.filter((_, j) => j !== i))}
+              <button data-hover="layer" onClick={() => onChange(colors.filter((_, j) => j !== i))}
                 style={{ padding: '4px 8px', borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <X size={12} />
               </button>
             )}
           </div>
         ))}
-        <button onClick={() => onChange([...colors, { name: '', hex: '#000000' }])}
+        <button data-hover="layer" onClick={() => onChange([...colors, { name: '', hex: '#000000' }])}
           style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
           <Plus size={14} /> {t('Добавить цвет')}
         </button>
@@ -6641,7 +6641,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{t('Задания на сопоставление (')}{tasks.length})</div>
       {tasks.map((task, ti) => (
         <div key={task.id} style={{ borderRadius: 12, border: `1px solid ${openId === task.id ? SCR_ACC : 'var(--color-border)'}`, background: 'var(--color-bg-2)', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer' }} onClick={() => setOpenId(openId === task.id ? null : task.id)}>
+          <div data-hover="layer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer' }} onClick={() => setOpenId(openId === task.id ? null : task.id)}>
             <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: `${SCR_ACC}22`, color: SCR_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{ti + 1}</div>
             <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.title || t('Без названия')}</div>
             <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{task.pairs.length} {t('пар')}</span>
@@ -6657,17 +6657,17 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
                   <span data-loop-content style={{ color: 'var(--color-muted)', fontSize: 14, flexShrink: 0 }}>→</span>
                   <input value={pair.right} onChange={e => updatePair(task.id, pi, 'right', e.target.value)} placeholder={t("Правая часть")} style={inputStyle} />
                   {task.pairs.length > 1 && (
-                    <button onClick={() => removePair(task.id, pi)} style={{ padding: '6px', borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                    <button data-hover="layer" onClick={() => removePair(task.id, pi)} style={{ padding: '6px', borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                       <X size={14} />
                     </button>
                   )}
                 </div>
               ))}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
-                <button onClick={() => addPair(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button data-hover="layer" onClick={() => addPair(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   <Plus size={14} /> {t('Пара')}
                 </button>
-                <button onClick={() => removeTask(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button data-hover="layer" onClick={() => removeTask(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   <Trash2 size={14} /> {t('Удалить задание')}
                 </button>
               </div>
@@ -6675,7 +6675,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
           )}
         </div>
       ))}
-      <button onClick={addTask} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+      <button data-hover="layer" onClick={addTask} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
         <Plus size={14} /> {t('Добавить задание')}
       </button>
     </div>
@@ -6761,7 +6761,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
             {cfg.title || t('Скрининг мышления')}
           </div>
           <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-            <button onClick={resetToDefault} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb),0.96)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button data-hover="layer" onClick={resetToDefault} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb),0.96)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               {t('Сбросить к стандарту')}
             </button>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSave} style={savePillStyle}>
@@ -6779,7 +6779,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {activeDomains(cfg).length} {t('из')} {cfg.order.length} {t('активных')}
               </div>
-              <button onClick={() => setSelectedDomain('meta')}
+              <button data-hover="layer" onClick={() => setSelectedDomain('meta')}
                 style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', background: selectedDomain === 'meta' ? SCR_SOFT : 'transparent', color: selectedDomain === 'meta' ? SCR_ACC : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', marginBottom: 4 }}>
                 <Settings size={18} strokeWidth={2} style={{ flexShrink: 0, color: selectedDomain === 'meta' ? SCR_ACC : 'var(--color-text-2)' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -6793,7 +6793,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
                 const d = cfg[key]
                 const isSel = selectedDomain === key
                 return (
-                  <button key={key} onClick={() => setSelectedDomain(key)}
+                  <button data-hover="layer" key={key} onClick={() => setSelectedDomain(key)}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', background: isSel ? SCR_SOFT : 'transparent', color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text)' : 'var(--color-text-3)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}
                   >
                     {(() => { const DomIcon = DOMAIN_ICONS[key]; return <DomIcon size={17} strokeWidth={2} style={{ flexShrink: 0, color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text-2)' : 'var(--color-text-3)' }} /> })()}
@@ -7113,10 +7113,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               <div>
                 <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between' }}>
                   {CREATOR_ACCENTS.map(a => (
-                    <button key={a.hex} onClick={() => setAccent(a.hex)}
+                    <button data-hover="layer" key={a.hex} onClick={() => setAccent(a.hex)}
                       style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: a.hex, cursor: 'pointer', outline: 'none', transition: 'box-shadow 0.15s', flexShrink: 0, boxShadow: accent === a.hex ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${a.hex}` : 'none' }} />
                   ))}
-                  <button ref={pickerBtn2Ref} title={t("Свой цвет")} onClick={() => setShowPicker2(p => !p)}
+                  <button data-hover="layer" ref={pickerBtn2Ref} title={t("Свой цвет")} onClick={() => setShowPicker2(p => !p)}
                     style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: !CREATOR_ACCENTS.some(a => a.hex === accent) ? accent : 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', boxShadow: !CREATOR_ACCENTS.some(a => a.hex === accent) ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${accent}` : 'none' }}>
                     <Plus size={14} style={{ color: !CREATOR_ACCENTS.some(a => a.hex === accent) ? getContrastColor(accent) : 'var(--color-muted)', pointerEvents: 'none' }} />
                   </button>
@@ -7144,7 +7144,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                   { id: 'assign', icon: Target, label: t('Назначить') },
                   { id: 'link',   icon: Link2,  label: t('По ссылке') },
                 ] as const).map(({ id, icon: Icon2, label }) => (
-                  <button key={id} onClick={() => setDistMode(id)}
+                  <button data-hover="layer" key={id} onClick={() => setDistMode(id)}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 4px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                       background: distMode === id ? 'var(--color-surface, var(--color-bg-input))' : 'transparent',
                       color: distMode === id ? accent : 'var(--color-text-3)',
@@ -7158,7 +7158,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                 <>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {(['test', 'trial'] as const).map(ty => (
-                      <button key={ty} onClick={() => setAssignType(ty)}
+                      <button data-hover="layer" key={ty} onClick={() => setAssignType(ty)}
                         style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                         {ty === 'test' ? t('Контрольная') : t('Пробник')}
                       </button>
@@ -7167,7 +7167,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                   <div style={{ height: 1, background: 'var(--color-bg-3)', borderRadius: 1, margin: '2px 0' }} />
                   <div style={{ display: 'flex', gap: 6 }}>
                     {(['group', 'student'] as const).map(m => (
-                      <button key={m} onClick={() => { setAssignRecipientMode(m); setAssignGroupId(''); setAssignStudentId('') }}
+                      <button data-hover="layer" key={m} onClick={() => { setAssignRecipientMode(m); setAssignGroupId(''); setAssignStudentId('') }}
                         style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', cursor: 'pointer', fontSize: 12,
                           fontWeight: assignRecipientMode === m ? 700 : 600,
                           background: assignRecipientMode === m ? `${accent}20` : 'var(--color-bg-3)',
@@ -7188,18 +7188,18 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{t('Срок (необязательно)')}</div>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <div ref={calAnchor2Ref} style={{ position: 'relative', flex: 1 }}>
-                        <button onClick={() => { setCalOpen2(o => !o); setTimeOpen2(false) }}
+                        <button data-hover="layer" onClick={() => { setCalOpen2(o => !o); setTimeOpen2(false) }}
                           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                           <Calendar size={14} style={{ flexShrink: 0, color: accent }} />
                           <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : t('Дата')}</span>
-                          {dueDate && <button aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}><X size={14} strokeWidth={2.5} /></button>}
+                          {dueDate && <button data-hover="layer" aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}><X size={14} strokeWidth={2.5} /></button>}
                         </button>
                         <AnimatePresence>
                           {calOpen2 && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen2(false) }} onClose={() => setCalOpen2(false)} anchorRef={calAnchor2Ref} accent={accent} soft={soft} />}
                         </AnimatePresence>
                       </div>
                       <div ref={timeAnchor2Ref} style={{ position: 'relative', width: 80 }}>
-                        <button onClick={() => { setTimeOpen2(o => !o); setCalOpen2(false) }}
+                        <button data-hover="layer" onClick={() => { setTimeOpen2(o => !o); setCalOpen2(false) }}
                           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
                           <Clock size={14} style={{ flexShrink: 0, color: accent }} />
                           <span>{dueTime || t('Время')}</span>
@@ -7244,7 +7244,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
                       <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Вопрос')} {editIdx + 1}</div>
-                      <button onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <button data-hover="layer" onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                         <X size={14} /> {t('Удалить')}
                       </button>
                     </div>
@@ -7288,7 +7288,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {editOpts.map((opt, oi) => (
                               <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <button onClick={() => setEditCorrect(oi)}
+                                <button data-hover="layer" onClick={() => setEditCorrect(oi)}
                                   style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accentFill : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accentFill : 'transparent', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accentFill) : 'none' }}>
                                   {editCorrect === oi && <Check size={14} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
                                 </button>
@@ -7298,7 +7298,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                                     style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
                                 </div>
                                 {editOpts.length > 2 && (
-                                  <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
+                                  <button data-hover="layer" onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
                                     style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, cursor: 'pointer', border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <X size={14} />
                                   </button>
@@ -7306,7 +7306,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                               </div>
                             ))}
                             {editOpts.length < 6 && (
-                              <button onClick={() => setEditOpts([...editOpts, ''])}
+                              <button data-hover="layer" onClick={() => setEditOpts([...editOpts, ''])}
                                 style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
                                 <Plus size={14} /> {t('Добавить вариант')}
                               </button>
@@ -7316,7 +7316,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       </>
                     )}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
-                      <button onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}>{t('Отмена')}</button>
+                      <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}>{t('Отмена')}</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
                         style={{ ...btn('M', 'primary'), background: accent, color: getContrastColor(accent), gap: 8 }}>
                         <Check size={16} strokeWidth={2.5} /> {t('Сохранить вопрос')}
@@ -7337,13 +7337,13 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('С чего начнём?')}</div>
                     <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 420 }}>
-                      <button onClick={() => addQuestion('mc')}
+                      <button data-hover="layer" onClick={() => addQuestion('mc')}
                         style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 14px', borderRadius: 16, border: `2px solid ${accent}55`, background: soft, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                         <FileText size={24} style={{ color: accent }} />
                         <span style={{ fontSize: 14, fontWeight: 700 }}>{t('Обычный вопрос')}</span>
                         <span style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.4 }}>{t('Текст + 4 варианта,')}<br />{t('один правильный')}</span>
                       </button>
-                      <button onClick={() => addQuestion('screening')}
+                      <button data-hover="layer" onClick={() => addQuestion('screening')}
                         style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 14px', borderRadius: 16, border: `2px solid ${accent}55`, background: soft, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                         <Brain size={24} style={{ color: accent }} />
                         <span style={{ fontSize: 14, fontWeight: 700 }}>{t('Скрининг-блок')}</span>
@@ -7364,21 +7364,21 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {questions.map((q, idx) => (
-                  <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
+                  <button data-hover="layer" key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                     <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
                     <div style={{ flex: 1, fontSize: 11, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap', fontWeight: editIdx === idx ? 600 : 400 }}>{q.text || t('Без текста')}</div>
                   </button>
                 ))}
               </div>
-              <button onClick={() => addQuestion()}
+              <button data-hover="layer" onClick={() => addQuestion()}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 8px', borderRadius: 8, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <Plus size={14} /> {t('Добавить вопрос')}
               </button>
               <div style={{ borderTop: '1px solid var(--color-border-soft)', marginTop: 2 }} />
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{t('Тип вопроса')}</div>
               {(['mc', 'screening'] as const).map(ty => (
-                <button key={ty} onClick={() => editIdx !== null && setEditType(ty)}
+                <button data-hover="layer" key={ty} onClick={() => editIdx !== null && setEditType(ty)}
                   style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 12px', borderRadius: 12, border: `2px solid ${editType === ty && editIdx !== null ? accent : 'var(--color-border-medium)'}`, background: editType === ty && editIdx !== null ? accent : 'var(--color-bg-2)', color: editType === ty && editIdx !== null ? '#fff' : editIdx !== null ? 'var(--color-text-2)' : 'var(--color-muted)', fontWeight: 600, fontSize: 13, cursor: editIdx !== null ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', textAlign: 'left' }}>
                   {ty === 'mc' ? <><FileText size={14} style={{ flexShrink: 0 }} /> {t('Текст / выбор')}</> : <><Brain size={14} style={{ flexShrink: 0 }} /> {t('Скрининг-блок')}</>}
                 </button>
@@ -7392,7 +7392,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                         const DI = DOMAIN_ICONS[k]
                         const isSel = editScrDomain === k
                         return (
-                          <button key={k} onClick={() => setEditScrDomain(k)}
+                          <button data-hover="layer" key={k} onClick={() => setEditScrDomain(k)}
                             style={{ padding: '8px 6px', borderRadius: 10, border: `2px solid ${isSel ? accent : 'var(--color-border-medium)'}`, background: isSel ? accent : 'var(--color-bg-2)', color: isSel ? '#fff' : 'var(--color-text-2)', cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                             <DI size={18} strokeWidth={2} />
                             <span style={{ fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{t(SCR_DOMAIN_META[k].short)}</span>
@@ -7454,7 +7454,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
         const { color, bg } = getChipStyle(chip, fallbackAccent, dark)
         const active = chip === value
         return (
-          <button
+          <button data-hover="layer"
             key={chip}
             onClick={() => onChange(chip)}
             style={{
@@ -7485,7 +7485,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
           }}
         />
       ) : (
-        <button
+        <button data-hover="layer"
           onClick={() => setAdding(true)}
           style={{
             fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 7, cursor: 'pointer',
@@ -7646,7 +7646,7 @@ function CustomTestCard({ test, isSelected, onClick, series }: {
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={18} strokeWidth={2} style={{ color: accent }} />}
       badge={<>
         {series && (
-          <button type="button" title={t('Собрать серию в стопку')}
+          <button data-hover="layer" type="button" title={t('Собрать серию в стопку')}
             onClick={e => { e.stopPropagation(); series.onCollapse() }}
             style={cardChipTone('purple', { display: 'inline-flex', alignItems: 'center', gap: 4, border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}>
             <Layers size={12} strokeWidth={2.5} />
@@ -7738,7 +7738,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button
+            <button data-hover="layer"
               onClick={copyLink}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -7751,7 +7751,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
               {copied ? <Check size={14} /> : <Link2 size={14} />}
               {copied ? t('Скопировано!') : t('Ссылка')}
             </button>
-            <button
+            <button data-hover="layer"
               onClick={onEditTest}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -7773,7 +7773,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
                 const isExp = expandedSection === sectionName
                 return (
                   <div key={sectionName} style={{ borderRadius: 12, border: `1px solid ${isExp ? accent : 'var(--color-border)'}`, overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                    <button
+                    <button data-hover="layer"
                       onClick={() => setExpandedSection(prev => prev === sectionName ? null : sectionName)}
                       style={{ width: '100%', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8, background: isExp ? `${accent}10` : 'var(--color-bg-2)', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
                     >
@@ -7810,7 +7810,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
                   {anonResults.length}
                 </span>
               )}
-              <button onClick={refreshResults} title={t("Обновить")} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 10, fontWeight: 600 }} aria-label={t('Обновить')}><LoopUiRefreshCw size={14}/></button>
+              <button data-hover="layer" onClick={refreshResults} title={t("Обновить")} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 10, fontWeight: 600 }} aria-label={t('Обновить')}><LoopUiRefreshCw size={14}/></button>
             </div>
             {anonResults.length === 0 ? (
               <div style={{ padding: '24px 16px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', textAlign: 'center', color: 'var(--color-muted)', fontSize: 12 }}>
@@ -7888,12 +7888,12 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                   />
                   {editOpts.map((opt, oi) => (
                     <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <button onClick={() => setEditCorrect(oi)}
+                      <button data-hover="layer" onClick={() => setEditCorrect(oi)}
                         style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent' }} />
                       <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
                         style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
                       {editOpts.length > 2 && (
-                        <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
+                        <button data-hover="layer" onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
                           style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, cursor: 'pointer', border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <X size={12} />
                         </button>
@@ -7901,14 +7901,14 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                     </div>
                   ))}
                   {editOpts.length < 6 && (
-                    <button onClick={() => setEditOpts([...editOpts, ''])}
+                    <button data-hover="layer" onClick={() => setEditOpts([...editOpts, ''])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                       <Plus size={12} /> {t('Добавить вариант')}
                     </button>
                   )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                    <button onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
-                    <button onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
+                    <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
+                    <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
                   </div>
                 </div>
               ) : (
@@ -7919,14 +7919,14 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                     <div style={{ fontSize: 11, color: 'var(--color-muted)' }}><LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{q.options[q.correct]}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    <button onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{t('Ред.')}</button>
-                    <button onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
+                    <button data-hover="layer" onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{t('Ред.')}</button>
+                    <button data-hover="layer" onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
                   </div>
                 </div>
               )}
             </div>
           ))}
-          <button onClick={resetToDefault} style={btn('S', 'secondary')}>
+          <button data-hover="layer" onClick={resetToDefault} style={btn('S', 'secondary')}>
             {t('Сбросить к стандарту')}
           </button>
         </div>
@@ -9362,7 +9362,7 @@ export default function TeacherConstructorPage() {
                     карандаш видно, но он погашен и не нажимается — подсказка
                     объясняет почему. Живая кнопка, которая ничего не делает,
                     читалась бы как поломка. */}
-                <motion.button
+                <motion.button data-hover="layer"
                   className="tab-pill"
                   whileTap={editToggleShown ? { scale: 0.93 } : undefined}
                   onClick={editToggleShown ? toggleEditMode : undefined}
@@ -9396,7 +9396,7 @@ export default function TeacherConstructorPage() {
                 })}
 
                 {onTasksShelf && taskView === 'tasks' && !editMode && (
-                  <button
+                  <button data-hover="layer"
                     onClick={() => setFormImportOpen(true)}
                     style={{
                       marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8,
@@ -9444,7 +9444,7 @@ export default function TeacherConstructorPage() {
                       style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}
                     >
                       {(activeTab !== 'testing' || customTests.some(ct => checkedIds.has(ct.id))) && (
-                        <button
+                        <button data-hover="layer"
                           onClick={duplicateChecked}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 8,
@@ -9459,7 +9459,7 @@ export default function TeacherConstructorPage() {
                           {t('Дублировать')} {checkedIds.size}
                         </button>
                       )}
-                      <button
+                      <button data-hover="layer"
                         onClick={deleteChecked}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 8,
@@ -9546,7 +9546,7 @@ export default function TeacherConstructorPage() {
                   )}
                   {!editMode && seriesOpenCount > 0 && seriesOpenCount < seriesTotal && (
                     // Вся таблетка — одна кнопка: «Свернуть» внутри только подсказывает действие.
-                    <button type="button" onClick={() => setAllSeries('stack')} title={t('Собрать все серии в стопки')}
+                    <button data-hover="layer" type="button" onClick={() => setAllSeries('stack')} title={t('Собрать все серии в стопки')}
                       style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 2px 2px 12px', borderRadius: 999,
                         border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                         background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
@@ -9613,7 +9613,7 @@ export default function TeacherConstructorPage() {
                           {([['tasks', t('Задания'), Zap], ['map', t('Разметка'), Database]] as const).map(([v, label, Icon]) => {
                             const on = taskView === v
                             return (
-                              <button key={v} onClick={() => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
+                              <button data-hover="layer" key={v} onClick={() => { setTaskView(v); setEditMode(false); setCheckedIds(new Set()) }}
                                 style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                                   background: on ? 'var(--color-peach-soft)' : 'var(--color-bg-3)',
@@ -9658,7 +9658,7 @@ export default function TeacherConstructorPage() {
                               actions={undefined} />
                             {editMode && (
                               <>
-                                <div onClick={() => toggleCheck(w.id)} style={{
+                                <div data-hover="layer" onClick={() => toggleCheck(w.id)} style={{
                                   position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
                                   border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                                   background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
@@ -9667,7 +9667,7 @@ export default function TeacherConstructorPage() {
                                 }}>
                                   {checkedIds.has(w.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                                 </div>
-                                <button onClick={e => { e.stopPropagation(); duplicateWidget(w) }} title={t("Дублировать")}
+                                <button data-hover="layer" onClick={e => { e.stopPropagation(); duplicateWidget(w) }} title={t("Дублировать")}
                                   style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
                                     background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
@@ -9758,7 +9758,7 @@ export default function TeacherConstructorPage() {
                     )}
                     {editMode && !c.shared && (
                       <>
-                        <div onClick={() => toggleCheck(c.id)} style={{
+                        <div data-hover="layer" onClick={() => toggleCheck(c.id)} style={{
                           position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
                           border: checkedIds.has(c.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                           background: checkedIds.has(c.id) ? '#c0303a' : 'var(--color-bg-5)',
@@ -9768,7 +9768,7 @@ export default function TeacherConstructorPage() {
                         }}>
                           {checkedIds.has(c.id) && <Check size={14} strokeWidth={2.5} style={{ color: '#fff' }} />}
                         </div>
-                        <button onClick={e => { e.stopPropagation(); duplicateCourse(c) }} title={t("Дублировать")}
+                        <button data-hover="layer" onClick={e => { e.stopPropagation(); duplicateCourse(c) }} title={t("Дублировать")}
                           style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
                             background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: 'var(--shadow-1)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
@@ -9798,7 +9798,7 @@ export default function TeacherConstructorPage() {
                       chipOverride={builtinChips[subject]}
                     />
                     {editMode && (
-                      <div onClick={() => toggleCheck(subject)} style={{
+                      <div data-hover="layer" onClick={() => toggleCheck(subject)} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
                         border: checkedIds.has(subject) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                         background: checkedIds.has(subject) ? '#c0303a' : 'var(--color-bg-5)',
@@ -9822,7 +9822,7 @@ export default function TeacherConstructorPage() {
                       series={series && { n: series.n, total: series.total, onCollapse: () => { hoverSeries(null, true); setSeriesOpen(series.key, false) } }}
                     />
                     {editMode && (
-                      <div onClick={() => toggleCheck(ct.id)} style={{
+                      <div data-hover="layer" onClick={() => toggleCheck(ct.id)} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
                         border: checkedIds.has(ct.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
                         background: checkedIds.has(ct.id) ? '#c0303a' : 'var(--color-bg-5)',
@@ -9848,7 +9848,7 @@ export default function TeacherConstructorPage() {
                       footerRight={<><ExternalLinkIcon size={11} strokeWidth={2} />{t('Открыть')}</>}
                     />
                   ))}
-                  <a href={testlyNewUrl()} target="_blank" rel="noopener noreferrer" style={{
+                  <a data-hover="layer" href={testlyNewUrl()} target="_blank" rel="noopener noreferrer" style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 150,
                     borderRadius: 20, border: '1.5px dashed var(--color-border-medium)', textDecoration: 'none', padding: 18, textAlign: 'center',
                   }}>
@@ -9967,7 +9967,7 @@ function AssignTestModal({
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Назначить тест')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{title}</div>
           </div>
-          <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--color-bg-5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+          <button data-hover="layer" onClick={onClose} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--color-bg-5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
             <X size={14} />
           </button>
         </div>
@@ -9978,7 +9978,7 @@ function AssignTestModal({
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('Тип')}</div>
             <div style={{ display: 'flex', gap: 8 }}>
               {(['test', 'trial'] as const).map(ty => (
-                <button key={ty} onClick={() => setAssignType(ty)}
+                <button data-hover="layer" key={ty} onClick={() => setAssignType(ty)}
                   style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${assignType === ty ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: assignType === ty ? 'var(--color-purple-soft)' : 'transparent', color: assignType === ty ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                   {ty === 'test' ? t('Контрольная') : t('Пробник (ЕГЭ)')}
                 </button>
@@ -9990,7 +9990,7 @@ function AssignTestModal({
           <div>
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
               {(['group', 'student'] as const).map(m => (
-                <button key={m} onClick={() => { setRecipientMode(m); setSelectedGroupId(''); setSelectedStudentId('') }}
+                <button data-hover="layer" key={m} onClick={() => { setRecipientMode(m); setSelectedGroupId(''); setSelectedStudentId('') }}
                   style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
                     background: recipientMode === m ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                     color: recipientMode === m ? 'var(--color-accent)' : 'var(--color-muted)',
@@ -10015,7 +10015,7 @@ function AssignTestModal({
               style={{ padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }} />
           </div>
 
-          <button onClick={handleSave} disabled={!canSave || saving}
+          <button data-hover="layer" onClick={handleSave} disabled={!canSave || saving}
             style={{ padding: '12px', borderRadius: 12, border: 'none', background: canSave ? 'var(--color-purple-soft)' : 'var(--color-bg-5)', color: canSave ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: canSave ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
             {saving ? t('Сохраняем…') : t('Назначить тест')}
           </button>
@@ -10053,7 +10053,7 @@ function AssignmentsPanel({
           const doneCount = isOpen ? results.length : 0
           return (
             <div key={a.id}>
-              <div
+              <div data-hover="card"
                 onClick={() => onSelect(a.id)}
                 style={{ padding: '12px 16px', borderRadius: 14, background: 'var(--color-bg-card)', border: `1.5px solid ${isOpen ? 'var(--color-accent)' : 'var(--color-border-soft)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, transition: 'border-color 0.15s' }}
               >
@@ -10068,7 +10068,7 @@ function AssignmentsPanel({
                 <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? 'var(--color-yellow-text)' : 'var(--color-purple-text)' }}>
                   {a.assignType === 'trial' ? t('Пробник') : t('Тест')}
                 </span>
-                <button onClick={e => { e.stopPropagation(); onDelete(a.id) }}
+                <button data-hover="layer" onClick={e => { e.stopPropagation(); onDelete(a.id) }}
                   style={{ width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
                   <Trash2 size={12} />
                 </button>

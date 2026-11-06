@@ -52,7 +52,7 @@ export default function NameEntryField({ value, onChange, onSubmit, accent }: {
       <div style={{ position: 'absolute', top: INSET, bottom: INSET, right: INSET, display: 'flex', zIndex: 1, pointerEvents: ready ? 'auto' : 'none' }}>
         {/* Пустое поле — стрелки нет. С вводом квадрат вырастает из кружка и заливается акцентом.
             Переходы CSS, а не framer-motion: у motion.button transform затирался бы whileTap */}
-        <button
+        <button data-hover="layer"
           type="button"
           aria-label={t('Начать тест')}
           aria-hidden={!ready}

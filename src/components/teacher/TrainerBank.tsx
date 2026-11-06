@@ -54,7 +54,7 @@ function CopyableIdBadge({ id }: { id: number }) {
     setTimeout(() => setTipped(false), 1400)
   }
   return (
-    <span onClick={copy} title={t('Скопировать номер')}
+    <span data-hover="layer" onClick={copy} title={t('Скопировать номер')}
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}>
       <span style={cardChipTone('red')}>№{id}</span>
       <AnimatePresence>
@@ -104,7 +104,7 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
     setTimeout(() => setTipped(false), 1400)
   }
   return (
-    <span onClick={copy} title={t('Скопировать линию')}
+    <span data-hover="layer" onClick={copy} title={t('Скопировать линию')}
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}>
       <span style={cardChip(accent)}>
         {line} {t('лин.')}
@@ -328,12 +328,12 @@ export function BankQuestionCard({
           </p>
           <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--color-text-5)', maxWidth: 130, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.topic}</span>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button onClick={() => openEdit(task.id)} style={{
+            <button data-hover="layer" onClick={() => openEdit(task.id)} style={{
               display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
               background: 'var(--color-bg-3)', color: 'var(--color-muted)', border: 'none', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
             }}>{t('Изменить')}</button>
             {onDelete && (
-              <button onClick={onDelete} style={{
+              <button data-hover="layer" onClick={onDelete} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 8, cursor: 'pointer',
                 background: 'var(--color-red-soft)', color: 'var(--color-red-text)', border: 'none',
               }}><Trash2 size={14} /></button>
@@ -358,7 +358,7 @@ export function BankQuestionCard({
             </p>
           </div>
           {showSelect && (
-            <button onClick={onToggleSelected} title={selected ? t('Убрать из тренажёра') : t('Добавить в тренажёр')}
+            <button data-hover="layer" onClick={onToggleSelected} title={selected ? t('Убрать из тренажёра') : t('Добавить в тренажёр')}
               style={{
                 flexShrink: 0, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
                 background: selected ? accentBg : 'var(--grad-purple)',
@@ -419,12 +419,12 @@ export function BankQuestionCard({
               transition={{ duration: 0.15 }}
               style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 6, zIndex: 2 }}
             >
-              <button onClick={() => openEdit(task.id)} title={t('Изменить')}
+              <button data-hover="layer" onClick={() => openEdit(task.id)} title={t('Изменить')}
                 style={{ width: 28, height: 28, borderRadius: 9, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>
                 <Pencil size={12} />
               </button>
               {onDelete && (
-                <button onClick={onDelete} title={t('Удалить')}
+                <button data-hover="layer" onClick={onDelete} title={t('Удалить')}
                   style={{ width: 28, height: 28, borderRadius: 9, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
                   <Trash2 size={12} />
                 </button>
@@ -460,7 +460,7 @@ function KeyRubric({
                 : <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: accent, opacity: 0.7 }} />}
               <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{r.text}</div>
               <div style={{ padding: '4px 10px', borderRadius: 8, background: accentBg, color: accent, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{r.points} {plBall(r.points)}</div>
-              <button onClick={() => onRemove(r.id)} style={iconBtn('var(--color-red-soft)', 'var(--color-red-text)')}><X size={12} /></button>
+              <button data-hover="layer" onClick={() => onRemove(r.id)} style={iconBtn('var(--color-red-soft)', 'var(--color-red-text)')}><X size={12} /></button>
             </div>
           ))}
         </div>
@@ -472,7 +472,7 @@ function KeyRubric({
         <div style={{ width: 76 }}><Label>{t('Баллов')}</Label>
           <input type="number" min={1} value={newPts} onChange={e => setNewPts(Number(e.target.value))} style={inputStyle} />
         </div>
-        <motion.button whileTap={{ scale: 0.95 }} onClick={onAdd} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: accentBg, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <motion.button data-hover="layer" whileTap={{ scale: 0.95 }} onClick={onAdd} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: accentBg, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Plus size={16} strokeWidth={2.5} />
         </motion.button>
       </div>
@@ -576,7 +576,7 @@ function BankGridCard({
         <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{task.part === 1 ? t('I часть') : t('II часть')}</span>
         <div style={{ display: 'flex', gap: 4 }}>
           {showSelect && (
-            <button onClick={onToggleSelected} title={selected ? t('Убрать из тренажёра') : t('Добавить в тренажёр')}
+            <button data-hover="layer" onClick={onToggleSelected} title={selected ? t('Убрать из тренажёра') : t('Добавить в тренажёр')}
               style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? accentBg : 'var(--grad-purple)', color: selected ? accent : '#fff' }}>
               {selected ? <Check size={12} strokeWidth={2.5} /> : <Plus size={12} strokeWidth={2.5} />}
             </button>
@@ -600,7 +600,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
   useScrollLock(open, menuRef)
   return (
     <div style={{ position: 'relative' }}>
-      <button
+      <button data-hover="layer"
         onClick={() => setOpen(o => !o)}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         style={{
@@ -851,7 +851,7 @@ export function BankFilterFields({ filters, onChange, accent = 'var(--color-peac
         {(['1', '2'] as string[]).map(p => {
           const active = filters.parts.includes(p)
           return (
-            <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
+            <button data-hover="layer" key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
               style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                 background: active ? (accentBg ?? 'var(--color-peach-soft)') : 'var(--color-bg-3)',
                 color: active ? accent : 'var(--color-muted)' }}>
@@ -873,7 +873,7 @@ function ResetFilters({ filters, onChange }: { filters: TrainerFilters; onChange
   const has = !!(filters.sections.length || filters.topics.length || filters.parts.length || filters.lines.length || filters.source || filters.levels?.length || filters.skills?.length)
   if (!has) return null
   return (
-    <button onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [] })}
+    <button data-hover="layer" onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [] })}
       style={btn('S', 'secondary')}>
       <Trash2 size={12} /> {t('Сбросить фильтры')}
     </button>

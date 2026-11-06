@@ -383,7 +383,7 @@ export default function MobileHome() {
       {/* The course/update dock also occupies the space above navigation, even
           when there is no lesson to continue. Keep the last card above it. */}
       <MobileScreen topZone={topZone} topPad={72} restoreKey="home" bottomDockRaise={(loaded && continueInfo) || multiCourse || updateReady ? 80 : 0}
-        bottomDock={loaded && continueInfo ? <button onClick={() => { tactile(); openLesson(continueInfo.lesson.id) }} style={{ width: '100%', height: 48, borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t(getDisplayLessonStatus(continueInfo.lesson) === 'current' ? 'Продолжить' : 'Начать')}</button> : undefined}>
+        bottomDock={loaded && continueInfo ? <button data-hover="layer" onClick={() => { tactile(); openLesson(continueInfo.lesson.id) }} style={{ width: '100%', height: 48, borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}>{t(getDisplayLessonStatus(continueInfo.lesson) === 'current' ? 'Продолжить' : 'Начать')}</button> : undefined}>
         {!loaded ? <HomeSkeleton /> : (
         <div className="flex flex-col" style={{ gap: 10 }}>
           {/* Шапка праздничной темы (lib/season.ts); без темы не рендерится. */}
@@ -426,7 +426,7 @@ export default function MobileHome() {
               </div>
               <div className="flex flex-col">
                 {todayEntries.map(({ l, st }, i) => (
-                  <button
+                  <button data-hover="layer"
                     key={l.id}
                     type="button"
                     data-schedule-state={st.phase}
@@ -512,7 +512,7 @@ export default function MobileHome() {
           {todayLessons.length === 0
             && !dayCards.quiz && !dayCards.facts && !dayCards.memes
             && feedItems.length === 0 && (
-            <button
+            <button data-hover="layer"
               onClick={() => { tactile(); setActivePage('trainer') }}
               style={{
                 marginTop: 6, width: '100%', textAlign: 'left', cursor: 'pointer',
@@ -773,7 +773,7 @@ function QuickTile({ icon, label, pair, badge, onClick }: {
   const lang = useLang(s => s.lang)
   const text = lang === 'ru' ? label : label.toLowerCase()
   return (
-    <motion.button
+    <motion.button data-hover="layer"
       whileTap={{ scale: 0.92 }}
       onClick={() => { tactile(); onClick() }}
       className="flex flex-col items-center cursor-pointer"
