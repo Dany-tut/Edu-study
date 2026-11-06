@@ -50,7 +50,9 @@ function providerError(status: number): LanguageAiError {
 /** Provider bodies, credentials and input content never become error text. */
 export async function requestLanguageAi(config: LanguageAiConfig, request: {
   model: string; system: string; content: LanguageContent; maxTokens: number;
-}, options: { fetcher?: typeof fetch; timeoutMs?: number } = {}): Promise<string> {
+}, options: { fetcher?: typeof fetch; timeoutMs?: number
+  /** Сколько токенов ушло — для учёта расхода (lesson-recap пишет его в cost_usd). */
+  onUsage?: (usage: { input: number; output: number }) => void } = {}): Promise<string> {
   if (!config.key || !request.model) throw new LanguageAiError('configuration')
   const content = request.content.map(part => part.type === 'text' ? part : {
     type: 'image_url', image_url: { url: `data:${part.source.media_type};base64,${part.source.data}` },
@@ -70,6 +72,11 @@ export async function requestLanguageAi(config: LanguageAiConfig, request: {
   let data: Record<string, any>
   try { data = await response.json() } catch { throw new LanguageAiError('invalid_result', true) }
   if (data?.error) throw new LanguageAiError('unavailable', true)
+  const usage = data?.usage
+  if (options.onUsage && usage) options.onUsage({
+    input: Number(usage.prompt_tokens ?? usage.input_tokens) || 0,
+    output: Number(usage.completion_tokens ?? usage.output_tokens) || 0,
+  })
   const value = config.provider === 'linali' ? data?.choices?.[0]?.message?.content : data?.content
   const text = typeof value === 'string' ? value : Array.isArray(value) ? value.filter(p => p?.type === 'text' && typeof p.text === 'string').map(p => p.text).join('') : ''
   if (!text.trim()) throw new LanguageAiError('invalid_result', true)

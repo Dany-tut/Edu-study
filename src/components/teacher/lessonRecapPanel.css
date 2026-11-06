@@ -1,0 +1,145 @@
+/* Панель «Итоги урока» в окне монтажа и реплики-источники. Цвета — токены темы. */
+
+.lm-editor.is-recap { grid-template-columns: minmax(0, 1fr) 420px; }
+.lm-col > .rp-src { flex: 1 1 0; min-height: 0; }
+
+.rp { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1; color: var(--color-text); }
+.rp-head { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.rp-mark { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 11px; background: var(--color-accent-soft); color: var(--color-purple-text); }
+.rp-head-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.rp-head-text strong { font-size: 15px; }
+.rp-head-text small { font-size: 12px; color: var(--color-text-3); line-height: 1.35; }
+.rp-close { flex-shrink: 0; height: 32px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--color-bg-3); color: var(--color-text-2, var(--color-text)); font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer; }
+.rp-close:hover { background: var(--color-bg-4, var(--color-bg-3)); }
+
+.rp-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 6px 8px 0; }
+.rp-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.rp-lead { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; line-height: 1.45; color: var(--color-text-3); }
+
+.rp-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--color-bg-3); border: 1.5px solid transparent; cursor: pointer; transition: border-color .15s, background .15s, opacity .15s; }
+.rp-item:hover { background: color-mix(in srgb, var(--color-control-accent) 5%, var(--color-bg-3)); }
+.rp-item.is-picked { border-color: var(--color-control-accent); background: var(--color-bg-2); }
+.rp-item[data-off] .rp-item-body { opacity: .5; }
+.rp-item-body { display: grid; gap: 4px; min-width: 0; transition: opacity .15s; }
+.rp-check { display: inline-flex; align-items: flex-start; justify-content: center; width: 24px; height: 24px; margin-top: 1px; padding: 3px 0 0; border: 0; background: none; cursor: pointer; }
+.rp-check:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 1px; border-radius: 6px; }
+
+/* Правка прямо по тексту: без рамки, подчёркивание только в фокусе —
+   текст не сдвигается ни на пиксель при входе в правку. */
+.rp-edit { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 0 0 1px; border: 0; border-bottom: 1.5px solid transparent; border-radius: 0; background: transparent; color: var(--color-text-2, var(--color-text)); font: inherit; font-size: 14px; line-height: 1.45; resize: none; outline: none; cursor: text; }
+.rp-edit:hover { border-bottom-color: var(--color-border); }
+.rp-edit:focus { border-bottom-color: var(--color-control-accent); color: var(--color-text); }
+.rp-edit.is-title { font-weight: 650; color: var(--color-text); }
+.rp-edit.is-hw-title { font-size: 15px; font-weight: 700; color: var(--color-text); padding: 2px 0 4px; }
+.rp-answer { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 6px; color: var(--color-green-text); }
+.rp-answer svg { margin-top: 4px; }
+.rp-answer .rp-edit { color: var(--color-green-text); font-weight: 600; }
+.rp-opts { display: flex; flex-wrap: wrap; gap: 4px; }
+.rp-opt { padding: 3px 9px; border-radius: 999px; background: var(--color-bg-2); font-size: 12px; color: var(--color-text-3); }
+.rp-opt.is-right { background: var(--color-green-soft); color: var(--color-green-text); font-weight: 650; }
+.rp-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rp-pill { padding: 2px 8px; border-radius: 999px; background: var(--color-bg-2); font-size: 11.5px; color: var(--color-text-3); }
+.rp-times { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.rp-tc { display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--color-accent-soft); color: var(--color-purple-text); font-size: 11.5px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.rp-kicker { font-size: 11.5px; font-weight: 700; color: var(--color-text-3); }
+.rp-kicker.is-confusion { color: var(--color-red-text); }
+.rp-kicker.is-strength { color: var(--color-green-text); }
+.rp-kicker.is-question { color: var(--color-purple-text); }
+
+.rp-foot { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 4px; }
+.rp-foot-hint { flex: 1; min-width: 0; font-size: 12px; color: var(--color-text-3); }
+
+.rp-intro { display: grid; gap: 14px; align-content: start; }
+.rp-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.rp-kind { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--color-border); background: transparent; color: var(--color-text-3); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.rp-kind.is-on { background: var(--color-accent-soft); border-color: transparent; color: var(--color-purple-text); }
+.rp-kind:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
+.rp-intro-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rp-intro-foot small { flex: 1; min-width: 140px; font-size: 12.5px; color: var(--color-text-3); }
+
+.rp-progress { display: grid; gap: 10px; align-content: start; }
+.rp-progress-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--color-text-2, var(--color-text)); }
+.rp-bar { position: relative; display: block; height: 6px; border-radius: 3px; background: var(--color-bg-3); overflow: hidden; }
+.rp-bar b { position: absolute; top: 0; bottom: 0; width: 40%; border-radius: 3px; background: var(--grad-purple); animation: rp-run 1.6s ease-in-out infinite; animation-delay: calc(var(--i) * .18s); }
+.rp-progress small { font-size: 12.5px; line-height: 1.45; color: var(--color-text-3); }
+@keyframes rp-run { 0% { left: -40%; } 100% { left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .rp-bar b { animation: none; left: 0; width: 100%; opacity: .5; } }
+
+/* Реплики-источники (левая колонка, вместо окна паузы) */
+.rp-src { display: flex; flex-direction: column; gap: 6px; min-height: 0; padding: 10px 6px 6px 12px; border-radius: 16px; background: var(--color-bg-3); }
+.rp-src header { display: flex; align-items: baseline; gap: 10px; padding-right: 6px; }
+.rp-src header strong { font-size: 13px; }
+.rp-src header small { font-size: 12px; color: var(--color-text-3); }
+.rp-src-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 2px; padding-right: 6px; }
+.rp-line { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 6px 8px; border-radius: 12px; font-size: 13.5px; line-height: 1.4; color: var(--color-text-2, var(--color-text)); transition: background .2s; }
+.rp-line .lm-time-btn { height: 26px; padding: 0 8px; font-size: 11.5px; }
+.rp-line.is-hit { background: var(--color-accent-soft); color: var(--color-text); }
+.rp-line-who { display: block; font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+.rp-quote { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--color-bg-3); font-size: 13px; line-height: 1.45; color: var(--color-text-2, var(--color-text)); }
+.rp-quote svg { margin-top: 2px; color: var(--color-text-3); }
+.rp-quote-text { display: block; height: calc(3 * 1.45em); }
+
+/* Кнопка «Итоги урока» в шапке окна монтажа */
+.lm-title-row { display: flex; align-items: center; gap: 12px; min-width: 0; width: 100%; }
+.lm-title-row > .lm-title { flex: 1; min-width: 0; }
+.lm-recap-btn { display: inline-flex; flex-shrink: 0; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 0; border-radius: 11px; background: var(--color-accent-soft); color: var(--color-purple-text); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; transition: background .15s; }
+.lm-recap-btn:hover { background: var(--color-purple-soft); }
+.lm-recap-btn[aria-pressed='true'] { box-shadow: inset 0 0 0 1.5px var(--color-control-accent); }
+.lm-recap-btn:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
+
+@media (max-width: 1023px) {
+  .rp { flex: none; }
+  .rp-body { flex: none; overflow: visible; padding: 0; }
+  .rp-edit { font-size: 16px; }
+  /* Липкий подвал заходит на нижнее поле прокрутки окна (12 px): иначе
+     под ним просвечивал текст пунктов. */
+  .rp-foot { position: sticky; bottom: -12px; z-index: 1; padding: 10px 0 14px; margin-bottom: -12px; background: var(--color-bg-2); }
+  /* Пункты уходят под подвал фейдом, а не обрезом (SCROLL-01). */
+  .rp-foot::before { content: ''; position: absolute; left: 0; right: 0; top: -18px; height: 18px; background: linear-gradient(to bottom, transparent, var(--color-bg-2)); pointer-events: none; }
+  .rp-foot-hint { display: none; }
+  .rp-apply { flex: 1 1 0; min-width: 0 !important; }
+  .rp-rebuild { flex-shrink: 0; }
+  .rp-rebuild-label { display: none; }
+  .lm-recap-btn.is-block { justify-content: center; width: 100%; height: 44px; }
+}
+
+/* Карточка «Итоги урока из записи» во вкладке «Запись» */
+.rce { display: grid; gap: 12px; padding: 16px; border-radius: 20px; background: var(--color-bg-2); border: 1px solid var(--color-border-soft); color: var(--color-text); }
+.rce-head { display: flex; align-items: center; gap: 10px; }
+.rce-text { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--color-text-2, var(--color-text)); }
+.rce-text.is-hint { color: var(--color-text-3); font-size: 12.5px; }
+.rce-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.rce-kinds .rp-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--color-bg-3); }
+.rce-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rce-foot small { flex: 1; min-width: 120px; font-size: 12.5px; color: var(--color-text-3); }
+.rce-foot > button:first-of-type { margin-left: auto; }
+.rce-note { display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px; background: var(--color-bg-3); }
+.rce-note small { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--color-text-3); }
+.rce-note ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; line-height: 1.45; color: var(--color-text-2, var(--color-text)); }
+.rce-at { color: var(--color-text-3); font-variant-numeric: tabular-nums; font-size: 12px; }
+
+.rce-toast { position: fixed; right: 22px; bottom: 22px; z-index: 1100; width: min(420px, calc(100vw - 24px)); box-sizing: border-box; display: grid; gap: 8px; padding: 14px 16px; border-radius: 22px;
+  background: rgba(var(--glass-rgb), 0.97); border: 1px solid var(--color-border-soft); box-shadow: var(--shadow-4, var(--shadow-2)); color: var(--color-text);
+  animation: rce-in .22s ease-out both; }
+.rce-toast-head { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--color-green-text); }
+.rce-toast-head b { flex: 1; color: var(--color-text); }
+.rce-x { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; border: 0; border-radius: 10px; background: transparent; color: var(--color-text-3); cursor: pointer; }
+.rce-x:hover { background: var(--color-bg-3); }
+.rce-toast-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 13.5px; color: var(--color-text-2, var(--color-text)); }
+.rce-toast-row svg { color: var(--color-text-3); }
+.rce-toast-row button { height: 30px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--color-purple-text); font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer; }
+.rce-toast-row button:hover:not(:disabled) { background: var(--color-accent-soft); }
+.rce-toast-row button:disabled { opacity: .5; cursor: default; }
+.rce-toast small { font-size: 12px; color: var(--color-text-3); line-height: 1.4; }
+@keyframes rce-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .rce-toast { animation: none; } }
+@media (max-width: 1023px) {
+  .rce-toast { left: 12px; right: 12px; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); }
+  .rce-foot > button { flex: 1 1 auto; }
+}
+
+/* Итоги во вкладке «Урок» учителя */
+.rce-lesson { box-shadow: inset 0 0 0 1.5px var(--color-control-accent); border-color: transparent; }
+.rce-para { display: grid; gap: 4px; font-size: 13.5px; line-height: 1.5; color: var(--color-text-2, var(--color-text)); }
+.rce-para b { color: var(--color-text); }
