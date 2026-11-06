@@ -29,6 +29,9 @@ export function parseModelRef(src: string): { kind: string; key: string } | null
 
 /** Человеческая подпись без загрузки сцены — для редактора и заглушек. */
 export function modelRefLabel(src: string): string {
+  // Модель из реестра называем так же, как в окне выбора: учитель узнаёт её.
+  const preset = MODEL_PRESETS.find(p => p.ref === src.trim())
+  if (preset) return `3D-модель · ${preset.label}`
   const ref = parseModelRef(src)
   if (!ref) return '3D-модель'
   if (ref.kind === 'atom') {
