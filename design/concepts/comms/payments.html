@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Оплаты · Искра</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .fscroll { overflow: auto; scrollbar-width: none; min-height: 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft,0px), #000 calc(100% - var(--fb,0px)), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft,0px), #000 calc(100% - var(--fb,0px)), transparent 100%); }
+  .fscroll::-webkit-scrollbar { display: none; }
+  .tpl { padding: 14px 16px; display: grid; gap: 10px; cursor: pointer; border-radius: 22px; }
+  .tpl[aria-selected="true"] { box-shadow: inset 0 0 0 2px var(--color-accent), var(--shadow-2); }
+  .tpl .hd { display: flex; align-items: center; gap: 10px; }
+  .tpl .rule { font-size: 13px; color: var(--color-text-2); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; line-height: 1.3; }
+  .tpl .rule .time-chip { height: 26px; padding: 0 8px; font-size: 13px; border-radius: 8px; }
+  .money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+  .tbl th { text-align: left; font-size: 12px; color: var(--color-text-3); font-weight: 600; padding: 6px 10px; position: sticky; top: 0; background: var(--color-bg-2); z-index: 1; }
+  .tbl th.r, .tbl td.r { text-align: right; }
+  .tbl td { padding: 10px; border-top: 1px solid var(--color-border-soft); vertical-align: middle; }
+  .tbl tr:hover td { background: var(--color-bg-3); }
+  .tbl tfoot td { font-weight: 700; border-top: 1px solid var(--color-border-strong); }
+  .inv-line { display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 14px; }
+  .inv-line + .inv-line { border-top: 1px solid var(--color-border-soft); }
+  .inv-line .d { width: 52px; color: var(--color-text-3); font-variant-numeric: tabular-nums; font-size: 13px; }
+  .inv-line .t { flex: 1; min-width: 0; }
+  .inv-line.void { color: var(--color-text-3); }
+  .inv-line.void .money { text-decoration: line-through; }
+  .total { display: flex; align-items: baseline; justify-content: space-between; padding: 14px; }
+  .total b { font-size: 26px; letter-spacing: -0.03em; }
+  .sum-tiles { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+  .sum-tiles .stat { padding: 12px 14px; border-radius: 18px; background: var(--color-bg-3); }
+  .sum-tiles .stat b { display: block; font-size: 22px; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .sum-tiles .stat span { font-size: 12.5px; color: var(--color-text-3); }
+  .menu { background: var(--color-bg-2); border-radius: 22px; box-shadow: var(--shadow-4); padding: 6px; display: grid; }
+  .menu .row { min-height: 44px; padding: 10px 12px; border-radius: 14px; }
+  .lesson-prev { padding: 14px; border-radius: 22px; background: var(--color-bg-2); box-shadow: var(--shadow-3); margin-bottom: 10px; }
+  body[data-variant="c"] #deskB { margin-top: 20px; }
+</style>
+</head>
+<body data-variant="a" data-view="mock">
+<header class="doc-head">
+  <a class="back" href="index.html" aria-label="Ко всем концептам"><i data-i="ChevronLeft" data-s="18"></i></a>
+  <h1>Оплаты<small>Концепт 6 · долг по шаблону · счёт за месяц · перенос и отмена</small></h1>
+  <span class="grow"></span>
+  <div class="seg" role="group" aria-label="Вариант"><button data-doc="v:c" class="final">Итог</button><button data-doc="v:a">A · Автопилот</button><button data-doc="v:b">B · Закрытие месяца</button></div>
+  <div class="seg" role="group" aria-label="Тема"><button data-doc="t:light"><i data-i="Sun" data-s="16"></i>Светлая</button><button data-doc="t:dark"><i data-i="Moon" data-s="16"></i>Тёмная</button></div>
+  <div class="seg" role="group" aria-label="Вид"><button data-doc="view:mock">Макеты</button><button data-doc="view:spec">Обоснование и данные</button></div>
+</header>
+
+<main class="doc">
+<section class="view view-mock">
+  <div data-v="a">
+    <h2 class="variant-title">Автопилот по шаблонам <span class="tag">Вариант A</span></h2>
+    <p class="lead">Три шаблона с правилами: <b>долг</b> (через 3 дня после урока, повтор раз в неделю, не больше 3), <b>счёт 1-го числа</b> по проведённым урокам и <b>сообщение при переносе или отмене</b>. Всё уходит само. Учитель видит журнал и может выключить автопилот у конкретного ученика.</p>
+  </div>
+  <div data-v="b">
+    <h2 class="variant-title">Закрытие месяца <span class="tag">Вариант B</span></h2>
+    <p class="lead">Раз в месяц учитель <b>закрывает месяц</b> на одном экране: уроки × цена, оплачено, к оплате. Проверяет и жмёт «Выставить 9 счетов». Напоминание о долге — <b>в одно касание</b> с готовым текстом, но не само. О переносе или отмене Искра спрашивает в тосте сразу после действия в расписании.</p>
+  </div>
+
+  <div data-v="c">
+    <h2 class="variant-title">Итог: месяц закрывает учитель, долг — автопилот <span class="tag final">Выбран</span></h2>
+    <p class="lead">Счёт за месяц учитель выставляет сам на экране <b>«Закрыть месяц»</b> (B): видит таблицу и решает спорные поздние отмены. <b>Напоминание о долге</b> идёт само по шаблону (A), но только после выставленного счёта и с паузой на «Я оплатила / Оплачу до…». Отменить урок можно двумя путями: <b>шторка</b> из «Моего дня» с текстом для плательщика (A) или <b>тост</b> после жеста в расписании (B). На столе «Финансы» — новый виджет <b>«Оплаты: ждут вас»</b>, а в «Должниках» виден статус автонапоминания; оба ставятся и убираются учителем.</p>
+  </div>
+
+  <div class="lane">
+    <h3><i data-i="Monitor" data-s="16" class="muted-ico"></i>Учитель · ПК</h3>
+
+    <!-- A · ПК -->
+    <div class="desk" data-v="a c" id="deskA">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span>Главная</span><span>Группы</span><span>Журнал</span><span>Конструктор</span><span class="on">Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto minmax(0,1fr)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <h2 class="h-lg">Сообщения об оплате</h2><span class="chip green"><i data-i="Zap" data-s="14"></i>Автопилот включён</span>
+          <span class="sub" style="margin-left:auto">Получатель — плательщик: родитель, если он подключён, иначе ученик</span>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;min-height:0">
+          <div class="fscroll" style="display:grid;gap:12px;align-content:start" id="tplsA">
+            <div class="card tpl" data-t="debt" aria-selected="true">
+              <div class="hd"><span class="ico-tile red"><i data-i="Wallet"></i></span><div class="txt" style="flex:1"><span class="title">Напоминание о долге</span><span class="sub">Сейчас долг у 4 учеников · 23 000 ₽</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+              <div class="rule">Если долг больше 0: через <span class="time-chip">3 дня</span> после урока, повтор каждые <span class="time-chip">7 дней</span>, не больше <span class="time-chip">3</span> раз. Пауза, если родитель нажал «Оплачу до…».<b data-v="c"> Начинается только после выставленного счёта.</b></div>
+              <div class="input area" style="font-size:14px">Здравствуйте, <span class="var">имя плательщика</span>! За <span class="var">ученик</span> накопилось <span class="var">долг</span> — <span class="var">уроки</span>. Реквизиты по ссылке: <span class="var">ссылка на счёт</span></div>
+            </div>
+            <div class="card tpl" data-t="invoice">
+              <div class="hd"><span class="ico-tile"><i data-i="FileText"></i></span><div class="txt" style="flex:1"><span class="title">Счёт за месяц</span><span class="sub">Только тем, кто платит после уроков · 9 учеников</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+              <div class="rule"><span class="time-chip">1-го числа, 10:00</span> по проведённым урокам. Отменённые учителем не входят, пропуск без предупреждения — входит.
+                <div class="seg sm" data-seg><button aria-pressed="false">Сразу</button><button aria-pressed="true">Сначала мне</button></div></div>
+            </div>
+            <div class="card tpl" data-t="move">
+              <div class="hd"><span class="ico-tile blue"><i data-i="CalendarX"></i></span><div class="txt" style="flex:1"><span class="title">Перенос или отмена урока</span><span class="sub">Сразу после действия в расписании, 30 секунд на «Отменить»</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+              <div class="rule">Плательщику — что с оплатой: <span class="chip">перенос: без изменений</span><span class="chip">отмена учителем: не спишется</span><span class="chip">отмена учеником позже <span class="time-chip" style="height:20px;padding:0 6px">24 ч</span>: спишется</span></div>
+            </div>
+            <div class="card" style="padding:6px">
+              <div class="sec-label" style="margin:8px 12px 4px">Ушло в ноябре</div>
+              <div class="list">
+                <div class="row"><span class="ico-tile"><i data-i="FileText"></i></span><div class="txt"><span class="title">Счёт за октябрь · 9 плательщикам</span><span class="sub">1 ноября, 10:00 · 6 оплатили</span></div><span class="chip green">72 000 ₽</span></div>
+                <div class="row"><span class="ico-tile red"><i data-i="Wallet"></i></span><div class="txt"><span class="title">Долг · мама Артёма</span><span class="sub">5 ноября · повтор 2 из 3</span></div><span class="chip amber">Оплачу до 15.11</span></div>
+                <div class="row"><span class="ico-tile blue"><i data-i="CalendarX"></i></span><div class="txt"><span class="title">Отмена · мама Маши</span><span class="sub">Вчера · урок 14.11 не спишется</span></div><span class="chip green"><i data-i="CheckCheck" data-s="14"></i>Прочитано</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card pad fscroll">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="title">Превью</span><span class="sub" style="margin-left:auto">для</span><span class="chip out"><span class="avatar sm av2" style="width:18px;height:18px;font-size:9px">АК</span>мама Артёма<i data-i="ChevronDown" data-s="14"></i></span></div>
+            <div class="tg" style="border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px" id="pvA">
+              <div class="bub"><p>Здравствуйте, Ирина! За Артёма накопилось <b>6 000 ₽</b>: 3 урока в октябре (17, 24, 31.10). Реквизиты по ссылке.</p><span class="meta">11:00</span></div>
+              <div class="kb"><div class="kr"><button>Открыть счёт</button></div><div class="kr"><button>Я оплатила</button><button>Оплачу до…</button></div></div>
+            </div>
+            <div class="sub" style="margin-top:12px;line-height:1.4">Ответы «Я оплатила» и «Оплачу до…» приходят вам в уведомления. Платёж записывается, когда вы подтвердите.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B · ПК -->
+    <div class="desk" data-v="b c" id="deskB">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span>Главная</span><span>Группы</span><span>Журнал</span><span>Конструктор</span><span class="on">Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto auto minmax(0,1fr) auto">
+        <div style="display:flex;align-items:center;gap:12px">
+          <h2 class="h-lg">Закрыть октябрь</h2>
+          <div class="seg sm" data-seg style="margin-left:6px"><button aria-pressed="true">Счета · 9</button><button aria-pressed="false">Долги · 4</button></div>
+          <span class="sub" style="margin-left:auto">Месяц закрыт 1 ноября · данные из журнала посещаемости</span>
+        </div>
+        <div class="sum-tiles">
+          <div class="stat"><b>36 уроков</b><span>проведено у 9 учеников</span></div>
+          <div class="stat"><b class="money">72 000 ₽</b><span>к выставлению</span></div>
+          <div class="stat"><b class="money" style="color:var(--color-amber-text)">2 вопроса</b><span>отмены в последний момент</span></div>
+        </div>
+        <div class="card fscroll" style="padding:6px 8px">
+          <table class="tbl">
+            <thead><tr><th style="width:36px"></th><th>Плательщик</th><th class="r">Уроки</th><th class="r">Цена</th><th class="r">Сумма</th><th class="r">Оплачено</th><th class="r">К оплате</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><span class="cbx" role="checkbox" aria-checked="true"></span></td><td><b>Маша Соколова</b> <span class="sub">· мама</span></td><td class="r num">8</td><td class="r money">2 000 ₽</td><td class="r money">16 000 ₽</td><td class="r money">8 000 ₽</td><td class="r money"><b>8 000 ₽</b></td><td><span class="chip blue"><i data-i="Send" data-s="14"></i>TG</span></td></tr>
+              <tr><td><span class="cbx" role="checkbox" aria-checked="true"></span></td><td><b>Артём Ким</b> <span class="sub">· мама</span></td><td class="r num">4 <span class="chip amber" title="Отменил за 3 часа">+1?</span></td><td class="r money">2 000 ₽</td><td class="r money">8 000 ₽</td><td class="r money">2 000 ₽</td><td class="r money"><b>6 000 ₽</b></td><td><span class="chip blue"><i data-i="Send" data-s="14"></i>TG</span></td></tr>
+              <tr><td><span class="cbx" role="checkbox" aria-checked="true"></span></td><td><b>Лиза Орлова</b> <span class="sub">· папа</span></td><td class="r num">4</td><td class="r money">1 500 ₽</td><td class="r money">6 000 ₽</td><td class="r money">6 000 ₽</td><td class="r money"><span class="chip green">оплачено</span></td><td></td></tr>
+              <tr><td><span class="cbx" role="checkbox" aria-checked="true"></span></td><td><b>Никита Белов</b> <span class="sub">· сам</span></td><td class="r num">4</td><td class="r money">1 500 ₽</td><td class="r money">6 000 ₽</td><td class="r money">0 ₽</td><td class="r money"><b>6 000 ₽</b></td><td><span class="chip"><i data-i="Link2" data-s="14"></i>ссылка</span></td></tr>
+              <tr><td><span class="cbx" role="checkbox" aria-checked="false"></span></td><td><b>Соня Ли</b> <span class="sub">· мама</span></td><td class="r num">3 <span class="chip amber" title="Отменила за 2 часа">+1?</span></td><td class="r money">2 000 ₽</td><td class="r money">6 000 ₽</td><td class="r money">0 ₽</td><td class="r money"><b>6 000 ₽</b></td><td><span class="chip blue"><i data-i="Send" data-s="14"></i>TG</span></td></tr>
+              <tr><td><span class="cbx" role="checkbox" aria-checked="true"></span></td><td><b>Тимур Ахмедов</b> <span class="sub">· мама</span></td><td class="r num">4</td><td class="r money">2 000 ₽</td><td class="r money">8 000 ₽</td><td class="r money">8 000 ₽</td><td class="r money"><span class="chip green">оплачено</span></td><td></td></tr>
+              <tr><td><span class="cbx" role="checkbox" aria-checked="true"></span></td><td><b>Вера Панова</b> <span class="sub">· мама</span></td><td class="r num">4</td><td class="r money">2 000 ₽</td><td class="r money">8 000 ₽</td><td class="r money">0 ₽</td><td class="r money"><b>8 000 ₽</b></td><td><span class="chip blue"><i data-i="Send" data-s="14"></i>TG</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" style="display:flex;align-items:center;gap:14px;padding:12px 12px 12px 18px">
+          <i data-i="FileText" data-s="24"></i>
+          <div class="txt" style="flex:1"><span class="title">Соня Ли не отмечена: решите, считать ли отмену за 2 часа</span><span class="sub">Остальным уйдёт счёт со списком уроков. Предоплата у 5 учеников — им счёт не нужен.</span></div>
+          <button class="btn l primary" data-act="sendInv"><i data-i="Send" data-s="18"></i>Выставить 8 счетов</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Итог · ПК: стол «Финансы» с виджетом оплат -->
+    <div class="desk" data-v="c" id="deskW" style="margin-top:20px;height:600px">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span class="on">Главная</span><span>Группы</span><span>Журнал</span><span>Конструктор</span><span>Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i><span class="dot"></span></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto minmax(0,1fr)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <nav class="desk-tabs2"><span>Сегодня</span><span class="on">Финансы</span><span>Ученики</span></nav>
+          <span class="sub" style="margin-left:6px">Стол настраивается: виджеты добавляются из библиотеки, двигаются и меняют размер</span>
+          <button class="btn s" style="margin-left:auto" data-edit-desk><i data-i="GripVertical" data-s="14"></i><span>Настроить</span></button>
+          <button class="btn s soft" data-lib><i data-i="Plus" data-s="14"></i>Виджет</button>
+        </div>
+        <div class="dgrid-wrap"><div class="dgrid">
+          <div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile green"><i data-i="TrendingUp"></i></span><div><b>48 000 ₽</b><span class="l">Получено</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile amber"><i data-i="Clock"></i></span><div><b>24 000 ₽</b><span class="l">Ожидается</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile red"><i data-i="CircleAlert"></i></span><div><b>23 000 ₽</b><span class="l">Долг</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile "><i data-i="Sparkles"></i></span><div><b>72 000 ₽</b><span class="l">Прогноз</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w" id="w-finance-overdue" style="--w:3;--h:4"><div class="w-h"><span class="title">Должники</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="avatar sm av2">АК</span><div class="txt"><span class="title">Артём Ким <span class="num" style="font-weight:600">6 000 ₽</span></span><span class="sub">автонапоминание 2 из 3</span></div><span class="chip amber">до 15.11</span></div><div class="w-row"><span class="avatar sm av4">НБ</span><div class="txt"><span class="title">Никита Белов <span class="num" style="font-weight:600">6 000 ₽</span></span><span class="sub">счёт выставлен 1.11</span></div><span class="chip purple">авто</span></div><div class="w-row"><span class="avatar sm av2">ВП</span><div class="txt"><span class="title">Вера Панова <span class="num" style="font-weight:600">8 000 ₽</span></span><span class="sub">напомним завтра в 11:00</span></div><span class="chip purple">авто</span></div><div class="w-row"><span class="avatar sm av5">СЛ</span><div class="txt"><span class="title">Соня Ли <span class="num" style="font-weight:600">6 000 ₽</span></span><span class="sub">счёт не выставлен</span></div><span class="chip">вручную</span></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w new" id="w-payments-inbox" style="--w:3;--h:4"><div class="w-h"><span class="title">Оплаты: ждут вас</span><span class="newtag">Новый</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="avatar sm av1">МС</span><div class="txt"><span class="title">Мама Маши: «Я оплатила»</span><span class="sub num">8 000 ₽ · сегодня 10:42</span></div><button class="btn s primary" data-act="payW">Пришло</button></div>
+<div class="w-row"><span class="ico-tile " style="width:30px;height:30px;border-radius:10px"><i data-i="FileText" data-s="16"></i></span><div class="txt"><span class="title">Закрыть октябрь</span><span class="sub">8 счетов готовы · 1 вопрос</span></div><button class="btn s soft">Открыть</button></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w" id="w-finance-activity" style="--w:2;--h:4"><div class="w-h"><span class="title">История платежей</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="ico-tile green" style="width:30px;height:30px;border-radius:10px"><i data-i="Banknote" data-s="16"></i></span><div class="txt"><span class="title num">+8 000 ₽</span><span class="sub">Лиза · вчера</span></div></div><div class="w-row"><span class="ico-tile green" style="width:30px;height:30px;border-radius:10px"><i data-i="Banknote" data-s="16"></i></span><div class="txt"><span class="title num">+8 000 ₽</span><span class="sub">Тимур · 3.11</span></div></div><div class="w-row"><span class="ico-tile green" style="width:30px;height:30px;border-radius:10px"><i data-i="Banknote" data-s="16"></i></span><div class="txt"><span class="title num">+2 000 ₽</span><span class="sub">Артём · 1.11</span></div></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+        </div></div>
+      </div>
+      <aside class="lib">
+        <div style="display:flex;align-items:center;gap:8px"><h3 class="h-md" style="flex:1">Добавить виджет</h3><button class="round" style="width:36px;height:36px" data-lib aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div>
+        <div class="input" style="font-size:14px;min-height:38px;padding:8px 12px"><i data-i="Search" data-s="16" class="muted-ico"></i><span class="sub">Найти виджет</span></div>
+        <div class="fscroll lib-list"></div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="lane">
+    <h3><i data-i="Phone" data-s="16" class="muted-ico"></i>Учитель · телефон  ·  Плательщик: Telegram и счёт по ссылке</h3>
+    <div class="lane-row">
+
+      <!-- A · телефон: отмена урока → шторка «что уйдёт» -->
+      <div class="cap" data-v="a c">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">12:08</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span></span><h2>Мой день<small>среда, 13 ноября</small></h2><span class="round"><i data-i="Bell"></i></span></div>
+            <div class="scroll">
+              <div class="card pad" style="opacity:.55"><div class="sub num">17:00 – 18:30</div><div class="title" style="font-size:17px">Химия 10Б</div></div>
+              <div class="card pad" style="margin-top:12px" data-open="cancelSheetA"><div class="sub num">19:00 – 20:00</div><div class="title" style="font-size:17px">Маша Соколова</div><div class="sub">Биология ЕГЭ</div></div>
+            </div>
+            <nav class="dock"><span class="on"><i data-i="CalendarDays"></i>Мой день</span><span><i data-i="Users"></i>Ученики</span><span><i data-i="ClipboardCheck"></i>Проверка</span><span><i data-i="MoreHorizontal"></i>Ещё</span></nav>
+            <div class="sheet-wrap open" id="cancelSheetA">
+              <div class="sheet">
+                <div><div class="grabber"></div><div style="display:flex;align-items:center;margin-bottom:12px"><h3 class="h-md" style="flex:1;text-align:center;padding-left:36px">Отменить урок?</h3><button class="round" style="width:36px;height:36px" data-close aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div></div>
+                <div class="scroll" style="padding:0 0 8px">
+                  <div class="card" style="padding:4px"><div class="row"><span class="ico-tile blue"><i data-i="CalendarX"></i></span><div class="txt"><span class="title">Маша · ср 13.11, 19:00</span><span class="sub">Биология ЕГЭ</span></div></div></div>
+                  <div class="sec-label">Кто отменяет</div>
+                  <div class="seg" data-seg style="width:100%" id="whoA"><button style="flex:1" aria-pressed="true" data-value="t">Я</button><button style="flex:1" aria-pressed="false" data-value="s">Ученик, &lt; 24 ч</button><button style="flex:1" aria-pressed="false" data-value="s2">Ученик, заранее</button></div>
+                  <div class="sec-label">Уйдёт сразу · маме и Маше</div>
+                  <div class="tg" style="border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px"><div class="bub" id="cancelTxtA"><p><b>Урок отменён</b></p><p>Биология, ср 13.11 в 19:00. Отменила Анна Сергеевна. <b>Оплата не спишется.</b> Новое время пришлю отдельно.</p><span class="meta">12:08</span></div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:8px"><button class="btn l" data-close>Не сообщать</button><button class="btn l primary" data-act="cancelA"><i data-i="CalendarX" data-s="18"></i>Отменить урок</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Отмена из «Моего дня».</b> Сообщение плательщику собирается в той же шторке. Текст меняется от того, кто отменил. Переключите «Кто отменяет».</p>
+      </div>
+
+      <!-- A · телефон: шаблоны -->
+      <div class="cap" data-v="a c">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">9:41</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="ChevronLeft"></i></span><h2>Оплаты<small>автопилот</small></h2><span></span></div>
+            <div class="scroll">
+              <div class="sum-tiles" style="grid-template-columns:1fr 1fr"><div class="stat"><b class="money">23 000 ₽</b><span>долг у 4</span></div><div class="stat"><b class="money">6 из 9</b><span>оплатили октябрь</span></div></div>
+              <div class="sec-label">Что уходит само</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="ico-tile red"><i data-i="Wallet"></i></span><div class="txt"><span class="title">Долг</span><span class="sub">+3 дня, раз в неделю, ×3</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                <div class="row"><span class="ico-tile"><i data-i="FileText"></i></span><div class="txt"><span class="title">Счёт 1-го числа</span><span class="sub">сначала мне на проверку</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                <div class="row"><span class="ico-tile blue"><i data-i="CalendarX"></i></span><div class="txt"><span class="title">Перенос и отмена</span><span class="sub">сразу, с условиями оплаты</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+              </div></div>
+              <div class="sec-label">Ждут подтверждения</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="avatar av1">МС</span><div class="txt"><span class="title">Мама Маши: «Я оплатила»</span><span class="sub num">8 000 ₽ · сегодня 10:42</span></div><button class="btn s primary" data-act="confirmPay">Пришло</button></div>
+                <div class="row"><span class="avatar av2">АК</span><div class="txt"><span class="title">Мама Артёма: «Оплачу до 15.11»</span><span class="sub">напоминания на паузе</span></div></div>
+              </div></div>
+              <div class="sec-label">Без автопилота</div>
+              <div class="card" style="padding:4px"><div class="row"><span class="avatar av3">ЛО</span><div class="txt"><span class="title">Лиза Орлова</span><span class="sub">платит за полгода вперёд</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div></div>
+            </div>
+            <nav class="dock"><span><i data-i="CalendarDays"></i>Мой день</span><span><i data-i="Users"></i>Ученики</span><span><i data-i="ClipboardCheck"></i>Проверка</span><span class="on"><i data-i="MoreHorizontal"></i>Ещё</span></nav>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Ещё → Оплаты.</b> Главное на телефоне — подтвердить «Я оплатила» одним касанием: платёж запишется в <code>payments</code>, напоминания прекратятся.</p>
+      </div>
+
+      <!-- B · телефон: закрыть месяц / напомнить -->
+      <div class="cap" data-v="b">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">10:15</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="ChevronLeft"></i></span><h2>Октябрь<small>закрыть месяц</small></h2><span></span></div>
+            <div class="scroll" style="padding-bottom:150px">
+              <div class="seg" data-seg style="width:100%;margin-bottom:12px"><button style="flex:1" aria-pressed="false" data-pane="invB">Счета · 8</button><button style="flex:1" aria-pressed="true" data-pane="debtB">Долги · 4</button></div>
+              <div id="invB" hidden>
+                <div class="card" style="padding:4px"><div class="list">
+                  <div class="row"><span class="avatar av1">МС</span><div class="txt"><span class="title">Маша · 8 уроков</span><span class="sub num">к оплате 8 000 ₽</span></div><span class="cbx" role="checkbox" aria-checked="true"></span></div>
+                  <div class="row"><span class="avatar av2">АК</span><div class="txt"><span class="title">Артём · 4 урока <span class="chip amber">+1?</span></span><span class="sub num">к оплате 6 000 ₽</span></div><span class="cbx" role="checkbox" aria-checked="true"></span></div>
+                </div></div>
+              </div>
+              <div id="debtB">
+                <div class="card" style="padding:4px"><div class="list">
+                  <div class="row"><span class="avatar av2">АК</span><div class="txt"><span class="title">Артём Ким</span><span class="sub num">6 000 ₽ · напоминали 5.11</span></div><button class="btn s soft" data-open="remindSheetB">Напомнить</button></div>
+                  <div class="row"><span class="avatar av4">НБ</span><div class="txt"><span class="title">Никита Белов</span><span class="sub num">6 000 ₽ · не напоминали</span></div><button class="btn s soft" data-open="remindSheetB">Напомнить</button></div>
+                  <div class="row"><span class="avatar av5">СЛ</span><div class="txt"><span class="title">Соня Ли</span><span class="sub num">6 000 ₽ · счёт не выставлен</span></div><button class="btn s" disabled>Счёт</button></div>
+                  <div class="row"><span class="avatar av2">ВП</span><div class="txt"><span class="title">Вера Панова</span><span class="sub num">8 000 ₽ · срок 5.11</span></div><button class="btn s soft" data-open="remindSheetB">Напомнить</button></div>
+                </div></div>
+              </div>
+            </div>
+            <div class="sticky-foot"><button class="btn l primary wide" data-open="remindSheetB"><i data-i="Send" data-s="18"></i>Напомнить троим</button></div>
+            <div class="sheet-wrap" id="remindSheetB">
+              <div class="sheet">
+                <div><div class="grabber"></div><div style="display:flex;align-items:center;margin-bottom:12px"><h3 class="h-md" style="flex:1;text-align:center;padding-left:36px">Напомнить об оплате</h3><button class="round" style="width:36px;height:36px" data-close aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div></div>
+                <div class="scroll" style="padding:0 0 8px">
+                  <div class="seg sm" data-seg style="margin-bottom:10px"><button aria-pressed="true">Мягко</button><button aria-pressed="false">Коротко</button><button aria-pressed="false">Второй раз</button></div>
+                  <div class="tg" style="border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px"><div class="bub"><p>Ирина, добрый день! Напоминаю про оплату за октябрь: <b>6 000 ₽</b> за 3 урока. Счёт со списком уроков по ссылке. Если уже оплатили — спасибо, отметьте, пожалуйста, кнопкой.</p><span class="quiet">Анна Сергеевна</span><span class="meta">10:15</span></div>
+                  <div class="kb"><div class="kr"><button>Открыть счёт</button><button>Я оплатила</button></div></div></div>
+                </div>
+                <button class="btn l primary wide" data-act="remindB"><i data-i="Send" data-s="18"></i>Отправить троим</button>
+              </div>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Долги — вручную, но в одно касание.</b> Три тона текста, дата прошлого напоминания на виду. Автоматически ничего не уходит.</p>
+      </div>
+
+      <!-- B · телефон: тост после отмены -->
+      <div class="cap" data-v="b c">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">12:08</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span></span><h2>Мой день<small>среда, 13 ноября</small></h2><span class="round"><i data-i="Bell"></i></span></div>
+            <div class="scroll">
+              <div class="card pad"><div class="sub num">17:00 – 18:30</div><div class="title" style="font-size:17px">Химия 10Б</div></div>
+              <div class="card pad" style="margin-top:12px;opacity:.5"><div style="display:flex;gap:8px;align-items:center"><span class="sub num"><s>19:00 – 20:00</s></span><span class="chip red">отменён</span></div><div class="title" style="font-size:17px">Маша Соколова</div></div>
+            </div>
+            <div style="position:absolute;left:12px;right:12px;bottom:100px;z-index:6;background:#1F1F24;color:#fff;border-radius:22px;padding:12px 12px 12px 16px;box-shadow:var(--shadow-4);display:grid;gap:10px" id="toastB">
+              <div style="display:flex;align-items:center;gap:8px"><b style="flex:1">Урок отменён</b><button style="color:#C6B7FF;font-weight:700">Отменить</button></div>
+              <div style="font-size:13.5px;opacity:.8;line-height:1.35">Сообщить маме и Маше? «Урок 13.11 в 19:00 отменён, оплата не спишется».</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn s" style="background:rgba(255,255,255,.12);color:#fff" data-act="toastNo">Не надо</button><button class="btn s primary" data-act="toastYes"><i data-i="Send" data-s="14"></i>Сообщить</button></div>
+            </div>
+            <nav class="dock"><span class="on"><i data-i="CalendarDays"></i>Мой день</span><span><i data-i="Users"></i>Ученики</span><span><i data-i="ClipboardCheck"></i>Проверка</span><span><i data-i="MoreHorizontal"></i>Ещё</span></nav>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Тост после жеста.</b> Учитель отменил урок (зажал → «Отменить»), и тост с «Отменить» сразу спрашивает, сообщить ли плательщику. Ничего не уходит без согласия.</p>
+      </div>
+
+      <!-- Плательщик · Telegram -->
+      <div class="cap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar" style="background:var(--tg-head);color:var(--tg-text)"><span class="num">12:09</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="tg">
+            <div class="tg-head"><span class="bk"><i data-i="ChevronLeft" data-s="18"></i>Чаты</span><div class="nm"><b>Искра</b><span>бот</span></div><span class="tg-ava">И</span></div>
+            <div class="tg-feed" data-bottom>
+              <div class="tg-day">1 ноября</div>
+              <div class="bub"><p><b>Счёт за октябрь · Маша</b></p><p>8 уроков × 2 000 ₽ = 16 000 ₽<br>Оплачено: 8 000 ₽<br><b>К оплате: 8 000 ₽ до 5 ноября</b></p><span class="meta">10:00</span></div>
+              <div class="kb"><div class="kr"><button><i data-i="FileText" data-s="14"></i>Открыть счёт</button></div><div class="kr"><button class="done">Я оплатила</button><button>Оплачу до…</button></div></div>
+              <div class="bub"><p>Спасибо! Анна Сергеевна подтвердит, когда платёж придёт.</p><span class="meta">10:42</span></div>
+              <div class="bub"><p><b>Оплата получена</b> · 8 000 ₽</p><p>Октябрь закрыт, долга нет.</p><span class="meta">11:15</span></div>
+              <div class="tg-day">Сегодня</div>
+              <div class="bub"><p><b>Урок отменён</b></p><p>Биология, ср 13.11 в 19:00. Отменила Анна Сергеевна. <b>Оплата не спишется.</b></p><span class="meta">12:08</span></div>
+              <div class="bub"><p><b>Урок перенесён</b></p><p>Биология: <s>ср 13.11, 19:00</s> → <b>пт 15.11, 16:00</b>. Оплата без изменений.</p><span class="meta">12:09</span></div>
+            </div>
+            <div class="tg-input"><i data-i="Plus" data-s="20" class="muted-ico"></i><span>Сообщение</span></div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Плательщик (мама).</b> Счёт, «Я оплатила» → подтверждение учителя → «Оплата получена». При отмене и переносе всегда одна строка о том, что с деньгами. В A и B одинаково, отличается только инициатор.</p>
+      </div>
+
+      <!-- Плательщик · счёт по ссылке -->
+      <div class="cap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">10:01</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="web">
+            <div class="urlbar"><i data-i="Lock" data-s="14"></i>iskra.app/i/Qm8…</div>
+            <div class="scroll" style="padding-bottom:40px">
+              <div style="text-align:center;padding:10px 0 14px"><div class="sub">Счёт № 2026-10-014</div><div class="h-lg" style="margin-top:4px">Октябрь · Маша</div><div class="sub">Биология ЕГЭ · Анна Сергеевна</div></div>
+              <div class="card" style="padding:4px 0">
+                <div class="inv-line"><span class="d">03.10</span><span class="t">Урок · клетка</span><span class="money">2 000 ₽</span></div>
+                <div class="inv-line"><span class="d">07.10</span><span class="t">Урок · митоз</span><span class="money">2 000 ₽</span></div>
+                <div class="inv-line"><span class="d">10.10</span><span class="t">Урок · мейоз</span><span class="money">2 000 ₽</span></div>
+                <div class="inv-line void"><span class="d">14.10</span><span class="t">Отменён учителем</span><span class="money">2 000 ₽</span></div>
+                <div class="inv-line"><span class="d">17.10</span><span class="t">Пропуск без предупреждения</span><span class="money">2 000 ₽</span></div>
+                <div class="inv-line"><span class="d">…</span><span class="t sub">ещё 4 урока</span><span class="money">8 000 ₽</span></div>
+                <div class="inv-line"><span class="d"></span><span class="t">Оплачено 02.10</span><span class="money" style="color:var(--color-green-text)">−8 000 ₽</span></div>
+                <div class="total"><span class="sub">К оплате до 5 ноября</span><b class="money">8 000 ₽</b></div>
+              </div>
+              <div class="card pad" style="margin-top:12px;display:grid;gap:8px">
+                <div class="title">Как оплатить</div>
+                <div class="sub" style="line-height:1.4">Перевод по номеру телефона, который указала Анна Сергеевна. Номер показан после нажатия.</div>
+                <button class="btn soft wide"><i data-i="Copy" data-s="16"></i>Показать и скопировать номер</button>
+              </div>
+              <button class="btn l primary wide" style="margin-top:12px"><i data-i="Check" data-s="18"></i>Я оплатила</button>
+              <p class="sub" style="text-align:center;margin:12px 8px 0">Искра не принимает платежи: это список уроков и реквизиты учителя.</p>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Счёт по ссылке</b>, без входа. Каждый урок отдельной строкой: отменённый учителем зачёркнут, пропуск без предупреждения входит. Реквизиты задаёт учитель.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view view-spec spec">
+  <div class="note"><b>Доступ.</b> Функция за фича-ключом <code>payment_reminders</code>: админ выдаёт доступ учителю или всем (Администрирование → Функции). Без доступа у учителя нет ни настроек, ни виджетов, ни строк из этого макета. С доступом — тумблер и параметры в «Настройках → Автоматизации». Подробно: <a href="access.html" style="color:inherit">Доступ к автоматизациям</a>.</div>
+  <div data-v="c">
+  <h2>Итог: что взяли из A и B</h2>
+  <ul>
+    <li><b>Счёт — B:</b> 1-го числа cron собирает черновики <code>invoices</code> (status draft); учитель получает пуш «Закрыть октябрь», видит таблицу, решает «+1?» по поздним отменам и жмёт «Выставить N счетов». В A-настройках это режим «Сначала мне».</li>
+    <li><b>Долг — A:</b> правило +3 дня / раз в неделю / ×3 работает только по счетам со статусом <code>sent</code> или <code>promised</code> после даты обещания. «Я оплатила» ставит паузу до подтверждения учителем.</li>
+    <li><b>Отмена — оба пути:</b> шторка «Отменить урок?» (кто отменил → текст и спишется ли урок) и тост после жеста «Сообщить маме и Маше?». Оба пишут <code>cancelled_by</code> и ставят сообщение в очередь с задержкой 30 с под «Отменить».</li>
+    <li><b>Не берём:</b> ручное «Напомнить» пачкой (B) как основной путь — остаётся кнопкой в карточке ученика для внеочередного напоминания.</li>
+  </ul>
+  </div>
+  <h2>Зачем</h2>
+  <p>Деньги — самая неловкая часть работы репетитора: напоминать о долге стыдно, считать уроки за месяц долго, а при отмене родитель спрашивает «а оплата?». Сейчас в Искре есть учёт (<code>payments</code>, поля <code>payment_due</code>/<code>payment_amount</code>, предоплаченные уроки) и уведомление <b>учителю</b> о сроке (<code>notify_on_payment_due</code>). Плательщику не уходит ничего.</p>
+
+  <h2>Сравнение вариантов</h2>
+  <table class="cmp">
+    <tr><th></th><th>A · Автопилот</th><th>B · Закрытие месяца</th></tr>
+    <tr><td>Долг</td><td>Само по правилу: +3 дня, раз в неделю, ×3, пауза на «Оплачу до…»</td><td>Вручную: «Напомнить» с готовым текстом трёх тонов; пачкой или по одному</td></tr>
+    <tr><td>Счёт за месяц</td><td>1-го числа сам (или «сначала мне» — черновики в уведомлениях)</td><td>Экран «Закрыть октябрь»: таблица, вопросы по поздним отменам, «Выставить 8 счетов»</td></tr>
+    <tr><td>Перенос / отмена</td><td>Сообщение собирается в шторке отмены, уходит сразу; текст зависит от того, кто отменил</td><td>Тост после жеста: «Сообщить маме и Маше?»</td></tr>
+    <tr><td>Неловкость</td><td>Меньше всего: «это не я, это система»</td><td>Учитель сам нажимает, но не пишет текст</td></tr>
+    <tr><td>Риск</td><td>Напоминание после оплаты, которую учитель не успел отметить. Защита: «Я оплатила» сразу ставит паузу</td><td>Учитель забывает закрыть месяц; долги копятся</td></tr>
+    <tr><td>Доверие к цифрам</td><td>Нужна точная посещаемость: ошибка в журнале попадёт в счёт</td><td>Учитель видит таблицу до отправки и ловит ошибки</td></tr>
+  </table>
+  <div class="note"><b>Рекомендация:</b> счёт — из B (раз в месяц учитель видит таблицу, особенно поздние отмены), долг — автопилот из A, но только после выставленного счёта и с паузой на «Я оплатила / Оплачу до…». Перенос и отмена — шторка из A: вопрос, кто отменил, нужен и для сообщения, и для того, спишется ли урок.</div>
+
+  <h2>Кому уходит</h2>
+  <p>Получатель — <b>плательщик</b>: <code>student_contacts.is_payer</code> (обычно родитель из концепта 5). Если плательщик не подключён к Telegram — ученику с пометкой «передай родителям», либо учителю ссылка на счёт, чтобы переслать вручную. Ученикам с предоплатой (<code>lessons_paid</code>, <code>sync_prepaid_lesson_balance</code>) вместо счёта уходит «осталось 1 оплаченное занятие».</p>
+
+  <h2>Черновик данных</h2>
+<pre>-- Цена и модель оплаты ученика (сейчас цены урока в базе нет)
+alter table students add column billing jsonb default '{}';
+-- {"mode":"postpaid"|"prepaid", "price":2000, "late_cancel_hours":24,
+--  "autopilot":true, "pay_hint":"перевод по номеру, показать по нажатию"}
+
+create table invoices (
+  id           uuid primary key default gen_random_uuid(),
+  teacher_id   uuid not null references auth.users(id),
+  student_id   uuid not null references students(id) on delete cascade,
+  payer_id     uuid references student_contacts(id),
+  period       date not null,                  -- первое число месяца
+  lines        jsonb not null,                 -- [{date, schedule_id, title, kind:'held'|'no_show'|'late_cancel'|'teacher_cancel', amount}]
+  total        int not null, paid int not null default 0,
+  due_date     date,
+  status       text not null default 'draft' check (status in ('draft','sent','promised','paid','void')),
+  promised_until date,                         -- «Оплачу до…»
+  claimed_paid_at timestamptz,                 -- «Я оплатила» — ждёт подтверждения
+  token_hash   bytea unique,                   -- ссылка /i/&lt;токен&gt;
+  unique (student_id, period)
+);
+
+create table message_templates (
+  teacher_id uuid not null references auth.users(id),
+  kind       text not null check (kind in ('debt','invoice','lesson_cancel','lesson_move')),
+  tone       text not null default 'soft',     -- B: soft | short | second
+  body       text not null,                    -- переменные {payer} {student} {amount} {lessons} {link}
+  primary key (teacher_id, kind, tone)
+);
+
+-- Кто отменил — нужно и сообщению, и счёту
+alter table schedule_lessons add column cancelled_by text check (cancelled_by in ('teacher','student'));
+alter table schedule_lessons add column cancelled_at timestamptz;</pre>
+
+  <h3>Cron</h3>
+<pre>select cron.schedule('invoices-draft', '0 7 1 * *',  $$ select invoices_build(date_trunc('month', now() - interval '1 day')::date) $$); -- 1-го, 10:00 МСК
+select cron.schedule('debt-reminders', '0 8 * * *',  $$ select comms_plan_debt() $$);  -- раз в день, 11:00 МСК; только A
+-- отправка — общий comms-dispatch (каждую минуту)</pre>
+
+  <h3>Что переиспользовать</h3>
+  <ul>
+    <li><code>schedule_cancel</code> / <code>schedule_move</code> / <code>schedule_undo</code> (0121) — передавать <code>cancelled_by</code>; <code>_schedule_notify</code> ставит в очередь сообщение плательщику с ключом <code>pay_sched:{schedule_id}:{version}</code>, задержка 30 с под «Отменить».</li>
+    <li><code>on_payment_received</code> — при новой записи в <code>payments</code> пересчитать <code>invoices.paid</code>, закрыть счёт, снять из очереди напоминания о долге, отправить «Оплата получена».</li>
+    <li><code>notify_on_payment_due</code> — оставить уведомлением учителю; правило долга (A) читает те же <code>payment_due</code>/<code>payment_amount</code> для учеников без счетов.</li>
+    <li><code>sync_prepaid_lesson_balance</code> — источник «осталось N уроков» для предоплаты.</li>
+    <li>Посещаемость (<code>student_schedule_attendance</code>) — строки счёта: был, пропуск без предупреждения, отмена.</li>
+    <li>В миграции <code>20261105120000_notifications_fixes</code> есть ссылка на <code>20261105090000_payment_reminders.sql</code>, но этого файла в ветке нет. Проверить, не делает ли его параллельная сессия, чтобы не задвоить напоминания.</li>
+  </ul>
+
+  <h3>Чего не делаем</h3>
+  <ul>
+    <li>Не принимаем деньги и не храним реквизиты карт. Только подсказка учителя («перевод по номеру»), которая показывается по нажатию.</li>
+    <li>Не шлём долг ночью и в выходные утром: общие тихие часы из концепта 4.</li>
+  </ul>
+</section>
+</main>
+
+<script src="icons.js"></script>
+<script src="kit.js"></script>
+<script>
+  const PV = {
+    debt: '<div class="bub"><p>Здравствуйте, Ирина! За Артёма накопилось <b>6 000 ₽</b>: 3 урока в октябре (17, 24, 31.10). Реквизиты по ссылке.</p><span class="meta">11:00</span></div><div class="kb"><div class="kr"><button>Открыть счёт</button></div><div class="kr"><button>Я оплатила</button><button>Оплачу до…</button></div></div>',
+    invoice: '<div class="bub"><p><b>Счёт за октябрь · Артём</b></p><p>4 урока × 2 000 ₽ = 8 000 ₽<br>Оплачено: 2 000 ₽<br><b>К оплате: 6 000 ₽ до 5 ноября</b></p><span class="meta">10:00</span></div><div class="kb"><div class="kr"><button>Открыть счёт</button></div><div class="kr"><button>Я оплатила</button><button>Оплачу до…</button></div></div>',
+    move: '<div class="bub"><p><b>Урок отменён</b></p><p>Химия, пт 15.11 в 17:00. Отменил Артём меньше чем за 24 часа: <b>урок оплачивается</b> по договорённости.</p><span class="meta">14:20</span></div>',
+  };
+  document.getElementById('tplsA').addEventListener('click', (e) => {
+    if (e.target.closest('.tgl, [data-seg]')) return;
+    const t = e.target.closest('.tpl'); if (!t) return;
+    document.querySelectorAll('#tplsA .tpl').forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+    document.getElementById('pvA').innerHTML = PV[t.dataset.t];
+  });
+  const CANCEL = {
+    t: '<p><b>Урок отменён</b></p><p>Биология, ср 13.11 в 19:00. Отменила Анна Сергеевна. <b>Оплата не спишется.</b> Новое время пришлю отдельно.</p><span class="meta">12:08</span>',
+    s: '<p><b>Урок отменён</b></p><p>Биология, ср 13.11 в 19:00. Маша отменила меньше чем за 24 часа, поэтому <b>урок оплачивается</b>, как договаривались.</p><span class="meta">12:08</span>',
+    s2: '<p><b>Урок отменён</b></p><p>Биология, ср 13.11 в 19:00, по просьбе Маши. <b>Оплата не спишется.</b> Предложу новое время.</p><span class="meta">12:08</span>',
+  };
+  document.getElementById('whoA').addEventListener('mock:seg', (e) => { document.getElementById('cancelTxtA').innerHTML = CANCEL[e.detail.value]; });
+  window.ACTS = {
+    payW: (b) => { b.outerHTML = '<span class="chip green">Записано</span>'; },
+    sendInv: (b) => { b.disabled = true; b.lastChild.textContent = 'Отправлено 8'; mockToast(document.getElementById('deskB'), '8 счетов ушли плательщикам'); },
+    cancelA: (b) => { b.closest('.sheet-wrap').classList.remove('open'); mockToast(b.closest('.screen'), 'Урок отменён · маме и Маше сообщено'); },
+    confirmPay: (b) => { b.outerHTML = '<span class="chip green">Записано</span>'; },
+    remindB: (b) => { b.closest('.sheet-wrap').classList.remove('open'); mockToast(b.closest('.screen'), 'Напомнили троим'); },
+    toastNo: (b) => { document.getElementById('toastB').style.display = 'none'; },
+    toastYes: (b) => { const t = document.getElementById('toastB'); t.innerHTML = '<div style="display:flex;gap:8px;align-items:center"><b style="flex:1">Сообщили маме и Маше</b></div>'; },
+  };
+</script>
+<script src="widgets.js"></script>
+</body>
+</html>

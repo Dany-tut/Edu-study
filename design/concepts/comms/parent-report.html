@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Отчёт родителю · Искра</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .fscroll { overflow: auto; scrollbar-width: none; min-height: 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft,0px), #000 calc(100% - var(--fb,0px)), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft,0px), #000 calc(100% - var(--fb,0px)), transparent 100%); }
+  .fscroll::-webkit-scrollbar { display: none; }
+  .three { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; min-height: 0; }
+  .st-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; width: 100%; text-align: left; }
+  .st-row:hover { background: var(--color-bg-3); }
+  .st-row[aria-selected="true"] { background: var(--color-purple-soft); }
+  .st-row .nm { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; }
+  .dotst { width: 22px; height: 22px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; }
+  .dotst.ok { background: var(--color-green-soft); --loop-ink: var(--color-green-text); }
+  .dotst.wait { box-shadow: inset 0 0 0 1.5px var(--color-text-4); }
+  .dotst.flag { background: var(--color-amber-soft); --loop-ink: var(--color-amber-text); }
+  .dotst.none { background: var(--color-bg-3); --loop-ink: var(--color-text-3); }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+  .stat { padding: 12px 14px; border-radius: 18px; background: var(--color-bg-3); }
+  .stat b { display: block; font-size: 24px; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stat span { font-size: 12.5px; color: var(--color-text-3); }
+  .phrase { padding: 14px 16px; border-radius: 18px; background: var(--color-bg-input); font-size: 15px; line-height: 1.45; outline: none; }
+  .phrase:focus { box-shadow: inset 0 0 0 2px var(--color-accent); }
+  .phrase-h { display: flex; align-items: center; gap: 8px; margin: 14px 0 8px 2px; font-size: 13px; font-weight: 700; color: var(--color-text-2); }
+  .phrase-h .r { margin-left: auto; }
+  .src { font-size: 12.5px; color: var(--color-text-3); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  .kbd { display: inline-flex; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px; background: var(--color-bg-3); font-size: 12px; font-weight: 700; align-items: center; justify-content: center; color: var(--color-text-2); box-shadow: inset 0 -1px 0 var(--color-border-strong); }
+  .tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+  .tbl th { text-align: left; font-size: 12px; color: var(--color-text-3); font-weight: 600; padding: 6px 10px; position: sticky; top: 0; background: var(--color-bg-2); z-index: 1; }
+  .tbl td { white-space: nowrap; padding: 10px; border-top: 1px solid var(--color-border-soft); vertical-align: middle; }
+  .tbl tr.sel td { background: var(--color-purple-soft); }
+  .tbl tr.flagged td:first-child { box-shadow: inset 3px 0 0 transparent; }
+  .tbl tr:hover td { background: var(--color-bg-3); cursor: pointer; }
+  .tbl .ph { max-width: 260px; white-space: normal; }
+  .swipe-card { padding: 18px; display: grid; gap: 12px; }
+  .pages { display: flex; gap: 4px; justify-content: center; }
+  .pages i { width: 6px; height: 6px; border-radius: 3px; background: var(--color-text-4); display: block; }
+  .pages i.on { width: 18px; background: var(--color-accent); }
+  .pages i.ok { background: var(--color-green-text); }
+  .parent-hero { padding: 18px; display: grid; gap: 4px; text-align: center; }
+  .week-switch { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .trend { display: flex; align-items: flex-end; gap: 6px; height: 64px; padding-top: 6px; }
+  .trend i { flex: 1; border-radius: 6px 6px 3px 3px; background: var(--color-purple-soft); display: block; }
+  .trend i.now { background: var(--grad-purple); }
+  .trend-l { display: flex; gap: 6px; font-size: 11px; color: var(--color-text-3); }
+  .trend-l span { flex: 1; text-align: center; }
+</style>
+</head>
+<body data-variant="a" data-view="mock">
+<header class="doc-head">
+  <a class="back" href="index.html" aria-label="Ко всем концептам"><i data-i="ChevronLeft" data-s="18"></i></a>
+  <h1>Недельный отчёт родителю<small>Концепт 5 · фразы ИИ утверждает учитель · без аккаунта у родителя</small></h1>
+  <span class="grow"></span>
+  <div class="seg" role="group" aria-label="Вариант"><button data-doc="v:c" class="final">Итог</button><button data-doc="v:a">A · Каждый отчёт</button><button data-doc="v:b">B · Кроме отмеченных</button></div>
+  <div class="seg" role="group" aria-label="Тема"><button data-doc="t:light"><i data-i="Sun" data-s="16"></i>Светлая</button><button data-doc="t:dark"><i data-i="Moon" data-s="16"></i>Тёмная</button></div>
+  <div class="seg" role="group" aria-label="Вид"><button data-doc="view:mock">Макеты</button><button data-doc="view:spec">Обоснование и данные</button></div>
+</header>
+
+<main class="doc">
+<section class="view view-mock">
+  <div data-v="a">
+    <h2 class="variant-title">Пятничная пачка: каждый отчёт <span class="tag">Вариант A</span></h2>
+    <p class="lead">В пятницу ИИ готовит черновики. Учитель проходит их <b>по одному</b>: цифры, две фразы и «Утвердить → следующий». На ПК это клавиатура, на телефоне — стопка карточек. Родитель получает <b>весь отчёт текстом в Telegram</b> в воскресенье в 18:00 и ссылку на подробности.</p>
+  </div>
+  <div data-v="b">
+    <h2 class="variant-title">Утвердить всё, кроме отмеченных <span class="tag">Вариант B</span></h2>
+    <p class="lead">ИИ <b>сам отмечает</b> отчёты, где нужен взгляд учителя: резкое падение, пропуски, мало данных. Остальные утверждаются <b>одной кнопкой</b>. У родителя одна <b>постоянная ссылка</b> на страницу с историей недель; Telegram по желанию, подписка прямо с этой страницы.</p>
+  </div>
+
+  <div data-v="c">
+    <h2 class="variant-title">Итог: утвердить пачкой, доставить текстом <span class="tag final">Выбран</span></h2>
+    <p class="lead">Учитель утверждает как в B: <b>отмеченные ИИ отчёты открывает сам</b>, остальные — одной кнопкой. Первые две недели все отчёты помечены «на проверку», пока учитель не привыкнет к флагам. Родитель с Telegram получает <b>отчёт целиком в сообщении</b>, как в A. На главной — новый виджет <b>«Отчёты родителям»</b> из библиотеки: ставится на любой стол, в пятницу показывает «10 готовы · 2 решить» и кнопку утверждения. У каждого родителя есть и <b>постоянная ссылка</b> с историей недель (B): её можно переслать в любой мессенджер, оттуда же подписаться на Telegram.</p>
+  </div>
+
+  <div class="lane">
+    <h3><i data-i="Monitor" data-s="16" class="muted-ico"></i>Учитель · ПК</h3>
+
+    <!-- A · ПК -->
+    <div class="desk" data-v="a" id="deskA">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span>Главная</span><span class="on">Группы</span><span>Журнал</span><span>Конструктор</span><span>Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i><span class="dot"></span></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto minmax(0,1fr)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <h2 class="h-lg">Отчёты родителям</h2><span class="sub" style="font-size:15px">4–10 ноября</span>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:10px"><span class="sub">Утверждено</span><b class="num" id="cntA">7 из 12</b><span style="width:120px" class="bar green"><i id="barA" style="width:58%"></i></span></span>
+          <span class="chip purple"><i data-i="Send" data-s="14"></i>Уйдут в вс, 18:00</span>
+        </div>
+        <div class="three">
+          <div class="card fscroll" style="padding:6px" id="listA">
+            <button class="st-row"><span class="avatar sm av3">ЛО</span><span class="nm">Лиза Орлова</span><span class="dotst ok"><i data-i="Check" data-s="14"></i></span></button>
+            <button class="st-row"><span class="avatar sm av5">СЛ</span><span class="nm">Соня Ли</span><span class="dotst ok"><i data-i="Check" data-s="14"></i></span></button>
+            <button class="st-row"><span class="avatar sm av4">НБ</span><span class="nm">Никита Белов</span><span class="dotst ok"><i data-i="Check" data-s="14"></i></span></button>
+            <button class="st-row"><span class="avatar sm av6">ТА</span><span class="nm">Тимур Ахмедов</span><span class="dotst ok"><i data-i="Check" data-s="14"></i></span></button>
+            <button class="st-row"><span class="avatar sm av2">ВП</span><span class="nm">Вера Панова</span><span class="dotst ok"><i data-i="Check" data-s="14"></i></span></button>
+            <button class="st-row"><span class="avatar sm av3">ДМ</span><span class="nm">Даша Миронова</span><span class="dotst ok"><i data-i="Check" data-s="14"></i></span></button>
+            <button class="st-row"><span class="avatar sm av4">ГР</span><span class="nm">Глеб Ростов</span><span class="dotst ok"><i data-i="Check" data-s="14"></i></span></button>
+            <button class="st-row" aria-selected="true" data-st="masha"><span class="avatar sm av1">МС</span><span class="nm">Маша Соколова</span><span class="dotst wait"></span></button>
+            <button class="st-row" data-st="artem"><span class="avatar sm av2">АК</span><span class="nm">Артём Ким</span><span class="dotst wait"></span></button>
+            <button class="st-row"><span class="avatar sm av5">ПЗ</span><span class="nm">Полина Зуева</span><span class="dotst wait"></span></button>
+            <button class="st-row"><span class="avatar sm av6">ИК</span><span class="nm">Илья Ковалёв</span><span class="dotst wait"></span></button>
+            <button class="st-row"><span class="avatar sm av1">ЕС</span><span class="nm">Ева Смирнова</span><span class="dotst none" title="Родитель не подключён"><i data-i="Link2" data-s="14"></i></span></button>
+          </div>
+          <div class="card pad-l fscroll" id="editorA">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+              <span class="avatar lg av1">МС</span>
+              <div class="txt" style="flex:1"><span class="title" style="font-size:17px">Маша Соколова</span><span class="sub">Химия 10Б · Биология ЕГЭ · мама: Ольга, Telegram</span></div>
+              <button class="btn s" data-act="preview"><i data-i="Eye" data-s="16"></i>Как увидит мама</button>
+            </div>
+            <div class="stats">
+              <div class="stat"><b>3 из 3</b><span>урока посетила</span></div>
+              <div class="stat"><b>2 из 3</b><span>ДЗ сдано, 1 с опозданием</span></div>
+              <div class="stat"><b>81%</b><span>средний балл · было 74%</span></div>
+            </div>
+            <div class="phrase-h"><i data-i="Sparkles" data-s="16"></i>Сильные стороны<span class="r chip">ИИ · можно править</span></div>
+            <div class="phrase" contenteditable="true">Уверенно расставляет коэффициенты в окислительно-восстановительных реакциях: на тесте 12 из 15, лучший результат в группе.</div>
+            <div class="phrase-h"><i data-i="Target" data-s="16"></i>Над чем работаем</div>
+            <div class="phrase" contenteditable="true">Не всегда успевает к сроку: одно ДЗ сдано на день позже. Договорились начинать домашку в день урока.</div>
+            <div class="src"><i data-i="Info" data-s="14" class="muted-ico"></i>Основано на: 3 урока, 3 ДЗ, тест «ОВР» 12/15, комментарии к ДЗ.<button class="btn s ghost" data-act="regen"><i data-i="RefreshCw" data-s="14"></i>Другие фразы</button></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:18px">
+              <button class="btn" data-act="skipA">Не отправлять</button>
+              <span class="sub" style="margin-left:auto"><span class="kbd">↵</span> утвердить · <span class="kbd">E</span> править · <span class="kbd">↓</span> следующий</span>
+              <button class="btn l primary" data-act="approveA"><i data-i="Check" data-s="18"></i>Утвердить и дальше</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-wrap" id="pvParentA" style="align-items:center;justify-content:center">
+        <div class="sheet" style="width:420px;border-radius:24px;padding:16px">
+          <div style="display:flex;align-items:center;margin-bottom:10px"><h3 class="h-md" style="flex:1">Так увидит мама в Telegram</h3><button class="round" style="width:36px;height:36px" data-close aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div>
+          <div class="tg" style="border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px">
+            <div class="bub"><p><b>Маша · неделя 4–10 ноября</b></p><p>Уроки: 3 из 3<br>Домашка: 2 из 3, одна с опозданием<br>Средний балл: 81% (было 74%)</p><p><b>Получается:</b> уверенно расставляет коэффициенты в ОВР, тест 12 из 15.</p><p><b>Работаем над:</b> сроками домашки, начинаем в день урока.</p><span class="quiet">Анна Сергеевна, химия и биология</span><span class="meta">18:00</span></div>
+            <div class="kb"><div class="kr"><button>Подробнее</button><button>Написать учителю</button></div></div>
+          </div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B · ПК -->
+    <div class="desk" data-v="b c" id="deskB">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span>Главная</span><span class="on">Группы</span><span>Журнал</span><span>Конструктор</span><span>Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i><span class="dot"></span></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto minmax(0,1fr) auto">
+        <div style="display:flex;align-items:center;gap:12px">
+          <h2 class="h-lg">Отчёты родителям</h2><span class="sub" style="font-size:15px">4–10 ноября</span>
+          <div class="seg sm" data-seg style="margin-left:8px" id="segB"><button aria-pressed="true" data-value="flag">Требуют внимания · 2</button><button aria-pressed="false" data-value="all">Все · 12</button></div>
+          <span data-v="c" class="chip purple" style="margin-left:auto"><i data-i="Info" data-s="14"></i>Первые 2 недели все отчёты — на проверку</span>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;min-height:0">
+          <div class="card fscroll" style="padding:6px 8px" id="tblWrapB">
+            <table class="tbl" id="tblB">
+              <thead><tr><th>Ученик</th><th>Уроки</th><th>ДЗ</th><th>Балл</th><th>Сильная сторона (ИИ)</th><th></th></tr></thead>
+              <tbody>
+                <tr class="flagged sel" data-r="artem"><td><span style="display:flex;gap:8px;align-items:center"><span class="avatar sm av2">АК</span><b>Артём Ким</b></span></td><td class="num">1 из 3</td><td class="num">0 из 3</td><td class="num">—</td><td class="ph"><div class="fade-text sub">Хорошо отвечал устно на единственном уроке</div></td><td><span class="chip amber"><i data-i="AlertTriangle" data-s="14"></i>2 пропуска подряд</span></td></tr>
+                <tr class="flagged" data-r="eva"><td><span style="display:flex;gap:8px;align-items:center"><span class="avatar sm av1">ЕС</span><b>Ева Смирнова</b></span></td><td class="num">3 из 3</td><td class="num">3 из 3</td><td class="num">58%</td><td class="ph"><div class="fade-text sub">Сдаёт все работы вовремя и аккуратно</div></td><td><span class="chip amber"><i data-i="TrendingDown" data-s="14"></i>балл −21%</span></td></tr>
+                <tr data-ok><td><span style="display:flex;gap:8px;align-items:center"><span class="avatar sm av1">МС</span><b>Маша Соколова</b></span></td><td class="num">3 из 3</td><td class="num">2 из 3</td><td class="num">81%</td><td class="ph"><div class="fade-text sub">Уверенно расставляет коэффициенты в ОВР, тест 12 из 15</div></td><td><span class="chip green"><i data-i="Check" data-s="14"></i>Готов</span></td></tr>
+                <tr data-ok><td><span style="display:flex;gap:8px;align-items:center"><span class="avatar sm av3">ЛО</span><b>Лиза Орлова</b></span></td><td class="num">3 из 3</td><td class="num">3 из 3</td><td class="num">92%</td><td class="ph"><div class="fade-text sub">Сама нашла ошибку в цепочке превращений и исправила её</div></td><td><span class="chip green"><i data-i="Check" data-s="14"></i>Готов</span></td></tr>
+                <tr data-ok><td><span style="display:flex;gap:8px;align-items:center"><span class="avatar sm av4">НБ</span><b>Никита Белов</b></span></td><td class="num">2 из 3</td><td class="num">2 из 3</td><td class="num">70%</td><td class="ph"><div class="fade-text sub">Стал задавать вопросы на уроке, раньше молчал</div></td><td><span class="chip green"><i data-i="Check" data-s="14"></i>Готов</span></td></tr>
+                <tr data-ok><td><span style="display:flex;gap:8px;align-items:center"><span class="avatar sm av5">СЛ</span><b>Соня Ли</b></span></td><td class="num">3 из 3</td><td class="num">3 из 3</td><td class="num">88%</td><td class="ph"><div class="fade-text sub">Без ошибок решила задачи на массовую долю</div></td><td><span class="chip green"><i data-i="Check" data-s="14"></i>Готов</span></td></tr>
+                <tr data-ok><td><span style="display:flex;gap:8px;align-items:center"><span class="avatar sm av6">ТА</span><b>Тимур Ахмедов</b></span></td><td class="num">3 из 3</td><td class="num">1 из 3</td><td class="num">64%</td><td class="ph"><div class="fade-text sub">Хорошо разбирается в строении атома</div></td><td><span class="chip green"><i data-i="Check" data-s="14"></i>Готов</span></td></tr>
+                <tr data-ok><td><span style="display:flex;gap:8px;align-items:center"><span class="avatar sm av2">ВП</span><b>Вера Панова</b></span></td><td class="num">3 из 3</td><td class="num">3 из 3</td><td class="num">90%</td><td class="ph"><div class="fade-text sub">Подробные и точные ответы в развёрнутых заданиях</div></td><td><span class="chip green"><i data-i="Check" data-s="14"></i>Готов</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card pad" style="display:grid;grid-template-rows:minmax(0,1fr) auto;gap:12px;min-height:0"><div class="fscroll">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span class="avatar lg av2">АК</span><div class="txt" style="flex:1"><span class="title" style="font-size:16px">Артём Ким</span><span class="sub">папа: Сергей · ссылка</span></div></div>
+            <div class="note amber" style="margin:0 0 12px"><b>Почему отмечен:</b> пропустил 2 урока подряд и не сдал ДЗ. ИИ не пишет о пропусках сам: решите, как сказать.</div>
+            <div class="phrase-h" style="margin-top:0"><i data-i="Sparkles" data-s="16"></i>Сильные стороны</div>
+            <div class="phrase" contenteditable="true">Хорошо отвечал устно на единственном уроке недели.</div>
+            <div class="phrase-h"><i data-i="Target" data-s="16"></i>Над чем работаем</div>
+            <div class="phrase" contenteditable="true">Пропущены 2 урока и 3 домашки. Предлагаю созвониться, чтобы наверстать тему «ОВР».</div>
+            </div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn" data-act="skipB">Пропустить неделю</button><button class="btn soft" data-act="okFlag"><i data-i="Check" data-s="16"></i>Утвердить</button></div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;align-items:center;gap:14px;padding:12px 12px 12px 18px">
+          <i data-i="ShieldCheck" data-s="24"></i>
+          <div class="txt" style="flex:1"><span class="title" id="sumB">10 отчётов готовы, 2 требуют вашего решения</span><span class="sub">Уйдут в воскресенье в 18:00. До этого можно отозвать любой.</span></div>
+          <button class="btn l primary" data-act="approveAllB" id="approveAllB"><i data-i="CheckCheck" data-s="18"></i>Утвердить 10</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Итог · ПК: стол «Ученики» с виджетом отчётов -->
+    <div class="desk" data-v="c" id="deskW" style="margin-top:20px;height:600px">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span class="on">Главная</span><span>Группы</span><span>Журнал</span><span>Конструктор</span><span>Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i><span class="dot"></span></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto minmax(0,1fr)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <nav class="desk-tabs2"><span>Сегодня</span><span>Финансы</span><span class="on">Ученики</span></nav>
+          <span class="sub" style="margin-left:6px">Стол настраивается: виджеты добавляются из библиотеки, двигаются и меняют размер</span>
+          <button class="btn s" style="margin-left:auto" data-edit-desk><i data-i="GripVertical" data-s="14"></i><span>Настроить</span></button>
+          <button class="btn s soft" data-lib><i data-i="Plus" data-s="14"></i>Виджет</button>
+        </div>
+        <div class="dgrid-wrap"><div class="dgrid">
+          <div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile "><i data-i="Users"></i></span><div><b>18</b><span class="l">Карточек учеников</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile "><i data-i="LayoutGrid"></i></span><div><b>3</b><span class="l">Групп</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile green"><i data-i="CheckCircle2"></i></span><div><b>14</b><span class="l">Без долга по занятиям</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile amber"><i data-i="CircleAlert"></i></span><div><b>4</b><span class="l">Минус по занятиям</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w" id="w-groups-list" style="--w:3;--h:4"><div class="w-h"><span class="title">Список групп</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="avatar sm av1">10Б</span><div class="txt"><span class="title">Химия 10Б</span><span class="sub">6 учеников</span></div></div><div class="w-row"><span class="avatar sm av3">ЕГ</span><div class="txt"><span class="title">ЕГЭ · вечерняя</span><span class="sub">5 учеников</span></div></div><div class="w-row"><span class="avatar sm av4">МС</span><div class="txt"><span class="title">Маша Соколова</span><span class="sub">1:1 · биология</span></div></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w new" id="w-parent-reports" style="--w:3;--h:4"><div class="w-h"><span class="title">Отчёты родителям · 4–10 ноября</span><span class="newtag">Новый</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div style="display:flex;gap:8px"><div class="stat" style="flex:1;padding:8px 10px;border-radius:14px;background:var(--color-bg-3)"><b class="num" style="font-size:20px">10</b><div class="sub">готовы</div></div><div class="stat" style="flex:1;padding:8px 10px;border-radius:14px;background:var(--color-amber-soft)"><b class="num" style="font-size:20px;color:var(--color-amber-text)">2</b><div class="sub">решить</div></div></div>
+<div class="w-row"><span class="ico-tile amber" style="width:30px;height:30px;border-radius:10px"><i data-i="AlertTriangle" data-s="16"></i></span><div class="txt"><span class="title">Артём Ким</span><span class="sub">2 пропуска подряд</span></div><i data-i="ChevronRight" data-s="14" class="muted-ico"></i></div>
+<div class="w-row"><span class="ico-tile amber" style="width:30px;height:30px;border-radius:10px"><i data-i="TrendingDown" data-s="16"></i></span><div class="txt"><span class="title">Ева Смирнова</span><span class="sub">балл −21%</span></div><i data-i="ChevronRight" data-s="14" class="muted-ico"></i></div>
+<button class="btn primary" style="height:36px" data-act="approveW"><i data-i="CheckCheck" data-s="16"></i><span>Утвердить 10</span></button></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w" id="w-attention-students" style="--w:2;--h:4"><div class="w-h"><span class="title">Требуют внимания</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="avatar sm av2">АК</span><div class="txt"><span class="title">Артём Ким</span><span class="sub">2 пропуска, долг 6 000 ₽</span></div></div><div class="w-row"><span class="avatar sm av1">ЕС</span><div class="txt"><span class="title">Ева Смирнова</span><span class="sub">балл падает</span></div></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w new" id="w-comms-today" style="--w:4;--h:2" hidden><div class="w-h"><span class="title">Связь с учениками</span><span class="newtag">Новый</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="ico-tile red" style="width:30px;height:30px;border-radius:10px"><i data-i="CircleAlert" data-s="16"></i></span><div class="txt"><span class="title">Не дошло: Артём</span><span class="sub">заблокировал бота</span></div></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+        </div></div>
+      </div>
+      <aside class="lib">
+        <div style="display:flex;align-items:center;gap:8px"><h3 class="h-md" style="flex:1">Добавить виджет</h3><button class="round" style="width:36px;height:36px" data-lib aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div>
+        <div class="input" style="font-size:14px;min-height:38px;padding:8px 12px"><i data-i="Search" data-s="16" class="muted-ico"></i><span class="sub">Найти виджет</span></div>
+        <div class="fscroll lib-list"></div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="lane">
+    <h3><i data-i="Phone" data-s="16" class="muted-ico"></i>Учитель · телефон  ·  Родитель: Telegram и страница по ссылке</h3>
+    <div class="lane-row">
+
+      <!-- A · телефон: стопка -->
+      <div class="cap" data-v="a">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">17:20</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="X"></i></span><h2>Отчёты родителям<small id="phCnt">8 из 12 · уйдут в вс 18:00</small></h2><span></span></div>
+            <div class="scroll" style="padding-bottom:150px">
+              <div class="pages" style="margin:2px 0 12px"><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+              <div class="card swipe-card">
+                <div style="display:flex;align-items:center;gap:10px"><span class="avatar lg av1">МС</span><div class="txt"><span class="title" style="font-size:17px">Маша Соколова</span><span class="sub">мама · Telegram</span></div></div>
+                <div class="stats"><div class="stat"><b>3/3</b><span>уроки</span></div><div class="stat"><b>2/3</b><span>ДЗ</span></div><div class="stat"><b>81%</b><span>балл ↑</span></div></div>
+                <div><div class="phrase-h" style="margin-top:0"><i data-i="Sparkles" data-s="16"></i>Сильные стороны</div>
+                <div class="phrase" style="font-size:15px">Уверенно расставляет коэффициенты в ОВР: тест 12 из 15, лучший в группе.</div></div>
+                <div><div class="phrase-h" style="margin-top:0"><i data-i="Target" data-s="16"></i>Над чем работаем</div>
+                <div class="phrase" style="font-size:15px">Одно ДЗ сдано на день позже. Договорились начинать в день урока.</div></div>
+              </div>
+            </div>
+            <div class="sticky-foot" style="grid-template-columns:1fr 1.4fr">
+              <button class="btn l" style="background:rgba(var(--glass-rgb),.9);box-shadow:var(--shadow-pill)"><i data-i="Pencil" data-s="18"></i>Править</button>
+              <button class="btn l primary" data-act="approvePh"><i data-i="Check" data-s="18"></i>Утвердить</button>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Стопка по одному.</b> Цифры наверху, две фразы — главное, что проверяет учитель. Свайп вправо = утвердить. Открывается из пуша в пятницу в 17:00.</p>
+      </div>
+
+      <!-- B · телефон: исключения + одна кнопка -->
+      <div class="cap" data-v="b c">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">17:20</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="ChevronLeft"></i></span><h2>Отчёты родителям<small>4–10 ноября</small></h2><span></span></div>
+            <div class="scroll" style="padding-bottom:160px">
+              <div class="sec-label">Нужно ваше решение · 2</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <button class="row" data-open="flagSheet"><span class="avatar av2">АК</span><div class="txt"><span class="title">Артём Ким</span><span class="sub">2 пропуска подряд</span></div><span class="chip amber"><i data-i="AlertTriangle" data-s="14"></i></span></button>
+                <button class="row" data-open="flagSheet"><span class="avatar av1">ЕС</span><div class="txt"><span class="title">Ева Смирнова</span><span class="sub">балл упал на 21%</span></div><span class="chip amber"><i data-i="TrendingDown" data-s="14"></i></span></button>
+              </div></div>
+              <div class="sec-label">Готовы · 10<span class="r">Все</span></div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="avatar av1">МС</span><div class="txt"><span class="title">Маша Соколова</span><div class="sub fade-text">Уверенно расставляет коэффициенты в ОВР</div></div></div>
+                <div class="row"><span class="avatar av3">ЛО</span><div class="txt"><span class="title">Лиза Орлова</span><div class="sub fade-text">Сама нашла ошибку в цепочке превращений</div></div></div>
+                <div class="row"><span class="avatar av4">НБ</span><div class="txt"><span class="title">Никита Белов</span><div class="sub fade-text">Стал задавать вопросы на уроке</div></div></div>
+                <div class="row"><span class="avatar av5">СЛ</span><div class="txt"><span class="title">Соня Ли</span><div class="sub fade-text">Без ошибок решила задачи на массовую долю</div></div></div>
+                <div class="row"><span class="avatar av6">ТА</span><div class="txt"><span class="title">Тимур Ахмедов</span><div class="sub fade-text">Хорошо разбирается в строении атома</div></div></div>
+              </div></div>
+            </div>
+            <div class="sticky-foot">
+              <button class="btn l primary wide" data-act="approvePhB"><i data-i="CheckCheck" data-s="18"></i>Утвердить 10 готовых</button>
+            </div>
+            <div class="sheet-wrap" id="flagSheet">
+              <div class="sheet">
+                <div><div class="grabber"></div><div style="display:flex;align-items:center;margin-bottom:12px"><h3 class="h-md" style="flex:1;text-align:center;padding-left:36px">Артём Ким</h3><button class="round" style="width:36px;height:36px" data-close aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div></div>
+                <div class="scroll" style="padding:0 0 8px">
+                  <div class="note amber" style="margin-top:0">Пропустил 2 урока подряд и не сдал ДЗ. О пропусках ИИ не пишет сам: решите, как сказать.</div>
+                  <div class="phrase-h" style="margin-top:0">Над чем работаем</div>
+                  <div class="phrase" contenteditable="true">Пропущены 2 урока и 3 домашки. Предлагаю созвониться, чтобы наверстать тему «ОВР».</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn l" data-close>Пропустить</button><button class="btn l primary" data-close>Утвердить</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Сначала исключения, потом одна кнопка.</b> Готовые отчёты видно по первой фразе, их можно открыть, но не обязательно. Нажмите на Артёма.</p>
+      </div>
+
+      <!-- Родитель · Telegram -->
+      <div class="cap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar" style="background:var(--tg-head);color:var(--tg-text)"><span class="num">18:00</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="tg">
+            <div class="tg-head"><span class="bk"><i data-i="ChevronLeft" data-s="18"></i>Чаты</span><div class="nm"><b>Искра</b><span>бот</span></div><span class="tg-ava">И</span></div>
+            <div class="tg-feed" data-bottom>
+              <div class="contents" data-v="a c">
+                <div class="tg-day">2 ноября</div>
+                <div class="bub out">/start<span class="meta">20:14</span></div>
+                <div class="bub"><p>Здравствуйте, <b>Ольга</b>! Анна Сергеевна подключила вас к отчётам о <b>Маше</b>.</p><p>Каждое воскресенье в 18:00 пришлю короткий итог недели.</p><span class="quiet">Отписаться: /stop</span><span class="meta">20:14</span></div>
+                <div class="tg-day">Сегодня</div>
+                <div class="bub"><p><b>Маша · неделя 4–10 ноября</b></p><p>Уроки: 3 из 3<br>Домашка: 2 из 3, одна с опозданием<br>Средний балл: 81% (было 74%)</p><p><b>Получается:</b> уверенно расставляет коэффициенты в ОВР, тест 12 из 15, лучший результат в группе.</p><p><b>Работаем над:</b> сроками домашки. Договорились начинать её в день урока.</p><span class="quiet">Анна Сергеевна · химия, биология</span><span class="meta">18:00</span></div>
+                <div class="kb"><div class="kr"><button><i data-i="ExternalLink" data-s="14"></i>Подробнее</button><button><i data-i="MessageCircle" data-s="14"></i>Учителю</button></div></div>
+              </div>
+              <div class="contents" data-v="b">
+                <div class="tg-day">27 октября</div>
+                <div class="bub"><p>Вы подписались на отчёты о <b>Маше</b> со страницы отчёта. Новый отчёт — каждое воскресенье.</p><span class="meta">19:40</span></div>
+                <div class="tg-day">3 ноября</div>
+                <div class="bub"><p><b>Новый отчёт о Маше</b> · 28 окт – 3 ноя</p><p>Уроки 3/3 · ДЗ 3/3 · балл 74%</p><span class="meta">18:00</span></div>
+                <div class="kb"><div class="kr"><button><i data-i="ExternalLink" data-s="14"></i>Открыть отчёт</button></div></div>
+                <div class="tg-day">Сегодня</div>
+                <div class="bub"><p><b>Новый отчёт о Маше</b> · 4–10 ноября</p><p>Уроки 3/3 · ДЗ 2/3 · балл 81% ↑</p><p class="quiet">Получается: уверенно расставляет коэффициенты в ОВР…</p><span class="meta">18:00</span></div>
+                <div class="kb"><div class="kr"><button><i data-i="ExternalLink" data-s="14"></i>Открыть отчёт</button></div></div>
+              </div>
+            </div>
+            <div class="tg-input"><i data-i="Plus" data-s="20" class="muted-ico"></i><span>Сообщение</span></div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p data-v="a c"><b>Родитель<span data-v="a">, A</span>:</b> учитель отправляет маме ссылку-приглашение <code>t.me/iskra_bot?start=p_…</code> из карточки ученика. Отчёт приходит <b>целиком в сообщении</b>, открывать ничего не нужно.</p>
+        <p data-v="b"><b>Родитель, B:</b> в Telegram только уведомление «Новый отчёт» с цифрами. Подписка оформляется на странице отчёта, учителю не нужно знать Telegram родителя.</p>
+      </div>
+
+      <!-- Родитель · страница по ссылке -->
+      <div class="cap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">18:01</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="web">
+            <div class="urlbar"><i data-i="Lock" data-s="14"></i>iskra.app/r/7Kq…</div>
+            <div class="scroll" style="padding-bottom:40px">
+              <div class="parent-hero"><span class="avatar lg av1" style="margin:0 auto 6px;width:56px;height:56px;font-size:18px">М</span><div class="h-md">Маша</div><div class="sub">Химия и биология · Анна Сергеевна</div></div>
+              <div class="week-switch" data-v="b c" style="margin-bottom:10px"><button class="round" style="width:36px;height:36px"><i data-i="ChevronLeft" data-s="16"></i></button><b>4–10 ноября</b><button class="round" style="width:36px;height:36px;opacity:.4"><i data-i="ChevronRight" data-s="16"></i></button></div>
+              <div data-v="a" style="text-align:center;margin-bottom:10px"><b>Неделя 4–10 ноября</b></div>
+              <div class="stats" style="margin-bottom:12px"><div class="stat"><b>3/3</b><span>урока</span></div><div class="stat"><b>2/3</b><span>ДЗ сдано</span></div><div class="stat"><b>81%</b><span>средний балл</span></div></div>
+              <div class="card pad" style="display:grid;gap:12px">
+                <div><div class="phrase-h" style="margin-top:0"><i data-i="Star" data-s="16"></i>Получается</div><div style="font-size:15px;line-height:1.45">Уверенно расставляет коэффициенты в окислительно-восстановительных реакциях: на тесте 12 из 15, лучший результат в группе.</div></div>
+                <div><div class="phrase-h" style="margin-top:0"><i data-i="Target" data-s="16"></i>Работаем над</div><div style="font-size:15px;line-height:1.45">Не всегда успевает к сроку: одно ДЗ сдано на день позже. Договорились начинать домашку в день урока.</div></div>
+              </div>
+              <div class="sec-label">Уроки недели</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="ico-tile green"><i data-i="Check"></i></span><div class="txt"><span class="title">Пн · Химия</span><span class="sub">ОВР: метод баланса</span></div><span class="chip green">был</span></div>
+                <div class="row"><span class="ico-tile green"><i data-i="Check"></i></span><div class="txt"><span class="title">Ср · Химия</span><span class="sub">Тест «ОВР» · 12/15</span></div><span class="chip green">был</span></div>
+                <div class="row"><span class="ico-tile green"><i data-i="Check"></i></span><div class="txt"><span class="title">Чт · Биология</span><span class="sub">Клетка, линия 3</span></div><span class="chip green">был</span></div>
+              </div></div>
+              <div data-v="b c">
+                <div class="sec-label">Средний балл по неделям</div>
+                <div class="card pad"><div class="trend"><i style="height:55%"></i><i style="height:62%"></i><i style="height:60%"></i><i style="height:74%"></i><i class="now" style="height:81%"></i></div><div class="trend-l"><span>7.10</span><span>14.10</span><span>21.10</span><span>28.10</span><span>4.11</span></div></div>
+                <button class="btn l wide" style="margin-top:14px;background:var(--color-blue-pill-bg);color:var(--color-blue-pill-text);--loop-ink:var(--color-blue-pill-text)"><i data-i="Send" data-s="18"></i>Получать в Telegram</button>
+              </div>
+              <button class="btn wide" style="margin-top:10px"><i data-i="MessageCircle" data-s="16"></i>Написать учителю</button>
+              <p class="sub" style="text-align:center;margin:14px 8px 0">Ссылка личная, не пересылайте её. Отчёт видит только тот, у кого есть ссылка.</p>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Страница по ссылке</b>, без входа. Только имя ребёнка и его неделя: ни фамилии, ни других учеников. <span data-v="c">Ссылка постоянная, её можно переслать в любой мессенджер; здесь же история недель и подписка на Telegram.</span><span data-v="b">В B ссылка постоянная: есть история недель и подписка на Telegram.</span><span data-v="a">В A ссылка ведёт на конкретную неделю и живёт 30 дней.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view view-spec spec">
+  <div class="note"><b>Доступ.</b> Функция за фича-ключом <code>parent_report</code>: админ выдаёт доступ учителю или всем (Администрирование → Функции). Без доступа у учителя нет ни настроек, ни виджетов, ни строк из этого макета. С доступом — тумблер и параметры в «Настройках → Автоматизации». Подробно: <a href="access.html" style="color:inherit">Доступ к автоматизациям</a>.</div>
+  <div data-v="c">
+  <h2>Итог: что взяли из A и B</h2>
+  <ul>
+    <li><b>Утверждение — B:</b> таблица «Требуют внимания / Все», флаги по правилам (пропуски ≥ 2, падение ≥ 15 п.п., мало данных, новый ученик), кнопка «Утвердить N». На телефоне — список исключений и одна кнопка. Первые 2 недели у учителя флаг <code>review_all</code>: все отчёты помечены.</li>
+    <li><b>Доставка — A + B:</b> если родитель подключил бота — весь текст отчёта в Telegram с кнопкой «Подробнее»; если нет — учитель один раз пересылает постоянную ссылку <code>/r/&lt;токен&gt;</code>, на странице история недель и кнопка «Получать в Telegram».</li>
+    <li><b>Не берём:</b> обязательный просмотр каждого отчёта по одному (A) — стопка остаётся доступной по «Все» для тех, кто хочет проверить всё.</li>
+    <li><b>Данные:</b> <code>report_links.scope = 'student'</code> (постоянная), <code>parent_reports.flags</code> + <code>teacher.preferences.reports_review_all_until</code>.</li>
+  </ul>
+  </div>
+  <h2>Зачем</h2>
+  <p>Родитель платит и хочет понимать, что происходит, но аккаунта в Искре у него нет и не будет. Сейчас учитель пишет родителям вручную или не пишет вовсе. Задача — <b>раз в неделю</b> отправить короткий честный итог, потратив на всю пачку <b>не больше 5–10 минут</b>. ИИ пишет фразы, но публикует их только учитель (правило AI-01: «итог публикует преподаватель»).</p>
+
+  <h2>Сравнение вариантов</h2>
+  <table class="cmp">
+    <tr><th></th><th>A · Каждый отчёт</th><th>B · Кроме отмеченных</th></tr>
+    <tr><td>Утверждение</td><td>Каждый отчёт по очереди: «Утвердить и дальше», клавиатура на ПК, стопка на телефоне</td><td>ИИ отмечает 1–3 спорных, остальные — одной кнопкой «Утвердить 10»</td></tr>
+    <tr><td>Время на 12 учеников</td><td>≈ 6–8 мин (по 30 с на отчёт)</td><td>≈ 2–3 мин (только отмеченные)</td></tr>
+    <tr><td>Контроль качества</td><td>Учитель видит каждую фразу</td><td>Опирается на флаги ИИ; ошибка в неотмеченном отчёте уйдёт родителю</td></tr>
+    <tr><td>Доставка</td><td>Учитель приглашает родителя ссылкой в бота; отчёт целиком в сообщении</td><td>Постоянная ссылка на страницу (учитель шлёт её в любой мессенджер); Telegram — подписка со страницы</td></tr>
+    <tr><td>Что видит родитель</td><td>Неделя текстом + «Подробнее» (страница недели, 30 дней)</td><td>Страница с историей недель и графиком балла; в Telegram только анонс</td></tr>
+    <tr><td>Нужен Telegram родителя</td><td>Да, иначе только ссылка</td><td>Нет</td></tr>
+    <tr><td>Риск</td><td>Учитель устанет и начнёт жать «Утвердить» не читая</td><td>Родитель не открывает ссылку; меньше читают</td></tr>
+  </table>
+  <div class="note"><b>Рекомендация:</b> утверждение из B (исключения + одна кнопка) с обязательным просмотром отмеченных; доставка из A (весь отчёт текстом в Telegram — его прочтут) плюс постоянная ссылка из B для тех, у кого нет Telegram. Первые 2 недели показывать учителю все отчёты (как в A), пока он не начнёт доверять флагам.</div>
+
+  <h2>Что делает ИИ и где граница</h2>
+  <ul>
+    <li>На вход — только факты недели: посещаемость, статусы и баллы ДЗ, тесты, комментарии учителя к работам. Никаких оценок личности и сравнений с другими учениками по имени.</li>
+    <li>Две фразы по 1–2 предложения: «Получается» и «Работаем над». Каждая обязана ссылаться на факт («тест 12 из 15»). Строка «Основано на» показывает источники.</li>
+    <li>Флаги (B) ставит не ИИ, а правило: пропуски ≥ 2, падение балла ≥ 15 п.п., меньше 2 событий за неделю, ученик новый (первые 2 недели). ИИ о пропусках сам не пишет — формулировку выбирает учитель.</li>
+    <li>Флаг <code>ai_parent_reports</code> в <code>app_flags</code> — рубильник расхода; без него учитель видит цифры и пишет фразы сам.</li>
+  </ul>
+
+  <h2>Черновик данных</h2>
+<pre>-- Контакт родителя (общий с концептом оплат — «плательщик»)
+create table student_contacts (
+  id          uuid primary key default gen_random_uuid(),
+  student_id  uuid not null references students(id) on delete cascade,
+  role        text not null check (role in ('student','parent')),
+  name        text,                       -- «мама, Ольга»
+  is_payer    boolean not null default false,
+  tg_chat_id  bigint,                     -- после /start p_&lt;код&gt;
+  linked_at   timestamptz, revoked_at timestamptz
+);
+
+create table parent_reports (
+  id           uuid primary key default gen_random_uuid(),
+  student_id   uuid not null references students(id) on delete cascade,
+  teacher_id   uuid not null references auth.users(id),
+  week_start   date not null,             -- понедельник
+  stats        jsonb not null,            -- {lessons:{held,attended}, hw:{given,done,late}, avg_pct, prev_avg_pct, tests:[…]}
+  strengths    text, focus text,          -- текст после правки
+  ai_strengths text, ai_focus text,       -- исходник ИИ (для оценки качества)
+  ai_sources   jsonb,                     -- на что сослался
+  flags        text[] default '{}',       -- absent_2, drop_15, thin_data, new_student
+  status       text not null default 'draft' check (status in ('draft','approved','skipped','sent','failed')),
+  approved_at  timestamptz, sent_at timestamptz,
+  unique (student_id, week_start)
+);
+
+-- Ссылка без аккаунта: храним только хэш токена
+create table report_links (
+  token_hash  bytea primary key,          -- sha256(токен из URL /r/&lt;токен&gt;)
+  student_id  uuid not null references students(id) on delete cascade,
+  scope       text not null check (scope in ('week','student')),  -- A: неделя, B: постоянная
+  report_id   uuid references parent_reports(id),
+  expires_at  timestamptz,                -- A: +30 дней; B: null, отзывается вручную
+  revoked_at  timestamptz,
+  last_seen_at timestamptz
+);
+-- Чтение страницы — edge-функция parent-report (service role), без анонимного доступа к таблицам.</pre>
+
+  <h3>Cron</h3>
+<pre>select cron.schedule('parent-reports-draft', '0 14 * * 5', $$ select parent_reports_build(current_date - 4) $$); -- пт 17:00 МСК: собрать цифры + ИИ
+select cron.schedule('parent-reports-nudge', '0 14 * * 5', $$ select comms_enqueue_teacher_nudge('parent_reports') $$); -- пуш учителю
+select cron.schedule('parent-reports-send',  '0 15 * * 0', $$ select parent_reports_enqueue_approved() $$);     -- вс 18:00 МСК → comms_outbox</pre>
+
+  <h3>Что переиспользовать</h3>
+  <ul>
+    <li>Посещаемость — <code>student_schedule_attendance</code> / <code>lesson_attendance</code> (триггеры <code>on_lesson_attended</code>, <code>on_lesson_attendance_updated</code>).</li>
+    <li>ДЗ и баллы — <code>teacher_journal_homework_summary_v</code>, <code>hw_grades</code>; статусы сдачи — <code>lesson_progress</code>.</li>
+    <li>ИИ — тот же путь, что <code>hw-grade</code>: edge-функция, учёт трат как в <code>tts_spend</code>, рубильник в <code>app_flags</code>.</li>
+    <li>Отправка — общий <code>comms_outbox</code> и диспетчер (см. обзор), бот — тот же, что в <code>tg-webhook</code>; новая ветка <code>/start p_&lt;код&gt;</code> создаёт <code>student_contacts</code> с ролью parent.</li>
+  </ul>
+
+  <h3>Открытые вопросы</h3>
+  <ul>
+    <li>Согласие родителя: первое сообщение бота объясняет, кто и зачем пишет. Отписка — <code>/stop</code> или ссылка внизу страницы.</li>
+    <li>Ученик 18+ — отчёт родителю только с его согласия: галочка в карточке ученика.</li>
+    <li>У ученика нескольких учителей — один отчёт на учителя или общий? Предлагаю на учителя: каждый утверждает только своё.</li>
+  </ul>
+</section>
+</main>
+
+<script src="icons.js"></script>
+<script src="kit.js"></script>
+<script>
+  let done = 7;
+  window.ACTS = {
+    approveW: (b) => { b.disabled = true; b.querySelector('span:not(.li)').textContent = 'Утверждено'; mockToast(b.closest('.desk'), 'Утверждено 10 отчётов'); },
+    approveA: (b) => {
+      const sel = document.querySelector('#listA .st-row[aria-selected="true"]');
+      const dot = sel.querySelector('.dotst'); dot.className = 'dotst ok'; dot.innerHTML = '<i data-i="Check" data-s="14"></i>'; paintIcons(dot);
+      done++; document.getElementById('cntA').textContent = done + ' из 12'; document.getElementById('barA').style.width = (done / 12 * 100) + '%';
+      const next = [...document.querySelectorAll('#listA .st-row')].find((r) => r.querySelector('.dotst.wait'));
+      sel.setAttribute('aria-selected', 'false');
+      if (next) { next.setAttribute('aria-selected', 'true'); const nm = next.querySelector('.nm').textContent; document.querySelector('#editorA .title').textContent = nm; }
+      mockToast(document.getElementById('deskA'), 'Утверждено · ' + sel.querySelector('.nm').textContent);
+    },
+    skipA: (b) => mockToast(document.getElementById('deskA'), 'На этой неделе отчёт не уйдёт'),
+    regen: (b) => mockToast(document.getElementById('deskA'), 'ИИ предложит 2 других варианта'),
+    preview: () => document.getElementById('pvParentA').classList.add('open'),
+    okFlag: (b) => {
+      const r = document.querySelector('#tblB tr.sel'); r.classList.remove('flagged'); r.querySelector('td:last-child').innerHTML = '<span class="chip green">Утверждён</span>';
+      document.getElementById('sumB').textContent = '11 отчётов готовы, 1 требует вашего решения';
+      document.getElementById('approveAllB').lastChild.textContent = 'Утвердить 11';
+    },
+    skipB: () => mockToast(document.getElementById('deskB'), 'Артёму на этой неделе отчёт не уйдёт'),
+    approveAllB: (b) => { b.disabled = true; b.lastChild.textContent = 'Утверждено'; document.getElementById('sumB').textContent = 'Отчёты утверждены, уйдут в вс 18:00'; mockToast(document.getElementById('deskB'), 'Утверждено 10 отчётов'); },
+    approvePh: (b) => { document.getElementById('phCnt').textContent = '9 из 12 · уйдут в вс 18:00'; const p = b.closest('.screen').querySelector('.pages .on'); p.className = 'ok'; p.nextElementSibling.className = 'on'; mockToast(b.closest('.screen'), 'Маша · утверждено'); },
+    approvePhB: (b) => { b.disabled = true; b.lastChild.textContent = 'Утверждено 10'; mockToast(b.closest('.screen'), 'Уйдут в воскресенье 18:00'); },
+  };
+  // B: фильтр «требуют внимания / все»
+  document.getElementById('segB').addEventListener('mock:seg', (e) => {
+    document.querySelectorAll('#tblB tr[data-ok]').forEach((r) => { r.hidden = e.detail.value === 'flag'; });
+  });
+  document.querySelectorAll('#tblB tr[data-ok]').forEach((r) => { r.hidden = true; });
+  document.getElementById('tblB').addEventListener('click', (e) => {
+    const r = e.target.closest('tbody tr'); if (!r) return;
+    document.querySelectorAll('#tblB tr').forEach((x) => x.classList.toggle('sel', x === r));
+  });
+  document.getElementById('listA').addEventListener('click', (e) => {
+    const r = e.target.closest('.st-row'); if (!r) return;
+    document.querySelectorAll('#listA .st-row').forEach((x) => x.setAttribute('aria-selected', String(x === r)));
+    document.querySelector('#editorA .title').textContent = r.querySelector('.nm').textContent;
+  });
+</script>
+<script src="widgets.js"></script>
+</body>
+</html>
