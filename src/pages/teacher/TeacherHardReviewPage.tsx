@@ -17,6 +17,7 @@ import { useT, useTc } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { alertDialog } from '../../components/ConfirmHost'
 import BackCircle from '../../components/BackCircle'
+import { useFeature } from '../../lib/teacherFeatures'
 import { btn } from '../../lib/pillStyles'
 
 const glass: React.CSSProperties = {
@@ -30,6 +31,7 @@ const glass: React.CSSProperties = {
 
 export default function TeacherHardReviewPage() {
   const t = useT()
+  const aiFeature = useFeature('ai_hw_grade')
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
   const openHomeworkEdit = useTeacher(s => s.openHomeworkEdit)
@@ -185,7 +187,7 @@ export default function TeacherHardReviewPage() {
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          {aiGrade && (aiTask || aiGrade.status === 'pending' || aiGrade.status === 'working' || aiGrade.status === 'error') && (
+          {aiFeature && aiGrade && (aiTask || aiGrade.status === 'pending' || aiGrade.status === 'working' || aiGrade.status === 'error') && (
             <AiGradeCard
               grade={aiGrade}
               onRetry={async()=>{const result=await requestAiGrade(sub.id,true);if(!result.ok)throw new Error(result.error);await reloadAi()}}

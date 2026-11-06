@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { useFeature } from '../../lib/teacherFeatures'
 import { ChevronLeft, ChevronRight, Check, RotateCcw, CheckCircle2, ClipboardList, Search, Image as ImageIcon, PenLine, X } from '../../components/icons/appIcons'
 import type { Student, Group, HomeworkItem, HwTask } from '../../data/teacherMockData'
 import { useHomework, useHomeworkSubmissions, reviewHomework, type HwSubmission } from '../../lib/useHomework'
@@ -222,7 +223,8 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   useEffect(() => { if (!batchArmed) return; const timer = window.setTimeout(() => setBatchArmed(false), 4000); return () => window.clearTimeout(timer) }, [batchArmed])
   const aiDetailsRef = useRef<HTMLDivElement>(null)
   const showAiConcept = embedded && aiConcept
-  const showAiReview = showAiConcept || !embedded
+  const aiFeature = useFeature('ai_hw_grade')
+  const showAiReview = aiFeature && (showAiConcept || !embedded)
   const [aiRequests, setAiRequests] = useState<Record<string,{busy:boolean;error:string}>>({})
   const autoRequested = useRef(new Set<string>())
   const activeSubmission = rawSubmissions.find(sub=>sub.studentId===submitters[idx]?.id)
@@ -239,12 +241,12 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
     } catch { setAiRequests(old=>({...old,[id]:{busy:false,error:'unavailable'}})) }
   }
   useEffect(()=>{
-    if(embedded||aiLoading||aiLoadError||!onRequestAi||!activeSubmission||activeSubmission.verdict!=='pending')return
+    if(!aiFeature||embedded||aiLoading||aiLoadError||!onRequestAi||!activeSubmission||activeSubmission.verdict!=='pending')return
     const key=activeSubmission.id+':'+(activeAttempt??activeSubmission.submittedAt??'')
     if(autoRequested.current.has(key)||activeGrade&&activeGrade.status!=='pending')return
     autoRequested.current.add(key)
     void askAi(activeSubmission)
-  },[embedded,aiLoading,aiLoadError,onRequestAi,activeSubmission?.id,activeAttempt,activeSubmission?.submittedAt,activeSubmission?.verdict,activeGrade?.status])
+  },[aiFeature,embedded,aiLoading,aiLoadError,onRequestAi,activeSubmission?.id,activeAttempt,activeSubmission?.submittedAt,activeSubmission?.verdict,activeGrade?.status])
   const setHeaderDocked = useTeacher(s=>s.setHeaderDocked)
   useEffect(()=>{if(!embedded)setHeaderDocked(false)},[embedded,setHeaderDocked])
   useEffect(()=>{setSaveError('')},[submitters[idx]?.id])
