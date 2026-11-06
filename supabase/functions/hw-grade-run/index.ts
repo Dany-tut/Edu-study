@@ -3,6 +3,7 @@ import { loadWork } from '../_shared/homeworkWork.ts'
 import { gradeViaLinali, GradeError, DEFAULT_MODEL, classifyProviderStatus } from '../_shared/homeworkAi.ts'
 import { resolveLinaliKey } from '../_shared/homeworkAiKey.ts'
 import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
+import { pickCorrections, type CorrectionRow, type Work } from '../hw-grade/grader.ts'
 
 declare const EdgeRuntime: { waitUntil(task: Promise<unknown>): void }
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, x-client-info, content-type, x-hw-grade-secret', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
@@ -17,6 +18,27 @@ async function enabled() {
   if (error) throw error
   return ['ai_enabled','ai_hw_grade','ai_hw_api'].every(key => data?.some(flag => flag.key === key && flag.enabled))
 }
+
+/** Последние поправки учителя к ИИ по этому предмету — примеры для промпта. Ошибка не мешает проверке. */
+async function withCorrections(id: string, work: Work): Promise<Work> {
+  try {
+    const { data: flag } = await admin.from('app_flags').select('enabled').eq('key', 'ai_hw_learn').maybeSingle()
+    if (!flag?.enabled) return work
+    const { data: grade } = await admin.from('hw_ai_grades').select('teacher_id, homework_id, subject, exam').eq('id', id).maybeSingle()
+    if (!grade?.teacher_id) return work
+    let query = admin.from('hw_ai_corrections')
+      .select('kind, homework_id, task_n, task_key, kim_n, statement, answer, ai_points, ai_max, ai_mark, ai_score, teacher_mark, teacher_score, ai_comment, teacher_comment, diff, created_at')
+      .eq('teacher_id', grade.teacher_id).eq('subject', grade.subject)
+      .order('created_at', { ascending: false }).limit(60)
+    query = grade.exam ? query.eq('exam', grade.exam) : query.is('exam', null)
+    const { data } = await query
+    const corrections = pickCorrections(work, grade.homework_id, (data ?? []) as CorrectionRow[])
+    return corrections.length ? { ...work, corrections } : work
+  } catch { return work }
+}
+
+/** Снимок условия и ответа по заданию — из него триггер берёт поправку учителя. */
+const inputsOf = (work: Work) => work.tasks.map(t => ({ n: t.n, ...(t.key ? { key: t.key } : {}), statement: t.statement.slice(0, 1500), answer: t.answer.slice(0, 1500) }))
 
 async function run(id: string) {
   const { data: row, error: readError } = await admin.from('hw_ai_grades').select('id,status,updated_at,run_attempts').eq('id', id).maybeSingle()
@@ -38,8 +60,9 @@ async function run(id: string) {
     const { data: snapshot } = await admin.from('hw_ai_grades').select('progress_id').eq('id', id).single()
     const { data: progress } = await admin.from('lesson_progress').select('attachments,status').eq('id', snapshot!.progress_id).single()
     if (progress?.status !== 'submitted') return
-    const graded = await gradeViaLinali(work, images, { key: providerKey(), model: Deno.env.get('LINALI_HW_MODEL') })
-    const { error } = await finish({ status: 'graded', result: { tasks: graded.tasks, teacher_note: graded.teacher_note, attempt_id: progress.attachments?.attemptId ?? null, token_usage: graded.tokenUsage ?? null },
+    const learned = await withCorrections(id, work)
+    const graded = await gradeViaLinali(learned, images, { key: providerKey(), model: Deno.env.get('LINALI_HW_MODEL') })
+    const { error } = await finish({ status: 'graded', result: { tasks: graded.tasks, teacher_note: graded.teacher_note, attempt_id: progress.attachments?.attemptId ?? null, token_usage: graded.tokenUsage ?? null, inputs: inputsOf(work), corrections_used: learned.corrections?.length ?? 0 },
       primary_score: graded.primary, max_score: graded.max, score: graded.score, comment: graded.comment,
       model: graded.model, graded_at: new Date().toISOString(), error: null, next_retry_at: null })
     if (error) throw error

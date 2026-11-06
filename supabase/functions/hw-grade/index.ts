@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
     }
     const { error } = await admin.from('hw_ai_grades').update({
       status: 'graded',
-      result: { tasks: graded.tasks, teacher_note: graded.teacher_note },
+      result: { tasks: graded.tasks, teacher_note: graded.teacher_note, inputs: work.tasks.map(t => ({ n: t.n, ...(t.key ? { key: t.key } : {}), statement: t.statement.slice(0, 1500), answer: t.answer.slice(0, 1500) })) },
       primary_score: graded.primary,
       max_score: graded.max,
       score: graded.score,
