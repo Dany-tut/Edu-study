@@ -48,11 +48,7 @@
 .transcription-step[data-phase=download]::before {animation:transcription-download 4s cubic-bezier(.25,.65,.4,1) both}
 @keyframes transcription-download {from {transform:scaleX(0)} to {transform:scaleX(1)}}
 .transcription-step[data-phase=connecting]::before {transform:scaleX(.86);transition:transform 1.6s ease-out}
-.transcription-step[data-phase=done]::before {transform:scaleX(1);background:var(--color-green-soft);transition:transform .45s ease-out,background .35s}
-.transcription-step[data-phase=done]:disabled {color:var(--color-green-text);cursor:default}
-.transcription-step-complete {cursor:default}
 .transcription-step-label[data-active=true] {background:var(--color-purple-soft);color:var(--color-purple-text)}
-.transcription-step-complete {color:var(--color-green-text)}
 .transcription-setup:not(:empty) {animation:transcription-guide-in .28s ease-out}
 @keyframes transcription-guide-in {from {opacity:0;transform:translateY(4px)} to {opacity:1;transform:none}}
 @container (min-width:501px) and (max-width:650px) {
@@ -73,12 +69,6 @@
 .transcription-guide-actions {display:flex;flex-wrap:wrap;gap:8px;margin-block:8px 16px}
 .transcription-guide-actions .integration-action {min-height:44px}
 
-.transcription-steps[data-connected=true] {flex-direction:row;align-items:center;gap:5px}
-.transcription-step-complete,.transcription-steps .transcription-step[data-phase=done] {
-  display:inline-grid;place-items:center;flex:0 0 28px;width:28px;height:28px;min-height:28px;padding:0;
-  border-radius:8px;background:var(--color-green-soft);color:var(--color-green-text);
-}
-.transcription-steps[data-connected=true] .integration-disconnect {max-width:calc(100% - 99px)}
 
  .transcription-rail-action { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:0; border-radius:12px; background:var(--color-purple-soft); color:var(--color-purple-text); font:inherit; font-size:13px; font-weight:700; white-space:nowrap; cursor:pointer; }
 .transcription-rail-action:focus-visible {outline:2px solid var(--color-control-accent);outline-offset:2px}
@@ -283,7 +273,15 @@
 .transcription-training small {font-size:11px;line-height:1.4;color:var(--color-text-3)}
 
 /* Модуль на Mac старше архива на сайте: метка и блок «Скачать обновление». */
-.transcription-module-status[data-update=true] { background: var(--color-yellow-soft); color: var(--color-yellow-text); }
+.transcription-module-status[data-tone=update] { background: var(--color-yellow-soft); color: var(--color-yellow-text); }
+.transcription-module-status[data-tone=progress] { background: var(--color-purple-soft); color: var(--color-purple-text); }
+/* Подключённый модуль: инструкция слева, версия, «Отключить» справа — как у Тестли. */
+.transcription-connected-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.transcription-module-version { flex: 1; min-width: 0; color: var(--color-text-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.transcription-connected-actions .integration-disconnect { flex: none; width: auto; padding-inline: 16px; }
+@container (max-width: 500px) {
+  .transcription-connected-actions > .integration-action:first-child { flex: 1 1 100%; width: 100%; }
+}
 .transcription-update { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; background: var(--color-yellow-soft); }
 .transcription-update p { flex: 1; min-width: 0; color: var(--color-text); }
 .transcription-update .integration-action { flex: none; width: auto; }

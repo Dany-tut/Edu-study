@@ -16,27 +16,72 @@ export type ModuleFreshness = 'current' | 'outdated' | 'unknown'
 
 export const MODULE_DOWNLOAD_URL = '/downloads/iskra-transcription-mac.zip'
 
-export async function checkModuleFreshness(): Promise<ModuleFreshness> {
+/** Что модуль на этом Mac сказал о себе. selfUpdate — умеет POST /update. */
+export type ModuleInfo = { freshness: ModuleFreshness; local?: string; selfUpdate: boolean }
+
+export async function readModule(): Promise<ModuleInfo> {
   try {
-    const { version } = await localRequest('/version', '', { signal: AbortSignal.timeout(2500) })
-    return version === TRANSCRIPTION_MODULE_VERSION ? 'current' : 'outdated'
+    const { version, update } = await localRequest('/version', '', { signal: AbortSignal.timeout(2500) })
+    return { freshness: version === TRANSCRIPTION_MODULE_VERSION ? 'current' : 'outdated', local: version, selfUpdate: update === true }
   } catch (error) {
-    return error instanceof LocalTranscriptionUnavailable ? 'unknown' : 'outdated'
+    return { freshness: error instanceof LocalTranscriptionUnavailable ? 'unknown' : 'outdated', selfUpdate: false }
   }
 }
 
-/** Проверка для карточки модуля: при открытии и при возврате на вкладку. */
-export function useModuleFreshness(enabled: boolean): ModuleFreshness {
-  const [state, setState] = useState<ModuleFreshness>('unknown')
+export async function checkModuleFreshness(): Promise<ModuleFreshness> {
+  return (await readModule()).freshness
+}
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+let updating: Promise<boolean> | null = null
+
+/**
+ * Обновить модуль самим модулем: он скачивает архив с сайта, раскладывает его
+ * и перезапускает start.command. Ждём, пока он вернётся с версией сайта
+ * (первый запуск новой версии может докачивать зависимости — до 5 минут).
+ * Одно обновление на вкладку: карточка и верхняя панель делят его.
+ */
+export function updateModule(token: string): Promise<boolean> {
+  updating ??= (async () => {
+    try {
+      await localRequest('/update', token, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version: TRANSCRIPTION_MODULE_VERSION }), signal: AbortSignal.timeout(150000) })
+      for (let i = 0; i < 150; i++) {
+        await wait(2000)
+        if ((await readModule()).freshness === 'current') return true
+      }
+      return false
+    } catch { return false }
+    finally { updating = null }
+  })()
+  return updating
+}
+
+export type ModuleState = { phase: ModuleFreshness | 'updating' | 'failed'; local?: string; selfUpdate: boolean }
+
+/**
+ * Проверка для карточки модуля: при открытии и при возврате на вкладку.
+ * Модуль, который умеет обновляться сам, обновляется сразу, без вопросов.
+ */
+export function useModuleState(enabled: boolean, token: string): ModuleState {
+  const [state, setState] = useState<ModuleState>({ phase: 'unknown', selfUpdate: false })
   useEffect(() => {
-    if (!enabled) { setState('unknown'); return }
+    if (!enabled) { setState({ phase: 'unknown', selfUpdate: false }); return }
     let alive = true
-    const run = () => { void checkModuleFreshness().then(s => { if (alive) setState(s) }) }
-    run()
-    const onVisible = () => { if (document.visibilityState === 'visible') run() }
+    const run = async () => {
+      const info = await readModule()
+      if (!alive) return
+      if (info.freshness !== 'outdated' || !info.selfUpdate || !token) { setState({ phase: info.freshness, local: info.local, selfUpdate: info.selfUpdate }); return }
+      setState({ phase: 'updating', local: info.local, selfUpdate: true })
+      const ok = await updateModule(token)
+      if (!alive) return
+      setState(ok ? { phase: 'current', local: TRANSCRIPTION_MODULE_VERSION, selfUpdate: true } : { phase: 'failed', local: info.local, selfUpdate: true })
+    }
+    void run()
+    const onVisible = () => { if (document.visibilityState === 'visible') void run() }
     document.addEventListener('visibilitychange', onVisible)
     return () => { alive = false; document.removeEventListener('visibilitychange', onVisible) }
-  }, [enabled])
+  }, [enabled, token])
   return state
 }
 
@@ -47,7 +92,8 @@ export const PROFILE_SECTION_KEY = 'profile_section'
 const NOTIFIED_KEY = 'iskra.transcription.updateNotified'
 
 /**
- * Уведомление «вышла новая версия модуля» — в колокольчик учителя, один раз на
+ * Модуль, который умеет обновляться сам, обновляется в фоне. Старому —
+ * уведомление «вышла новая версия модуля» в колокольчик учителя, один раз на
  * версию. Проверяем только у тех, кто подключал модуль на этом компьютере, и
  * только если модуль запущен: иначе узнать его версию нельзя.
  */
@@ -59,10 +105,13 @@ export function useModuleUpdateNotice() {
     let alive = true
     void getOwnerId().then(async owner => {
       if (!alive || !owner) return
-      let connected = false
-      try { connected = !!localStorage.getItem('iskra.transcription.device.' + owner) } catch { /* без хранилища нет и подключения */ }
-      if (!connected) return
-      return checkModuleFreshness()
+      let token = ''
+      try { token = localStorage.getItem('iskra.transcription.device.' + owner) || '' } catch { /* без хранилища нет и подключения */ }
+      if (!token) return
+      const info = await readModule()
+      // Новый модуль обновляется сам — молча, без уведомления.
+      if (info.freshness === 'outdated' && info.selfUpdate) { void updateModule(token); return }
+      return info.freshness
     }).then(state => {
       if (!alive || state !== 'outdated') return
       try { if (localStorage.getItem(NOTIFIED_KEY) === TRANSCRIPTION_MODULE_VERSION) return } catch { return }

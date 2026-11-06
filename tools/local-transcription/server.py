@@ -11,6 +11,9 @@ import uuid
 import time
 import fcntl
 import hashlib
+import io
+import re
+import zipfile
 
 from flask import Flask, abort, jsonify, request
 from link_video import fetch, downloaded, LIMIT, DownloadUnavailable
@@ -32,14 +35,19 @@ VOICE_MODELS = HOME / 'voice-models'
 def voice_memory(token): return HOME / f"voices-{hashlib.sha256(token.encode()).hexdigest()[:16]}.json"
 jobs = job_store.load(JOBS)
 
-def module_version(root=ROOT):
-    """Отпечаток кода модуля — тот же, что считает scripts/buildTranscriptionModule.mjs.
-    Страница Искры сравнивает его с версией архива на сайте и предлагает обновиться."""
-    names=sorted(p.name for p in root.iterdir() if p.is_file() and (p.suffix in ('.py','.swift') or p.name=='start.command') and not p.name.startswith('test_'))
+def is_code(name):
+    return (name.endswith(('.py','.swift')) or name=='start.command') and not name.startswith('test_')
+
+def fingerprint(files):
+    """Отпечаток кода модуля — тот же, что считает scripts/buildTranscriptionModule.mjs."""
     h=hashlib.sha256()
-    for name in names:
-        h.update(name.encode()+b'\0'); h.update((root/name).read_bytes()); h.update(b'\0')
+    for name in sorted(n for n in files if is_code(n)):
+        h.update(name.encode()+b'\0'); h.update(files[name]); h.update(b'\0')
     return h.hexdigest()[:12]
+
+def module_version(root=ROOT):
+    """Страница Искры сравнивает отпечаток с версией архива на сайте и обновляет модуль."""
+    return fingerprint({p.name: p.read_bytes() for p in root.iterdir() if p.is_file() and is_code(p.name)})
 VERSION = module_version()
 # Уровень Б — материал для дообучения распознавания. Только по включённому
 # учителем переключателю и только здесь, на Mac: звук записи (сжатый) и
@@ -77,7 +85,56 @@ def device():
 def version():
     # Без токена: версия не секрет, а подсказать «обновите модуль» нужно и
     # до подключения компьютера.
-    return jsonify(version=VERSION)
+    # update — модуль умеет обновляться сам (POST /update).
+    return jsonify(version=VERSION, update=True)
+
+UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
+
+def install(data, expected):
+    """Разложить архив с сайта поверх папки модуля. Сначала всё проверить, потом писать."""
+    files={}
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        for info in archive.infolist():
+            name=info.filename.removeprefix('Iskra/')
+            if info.is_dir() or name==info.filename: continue
+            if not UPDATE_NAME.fullmatch(name) or info.file_size>8*1024**2: raise ValueError('В архиве лишний файл: '+info.filename)
+            files[name]=archive.read(info)
+    if 'server.py' not in files or 'start.command' not in files: raise ValueError('Архив модуля неполный.')
+    version=fingerprint(files)
+    if expected and version!=expected: raise ValueError('На сайте уже другая версия. Обновите страницу.')
+    for name,body in files.items():
+        tmp=ROOT/('.'+name+'.new')
+        tmp.write_bytes(body)
+        tmp.chmod(0o755 if name=='start.command' else 0o644)
+        os.replace(tmp, ROOT/name)
+    # Код, которого в новой версии нет, иначе отпечаток навсегда разойдётся с сайтом.
+    for p in ROOT.iterdir():
+        if p.is_file() and is_code(p.name) and p.name not in files: p.unlink()
+    return version
+
+def restart():
+    # start.command заново: зависимости докачаются, если новой версии нужны.
+    # Порт и замок модуля закрываются при exec — файлы Python не наследуются.
+    os.execv('/bin/zsh', ['/bin/zsh', str(ROOT/'start.command')])
+
+@app.post('/update')
+def update():
+    """Обновиться с сайта Искры без ZIP в «Загрузках»: файлы скачивает сам модуль
+    (curl), поэтому macOS не помечает их «из интернета» и не просит разрешения."""
+    device()
+    expected=str((request.get_json(silent=True) or {}).get('version',''))[:12]
+    if not gate.acquire(False): return jsonify(error='Модуль занят расшифровкой. Обновится, когда она закончится.'),409
+    try:
+        got=subprocess.run(['curl','-fsSL','--max-time','120',ORIGIN+'/downloads/iskra-transcription-mac.zip'],capture_output=True)
+        if got.returncode: raise ValueError('Не удалось скачать обновление. Проверьте интернет.')
+        version=install(got.stdout, expected)
+    except (ValueError, zipfile.BadZipFile) as error:
+        gate.release()
+        return jsonify(error=str(error) if isinstance(error, ValueError) else 'Архив обновления повреждён.'),502
+    print(f'Модуль обновлён до {version}, перезапускаемся…', flush=True)
+    # Замок не отпускаем: новых заданий до перезапуска не будет.
+    threading.Timer(0.5, restart).start()
+    return jsonify(version=version),202
 
 @app.post('/connect')
 def connect():
