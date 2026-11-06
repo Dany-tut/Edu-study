@@ -147,3 +147,17 @@
 
 /* Строка дела без своих полей: подсветка ховера выходит за текст на пару пикселей. */
 .ihw-task[data-hover=layer]::after{inset:-2px -6px;border-radius:8px}
+
+/* iOS < 16 и другие браузеры без единиц контейнера (cqi). Размер картинки и
+   отступ под неё считаются через min(…, 48cqi / 35cqi): без поддержки cqi
+   объявление становится недействительным, ширина сбрасывается, и 3D-картинка
+   раздувалась до 300–480 px поверх текста (замер: 117 из 126 карточек).
+   Здесь — те же пределы в пикселях для типичной ширины карточки ~310 px. */
+@supports not (width: 1cqi) {
+ .ihw-card { --ihw-art-reserve:min(calc(var(--ihw-art-gutter)*var(--ihw-art-scale,1)),108px); }
+ .ihw-card > .ihw-object { --ihw-render-size:min(var(--ihw-art-size),148px); }
+ @media (max-width:360px) {
+  .ihw-card { --ihw-art-reserve:min(calc(var(--ihw-art-gutter)*var(--ihw-art-scale,1)),84px); }
+  .ihw-card > .ihw-object { --ihw-render-size:min(var(--ihw-art-size),115px); }
+ }
+}
