@@ -2,7 +2,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { studentIdFromTeacherHash, teacherStudentHash } from '../../lib/teacherStudentRoute'
 import { isWidgetReviewRoute } from '../../lib/widgetReviewRoute'
 import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPrompt'
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useFeatureHiddenWidgets } from '../../components/teacher/widgets/featureWidgets'
 import { useDesktopFriends } from '../../lib/desktopFriends'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
 import NotificationToastContainer from '../../components/NotificationToast'
@@ -76,7 +77,11 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
   // Per-teacher access (admin-configured). Load once; gate nav + widgets.
   const isAdministrator = useTeacherAccess(s => s.isAdmin)
   const accessLoaded = useTeacherAccess(s => s.loaded)
-  const hiddenWidgets = useTeacherAccess(s => s.hiddenWidgets)
+  const accessHiddenWidgets = useTeacherAccess(s => s.hiddenWidgets)
+  const featureHiddenWidgets = useFeatureHiddenWidgets()
+  const hiddenWidgets = useMemo(
+    () => featureHiddenWidgets.length ? [...accessHiddenWidgets, ...featureHiddenWidgets] : accessHiddenWidgets,
+    [accessHiddenWidgets, featureHiddenWidgets])
   const canPage = useTeacherAccess(s => s.canPage)
   const canTab = useTeacherAccess(s => s.canTab)
   useEffect(() => { useTeacherAccess.getState().load() }, [])

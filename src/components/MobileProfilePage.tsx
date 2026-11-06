@@ -10,6 +10,7 @@ import HScrollFade from './HScrollFade'
 import { DynamicIsland } from './mobileChrome'
 import MobileBell from './MobileBell'
 import FeedbackModal from './FeedbackModal'
+import { useMyPayment } from '../lib/paymentClaims'
 import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
 import { CourseOrderSheet } from './CourseOrderModal'
 import FeedGesturesSheet, { ACTION_LABEL } from './FeedGesturesSheet'
@@ -79,6 +80,10 @@ export default function MobileProfilePage() {
   const { dark, toggle } = useTheme()
   const season = useSeason()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const paymentStudent = getStudentSession()?.id ?? null
+  // «Оплата» есть, только если у учителя включена функция оплат.
+  const paymentAvailable = useMyPayment(s => !!paymentStudent && s.studentId === paymentStudent && s.info !== null)
+  useEffect(() => { if (paymentStudent) void useMyPayment.getState().load(paymentStudent) }, [paymentStudent])
   const [isAdmin, setIsAdmin] = useState(false)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setIsAdmin(data.user?.app_metadata?.role === 'admin'))
@@ -447,6 +452,18 @@ export default function MobileProfilePage() {
                   {t('В кабинет препода')}
                 </span>
                 <ChevronRight size={18} style={{ color: 'var(--color-accent)' }} />
+              </motion.button>}
+
+              {paymentAvailable && <motion.button data-hover="layer"
+                whileTap={{ scale: 0.99 }}
+                onClick={() => { tactile(); useMyPayment.getState().setOpen(true) }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+              >
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
+                  {t('Оплата')}
+                </span>
+                <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
               </motion.button>}
 
               <motion.button data-hover="layer"

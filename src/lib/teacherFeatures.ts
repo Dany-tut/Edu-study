@@ -24,7 +24,7 @@ export const FEATURES: FeatureInfo[] = [
   { key: 'lesson_recap', label: 'Итоги урока из записи', about: 'Конспект, вопросы, карточки, черновик ДЗ и заметка для вас — из расшифровки урока. Выключено — кнопки скрыты, черновики остаются.', ready: true },
   { key: 'reminders', label: 'Напоминания ученикам', about: 'Урок скоро, ДЗ завтра, ДЗ просрочено — в Telegram и пушем.', ready: false },
   { key: 'parent_report', label: 'Отчёт родителю', about: 'Недельный отчёт: посещаемость, ДЗ, баллы и пара фраз от вас.', ready: false },
-  { key: 'payment_reminders', label: 'Напоминания об оплате', about: 'Напоминание о долге и счёт за месяц по проведённым урокам.', ready: false },
+  { key: 'payment_reminders', label: 'Оплаты', about: 'Ученик отмечает «Оплатили» — вы подтверждаете, и занятия прибавляются к балансу. Закрытие месяца: счета за занятия в долг.', ready: true },
 ]
 
 type FeaturesState = {

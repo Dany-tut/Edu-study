@@ -27,7 +27,7 @@ export type NotifType =
   // вышла новая версия модуля расшифровки (lib/transcriptionModuleUpdate.ts)
   | 'module_update'
 
-export type NotifLink = { page?: string; tab?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string; homeworkId?: string; scheduleId?: string }
+export type NotifLink = { page?: string; tab?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string; homeworkId?: string; scheduleId?: string; payment?: boolean; claimId?: string; invoiceId?: string }
 
 /** Куда ведёт «Открыть»: полный адрес кабинета + вкладка конструктора, если нужна. */
 export type NotifAction = { label: string; page?: string; tab?: string; scheduleId?: string }

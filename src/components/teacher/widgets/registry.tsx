@@ -3,6 +3,7 @@ import { WIDGET_LAYOUTS, type WidgetCellSize } from '../../../lib/widgetLayouts'
 import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from '../../icons/appIcons'
 import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
+import type { FeatureKey } from '../../../lib/teacherFeatures'
 
 const WidgetFinanceKpi        = lazy(() => retryImport(() => import('./WidgetFinanceKpi')))
 const WidgetFinanceOverdue    = lazy(() => retryImport(() => import('./WidgetFinanceOverdue')))
@@ -27,6 +28,7 @@ const WidgetStudentCount      = lazy(() => retryImport(() => import('./WidgetStu
 const WidgetStudentGroups     = lazy(() => retryImport(() => import('./WidgetStudentGroups')))
 const WidgetStudentActive     = lazy(() => retryImport(() => import('./WidgetStudentActive')))
 const WidgetStudentDebtors    = lazy(() => retryImport(() => import('./WidgetStudentDebtors')))
+const WidgetPaymentsInbox     = lazy(() => retryImport(() => import('./WidgetPaymentsInbox')))
 
 export type WidgetDef = {
   type: string
@@ -51,6 +53,8 @@ export type WidgetDef = {
   bare?: boolean
   /** Existing saved desks still render this type; new desks use individual cards. */
   legacy?: boolean
+  /** Виджет функции-автоматизации: виден, только когда она выдана и включена (featureWidgets.ts). */
+  feature?: FeatureKey
   component: ComponentType
 }
 
@@ -103,6 +107,18 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     defaultW: 3, defaultH: 3,
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     component: WidgetFinanceActivity,
+  },
+  {
+    type: 'payments-inbox',
+    label: 'Оплаты: ждут вас',
+    icon: Wallet,
+    iconBg: 'var(--color-peach-soft)',
+    iconColor: '#C07020',
+    description: '«Оплатили» на подтверждение и закрытие месяца',
+    defaultW: 3, defaultH: 3,
+    minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
+    feature: 'payment_reminders' as FeatureKey,
+    component: WidgetPaymentsInbox,
   },
   {
     type: 'student-stats',
