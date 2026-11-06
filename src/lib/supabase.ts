@@ -61,6 +61,9 @@ function withRestDeadline(base: typeof fetch, backend: string): typeof fetch {
 export const supabase = createClient(url, key, {
   auth: {
     flowType: 'pkce',
+    // Вход по ключу доступа (lib/passkey.ts). Кнопка видна, только когда ключи
+    // включены в Supabase (/auth/v1/settings → passkeys_enabled).
+    experimental: { passkey: true },
     // auth-js 2.108 only single-flights within one client by default. Share
     // its existing Auth lock across tabs using this project's storage key.
     // Every getSession (the teacher gate, each REST call) waits for this lock,

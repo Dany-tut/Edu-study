@@ -17,6 +17,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.rootViewController = MainViewController()
         self.window = window
         window.makeKeyAndVisible()
+        // Экран блокировки кодом и Face ID — своим окном поверх WebView (AppLock.swift).
+        AppLockWindow.install(in: windowScene)
         self.scene(scene, openURLContexts: connectionOptions.urlContexts)
     }
 

@@ -131,5 +131,7 @@ class MainViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(GoogleAuthPlugin())
         bridge?.registerPluginInstance(NativeSpeechPlugin())
         bridge?.registerPluginInstance(NativeGlassPlugin())
+        bridge?.registerPluginInstance(PasskeyPlugin())
+        bridge?.registerPluginInstance(AppLockPlugin())
     }
 }

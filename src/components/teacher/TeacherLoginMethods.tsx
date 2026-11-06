@@ -12,6 +12,8 @@ import { Alert } from '../Alert'
 import { AppleMark, GoogleMark } from '../SocialLoginButtons'
 import { Check } from '../icons/appIcons'
 import MfaLoginRow from '../mfa/MfaLoginRow'
+import PasskeyLoginRow from '../mfa/PasskeyLoginRow'
+import AppLockRow from '../mfa/AppLockRow'
 
 /** Способы входа в аккаунт: почта, Google, Apple. У ученика — в настройках профиля. */
 export default function TeacherLoginMethods({ student = false }: { student?: boolean } = {}) {
@@ -137,7 +139,9 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
             </button>}
         </div>
       })}
+      <PasskeyLoginRow />
       <MfaLoginRow />
+      <AppLockRow />
       </div>
       {error && <Alert tone="danger" text={t(error)} />}
       {notice && <Alert tone="info" text={t(notice)} />}
