@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { fetchCalibration, type CalibrationCounts } from '../../data/confidence'
 import { useT } from '../../lib/i18n'
 import { Alert } from '../Alert'
+import { textFadeStyle } from '../../lib/textFades'
 
 const QUADRANTS: { key: keyof CalibrationCounts; label: string; hint: string; color: string }[] = [
   { key: 'confidentCorrect', label: 'Уверен + верно',   hint: 'здоровое знание',        color: 'var(--color-green-accent)' },
@@ -32,24 +33,36 @@ export default function CalibrationMatrix({ owner, subject }: {
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t('Калибровка уверенности')}</span>
         <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('точность самооценки:')} <b style={{ color: c.calibration >= 60 ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{c.calibration}%</b></span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        {QUADRANTS.map(q => {
-          const n = c[q.key] as number
-          const pct = c.total ? Math.round((n / c.total) * 100) : 0
-          return (
-            <div key={q.key} style={{ padding: '10px 12px', borderRadius: 12, border: `1.5px solid color-mix(in srgb, ${q.color} 33%, transparent)`, background: `color-mix(in srgb, ${q.color} 7%, transparent)` }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(q.label)}</span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: q.color }}>{n}</span>
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{t(q.hint)} · {pct}%</div>
-            </div>
-          )
-        })}
-      </div>
+      <QuadrantGrid total={c.total} tiles={QUADRANTS.map(q => ({ key: q.key, label: q.label, hint: q.hint, color: q.color, count: c[q.key] as number }))} />
       {c.confidentWrong > 0 && (
         <Alert tone="warning" text={`${c.confidentWrong} ${t('ответ(ов) «уверен, но неверно» — стоит разобрать: ученик уверен в неправильном.')}`} style={{ marginTop: 10 }} />
       )}
+    </div>
+  )
+}
+
+export interface QuadrantTile { key: string; label: string; hint: string; color: string; count: number }
+
+/**
+ * Сетка 2×2 «счётчик + доля». Общая для калибровки ученика и сводки
+ * «ИИ против учителя» (AiAgreementPanel).
+ */
+export function QuadrantGrid({ tiles, total }: { tiles: QuadrantTile[]; total: number }) {
+  const t = useT()
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
+      {tiles.map(q => {
+        const pct = total ? Math.round((q.count / total) * 100) : 0
+        return (
+          <div key={q.key} style={{ padding: '10px 12px', borderRadius: 12, border: `1.5px solid color-mix(in srgb, ${q.color} 33%, transparent)`, background: `color-mix(in srgb, ${q.color} 7%, transparent)`, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', minWidth: 0, ...textFadeStyle, whiteSpace: 'nowrap', overflow: 'hidden' }}>{t(q.label)}</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: q.color, flexShrink: 0 }}>{q.count}</span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{t(q.hint)} · {pct}%</div>
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -32,6 +32,7 @@ import { useHomework, useHardSubmissions, hardSubTimeline, type HardSub, type Ha
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
 import { useT, t as tGlobal, useTc } from '../../lib/i18n'
 import { btn } from '../../lib/pillStyles'
+import AiBatchBar from '../../components/teacher/AiBatchBar'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -658,7 +659,7 @@ export default function TeacherHomeworkPage() {
   const { groups } = useGroups()
   const regularGroups = groups.filter(g => !g.isIndividual)
   const individualGroups = groups.filter(g => g.isIndividual)
-  const { homework, loading: hwLoading } = useHomework()
+  const { homework, loading: hwLoading, reload: reloadHomework } = useHomework()
   const { submissions: hardSubs } = useHardSubmissions()
   const { value: courseTestlySubs, reload: reloadCourseTestly } = useCourseTestlySubmissions()
   const [returningTestly, setReturningTestly] = useState<string | null>(null)
@@ -826,6 +827,7 @@ export default function TeacherHomeworkPage() {
               <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)' }}>{queue.length}</span>
               <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>{t('по дедлайну')}</span>
             </div>
+            <AiBatchBar queueKey={queue.map(item => item.key + ':' + item.meta).join('|')} onApplied={() => { void reloadHomework() }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {queue.map(item => (
                 <div

@@ -126,6 +126,124 @@ export interface Work {
   note: string
   /** Выдержки атласа для пути через API (на Маке модель читает файлы сама). */
   atlas?: string
+  /** Поправки преподавателя к прошлым проверкам — примеры (pickCorrections). */
+  corrections?: CorrectionExample[]
+}
+
+// ─── Поправки преподавателя ─────────────────────────────────────────────────
+//
+// Учитель утвердил проверку, и его балл или замечание разошлись с ИИ —
+// триггер hw_ai_capture_corrections сохранил разницу (hw_ai_corrections,
+// без имён и id ученика). Перед новой проверкой берём несколько последних
+// поправок того же задания (та же домашка и номер или тот же банковый ключ)
+// и той же линии КИМ и показываем модели примерами.
+
+/** Строка hw_ai_corrections, как её читает функция. */
+export interface CorrectionRow {
+  kind: string
+  homework_id: string | null
+  task_n: number
+  task_key: string | null
+  kim_n: number | null
+  statement: string
+  answer: string
+  ai_points: number | null
+  ai_max: number | null
+  ai_mark: number | null
+  ai_score: number | null
+  teacher_mark: number | null
+  teacher_score: number | null
+  ai_comment: string
+  teacher_comment: string
+  diff: 'score' | 'comment'
+  created_at: string
+}
+
+/** Пример для модели: только то, что нужно для урока, без идентификаторов. */
+export interface CorrectionExample {
+  scope: 'task' | 'line'
+  kim_n: number | null
+  statement: string
+  answer: string
+  ai: string
+  teacher: string
+  comment: string
+}
+
+export const CORRECTIONS_LIMIT = 4
+const PER_LINE = 2
+
+const clip = (s: string, n: number) => {
+  const t = String(s ?? '').replace(/\s+/g, ' ').trim()
+  return t.length > n ? t.slice(0, n) + ' […]' : t
+}
+// Ответ ученика лежит внутри ограждения <<<ОТВЕТ … ОТВЕТ>>>: из примера его не вывести.
+const unfence = (s: string) => s.replace(/<<<\s*ОТВЕТ|ОТВЕТ\s*>>>/gi, '')
+
+function describe(r: CorrectionRow): { ai: string; teacher: string } {
+  const task = r.ai_max ? `${r.ai_points ?? 0} из ${r.ai_max} первичных за задание` : 'без балла за задание'
+  if (r.kind === 'hard') {
+    return {
+      ai: r.ai_mark != null ? `оценка ${r.ai_mark} из 5 (${task})` : task,
+      teacher: r.teacher_mark != null ? `оценка ${r.teacher_mark} из 5` : 'оценку за задание не менял',
+    }
+  }
+  return {
+    ai: `${task}; за всю работу ${r.ai_score ?? '—'}%`,
+    teacher: r.teacher_score != null ? `за всю работу ${r.teacher_score}%` : 'балл не ставил',
+  }
+}
+
+/**
+ * Какие поправки показать модели: сначала то же задание, потом та же линия
+ * КИМ (не больше двух на линию), свежие первыми; всего не больше limit.
+ * Линию новой работы заранее не знаем — её определит модель, поэтому пример
+ * подписан номером линии, а применять его модель решает сама.
+ */
+export function pickCorrections(work: Work, homeworkId: string | null, rows: CorrectionRow[], limit = CORRECTIONS_LIMIT): CorrectionExample[] {
+  const ns = new Set(work.tasks.map(t => t.n))
+  const keys = new Set(work.tasks.map(t => t.key).filter(Boolean))
+  const sameTask = (r: CorrectionRow) =>
+    (!!r.task_key && keys.has(r.task_key)) || (!!homeworkId && r.homework_id === homeworkId && ns.has(r.task_n))
+  const fresh = [...rows].filter(r => r && r.statement && r.answer)
+    .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+  const task = fresh.filter(sameTask)
+  const perLine = new Map<number, number>()
+  const line = fresh.filter(r => !sameTask(r) && r.kim_n != null)
+    // Расхождение в балле учит сильнее, чем дописанное замечание.
+    .sort((a, b) => Number(b.diff === 'score') - Number(a.diff === 'score'))
+    .filter(r => {
+      const n = perLine.get(r.kim_n!) ?? 0
+      perLine.set(r.kim_n!, n + 1)
+      return n < PER_LINE
+    })
+  return [...task.map(r => ({ r, scope: 'task' as const })), ...line.map(r => ({ r, scope: 'line' as const }))]
+    .slice(0, Math.max(0, limit))
+    .map(({ r, scope }) => ({
+      scope, kim_n: r.kim_n,
+      statement: clip(r.statement, 600),
+      answer: clip(unfence(r.answer), 600),
+      ...describe(r),
+      comment: clip(r.diff === 'score' ? r.teacher_comment : r.teacher_comment || r.ai_comment, 500),
+    }))
+}
+
+/** Блок промпта с поправками. Пусто — блока нет. */
+export function correctionsBlock(examples: CorrectionExample[] | undefined): string {
+  if (!examples?.length) return ''
+  const items = examples.map((e, i) => [
+    `#### Поправка ${i + 1} (${e.scope === 'task' ? 'это же задание' : e.kim_n != null ? `линия КИМ ${e.kim_n}` : 'похожее задание'})`,
+    `Условие: ${e.statement}`,
+    `Ответ ученика:\n<<<ОТВЕТ\n${e.answer}\nОТВЕТ>>>`,
+    `Твоя предоценка: ${e.ai}.`,
+    `Преподаватель: ${e.teacher}.`,
+    e.comment ? `Замечание преподавателя: ${e.comment}` : '',
+  ].filter(Boolean).join('\n')).join('\n\n')
+  return [
+    '## Поправки этого преподавателя к твоим прошлым проверкам',
+    'Это не задания текущей работы. Так преподаватель трактует критерии: если задание в работе то же или той же линии КИМ, оценивай с той же строгостью и обращай внимание на то, что он отметил. Баллы не переноси механически — по-прежнему ставь вердикты по элементам с цитатами; критерии ФИПИ главнее.',
+    items,
+  ].join('\n\n')
 }
 
 const SUBJECT = { chemistry: 'химия', biology: 'биология' } as const
@@ -149,6 +267,7 @@ export function buildPrompt(work: Work, kb: 'files' | 'inline' = 'files'): strin
   return [
     `Предмет: ${SUBJECT[work.subject]}. Экзамен: ${exam}. Домашка: «${work.title}».`,
     kbText,
+    correctionsBlock(work.corrections),
     tasks,
     work.note ? `Комментарий ученика к сдаче:\n<<<ОТВЕТ\n${work.note}\nОТВЕТ>>>` : '',
     'Проверь каждое задание по критериям и сдай ответ JSON по схеме.',

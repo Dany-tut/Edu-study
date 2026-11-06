@@ -4,6 +4,7 @@ import { createMcpHandler, McpServer } from 'npm:@modelcontextprotocol/server@2.
 import { pipeline } from 'npm:@supabase/middleware@1.0.0'
 import { withOAuthProtectedResource, withSupabase } from 'npm:@supabase/server@1.9.2'
 import { z } from 'npm:zod@4.6.7'
+import { type Db, listMyGroups, listMyStudents, mistakesByTopic, studentSummary, testResults, type ToolResult } from './readTools.ts'
 
 const text = (value: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(value) }] })
 const fail = (message: string) => ({ content: [{ type: 'text' as const, text: message }], isError: true })
@@ -315,6 +316,64 @@ Deno.serve(
           }
           return text({ lesson: lesson.title, file: { name: entry.name, size: entry.size, mime: entry.mime, external: !!entry.url }, note: 'Файл прикреплён к уроку как черновое изменение. Проверьте его в Искре перед публикацией.' })
         })
+
+        // ─── Только чтение: свои группы и ученики (см. readTools.ts) ──────────
+        const db = supabase as unknown as Db
+        const teacher = async (): Promise<string | null> => {
+          const { data: auth, error } = await supabase.auth.getUser()
+          if (error || !auth.user) return null
+          const { data: staff, error: staffError } = await supabase.rpc('is_staff')
+          return staffError || staff !== true ? null : auth.user.id
+        }
+        const run = async (fn: (uid: string) => Promise<ToolResult>) => {
+          const uid = await teacher()
+          if (!uid) return fail('Для этой операции нужен аккаунт преподавателя Искры.')
+          const result = await fn(uid)
+          return result.ok ? text(result.value) : fail(result.message)
+        }
+        const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Дата в формате YYYY-MM-DD')
+        const readOnly = { readOnlyHint: true, openWorldHint: false } as const
+        const scopeFields = {
+          student_id: z.string().uuid().optional().describe('Один ученик (id из list_my_students).'),
+          group_id: z.string().uuid().optional().describe('Вся группа (id из list_my_groups). Без student_id и group_id — все ваши ученики.'),
+          since: date.optional().describe('Начало периода включительно; по умолчанию 90 дней назад.'),
+          until: date.optional().describe('Конец периода включительно; по умолчанию сегодня.'),
+        }
+
+        server.registerTool('list_my_groups', {
+          title: 'Мои группы в Искре',
+          description: 'Группы подключившегося преподавателя: название, предмет, уровень, индивидуальная ли, число учеников. Чужие группы не показываются.',
+          inputSchema: z.object({}),
+          annotations: readOnly,
+        }, () => run(uid => listMyGroups(db, uid)))
+
+        server.registerTool('list_my_students', {
+          title: 'Мои ученики в Искре',
+          description: 'Ученики подключившегося преподавателя: id, имя, группа. Контакты, пароли и оплаты не выдаются.',
+          inputSchema: z.object({ group_id: z.string().uuid().optional().describe('Только ученики этой группы.') }),
+          annotations: readOnly,
+        }, ({ group_id }) => run(uid => listMyStudents(db, uid, { group_id })))
+
+        server.registerTool('student_summary', {
+          title: 'Сводка по ученику',
+          description: 'Посещаемость, домашние задания по статусам и баллам, проверки ИИ, учебные долги (просроченные и возвращённые на доработку задания) и диагностики за период. Только для своего ученика; личные контакты и оплаты не входят.',
+          inputSchema: z.object({ student_id: z.string().uuid(), since: scopeFields.since, until: scopeFields.until }),
+          annotations: readOnly,
+        }, (args) => run(uid => studentSummary(db, uid, args)))
+
+        server.registerTool('mistakes_by_topic', {
+          title: 'Ошибки по темам и заданиям',
+          description: 'Где ученик или группа теряют баллы за период: номера экзаменационных заданий из проверок ИИ, задания ДЗ с неверными ответами и темы диагностик. Подходит для вопроса «что повторить с группой».',
+          inputSchema: z.object({ ...scopeFields, limit: z.number().int().min(1).max(50).default(15) }),
+          annotations: readOnly,
+        }, (args) => run(uid => mistakesByTopic(db, uid, args)))
+
+        server.registerTool('test_results', {
+          title: 'Результаты тестов и диагностик',
+          description: 'Диагностики (процент, слабые темы) и тесты внутри курсов (статус, балл) своих учеников за период.',
+          inputSchema: z.object({ ...scopeFields, limit: z.number().int().min(1).max(200).default(50) }),
+          annotations: readOnly,
+        }, (args) => run(uid => testResults(db, uid, args)))
 
         return server
       })
