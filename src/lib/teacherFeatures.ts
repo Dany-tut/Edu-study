@@ -78,6 +78,17 @@ export function useFeature(key: FeatureKey): boolean {
   return on
 }
 
+/** Карта включённых функций (для списков: виджеты стола и т. п.). */
+export function useFeatureMap(): Partial<Record<FeatureKey, boolean>> {
+  const map = useTeacherFeatures(s => s.map)
+  useEffect(() => {
+    if (started) return
+    started = true
+    void useTeacherFeatures.getState().load()
+  }, [])
+  return map
+}
+
 /** Сброс при смене пользователя (выход/вход). */
 export function resetTeacherFeatures() {
   started = false

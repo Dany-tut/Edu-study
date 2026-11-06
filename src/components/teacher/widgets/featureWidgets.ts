@@ -1,18 +1,13 @@
 import { useMemo } from 'react'
-import { useTeacherFeatures, useFeature } from '../../../lib/teacherFeatures'
+import { useFeatureMap } from '../../../lib/teacherFeatures'
 import { WIDGET_REGISTRY } from './registry'
 
-/**
- * Виджеты функций-автоматизаций (поле `feature` в реестре) видны только при
- * выданной и включённой функции. Без неё их нет ни на столе, ни в «Добавить
- * виджет»; сохранённое место на столе остаётся — включили снова, вернулся.
- */
-export function useFeatureHiddenWidgets(): string[] {
-  // Загружает доступы один раз (общий загрузчик функций).
-  useFeature('payment_reminders')
-  const map = useTeacherFeatures(s => s.map)
-  return useMemo(
-    () => WIDGET_REGISTRY.filter(def => def.feature && map[def.feature] !== true).map(def => def.type),
-    [map],
-  )
+/** Скрытые виджеты = скрытые админом + виджеты невыключенных функций.
+ *  Сохранённые на столе остаются в раскладке и вернутся, когда функцию включат. */
+export function useHiddenWidgets(base: string[] | undefined): string[] | undefined {
+  const map = useFeatureMap()
+  return useMemo(() => {
+    const off = WIDGET_REGISTRY.filter(d => d.feature && map[d.feature] !== true).map(d => d.type)
+    return off.length ? [...(base ?? []), ...off] : base
+  }, [map, base])
 }

@@ -53,7 +53,8 @@ export type WidgetDef = {
   bare?: boolean
   /** Existing saved desks still render this type; new desks use individual cards. */
   legacy?: boolean
-  /** Виджет функции-автоматизации: виден, только когда она выдана и включена (featureWidgets.ts). */
+  /** Виджет функции-автоматизации: виден на столе и в «Добавить виджет»,
+   *  только пока функция выдана и включена (teacherFeatures). */
   feature?: FeatureKey
   component: ComponentType
 }
