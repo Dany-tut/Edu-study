@@ -64,6 +64,10 @@ const AVATARS: AvatarOption[] = [
 ]
 
 const EASE = [0.32, 0.72, 0, 1] as const
+// Пустой onUpdate выключает WAAPI-ускорение opacity: в framer-motion 11.18
+// в конце ускоренного ухода меню на кадр возвращалось к opacity 1 и вспыхивало
+// поверх окна, которое открывает пункт меню («Настроить виджеты»).
+const keepJsOpacity = () => {}
 // Правая пилюля-сводка в тесноте: обычный нижний предел и крайний (профиль уже кружок).
 const PILL_SOFT_MIN = 272
 const PILL_MIN = 200
@@ -565,7 +569,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       <AnimatePresence>
         {addOpen && addAnchor && (
           <div ref={dropRef} style={{ position: 'fixed', top: addAnchor.top, left: addAnchor.left, zIndex: 1000, transform: 'translateX(-50%)' }}>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle }}>
+          <motion.div onUpdate={keepJsOpacity} initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle }}>
             {visibleQuick.map((item, i) => {
               if (item.type === 'separator') return <div key={`sep-${i}`} style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
               const action = item as QuickAction
@@ -607,7 +611,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       <AnimatePresence>
         {profileOpen && profileAnchor && (
           <div ref={profileDropRef} style={{ position: 'fixed', top: profileAnchor.top, left: profileAnchor.left, zIndex: 1000, transform: 'translateX(-50%)' }}>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle, width: 252, minWidth: 252 }}>
+          <motion.div onUpdate={keepJsOpacity} initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.15, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle, width: 252, minWidth: 252 }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px 10px' }}>
               <div style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}>
