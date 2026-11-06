@@ -16,6 +16,7 @@ import { recoverFromChunkError } from './lib/chunkError'
 import { guardStylesheet } from './lib/cssGuard'
 import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
 import { Capacitor } from '@capacitor/core'
+import { initAppLock } from './lib/appLock'
 
 // В приложении (Capacitor) service worker не нужен: ассеты и так в бандле, а
 // автообновляемый SW только вредит — он держит предзагруженную оболочку и после
@@ -152,6 +153,7 @@ initAnalytics()
 void initNativeCrashReporting()
 initWebCrashReporting()
 // Старый браузер: index.html уже показал экран «обновите iOS» — не затираем его.
+initAppLock()
 if (!(window as Window & { __iskraUnsupported?: boolean }).__iskraUnsupported) createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* Системная настройка «уменьшить движение» — для всего framer-motion

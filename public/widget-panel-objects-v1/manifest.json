@@ -1,0 +1,79 @@
+[
+  {
+    "file": "reminders.png",
+    "meaning": "Напоминания: колокольчик",
+    "sha256": "a4b51000c63a732e04211f878f64591a1ddb22ccb75af02f244b08cf5bf8998e",
+    "size": [
+      480,
+      480
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "tasks.png",
+    "meaning": "Мои задачи: планшет с чек-листом",
+    "sha256": "ab0aaef32cc6896662fb075f172951c3ca29acc5b7ec3dd40aecde844dd0a679",
+    "size": [
+      480,
+      480
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "debtors.png",
+    "meaning": "Должники: карточка ученика с предупреждением",
+    "sha256": "f45068a18921af2871c63aef5663c8133db3cd4191704a2ccbfcc86d7b87d95d",
+    "size": [
+      480,
+      480
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "payment_history.png",
+    "meaning": "История платежей: чек и монеты",
+    "sha256": "895e95b0636e61847cdccb4b4314fe9262f965e04fd31881ba0d9ac411aad9c6",
+    "size": [
+      480,
+      480
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "payments_inbox.png",
+    "meaning": "Оплаты: ждут вас — лоток с банкнотой и галочкой",
+    "sha256": "b0f9353acd75e7d357dd588a8bac76a797281a9e2b719176a55d8185bae71ee7",
+    "size": [
+      480,
+      480
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "groups_list.png",
+    "meaning": "Список групп: строки с учениками",
+    "sha256": "3decc377f66b74bef8e35b5ab201de77106b7607b5e40f9ae0e9786c8cf1d092",
+    "size": [
+      480,
+      480
+    ],
+    "transparent": true,
+    "generated": true
+  },
+  {
+    "file": "parent_reports.png",
+    "meaning": "Отчёты родителям: конверт с отчётом",
+    "sha256": "34ecb83b704df5bf08e9246f6df5aadac1c3f0edb6fc6e91b06143862f389ff9",
+    "size": [
+      480,
+      480
+    ],
+    "transparent": true,
+    "generated": true
+  }
+]
