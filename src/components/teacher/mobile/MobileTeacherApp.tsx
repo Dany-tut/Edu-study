@@ -4,6 +4,8 @@ import MobileTeacherDay from './MobileTeacherDay'
 import MobileTeacherStudents from './MobileTeacherStudents'
 import MobileTeacherGradebook from './MobileTeacherGradebook'
 import MobileTeacherProfile from './MobileTeacherProfile'
+import MobileTeacherParentReports from './MobileTeacherParentReports'
+import { useFeature } from '../../../lib/teacherFeatures'
 import { useTeacherAccess, type TeacherTabId } from '../../../lib/teacherAccess'
 import { useDeskStore } from '../../../store/deskStore'
 import { useTeacher } from '../../../store/teacherStore'
@@ -38,6 +40,12 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
     else if (teacherPage === 'groups') setTab('students')
   }, [teacherPage, pendingJournal])
   const [notifOpen, setNotifOpen] = useState(false)
+  // «Отчёты родителям» — экран поверх вкладки «Ещё», только при включённой функции.
+  const reportsOn = useFeature('parent_report')
+  const [reportsOpen, setReportsOpen] = useState(() => useTeacher.getState().activePage === 'parent-reports')
+  const showReports = reportsOn && reportsOpen && tab === 'profile'
+  useEffect(() => { if (teacherPage === 'parent-reports') { setReportsOpen(true); setTab('profile') } }, [teacherPage])
+  const closeReports = () => { setReportsOpen(false); if (useTeacher.getState().activePage === 'parent-reports') useTeacher.getState().setActivePage('home') }
   const [dayDetailOpen, setDayDetailOpen] = useState(false)
   const [reviewDetailOpen, setReviewDetailOpen] = useState(false)
 
@@ -61,7 +69,9 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
       {tab === 'students'  && <MobileTeacherStudents />}
 
       {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
-      {tab === 'profile'   && <MobileTeacherProfile onOpenWidgets={widgetsReady && !isHidden('home') ? () => useDeskStore.getState().setShowWidgetLibrary(true) : undefined} onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} onOpenNotifications={() => setNotifOpen(true)} />}
+      {tab === 'profile'   && !showReports && <MobileTeacherProfile onOpenReports={reportsOn ? () => setReportsOpen(true) : undefined} onOpenWidgets={widgetsReady && !isHidden('home') ? () => useDeskStore.getState().setShowWidgetLibrary(true) : undefined} onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} onOpenNotifications={() => setNotifOpen(true)} />}
+
+      {showReports && <MobileTeacherParentReports onBack={closeReports} />}
 
       <NotificationSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
       {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}

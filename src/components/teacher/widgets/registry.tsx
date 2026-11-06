@@ -1,6 +1,7 @@
 import { lazy, type ComponentType } from 'react'
 import { WIDGET_LAYOUTS, type WidgetCellSize } from '../../../lib/widgetLayouts'
-import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from '../../icons/appIcons'
+import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, FileText } from '../../icons/appIcons'
+import type { FeatureKey } from '../../../lib/teacherFeatures'
 import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
 
@@ -27,6 +28,7 @@ const WidgetStudentCount      = lazy(() => retryImport(() => import('./WidgetStu
 const WidgetStudentGroups     = lazy(() => retryImport(() => import('./WidgetStudentGroups')))
 const WidgetStudentActive     = lazy(() => retryImport(() => import('./WidgetStudentActive')))
 const WidgetStudentDebtors    = lazy(() => retryImport(() => import('./WidgetStudentDebtors')))
+const WidgetParentReports     = lazy(() => retryImport(() => import('./WidgetParentReports')))
 
 export type WidgetDef = {
   type: string
@@ -51,6 +53,9 @@ export type WidgetDef = {
   bare?: boolean
   /** Existing saved desks still render this type; new desks use individual cards. */
   legacy?: boolean
+  /** Виджет функции-автоматизации: виден на столе и в «Добавить виджет»,
+   *  только пока функция выдана и включена (teacherFeatures). */
+  feature?: FeatureKey
   component: ComponentType
 }
 
@@ -184,6 +189,18 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     defaultW: 3, defaultH: 3,
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     component: WidgetTodayTasks,
+  },
+  {
+    type: 'parent-reports',
+    label: 'Отчёты родителям',
+    icon: FileText,
+    iconBg: 'var(--color-purple-soft)',
+    iconColor: 'var(--color-accent)',
+    description: 'Сколько отчётов готово и какие требуют решения',
+    defaultW: 3, defaultH: 3,
+    minW: 2, minH: 2, minWidthPx: 280, minHeightPx: 240,
+    feature: 'parent_report' as FeatureKey,
+    component: WidgetParentReports,
   },
 ].map(def => ({...def, allowedSizes:WIDGET_LAYOUTS[def.type]}))
 

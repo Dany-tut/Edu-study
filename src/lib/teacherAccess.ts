@@ -36,6 +36,8 @@ const PAGE_TAB: Record<TeacherPage, TeacherTabId | null> = {
   storage: null,
   admin: null,
   'profile-settings': null,
+  // Отчёты родителям охраняет сама функция parent_report.
+  'parent-reports': null,
 }
 
 export function pageTab(page: TeacherPage): TeacherTabId | null {
