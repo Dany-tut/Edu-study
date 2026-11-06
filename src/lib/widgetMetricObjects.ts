@@ -12,4 +12,15 @@ export const metricObjects:Record<string,string> = {
  'finance-expected':'/widget-metric-objects-v1/expected.png',
  'finance-debt':'/widget-metric-objects-v1/debt.png',
  'finance-forecast':'/widget-metric-objects-v1/forecast.png',
+ // Виджеты-панели: объект только в окне «Добавить виджет».
+ 'finance-overdue':'/widget-panel-objects-v1/debtors.png',
+ 'finance-activity':'/widget-panel-objects-v1/payment_history.png',
+ 'payments-inbox':'/widget-panel-objects-v1/payments_inbox.png',
+ 'groups-list':'/widget-panel-objects-v1/groups_list.png',
+ 'attention-students':'/widget-metric-objects-v1/debt.png',
+ 'today-schedule':'/schedule-objects-v2-shadows/calendar.png',
+ 'today-reminders':'/widget-panel-objects-v1/reminders.png',
+ 'today-tasks':'/widget-panel-objects-v1/tasks.png',
+ 'comms-today':'/widget-objects-v2-shadows/ui/next-step.png',
+ 'parent-reports':'/widget-panel-objects-v1/parent_reports.png',
 }
