@@ -2,4 +2,9 @@
 
 .env*
 node_modules/
-supabase/
+# Edge Functions Vercel не нужны, но общий код из _shared импортирует
+# фронтенд (итоги урока, баллы КИМ) — его оставляем.
+supabase/*
+!supabase/functions/
+supabase/functions/*
+!supabase/functions/_shared/
