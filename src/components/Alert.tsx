@@ -87,7 +87,7 @@ function AlertRow({ item }: { item: AlertItem }) {
       {item.action && (
         <button
           type="button"
-          onClick={item.action.onClick}
+          onClick={item.action.onClick} data-hover="layer"
           className="cursor-pointer flex-shrink-0"
           style={{
             height: 30, padding: '0 14px', borderRadius: 999, border: 'none',
@@ -104,7 +104,7 @@ function AlertRow({ item }: { item: AlertItem }) {
         <button
           type="button"
           onClick={item.onClose}
-          aria-label={t('Закрыть')}
+          aria-label={t('Закрыть')} data-hover="layer"
           className="cursor-pointer flex-shrink-0 flex items-center justify-center"
           style={{ width: 28, height: 28, borderRadius: 9, border: 'none', background: 'transparent', color: 'var(--color-muted)' }}
         >
@@ -169,7 +169,7 @@ export function AlertStack({ items, style }: { items: Array<AlertItem | false | 
           {list.length > 2 && (
             <button
               type="button"
-              onClick={() => setOpen(o => !o)}
+              onClick={() => setOpen(o => !o)} data-hover="layer"
               className="cursor-pointer w-full flex items-center justify-center"
               style={{
                 gap: 4, height: 30, border: 'none', borderTop: '1px solid var(--color-border-soft)',
