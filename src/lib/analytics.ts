@@ -66,7 +66,8 @@ const TELEMETRY_ON: boolean = !import.meta.env.DEV || (() => {
 
 function uuid(): string {
   try { return crypto.randomUUID() } catch { /**/ }
-  return 'sess-' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+  const bytes = crypto.getRandomValues(new Uint8Array(12))
+  return 'sess-' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('') + Date.now().toString(36)
 }
 
 function getSessionId(): string {
