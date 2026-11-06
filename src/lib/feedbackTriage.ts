@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 
 // Сортировка обратной связи: обращения из формы и Telegram (feedback_items),
 // темы со счётчиком (feedback_topics) и недельные сводки (feedback_digests).
-// Схема и права — миграция 20261106120000_feedback_triage.sql, разбор моделью —
+// Схема и права — миграция 20261106120100_feedback_triage.sql, разбор моделью —
 // Edge Function feedback-triage за флагом ai_feedback_triage.
 
 export type FeedbackKind = 'bug' | 'question' | 'wish' | 'payment' | 'access'
