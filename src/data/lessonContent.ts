@@ -223,12 +223,27 @@ export interface LessonHomework {
  *  `image` превращает абзац в иллюстрацию: картинка рисуется на месте абзаца, а
  *  `text` становится подписью под ней. Так схема стоит там, где она объясняет
  *  (сразу после правила), а не отдельным блоком в конце урока. */
-export interface LessonParagraph { id: string; text: string; reactionId?: string; image?: string }
+export interface LessonParagraph {
+  id: string; text: string; reactionId?: string; image?: string
+  /** 'recap' — абзац «Итогов занятия», собранный из записи урока (lib/lessonRecap). */
+  origin?: 'recap'
+  /** Заголовок абзаца итогов — суть абзаца. */
+  title?: string
+  /** Где это прозвучало: секунды исходной записи. Нажал время — плеер перемотался. */
+  at?: number[]
+}
+/** «Проверь себя» из записи урока: без оценки, сверка на клиенте. */
+export interface SelfCheckQuestion { id: string; q: string; answer: string; options?: string[]; at?: number }
 /** Authored, editable lesson body — konspekt paragraphs + homework. Stored per
  *  lesson in Supabase (`lessons.content`); when empty we fall back to code. */
 export interface LessonContentData {
   transcript?: import('../lib/localTranscription').LessonTranscript
   paragraphs: LessonParagraph[]
+  /** Вопросы «Проверь себя» из итогов урока. */
+  selfCheck?: SelfCheckQuestion[]
+  /** Набор карточек урока из итогов (card_sets.id) и его группа-обёртка. */
+  cardSetId?: string
+  cardGroupId?: string
   quiz: HomeworkQuizQuestion[]
   hardTask: HomeworkTeacherTask
 }
@@ -249,6 +264,8 @@ export interface LessonDetail {
   /** Body of the lesson's "Конспект" — a handful of paragraphs, with any
    *  reactions from `courseReactions` woven in as their own paragraphs. */
   paragraphs: LessonParagraph[]
+  /** «Проверь себя» из итогов урока — без оценки. */
+  selfCheck?: SelfCheckQuestion[]
   homework?: LessonHomework
 }
 
@@ -291,6 +308,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
       // но в уже сохранённых курсах он лежит абзацем — и без фильтра ученик
       // увидел бы сырую разметку «- [ ] …» (см. lib/theoryChecklist).
       paragraphs: ap.paragraphs.filter(p => (p.text.trim() || p.image) && !isChecklistParagraph(p.text)),
+      ...(lesson.content?.selfCheck?.length ? { selfCheck: lesson.content.selfCheck } : {}),
       homework: authoredHw ?? buildApHomework(lesson, lesson.homework?.hwDate?.trim() || '', ap),
     }
   }

@@ -4,6 +4,7 @@ import { SlidersHorizontal } from '../icons/appIcons'
 import { decodeLevels, localRequest, type LocalDraft } from '../../lib/localTranscription'
 import { DEFAULT_SETTINGS, lessonStats, summarizeStats, type LessonStatsSummary, type MontageLine, type MontageSpeaker } from '../../lib/lessonMontage'
 import { parseVideoSource, type VideoSource } from '../../lib/videoSource'
+import type { RecapControl } from './LessonRecapPanel'
 
 // Окно тяжёлое (шкала, волна, списки) и нужно только по кнопке — свой чанк.
 const LessonMontageEditor = lazy(() => import('./LessonMontageEditor'))
@@ -11,9 +12,15 @@ const LessonMontageEditor = lazy(() => import('./LessonMontageEditor'))
 /** Кнопка «Монтаж записи» в инструментах расшифровки и само окно. Результат —
  *  в черновик расшифровки (говорящие, реплики, решения по паузам); в урок он
  *  попадает обычной кнопкой «Сохранить». Видео не перекодируется. */
-export default function MontageAction({ draft, change, disabled, file, token, trend }: { draft: LocalDraft; change: (value: LocalDraft) => void; disabled?: boolean; file?: File | null; token?: string
-  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }) {
+export default function MontageAction({ draft, change, disabled, file, token, trend, recap, recapSignal }: { draft: LocalDraft; change: (value: LocalDraft) => void; disabled?: boolean; file?: File | null; token?: string
+  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[]
+  /** Итоги урока: есть — в окне кнопка «Итоги урока» и панель. */
+  recap?: RecapControl
+  /** Растёт, когда вход из вкладки «Запись» просит открыть окно сразу на итогах. */
+  recapSignal?: number }) {
   const [open, setOpen] = useState(false)
+  const [recapOpen, setRecapOpen] = useState(false)
+  useEffect(() => { if (recapSignal) { setRecapOpen(true); setOpen(true) } }, [recapSignal])
   // Запись для звука в окне: ссылка урока или выбранный файл (локальный URL живёт, пока окно открыто).
   const [fileUrl, setFileUrl] = useState<string>()
   useEffect(() => {
@@ -62,7 +69,7 @@ export default function MontageAction({ draft, change, disabled, file, token, tr
           },
         }) }}
         onForgetVoices={token && draft.voices?.some(v => v.embedding) ? () => void localRequest('/voices', token, { method: 'DELETE' }).catch(() => {}) : undefined}
-        trend={trend} onClose={() => setOpen(false)} />}</AnimatePresence>
+        trend={trend} recap={recap} recapOpen={recapOpen} onClose={() => { setOpen(false); setRecapOpen(false) }} />}</AnimatePresence>
     </Suspense>
   </>
 }

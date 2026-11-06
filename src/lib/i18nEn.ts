@@ -10,6 +10,13 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  // Итоги урока из записи (LessonRecapBlocks)
+  "Смотреть с": "Watch from",
+  "Итоги занятия": "Lesson recap",
+  "Нажмите время — видео перемотается": "Tap a time to jump to that moment in the video",
+  "Из записи урока": "From the lesson recording",
+  "без оценки": "not graded",
+  "Где на уроке:": "Where in the lesson:",
   "Открыть профиль": "Open profile",
   "Не удалось открыть профиль. Попробуйте ещё раз.": "Could not open the profile. Please try again.",
   "Не удалось удалить из друзей. Попробуйте ещё раз.": "Could not remove this friend. Please try again.",

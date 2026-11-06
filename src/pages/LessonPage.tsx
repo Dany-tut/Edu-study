@@ -1,4 +1,5 @@
 import LessonTranscriptPanel from '../components/LessonTranscriptPanel'
+import { RecapSummary, SelfCheck } from '../components/LessonRecapBlocks'
 import { playbackPlan } from '../lib/lessonMontage'
 import { useNow } from '../lib/useNow'
 import { textFadeStyle } from '../lib/textFades'
@@ -845,6 +846,11 @@ export default function LessonPage() {
   const timecodes = detail.timecodes
   // Монтаж записи (если преподаватель его применил): что плеер пропускает и ускоряет.
   // Дёшево (два десятка пауз) и читается плеером через ref — без useMemo.
+  // Конспект и «Итоги занятия» из записи — разные блоки: у итогов таймкоды.
+  const notes = detail.paragraphs.filter(p => p.origin !== 'recap')
+  const recapParas = detail.paragraphs.filter(p => p.origin === 'recap')
+  const canSeek = !!detail.videoSource && ['file', 'youtube', 'rutube'].includes(detail.videoSource.kind)
+  const seekTo = (sec: number) => { setVideoTime(sec); playerRef.current?.seekPaused(sec) }
   const montagePlan = lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? playbackPlan(lesson.transcript.montage) : undefined
   // Плеер открыт и уже знает длину ролика — с этого момента показываем часы и
   // полоску проигранного.
@@ -1208,10 +1214,11 @@ export default function LessonPage() {
         </div>
       )}
 
+      {/* Итоги занятия из записи — сразу под видео: таймкоды ведут в плеер выше. */}
+      <RecapSummary paragraphs={recapParas} seek={canSeek ? seekTo : undefined} scale={scale} />
       {lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') &&
         <LessonTranscriptPanel transcript={lesson.transcript} time={videoTime} hidden={montagePlan?.skip}
-          seek={detail.videoSource && ['file','youtube','rutube'].includes(detail.videoSource.kind)
-            ? sec => { setVideoTime(sec); playerRef.current?.seekPaused(sec) } : undefined} />}
+          seek={canSeek ? seekTo : undefined} />}
       {lesson.description?.trim() && (
         <section style={{
           padding: 24, borderRadius: 24,
@@ -1229,7 +1236,7 @@ export default function LessonPage() {
 
       {/* ── Конспект: lesson notes, with reaction paragraphs highlighted on
           arrival from the reactions widget. ── */}
-      {detail.paragraphs.length > 0 && (
+      {notes.length > 0 && (
         <section
           className="flex flex-col"
           style={{
@@ -1266,7 +1273,7 @@ export default function LessonPage() {
               {t('Крупный текст')}
             </button>
           </div>
-          {detail.paragraphs.map(p => p.image ? (
+          {notes.map(p => p.image ? (
             <TheoryFigure key={p.id} src={p.image} caption={p.text} scale={scale} />
           ) : (
             <div
@@ -1314,6 +1321,8 @@ export default function LessonPage() {
           ))}
         </section>
       )}
+
+      {detail.selfCheck?.length ? <SelfCheck questions={detail.selfCheck} seek={canSeek ? seekTo : undefined} /> : null}
 
       {/* ── Materials & homework — placed BELOW the description. Compact tiles;
           desktop adds equal columns for extra homework, mobile drops to 2 columns (4-col squeezes each

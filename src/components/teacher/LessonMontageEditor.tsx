@@ -5,7 +5,8 @@ import FadeText from '../FadeText'
 import GrowTextarea from '../GrowTextarea'
 import HScrollFade from '../HScrollFade'
 import TeacherSelect from './TeacherSelect'
-import { AlertTriangle, AudioLines, ChevronLeft, ChevronRight, Gauge, Headphones, Minus, Pause, Play, Plus, RotateCcw, Timer, SlidersHorizontal } from '../icons/appIcons'
+import { AlertTriangle, AudioLines, ChevronLeft, ChevronRight, Gauge, Headphones, Minus, Pause, Play, Plus, RotateCcw, Sparkles, Timer, SlidersHorizontal } from '../icons/appIcons'
+import { RecapPanel, RecapQuote, RecapSources, type RecapControl } from './LessonRecapPanel'
 import { btn } from '../../lib/pillStyles'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import LessonVideoPlayer, { type LessonVideoHandle } from '../LessonVideoPlayer'
@@ -18,6 +19,7 @@ import {
   type LessonMontage, type MontageLine, type MontagePause, type MontageSettings, type MontageSpeaker, type PauseAction, type PauseKind, type PauseOverride, type QuietSpan, type SpeakerTone,
 } from '../../lib/lessonMontage'
 import './lessonMontage.css'
+import './lessonRecapPanel.css'
 
 // Окно монтажа записи: паузы (вырезать / ускорить / оставить), говорящие
 // и реплики. Видео не трогаем — сохраняется список отрезков, плеер урока
@@ -38,7 +40,7 @@ type Tab = 'pauses' | 'speakers' | 'lines' | 'stats' | 'settings'
 
 export interface MontageResult extends LessonMontage { timecodes: LessonTimecode[] }
 
-export default function LessonMontageEditor({ title, duration, voices, lines: sourceLines, quiet, chapters, levelAt, initial, missingAudio, video, floor, onForgetVoices, trend, onApply, onClose }: {
+export default function LessonMontageEditor({ title, duration, voices, lines: sourceLines, quiet, chapters, levelAt, initial, missingAudio, video, floor, onForgetVoices, trend, recap, recapOpen, onApply, onClose }: {
   title: string
   duration: number
   voices: string[]
@@ -58,6 +60,10 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
   onForgetVoices?: () => void
   /** Уроки курса с итогами (по порядку) — для динамики во вкладке «Итоги». */
   trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[]
+  /** Итоги урока из расшифровки (lib/lessonRecap). Нет — кнопки «Итоги урока» нет. */
+  recap?: RecapControl
+  /** Открыть окно сразу с панелью итогов (вход из вкладки «Запись»). */
+  recapOpen?: boolean
   onApply: (result: MontageResult, state: NonNullable<Parameters<typeof LessonMontageEditor>[0]['initial']>) => void
   onClose: () => void
 }) {
@@ -75,11 +81,15 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
   const [selectedId, setSelectedId] = useState<string | undefined>(() => pauses[0]?.id)
   const selected = pauses.find(p => p.id === selectedId)
   const [notice, setNotice] = useState('')
+  // Панель итогов: справа вместо вкладок монтажа, слева — реплики-источники.
+  const [recapOn, setRecapOn] = useState(!!recap && !!recapOpen)
+  const showRecap = recapOn && !!recap
+  const [picked, setPicked] = useState<{ id: string; at: number[] }>()
   const [followWave, setFollowWave] = useState(0)
   const [followTimeline, setFollowTimeline] = useState(0)
   const detailRef = useRef<HTMLDivElement>(null)
   const sideRef = useRef<HTMLDivElement>(null)
-  useScrollFades(sideRef, desktop, '.lm-panel-body')
+  useScrollFades(sideRef, desktop && !showRecap, '.lm-panel-body')
 
   const after = editedDuration(duration, pauses, settings.speed)
   const cutTotal = pauses.filter(p => p.action === 'cut').reduce((s, p) => s + p.end - p.start, 0)
@@ -143,6 +153,11 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
     if (p) { seek(p.start); setFollowTimeline(n => n + 1) }
     if (scroll && !desktop) detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
+  // Пункт итогов → плеер на его первую реплику, шкала доводит место в кадр.
+  const pick = (id: string, at: number[]) => {
+    setPicked({ id, at })
+    if (at.length && Math.abs(live.current.t - at[0]) > 0.5) { seek(at[0]); setFollowTimeline(n => n + 1) }
+  }
   const override = (id: string, patch: PauseOverride) => setOverrides(o => ({ ...o, [id]: { ...o[id], ...patch } }))
   const resetBounds = (id: string) => setOverrides(o => ({ ...o, [id]: { action: o[id]?.action } }))
   const speakerOf = (id: string) => speakers.find(s => s.id === id)
@@ -167,7 +182,8 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
     onSeek={seek} />
   // Шкала и волна паузы показывают одно место: перемотка в одной доводит
   // это место в кадр другой (счётчики follow*).
-  const timeline = <Timeline duration={duration} speakers={speakers} lines={lines} pauses={pauses} t={t} selected={selectedId}
+  // В итогах столбец выбранной паузы не нужен: на шкале — только место пункта.
+  const timeline = <Timeline duration={duration} speakers={speakers} lines={lines} pauses={pauses} t={t} selected={showRecap ? undefined : selectedId}
     follow={followTimeline} onSeek={at => { seek(at); setFollowWave(n => n + 1) }} onSelect={id => select(id, true)}
     onRename={(id, label) => setSpeakers(list => list.map(x => x.id === id ? { ...x, label } : x))} />
   const detail = <div ref={detailRef} className="lm-detail-slot">{selected
@@ -184,7 +200,8 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
         { id: 'pauses', label: <>Паузы <small className="lm-count">{pauses.length}</small></>, title: 'Паузы' },
         { id: 'speakers', label: <>Голоса <small className="lm-count">{speakers.length}</small></>, title: 'Говорящие' },
         { id: 'lines', label: <>Текст <small className="lm-count">{lines.length}</small></>, title: 'Реплики' },
-        { id: 'stats', label: 'Итоги', title: 'Итоги урока' },
+        // «Статистика», а не «Итоги»: «Итоги урока» — это конспект и вопросы из записи (кнопка в шапке).
+        { id: 'stats', label: 'Статистика', title: 'Статистика урока' },
         // Настройки — иконкой: пять вкладок помещаются в узкую колонку без прокрутки.
         { id: 'settings', label: <span className="lm-visually-hidden">Поиск пауз</span>, icon: SlidersHorizontal, title: 'Поиск пауз' },
       ]} />
@@ -209,9 +226,24 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
 
   // Шапка в одну строку: название и длительности рядом, без второй строки —
   // высота уходит экрану плеера и дорожкам.
+  // «Применить к уроку» закрывает окно (концепт B), но только если в самом
+  // монтаже нет несохранённых правок: иначе они пропали бы молча.
+  const pristine = useRef({ settings, overrides, speakers, lines })
+  const montageDirty = settings !== pristine.current.settings || overrides !== pristine.current.overrides || speakers !== pristine.current.speakers || lines !== pristine.current.lines
+  const recapForPanel = recap && { ...recap, apply: async (d: Parameters<RecapControl['apply']>[0]) => {
+    const ok = await recap.apply(d)
+    if (ok && !montageDirty) onClose()
+    return ok
+  } }
+  const recapPanel = recapForPanel ? <RecapPanel control={recapForPanel} picked={picked?.id} onPick={pick} onClose={() => setRecapOn(false)} /> : null
+  // Кнопка «Итоги урока»: на ПК — в шапке окна рядом с названием, на телефоне —
+  // первой строкой окна (в шапке ей не хватает места рядом с крестиком).
+  const recapToggle = recap ? <button type="button" className={'lm-recap-btn' + (desktop ? '' : ' is-block')} aria-pressed={showRecap} onClick={() => setRecapOn(v => !v)}>
+    <Sparkles size={15} />{showRecap && !desktop ? 'Вернуться к монтажу' : 'Итоги урока'}</button> : null
+  const titleNode = <span className="lm-title"><FadeText className="lm-title-name">{title}</FadeText>
+    <span className="lm-title-meta">запись {clock(duration)}, после монтажа {clock(after)}</span></span>
   return <Modal width={1400} padding={desktop ? 20 : 24} onClose={onClose}
-    title={<span className="lm-title"><FadeText className="lm-title-name">{title}</FadeText>
-      <span className="lm-title-meta">запись {clock(duration)}, после монтажа {clock(after)}</span></span>}
+    title={recap && desktop ? <span className="lm-title-row">{titleNode}{recapToggle}</span> : titleNode}
     icon={<span className="lm-mark"><AudioLines size={20} /></span>}
     cardStyle={desktop ? { height: '92dvh' } : undefined}
     bodyStyle={desktop ? { overflowY: 'hidden', display: 'flex', flexDirection: 'column' } : undefined}
@@ -221,11 +253,14 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
       <button data-hover="layer" type="button" style={btn('M', 'primary')} onClick={apply}>Применить монтаж</button>
     </div>}>
     {desktop
-      ? <div className="lm-editor">
-        <div className="lm-col">{player}{timeline}{detail}</div>
-        <div className="lm-side" ref={sideRef}>{panel}</div>
+      ? <div className={'lm-editor' + (showRecap ? ' is-recap' : '')}>
+        <div className="lm-col">{player}{timeline}{showRecap
+          ? <RecapSources lines={lines} speakers={speakers} at={picked?.at} onListen={at => listen(at, 'source')} /> : detail}</div>
+        <div className="lm-side" ref={sideRef}>{showRecap ? recapPanel : panel}</div>
       </div>
-      : <div className="lm-stack">{player}{timeline}{detail}{panel}</div>}
+      : <div className="lm-stack">{recapToggle}{player}{timeline}{showRecap
+        ? <>{recap?.row?.draft && <RecapQuote lines={lines} speakers={speakers} at={picked?.at} />}{recapPanel}</>
+        : <>{detail}{panel}</>}</div>}
   </Modal>
 }
 
