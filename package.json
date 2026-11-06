@@ -46,6 +46,7 @@
     "check:course-access": "esbuild scripts/checkCourseAccess.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkCourseAccess.mjs --log-level=error && node node_modules/.cache/checkCourseAccess.mjs && node scripts/checkCourseAccessDb.mjs",
     "release:check": "npm run check:ui && node scripts/guardProductionRelease.mjs --check",
     "check:release": "node scripts/checkReleasePolicy.mjs",
+    "check:migrations": "node scripts/checkMigrationVersions.mjs",
     "check:feed-release": "node scripts/checkFeedRelease.mjs",
     "check:diary-views": "node scripts/checkStudentDiaryViews.mjs",
     "check:student-journal": "node scripts/checkStudentWorkJournal.mjs",
