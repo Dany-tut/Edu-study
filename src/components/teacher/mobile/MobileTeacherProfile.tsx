@@ -6,7 +6,7 @@ import CountBadge from '../../CountBadge'
 import { useNotificationsStore } from '../../../store/notificationsStore'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
+import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -63,7 +63,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
   )
 }
 
-export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onOpenNotifications }: { onOpenJournal?: () => void; onOpenWidgets?: () => void; onOpenNotifications?: () => void }) {
+export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onOpenNotifications, onOpenReports }: { onOpenJournal?: () => void; onOpenWidgets?: () => void; onOpenNotifications?: () => void; onOpenReports?: () => void }) {
   const unreadNotifs = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
   const signedIn = useTeacherSession()
   const studentCabinet = useOpenStudentCabinet()
@@ -202,6 +202,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         <StatTile icon={<ClipboardCheck size={18} />} value={m.pending} label={m.pending > 0 ? t('Ждут проверки') : t('Всё проверено')} bg="var(--color-yellow-soft)" fg="var(--color-yellow-text)" />
 
         {onOpenJournal && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenJournal() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ClipboardCheck size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Журнал')}</span><ChevronRight size={18} /></button>}
+        {onOpenReports && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenReports() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><FileText size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Отчёты родителям')}</span><ChevronRight size={18} /></button>}
 
         <div style={{ gridColumn: 'span 2' }}><TeacherLoginMethods /></div>
         <div style={{ gridColumn: 'span 2' }}><TeacherFeatureSettings /></div>

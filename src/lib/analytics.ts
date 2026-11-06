@@ -175,6 +175,8 @@ async function performFlush(final: boolean) {
 function analyticsPath(path: unknown): string | null {
   if (typeof path !== 'string') return null
   if (path.startsWith('#') && !path.startsWith('#/')) return '#/'
+  // Токен личной ссылки на отчёт родителю в телеметрию не пишем.
+  if (path.startsWith('#/r/')) return '#/r'
   return path.replace(/(?!^)[?#&].*$/s, '')
 }
 

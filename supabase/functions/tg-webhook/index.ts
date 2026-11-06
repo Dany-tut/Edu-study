@@ -6,6 +6,7 @@
 // журнал диалогов не пишется.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { handleParentCommand } from "../_shared/parentLink.ts";
 const START = /^\/start(?:@\w+)?\s+([0-9a-f]{32})\s*$/i;
 const STOP = /^\/stop(?:@\w+)?\s*$/i;
 async function reply(chatId: number, text: string) {
@@ -21,6 +22,8 @@ Deno.serve(async (req: Request) => {
   if (!msg || !chat) return new Response("ok");
   let text: string = (msg.text ?? msg.caption ?? "[вложение]").toString().slice(0, 4000);
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  // Родитель: /start p_<код> и /stop (отчёт родителю). Не попадает в обращения.
+  if (await handleParentCommand(sb, msg, Deno.env.get("TELEGRAM_BOT_TOKEN"))) return new Response("ok");
   const start = update.message && chat.type === "private" ? START.exec(text.trim()) : null;
   if (start) {
     const { data: name } = await sb.rpc("tg_link_claim", { p_code: start[1].toLowerCase(), p_chat: chat.id, p_username: chat.username ?? null, p_first_name: chat.first_name ?? null });

@@ -46,3 +46,8 @@ verify_jwt = false
 [functions.reminders-send]
 # Крон reminders-dispatch (pg_net) зовёт без JWT; защита — x-reminders-secret.
 verify_jwt = false
+
+[functions.parent-report]
+# Страница по ссылке открывается без входа (только токен); cron — x-digest-secret;
+# JWT учителя проверяется внутри, доступ к функции — правилом базы.
+verify_jwt = false

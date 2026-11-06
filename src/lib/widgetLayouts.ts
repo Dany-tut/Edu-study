@@ -20,6 +20,7 @@ export const WIDGET_LAYOUTS: Record<string,readonly WidgetCellSize[]> = {
   "attention-students": [{w:1,h:1},{w:2,h:1},{w:2,h:2},{w:3,h:2},{w:3,h:3},{w:4,h:3},{w:4,h:4}],
   "today-schedule": [{w:2,h:3},{w:2,h:4},{w:2,h:5},{w:3,h:3},{w:3,h:4},{w:3,h:5},{w:4,h:3},{w:4,h:4},{w:4,h:5}],
   "today-reminders": [{w:2,h:2},{w:2,h:3},{w:2,h:4},{w:2,h:5},{w:3,h:2},{w:3,h:3},{w:3,h:4},{w:3,h:5},{w:4,h:3}],
+  "parent-reports": [{w:2,h:2},{w:2,h:3},{w:3,h:2},{w:3,h:3},{w:3,h:4},{w:4,h:3},{w:4,h:4}],
   "today-tasks": [{w:2,h:2},{w:2,h:3},{w:2,h:4},{w:2,h:5},{w:3,h:2},{w:3,h:3},{w:3,h:4},{w:3,h:5},{w:4,h:2},{w:4,h:3},{w:4,h:4}],
   "comms-today": [{w:2,h:3},{w:2,h:4},{w:2,h:5},{w:3,h:3},{w:3,h:4},{w:3,h:5},{w:4,h:3},{w:4,h:4}],
 }

@@ -35,6 +35,7 @@ const ReviewSession = lazy(() => retryImport(() => import('./components/ReviewSe
 // нельзя (см. reference-bundle-weight): гостей единицы, а платят за вес все.
 const GuestTrainerPage = lazy(() => retryImport(() => import('./pages/GuestTrainerPage')))
 const OAuthConsentPage = lazy(() => retryImport(() => import('./pages/teacher/OAuthConsentPage')))
+const ParentReportPage = lazy(() => retryImport(() => import('./pages/ParentReportPage')))
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import { initAnalytics, trackPath } from './lib/analytics'
@@ -322,6 +323,9 @@ function AppRoutes() {
   if (window.location.pathname === '/oauth/consent') {
     return <Chunk><OAuthConsentPage /></Chunk>
   }
+
+  // Отчёт родителю по личной ссылке — без входа, вне кабинетов.
+  if (hash.startsWith('#/r/')) return <Chunk><ParentReportPage token={hash.slice(4).split(/[?#/]/)[0]} /></Chunk>
 
   if (holdRoot) return <div style={{ minHeight: '100dvh', background: 'var(--color-bg)' }} />
 

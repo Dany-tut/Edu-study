@@ -1,6 +1,8 @@
 import { lazy, type ComponentType } from 'react'
 import { WIDGET_LAYOUTS, type WidgetCellSize } from '../../../lib/widgetLayouts'
 import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, Send } from '../../icons/appIcons'
+import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, FileText } from '../../icons/appIcons'
+import type { FeatureKey } from '../../../lib/teacherFeatures'
 import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
 import type { FeatureKey } from '../../../lib/teacherFeatures'
@@ -30,6 +32,7 @@ const WidgetStudentActive     = lazy(() => retryImport(() => import('./WidgetStu
 const WidgetStudentDebtors    = lazy(() => retryImport(() => import('./WidgetStudentDebtors')))
 const WidgetPaymentsInbox     = lazy(() => retryImport(() => import('./WidgetPaymentsInbox')))
 const WidgetCommsToday        = lazy(() => retryImport(() => import('./WidgetCommsToday')))
+const WidgetParentReports     = lazy(() => retryImport(() => import('./WidgetParentReports')))
 
 export type WidgetDef = {
   type: string
@@ -214,6 +217,16 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     feature: 'reminders' as FeatureKey,
     component: WidgetCommsToday,
+    type: 'parent-reports',
+    label: 'Отчёты родителям',
+    icon: FileText,
+    iconBg: 'var(--color-purple-soft)',
+    iconColor: 'var(--color-accent)',
+    description: 'Сколько отчётов готово и какие требуют решения',
+    defaultW: 3, defaultH: 4,
+    minW: 2, minH: 2, minWidthPx: 280, minHeightPx: 240,
+    feature: 'parent_report' as FeatureKey,
+    component: WidgetParentReports,
   },
 ].map(def => ({...def, allowedSizes:WIDGET_LAYOUTS[def.type]}))
 
