@@ -1,4 +1,7 @@
 import './lessonRow.css'
+import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
+import Model3DThumb from '../../components/Model3DThumb'
+import Model3DPicker from '../../components/teacher/Model3DPicker'
 import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
@@ -20,7 +23,7 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  TimedTest, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
+  TimedTest, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Atom, Copy, RefreshCw,
   ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock, Sparkles,
 } from '../../components/icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
@@ -2151,7 +2154,7 @@ function FigureBtn({ onClick, disabled, title, children }: {
  * блочном редакторе не видно, и переставить её иначе нечем.
  */
 function TheoryFigure({
-  src, caption, canUp, canDown, onCaption, onMove, onRemove,
+  src, caption, canUp, canDown, onCaption, onMove, onRemove, onReplace,
 }: {
   src: string
   caption: string
@@ -2160,8 +2163,11 @@ function TheoryFigure({
   onCaption: (v: string) => void
   onMove: (dir: -1 | 1) => void
   onRemove: () => void
+  /** Только у 3D-модели: открыть выбор заново. */
+  onReplace?: () => void
 }) {
   const t = useT()
+  const model = isModelRef(src)
   return (
     <div style={{
       display: 'flex', gap: 10, alignItems: 'flex-start',
@@ -2169,13 +2175,33 @@ function TheoryFigure({
       border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)',
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <img src={src} alt="" style={{
-          display: 'block', width: '100%', maxWidth: 340, borderRadius: 10, background: '#fff',
-        }} />
+        {model ? (
+          // Живая миниатюра, а не сцена с кнопками: редактор — не урок, и
+          // крутить модель здесь незачем. Полная сцена — в окне выбора.
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', maxWidth: 520 }}>
+            <Model3DThumb src={src} className="m3d-thumb" style={{ width: 132, aspectRatio: '4 / 3', borderRadius: 10, overflow: 'hidden', flex: 'none' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{modelRefLabel(src)}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.4 }}>
+                {t('У ученика здесь живая сцена: вращение, разбор, справка по частям.')}
+              </div>
+              {onReplace && (
+                <button type="button" data-hover="layer" onClick={onReplace}
+                  style={{ alignSelf: 'flex-start', marginTop: 2, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {t('Заменить модель')}
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <img src={src} alt="" style={{
+            display: 'block', width: '100%', maxWidth: 340, borderRadius: 10, background: '#fff',
+          }} />
+        )}
         <input
           value={caption}
           onChange={e => onCaption(e.target.value)}
-          placeholder={t('Подпись к картинке')}
+          placeholder={model ? t('Подпись к модели (необязательно)') : t('Подпись к картинке')}
           style={{
             marginTop: 8, width: '100%', maxWidth: 340, padding: '4px 0',
             border: 'none', borderBottom: '1px solid var(--color-border-medium)',
@@ -2191,7 +2217,7 @@ function TheoryFigure({
         <FigureBtn onClick={() => onMove(1)} disabled={!canDown} title={t('Ниже на абзац')}>
           <ChevronDown size={14} />
         </FigureBtn>
-        <FigureBtn onClick={onRemove} title={t('Убрать картинку')}>
+        <FigureBtn onClick={onRemove} title={model ? t('Убрать модель') : t('Убрать картинку')}>
           <X size={12} />
         </FigureBtn>
       </div>
@@ -2213,13 +2239,17 @@ function TheoryFigure({
  * пустая строка нового абзаца исчезала бы прямо под руками.
  */
 function TheoryEditor({
-  lesson, onUpdate,
+  lesson, onUpdate, subject,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
+  /** Предмет курса — с него открывается выбор 3D-модели. */
+  subject?: string
 }) {
   const t = useT()
   const fileRef = useRef<HTMLInputElement>(null)
+  /** Окно выбора модели: 'new' — вставить, ключ — заменить эту. */
+  const [modelPicker, setModelPicker] = useState<null | 'new' | string>(null)
   const theory = lesson.theory ?? ''
   const images = lesson.theoryImages ?? []
   const cut = useMemo(() => cutTheoryAtFigures(theory), [theory])
@@ -2285,6 +2315,22 @@ function TheoryEditor({
       .catch(err => { if (err instanceof ImageTooLargeError) void alertDialog({ title: err.message, tone: 'danger' }); else throw err })
   }
 
+  /**
+   * 3D-модель — та же «картинка» конспекта, только src у неё `model:…`.
+   * theoryToParagraphs кладёт его в paragraph.image, а страница урока по
+   * isModelRef рисует сцену вместо <img>. Формат хранения не меняется.
+   */
+  function addModel(ref: string) {
+    const next = appendTheoryImage(theory, images, ref, '')
+    pushed.current = next.theory
+    setSegments(cutTheoryAtFigures(next.theory).segments)
+    onUpdate({ ...lesson, theory: next.theory, theoryImages: next.images })
+  }
+
+  function replaceModel(key: string, ref: string) {
+    onUpdate({ ...lesson, theoryImages: images.map(img => (img.key === key ? { ...img, src: ref } : img)) })
+  }
+
   function remove(key: string) {
     const next = removeTheoryImage(theory, images, key)
     pushed.current = next.theory
@@ -2328,7 +2374,7 @@ function TheoryEditor({
               style={{ lineHeight: 1.6 }}
               placeholder={i === 0
                 ? t('Объяснение темы, правила, таблицы, разбор ошибок. Пустая строка — новый абзац. Это ученик читает на вкладке «Конспект».')
-                : t('Текст после картинки…')}
+                : cut.figures[i - 1] && isModelRef(byKey.get(cut.figures[i - 1].key)) ? t('Текст после модели…') : t('Текст после картинки…')}
             />
             {/* Маркер без картинки не рисуем вовсе: пустая рамка на месте схемы
                 читается как поломка урока. */}
@@ -2341,6 +2387,7 @@ function TheoryEditor({
                 onCaption={v => pushTheory(setFigureCaption(theory, fig.key, v))}
                 onMove={dir => move(fig.key, dir)}
                 onRemove={() => remove(fig.key)}
+                onReplace={isModelRef(src) ? () => setModelPicker(fig.key) : undefined}
               />
             )}
           </div>
@@ -2357,7 +2404,9 @@ function TheoryEditor({
           </div>
           {orphans.map(({ image }) => (
             <div key={image.key} style={{ width: 96 }}>
-              <img src={image.src} alt="" style={{ display: 'block', width: '100%', borderRadius: 8, background: '#fff', opacity: 0.55 }} />
+              {isModelRef(image.src)
+                ? <div style={{ padding: '10px 6px', borderRadius: 8, border: '1px dashed var(--color-border-medium)', fontSize: 10.5, color: 'var(--color-muted)', textAlign: 'center', lineHeight: 1.3 }}>{modelRefLabel(image.src)}</div>
+                : <img src={image.src} alt="" style={{ display: 'block', width: '100%', borderRadius: 8, background: '#fff', opacity: 0.55 }} />}
               <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
                 <button data-hover="layer" onClick={() => restore(image.key)}
                   style={{
@@ -2387,10 +2436,34 @@ function TheoryEditor({
         >
           <Camera size={14} /> {t('Картинка в конспект')}
         </button>
+        <button data-hover="layer" onClick={() => setModelPicker('new')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10,
+            border: '1.5px dashed var(--color-border-medium)', background: 'transparent',
+            cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', fontFamily: 'inherit',
+          }}
+        >
+          <Atom size={14} /> {t('3D-модель')}
+        </button>
         <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
-          {t('Картинка встаёт в конец конспекта — стрелками поднимите её к нужному абзацу.')}
+          {t('Картинка или модель встаёт в конец конспекта — стрелками поднимите её к нужному абзацу.')}
         </span>
       </div>
+
+      <AnimatePresence>
+        {modelPicker && (
+          <Model3DPicker
+            courseSubject={subject}
+            current={modelPicker === 'new' ? undefined : byKey.get(modelPicker)}
+            onClose={() => setModelPicker(null)}
+            onPick={ref => {
+              if (modelPicker === 'new') addModel(ref)
+              else replaceModel(modelPicker, ref)
+              setModelPicker(null)
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -2423,10 +2496,11 @@ function RecapInLesson({ lesson, onUpdate }: { lesson: CELesson; onUpdate: (upda
 }
 
 function CenterLesson({
-  lesson, onUpdate,
+  lesson, onUpdate, subject,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
+  subject?: string
 }) {
   const t = useT()
   const [descriptionVisible, setDescriptionVisible] = useState(Boolean(lesson.description?.trim()))
@@ -2687,7 +2761,7 @@ function CenterLesson({
 
         <div>
           <Label>{t('Конспект')}</Label>
-          <TheoryEditor lesson={lesson} onUpdate={onUpdate} />
+          <TheoryEditor lesson={lesson} onUpdate={onUpdate} subject={subject} />
         </div>
         <RecapInLesson lesson={lesson} onUpdate={onUpdate} />
       </div>
@@ -7614,7 +7688,7 @@ export default function TeacherCourseEditorPage() {
                       />
                     )}
                     {lessonMode === 'lesson' && (
-                      <CenterLesson key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} />
+                      <CenterLesson key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} subject={course.subject} />
                     )}
                     {lessonMode === 'homework' && (
                       <CenterHomework key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} hwTab={hwTab} />
