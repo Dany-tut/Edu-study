@@ -1,11 +1,9 @@
 import { lazy, type ComponentType } from 'react'
 import { WIDGET_LAYOUTS, type WidgetCellSize } from '../../../lib/widgetLayouts'
-import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, Send } from '../../icons/appIcons'
-import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, FileText } from '../../icons/appIcons'
+import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, Send, FileText } from '../../icons/appIcons'
 import type { FeatureKey } from '../../../lib/teacherFeatures'
 import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
-import type { FeatureKey } from '../../../lib/teacherFeatures'
 
 const WidgetFinanceKpi        = lazy(() => retryImport(() => import('./WidgetFinanceKpi')))
 const WidgetFinanceOverdue    = lazy(() => retryImport(() => import('./WidgetFinanceOverdue')))
@@ -217,6 +215,8 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     feature: 'reminders' as FeatureKey,
     component: WidgetCommsToday,
+  },
+  {
     type: 'parent-reports',
     label: 'Отчёты родителям',
     icon: FileText,

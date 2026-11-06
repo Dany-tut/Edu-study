@@ -6139,7 +6139,6 @@ export const EN: Record<string, string> = {
   // Отчёт родителю (parent_report)
   "Не удалось утвердить.\nПроверьте соединение и попробуйте ещё раз.": "Couldn't approve.\nCheck your connection and try again.",
   "Отправка не удалась.\nУтверждённые отчёты уйдут в воскресенье в 18:00.": "Sending failed.\nApproved reports will go out on Sunday at 18:00.",
-  "Не дошло": "Not delivered",
   "Причина — в карточке отчёта.": "The reason is in the report card.",
   "Не удалось собрать отчёты.\nПопробуйте ещё раз через минуту.": "Couldn't build the reports.\nTry again in a minute.",
   "Готовы": "Ready",
