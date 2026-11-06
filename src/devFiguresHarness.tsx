@@ -96,7 +96,7 @@ const shared: Array<[string, string]> = [
 /** Схемы, реально стоящие в конспектах: подпись под картинкой — это text абзаца. */
 function realFigures(lessons: Record<string, { paragraphs: Array<{ id: string; text: string; image?: string }> }>): Array<[string, string]> {
   return Object.entries(lessons).flatMap(([id, l]) =>
-    l.paragraphs.filter(par => par.image).map(par => [`${id} · ${par.text}`, par.image!] as [string, string]))
+    l.paragraphs.filter(par => par.image && !par.image.startsWith('model:')).map(par => [`${id} · ${par.text}`, par.image!] as [string, string]))
 }
 
 const show = new URLSearchParams(location.search)

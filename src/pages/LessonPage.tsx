@@ -34,6 +34,8 @@ import { EMOJI_STEPS } from '../components/homeworkSteps'
 import { useT, useTc } from '../lib/i18n'
 import { tidyProse, proseWrap, proseLines, balancedWrap } from '../lib/typography'
 import Prose from '../components/Prose'
+import Model3DFigure from '../components/Model3DFigure'
+import { isModelRef } from '../lib/models3d/registry'
 import GlossedText from '../components/GlossedText'
 import { setVoiceScene, clearVoiceScene } from '../lib/speech'
 import { resolveSubjectPalette } from '../lib/subjects'
@@ -154,6 +156,8 @@ const FIGURE_W = 680
  */
 function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: string; scale?: number }) {
   const [zoom, setZoom] = useState(false)
+  // 3D-модель едет тем же маркером, что картинка, но рисуется своей сценой.
+  if (isModelRef(src)) return <Model3DFigure src={src} caption={caption} scale={scale} maxWidth={FIGURE_W} />
   return (
     <>
       <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>

@@ -17,6 +17,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import Model3DFigure from './Model3DFigure'
+import { isModelRef } from '../lib/models3d/registry'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion'
 import { BookOpen, X } from './icons/appIcons'
@@ -276,7 +278,9 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
               className="flex flex-col flex-1"
               style={{ gap: 14, padding: '18px 20px 28px', overflowY: 'auto', minHeight: 0, overscrollBehavior: 'contain' }}
             >
-              {paragraphs.map(p => p.image ? (
+              {paragraphs.map(p => p.image && isModelRef(p.image) ? (
+                <Model3DFigure key={p.id} src={p.image} caption={p.text} />
+              ) : p.image ? (
                 <figure key={p.id} style={{ margin: 0 }}>
                   <img
                     src={p.image}
