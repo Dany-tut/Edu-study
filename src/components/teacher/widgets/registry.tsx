@@ -53,7 +53,8 @@ export type WidgetDef = {
   bare?: boolean
   /** Existing saved desks still render this type; new desks use individual cards. */
   legacy?: boolean
-  /** Виджет функции учителя: без включённой функции его нет (lib/featureWidgets.ts). */
+  /** Виджет функции-автоматизации: виден на столе и в «Добавить виджет»,
+   *  только пока функция выдана и включена (teacherFeatures). */
   feature?: FeatureKey
   component: ComponentType
 }
@@ -198,7 +199,7 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     description: 'Что уйдёт сегодня, что не дошло, кто подключил Telegram',
     defaultW: 3, defaultH: 4,
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
-    feature: 'reminders' as const,
+    feature: 'reminders' as FeatureKey,
     component: WidgetCommsToday,
   },
 ].map(def => ({...def, allowedSizes:WIDGET_LAYOUTS[def.type]}))

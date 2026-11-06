@@ -27,6 +27,16 @@ export const FEATURES: FeatureInfo[] = [
   { key: 'payment_reminders', label: 'Напоминания об оплате', about: 'Напоминание о долге и счёт за месяц по проведённым урокам.', ready: false },
 ]
 
+/** DEV-превью без входа: localStorage['iskra:dev-features'] = 'parent_report,…'.
+ *  В сборке для прода всегда пусто. */
+function devFeatures(): Partial<Record<FeatureKey, boolean>> {
+  if (!import.meta.env.DEV) return {}
+  try {
+    const keys = (localStorage.getItem('iskra:dev-features') ?? '').split(',').map(s => s.trim())
+    return Object.fromEntries(FEATURES.filter(f => keys.includes(f.key)).map(f => [f.key, true]))
+  } catch { return {} }
+}
+
 type FeaturesState = {
   loaded: boolean
   /** Выданные функции: ключ → включена ли учителем. Невыданных здесь нет. */
@@ -44,7 +54,7 @@ export const useTeacherFeatures = create<FeaturesState>((set, get) => ({
   map: {},
   load: async () => {
     const user = await getAuthUser()
-    if (!user) { set({ loaded: true, map: {} }); return }
+    if (!user) { set({ loaded: true, map: devFeatures() }); return }
     const { data, error } = await supabase.rpc('my_features')
     // Миграции ещё нет в базе — ведём себя как до правила: всё, что уже было, видно.
     if (error) {
@@ -76,6 +86,17 @@ export function useFeature(key: FeatureKey): boolean {
     void useTeacherFeatures.getState().load()
   }, [])
   return on
+}
+
+/** Карта включённых функций (для списков: виджеты стола и т. п.). */
+export function useFeatureMap(): Partial<Record<FeatureKey, boolean>> {
+  const map = useTeacherFeatures(s => s.map)
+  useEffect(() => {
+    if (started) return
+    started = true
+    void useTeacherFeatures.getState().load()
+  }, [])
+  return map
 }
 
 /** Сброс при смене пользователя (выход/вход). */

@@ -35,7 +35,7 @@ import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore
 import { useDeskStore } from '../../store/deskStore'
 import { type LayoutItem, useDeskLayouts } from '../../lib/useDeskLayouts'
 import { useTeacherAccess, TEACHER_TABS } from '../../lib/teacherAccess'
-import { useFeatureHiddenWidgets } from '../../lib/featureWidgets'
+import { useHiddenWidgets } from '../../components/teacher/widgets/featureWidgets'
 import { useTeacherTz } from '../../lib/teacherTz'
 import { useT } from '../../lib/i18n'
 import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
@@ -77,7 +77,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
   // Per-teacher access (admin-configured). Load once; gate nav + widgets.
   const isAdministrator = useTeacherAccess(s => s.isAdmin)
   const accessLoaded = useTeacherAccess(s => s.loaded)
-  const hiddenWidgets = useFeatureHiddenWidgets(useTeacherAccess(s => s.hiddenWidgets))
+  const hiddenWidgets = useHiddenWidgets(useTeacherAccess(s => s.hiddenWidgets))
   const canPage = useTeacherAccess(s => s.canPage)
   const canTab = useTeacherAccess(s => s.canTab)
   useEffect(() => { useTeacherAccess.getState().load() }, [])
