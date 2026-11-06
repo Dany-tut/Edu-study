@@ -50,6 +50,7 @@
     "check:feed-release": "node scripts/checkFeedRelease.mjs",
     "check:diary-views": "node scripts/checkStudentDiaryViews.mjs",
     "check:student-journal": "node scripts/checkStudentWorkJournal.mjs",
+    "check:iskra-mcp": "cd supabase/functions/iskra-mcp && deno check index.ts readTools.ts readTools_test.ts && deno test readTools_test.ts",
     "check:drive-video": "deno test --no-lock --node-modules-dir=auto --allow-env supabase/functions/_shared/driveVideo_test.ts supabase/functions/drive-video/index_test.ts",
     "check:video-access": "node scripts/checkHomeworkVideoAccess.mjs",
     "check:student-home": "node scripts/checkStudentHomeWork.mjs",
