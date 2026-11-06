@@ -155,7 +155,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
       {/* Widget library modal */}
-      {showWidgetLibrary && (<Suspense fallback={null}>
+      <AnimatePresence>{showWidgetLibrary && (<Suspense key="widget-library" fallback={null}>
         <WidgetLibraryModal
           onClose={() => setShowWidgetLibrary(false)}
           onEditDesk={isDesktop && !editMode ? useTeacher.getState().openDeskEditor : undefined}
@@ -166,7 +166,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
           gridWidth={isDesktop && widgetGrid?.deskId === activeDesk.id ? widgetGrid.width : isDesktop ? undefined : deskWidthForColumns(activeDesk.columns)}
           hiddenWidgets={hiddenWidgets}
         />
-      </Suspense>)}
+      </Suspense>)}</AnimatePresence>
 
     <TeacherSubjectsPrompt />
     {(isDesktop || mobileTool) && <div inert={showWidgetLibrary} className="dashboard-root teacher-dashboard-root" style={{ display: 'flex', position: 'relative' }}>
