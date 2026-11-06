@@ -6,6 +6,7 @@ import MontageAction from './MontageAction'
 import Switch from '../Switch'
 import { MODULE_DOWNLOAD_URL, useModuleState } from '../../lib/transcriptionModuleUpdate'
 import { fetchTermsPack, suggestTerms, termEditPairs, termsForModule } from '../../lib/transcriptTerms'
+import type { RecapControl } from './LessonRecapPanel'
 import './profileIntegrations.css'
 import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
@@ -242,7 +243,10 @@ type Props = { owner: string; lessonKey: string; source: string; file?: File | n
   /** Текст урока (описание, конспект, главы): термины из него идут в подсказку первыми. */
   lessonText?: string
   /** Уроки курса с итогами монтажа — для динамики во вкладке «Итоги». */
-  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[] }
+  trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[]
+  /** Итоги урока из расшифровки — панель в окне монтажа. */
+  recap?: RecapControl
+  recapSignal?: number }
 
 function readPending(owner: string, lessonKey: string, source: string, file?: File | null): Pending | null {
   try {
@@ -408,7 +412,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено</span>}
       <button data-hover="layer" aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={open}><RotateCcw size={16}/></button>
-      <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} />
+      <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} recap={props.recap} recapSignal={props.recapSignal} />
       <button data-hover="layer" aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>

@@ -21,7 +21,7 @@ import {
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   TimedTest, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
-  ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock,
+  ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock, Sparkles,
 } from '../../components/icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import FadeText from '../../components/FadeText'
@@ -32,7 +32,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
-import { courseSubjectOptionsFor, isLanguageSubject } from '../../lib/subjects'
+import { courseSubjectOptionsFor, getSubject, isLanguageSubject } from '../../lib/subjects'
 import { useTeacherTz, isMsk, tzOffsetMs } from '../../lib/teacherTz'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
@@ -81,7 +81,7 @@ import {
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { emptyWatch } from '../../lib/videoProgress'
-import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonContent'
+import { activeTimecodeIndex, type LessonParagraph, type LessonTimecode, type SelfCheckQuestion } from '../../data/lessonContent'
 import { ALL_CHAMO, CHAMO, chamoOf, isSyllable, keysOf, type ChamoKind } from '../../data/hangul'
 import { buildCrossword } from '../../lib/crossword'
 import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
@@ -110,8 +110,13 @@ type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
 
 
 import { RecordingLines, TranscriptionAction, useTranscriptionOwner, type TranscriptRail } from '../../components/teacher/LocalTranscription'
+import { useLessonRecap, useRecapAvailable } from '../../components/teacher/useLessonRecap'
+import { RecapAppliedToast, RecapEntryCard, applyRecap, undoRecapPart, type RecapCourseCtx } from '../../components/teacher/LessonRecapEntry'
+import type { RecapControl } from '../../components/teacher/LessonRecapPanel'
+import type { RecapPublished } from '../../lib/lessonRecap'
+import '../../components/teacher/lessonRecapPanel.css'
 import { termsSubject } from '../../lib/transcriptTerms'
-import { readTranscript, type LessonTranscript } from '../../lib/localTranscription'
+import { readTranscript, transcriptTime, type LessonTranscript } from '../../lib/localTranscription'
 import { playbackPlan, type LessonStatsSummary } from '../../lib/lessonMontage'
 
 export interface CELesson {
@@ -148,6 +153,18 @@ export interface CELesson {
    * base64. Разбор и сборка — в lib/theoryImages.ts.
    */
   theoryImages?: TheoryImage[]
+  /**
+   * «Итоги занятия» из записи урока (lib/lessonRecap): абзацы с таймкодами,
+   * origin: 'recap'. Живут отдельно от поля «Конспект», потому что текстовое
+   * поле не хранит ни таймкодов, ни пометки происхождения; при сохранении
+   * встают в lessons.content.paragraphs после конспекта.
+   */
+  recapParagraphs?: LessonParagraph[]
+  /** «Проверь себя» из итогов урока → lessons.content.selfCheck. */
+  selfCheck?: SelfCheckQuestion[]
+  /** Набор карточек урока из итогов и его группа-обёртка. */
+  recapCardSetId?: string
+  recapCardGroupId?: string
   /**
    * Прикреплённые файлы урока: рабочая тетрадь, конспект-PDF, материалы.
    * Едут в lessons.materials, сами файлы — в бакете lesson-materials
@@ -1719,13 +1736,15 @@ function montagePlan(lesson: CELesson) {
 }
 
 function CenterRecording({
-  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false, subject = '',
+  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false, subject = '', recapCourse,
 }: {
   lesson: CELesson
   /** Предмет курса — словарь расшифровки этого предмета. */
   subject?: string
   /** «Предпросмотр»: плеер пропускает вырезанное и ускоряет тихое — как у ученика. */
   preview?: boolean
+  /** Курс для итогов урока: язык и предмет набора карточек, ученики курса. */
+  recapCourse?: Omit<RecapCourseCtx, 'ownerId'>
   /** Уроки курса с итогами монтажа — динамика во вкладке «Итоги». */
   trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[]
   /** Слот в левой рельсе: реплики стоят там, а не под плеером. */
@@ -1742,6 +1761,51 @@ function CenterRecording({
   const owner = useTranscriptionOwner()
   const transcription = useFeature('transcription')
   const [linkMode, setLinkMode] = useState(false)
+
+  // ── Итоги урока из расшифровки (концепт B) ────────────────────────────────
+  // Вход здесь и кнопка в окне монтажа ведут в один черновик (useLessonRecap).
+  // Собираются по СОХРАНЁННОЙ расшифровке: её читает функция lesson-recap.
+  const recapOn = useRecapAvailable()
+  const savedTranscript = !!lesson.transcript?.segments.length && lesson.transcript.source === (lesson.videoUrl?.trim() || '')
+  const recap = useLessonRecap(recapOn && savedTranscript && owner ? lesson.persistedShortId ?? lesson.id : undefined, recapCourse?.lang ?? '', recapOn)
+  const [recapSignal, setRecapSignal] = useState(0)
+  const [recapToast, setRecapToast] = useState<{ published: RecapPublished; skipped: string[] } | null>(null)
+  const latestLesson = useRef(lesson)
+  latestLesson.current = lesson
+  const recapControl: RecapControl | undefined = recapOn && savedTranscript && owner && recapCourse ? {
+    row: recap.row, busy: recap.busy, loading: recap.loading, error: recap.error,
+    build: recap.build, rebuild: recap.rebuild, save: recap.save, dismissError: recap.dismissError,
+    costNote: '≈ 10 ₽ · около 40 секунд',
+    apply: async draft => {
+      const row = recap.row
+      if (!row) return false
+      recap.flush()
+      try {
+        const res = await applyRecap(latestLesson.current, row, draft, { ...recapCourse, ownerId: owner })
+        onUpdate(res.lesson)
+        recap.setRow({ ...row, draft, status: 'published', published: res.published })
+        setRecapToast({ published: res.published, skipped: res.skipped })
+        return true
+      } catch (e) {
+        console.error('lessonRecap: apply', e)
+        setRecapToast({ published: { at: new Date().toISOString() }, skipped: ['Итоги не разложились. Попробуйте ещё раз.'] })
+        return false
+      }
+    },
+  } : undefined
+  const recapCard = recapOn && savedTranscript && recapControl ? <RecapEntryCard row={recap.row} busy={recap.busy === 'all'} loading={recap.loading} canBuild={savedTranscript}
+    onOpen={() => setRecapSignal(n => n + 1)}
+    onBuild={() => { recap.build(['summary', 'questions', 'cards', 'hw', 'note']); setRecapSignal(n => n + 1) }} /> : null
+  const recapToastNode = recapToast && recap.row ? <RecapAppliedToast published={recapToast.published} skipped={recapToast.skipped}
+    hwAssigned={lesson.hwDate} coursePublished={published} onClose={() => setRecapToast(null)}
+    onUndo={async part => {
+      const row = recap.row
+      if (!row) return
+      const res = await undoRecapPart(latestLesson.current, row, part)
+      onUpdate(res.lesson)
+      recap.setRow({ ...row, published: res.published, status: res.published ? 'published' : 'ready' })
+      setRecapToast(tt => tt && { ...tt, published: res.published ?? { at: tt.published.at } })
+    }} /> : null
   // Крестик взводится первым нажатием: вторым уходит запись вместе с главами и
   // расшифровкой — часы разбора не должны пропадать от промаха мышью.
   const [removeArmed, setRemoveArmed] = useState(false)
@@ -1885,6 +1949,7 @@ function CenterRecording({
                 style={{ ...btn('M', 'secondary'), textDecoration: 'none' }}>
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>
+              {recapCard}
               {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>, linesSlot) : <RecordingLines rail={rail} at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>)}
               {rail ? timecodePanel : transcriptionAction}
             </div>
@@ -1947,6 +2012,7 @@ function CenterRecording({
                 <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Предпросмотра нет — таймкоды справа можно проставить вручную')}</div>
               </div>
             )}
+            {recapCard}
             {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>, linesSlot) : <RecordingLines rail={rail} at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>)}
           </div>
 
@@ -2000,7 +2066,9 @@ function CenterRecording({
     <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', paddingBottom: RECORDING_BLEED }}>
       {loading || !transcription || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
+        recap={recapControl} recapSignal={recapSignal}
         onApply={({ transcript, timecodes }) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes })}>{content}</TranscriptionAction>}
+      {recapToastNode}
     </div>
   )
 }
@@ -2327,6 +2395,33 @@ function TheoryEditor({
   )
 }
 
+/**
+ * Итоги урока, разложенные из записи: «Итоги занятия» и «Проверь себя».
+ * Здесь — только показ и «Убрать»: править их удобнее рядом с источником,
+ * в окне монтажа (вкладка «Запись» → «Итоги урока» → «Применить снова»).
+ */
+function RecapInLesson({ lesson, onUpdate }: { lesson: CELesson; onUpdate: (updated: CELesson) => void }) {
+  const paras = lesson.recapParagraphs ?? []
+  const qs = lesson.selfCheck ?? []
+  if (!paras.length && !qs.length) return null
+  return <section className="rce rce-lesson" aria-label="Итоги занятия из записи">
+    <header className="rce-head">
+      <span className="rp-mark"><Sparkles size={18} /></span>
+      <div className="rp-head-text"><strong>Итоги занятия</strong><small>Из записи урока · таймкоды ведут в видео · править — во вкладке «Запись»</small></div>
+      <span className="rp-pill">из записи</span>
+    </header>
+    {paras.map(p => <div key={p.id} className="rce-para">
+      {p.title && <b>{p.title}</b>}<span>{p.text}</span>
+      {!!p.at?.length && <span className="rp-times">{p.at.slice(0, 3).map(s => <span key={s} className="rp-tc">{transcriptTime(s)}</span>)}</span>}
+    </div>)}
+    {qs.length > 0 && <p className="rce-text"><b>Проверь себя:</b> {qs.length} {qs.length === 1 ? 'вопрос' : qs.length < 5 ? 'вопроса' : 'вопросов'}, без оценки.</p>}
+    <div className="rce-foot">
+      {paras.length > 0 && <button type="button" style={btn('S', 'secondary')} onClick={() => onUpdate({ ...lesson, recapParagraphs: undefined })}>Убрать итоги занятия</button>}
+      {qs.length > 0 && <button type="button" style={btn('S', 'secondary')} onClick={() => onUpdate({ ...lesson, selfCheck: undefined })}>Убрать «Проверь себя»</button>}
+    </div>
+  </section>
+}
+
 function CenterLesson({
   lesson, onUpdate,
 }: {
@@ -2594,6 +2689,7 @@ function CenterLesson({
           <Label>{t('Конспект')}</Label>
           <TheoryEditor lesson={lesson} onUpdate={onUpdate} />
         </div>
+        <RecapInLesson lesson={lesson} onUpdate={onUpdate} />
       </div>
 
       {/* Ctrl+V paste picker */}
@@ -5812,7 +5908,11 @@ export default function TeacherCourseEditorPage() {
             // после первой правки руками (см. authoredLessons.ts). Без этого
             // редактор курса открывал биологию с пустым «Конспектом», хотя
             // ученик тот же текст видел.
-            const dbParas = Array.isArray(row.content?.paragraphs) ? row.content.paragraphs : []
+            const allParas: LessonParagraph[] = Array.isArray(row.content?.paragraphs) ? row.content.paragraphs : []
+            // Абзацы итогов урока — отдельно от конспекта: в текстовом поле
+            // они потеряли бы таймкоды и пометку происхождения.
+            const dbParas = allParas.filter(p => p?.origin !== 'recap')
+            const recapParas = allParas.filter(p => p?.origin === 'recap')
             const theory = paragraphsToTheory(
               dbParas.length > 0 ? dbParas : (authoredLesson(l.id)?.paragraphs ?? []),
             )
@@ -5822,6 +5922,10 @@ export default function TeacherCourseEditorPage() {
               transcript: l.transcript ?? readTranscript(row.content?.transcript),
               theory: l.theory ?? (theory.theory || undefined),
               theoryImages: l.theoryImages ?? theory.images,
+              recapParagraphs: l.recapParagraphs ?? (recapParas.length ? recapParas : undefined),
+              selfCheck: l.selfCheck ?? (Array.isArray(row.content?.selfCheck) && row.content.selfCheck.length ? row.content.selfCheck : undefined),
+              recapCardSetId: l.recapCardSetId ?? row.content?.cardSetId ?? undefined,
+              recapCardGroupId: l.recapCardGroupId ?? row.content?.cardGroupId ?? undefined,
               files: l.files ?? parseLessonFiles(row.materials),
               hwTitle: l.hwTitle ?? hw.hwTitle ?? undefined,
               hwTarget: l.hwTarget ?? hw.hwTarget ?? undefined,
@@ -6555,15 +6659,22 @@ export default function TeacherCourseEditorPage() {
       // содержимое, заведённое другим путём, пустым массивом абзацев.
       content: {
         ...(lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript } : {}),
-        ...(lesson.theory?.trim()
+        ...(lesson.theory?.trim() || lesson.recapParagraphs?.length
         ? {
-            paragraphs: theoryToParagraphs(
-              lesson.theory,
-              lesson.theoryImages,
-              shortIdByLessonId[lesson.id] ?? lesson.id,
-            ),
+            paragraphs: [
+              ...(lesson.theory?.trim() ? theoryToParagraphs(
+                lesson.theory,
+                lesson.theoryImages,
+                shortIdByLessonId[lesson.id] ?? lesson.id,
+              ) : []),
+              // «Итоги занятия» из записи — после конспекта, с таймкодами.
+              ...(lesson.recapParagraphs ?? []),
+            ],
           }
         : {}),
+        ...(lesson.selfCheck?.length ? { selfCheck: lesson.selfCheck } : {}),
+        ...(lesson.recapCardSetId ? { cardSetId: lesson.recapCardSetId } : {}),
+        ...(lesson.recapCardGroupId ? { cardGroupId: lesson.recapCardGroupId } : {}),
       },
       kind: lesson.kind ?? 'lesson',
       test_tasks: lesson.testTasks ?? [],
@@ -7480,6 +7591,11 @@ export default function TeacherCourseEditorPage() {
                         linesSlot={recordingLinesSlot}
                         subject={course.subject}
                         preview={recordingView === 'preview' && !!montagePlan(selectedLesson)}
+                        recapCourse={{
+                          lang: getSubject(course.subject)?.langCode ?? '',
+                          subject: getSubject(course.subject)?.id ?? course.subject,
+                          studentIds: [...new Set([...course.studentIds, ...allStudents.filter(st => st.groupId && course.groupIds.includes(st.groupId)).map(st => st.id)])],
+                        }}
                         courseKey={course.id} loading={!!(course.metadataPending || course.heavyPending)} published={course.status === 'published'}
                         key={lessonShortIdById[selectedLesson.id] ?? selectedLesson.id}
                         lesson={selectedLesson}

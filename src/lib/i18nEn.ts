@@ -10,6 +10,13 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  // Итоги урока из записи (LessonRecapBlocks)
+  "Смотреть с": "Watch from",
+  "Итоги занятия": "Lesson recap",
+  "Нажмите время — видео перемотается": "Tap a time to jump to that moment in the video",
+  "Из записи урока": "From the lesson recording",
+  "без оценки": "not graded",
+  "Где на уроке:": "Where in the lesson:",
   "Открыть профиль": "Open profile",
   "Не удалось открыть профиль. Попробуйте ещё раз.": "Could not open the profile. Please try again.",
   "Не удалось удалить из друзей. Попробуйте ещё раз.": "Could not remove this friend. Please try again.",
@@ -6067,7 +6074,8 @@ export const EN: Record<string, string> = {
   "ИИ-помощники (MCP)": "AI assistants (MCP)",
   "Подключить Claude и другие ИИ-клиенты к вашим курсам.": "Connect Claude and other AI clients to your courses.",
   "Итоги урока": "Lesson recap",
-  "Конспект, вопросы, карточки и черновик ДЗ из расшифровки урока.": "Notes, questions, cards and a homework draft from the lesson transcript.",
+  "Итоги урока из записи": "Lesson recap from the recording",
+  "Конспект, вопросы, карточки, черновик ДЗ и заметка для вас — из расшифровки урока. Выключено — кнопки скрыты, черновики остаются.": "Notes, questions, cards, a homework draft and a note for you — from the lesson transcript. When off, the buttons are hidden and drafts are kept.",
   "Напоминания ученикам": "Student reminders",
   "Урок скоро, ДЗ завтра, ДЗ просрочено — в Telegram и пушем.": "Lesson soon, homework due tomorrow, homework overdue — via Telegram and push.",
   "Отчёт родителю": "Parent report",

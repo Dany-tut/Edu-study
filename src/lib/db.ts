@@ -943,7 +943,7 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
 
   type Row = {
     short_id: string
-    content?: { paragraphs?: unknown[]; transcript?: unknown } | null
+    content?: { paragraphs?: unknown[]; selfCheck?: unknown[]; transcript?: unknown } | null
     homework?: import('../data/lessonContent').AuthoredHomework | null
     description?: string | null
   }
@@ -952,8 +952,9 @@ export async function fetchLessonsHeavy(shortIds: string[]): Promise<Map<string,
       || l.homework.extraHw?.some(x => x?.tasks?.length))
       ? l.homework
       : undefined
-    const content = l.content && l.content.paragraphs?.length
-      ? (l.content as import('../data/lessonContent').LessonContentData)
+    // «Проверь себя» из итогов урока бывает и без конспекта.
+    const content = l.content && (l.content.paragraphs?.length || l.content.selfCheck?.length)
+      ? ({ paragraphs: [], ...l.content } as import('../data/lessonContent').LessonContentData)
       : undefined
     out.set(l.short_id, { content, homework, transcript: readTranscript(l.content?.transcript), description: l.description ?? undefined })
   }
