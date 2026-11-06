@@ -1,8 +1,9 @@
 import { lazy, type ComponentType } from 'react'
 import { WIDGET_LAYOUTS, type WidgetCellSize } from '../../../lib/widgetLayouts'
-import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from '../../icons/appIcons'
+import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, Send } from '../../icons/appIcons'
 import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
+import type { FeatureKey } from '../../../lib/teacherFeatures'
 
 const WidgetFinanceKpi        = lazy(() => retryImport(() => import('./WidgetFinanceKpi')))
 const WidgetFinanceOverdue    = lazy(() => retryImport(() => import('./WidgetFinanceOverdue')))
@@ -27,6 +28,7 @@ const WidgetStudentCount      = lazy(() => retryImport(() => import('./WidgetStu
 const WidgetStudentGroups     = lazy(() => retryImport(() => import('./WidgetStudentGroups')))
 const WidgetStudentActive     = lazy(() => retryImport(() => import('./WidgetStudentActive')))
 const WidgetStudentDebtors    = lazy(() => retryImport(() => import('./WidgetStudentDebtors')))
+const WidgetCommsToday        = lazy(() => retryImport(() => import('./WidgetCommsToday')))
 
 export type WidgetDef = {
   type: string
@@ -51,6 +53,8 @@ export type WidgetDef = {
   bare?: boolean
   /** Existing saved desks still render this type; new desks use individual cards. */
   legacy?: boolean
+  /** Виджет функции учителя: без включённой функции его нет (lib/featureWidgets.ts). */
+  feature?: FeatureKey
   component: ComponentType
 }
 
@@ -184,6 +188,18 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     defaultW: 3, defaultH: 3,
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     component: WidgetTodayTasks,
+  },
+  {
+    type: 'comms-today',
+    label: 'Связь с учениками',
+    icon: Send,
+    iconBg: 'var(--color-blue-pill-bg)',
+    iconColor: 'var(--color-blue-pill-text)',
+    description: 'Что уйдёт сегодня, что не дошло, кто подключил Telegram',
+    defaultW: 3, defaultH: 4,
+    minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
+    feature: 'reminders' as const,
+    component: WidgetCommsToday,
   },
 ].map(def => ({...def, allowedSizes:WIDGET_LAYOUTS[def.type]}))
 
