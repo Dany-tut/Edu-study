@@ -2,6 +2,7 @@ import { diagnosticFailure, diagnosticRetry } from '../lib/diagnosticJourney'
 import { Component, type ReactNode } from 'react'
 import { AlertIcon } from './Alert'
 import { trackEvent } from '../lib/analytics'
+import { reportRenderCrash } from '../lib/webCrashReporting'
 import { hardReload, isChunkError, recoverFromChunkError } from '../lib/chunkError'
 import { t } from '../lib/i18n'
 import { getStudentSession } from '../lib/studentSession'
@@ -44,6 +45,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         stack: String(error?.stack ?? '').slice(0, 400),
         component: componentStack,
       })
+      reportRenderCrash(error, componentStack)
     } catch { /* never let reporting throw inside the boundary */ }
     // «Чанк пропал после деплоя» — не крах приложения, а устаревшая вкладка:
     // забираем свежий index.html одной перезагрузкой (гард внутри), вместо того
