@@ -40,7 +40,7 @@ try {
   insert into groups values ('${G}','Группа А','${T1}'), ('${EMPTY}','Пустая','${T1}'), ('${G2}','Чужая','${T2}');
   insert into students values ('${ANNA}','Анна','${G}','${T1}'), ('${BORIS}','Борис','${G}','${T1}'),
     ('${SOLO}','Соло',null,'${T1}'), ('${STRANGER}','Чужой','${G2}','${T2}');`)
-  sql(readFileSync('supabase/migrations/20261106120000_journal_pending_notify.sql', 'utf8'))
+  sql(readFileSync('supabase/migrations/20261106120200_journal_pending_notify.sql', 'utf8'))
 
   const lesson = (n, extra = '') => sql(`insert into schedule_lessons(id, group_id, student_id, date, time_start, lesson_title, status)
     values ('${id(100 + n)}', ${extra}) returning id`)

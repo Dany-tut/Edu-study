@@ -942,7 +942,7 @@ const pendingJournalsQuery = createSharedQuery<PendingJournal[]>(withLoadFixture
 
   const uid = await getOwnerId()
   if (!uid) return []
-  // Правило живёт в базе (journal_pending, 20261106120000_journal_pending_notify.sql):
+  // Правило живёт в базе (journal_pending, 20261106120200_journal_pending_notify.sql):
   // по нему же крон кладёт учителю уведомление. Расчёт ниже — запасной путь,
   // пока миграция не в базе.
   const rpc = await supabase.rpc('journal_pending')
